@@ -1,0 +1,341 @@
+{
+  "application_sha": "c946d0e9dc52933e81fe7287d054d09432d441ea",
+  "overall_status": "HOLD_FRONTEND",
+  "backend_independent_review": {
+    "status": "PASS",
+    "maintained_tests": 230,
+    "independent_probes": 18,
+    "total": 248,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "checks": [
+      "Receipt-only whitelist and legitimate late evidence",
+      "Synthetic provenance cannot be publicly relabeled as live",
+      "Missing-ID ambiguous sends retain reservation and never resend",
+      "Reasoning encrypted content is optional only for final parsing",
+      "Same-ID append-only correction has exact request/response/model/usage binding",
+      "Explicit owner-only exact successor, unchanged root and cumulative caps",
+      "No revoked-rights resurrection or worker self-approval"
+    ]
+  },
+  "live_core_journey": {
+    "status": "PASS",
+    "acceptance_test_only": true,
+    "underlying_experiment_performed": false,
+    "proposal_id": "1a5e199f-592f-4d53-8a32-036b55b868a9",
+    "approved_revision_id": "01e8faae-6948-4f09-a01c-9e9ad061d37d",
+    "body_hash": "899680a8c528e375b8e3a9b76c66d2af4e1909bd8250a156140006cb98c027dc",
+    "base_revision_id": "4cb4f3a9-ebc6-473d-ac9a-a6efed214454",
+    "exact_reviewed_body_readback": true,
+    "human_edit_preserved": true,
+    "revision_count": 3,
+    "restart_and_repeated_delivery": [
+      {
+        "run_id": "d5e4a200-5886-4386-b595-1e0c00f7ed48",
+        "result": "reconciled"
+      },
+      {
+        "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+        "result": "reconciled"
+      },
+      {
+        "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+        "result": "reconciled"
+      }
+    ],
+    "http_attempts": 0,
+    "counters_unchanged": true,
+    "counters": {
+      "request_counts": {
+        "count_send": 4,
+        "dispatch": 4,
+        "read": 15,
+        "cancel": 0
+      },
+      "reserved_input_tokens": 80000,
+      "reserved_output_tokens": 32768,
+      "reserved_cost_usd": "0.52768",
+      "reported_usage": {
+        "input_tokens": 5798,
+        "output_tokens": 1814
+      },
+      "unknown_usage_steps": 0,
+      "conservatively_calculated_cost_usd": "0.0326350",
+      "billed_cost_usd": null,
+      "cost_basis": "undiscounted reservation rates; not provider billing"
+    },
+    "outcome": {
+      "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+      "response_steps": [
+        {
+          "phase": "selection",
+          "state": "received",
+          "response_id": "resp_06dc1ce95ec1e221006ac022144c8c87d0b2d589c77339276e",
+          "reported_input_tokens": 803,
+          "reported_output_tokens": 38,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0023875",
+          "billed_cost_usd": null
+        },
+        {
+          "phase": "final",
+          "state": "received",
+          "response_id": "resp_06dc1ce95ec1e221006ac02249f37887d0923098874fc1c5d6",
+          "reported_input_tokens": 2463,
+          "reported_output_tokens": 854,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0146975",
+          "billed_cost_usd": null
+        }
+      ],
+      "execution": {
+        "mode": "managed",
+        "profile": "openai-responses-v1",
+        "model": "gpt-6.1-sol",
+        "grant_id": "intake-live-01",
+        "attempt_id": "24111bbd-12c4-4e8a-879b-9ab08e190f91",
+        "provider_observation": "received",
+        "evidence_origin": "live_provider_receipt"
+      },
+      "state": "readback_verified",
+      "artifacts": [
+        {
+          "artifact_id": "b4984bee-13ac-4395-8184-0e25ea52ff9d",
+          "revision_id": "01e8faae-6948-4f09-a01c-9e9ad061d37d",
+          "proposal_id": "1a5e199f-592f-4d53-8a32-036b55b868a9",
+          "base_revision_id": "4cb4f3a9-ebc6-473d-ac9a-a6efed214454",
+          "body_hash": "899680a8c528e375b8e3a9b76c66d2af4e1909bd8250a156140006cb98c027dc"
+        }
+      ],
+      "checks": [
+        {
+          "name": "publication_binding",
+          "status": "passed"
+        },
+        {
+          "name": "saved_body",
+          "status": "passed"
+        },
+        {
+          "name": "exact_base",
+          "status": "passed"
+        },
+        {
+          "name": "current_revision",
+          "status": "passed"
+        },
+        {
+          "name": "provider_result",
+          "status": "passed"
+        },
+        {
+          "name": "authority",
+          "status": "passed"
+        }
+      ],
+      "outcome_gate": "passed",
+      "safety_gate": "passed",
+      "continuation_available": false,
+      "attempt_state": "reconciled",
+      "blocker": null,
+      "reason": null,
+      "next_action": null,
+      "question": null,
+      "unresolved": [],
+      "underlying_action_performed": false
+    }
+  },
+  "content_review": {
+    "status": "PASS",
+    "kind": "parent_review_of_actual_revised_content_and_domain_proposal",
+    "proposal_id": "1a5e199f-592f-4d53-8a32-036b55b868a9",
+    "body_hash": "899680a8c528e375b8e3a9b76c66d2af4e1909bd8250a156140006cb98c027dc",
+    "base_revision_id": "4cb4f3a9-ebc6-473d-ac9a-a6efed214454",
+    "original_human_body_preserved_byte_for_byte_as_blocks": true,
+    "current_first_supersession_visible": true,
+    "packaging_defects_fixed": true,
+    "source_content_and_versions_unchanged": true,
+    "one_artifact_two_runs": true,
+    "counters": {
+      "request_counts": {
+        "count_send": 4,
+        "dispatch": 4,
+        "read": 15,
+        "cancel": 0
+      },
+      "reserved_input_tokens": 80000,
+      "reserved_output_tokens": 32768,
+      "reserved_cost_usd": "0.52768",
+      "reported_usage": {
+        "input_tokens": 5798,
+        "output_tokens": 1814
+      },
+      "unknown_usage_steps": 0,
+      "conservatively_calculated_cost_usd": "0.0326350",
+      "billed_cost_usd": null,
+      "cost_basis": "undiscounted reservation rates; not provider billing"
+    },
+    "underlying_experiment_approval": "not granted; any subsequent UI approval is a synthetic acceptance test of this document revision only"
+  },
+  "browser": {
+    "captures": [
+      {
+        "file": "approved-320.png",
+        "sha256": "c00eb984bd6cddb1708fb0f20a4a7065fe471036dd9a8edc4334521a7718c917",
+        "bytes": 63816,
+        "state": "approved",
+        "viewport": [
+          320,
+          780
+        ],
+        "document_scroll_width": 320
+      },
+      {
+        "file": "approved-390.png",
+        "sha256": "c1c27eb84218c3731c2565430aaf4d8553300088d3014339b92167473113644c",
+        "bytes": 77077,
+        "state": "approved",
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 390
+      },
+      {
+        "file": "approved-1440.png",
+        "sha256": "544f7499c04048d4a6823fbfe270d3e8b001a2df912b599759bb69eb2184e54d",
+        "bytes": 266759,
+        "state": "approved",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "document_scroll_width": 1425
+      },
+      {
+        "file": "assignment-approved-390.png",
+        "sha256": "8fe90df8480dc0ba3e8b7a4aa70bfda2a3c9e9427388d6e60fd365940a683aac",
+        "bytes": 57207,
+        "state": "assignment-approved",
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 390
+      },
+      {
+        "file": "assignment-approved-1440.png",
+        "sha256": "d543f141fc82f6a6d431e66c96eadab4c9e0ee104eddf3ad85308e5a0d875335",
+        "bytes": 80301,
+        "state": "assignment-approved",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "document_scroll_width": 1440
+      },
+      {
+        "file": "home-approved-390.png",
+        "sha256": "b6d962bfb6372166eccf08eb56bedb57be0330d876d3ce723f3cb4e5634b81ab",
+        "bytes": 59565,
+        "state": "home-approved",
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 390
+      },
+      {
+        "file": "home-approved-1440.png",
+        "sha256": "02b0a18a4d3af0e804bfe6c0412c63fff4ca51334cf6ecbb3e9f9e19d60cf18c",
+        "bytes": 76310,
+        "state": "home-approved",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "document_scroll_width": 1440
+      },
+      {
+        "file": "proposal-320.png",
+        "sha256": "fb4199b72cf31eb256ffb23d9d320933fe79cf0693c9ad611ac98ce745a18bf0",
+        "bytes": 61905,
+        "state": "proposal",
+        "viewport": [
+          320,
+          780
+        ],
+        "document_scroll_width": 320
+      },
+      {
+        "file": "proposal-390.png",
+        "sha256": "5ad8e9e41d97915ddb6266e73fd74987799f915f330d62ea61d8d144a49380c5",
+        "bytes": 85632,
+        "state": "proposal",
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 390
+      },
+      {
+        "file": "proposal-1440.png",
+        "sha256": "48a93d3b72abf781d9f9d999c4507fb6c7ee78f02519979cf8d72988fdc1ccad",
+        "bytes": 242641,
+        "state": "proposal",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "document_scroll_width": 1425
+      },
+      {
+        "file": "space-approved-390.png",
+        "sha256": "d677db104347cf24a5abb4ca0c041efce4ea14748c8fb7a49fde85d21d024f12",
+        "bytes": 61722,
+        "state": "space-approved",
+        "viewport": [
+          390,
+          844
+        ],
+        "document_scroll_width": 390
+      },
+      {
+        "file": "space-approved-1440.png",
+        "sha256": "b533026b9ebe75835b59f6c2c29f074b917b3b8558cff74bae41b5815d4006e6",
+        "bytes": 78810,
+        "state": "space-approved",
+        "viewport": [
+          1440,
+          1000
+        ],
+        "document_scroll_width": 1440
+      }
+    ],
+    "count": 12,
+    "horizontal_overflow": false,
+    "known_defects": [
+      "IR-L2: assignment recommendation fallback rather than actual managed current section",
+      "Global fixture-worker footer contradicts server-attested live provider item"
+    ]
+  },
+  "ci": {
+    "scope": "frontend checks",
+    "result": "SUCCESS",
+    "application_sha": "c946d0e9dc52933e81fe7287d054d09432d441ea",
+    "url": "https://github.com/alindebergASL/Workagent/actions/runs/37067181838/job/111037842085"
+  },
+  "authorization": {
+    "default_branch_merged": false,
+    "deployed": false,
+    "external_customer_actions": false,
+    "new_generation_requests_allowed_under_planned_call_cap": 0
+  },
+  "limitations": [
+    "Synthetic workspace sources only; real provider inference, not customer-data acceptance.",
+    "Human UI actions were authorized synthetic acceptance testing, not Andrew approving the proposed real-world experiment.",
+    "Read counters are durable request reservations; provider billing is not verified.",
+    "UI corrections and integrated frontend recheck remain outstanding."
+  ]
+}
