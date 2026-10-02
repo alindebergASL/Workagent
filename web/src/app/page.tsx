@@ -10,17 +10,18 @@ import {
   workAttention,
 } from "@/lib/work-state";
 import { Composer } from "@/components/Composer";
-import { assignmentStatus, ErrorNotice, StatusBadge } from "@/components/ui";
+import { ErrorNotice, StatusBadge, workStatus } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
 
 function lede(items: AssignmentSummary[]): string {
   const phases = items.map(phaseOf);
-  if (phases.includes("decision"))
-    return "A proposed revision is waiting for you. Or we can start something new.";
-  if (phases.includes("blocked"))
-    return "Something needs you before it can continue.";
-  if (phases.includes("prepared"))
-    return "Your prepared work is ready. Or we can start something new.";
+  // The timely card below carries the exact action; the lede only orients.
+  if (
+    phases.includes("decision") ||
+    phases.includes("blocked") ||
+    phases.includes("prepared")
+  )
+    return "Here’s where your work stands. Or hand over something new.";
   if (items.some(isWorking))
     return "I’m preparing your work now. You can hand over something else meanwhile.";
   if (phases.includes("approved"))
@@ -76,7 +77,11 @@ export default function AgentHome() {
           <div className="row row-between">
             <p className="eyebrow-caps">{attention.eyebrow}</p>
             <StatusBadge
-              {...assignmentStatus(attention.item.state, attention.item.stage)}
+              {...workStatus(
+                attention.item.state,
+                attention.item.stage,
+                phaseOf(attention.item) === "decision",
+              )}
             />
           </div>
           <h2 id="decision-title">{attention.title}</h2>

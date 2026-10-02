@@ -28,6 +28,20 @@ export function assignmentStatus(
   }
 }
 
+/**
+ * Assignment label that names a pending decision precisely; "Ready for review"
+ * stays for first prepared work.
+ */
+export function workStatus(
+  state: AssignmentState,
+  stage: string | null | undefined,
+  decisionPending: boolean,
+): { label: string; tone: string } {
+  if (decisionPending)
+    return { label: "Decision needed", tone: "status-attention" };
+  return assignmentStatus(state, stage);
+}
+
 export function artifactStatus(
   state: ArtifactState,
   partial: boolean,

@@ -12,9 +12,9 @@ import { completedSummary, phaseOf, shortTitle } from "@/lib/work-state";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import {
   artifactStatus,
-  assignmentStatus,
   ErrorNotice,
   StatusBadge,
+  workStatus,
 } from "@/components/ui";
 
 export default function AssignmentPage() {
@@ -76,7 +76,7 @@ export default function AssignmentPage() {
   }
 
   const phase = phaseOf(a);
-  const badge = assignmentStatus(a.state, a.stage);
+  const badge = workStatus(a.state, a.stage, phase === "decision");
   const plan = a.artifacts.find((x) => x.kind === "plan");
   const review = a.needs_review_artifact_ids[0];
   const reviewTitle = review ? artifactTitles[review] : null;

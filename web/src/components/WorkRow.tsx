@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { phaseOf, shortTitle } from "@/lib/work-state";
 import type { AssignmentSummary } from "@/lib/contract/types";
-import { assignmentStatus, StatusBadge } from "./ui";
+import { StatusBadge, workStatus } from "./ui";
 
 /** One line of work: what it is, its status (same label on every surface), and where to go next. */
 export function WorkRow({ item }: { item: AssignmentSummary }) {
@@ -12,7 +12,7 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
     phase === "decision" && review
       ? `/assignments/${item.id}/artifacts/${review}`
       : `/assignments/${item.id}`;
-  const status = assignmentStatus(item.state, item.stage);
+  const status = workStatus(item.state, item.stage, phase === "decision");
   const note =
     phase === "decision"
       ? "A proposed revision needs your decision"
