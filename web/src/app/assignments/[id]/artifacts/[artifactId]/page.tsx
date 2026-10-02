@@ -122,6 +122,15 @@ export default function ArtifactPage() {
         ),
       ) ?? null;
   const provenance = provenanceOf(producedBy?.execution);
+  // Records the backend projects nothing about predate per-run provenance and
+  // came from the fixture worker. A projected item without a producing run
+  // (e.g. your own edit is current) gets no agent provenance line at all.
+  const projected = Boolean(assignment.data?.responsibility);
+  const itemProvenance =
+    provenance?.label ??
+    (assignment.data && !projected
+      ? `Prepared by the ${EXECUTION.worker} · not a live run`
+      : null);
   const isHistorical = Boolean(
     viewingRevision && current && art?.accepted_revision_id !== current.id,
   );
@@ -968,7 +977,10 @@ export default function ArtifactPage() {
               Base revision {proposal.base_sequence} (
               {proposal.base_revision_id}) · current revision {current.sequence}{" "}
               ({current.id}) · proposal {proposal.id} ·{" "}
-              {provenance?.label ?? `prepared by the ${EXECUTION.worker}`}
+              {provenance?.label ??
+                (projected
+                  ? "run origin not recorded"
+                  : `prepared by the ${EXECUTION.worker}`)}
             </p>
           </details>
         </section>
@@ -1112,9 +1124,9 @@ export default function ArtifactPage() {
           be sent again.
         </p>
       ) : null}
-      {/* Fixture items are covered by the footer mode line; anything else is named here. */}
-      {provenance && producedBy?.execution?.evidence_origin !== "fixture" ? (
-        <p className="hint provenance">{provenance.label}</p>
+      {/* Each item says how it was prepared; the footer makes no global claim. */}
+      {itemProvenance ? (
+        <p className="hint provenance">{itemProvenance}</p>
       ) : null}
       {art.partial ? (
         <p className="hint" role="status">

@@ -1,11 +1,12 @@
 import { API_MODE } from "@/lib/client/api";
 
 /**
- * How work is actually executed in this build. The real domain API currently
- * dispatches only the deterministic fixture worker (run profile
- * `fixture-deterministic-v1`); no live model runtime is connected. Every place
- * that shows agent-produced work names this mode instead of implying a live run.
- * When the API exposes a run's profile/provider per item, label per run instead.
+ * The build-wide execution notice. In mock mode everything is the in-browser
+ * mock. Against the real API, runs can be fixture, synthetic or
+ * server-attested live, so the footer makes no global claim either way: each
+ * item states its own `evidence_origin` (see `provenanceOf`). `worker` is the
+ * label for records the backend projects no provenance for (fixture-era work).
+ * Live execution is never inferred from configuration.
  */
 export const EXECUTION =
   API_MODE === "mock"
@@ -15,7 +16,7 @@ export const EXECUTION =
         line: "Mock service in this browser session · Not a live agent run · No connected accounts",
       }
     : {
-        short: "Local fixture computation",
+        short: "Local preview",
         worker: "deterministic fixture worker",
-        line: "Local preview · Work is prepared by a fixture worker, not a live agent · No connected accounts",
+        line: "Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken",
       };

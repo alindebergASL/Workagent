@@ -91,7 +91,10 @@ export default function AssignmentPage() {
   const badge = statusOf(a);
   const run = currentRun(a);
   const provenance = provenanceOf(run?.execution);
-  const plan = a.artifacts.find((x) => x.kind === "plan");
+  // The document the recommendation was read from, else the plan.
+  const plan =
+    a.artifacts.find((x) => x.id === a.recommendation?.artifact_id) ??
+    a.artifacts.find((x) => x.kind === "plan");
   const review = decisionArtifactId(a);
   const reviewTitle = review ? artifactTitles[review] : null;
 
@@ -241,6 +244,11 @@ export default function AssignmentPage() {
         <section className="result" aria-labelledby="result-title">
           <h2 id="result-title">Recommendation</h2>
           <p className="result-lead">{a.recommendation.summary}</p>
+          {a.recommendation.judgment ? (
+            <p className="decision-question">
+              Where your judgment is needed: {a.recommendation.judgment}
+            </p>
+          ) : null}
           {a.recommendation.evidence.length ? (
             <ul className="evidence">
               {a.recommendation.evidence.map((e, i) => (

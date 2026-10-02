@@ -123,6 +123,10 @@ export interface Recommendation {
   summary: string;
   evidence: string[];
   uncertainty: string[];
+  /** The specific judgment the person is asked for, when the document names one. */
+  judgment?: string;
+  /** The saved document this recommendation was read from. */
+  artifact_id?: string;
 }
 
 /**

@@ -5,6 +5,7 @@ import {
 } from "../../../../contracts/src/client";
 import { ApiError } from "@/lib/contract/errors";
 import { assignmentSummary } from "./assignment-summary";
+import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
 const stablePayload = commandPayloadCache();
@@ -214,8 +215,8 @@ const toRevision = (r: S["Revision"], current: string): V.Revision => ({
   sequence: r.revision_number,
   author: {
     kind: r.author_kind === "worker" ? "agent" : "human",
-    name:
-      r.author_kind === "worker" ? "Workagent (deterministic fixture)" : "You",
+    // How the worker ran is per-run provenance, not part of the author's name.
+    name: r.author_kind === "worker" ? "Workagent" : "You",
   },
   created_at: r.created_at ?? "",
   status: r.id === current ? "accepted" : "superseded",
@@ -248,7 +249,7 @@ function toProposal(
         : p.status === "dismissed"
           ? "declined"
           : "accepted",
-    author: { kind: "agent", name: "Workagent (deterministic fixture)" },
+    author: { kind: "agent", name: "Workagent" },
     reason: p.reason,
     created_at: p.created_at ?? "",
     updated_at: p.created_at ?? "",
@@ -307,7 +308,7 @@ async function artifactView(
           history.find((r) => r.id === run.base_revision_id)?.revision_number ??
           1,
         status: "generating",
-        author: { kind: "agent", name: "Workagent (deterministic fixture)" },
+        author: { kind: "agent", name: "Workagent" },
         reason: run.instruction ?? "Revision requested",
         created_at: run.observed_at ?? "",
         updated_at: run.observed_at ?? "",
@@ -455,8 +456,12 @@ export const realApi = {
     ]);
     const initial = runs.find((r) => r.kind === "initial");
     const latest = runs.at(-1);
-    const plan = artifacts.find((x) => x.kind === "plan")?.accepted_revision;
-    const blocks = plan?.body ?? [];
+    // The recommendation comes from the current saved document: the one carrying
+    // the managed worker's current group, else the fixture plan.
+    const source =
+      artifacts.find((x) => hasManagedGroup(x.accepted_revision?.body ?? [])) ??
+      artifacts.find((x) => x.kind === "plan");
+    const plan = source?.accepted_revision;
     return {
       ...assignmentSummary(a, artifacts),
       created_at: initial?.observed_at ?? a.observed_at ?? "",
@@ -470,19 +475,10 @@ export const realApi = {
         observed_at: ref.observed_at,
         surface: "Selected source",
       })),
-      recommendation: plan
-        ? {
-            summary:
-              blocks.find((b) => b.id === "recommendation")?.text ??
-              "Review the saved work",
-            evidence: blocks
-              .filter((b) => b.id === "evidence")
-              .map((b) => b.text),
-            uncertainty: blocks
-              .filter((b) => b.id === "unknowns")
-              .map((b) => b.text),
-          }
-        : null,
+      recommendation:
+        plan && source
+          ? { ...recommendationFrom(plan.body), artifact_id: source.id }
+          : null,
       artifacts: artifacts.map((x) => ({
         id: x.id,
         title: x.title,

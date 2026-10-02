@@ -1,0 +1,132 @@
+{
+  "initial": {
+    "title": "Private intake next action",
+    "blocks": [
+      {
+        "block_id": "managed.current.attempt-1",
+        "kind": "paragraph",
+        "text": "Current proposal: This current proposal supersedes prior agent advice. Human approval is required for a revision.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.next-action.attempt-1",
+        "kind": "paragraph",
+        "text": "Next action (proposed): Run a private eight-case owner and next-action check before changing the intake form.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.missing-information.attempt-1",
+        "kind": "paragraph",
+        "text": "Missing information: Who owns the review date for the next eight cases?\nWhether case P4 is still open.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.source-basis.attempt-1",
+        "kind": "paragraph",
+        "text": "Source basis: SG-F2@1: Intake log: 4 of 8 cases lack an owner or next action.\nSG-F3@1: Method notebook: test one change before automating.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.specific-judgment.attempt-1",
+        "kind": "paragraph",
+        "text": "Specific judgment: Decide whether the eight-case check is worth one hour this week.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.scope.attempt-1",
+        "kind": "paragraph",
+        "text": "Task not performed: This document prepares a next action only. No task, message, approval, or external action has been performed.",
+        "checked": null
+      }
+    ]
+  },
+  "revision": {
+    "title": "Revised private intake next action",
+    "blocks": [
+      {
+        "block_id": "managed.current.attempt-2",
+        "kind": "paragraph",
+        "text": "Current proposal: This current proposal supersedes prior agent advice. Human approval is required for a revision.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.next-action.attempt-2",
+        "kind": "paragraph",
+        "text": "Next action (proposed): Check the next eight cases for owner and next action in one document section, keeping Wednesday free.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.missing-information.attempt-2",
+        "kind": "paragraph",
+        "text": "Missing information: Confirm the recorded review date.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.source-basis.attempt-2",
+        "kind": "paragraph",
+        "text": "Source basis: SG-F2@1: Intake log: union of missing owner/next action is 4 of 8.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.specific-judgment.attempt-2",
+        "kind": "paragraph",
+        "text": "Specific judgment: Approve the revised single-document check or keep the earlier plan.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.scope.attempt-2",
+        "kind": "paragraph",
+        "text": "Task not performed: This document prepares a next action only. No task, message, approval, or external action has been performed.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.history.attempt-2",
+        "kind": "paragraph",
+        "text": "History: prior saved content retained for context; earlier agent recommendations superseded by the current proposal above. Human text is preserved unchanged.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.current.attempt-1",
+        "kind": "paragraph",
+        "text": "Current proposal: This current proposal supersedes prior agent advice. Human approval is required for a revision.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.next-action.attempt-1",
+        "kind": "paragraph",
+        "text": "Next action (proposed): Run a private eight-case owner and next-action check before changing the intake form.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.missing-information.attempt-1",
+        "kind": "paragraph",
+        "text": "Missing information: Who owns the review date for the next eight cases?\nWhether case P4 is still open.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.source-basis.attempt-1",
+        "kind": "paragraph",
+        "text": "Source basis: SG-F2@1: Intake log: 4 of 8 cases lack an owner or next action.\nSG-F3@1: Method notebook: test one change before automating.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.specific-judgment.attempt-1",
+        "kind": "paragraph",
+        "text": "Specific judgment: Decide whether the eight-case check is worth one hour this week.",
+        "checked": null
+      },
+      {
+        "block_id": "managed.scope.attempt-1",
+        "kind": "paragraph",
+        "text": "Task not performed: This document prepares a next action only. No task, message, approval, or external action has been performed.",
+        "checked": null
+      },
+      {
+        "block_id": "human-1",
+        "kind": "paragraph",
+        "text": "Keep Wednesday 14:00–15:00 for method drafting.",
+        "checked": null
+      }
+    ]
+  }
+}
