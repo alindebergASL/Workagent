@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "mode": "operator_assisted_live_model_draft",
+  "operation": "verify",
+  "assignment_id": "6e194bfc-9712-4c7e-801f-0d6faa66a99a",
+  "artifact_id": "38b44bff-2fb5-4bcd-a996-54e2caae05e0",
+  "revision_id": "6d511e33-a4cd-442c-b425-de35d42bf657",
+  "body_hash": "c7502a58dec7fbc11771f308d1d92b8f122ba482ad8a105d75053d0d12013da0",
+  "history_count": 2,
+  "model_dispatches": 1,
+  "provider_response_id": "msg_f4f5db15-0d60-4174-8082-af6cd4b88904",
+  "model_returned": "qwen3.8-max",
+  "usage": {
+    "input_tokens": 751,
+    "output_tokens": 2018,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "no_new_model_call": true,
+  "not_autonomous_worker": true,
+  "not_owner_approval": true
+}

@@ -1,0 +1,28 @@
+{
+  "goal": "Carry forward my private intake review; preserve Wednesday planning. a35a44ad",
+  "assignment_id": "45ccf04b-b4a5-4413-8034-be2687732293",
+  "artifact_id": "5a9983a2-786a-42d5-b7ac-240a1284885a",
+  "artifact_url": "/assignments/45ccf04b-b4a5-4413-8034-be2687732293/artifacts/5a9983a2-786a-42d5-b7ac-240a1284885a",
+  "human_revision_id": "245463d4-0672-4e9e-abef-82555f8205fd",
+  "human_body_hash": "1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204",
+  "initial_revision_id": "fa5d2a6a-076f-434a-a8ae-35e76adfdc1c",
+  "result": "PASS",
+  "mode": "real_browser_api_postgresql_deterministic_fixture",
+  "approved_revision_id": "bf2069e7-bebe-47ff-8e4c-7517de7ea514",
+  "approved_body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+  "proposal_id": "a91132d8-3a8d-446d-a1a3-d53a9fb9c736",
+  "proposal_status": "accepted",
+  "backend_preparation_state": "ready",
+  "surfaces": {
+    "agent": "Carry forward my private intake review; preserve Wednesday planning\nApproved revision · task and responsibility completion not implied\n↗",
+    "spaces": "Carry forward my private intake review; preserve Wednesday planning\nApproved revision · task and responsibility completion not implied\n↗",
+    "responsibility": "Approved revision saved. This does not mark tasks or responsibility criteria complete; no external action was taken."
+  },
+  "delegation_response_loss": {
+    "same_command": true,
+    "assignment_count": 1,
+    "initial_run_count": 1
+  },
+  "mobile_work_ask_switch": true,
+  "errors": []
+}

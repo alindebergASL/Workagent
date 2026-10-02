@@ -1,0 +1,31 @@
+{
+  "application_code_commit": "693a54f",
+  "evidence_mode": "real_ui_api_postgresql_fixture_compute",
+  "files": {
+    "15-approved-with-unfinished-task.png": "15da8dcfe8aadb0357880bc93e6a53ca91ead2fd44c6ec2f432f62815cf6a300",
+    "agent-first/01-delegation-desktop.png": "e55cca1f7105d3d01b826e268f4b7dea5aee394db21a2f3708dee82fc7c99a27",
+    "agent-first/02-artifact-desktop.png": "2099b9ea3eab049ddecc9fbc5a457d0350828e8d1cd854d854dbdc977c66d8b6",
+    "agent-first/03-mobile-revision-request.png": "4a96566249735191593832313882e2a1cd2afbafb5da47431fb11087c8e9647e",
+    "agent-first/04-review-proposal-mobile.png": "963baf364874155900c2e9b97c5e4ed0e306df848c812045732609a3f1572832",
+    "agent-first/05-approved-mobile.png": "ac8deedb2e6ea815869c83e1b8cb731cba4a9a264c7d859a05c08f30e94a11ee",
+    "agent-first/06-approved-desktop.png": "f295b8ee33b5f7d3a97f226c44dacd7d00bc41a3b9a9ecf0d1c6365f38489e2d",
+    "agent-first/07-approved-reopened-desktop.png": "4d8450344bd36ca908dadf24e157af996eb7ff3cf91fe9e3cf74e20c284ce98b",
+    "agent-first/08-approved-reopened-mobile.png": "075c46a4fff464ce36e6c70d733cc05c0835d59297dcfbd2dc5cb22416b392f5",
+    "agent-first/09-reopened-responsibility-mobile.png": "e80d78622d85c3dcb51376311ed808a2b94d8661e645a1688dbd16d820492d5a",
+    "agent-first/approved-artifact.json": "a8b8dfc5b200539f1e7ba299139123d144303ffa9f206f058a6a819c42502481",
+    "agent-first/approved-proposal.json": "2c9338116bd5a8be959f26794d8d67a3b13e654aed4d82225b5de355af820141",
+    "agent-first/restart.json": "5191736ac4200171506369735c60e26f28a931c22c7fa6061ce7caf79904833e",
+    "agent-first/state.json": "98bd133db715b993836ce8fee9735cca3ab4cd91b279a2513493f2c9bdbb5d18",
+    "applied-artifact.json": "4d55011f78f4907c2671805dcff242505f4a894959241812bc0c2866961dda25",
+    "demo.json": "d6b95d1a31a19e1659fc3ba114066ec3d0aa5766d65f84d592d78f727b791d74",
+    "fault-regressions/polling-completed.png": "aca3d013908996db28cf9e7decf1d55a6910c02102651c2ec6148676090e3af6",
+    "fault-regressions/restored-draft-protected.png": "cfbdfa6c6d40fc7b9dfde08cdc7e98e30f1205aa008ae313fcb4567d933656ef",
+    "fault-regressions/results.json": "f2a2c585fae840d43f79021a8c7a59138e0d078fc5050038cda25dd2cb8e5e6d",
+    "fault-regressions/source-drift-labelled.png": "ba70e7ac5ea6ccb4e80a2c3d952f6cac08f456741687d17cdad9f59b3ec3e463",
+    "restart.json": "91a862a8f8bf92922a1683a1de629a584b655eeea70dd736c4cc48e48eb60191",
+    "saved-artifact.json": "7df8f78f4d8a4df9c69544436576fe3c6f55eb38fb28080b7c622a144870d947",
+    "stale-proposal.json": "2cc3a0c0a32fcf21899c385614f1d3bbc719a2b27c368f0c24d77dc75df67627",
+    "state.json": "603f21b2f86796ea0a5f4900036812a2894cfc5fff60d0974dddbbf4d25164a3",
+    "task-readback.json": "917f18c491f94cda9ae7f602f678edb05213ba67158294b7dcca8207ff9f27e6"
+  }
+}

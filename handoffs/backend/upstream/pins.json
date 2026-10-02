@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "review_date_utc": "2026-10-02",
+  "purpose": "Source review reference pins, not runtime deployment approval",
+  "verification": "GitHub REST release/ref/tag-object reads plus clean detached upstream Git checkouts; no framework execution or dependency installation",
+  "workagent": {
+    "path": "/home/ubuntu/workagent-agent-first",
+    "branch_context": "hermes/agent-first-integration",
+    "provided_base_commit": "6f88a9d524d4ab7db1f800087d2f13f4ca1d130b",
+    "head_observed_before_review": "1ddff687834017bfcad27f4832b02bb96ebf292b",
+    "files_read": ["docs/RUNTIME_STATUS.md", "backend/workagent/dispatcher.py", "backend/workagent/broker.py", "backend/workagent/runtime_config.py", "runtime/bundles.py"],
+    "modified_by_review": false
+  },
+  "upstreams": {
+    "hermes-agent": {
+      "repository": "https://github.com/NousResearch/hermes-agent",
+      "release_tag": "v2026.9.24",
+      "package_version": "0.21.5",
+      "release_published_at": "2026-09-24T10:09:38Z",
+      "release_url": "https://github.com/NousResearch/hermes-agent/releases/tag/v2026.9.24",
+      "release_immutable_flag": false,
+      "annotated_tag_object": "e3dd27ee2d8b011737a4eea8e3eb3d711ab78690",
+      "commit": "f97608f178d1ffeca59860195ab7da295f7c8e5f",
+      "main_observed_sha": "10c6188de188871f64a88dd95bc6b262adb0c307",
+      "local_source_path": "/home/ubuntu/workagent-upstream-review/hermes-agent",
+      "selection_reason": "Latest published release returned by GitHub at review; pin peeled commit rather than moving main or mutable release tag. No LTS or production fitness claim.",
+      "root_license": "MIT",
+      "root_copyright": "Copyright (c) 2025 Nous Research",
+      "license_exceptions_observed": [{"path": "plugins/security-guidance/patterns.py", "license": "Apache-2.0", "notice": "plugins/security-guidance/NOTICE"}],
+      "sha256": {
+        "LICENSE": "821556e6336796450ab852d375117b48a4887e71d255794fd6318d99982a5ab6",
+        "pyproject.toml": "6f969b9fdff95e7269ec808361e3ae8be5357036e6257e53a3306878cf8c41dd",
+        "uv.lock": "5b3798f326209475abca8ef7cbf7c9406f12e687c28c0b540dfe597466f48590",
+        "plugins/security-guidance/NOTICE": "adc3dd09b90dd9240f56d5b9c782986028a312ab150c84a208de1a5d2b948227",
+        "plugins/security-guidance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    },
+    "openclaw": {
+      "repository": "https://github.com/openclaw/openclaw",
+      "release_tag": "v2026.9.7",
+      "package_version": "2026.9.7",
+      "release_published_at": "2026-09-30T04:44:14Z",
+      "release_url": "https://github.com/openclaw/openclaw/releases/tag/v2026.9.7",
+      "release_immutable_flag": false,
+      "annotated_tag_object": "a05c851cc522fb5e6bc347f1eb0ff10d8f378fcc",
+      "commit": "c074824a27c96d3983043f9eeb33823cd1772d8c",
+      "main_observed_sha": "03766af008a91585107bf7777ccd01adada7181a",
+      "local_source_path": "/home/ubuntu/workagent-upstream-review/openclaw",
+      "selection_reason": "Latest published release returned by GitHub at review; pin peeled commit rather than moving main or mutable release tag. No LTS or production fitness claim.",
+      "root_license": "MIT",
+      "root_copyright": "Copyright (c) 2026 OpenClaw Foundation",
+      "third_party_notices": "THIRD_PARTY_NOTICES.md",
+      "third_party_notices_observed": ["Pi / pi-mono: MIT, Copyright (c) 2025 Mario Zechner", "GitHub Octicons: MIT, Copyright (c) 2026 GitHub Inc."],
+      "sha256": {
+        "LICENSE": "73571b25326281d369087f469842c02444fe39faaecebda4d82ed21ff3a1c29d",
+        "THIRD_PARTY_NOTICES.md": "c1d1bbc550feee74853eba104e347341569cbbbe37a9f77659993ca0766277d5",
+        "package.json": "2df7b3d88536209649e8d90c59eb2c153f30d41480c3c5227f2a8b08fc5ed0ee",
+        "pnpm-lock.yaml": "47718ce261ef451da083f79f62943ac38a5252140c2fb213383c573e5078cdce",
+        "packages/ai/LICENSE": "9efd316ecf1c4c60f6fd5d26433142fff2b6794d7d328e9bc6179b29bf9c82a4"
+      }
+    }
+  },
+  "authoritative_hermes_docs_read": ["https://hermes-agent.nousresearch.com/docs", "https://hermes-agent.nousresearch.com/docs/guides/python-library", "https://hermes-agent.nousresearch.com/docs/developer-guide/gateway-internals"],
+  "limitations": ["No framework/provider/sandbox execution", "No exhaustive transitive dependency or security audit", "No signature verification or package artifact comparison", "Documentation is live and can differ from pinned source", "Product managed runtime entitlement remains unconfirmed"]
+}
