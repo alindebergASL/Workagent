@@ -1,0 +1,28 @@
+{
+  "goal": "Carry forward my private intake review; preserve Wednesday planning. 11901634",
+  "assignment_id": "7282d540-ce08-4112-81d7-b96f5491b0b3",
+  "artifact_id": "56f39a19-561c-479f-a767-043ae4f695c1",
+  "artifact_url": "/assignments/7282d540-ce08-4112-81d7-b96f5491b0b3/artifacts/56f39a19-561c-479f-a767-043ae4f695c1",
+  "human_revision_id": "e6289ad4-3438-4705-a84f-95d77cf9f333",
+  "human_body_hash": "1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204",
+  "initial_revision_id": "b9ac5e71-d6f0-434c-b724-da7058f028ec",
+  "result": "PASS",
+  "mode": "real_browser_api_postgresql_deterministic_fixture",
+  "approved_revision_id": "83bfe394-6d60-409a-8008-7e05ac7530b5",
+  "approved_body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+  "proposal_id": "2ee175ac-9cfa-4b20-950e-67d8d982cc24",
+  "proposal_status": "accepted",
+  "backend_preparation_state": "ready",
+  "surfaces": {
+    "agent": "Approved revision",
+    "spaces": "Approved revision",
+    "responsibility": "Approved revision"
+  },
+  "delegation_response_loss": {
+    "same_command": true,
+    "assignment_count": 1,
+    "initial_run_count": 1
+  },
+  "mobile_work_ask_switch": true,
+  "errors": []
+}
