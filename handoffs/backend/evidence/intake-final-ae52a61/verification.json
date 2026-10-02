@@ -1,0 +1,300 @@
+{
+  "application_sha": "ae52a615b351ab76fc5d0250b62903b0f6845206",
+  "status": "SCOPED_ACCEPTANCE_PASS_NO_DEPLOYMENT",
+  "frontend_parent_review": "PASS: independent review of Claude current-group projection, accepted-revision-only adapter, inert rendering, per-item provenance and focused tests",
+  "backend_review_reused": {
+    "sha": "c946d0e9dc52933e81fe7287d054d09432d441ea",
+    "unchanged_directories": [
+      "backend",
+      "contracts",
+      "agent"
+    ],
+    "tests_passed": 248
+  },
+  "frontend_checks": {
+    "unit_tests": 37,
+    "typecheck": "passed",
+    "lint": "passed",
+    "format": "passed",
+    "production_build": "passed"
+  },
+  "actual_record_browser_probe": {
+    "passed": true,
+    "evidence_mode": "Existing real Sol-generated durable records; read-only browser verification; zero additional provider calls",
+    "provider_inference_calls": 0,
+    "assignment_id": "904ef372-4ec7-4cae-a252-2a3e42ed71c4",
+    "approved_revision_id": "01e8faae-6948-4f09-a01c-9e9ad061d37d",
+    "current_attempt": "24111bbd-12c4-4e8a-879b-9ab08e190f91",
+    "managed_groups_in_saved_document": 2,
+    "run_state": "readback_verified",
+    "evidence_origin": "live_provider_receipt",
+    "expected": {
+      "summary": "This proposal supersedes prior agent advice. The working plan and reusable checklist below are sections of ONE proposed next-action document, not separate or independently versioned artifacts. Human approval is required for this revision.\n\nProposed next action: test one owner-and-next-action check on the next eight personal practice cases, for Alex only.\n\nWorking plan\nBaseline: 4 of 8 unique cases (50%) lack an owner OR a next action: P1, P2, P3 and P4. Deduplicating by stable case ID and counting the union means P1 and P2 each count once despite missing both fields. P3 lacks an owner; P4 lacks a next action. P5\u2013P8 have both recorded. Source: SG-F2, version 1.\nFor the next eight cases, record both fields during intake review. Where either remains unresolved, record the reason, an explicit confirmation step and the responsible person to confirm; do not invent an assignment. At review, compare the missing-either count with the baseline 4/8. Capture elapsed review time separately if you want to investigate time savings. These small personal samples are descriptive, not representative; neither time savings nor a causal effect is established. Confirm whether the source's review date, 2026-11-06, should be used.\n\nReusable checklist\nCase ID | Owner | Next action | Unresolved reason | Responsible person to confirm | Review date/status\nFor each case: check both fields, preserve unresolved facts explicitly, and count each stable case ID only once when summarizing missing-either completeness.\n\nPreserved human wording\nKeep Wednesday 14:00\u201315:00 for method drafting.\n\nKeep the existing human-maintained plan and its source version unchanged. This document is a proposal only; no experiment, document change, calendar write, message, approval or external action has been performed.\n\nHuman note: Keep this work private. Do not contact anyone or change my calendar.",
+      "evidence": [
+        "SG-F2@1: Eight of Alex\u2019s personal practice cases. The stable-ID union identifies P1\u2013P4 as missing an owner or next action: 4/8 (50%). No team data or representative-population claim.",
+        "SG-F3@1: Supports the proposed check on the next eight personal practice cases before automation, for Alex only. No time-saved data or evidence of a causal effect.",
+        "SG-F7@1: Supports prioritizing intake-method improvement, preserving the human-maintained plan and exact protected wording, and confirming the recorded review date of 2026-11-06. The source and its version remain unchanged."
+      ],
+      "missing": [
+        "Your approval of the proposed eight-case experiment.",
+        "Actual owner and next-action details for unresolved cases; the log provides presence/absence flags only.",
+        "The responsible person and confirmation step for any unresolved case in the new batch.",
+        "Whether 2026-11-06 remains the intended review date.",
+        "Elapsed-time measurements; none are available to support a time-savings claim."
+      ],
+      "judgment": "Would you approve testing the owner-and-next-action check on your next eight personal practice cases, before adding automation or taking on more process work?",
+      "historical_groups": 2
+    },
+    "errors": []
+  },
+  "late_readback_and_expiry": {
+    "status": "PASS_HISTORICAL_READBACK_CURRENT_CONTINUATION_EXPIRED",
+    "acceptance_test_only": true,
+    "underlying_experiment_performed": false,
+    "proposal_id": "1a5e199f-592f-4d53-8a32-036b55b868a9",
+    "approved_revision_id": "01e8faae-6948-4f09-a01c-9e9ad061d37d",
+    "body_hash": "899680a8c528e375b8e3a9b76c66d2af4e1909bd8250a156140006cb98c027dc",
+    "base_revision_id": "4cb4f3a9-ebc6-473d-ac9a-a6efed214454",
+    "exact_reviewed_body_readback": true,
+    "human_edit_preserved": true,
+    "revision_count": 3,
+    "restart_and_repeated_delivery": [
+      {
+        "run_id": "d5e4a200-5886-4386-b595-1e0c00f7ed48",
+        "result": "reconciled"
+      },
+      {
+        "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+        "result": "reconciled"
+      },
+      {
+        "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+        "result": "reconciled"
+      }
+    ],
+    "http_attempts": 0,
+    "counters_unchanged": true,
+    "counters": {
+      "request_counts": {
+        "count_send": 4,
+        "dispatch": 4,
+        "read": 15,
+        "cancel": 0
+      },
+      "reserved_input_tokens": 80000,
+      "reserved_output_tokens": 32768,
+      "reserved_cost_usd": "0.52768",
+      "reported_usage": {
+        "input_tokens": 5798,
+        "output_tokens": 1814
+      },
+      "unknown_usage_steps": 0,
+      "conservatively_calculated_cost_usd": "0.0326350",
+      "billed_cost_usd": null,
+      "cost_basis": "undiscounted reservation rates; not provider billing"
+    },
+    "outcome": {
+      "run_id": "b3e01412-a540-4ec5-94a7-7b138e2825f8",
+      "response_steps": [
+        {
+          "phase": "selection",
+          "state": "received",
+          "response_id": "resp_06dc1ce95ec1e221006ac022144c8c87d0b2d589c77339276e",
+          "reported_input_tokens": 803,
+          "reported_output_tokens": 38,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0023875",
+          "billed_cost_usd": null
+        },
+        {
+          "phase": "final",
+          "state": "received",
+          "response_id": "resp_06dc1ce95ec1e221006ac02249f37887d0923098874fc1c5d6",
+          "reported_input_tokens": 2463,
+          "reported_output_tokens": 854,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0146975",
+          "billed_cost_usd": null
+        }
+      ],
+      "execution": {
+        "mode": "managed",
+        "profile": "openai-responses-v1",
+        "model": "gpt-6.1-sol",
+        "grant_id": "intake-live-01",
+        "attempt_id": "24111bbd-12c4-4e8a-879b-9ab08e190f91",
+        "provider_observation": "received",
+        "evidence_origin": "live_provider_receipt"
+      },
+      "state": "readback_verified",
+      "artifacts": [
+        {
+          "artifact_id": "b4984bee-13ac-4395-8184-0e25ea52ff9d",
+          "revision_id": "01e8faae-6948-4f09-a01c-9e9ad061d37d",
+          "proposal_id": "1a5e199f-592f-4d53-8a32-036b55b868a9",
+          "base_revision_id": "4cb4f3a9-ebc6-473d-ac9a-a6efed214454",
+          "body_hash": "899680a8c528e375b8e3a9b76c66d2af4e1909bd8250a156140006cb98c027dc"
+        }
+      ],
+      "checks": [
+        {
+          "name": "publication_binding",
+          "status": "passed"
+        },
+        {
+          "name": "saved_body",
+          "status": "passed"
+        },
+        {
+          "name": "exact_base",
+          "status": "passed"
+        },
+        {
+          "name": "current_revision",
+          "status": "passed"
+        },
+        {
+          "name": "provider_result",
+          "status": "passed"
+        },
+        {
+          "name": "authority",
+          "status": "failed"
+        }
+      ],
+      "outcome_gate": "passed",
+      "safety_gate": "failed",
+      "continuation_available": false,
+      "attempt_state": "reconciled",
+      "blocker": "grant_expired",
+      "reason": "The run grant expired.",
+      "next_action": "Reconcile existing evidence; obtain a new grant for new work, not a resend.",
+      "question": null,
+      "unresolved": [],
+      "underlying_action_performed": false
+    }
+  },
+  "browser_capture_count": 11,
+  "browser_captures": [
+    {
+      "file": "assignment-320.png",
+      "sha256": "09de35caf11cec83ea1723e75a450e8411ddd285230b6d005fca8d4185948f71",
+      "state": "assignment",
+      "viewport": [
+        320,
+        780
+      ],
+      "document_scroll_width": 320
+    },
+    {
+      "file": "assignment-390.png",
+      "sha256": "5d6c1c78515b9597c0cb02f98b5a00e29752de8fbe1090b341756ee42708a742",
+      "state": "assignment",
+      "viewport": [
+        390,
+        844
+      ],
+      "document_scroll_width": 390
+    },
+    {
+      "file": "assignment-1440.png",
+      "sha256": "4c041cf61e4a770b15023fa3b73278d84a7c19501b83d1de17819938b5db5df2",
+      "state": "assignment",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "document_scroll_width": 1425
+    },
+    {
+      "file": "document-320.png",
+      "sha256": "4d9416a0d8765001cbe661d77f57d1d20a9646f02dfbde2134c77dc909b66bac",
+      "state": "document",
+      "viewport": [
+        320,
+        780
+      ],
+      "document_scroll_width": 320
+    },
+    {
+      "file": "document-390.png",
+      "sha256": "24f673629a23dccee77cded92a9b7d7857b7ed1a950d11d86f12419993706180",
+      "state": "document",
+      "viewport": [
+        390,
+        844
+      ],
+      "document_scroll_width": 390
+    },
+    {
+      "file": "document-1440.png",
+      "sha256": "b9c1123fa28c565710ac5eec5fa3a82688744aa0a5a950ed0ec5e405afd2a1bd",
+      "state": "document",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "document_scroll_width": 1425
+    },
+    {
+      "file": "home-390.png",
+      "sha256": "ade631c02a968fb867728144ec43122756ab3cb84477ecc0df2489e1bea30b27",
+      "state": "home",
+      "viewport": [
+        390,
+        844
+      ],
+      "document_scroll_width": 390
+    },
+    {
+      "file": "home-1440.png",
+      "sha256": "2d1d7291982d31c749dd4f795b96c7780a88ef4f610bb4f750c8bb81cc1e3d70",
+      "state": "home",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "document_scroll_width": 1440
+    },
+    {
+      "file": "provenance-320.png",
+      "sha256": "287ad2ff7bb0f3a9198a71b337722d1503cff67feaba56f7e09fbda5ece0f643",
+      "state": "provenance",
+      "viewport": [
+        320,
+        780
+      ],
+      "document_scroll_width": 320
+    },
+    {
+      "file": "space-390.png",
+      "sha256": "a0a51077df8230196f8eebd67dbd290714d2fe8dfc0d3180a6a2f9ab388dcad9",
+      "state": "space",
+      "viewport": [
+        390,
+        844
+      ],
+      "document_scroll_width": 390
+    },
+    {
+      "file": "space-1440.png",
+      "sha256": "f96fec5a56b2d51f0917d6e61b94b42f17cc47a1d9330835483dc0313eb58a2b",
+      "state": "space",
+      "viewport": [
+        1440,
+        1000
+      ],
+      "document_scroll_width": 1440
+    }
+  ],
+  "native_capture_css_overrides": false,
+  "additional_provider_calls": 0,
+  "limitations": [
+    "Real model calls used synthetic workspace sources, not customer data.",
+    "Approval was of the document in authorized synthetic acceptance testing; underlying experiment not approved or performed.",
+    "The four-call plan is exhausted and the bounded local lease expired; no new execution is allowed.",
+    "Historical approved readback remains verified; current continuation safety gate is deliberately failed with grant_expired.",
+    "Provider billing is unverified; $0.0326350 is a conservative usage-based calculation.",
+    "No default-branch merge or deployment."
+  ]
+}

@@ -1,6 +1,6 @@
 # Private intake: verified live core, frontend acceptance still held
 
-**Status: HOLD_FRONTEND — not mission complete, not deployed.**
+**Historical status at this checkpoint: HOLD_FRONTEND.** Both frontend holds were subsequently resolved and reverified at `ae52a615b351ab76fc5d0250b62903b0f6845206`; see [final scoped acceptance](INTAKE_ACCEPTANCE.md). No deployment occurred.
 
 Application tested/reviewed: `c946d0e9dc52933e81fe7287d054d09432d441ea` on `hermes/intake-next-action`, PR #5. This checkpoint and its evidence are a documentation-only child of that application commit; they do not claim a second application implementation or authorize more execution. The original mission/access-discovery notes are historical; the explicit bounded grant and the verified execution below supersede their earlier no-call status.
 
