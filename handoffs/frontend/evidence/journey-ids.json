@@ -1,0 +1,15 @@
+{
+  "assignment_id": "asg_0001",
+  "plan_artifact_id": "art_0002",
+  "human_revision_id": "rev_0004",
+  "human_revision_sequence": 2,
+  "human_text": "Review each new case with the checklist at the point of intake, and note who asked for it.",
+  "protected_note": "Keep Wednesday 14:00–15:00 for method drafting.",
+  "final_revision_id": "rev_0007",
+  "final_revision_sequence": 5,
+  "proposal_ids": [
+    "prop_0001",
+    "prop_0002"
+  ],
+  "recorded_at": "2026-10-02T03:37:47.498Z"
+}
