@@ -1,63 +1,61 @@
-# Frontend result: agent-first reconciliation
+# Frontend result: agent-first, combined candidate `e92c27d`
 
-Status: ready for integration. The full journey passes against the real API and PostgreSQL. Independent review is still pending.
+Status: ready for integration. The combined candidate passes the full journey against the real API and PostgreSQL. An independent second-author review of the combined commit is still pending.
 
-**Usable outcome.** A person starts on the Agent home, hands over a request with chosen records, and watches honest queued and working states. They then inspect completed work, the recommendation and its evidence. They edit the plan and save. They review a proposed change with its exact differences, apply it or keep their version, and find the same work after the API and web processes restart. Spaces lists the authorized personal space with its work and records. On phones the document comes first, and switching to the agent pane keeps unsent instructions and unsaved edits.
+**Usable outcome.** A person starts on the Agent home and hands over a request with chosen records. They see honest queued and working states. Prepared work appears above the composer as one timely card with "Open prepared work". The plan opens as a calm document with an agent pane: one outcome line, a collapsed "What changed", and "Ask for a revision" on demand. A proposed revision shows its exact changes; the person applies it or keeps their version. An applied revision reads "Approved revision" on Home, in the space, on the assignment and on the artifact. It never implies an external effect. Everything reopens after the API and web processes restart.
 
-**What runs where.** Real: browser UI, FastAPI domain services, PostgreSQL, authorization, revisions, proposals, restart. Fixture: all analysis and revision text comes from the deterministic fixture worker. No live agent or model execution happened, and the UI says so on every screen.
+**What runs where.** Real: browser UI, FastAPI domain services, PostgreSQL, authorization, revisions, proposals and restart. Fixture: all analysis and revision text comes from the deterministic fixture worker. No live agent ran. The mode line on every screen says so, and provenance is available in "What I checked" and History.
 
-**Branch / commits / PR.**
+**Branch / commits / PR.** `claude/workagent-frontend-kyg51x`:
 
-- Branch: `claude/workagent-frontend-kyg51x`.
-- `544531b`: patch applied unmodified.
-- `1e10dc5`: reconciliation (code).
+- `fef8cda`: merge of Hermes's `f88f63c`.
+- `56d013c`: review refinements.
+- `37169bb`: final consistency fix.
+- `e92c27d`: merge of Hermes's `a779715` (his port of my older `1e10dc5`, plus model-proof tooling and docs). This branch keeps its newer UI and carries over his additional guards.
 - The next commit holds evidence and notes.
-- PR #2, retargeted to `hermes/s0-s1-build`.
 
-**Shared contract.** `workagent/v1` as integrated on `hermes/s0-s1-build` @ `6f88a9d`. The adapter and generated client are unchanged.
+PR #2 targets `hermes/agent-first-integration`.
 
-**Owned paths and coordinated changes.** See `STATUS.md`.
-
-**Setup, launch and test commands** (all run in this session; Ubuntu 24.04, PostgreSQL 16, Node 22, Python 3.11 venv):
+**Commands run at `e92c27d`:**
 
 ```sh
-python3 scripts/workagent.py setup        # or the steps in README; this host skipped `playwright install`
-python3 scripts/workagent.py demo --skip-setup --env .local/final2.env   # fresh isolated DB
-python3 scripts/workagent.py serve        # use it at http://127.0.0.1:3000
-cd web && pnpm check                       # tsc, eslint, prettier, 16 unit tests
+python3 scripts/workagent.py demo --skip-setup --env .local/final2-e92c27d.env   # fresh isolated DB
+cd web && pnpm check                                       # tsc, eslint, prettier, 25 unit tests
 cd web && NEXT_PUBLIC_WORKAGENT_API_BASE=/api/mock pnpm build && pnpm test:e2e   # 12 mock browser tests
+node web/scripts/capture-states.mjs <dir>                  # matched checkpoint captures (stack running)
 ```
 
-Hosts without Playwright's own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` to a preinstalled browser.
-
-| Check | Mode | Result | Evidence |
+| Check | Mode | Result | Evidence (`evidence/combined-e92c27d/`) |
 |---|---|---|---|
-| Start and inspect result | real app + fixture compute | pass | `real-agent-first/01`, `02`, `09` |
-| Human edit and save, protected note | real app | pass | `03`, `saved-artifact.json` |
-| Stale proposal: both bodies, exact differences including checklist state, keyboard "Keep current" | real app | pass | `04`, `05`, `stale-proposal.json`; stale accept returns `version_conflict` |
-| Fresh proposal: exact changes, apply, human text preserved, provenance shown | real app + fixture compute | pass | `10`, `11`, `applied-artifact.json` |
-| Completed state everywhere: no "in progress", decision or delegation controls | real app | pass | `13`, `14`; assertions in `real-journey.mjs` |
-| Phone: document first, unsent instruction and unsaved edit survive pane switches | real app | pass | `12` |
-| API and web restart, then reopen the same assignment, applied revision and retained human revision | real app, PostgreSQL retained | pass | `07`, `08`, `restart.json`, `demo.json` (commit `1e10dc5`, `dirty: false`) |
-| Nine fault regressions: response loss, ambiguous saves, decision replay, source drift | real app | pass | `fault-regressions/results.json` |
-| Full journey at 1440 / 390 / 320 px, errors, reconnect, replay | mock | pass (12/12) | `handoffs/frontend/evidence/{desktop,mobile,narrow}` |
-| Live agent or model execution | live runtime | not observed | No runtime grant. Every run is labeled fixture. |
+| Delegation with a lost 202: same command replayed, one assignment, one run | real | pass | `real-demo/agent-first/state.json` |
+| Prepared checkpoint: Home card, space, assignment and artifact all read "Ready for review" | real | pass | agent-first journey; `after-e92c27d/01`–`04` |
+| Proposal awaiting decision: exact changes, both bodies, stale accept returns `version_conflict` | real | pass | `real-demo/04`, `05`, `10`; `after-e92c27d/05`, `06` |
+| Approved checkpoint: every surface reads "Approved revision"; human text and checklist preserved; the task stays `created` and the status line says approval does not complete tasks or responsibility criteria | real | pass | `real-demo/agent-first/05`, `06`, `real-demo/15`; `after-e92c27d/07`–`09` |
+| Phone: document first, Agent pane switch, unsent instruction and unsaved edit kept | real | pass | `real-demo/12`, `agent-first/03` |
+| API and web restart, then reopen the same assignment, approved revision and retained human revision | real, PostgreSQL retained | pass | `real-demo/restart.json`, `agent-first/restart.json`, `demo.json` (`dirty: false`) |
+| Nine fault regressions | real | pass | `real-demo/fault-regressions/results.json` |
+| Full journey at 1440 / 390 / 320 px, errors, reconnect, replay | mock | pass (12/12, twice) | `evidence/{desktop,mobile,narrow}` |
+| Pending decision reads the same on Agent, Spaces and the assignment | real | pass | agent-first journey |
+| Live agent or model execution in the product | live | not observed | No runtime grant. Hermes's recorded Qwen draft is an operator-assisted import (`handoffs/backend/model-proof/`), not a product run |
 
-**Independent review.** Not yet performed by a second author. Self-review against real screens found and fixed these issues:
+**PR #2 review items:**
 
-- A stale diff struck through the human's text.
-- Checklist changes were invisible in diffs.
-- Unchanged lines buried the exact changes.
-- Phone edit fields clipped their text.
-- Phones stayed on the agent pane after a request was sent.
-- An accepted proposal read as a plain human edit.
-- Raw IDs and duplicated status cluttered the screens.
-- The existing CI failure on PR #3, caused by the missing `contracts/` install. It was reproduced in a fresh clone and fixed.
+1. Calmer artifact screen: done (`after-e92c27d/07`).
+2. No raw IDs or hashes in the document: done. They are in History "Identifiers" and the decision card's "Revision details".
+3. A timely outcome above the composer on mobile Home: done (`01`).
+4. Context collapses to a count: done (`02`).
+5. Less repeated fixture copy: done, with one mode line and provenance on demand.
 
-**Screenshots and saved results.** `handoffs/frontend/evidence/real-agent-first/`, with a 28-file `MANIFEST.json` of sha256 hashes. It includes two design-reference captures for comparison.
+**Independent review.** Pending. Self-review on real screens found and fixed:
 
-**Known gaps and requested actions.** The four backend requests are in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant named in `docs/RUNTIME_STATUS.md`.
+- The prepared artifact header disagreed with the other surfaces (fixed in `37169bb`).
+- A timing-dependent mock reconnect test (it now uses the focus re-read).
+- A delegation prompt on approved rows.
 
-**Next integration step for Hermes.** Merge or review PR #2 into `hermes/s0-s1-build`, rerun `scripts/workagent.py demo` on your host, and coordinate a second-author review of the integrated commit.
+**Model-proof labeling.** Hermes's operator-imported Qwen draft is saved as a human revision. Its first paragraph states its provenance. The mode line ("fixture worker, not a live agent") stays accurate because no agent ran in the product. Labeling each item by how it was produced needs backend request 3. His `handoffs/backend/model-proof/browser-probe.mjs` expects the header badge "Saved". This UI shows "Ready for review" for unapproved ready work, so update that probe's expectation before rerunning it.
 
-**Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces all real evidence on a fresh database.
+**Known gaps.** Backend requests 3 and 4 in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant in `docs/RUNTIME_STATUS.md`.
+
+**Next integration step for Hermes.** Review PR #2, then fast-forward `hermes/agent-first-integration` to this branch head (a descendant of `a779715`) and rerun the demo.
+
+**Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces the real evidence on a fresh database.

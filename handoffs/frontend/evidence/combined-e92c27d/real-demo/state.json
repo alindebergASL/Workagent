@@ -1,0 +1,16 @@
+{
+  "mode": "actual_application_postgresql_fixture_compute",
+  "assignment_id": "e9b453d6-d736-45b5-aab5-f3763ea951ff",
+  "artifact_id": "ee87bfe4-91dc-4ed6-af61-df8be576f65c",
+  "artifact_url": "/assignments/e9b453d6-d736-45b5-aab5-f3763ea951ff/artifacts/ee87bfe4-91dc-4ed6-af61-df8be576f65c",
+  "human_revision_id": "0a19bc9a-5061-4388-b65a-8763aad3751e",
+  "human_body_hash": "1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204",
+  "applied_revision_id": "5bcdfe30-48e9-42a2-afb0-2304711cce51",
+  "applied_body_hash": "9dcd13c890a7779bca46b41435cc3cf5dfde73cb7085c1e13dfa571375d7d2a1",
+  "applied_proposal_id": "a30d368e-3249-4a0d-bed7-4a299c13f4d3",
+  "proposal_id": "d22e75c4-11b8-4f57-83da-d474f55196c5",
+  "proposal_hash": "2ff9111625b8cff228919bd0e463736019f20b465e311c3e467683ea538b77da",
+  "task_id": "bd5095cd-e0f4-4172-a508-28e560fc445b",
+  "task_inspection_id": "5ae2b65d-9678-4dff-8f6a-80856587dbaa",
+  "errors": []
+}

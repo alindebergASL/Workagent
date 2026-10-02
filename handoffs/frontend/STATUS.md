@@ -1,35 +1,35 @@
 # Frontend status (Claude Code stream)
 
-Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns backend, the domain adapter, integration and the combined milestone report.
+Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns the backend, the domain adapter, integration and the combined milestone report.
 
 ## Where the work is
 
-- Branch: `claude/workagent-frontend-kyg51x`, fast-forwarded to `hermes/s0-s1-build` @ `6f88a9d` (the integrated real-backend build) before this round.
-- `544531b`: the agent-first patch from PR #3 comment 5946839169, applied once and unmodified (patch sha256 `4a1ec574…8aad`). The claim to apply it here is posted on PR #3.
-- `1e10dc5`: reconciliation and refinement (application code). Exact-commit real demo passed with a clean tree.
-- The following commit holds evidence and these notes only.
-- PR #2 is retargeted to `hermes/s0-s1-build`, so its diff shows only this round.
+- Branch: `claude/workagent-frontend-kyg51x`. PR #2 targets `hermes/agent-first-integration`, so its diff is exactly the frontend delta on top of Hermes's integration branch.
+- The agent-first patch was applied once on each branch in a coordination race: `544531b` here and `f0929b5` on Hermes's branch, with the same patch sha256. `fef8cda` merges Hermes's `f88f63c` into this branch with a merge commit. Nothing was rebased or applied a third time.
+- `56d013c` is the PR #2 review refinements. `37169bb` makes the artifact show "Ready for review" until approval, so all surfaces agree.
+- `e92c27d` merges Hermes's `a779715`. In a second coordination race, Hermes ported my older `1e10dc5` as `693a54f` while I worked on `56d013c` and `37169bb`. UI files keep this branch's newer version. From `693a54f`, this merge carries over: the status-line wording (preparation is not approval; an approved revision does not complete tasks or responsibility criteria), the task-state readbacks in `real-journey.mjs`, and a pending-decision surface check in `agent-first-journey.mjs`. His non-UI work is taken unchanged: launcher key stripping, `model_responsibility_proof.py`, docs and evidence.
+- Combined candidate for integration: `e92c27d`. The full real demo passed at that exact commit with a clean tree, and the mock suite passed 12/12.
 
 ## Owned paths
 
-- `web/**` except Hermes's integration files below.
+- `web/**` except the Hermes-owned files below.
 - `handoffs/frontend/**`.
 - `.github/workflows/frontend.yml`.
 
-## Hermes-owned files: not changed, or changed minimally as noted
+## Hermes-owned files
 
-- `web/src/lib/client/api.ts`, `real-api.ts`, `mock-api.ts`, `command-cache.ts` and the `/api/domain` proxy are unchanged.
-- `web/scripts/real-journey.mjs`: Home selectors adapted to the new UI. Added apply-proposal, phone pane and draft preservation, keyboard conflict resolution and completed-Home checks. Reopen now verifies the applied revision plus the retained human revision. No existing assertion was removed or weakened.
-- `web/scripts/fault-regressions.mjs`: one assertion now waits for the actionable "Apply proposal" decision instead of the old notice title.
-- Both scripts honor an optional `PLAYWRIGHT_CHROMIUM_PATH` for hosts with a preinstalled browser. It is unset in Hermes's environment, so his behavior is unchanged.
+- **Taken unchanged from `f88f63c`:** `real-api.ts`, `assignment-summary.ts`, `hooks.ts`, `contract/types.ts`, `api.ts`, `mock-api.ts`, `command-cache.ts`, the `/api/domain` proxy, the backend and `scripts/workagent.py`.
+- **Ported into the new UI:** Hermes's work-state semantics (prepared, approved, progress from receipts) and the frozen create command (inputs lock after a lost response; retry replays the exact command and Space).
+- **`web/scripts/agent-first-journey.mjs`:** labels and DOM mapped to the new UI. Surface checks now find each assignment by id on Home, in its space and on the assignment page. An optional `PLAYWRIGHT_CHROMIUM_PATH` was added. No assertion was removed.
+- **`web/scripts/real-journey.mjs` and `fault-regressions.mjs`:** adapted as in the previous round. Completed-Home checks now require the exact assignment to read "Approved revision".
 
-## Backend requests (no workaround in the adapter)
+## Backend requests
 
-1. **Pending decisions on assignment summaries.** `GET …/assignments` returns no pending-proposal signal, so Home makes up to eight detail reads per poll to find "one decision for you". Requested: a `pending_proposal_artifact_ids` field (or equivalent) on each summary. The UI will then drop the detail reads.
-2. **Last-changed time on assignments.** Summaries carry only `observed_at`, which is the read time. The UI therefore shows no "updated" time on work rows. Requested: `updated_at` from the latest committed change.
-3. **Execution mode per run.** The UI labels all agent work as deterministic fixture computation because that is the only adapter. Once a live runtime exists, the API needs to expose each run's `profile` and provider on artifacts and proposals, so the UI can label per item instead of per build.
-4. **Shared spaces.** Spaces lists exactly what `GET /workspaces` authorizes. Creating spaces, memberships and invitations need domain operations before any UI for them.
+1. ~~Pending decisions on assignment summaries~~: resolved by Hermes's `assignmentSummary`. Home's extra reads are removed.
+2. ~~Real last-changed time~~: resolved (`updated_at` from the latest revision).
+3. **Execution mode per run.** Still open. The UI labels all agent work as fixture computation per build. Once a live runtime exists, artifacts and proposals need each run's `profile` and provider, so items can be labeled individually.
+4. **Shared spaces.** Still open. Spaces lists exactly what `GET /workspaces` authorizes. Creation, membership and invitations need domain operations first.
 
 ## Next integration step for Hermes
 
-Merge `claude/workagent-frontend-kyg51x` into `hermes/s0-s1-build`, or review PR #2 against it. Then run `python3 scripts/workagent.py demo` on your host to repeat the evidence independently.
+Review PR #2, then fast-forward `hermes/agent-first-integration` to this branch head (a descendant of `a779715`). Rerun `python3 scripts/workagent.py demo` on your host, then fast-forward `hermes/s0-s1-build` as you planned.
