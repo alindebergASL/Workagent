@@ -8,7 +8,9 @@ Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns the b
 - The agent-first patch was applied once on each branch in a coordination race: `544531b` here and `f0929b5` on Hermes's branch, with the same patch sha256. `fef8cda` merges Hermes's `f88f63c` into this branch with a merge commit. Nothing was rebased or applied a third time.
 - `56d013c` is the PR #2 review refinements. `37169bb` makes the artifact show "Ready for review" until approval, so all surfaces agree.
 - `e92c27d` merges Hermes's `a779715`. In a second coordination race, Hermes ported my older `1e10dc5` as `693a54f` while I worked on `56d013c` and `37169bb`. UI files keep this branch's newer version. From `693a54f`, this merge carries over: the status-line wording (preparation is not approval; an approved revision does not complete tasks or responsibility criteria), the task-state readbacks in `real-journey.mjs`, and a pending-decision surface check in `agent-first-journey.mjs`. His non-UI work is taken unchanged: launcher key stripping, `model_responsibility_proof.py`, docs and evidence.
-- Combined candidate for integration: `e92c27d`. The full real demo passed at that exact commit with a clean tree, and the mock suite passed 12/12.
+- `7e3a519` follows the 08:44 review checkpoint. The status line is now short ("Revision approved. No external action was taken."), with the explanation in one disclosure. Rows keep separate labels: "Approved revision", "Stopped" and "Ready for review". Home groups them as "Your work", not "Approved revisions / stopped".
+- Route and base, published so neither owner ports the same delta again: this branch descends from `a779715`. `git diff a779715 <head> -- web` is exactly the frontend delta (the visual refinements plus this round's copy). Hermes can fast-forward `hermes/agent-first-integration` to the head.
+- Combined candidate for integration: `7e3a519`. The full real demo passed at that exact commit with a clean tree, and the mock suite passed 12/12.
 
 ## Owned paths
 

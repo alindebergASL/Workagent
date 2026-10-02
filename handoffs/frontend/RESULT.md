@@ -1,4 +1,4 @@
-# Frontend result: agent-first, combined candidate `e92c27d`
+# Frontend result: agent-first, combined candidate `7e3a519`
 
 Status: ready for integration. The combined candidate passes the full journey against the real API and PostgreSQL. An independent second-author review of the combined commit is still pending.
 
@@ -12,25 +12,26 @@ Status: ready for integration. The combined candidate passes the full journey ag
 - `56d013c`: review refinements.
 - `37169bb`: final consistency fix.
 - `e92c27d`: merge of Hermes's `a779715` (his port of my older `1e10dc5`, plus model-proof tooling and docs). This branch keeps its newer UI and carries over his additional guards.
+- `7e3a519`: per the 08:44 review checkpoint, the approval and review explanations sit one disclosure away on the assignment page.
 - The next commit holds evidence and notes.
 
 PR #2 targets `hermes/agent-first-integration`.
 
-**Commands run at `e92c27d`:**
+**Commands run at `7e3a519`:**
 
 ```sh
-python3 scripts/workagent.py demo --skip-setup --env .local/final2-e92c27d.env   # fresh isolated DB
+python3 scripts/workagent.py demo --skip-setup --env .local/final-7e3a519.env   # fresh isolated DB
 cd web && pnpm check                                       # tsc, eslint, prettier, 25 unit tests
 cd web && NEXT_PUBLIC_WORKAGENT_API_BASE=/api/mock pnpm build && pnpm test:e2e   # 12 mock browser tests
 node web/scripts/capture-states.mjs <dir>                  # matched checkpoint captures (stack running)
 ```
 
-| Check | Mode | Result | Evidence (`evidence/combined-e92c27d/`) |
+| Check | Mode | Result | Evidence (`evidence/combined-7e3a519/`) |
 |---|---|---|---|
 | Delegation with a lost 202: same command replayed, one assignment, one run | real | pass | `real-demo/agent-first/state.json` |
-| Prepared checkpoint: Home card, space, assignment and artifact all read "Ready for review" | real | pass | agent-first journey; `after-e92c27d/01`–`04` |
-| Proposal awaiting decision: exact changes, both bodies, stale accept returns `version_conflict` | real | pass | `real-demo/04`, `05`, `10`; `after-e92c27d/05`, `06` |
-| Approved checkpoint: every surface reads "Approved revision"; human text and checklist preserved; the task stays `created` and the status line says approval does not complete tasks or responsibility criteria | real | pass | `real-demo/agent-first/05`, `06`, `real-demo/15`; `after-e92c27d/07`–`09` |
+| Prepared checkpoint: Home card, space, assignment and artifact all read "Ready for review" | real | pass | agent-first journey; `after-7e3a519/01`–`04` |
+| Proposal awaiting decision: exact changes, both bodies, stale accept returns `version_conflict` | real | pass | `real-demo/04`, `05`, `10`; `after-7e3a519/05`, `06` |
+| Approved checkpoint: every surface reads "Approved revision"; human text and checklist preserved; the task stays `created`, and "What approval covers" says approval does not complete tasks or responsibility criteria | real | pass | `real-demo/agent-first/05`, `06`, `real-demo/15`; `after-7e3a519/07`–`09` |
 | Phone: document first, Agent pane switch, unsent instruction and unsaved edit kept | real | pass | `real-demo/12`, `agent-first/03` |
 | API and web restart, then reopen the same assignment, approved revision and retained human revision | real, PostgreSQL retained | pass | `real-demo/restart.json`, `agent-first/restart.json`, `demo.json` (`dirty: false`) |
 | Nine fault regressions | real | pass | `real-demo/fault-regressions/results.json` |
@@ -40,7 +41,7 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 
 **PR #2 review items:**
 
-1. Calmer artifact screen: done (`after-e92c27d/07`).
+1. Calmer artifact screen: done (`after-7e3a519/07`).
 2. No raw IDs or hashes in the document: done. They are in History "Identifiers" and the decision card's "Revision details".
 3. A timely outcome above the composer on mobile Home: done (`01`).
 4. Context collapses to a count: done (`02`).

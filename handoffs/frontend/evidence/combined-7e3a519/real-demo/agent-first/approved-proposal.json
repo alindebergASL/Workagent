@@ -1,0 +1,77 @@
+{
+  "id": "2d3465e5-b824-46a0-9d9f-c689406e449a",
+  "workspace_id": "local-workspace",
+  "assignment_id": "b98a0c3d-bd8f-48e1-bc0d-50603101716a",
+  "artifact_id": "3450c8cf-015d-486c-9cbd-5c08b037d3c8",
+  "base_revision_id": "4fc6b85d-5aec-404f-89b8-9c2b61bf7899",
+  "base_work_version": 5,
+  "body": {
+    "title": "Private working plan",
+    "blocks": [
+      {
+        "block_id": "recommendation",
+        "kind": "paragraph",
+        "text": "Test one owner-and-next-action check in your own intake review; do not automate or share yet.",
+        "checked": null
+      },
+      {
+        "block_id": "evidence",
+        "kind": "paragraph",
+        "text": "4 of 8 usable personal cases lack an owner or a next action (union, not a sum). Cases: P1, P2, P3, P4. 4/8 = 50%.",
+        "checked": null
+      },
+      {
+        "block_id": "next-action",
+        "kind": "checklist",
+        "text": "Choose the next personal case. Record one owner, one concrete next action and an observation before comparing outcomes.",
+        "checked": true
+      },
+      {
+        "block_id": "protected-0",
+        "kind": "protected_note",
+        "text": "Keep Wednesday 14:00–15:00 for method drafting; do not trade this block for either team’s review.",
+        "checked": null
+      },
+      {
+        "block_id": "unknowns",
+        "kind": "paragraph",
+        "text": "Unknowns: No time-saved data collected. No evidence of a causal effect.",
+        "checked": null
+      },
+      {
+        "block_id": "scope",
+        "kind": "paragraph",
+        "text": "Private draft from selected current source references only. No calendar write, sharing, causal claim or external task effect occurred.",
+        "checked": null
+      },
+      {
+        "block_id": "fixture-revision-request",
+        "kind": "paragraph",
+        "text": "Fixture revision request for human review: Preserve my protected Wednesday note and checked next action; add a bounded follow-up reminder.",
+        "checked": null
+      }
+    ]
+  },
+  "body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+  "source_dependencies": [
+    {
+      "source_id": "SG-F2",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.267560Z"
+    },
+    {
+      "source_id": "SG-F3",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.268860Z"
+    },
+    {
+      "source_id": "SG-F7",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.272796Z"
+    }
+  ],
+  "reason": "Preserve my protected Wednesday note and checked next action; add a bounded follow-up reminder.",
+  "status": "accepted",
+  "accepted_revision_id": "7a5a7641-e496-4a7b-ad8b-562486daea11",
+  "created_at": "2026-10-02T09:07:12.967373Z"
+}

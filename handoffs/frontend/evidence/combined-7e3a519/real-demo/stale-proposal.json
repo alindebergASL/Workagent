@@ -1,0 +1,77 @@
+{
+  "id": "fc03255a-e568-44a9-b608-cdfe62325dd0",
+  "workspace_id": "local-workspace",
+  "assignment_id": "a6d43e99-f5df-4863-9e90-2dd343be9102",
+  "artifact_id": "c4106f1a-832e-4c2d-bb45-f88668029062",
+  "base_revision_id": "4eefbbcc-63eb-427a-baca-4c63bf35dd10",
+  "base_work_version": 5,
+  "body": {
+    "title": "Private working plan",
+    "blocks": [
+      {
+        "block_id": "recommendation",
+        "kind": "paragraph",
+        "text": "Test one owner-and-next-action check in your own intake review; do not automate or share yet.",
+        "checked": null
+      },
+      {
+        "block_id": "evidence",
+        "kind": "paragraph",
+        "text": "4 of 8 usable personal cases lack an owner or a next action (union, not a sum). Cases: P1, P2, P3, P4. 4/8 = 50%.",
+        "checked": null
+      },
+      {
+        "block_id": "next-action",
+        "kind": "checklist",
+        "text": "Choose the next personal case. Record one owner, one concrete next action and an observation before comparing outcomes.",
+        "checked": null
+      },
+      {
+        "block_id": "protected-0",
+        "kind": "protected_note",
+        "text": "Keep Wednesday 14:00–15:00 for method drafting.",
+        "checked": null
+      },
+      {
+        "block_id": "unknowns",
+        "kind": "paragraph",
+        "text": "Unknowns: No time-saved data collected. No evidence of a causal effect.",
+        "checked": null
+      },
+      {
+        "block_id": "scope",
+        "kind": "paragraph",
+        "text": "Private draft from selected current source references only. No calendar write, sharing, causal claim or external task effect occurred.",
+        "checked": null
+      },
+      {
+        "block_id": "fixture-revision-request",
+        "kind": "paragraph",
+        "text": "Fixture revision request for human review: Add an explicit next-step reminder without removing my protected note.",
+        "checked": null
+      }
+    ]
+  },
+  "body_hash": "2ff9111625b8cff228919bd0e463736019f20b465e311c3e467683ea538b77da",
+  "source_dependencies": [
+    {
+      "source_id": "SG-F2",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.267560Z"
+    },
+    {
+      "source_id": "SG-F3",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.268860Z"
+    },
+    {
+      "source_id": "SG-F7",
+      "external_version": "1",
+      "observed_at": "2026-10-02T09:06:39.272796Z"
+    }
+  ],
+  "reason": "Add an explicit next-step reminder without removing my protected note.",
+  "status": "pending",
+  "accepted_revision_id": null,
+  "created_at": "2026-10-02T09:06:49.390741Z"
+}
