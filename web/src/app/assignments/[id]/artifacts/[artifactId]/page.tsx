@@ -106,6 +106,7 @@ export default function ArtifactPage() {
   const [workFocus, setWorkFocus] = useState(0);
   const [askOpen, setAskOpen] = useState(false);
   const instructionRef = useRef<HTMLTextAreaElement>(null);
+  const askButtonRef = useRef<HTMLButtonElement>(null);
   const [instruction, setInstruction] = useState("");
   const [requestState, setRequestState] = useState<{
     busy: boolean;
@@ -1050,8 +1051,13 @@ export default function ArtifactPage() {
       : current.author.kind === "human"
         ? `Your edits are saved as revision ${current.sequence}.`
         : "Ready for your review. Edit anything, or ask me to revise it.";
-  const showAsk =
-    askOpen || Boolean(instruction.trim()) || Boolean(requestState.error);
+  // The form opens and closes only on request. A kept instruction (and any
+  // unconfirmed send, whose exact command stays frozen for retry) survives
+  // collapsing and comes back when the person resumes.
+  const showAsk = askOpen;
+  const draftKept = Boolean(instruction.trim());
+  const sendUnconfirmed =
+    Boolean(requestState.error) && Boolean(revisionCommand.current);
 
   const agentPane = (
     <div className="agent-pane stack">
@@ -1128,25 +1134,38 @@ export default function ArtifactPage() {
             <button
               type="button"
               className="btn btn-sm btn-quiet"
-              onClick={() => setAskOpen(false)}
+              onClick={() => {
+                setAskOpen(false);
+                window.setTimeout(() => askButtonRef.current?.focus(), 0);
+              }}
               disabled={requestState.busy}
             >
-              {instruction.trim() ? "Keep for later" : "Cancel"}
+              {draftKept ? "Keep for later" : "Cancel"}
             </button>
           </div>
         </form>
       ) : (
-        <button
-          type="button"
-          className="btn btn-sm ask-open"
-          onClick={() => {
-            setAskOpen(true);
-            window.setTimeout(() => instructionRef.current?.focus(), 0);
-          }}
-          disabled={Boolean(proposal)}
-        >
-          Ask for a revision
-        </button>
+        <div className="ask-resume">
+          <button
+            ref={askButtonRef}
+            type="button"
+            className="btn btn-sm ask-open"
+            onClick={() => {
+              setAskOpen(true);
+              window.setTimeout(() => instructionRef.current?.focus(), 0);
+            }}
+            disabled={Boolean(proposal) && !draftKept}
+          >
+            {draftKept ? "Resume your request" : "Ask for a revision"}
+          </button>
+          {draftKept ? (
+            <p className="hint" role="status">
+              {sendUnconfirmed
+                ? "Your last send wasn’t confirmed. Resume to retry the same request."
+                : "Your unsent request is kept here."}
+            </p>
+          ) : null}
+        </div>
       )}
     </div>
   );
