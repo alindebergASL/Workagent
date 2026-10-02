@@ -10,7 +10,12 @@ import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
 import { completedSummary, phaseOf, shortTitle } from "@/lib/work-state";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
-import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
+import {
+  artifactStatus,
+  assignmentStatus,
+  ErrorNotice,
+  StatusBadge,
+} from "@/components/ui";
 
 export default function AssignmentPage() {
   const params = useParams<{ id: string }>();
@@ -70,8 +75,8 @@ export default function AssignmentPage() {
     );
   }
 
-  const item = { summary: a, detail: a };
-  const phase = phaseOf(item);
+  const phase = phaseOf(a);
+  const badge = assignmentStatus(a.state, a.stage);
   const plan = a.artifacts.find((x) => x.kind === "plan");
   const review = a.needs_review_artifact_ids[0];
   const reviewTitle = review ? artifactTitles[review] : null;
@@ -81,7 +86,7 @@ export default function AssignmentPage() {
       case "working":
         return {
           tone: "live",
-          text: `I’m on it · ${a.stage ?? "Preparing"}. Saved results appear below as they’re ready; nothing is shown before it exists.`,
+          text: `I’m on it · ${a.stage ?? "Preparing"}. Saved results appear below as they’re ready.`,
         };
       case "decision":
         return {
@@ -97,10 +102,15 @@ export default function AssignmentPage() {
         };
       case "stopped":
         return { tone: "done", text: "Stopped. Saved results are kept." };
+      case "approved":
+        return {
+          tone: "done",
+          text: "Your approved revision is saved. No external action was taken.",
+        };
       default:
         return {
           tone: "done",
-          text: `Completed. ${completedSummary(item)} Prepared by the ${EXECUTION.worker}.`,
+          text: `${completedSummary(a)} Ready for you to review.`,
         };
     }
   })();
@@ -111,11 +121,13 @@ export default function AssignmentPage() {
       <header className="agent-intro stack">
         <div className="agent-presence agent-presence-sm" aria-hidden="true" />
         <p className="eyebrow">
-          {workspace?.name ?? "Private"} · observed{" "}
-          {formatTime(res.observedAt ?? a.observed_at, zone)}
+          Updated {formatTime(a.updated_at || a.observed_at, zone)}
           {res.reconnecting ? " · reconnecting…" : ""}
         </p>
         <h1>{shortTitle(a.title)}</h1>
+        <div className="row">
+          <StatusBadge label={badge.label} tone={badge.tone} />
+        </div>
         <p className="status-line" data-tone={statusLine.tone} role="status">
           <span className="dot" aria-hidden="true" />
           <span>{statusLine.text}</span>
@@ -187,7 +199,11 @@ export default function AssignmentPage() {
         ) : (
           <ul className="work-list">
             {a.artifacts.map((x) => {
-              const s = artifactStatus(x.state, x.partial);
+              const s = artifactStatus(
+                x.state,
+                x.partial,
+                Boolean(x.approved_revision_id),
+              );
               return (
                 <li key={x.id}>
                   <Link
@@ -220,7 +236,10 @@ export default function AssignmentPage() {
           <div className="stack">
             <h3>Your request</h3>
             <p className="small">{a.goal}</p>
-            <p className="hint mono">Reference {a.id}</p>
+            <p className="hint">
+              Prepared by the {EXECUTION.worker}, not a live agent run.
+              Reference {a.id}.
+            </p>
           </div>
           <div className="stack">
             <h3>Done when</h3>

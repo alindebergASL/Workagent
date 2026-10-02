@@ -1,12 +1,21 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { api, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
-import type { SourceDetail } from "@/lib/contract/types";
-import { EXECUTION } from "@/lib/execution";
+import type {
+  CreateAssignmentCommand,
+  SourceDetail,
+} from "@/lib/contract/types";
 import { ErrorNotice } from "./ui";
 
 const SAMPLE_REQUEST =
@@ -16,18 +25,17 @@ const COMPLETION =
   "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.";
 
 /**
- * Hand work to the agent. Creating work is a durable command: one command ID
- * per attempt of the same content, so a retry after a transport failure
- * replays rather than duplicates. Text and source choices survive errors.
+ * Hand work to the agent. Creating work is a durable command. Once an attempt's
+ * outcome is unknown (lost response), the exact command and its Space are
+ * frozen and the inputs lock: retrying replays that command, never a new one.
+ * Text and source choices survive every error.
  */
 export function Composer({
   wsId,
   contextLabel = "Your context",
-  autoFocus = false,
 }: {
   wsId: string | null;
   contextLabel?: string;
-  autoFocus?: boolean;
 }) {
   const router = useRouter();
   const { loading: wsLoading } = useWorkspace();
@@ -40,60 +48,97 @@ export function Composer({
   const [contextOpen, setContextOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
-  const commandId = useRef<string | null>(null);
+  const pending = useRef<{
+    workspace: string;
+    command: CreateAssignmentCommand;
+  } | null>(null);
+  const [, rerender] = useState(0);
   const requestRef = useRef<HTMLTextAreaElement>(null);
   const panelId = useId();
+  const locked = submitting || Boolean(pending.current);
+
+  // The request field grows with its text so a long request stays readable.
+  useLayoutEffect(() => {
+    const el = requestRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.max(el.scrollHeight, 72)}px`;
+  }, [request]);
 
   const canStart =
-    request.trim().length > 0 &&
-    selected.length > 0 &&
-    !submitting &&
-    Boolean(wsId);
+    (request.trim().length > 0 &&
+      selected.length > 0 &&
+      !submitting &&
+      Boolean(wsId)) ||
+    (Boolean(pending.current) && !submitting);
 
   const start = useCallback(async () => {
-    if (!wsId || !canStart) {
-      if (selected.length === 0) setContextOpen(true);
+    if (!wsId) return;
+    if (!pending.current && selected.length === 0) {
+      setContextOpen(true);
       return;
     }
+    if (!canStart) return;
     setSubmitting(true);
     setSubmitError(null);
-    if (!commandId.current) commandId.current = newCommandId();
     try {
-      const refs = selected.map((id) => {
-        const s = sources.data?.find((x) => x.id === id);
-        return { id, version: s?.version ?? "1" };
-      });
-      const result = await api.createAssignment(wsId, {
-        command_id: commandId.current,
-        goal: request.trim(),
-        selected_source_refs: refs,
-        completion_criteria: [COMPLETION],
-      });
-      commandId.current = null;
+      if (pending.current && pending.current.workspace !== wsId)
+        throw new ApiError({
+          code: "transport",
+          status: 0,
+          message: "Return to the original Space to reconcile this request.",
+        });
+      if (!pending.current) {
+        const refs = selected.map((id) => {
+          const source = sources.data?.find((x) => x.id === id);
+          if (!source)
+            throw new ApiError({
+              code: "source_changed",
+              status: 409,
+              message: "Refresh the selected sources before delegating.",
+            });
+          return { id, version: source.version };
+        });
+        pending.current = {
+          workspace: wsId,
+          command: {
+            command_id: newCommandId(),
+            goal: request.trim(),
+            selected_source_refs: refs,
+            completion_criteria: [COMPLETION],
+          },
+        };
+      }
+      const result = await api.createAssignment(
+        pending.current.workspace,
+        pending.current.command,
+      );
+      pending.current = null;
       router.push(`/assignments/${result.assignment_id}`);
     } catch (e) {
       setSubmitError(e);
+      // Only an ambiguous outcome keeps the frozen command; anything definite starts fresh.
       if (!(e instanceof ApiError && e.isAmbiguousWrite))
-        commandId.current = null;
+        pending.current = null;
       setSubmitting(false);
+      rerender((n) => n + 1);
     }
   }, [wsId, canStart, selected, sources.data, request, router]);
 
   useEffect(() => {
-    // Changing the request after a failed attempt starts a new command.
-    commandId.current = null;
-  }, [request, selected]);
-
-  useEffect(() => {
-    if (autoFocus) requestRef.current?.focus();
-  }, [autoFocus]);
+    if (!contextOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setContextOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [contextOpen]);
 
   const useSample = () => {
     setRequest(SAMPLE_REQUEST);
     setSelected(
       SAMPLE_SOURCE_IDS.filter((id) => sources.data?.some((s) => s.id === id)),
     );
-    setContextOpen(true);
     requestRef.current?.focus();
   };
 
@@ -105,6 +150,7 @@ export function Composer({
   const contextText = selected.length
     ? `${contextLabel} · ${selected.length} source${selected.length === 1 ? "" : "s"}`
     : contextLabel;
+  const ambiguous = Boolean(pending.current) && !submitting;
 
   return (
     <div className="composer-wrap">
@@ -124,7 +170,7 @@ export function Composer({
           value={request}
           onChange={(event) => setRequest(event.target.value)}
           placeholder="Ask, think aloud, or hand something over…"
-          disabled={submitting}
+          disabled={locked}
           rows={3}
           onKeyDown={(event) => {
             if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
@@ -141,6 +187,7 @@ export function Composer({
             aria-controls={panelId}
             data-filled={selected.length ? "true" : "false"}
             onClick={() => setContextOpen((v) => !v)}
+            disabled={locked}
           >
             {contextText}
           </button>
@@ -148,9 +195,18 @@ export function Composer({
           <button
             type="submit"
             className="btn btn-primary send"
-            disabled={!request.trim() || submitting || wsLoading || !wsId}
+            disabled={
+              (!request.trim() && !pending.current) ||
+              submitting ||
+              wsLoading ||
+              !wsId
+            }
           >
-            {submitting ? "Starting…" : "Start work"}
+            {submitting
+              ? "Starting…"
+              : ambiguous
+                ? "Retry same request"
+                : "Start work"}
             <span aria-hidden="true" className="send-arrow">
               ↑
             </span>
@@ -195,7 +251,7 @@ export function Composer({
                     type="checkbox"
                     checked={selected.includes(source.id)}
                     onChange={() => toggle(source.id)}
-                    disabled={submitting}
+                    disabled={locked}
                   />
                   <span>{source.title}</span>
                   <span className="ver">@{source.version}</span>
@@ -203,9 +259,21 @@ export function Composer({
               ))}
             </div>
           </fieldset>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => setContextOpen(false)}
+            >
+              Done
+            </button>
+          </div>
         </div>
       </form>
-      {request.trim() && selected.length === 0 && !contextOpen ? (
+      {request.trim() &&
+      selected.length === 0 &&
+      !contextOpen &&
+      !pending.current ? (
         <p className="hint">
           Choose the records this work may use before starting.
         </p>
@@ -214,32 +282,34 @@ export function Composer({
         <ErrorNotice
           error={submitError}
           actions={
-            <button
-              type="button"
-              className="btn btn-sm"
-              disabled={!canStart}
-              onClick={() => void start()}
-            >
-              {submitError instanceof ApiError && submitError.isAmbiguousWrite
-                ? "Retry the same request"
-                : "Try again"}
-            </button>
+            ambiguous ? undefined : (
+              <button
+                type="button"
+                className="btn btn-sm"
+                disabled={!canStart}
+                onClick={() => void start()}
+              >
+                Try again
+              </button>
+            )
           }
         />
+      ) : null}
+      {ambiguous ? (
+        <p className="hint" role="status">
+          Your request is held exactly as sent. Retrying replays it, so it can’t
+          create a second piece of work.
+        </p>
       ) : null}
       <div className="composer-after">
         <button
           type="button"
           className="link-quiet"
           onClick={useSample}
-          disabled={!sources.data || submitting}
+          disabled={!sources.data?.length || locked}
         >
-          Try the intake example ↗
+          Try the intake example
         </button>
-        <span className="hint">
-          {EXECUTION.short}: prepares an intake plan and checklist from the
-          selected records. It is not a live agent run.
-        </span>
       </div>
     </div>
   );

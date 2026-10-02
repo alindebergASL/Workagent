@@ -21,10 +21,15 @@ def cmd(cls,**kwargs):
     return cls(schema_version='workagent/v1',request_id=new_id(),command_id=new_id(),**kwargs)
 
 
+class PrivateDsn(str):
+    def __repr__(self):
+        return "<disposable database DSN redacted>"
+
+
 @pytest.fixture
 def context():
     # A missing real PostgreSQL environment is a FAIL, never a skip/pass.
-    dsn=os.environ['DATABASE_URL']; admin=os.environ['MIGRATION_DATABASE_URL']
+    dsn=PrivateDsn(os.environ['DATABASE_URL']); admin=PrivateDsn(os.environ['MIGRATION_DATABASE_URL'])
     assert '/workagent_test_' in dsn, 'Tests only run against disposable workagent_test_* databases'
     ws='test-'+new_id(); p=Principal('local-human')
     records=json.loads(ACTOR.read_text())

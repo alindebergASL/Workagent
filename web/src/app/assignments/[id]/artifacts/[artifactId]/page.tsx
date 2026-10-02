@@ -491,7 +491,8 @@ export default function ArtifactPage() {
     );
   }
 
-  const status = artifactStatus(art.state, art.partial);
+  const approved = Boolean(art.approved_revision_id);
+  const status = artifactStatus(art.state, art.partial, approved);
   const needsDecision = Boolean(
     proposal &&
     (proposal.status === "conflicted" || proposal.status === "proposed"),
@@ -539,7 +540,7 @@ export default function ArtifactPage() {
       <h1>{art.title}</h1>
       <div className="row row-between">
         <div className="row">
-          {art.state !== "ready" || art.partial ? (
+          {art.state !== "ready" || art.partial || approved ? (
             <StatusBadge label={status.label} tone={status.tone} />
           ) : null}
           <span className="save-state" aria-live="polite">

@@ -127,9 +127,11 @@ def main():
         stack.start(worker=args.command == 'serve')
         if args.command == 'demo':
             run(['node', ROOT / 'web/scripts/real-journey.mjs'], ROOT, env)
+            run(['node', ROOT / 'web/scripts/agent-first-journey.mjs'], ROOT, env)
             stack.stop()  # API and web really exit; PostgreSQL and immutable rows remain.
             stack.start()
             run(['node', ROOT / 'web/scripts/real-journey.mjs', '--reopen'], ROOT, env)
+            run(['node', ROOT / 'web/scripts/agent-first-journey.mjs', '--reopen'], ROOT, env)
             stack.stop()
             run([sys.executable, ROOT / 'scripts/workagent.py', 'faults', '--env', args.env, '--skip-setup'])
             metadata = {'git_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),

@@ -97,7 +97,7 @@ export default function SpacePage() {
         ) : null}
         <ul className="work-list">
           {overview.data?.map((item) => (
-            <WorkRow key={item.summary.id} item={item} />
+            <WorkRow key={item.id} item={item} />
           ))}
         </ul>
       </div>

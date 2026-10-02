@@ -20,7 +20,7 @@ export function assignmentStatus(
     case "needs_input":
       return { label: "Needs your input", tone: "status-attention" };
     case "finished":
-      return { label: "Finished", tone: "status-ok" };
+      return { label: "Approved revision", tone: "status-ok" };
     case "stopped":
       return { label: "Stopped", tone: "" };
     case "failed":
@@ -31,6 +31,7 @@ export function assignmentStatus(
 export function artifactStatus(
   state: ArtifactState,
   partial: boolean,
+  approved = false,
 ): { label: string; tone: string } {
   switch (state) {
     case "queued":
@@ -42,7 +43,10 @@ export function artifactStatus(
     case "ready":
       return partial
         ? { label: "Partial result", tone: "status-working" }
-        : { label: "Saved", tone: "status-ok" };
+        : {
+            label: approved ? "Approved revision" : "Saved",
+            tone: "status-ok",
+          };
   }
 }
 

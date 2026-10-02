@@ -99,6 +99,8 @@ export interface ArtifactRef {
   kind: ArtifactKind;
   state: ArtifactState;
   accepted_revision_id: string | null;
+  /** Explicit accepted-proposal receipt for this exact current revision, not any human save. */
+  approved_revision_id?: string | null;
   partial: boolean;
   updated_at: string;
 }
@@ -220,6 +222,8 @@ export interface Artifact {
   state: ArtifactState;
   partial: boolean;
   accepted_revision_id: string | null;
+  /** Explicit accepted-proposal receipt for this exact current revision, not any human save. */
+  approved_revision_id?: string | null;
   accepted_revision: Revision | null;
   pending_proposal: Proposal | null;
   observed_at: string;
