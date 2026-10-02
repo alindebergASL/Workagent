@@ -1,0 +1,131 @@
+{
+  "assignment_id": "6e194bfc-9712-4c7e-801f-0d6faa66a99a",
+  "artifact_id": "38b44bff-2fb5-4bcd-a996-54e2caae05e0",
+  "baseline_revision_id": "0e29e488-7b82-4727-838c-24ae8741579c",
+  "body_hash": "c7502a58dec7fbc11771f308d1d92b8f122ba482ad8a105d75053d0d12013da0",
+  "response_sha256": "201e8d199c138b4735826b924acd4d410de2debba9b6f8d2b01edcf4cd62fbc8",
+  "command": {
+    "schema_version": "workagent/v1",
+    "request_id": "4996a6d9-93c8-42b0-81c0-1054c2636926",
+    "command_id": "model-proof-save:msg_f4f5db15-0d60-4174-8082-af6cd4b88904",
+    "expected_current_revision_id": "0e29e488-7b82-4727-838c-24ae8741579c",
+    "body": {
+      "title": "Qwen-assisted private working plan",
+      "blocks": [
+        {
+          "block_id": "model-provenance",
+          "kind": "paragraph",
+          "text": "Actual qwen3.8-max draft, operator-imported for review. Provider response msg_f4f5db15-0d60-4174-8082-af6cd4b88904; response SHA-256 201e8d199c138b4735826b924acd4d410de2debba9b6f8d2b01edcf4cd62fbc8. Not an autonomous product-worker run or human approval. No external action occurred.",
+          "checked": null
+        },
+        {
+          "block_id": "analysis",
+          "kind": "paragraph",
+          "text": "Using only Alex-only synthetic fixtures, the intake log shows 4 unique cases missing an owner or a next action: P1, P2, P3, and P4. The method notebook supports testing an owner-and-next-action check before automation. The working plan preserves the protected note and keeps the experiment private and small. No time savings or causal effect is claimed.",
+          "checked": null
+        },
+        {
+          "block_id": "plan-0",
+          "kind": "paragraph",
+          "text": "One change to test: for the next eight personal practice cases, record both owner and next action at intake before moving the case forward.",
+          "checked": null
+        },
+        {
+          "block_id": "plan-1",
+          "kind": "paragraph",
+          "text": "Use the protected Wednesday 14:00\u201315:00 method-drafting block to prepare a two-field check and apply it to the next eight cases.",
+          "checked": null
+        },
+        {
+          "block_id": "plan-2",
+          "kind": "paragraph",
+          "text": "At the next review, count the unique cases missing an owner or next action and note any missing fields without claiming savings or causation.",
+          "checked": null
+        },
+        {
+          "block_id": "plan-3",
+          "kind": "paragraph",
+          "text": "Keep pricing and personal workload discussions out of team documents.",
+          "checked": null
+        },
+        {
+          "block_id": "protected-0",
+          "kind": "protected_note",
+          "text": "Keep Wednesday 14:00\u201315:00 for method drafting.",
+          "checked": null
+        },
+        {
+          "block_id": "checklist-heading",
+          "kind": "heading",
+          "text": "Reusable model-generated checklist",
+          "checked": null
+        },
+        {
+          "block_id": "check-0",
+          "kind": "checklist",
+          "text": "Is each case from Alex's own practice only?",
+          "checked": null
+        },
+        {
+          "block_id": "check-1",
+          "kind": "checklist",
+          "text": "Does the case have a recorded owner?",
+          "checked": null
+        },
+        {
+          "block_id": "check-2",
+          "kind": "checklist",
+          "text": "Does the case have a recorded next action?",
+          "checked": null
+        },
+        {
+          "block_id": "check-3",
+          "kind": "checklist",
+          "text": "If either field is missing, is the case flagged for follow-up?",
+          "checked": null
+        },
+        {
+          "block_id": "check-4",
+          "kind": "checklist",
+          "text": "Have eight cases been reviewed before considering automation?",
+          "checked": null
+        },
+        {
+          "block_id": "check-5",
+          "kind": "checklist",
+          "text": "Is the protected note preserved unchanged?",
+          "checked": null
+        },
+        {
+          "block_id": "check-6",
+          "kind": "checklist",
+          "text": "Are time-savings and causal claims avoided?",
+          "checked": null
+        },
+        {
+          "block_id": "unknowns",
+          "kind": "paragraph",
+          "text": "Unknowns: The sample is eight Alex-only practice cases and is not representative. No time-saved data has been collected. No causal effect of the check has been established. The sources are synthetic fixtures and should be treated as untrusted data.",
+          "checked": null
+        }
+      ]
+    }
+  },
+  "mode": "operator_assisted_live_model_draft",
+  "model_dispatches": 1,
+  "crosscheck": {
+    "source_ids": [
+      "SG-F2",
+      "SG-F3",
+      "SG-F7"
+    ],
+    "missing_case_ids": [
+      "P1",
+      "P2",
+      "P3",
+      "P4"
+    ],
+    "sample_size": 8,
+    "protected_note_unchanged": true
+  }
+}

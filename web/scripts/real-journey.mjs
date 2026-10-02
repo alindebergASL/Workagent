@@ -120,6 +120,13 @@ try {
     expect(
       proposals.items.find((p) => p.id === state.proposal_id).body_hash,
     ).toBe(state.proposal_hash);
+    const taskAfterRestart = await api(
+      "/tasks/" +
+        state.task_id +
+        "?expected_version=1&expected_desired_result=" +
+        encodeURIComponent("Review one personal intake case"),
+    );
+    expect(taskAfterRestart.task.state).toBe("created");
     await shot("07-reopened-desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await shot("08-reopened-mobile");
@@ -446,6 +453,15 @@ try {
     );
     expect(inspected.verification).toBe("verified_created");
     expect(inspected.inspection_id).toBeTruthy();
+    expect(inspected.task.state).toBe("created");
+    await page.goto(origin + "/assignments/" + assignmentId);
+    await expect(page.locator(".status-line")).toContainText(
+      "Approved revision saved",
+    );
+    await expect(page.locator(".status-line")).toContainText(
+      "does not mark tasks or responsibility criteria complete",
+    );
+    await shot("15-approved-with-unfinished-task");
     const state = {
       mode: "actual_application_postgresql_fixture_compute",
       assignment_id: assignmentId,

@@ -261,6 +261,16 @@ try {
     expect(
       proposal.body.blocks.find((b) => b.block_id === "next-action").checked,
     ).toBe(true);
+    // The pending decision reads the same on Agent, Spaces and the assignment.
+    await surfaceStates(state, "Ready for review");
+    await p.goto(origin + "/");
+    await expect(
+      p.locator(`.decision-card[data-assignment="${state.assignment_id}"]`),
+    ).toContainText("Review the change");
+    await p.goto(origin + artifactUrl);
+    await expect(
+      p.getByRole("button", { name: "Apply proposal", exact: true }),
+    ).toBeVisible();
     await screenshot("04-review-proposal-mobile");
     await p
       .getByRole("button", { name: "Apply proposal", exact: true })

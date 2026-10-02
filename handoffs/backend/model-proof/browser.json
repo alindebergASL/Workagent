@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "mode": "actual_model_draft_operator_import_after_recovery",
+  "assignment_id": "6e194bfc-9712-4c7e-801f-0d6faa66a99a",
+  "artifact_id": "38b44bff-2fb5-4bcd-a996-54e2caae05e0",
+  "approval_claimed": false,
+  "autonomous_worker_claimed": false,
+  "widths": [
+    1440,
+    390
+  ]
+}

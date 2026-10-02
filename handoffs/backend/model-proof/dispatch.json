@@ -1,0 +1,15 @@
+{
+  "kind": "one_real_model_assisted_synthetic_responsibility",
+  "status": "dispatch_consumed",
+  "max_requests": 1,
+  "automatic_retry": false,
+  "model_requested": "qwen3.8-max-preview",
+  "max_output_tokens": 4096,
+  "request_sha256": "da4bc712484b16e3ae61c515244cbc7b54fadac2c6a96b02d6cb660f148196ff",
+  "authority": "Current Workagent resume instruction + prior explicit Qwen subscription/app-key permission (owner messages 701540 and 701544); no paid fallback or provider switch.",
+  "source_ids": [
+    "SG-F2",
+    "SG-F3",
+    "SG-F7"
+  ]
+}

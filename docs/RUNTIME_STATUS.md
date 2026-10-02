@@ -5,6 +5,13 @@ Local deterministic fixture adapter is the only executable product mode. It is n
 selected live agent runtime and does not qualify live A16/S1 or A17/S0. `MODE=live`
 must fail closed; no silent fixture fallback, credential inference or new paid calls.
 
+## Bounded model access observation
+One actual Qwen subscription draft was produced and recovered as an explicitly
+operator-assisted import, not as an autonomous fixture worker or a selected managed
+runtime. See [the access audit](../handoffs/backend/RUNTIME_ACCESS_AUDIT.md) for
+actual provider receipt, usage, recovered prior authorization, and limits. This does
+not change the default executable product mode or qualify the live observations below.
+
 ## Managed-first discovery
 Primary documentation retrieved during this build:
 - https://developers.openai.com/api/docs/guides/agents

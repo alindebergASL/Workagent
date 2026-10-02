@@ -71,6 +71,7 @@ test.describe("S1 journey (mock mode)", () => {
       timeout: 30_000,
     });
     await expect(status).toContainText("Ready for you to review");
+    await expect(status).toContainText("Preparation is not approval");
     await expect(page.locator("header .status").first()).toHaveText(
       "Ready for review",
     );

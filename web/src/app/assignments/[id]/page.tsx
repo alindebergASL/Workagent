@@ -105,12 +105,12 @@ export default function AssignmentPage() {
       case "approved":
         return {
           tone: "done",
-          text: "Your approved revision is saved. No external action was taken.",
+          text: "Approved revision saved. This does not mark tasks or responsibility criteria complete; no external action was taken.",
         };
       default:
         return {
           tone: "done",
-          text: `${completedSummary(a)} Ready for you to review.`,
+          text: `${completedSummary(a)} Ready for you to review. Preparation is not approval.`,
         };
     }
   })();

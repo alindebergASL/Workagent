@@ -1,0 +1,16 @@
+{
+  "mode": "actual_application_postgresql_fixture_compute",
+  "assignment_id": "550673ee-d90d-4321-a6e1-cd270d837e01",
+  "artifact_id": "a8ed3c9f-f883-4115-a8f0-51d846e92b6e",
+  "artifact_url": "/assignments/550673ee-d90d-4321-a6e1-cd270d837e01/artifacts/a8ed3c9f-f883-4115-a8f0-51d846e92b6e",
+  "human_revision_id": "23660f0f-8462-4ebb-ba9e-d7ec6f92f9ca",
+  "human_body_hash": "1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204",
+  "applied_revision_id": "70ddde1a-e77b-4f13-84ba-f5265b975c81",
+  "applied_body_hash": "9dcd13c890a7779bca46b41435cc3cf5dfde73cb7085c1e13dfa571375d7d2a1",
+  "applied_proposal_id": "77f3ee82-2d95-408d-9db9-8e9acf029bf2",
+  "proposal_id": "cc9d6e19-9c7e-47cd-9ba0-69c68c5cd36b",
+  "proposal_hash": "2ff9111625b8cff228919bd0e463736019f20b465e311c3e467683ea538b77da",
+  "task_id": "543009d2-d599-4f60-ad59-a5745a8e70df",
+  "task_inspection_id": "b4719ca4-0605-4f33-ab76-3add41dab50d",
+  "errors": []
+}

@@ -46,6 +46,10 @@ def environment(path):
         env[key] = value
     env.update({'LOCAL_TEST_MODE': 'true', 'WORKAGENT_WEB_ORIGIN': 'http://127.0.0.1:3000',
                 'WORKAGENT_BACKEND_URL': 'http://127.0.0.1:8000', 'NEXT_PUBLIC_WORKAGENT_API_BASE': '/api/domain'})
+    # Fixture seed/web/API/worker processes must not inherit host model keys.
+    for name in list(env):
+        if name.endswith('API_KEY') or name in {'ANTHROPIC_AUTH_TOKEN', 'OPENAI_ACCESS_TOKEN'}:
+            env.pop(name, None)
     if fresh:
         run([PYTHON, '-m', 'workagent.fixture', 'seed', '--records', ROOT / 'fixtures/actor/solo-v0.1/initial_records.json'], ROOT / 'backend', env)
     # Administrative credential belongs only to provisioning/explicit operator CLI.
