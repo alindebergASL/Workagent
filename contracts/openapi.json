@@ -761,6 +761,17 @@
             ],
             "title": "Attempt Id"
           },
+          "evidence_origin": {
+            "default": "unverified",
+            "enum": [
+              "unverified",
+              "fixture",
+              "synthetic_provider_receipt",
+              "live_provider_receipt"
+            ],
+            "title": "Evidence Origin",
+            "type": "string"
+          },
           "grant_id": {
             "anyOf": [
               {
@@ -895,6 +906,46 @@
           "status"
         ],
         "title": "OutcomeCheck",
+        "type": "object"
+      },
+      "OutcomeQuestion": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "base_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Base Revision Id",
+            "type": "string"
+          },
+          "prompt": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "proposal_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Proposal Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "prompt",
+          "artifact_id",
+          "proposal_id",
+          "base_revision_id"
+        ],
+        "title": "OutcomeQuestion",
         "type": "object"
       },
       "Proposal": {
@@ -1512,6 +1563,53 @@
             "title": "Artifacts",
             "type": "array"
           },
+          "attempt_state": {
+            "anyOf": [
+              {
+                "enum": [
+                  "prepared",
+                  "dispatched",
+                  "outcome_unknown",
+                  "responded",
+                  "reconciled",
+                  "failed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt State"
+          },
+          "blocker": {
+            "anyOf": [
+              {
+                "enum": [
+                  "paused",
+                  "cancelled",
+                  "grant_revoked",
+                  "grant_expired",
+                  "source_changed",
+                  "runtime_unavailable",
+                  "consumer_unavailable",
+                  "lease_expired",
+                  "prepared_attempt",
+                  "provider_outcome_unknown",
+                  "publication_pending",
+                  "unsent_abandoned",
+                  "unresolved_items",
+                  "decision_required",
+                  "decision_stale"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
           "checks": {
             "items": {
               "$ref": "#/components/schemas/OutcomeCheck"
@@ -1519,6 +1617,11 @@
             "maxItems": 10,
             "title": "Checks",
             "type": "array"
+          },
+          "continuation_available": {
+            "default": false,
+            "title": "Continuation Available",
+            "type": "boolean"
           },
           "execution": {
             "anyOf": [
@@ -1530,6 +1633,19 @@
               }
             ]
           },
+          "next_action": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Action"
+          },
           "outcome_gate": {
             "default": "unverified",
             "enum": [
@@ -1539,6 +1655,29 @@
             ],
             "title": "Outcome Gate",
             "type": "string"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OutcomeQuestion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
           },
           "run_id": {
             "maxLength": 128,
@@ -1577,6 +1716,16 @@
             "default": false,
             "title": "Underlying Action Performed",
             "type": "boolean"
+          },
+          "unresolved": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Unresolved",
+            "type": "array"
           }
         },
         "required": [
@@ -3398,7 +3547,7 @@
                     "provider_session_id": null,
                     "provider_turn_id": null,
                     "state": "queued",
-                    "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
+                    "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -4417,7 +4566,7 @@
                   "provider_session_id": null,
                   "provider_turn_id": null,
                   "state": "running",
-                  "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
+                  "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

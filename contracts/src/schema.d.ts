@@ -504,6 +504,12 @@ export interface components {
         ExecutionProvenance: {
             /** Attempt Id */
             attempt_id?: string | null;
+            /**
+             * Evidence Origin
+             * @default unverified
+             * @enum {string}
+             */
+            evidence_origin: "unverified" | "fixture" | "synthetic_provider_receipt" | "live_provider_receipt";
             /** Grant Id */
             grant_id?: string | null;
             /**
@@ -552,6 +558,17 @@ export interface components {
              * @enum {string}
              */
             status: "passed" | "failed" | "unverified";
+        };
+        /** OutcomeQuestion */
+        OutcomeQuestion: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Base Revision Id */
+            base_revision_id: string;
+            /** Prompt */
+            prompt: string;
+            /** Proposal Id */
+            proposal_id: string;
         };
         /** Proposal */
         Proposal: {
@@ -751,15 +768,29 @@ export interface components {
         RunOutcome: {
             /** Artifacts */
             artifacts?: components["schemas"]["ArtifactBinding"][];
+            /** Attempt State */
+            attempt_state?: ("prepared" | "dispatched" | "outcome_unknown" | "responded" | "reconciled" | "failed") | null;
+            /** Blocker */
+            blocker?: ("paused" | "cancelled" | "grant_revoked" | "grant_expired" | "source_changed" | "runtime_unavailable" | "consumer_unavailable" | "lease_expired" | "prepared_attempt" | "provider_outcome_unknown" | "publication_pending" | "unsent_abandoned" | "unresolved_items" | "decision_required" | "decision_stale") | null;
             /** Checks */
             checks?: components["schemas"]["OutcomeCheck"][];
+            /**
+             * Continuation Available
+             * @default false
+             */
+            continuation_available: boolean;
             execution?: components["schemas"]["ExecutionProvenance"] | null;
+            /** Next Action */
+            next_action?: string | null;
             /**
              * Outcome Gate
              * @default unverified
              * @enum {string}
              */
             outcome_gate: "passed" | "failed" | "unverified";
+            question?: components["schemas"]["OutcomeQuestion"] | null;
+            /** Reason */
+            reason?: string | null;
             /** Run Id */
             run_id: string;
             /**
@@ -779,6 +810,8 @@ export interface components {
              * @constant
              */
             underlying_action_performed: false;
+            /** Unresolved */
+            unresolved?: string[];
         };
         /** Source */
         Source: {
@@ -1718,7 +1751,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
+                     *         "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -2309,7 +2342,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
+                     *       "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

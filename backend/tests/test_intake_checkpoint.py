@@ -28,7 +28,7 @@ def admitted(context):
     g=grant(context)
     q=create(context)
     cap=s.claim_run(p,ws,q.run.id)
-    attempt=s.prepare_provider_attempt(cap, request_hash=digest({'synthetic':'request'}), consumer_sha256=g.consumer_sha256)
+    attempt=s.prepare_provider_attempt(cap, request_hash=digest({'synthetic':'request'}), consumer_sha256=g.consumer_sha256,evidence_origin='synthetic_provider_receipt')
     return q,cap,attempt
 
 
@@ -41,11 +41,12 @@ def receipt():
 def test_predispatch_identity_and_single_dispatch_permission(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     assert attempt.state=='prepared' and attempt.result is None
     with ThreadPoolExecutor(max_workers=4) as pool:
-        repeated=list(pool.map(lambda _:s.prepare_provider_attempt(cap,request_hash=attempt.request_hash,consumer_sha256='a'*64),range(4)))
+        repeated=list(pool.map(lambda _:s.prepare_provider_attempt(cap,request_hash=attempt.request_hash,consumer_sha256='a'*64,evidence_origin='synthetic_provider_receipt'),range(4)))
     assert {x.id for x in repeated}=={attempt.id}
-    raises('command_conflict',lambda:s.prepare_provider_attempt(cap,request_hash='b'*64,consumer_sha256='a'*64))
+    raises('command_conflict',lambda:s.prepare_provider_attempt(cap,request_hash='b'*64,consumer_sha256='a'*64,evidence_origin='synthetic_provider_receipt'))
     def dispatch(_):
         try:
             return s.dispatch_provider_attempt(cap,attempt.id).state
@@ -61,9 +62,10 @@ def test_predispatch_identity_and_single_dispatch_permission(context):
 def test_unknown_after_process_restart_lease_expiry_and_delivery(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.mark_provider_unknown(p,ws,q.run.id)
-    raises('action_unresolved',lambda:s.fail_provider_attempt(p,ws,q.run.id))
+    s.mark_provider_unknown(rc)
+    raises('action_unresolved',lambda:s.fail_provider_attempt(rc))
     expire(context,q.run.id)
     # A new Python process receives the same durable queue delivery.
     result=subprocess.run([sys.executable,'-m','workagent.dispatcher','--once','--workspace',ws],capture_output=True,text=True,check=True)
@@ -79,20 +81,22 @@ def test_unknown_after_process_restart_lease_expiry_and_delivery(context):
 def test_received_commit_and_reconcile_are_separate_boundaries(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     raises('action_unresolved',lambda:s.complete_run(cap,receipt().bodies))
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.record_provider_result(p,ws,q.run.id,receipt())
+    s.record_provider_result(rc,receipt())
     assert s.get_assignment(p,ws,q.assignment.id).artifact_ids==[]
-    assert not s.reconcile_provider_attempt(p,ws,q.run.id)
+    assert not s.reconcile_provider_attempt(rc)
     expire(context,q.run.id)
     cap=s.recover_provider_run(p,ws,q.run.id)
     raises('command_conflict',lambda:s.complete_run(cap,[Body(title='Different',blocks=[Block(block_id='x',kind='paragraph',text='Done')])]))
     completed=s.complete_run(cap,receipt().bodies,command=cmd(Command))
     assert completed.execution.mode=='managed' and completed.execution.attempt_id==attempt.id
     assert s.get_provider_attempt(p,ws,q.run.id).state=='responded'
-    assert s.reconcile_provider_attempt(p,ws,q.run.id)
+    assert s.reconcile_provider_attempt(rc)
     assert s.get_provider_attempt(p,ws,q.run.id).state=='reconciled'
-    assert s.record_provider_result(p,ws,q.run.id,receipt()).state=='reconciled'
+    assert s.record_provider_result(rc,receipt()) is True
+    assert s.get_provider_attempt(p,ws,q.run.id).state=='reconciled'
     outcome=s.get_assignment(p,ws,q.assignment.id).responsibility
     assert outcome.underlying_action_performed is False
     assert outcome.runs[-1].state=='prepared'
@@ -136,6 +140,7 @@ def test_grant_runtime_guard_and_revocation(context):
     from workagent.runtime_config import BundleDenied
     s,p,ws,_,admin=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     with pytest.raises(BundleDenied):
         configure_grant(s.db,ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,model='synthetic',consumer_sha256='a'*64,expires_at=now()+timedelta(minutes=10)))
     with pytest.raises(psycopg.Error):
@@ -143,18 +148,19 @@ def test_grant_runtime_guard_and_revocation(context):
             c.execute('UPDATE provider_grants SET active=false WHERE workspace_id=%s',(ws,))
     revoke_grant(Database(admin),attempt.grant_id)
     raises('action_unresolved',lambda:s.dispatch_provider_attempt(cap,attempt.id))
-    raises('action_unresolved',lambda:s.record_provider_result(p,ws,q.run.id,receipt()))
+    raises('action_unresolved',lambda:s.record_provider_result(rc,receipt()))
     assert s.get_provider_attempt(p,ws,q.run.id).state=='prepared'
 
 
 def test_unknown_keeps_correlation_ids_and_cannot_resume_as_new_run(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.record_provider_identity(p,ws,q.run.id,provider_session_id='synthetic-session')
-    s.mark_provider_unknown(p,ws,q.run.id)
-    s.record_provider_identity(p,ws,q.run.id,provider_session_id='synthetic-session',provider_turn_id='synthetic-turn')
-    raises('command_conflict',lambda:s.record_provider_identity(p,ws,q.run.id,provider_session_id='wrong'))
+    s.record_provider_identity(rc,provider_session_id='synthetic-session')
+    s.mark_provider_unknown(rc)
+    s.record_provider_identity(rc,provider_session_id='synthetic-session',provider_turn_id='synthetic-turn')
+    raises('command_conflict',lambda:s.record_provider_identity(rc,provider_session_id='wrong'))
     reopened=Service(Database()).get_provider_attempt(p,ws,q.run.id)
     assert reopened.provider_session_id=='synthetic-session' and reopened.provider_turn_id=='synthetic-turn'
     a=s.get_assignment(p,ws,q.assignment.id)
@@ -166,35 +172,39 @@ def test_unknown_keeps_correlation_ids_and_cannot_resume_as_new_run(context):
 def test_prepared_orphan_and_failed_attempt_cannot_be_reclaimed(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     expire(context,q.run.id)
     raises('action_unresolved',lambda:s.claim_run(p,ws,q.run.id))
-    s.fail_provider_attempt(p,ws,q.run.id)
+    s.fail_provider_attempt(rc)
     assert s.get_provider_attempt(p,ws,q.run.id).state=='failed'
     raises('action_unresolved',lambda:s.claim_run(p,ws,q.run.id))
-    raises('action_unresolved',lambda:s.record_provider_result(p,ws,q.run.id,receipt()))
+    raises('action_unresolved',lambda:s.record_provider_result(rc,receipt()))
 
 
 def test_source_revocation_denies_received_result_continuation(context):
     s,p,ws,refs,admin=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.record_provider_result(p,ws,q.run.id,receipt())
+    s.record_provider_result(rc,receipt())
     with Database(admin).transaction() as c:
         c.execute('UPDATE workspaces SET access_generation=access_generation+1 WHERE id=%s',(ws,))
         c.execute('UPDATE source_access SET active=false WHERE workspace_id=%s AND source_id=%s',(ws,refs[0].source_id))
     raises('not_found_or_not_authorized',lambda:s.complete_run(cap,receipt().bodies))
     raises('not_found_or_not_authorized',lambda:s.recover_provider_run(p,ws,q.run.id))
-    raises('not_found_or_not_authorized',lambda:s.reconcile_provider_attempt(p,ws,q.run.id))
+    assert s.reconcile_provider_attempt(rc) is False  # No publication; no content returned.
     assert s.list_assignments(p,ws).items==[]
 
 
 def test_receipt_budget_is_not_claimed_as_provider_hard_budget(context):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     s.dispatch_provider_attempt(cap,attempt.id)
     result=receipt()
     result.usage.output_tokens=5000
-    stored=s.record_provider_result(p,ws,q.run.id,result)
+    assert s.record_provider_result(rc,result) is True
+    stored=s.get_provider_attempt(p,ws,q.run.id)
     assert stored.result.usage.output_tokens==5000  # Never discard already incurred usage.
     raises('budget_exhausted',lambda:s.complete_run(cap,result.bodies))
     with s.db.transaction() as c:
@@ -207,6 +217,7 @@ def test_immutable_identity_result_and_transition_guards(context):
     from workagent.service import encoded
     s,p,ws,_,admin=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     for dsn in (s.db.dsn,admin):
         for field,value in [('request_hash','b'*64),('model','different'),('grant_id','different'),('state','responded')]:
             with pytest.raises(psycopg.Error):
@@ -216,9 +227,9 @@ def test_immutable_identity_result_and_transition_guards(context):
             with Database(dsn).transaction() as c:
                 c.execute('DELETE FROM provider_attempts WHERE workspace_id=%s',(ws,))
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.record_provider_result(p,ws,q.run.id,receipt())
+    s.record_provider_result(rc,receipt())
     conflicting=receipt(); conflicting.usage.input_tokens=99
-    raises('command_conflict',lambda:s.record_provider_result(p,ws,q.run.id,conflicting))
+    raises('command_conflict',lambda:s.record_provider_result(rc,conflicting))
     with pytest.raises(psycopg.Error):
         with Database(admin).transaction() as c:
             c.execute("UPDATE provider_attempts SET data=jsonb_set(jsonb_set(data,'{state}','\"reconciled\"'),'{result,usage,input_tokens}','99') WHERE workspace_id=%s",(ws,))
@@ -241,8 +252,9 @@ def test_legacy_fixture_registry_byte_binding_survives_schema_additions(context,
 def test_atomic_publication_failure_retains_result_for_local_retry(context,monkeypatch):
     s,p,ws,_,_=context
     q,cap,attempt=admitted(context)
+    rc=s.bind_provider_receipt(cap,attempt.id)
     s.dispatch_provider_attempt(cap,attempt.id)
-    s.record_provider_result(p,ws,q.run.id,receipt())
+    s.record_provider_result(rc,receipt())
     original=s._event
     def fail(c,p,ws,operation,object_id):
         if operation=='complete_run':
@@ -255,7 +267,7 @@ def test_atomic_publication_failure_retains_result_for_local_retry(context,monke
     assert s.get_assignment(p,ws,q.assignment.id).artifact_ids==[]
     assert s.get_provider_attempt(p,ws,q.run.id).state=='responded'
     s.complete_run(cap,receipt().bodies)
-    assert s.reconcile_provider_attempt(p,ws,q.run.id)
+    assert s.reconcile_provider_attempt(rc)
 
 
 def test_assignment_http_projection_is_common_safe_and_readonly(context):

@@ -49,8 +49,16 @@ def registry_for_hash(expected):
     current=registry()
     if digest(current)==expected:
         return current
-    raw=Path(__file__).with_name('legacy_tool_registry.json').read_bytes()
-    if (expected!='3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572' or
-        hashlib.sha256(raw).hexdigest()!='2adb7311d13fdc420278f48b35b8432a107046cfce9ed77c21c882fe5a559aa2'):
+    archives={
+        '3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572':
+            ('legacy_tool_registry.json','2adb7311d13fdc420278f48b35b8432a107046cfce9ed77c21c882fe5a559aa2'),
+        'b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480':
+            ('checkpoint_tool_registry.json','8739e9a6bdd078d6ea65903f30a6d4a7858ff18f6ff3a545c6055c45b8932647'),
+    }
+    if expected not in archives:
+        raise ValueError('unreviewed tool registry')
+    name,byte_hash=archives[expected]
+    raw=Path(__file__).with_name(name).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=byte_hash or digest(json.loads(raw))!=expected:
         raise ValueError('unreviewed tool registry')
     return json.loads(raw)

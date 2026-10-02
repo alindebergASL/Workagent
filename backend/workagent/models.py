@@ -133,6 +133,9 @@ class ExecutionProvenance(Model):
     attempt_id: Id | None = None
     # Managed labels mean configured execution, NOT proof of a provider response.
     provider_observation: Literal['not_observed', 'received'] = 'not_observed'
+    # Trusted origin, never inferred from model/profile/observation. Live is reserved
+    # for a future reviewed attestation path; this checkpoint cannot write it.
+    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt'] = 'unverified'
 
 
 class ArtifactBinding(Model):
@@ -148,6 +151,13 @@ class OutcomeCheck(Model):
     status: Literal['passed', 'failed', 'unverified']
 
 
+class OutcomeQuestion(Model):
+    prompt: Annotated[str, Field(min_length=1, max_length=500)]
+    artifact_id: Id
+    proposal_id: Id
+    base_revision_id: Id
+
+
 class RunOutcome(Model):
     run_id: Id
     execution: ExecutionProvenance | None = None
@@ -156,6 +166,13 @@ class RunOutcome(Model):
     checks: list[OutcomeCheck] = Field(default_factory=list, max_length=10)
     outcome_gate: Literal['passed', 'failed', 'unverified'] = 'unverified'
     safety_gate: Literal['passed', 'failed', 'unverified'] = 'unverified'
+    continuation_available: bool = False
+    attempt_state: Literal['prepared', 'dispatched', 'outcome_unknown', 'responded', 'reconciled', 'failed'] | None = None
+    blocker: Literal['paused', 'cancelled', 'grant_revoked', 'grant_expired', 'source_changed', 'runtime_unavailable', 'consumer_unavailable', 'lease_expired', 'prepared_attempt', 'provider_outcome_unknown', 'publication_pending', 'unsent_abandoned', 'unresolved_items', 'decision_required', 'decision_stale'] | None = None
+    reason: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    next_action: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    question: OutcomeQuestion | None = None
+    unresolved: list[Text] = Field(default_factory=list, max_length=100)
     underlying_action_performed: Literal[False] = False
 
 

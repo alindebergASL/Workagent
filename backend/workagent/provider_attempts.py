@@ -5,10 +5,12 @@ is a one-shot state transition, not a replayable command and not provider exactl
 Only a reviewed consumer may use it; provider receipts below are untrusted evidence.
 """
 from datetime import timedelta
+from dataclasses import dataclass, field
+import secrets
 from pydantic import TypeAdapter
 from .errors import DomainError, deny
 from .models import (ProviderGrant, ProviderAttempt, ProviderResult, ExecutionProvenance,
-                     Run, Hash, Id, now, new_id)
+                     Run, Assignment, Hash, Id, now, new_id)
 
 
 def _owner(c):
@@ -81,28 +83,45 @@ def attempt_row(c, ws, run_id):
     return ProviderAttempt.model_validate(row['data']) if row else None
 
 
+@dataclass(frozen=True)
+class ReceiptCapability:
+    """Consumer credential for write-only retention/settlement, not reads or sends.
+
+    Persist privately before dispatch. The original immutable secret binding
+    survives lease/grant revocation; possession is not publication authority.
+    """
+    workspace_id: str
+    run_id: str
+    principal_id: str
+    attempt_id: str
+    request_hash: str
+    consumer_sha256: str
+    fence: int
+    secret: str = field(repr=False)
+
+
+def _receipt_secret(cap):
+    # One-way domain separation is essential: a retained receipt credential must
+    # not be cast back into a WorkerCapability with publication/send authority.
+    from .service import digest
+    return digest({'purpose':'provider-receipt-retention-v1','lease_secret':cap.secret})
+
+
 class ProviderAttempts:
     """Methods mixed into the canonical Service; none are HTTP/model operations."""
-    def _provider_authority(self,c,p,ws,run_id,continuation=True):
-        generation=self._scope(c,p,ws,write=continuation)
+    def _provider_read_authority(self,c,p,ws,run_id):
+        self._scope(c,p,ws)
         row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,run_id)).fetchone()
         if not row:
             deny()
         run=Run.model_validate(row['data'])
         if run.principal_id!=p.id:
             deny()
-        assignment=self._assignment(c,p,ws,run.assignment_id,versions=continuation)
-        if continuation:
-            self._runtime_pins(c,run)
-            if generation!=run.access_generation:
-                raise DomainError('source_changed')
-            if assignment.state in ('paused','cancelled') or run.state=='cancelled':
-                raise DomainError('action_unresolved')
-        return run,assignment
+        self._assignment(c,p,ws,run.assignment_id)  # Recheck every selected source.
 
     def get_provider_attempt(self,p,ws,run_id):
         with self.db.transaction() as c:
-            self._provider_authority(c,p,ws,run_id,False)
+            self._provider_read_authority(c,p,ws,run_id)
             return attempt_row(c,ws,run_id)
 
     def _store_attempt(self,c,attempt):
@@ -110,11 +129,15 @@ class ProviderAttempts:
         c.execute('UPDATE provider_attempts SET data=%s WHERE workspace_id=%s AND run_id=%s',
                   (encoded(attempt),attempt.workspace_id,attempt.run_id))
 
-    def prepare_provider_attempt(self,cap,*,request_hash,consumer_sha256):
-        from .service import encoded
+    def prepare_provider_attempt(self,cap,*,request_hash,consumer_sha256,evidence_origin='unverified'):
+        from .service import encoded, digest
         from .runtime_config import check_pins
         request_hash=TypeAdapter(Hash).validate_python(request_hash)
         consumer_sha256=TypeAdapter(Hash).validate_python(consumer_sha256)
+        # No live attestation exists here. Trusted consumer selects origin before
+        # dispatch; neither model output nor a received label can establish it.
+        if evidence_origin not in ('unverified','synthetic_provider_receipt'):
+            raise DomainError('unsupported_operation')
         with self.db.transaction() as c:
             p,run,a=self._check_capability(c,cap)
             if run.profile!='openai-agents-v1':
@@ -124,7 +147,9 @@ class ProviderAttempts:
                 raise DomainError('unsupported_operation')
             previous=attempt_row(c,run.workspace_id,run.id)
             if previous:
-                if previous.request_hash!=request_hash or previous.consumer_sha256!=consumer_sha256:
+                origin=c.execute('SELECT evidence_origin FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',
+                                 (run.workspace_id,run.id)).fetchone()['evidence_origin']
+                if previous.request_hash!=request_hash or previous.consumer_sha256!=consumer_sha256 or origin!=evidence_origin:
                     raise DomainError('command_conflict')
                 return previous  # NOT permission to dispatch again.
             context=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
@@ -135,12 +160,50 @@ class ProviderAttempts:
                 principal_id=p.id,grant_id=config['grant_id'],profile=run.profile,model=config['model'],
                 request_hash=request_hash,consumer_sha256=consumer_sha256,
                 context_hash=context['data']['context_sha256'],fence=run.fence)
-            c.execute('INSERT INTO provider_attempts(workspace_id,run_id,id,grant_id,data) VALUES (%s,%s,%s,%s,%s)',
-                      (run.workspace_id,run.id,attempt.id,attempt.grant_id,encoded(attempt)))
+            c.execute('INSERT INTO provider_attempts(workspace_id,run_id,id,grant_id,data,receipt_key_hash,evidence_origin) VALUES (%s,%s,%s,%s,%s,%s,%s)',
+                      (run.workspace_id,run.id,attempt.id,attempt.grant_id,encoded(attempt),digest(_receipt_secret(cap)),evidence_origin))
             run.execution=ExecutionProvenance(mode='managed',profile=run.profile,model=attempt.model,
                                               grant_id=attempt.grant_id,attempt_id=attempt.id)
             self._store_run(c,run)
         return self.get_provider_attempt(p,run.workspace_id,run.id)
+
+    def bind_provider_receipt(self,cap,attempt_id):
+        """Bind with original live lease BEFORE dispatch; no human/recovery bypass."""
+        with self.db.transaction() as c:
+            p,run,a=self._check_capability(c,cap)
+            attempt=attempt_row(c,run.workspace_id,run.id)
+            if not attempt or attempt.id!=attempt_id or attempt.state!='prepared':
+                raise DomainError('action_unresolved')
+            bound=ReceiptCapability(run.workspace_id,run.id,p.id,attempt.id,
+                                    attempt.request_hash,attempt.consumer_sha256,cap.fence,_receipt_secret(cap))
+            self._receipt_binding(c,bound)
+            return bound
+
+    def _receipt_binding(self,c,cap):
+        """Authenticate exact immutable identity, NOT current continuation.
+
+        Used only by write-only retention and terminal settlement. Human reads
+        still require current membership and selected-source authorization.
+        """
+        from .service import digest
+        if not isinstance(cap,ReceiptCapability):
+            deny()
+        c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(cap.workspace_id,))
+        row=c.execute('SELECT * FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',
+                      (cap.workspace_id,cap.run_id)).fetchone()
+        if not row:
+            deny()
+        attempt=ProviderAttempt.model_validate(row['data'])
+        if (attempt.id!=cap.attempt_id or attempt.principal_id!=cap.principal_id or
+            attempt.request_hash!=cap.request_hash or attempt.consumer_sha256!=cap.consumer_sha256 or
+            attempt.fence!=cap.fence or
+            not secrets.compare_digest(row['receipt_key_hash'] or '',digest(cap.secret))):
+            deny()
+        run=Run.model_validate(c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',
+                                        (cap.workspace_id,cap.run_id)).fetchone()['data'])
+        if run.principal_id!=cap.principal_id:
+            deny()
+        return run,attempt,row['evidence_origin']
 
     def dispatch_provider_attempt(self,cap,attempt_id):
         """Commit BEFORE any send. Only the winning caller may send ONCE.
@@ -157,26 +220,24 @@ class ProviderAttempts:
             self._store_attempt(c,attempt)
         return self.get_provider_attempt(p,run.workspace_id,run.id)
 
-    def mark_provider_unknown(self,p,ws,run_id):
+    def mark_provider_unknown(self,receipt_cap):
         with self.db.transaction() as c:
-            self._provider_authority(c,p,ws,run_id)
-            attempt=attempt_row(c,ws,run_id)
-            if not attempt or attempt.state not in ('dispatched','outcome_unknown'):
+            run,attempt,origin=self._receipt_binding(c,receipt_cap)
+            if attempt.state not in ('dispatched','outcome_unknown'):
                 raise DomainError('action_unresolved')
             if attempt.state=='dispatched':
                 attempt.state='outcome_unknown'
                 self._store_attempt(c,attempt)
-        return self.get_provider_attempt(p,ws,run_id)
+        return True
 
-    def record_provider_identity(self,p,ws,run_id,*,provider_session_id,provider_turn_id=None):
-        """Save received correlation IDs before a final result; IDs never authorize send."""
+    def record_provider_identity(self,receipt_cap,*,provider_session_id,provider_turn_id=None):
+        """Write-only correlation retention; IDs never authorize send or readback."""
         provider_session_id=TypeAdapter(Id).validate_python(provider_session_id)
         if provider_turn_id is not None:
             provider_turn_id=TypeAdapter(Id).validate_python(provider_turn_id)
         with self.db.transaction() as c:
-            run,a=self._provider_authority(c,p,ws,run_id)
-            attempt=attempt_row(c,ws,run_id)
-            if not attempt or attempt.state not in ('dispatched','outcome_unknown'):
+            run,attempt,origin=self._receipt_binding(c,receipt_cap)
+            if attempt.state not in ('dispatched','outcome_unknown'):
                 raise DomainError('action_unresolved')
             if ((attempt.provider_session_id and attempt.provider_session_id!=provider_session_id) or
                 (attempt.provider_turn_id and provider_turn_id and attempt.provider_turn_id!=provider_turn_id)):
@@ -187,27 +248,26 @@ class ProviderAttempts:
                 self._store_attempt(c,attempt)
                 run.provider_session_id=attempt.provider_session_id; run.provider_turn_id=attempt.provider_turn_id
                 self._store_run(c,run)
-        return self.get_provider_attempt(p,ws,run_id)
+        return True
 
-    def record_provider_result(self,p,ws,run_id,result):
-        """Trusted consumer supplies a sanitized received receipt; no domain commit.
+    def record_provider_result(self,receipt_cap,result):
+        """Retain incurred usage after expiry/revocation/control changes.
 
-        May be called after lease expiry on read-only provider reconciliation. It
-        rechecks authority, immutable pins and grant; cannot create another attempt.
+        The immutable pre-dispatch consumer capability is required. Returns only a
+        boolean ACK: no source read, stored content, send, publication or new lease.
         """
         from .service import canonical, digest
         result=ProviderResult.model_validate(result)
         if len(canonical(result).encode())>256*1024:
             raise DomainError('validation_error')
         with self.db.transaction() as c:
-            run,a=self._provider_authority(c,p,ws,run_id)
-            attempt=attempt_row(c,ws,run_id)
-            if not attempt or attempt.state not in ('dispatched','outcome_unknown','responded','reconciled'):
+            run,attempt,origin=self._receipt_binding(c,receipt_cap)
+            if attempt.state not in ('dispatched','outcome_unknown','responded','reconciled'):
                 raise DomainError('action_unresolved')
             if attempt.result_hash:
                 if attempt.result_hash!=digest(result):
                     raise DomainError('command_conflict')
-                return attempt
+                return True
             if ((attempt.provider_session_id and attempt.provider_session_id!=result.provider_session_id) or
                 (attempt.provider_turn_id and attempt.provider_turn_id!=result.provider_turn_id)):
                 raise DomainError('command_conflict')
@@ -216,38 +276,63 @@ class ProviderAttempts:
             self._store_attempt(c,attempt)
             run.provider_session_id=result.provider_session_id; run.provider_turn_id=result.provider_turn_id
             run.execution.provider_observation='received'
+            run.execution.evidence_origin=origin
             self._store_run(c,run)
-        return self.get_provider_attempt(p,ws,run_id)
+        return True
 
-    def fail_provider_attempt(self,p,ws,run_id):
-        """Abandon a definitely unsent prepared attempt; never reinterpret a timeout.
+    def fail_provider_attempt(self,receipt_cap):
+        """Atomically abandon ONLY a definitely unsent prepared attempt.
 
-        Dispatched/unknown failures stay unresolved until a concrete provider
-        contract supplies definitive evidence. No speculative failure classifier.
+        Never reinterpret a dispatched timeout. Revocation/pause/expiry do not
+        prevent safe cleanup, but the original immutable consumer binding is needed.
         """
+        from .service import encoded
+        from .outcomes import acknowledge
         with self.db.transaction() as c:
-            self._provider_authority(c,p,ws,run_id)
-            attempt=attempt_row(c,ws,run_id)
-            if not attempt or attempt.state!='prepared':
+            run,attempt,origin=self._receipt_binding(c,receipt_cap)
+            ws,run_id=run.workspace_id,run.id
+            if attempt.state=='failed':
+                return True
+            if attempt.state!='prepared':
                 raise DomainError('action_unresolved')
             attempt.state='failed'
-            self._store_attempt(c,attempt)
-        return self.get_provider_attempt(p,ws,run_id)
+            c.execute("UPDATE provider_attempts SET data=%s,abandonment_reason='unsent_abandoned' WHERE workspace_id=%s AND run_id=%s",
+                      (encoded(attempt),ws,run_id))
+            run.state='partial'; run.fence+=1; run.lease_expires_at=None
+            run.unresolved=['The prepared attempt was abandoned before dispatch; no provider send occurred.']
+            self._store_run(c,run)
+            c.execute('UPDATE runs SET lease_hash=NULL WHERE workspace_id=%s AND id=%s',(ws,run_id))
+            a=Assignment.model_validate(c.execute('SELECT data FROM assignments WHERE workspace_id=%s AND id=%s',
+                                                 (ws,run.assignment_id)).fetchone()['data'])
+            control=a.state if a.state in ('paused','cancelled') else None
+            self._refresh_progress(c,a)
+            if control:
+                a.state=control
+            a.work_version+=1
+            self._store_assignment(c,a)
+            acknowledge(c,ws,run_id)
+        return True
 
     def recover_provider_run(self,p,ws,run_id):
         """Fenced local result publication only; never another inference permission."""
         return self._claim_run(p,ws,run_id,received_result=True)
 
-    def reconcile_provider_attempt(self,p,ws,run_id):
-        """Bounded local readback and ACK only, no provider call or domain mutation."""
-        from .outcomes import verify_run, acknowledge
+    def reconcile_provider_attempt(self,receipt_cap):
+        """Exact historical document readback/ACK, even after authority revocation.
+
+        Only a boolean escapes this trusted capability path; not a private read API.
+        It never sends, publishes, approves, restores access or renews a lease.
+        """
+        from .outcomes import verify_document, acknowledge
         with self.db.transaction() as c:
-            run,a=self._provider_authority(c,p,ws,run_id)
-            attempt=attempt_row(c,ws,run_id)
-            if not attempt or attempt.state not in ('responded','reconciled'):
+            run,attempt,origin=self._receipt_binding(c,receipt_cap)
+            ws,run_id=run.workspace_id,run.id
+            if attempt.state not in ('responded','reconciled'):
                 return False
-            outcome=verify_run(self,c,p,a,run)
-            if outcome.outcome_gate!='passed' or outcome.safety_gate!='passed':
+            a=Assignment.model_validate(c.execute('SELECT data FROM assignments WHERE workspace_id=%s AND id=%s',
+                                                 (ws,run.assignment_id)).fetchone()['data'])
+            outcome=verify_document(c,a,run)
+            if outcome.outcome_gate!='passed':
                 return False
             if attempt.state=='responded':
                 attempt.state='reconciled'

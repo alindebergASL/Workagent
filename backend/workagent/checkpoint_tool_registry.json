@@ -136,17 +136,6 @@
                 "default": null,
                 "title": "Attempt Id"
               },
-              "evidence_origin": {
-                "default": "unverified",
-                "enum": [
-                  "unverified",
-                  "fixture",
-                  "synthetic_provider_receipt",
-                  "live_provider_receipt"
-                ],
-                "title": "Evidence Origin",
-                "type": "string"
-              },
               "grant_id": {
                 "anyOf": [
                   {
@@ -242,46 +231,6 @@
             "title": "OutcomeCheck",
             "type": "object"
           },
-          "OutcomeQuestion": {
-            "additionalProperties": false,
-            "properties": {
-              "artifact_id": {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "title": "Artifact Id",
-                "type": "string"
-              },
-              "base_revision_id": {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "title": "Base Revision Id",
-                "type": "string"
-              },
-              "prompt": {
-                "maxLength": 500,
-                "minLength": 1,
-                "title": "Prompt",
-                "type": "string"
-              },
-              "proposal_id": {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "title": "Proposal Id",
-                "type": "string"
-              }
-            },
-            "required": [
-              "prompt",
-              "artifact_id",
-              "proposal_id",
-              "base_revision_id"
-            ],
-            "title": "OutcomeQuestion",
-            "type": "object"
-          },
           "ResponsibilityOutcome": {
             "additionalProperties": false,
             "properties": {
@@ -335,55 +284,6 @@
                 "title": "Artifacts",
                 "type": "array"
               },
-              "attempt_state": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "prepared",
-                      "dispatched",
-                      "outcome_unknown",
-                      "responded",
-                      "reconciled",
-                      "failed"
-                    ],
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Attempt State"
-              },
-              "blocker": {
-                "anyOf": [
-                  {
-                    "enum": [
-                      "paused",
-                      "cancelled",
-                      "grant_revoked",
-                      "grant_expired",
-                      "source_changed",
-                      "runtime_unavailable",
-                      "consumer_unavailable",
-                      "lease_expired",
-                      "prepared_attempt",
-                      "provider_outcome_unknown",
-                      "publication_pending",
-                      "unsent_abandoned",
-                      "unresolved_items",
-                      "decision_required",
-                      "decision_stale"
-                    ],
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Blocker"
-              },
               "checks": {
                 "items": {
                   "$ref": "#/$defs/OutcomeCheck"
@@ -391,11 +291,6 @@
                 "maxItems": 10,
                 "title": "Checks",
                 "type": "array"
-              },
-              "continuation_available": {
-                "default": false,
-                "title": "Continuation Available",
-                "type": "boolean"
               },
               "execution": {
                 "anyOf": [
@@ -408,20 +303,6 @@
                 ],
                 "default": null
               },
-              "next_action": {
-                "anyOf": [
-                  {
-                    "maxLength": 500,
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Next Action"
-              },
               "outcome_gate": {
                 "default": "unverified",
                 "enum": [
@@ -431,31 +312,6 @@
                 ],
                 "title": "Outcome Gate",
                 "type": "string"
-              },
-              "question": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/OutcomeQuestion"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null
-              },
-              "reason": {
-                "anyOf": [
-                  {
-                    "maxLength": 500,
-                    "minLength": 1,
-                    "type": "string"
-                  },
-                  {
-                    "type": "null"
-                  }
-                ],
-                "default": null,
-                "title": "Reason"
               },
               "run_id": {
                 "maxLength": 128,
@@ -494,16 +350,6 @@
                 "default": false,
                 "title": "Underlying Action Performed",
                 "type": "boolean"
-              },
-              "unresolved": {
-                "items": {
-                  "maxLength": 10000,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "maxItems": 100,
-                "title": "Unresolved",
-                "type": "array"
               }
             },
             "required": [
@@ -1409,17 +1255,6 @@
                 ],
                 "default": null,
                 "title": "Attempt Id"
-              },
-              "evidence_origin": {
-                "default": "unverified",
-                "enum": [
-                  "unverified",
-                  "fixture",
-                  "synthetic_provider_receipt",
-                  "live_provider_receipt"
-                ],
-                "title": "Evidence Origin",
-                "type": "string"
               },
               "grant_id": {
                 "anyOf": [

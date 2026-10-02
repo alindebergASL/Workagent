@@ -242,7 +242,8 @@ class Service(ProviderAttempts):
         grant=admission_grant(c,a.workspace_id,p.id)
         profile=grant.profile if grant else 'fixture-deterministic-v1'
         execution=ExecutionProvenance(mode='managed' if grant else 'fixture',profile=profile,
-                                     model=grant.model if grant else None,grant_id=grant.id if grant else None)
+                                     model=grant.model if grant else None,grant_id=grant.id if grant else None,
+                                     evidence_origin='unverified' if grant else 'fixture')
         r=Run(id=new_id(), workspace_id=a.workspace_id, assignment_id=a.id, principal_id=p.id,
               kind=kind, access_generation=generation, bundle_hash=bundle_hash,
               tool_registry_hash=tool_registry_hash, profile=profile, execution=execution, **kwargs)
