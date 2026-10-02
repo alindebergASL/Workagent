@@ -39,7 +39,7 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className="shell">
       <nav className="nav" aria-label="Workspace">
         <div className="nav-brand">
-          <strong>{name}</strong>
+          <strong>Workagent</strong>
           <span>{scope} workspace</span>
         </div>
         <ul className="nav-links">
@@ -49,7 +49,16 @@ export function Shell({ children }: { children: ReactNode }) {
               href="/"
               aria-current={isHome ? "page" : undefined}
             >
-              Work Home
+              Agent
+            </Link>
+          </li>
+          <li>
+            <Link
+              className="nav-link"
+              href="/spaces"
+              aria-current={pathname === "/spaces" ? "page" : undefined}
+            >
+              Spaces
             </Link>
           </li>
         </ul>
@@ -68,9 +77,12 @@ export function Shell({ children }: { children: ReactNode }) {
               {scope} workspace{mode === "mock" ? " · demonstration data" : ""}
             </span>
           </div>
+          <Link className="btn btn-sm" href="/spaces">
+            Spaces
+          </Link>
           {isHome ? null : (
             <Link className="btn btn-sm" href="/">
-              Work Home
+              Agent
             </Link>
           )}
         </header>

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { WorkSurface } from "@/components/WorkSurface";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, newCommandId } from "@/lib/client/api";
@@ -1029,77 +1030,110 @@ export default function ArtifactPage() {
           This is what has been saved so far; more may follow.
         </Notice>
       ) : null}
-      <section className="card">
-        <DocRead
-          blocks={current.body}
-          onSourceMark={openSource}
-          idPrefix={current.id}
-        />
-      </section>
-      <div className="sticky-actions row row-between">
-        <div className="row">
-          <button type="button" className="btn btn-primary" onClick={beginEdit}>
-            Edit
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => setRevisionAsk((v) => !v)}
-            aria-expanded={revisionAsk}
-            disabled={Boolean(proposal)}
-          >
-            Request revision
-          </button>
-        </div>
-        <span className="small muted">
-          {current.id} · {current.body_hash.slice(0, 19)}…
-        </span>
-      </div>
-      {revisionAsk ? (
-        <form
-          className="card card-stack"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void sendRevisionRequest();
-          }}
-        >
-          <div className="field">
-            <label htmlFor="instruction">What should change?</label>
-            <textarea
-              id="instruction"
-              value={instruction}
-              onChange={(e) => setInstruction(e.target.value)}
-              disabled={requestState.busy || Boolean(revisionCommand.current)}
-              rows={3}
-              placeholder="For example: add a default owner so no case is saved blank."
-            />
-            <div className="hint">
-              Sent with revision {current.sequence} as the base. The result
-              waits for your review.
+      <WorkSurface
+        requesting={revisionAsk}
+        work={
+          <>
+            <section className="card">
+              <DocRead
+                blocks={current.body}
+                onSourceMark={openSource}
+                idPrefix={current.id}
+              />
+            </section>
+            <div className="sticky-actions row row-between">
+              <div className="row">
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={beginEdit}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => setRevisionAsk((v) => !v)}
+                  aria-expanded={revisionAsk}
+                  disabled={Boolean(proposal)}
+                >
+                  Request revision
+                </button>
+              </div>
+              <span className="small muted">
+                {current.id} · {current.body_hash.slice(0, 19)}…
+              </span>
             </div>
-          </div>
-          {requestState.error ? (
-            <ErrorNotice error={requestState.error} />
-          ) : null}
-          <div className="row">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!instruction.trim() || requestState.busy}
-            >
-              {requestState.busy ? "Sending…" : "Send request"}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => setRevisionAsk(false)}
-              disabled={requestState.busy || Boolean(revisionCommand.current)}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      ) : null}
+          </>
+        }
+        revision={
+          <>
+            <h2>Work with your agent</h2>
+            <p className="small muted">
+              Request a change to this saved artifact. A proposal waits for your
+              review; your version stays intact.
+            </p>
+            {!revisionAsk ? (
+              <button
+                className="btn"
+                onClick={() => setRevisionAsk(true)}
+                disabled={Boolean(proposal)}
+              >
+                Ask for revision
+              </button>
+            ) : null}
+            {revisionAsk ? (
+              <form
+                className="card card-stack"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void sendRevisionRequest();
+                }}
+              >
+                <div className="field">
+                  <label htmlFor="instruction">What should change?</label>
+                  <textarea
+                    id="instruction"
+                    value={instruction}
+                    onChange={(e) => setInstruction(e.target.value)}
+                    disabled={
+                      requestState.busy || Boolean(revisionCommand.current)
+                    }
+                    rows={3}
+                    placeholder="For example: add a default owner so no case is saved blank."
+                  />
+                  <div className="hint">
+                    Sent with revision {current.sequence} as the base. The
+                    result waits for your review.
+                  </div>
+                </div>
+                {requestState.error ? (
+                  <ErrorNotice error={requestState.error} />
+                ) : null}
+                <div className="row">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={!instruction.trim() || requestState.busy}
+                  >
+                    {requestState.busy ? "Sending…" : "Send request"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => setRevisionAsk(false)}
+                    disabled={
+                      requestState.busy || Boolean(revisionCommand.current)
+                    }
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : null}
+          </>
+        }
+      />
       {drawers}
     </>
   );
