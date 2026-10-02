@@ -1008,8 +1008,11 @@ details.disclosure.card {
   font-weight: 500;
   color: var(--ink-2);
 }
-.ask-open {
-  align-self: flex-start;
+.ask-resume {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .ids-details > summary {
   cursor: pointer;
