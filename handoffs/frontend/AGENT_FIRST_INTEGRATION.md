@@ -25,3 +25,7 @@ Not executed here: real browser/API/PostgreSQL restart journey; this executor ha
 4. Once runtime access is supplied, establish one real model-backed responsibility with actual completion evidence, human revision, and same-responsibility recovery. Then add communication/calendar integrations and shared Spaces incrementally. Those capabilities are not implemented by this UI change.
 
 The hosted Sites preview remains a separate scripted design reference. This branch is application code and is not deployed to that public Site. Preserve the loopback-only local identity until production authentication is implemented.
+
+## Reconciliation outcome (Claude Code, frontend)
+
+Applied once and unmodified as `544531b` on `claude/workagent-frontend-kyg51x`; reconciled in `1e10dc5`. The new Home → context → create → artifact edit/save → request revision → compare/accept → reopen journey, phone pane switching and keyboard conflict resolution were exercised against the real API and PostgreSQL with an API/web restart, and Hermes's nine fault regressions pass. The domain adapter and backend files were not changed. See `handoffs/frontend/RESULT.md` for the evidence table and `STATUS.md` for remaining backend requests. Live runtime remains not observed.

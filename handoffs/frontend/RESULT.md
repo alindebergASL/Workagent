@@ -1,51 +1,63 @@
-# Frontend result
+# Frontend result: agent-first reconciliation
 
-Status: ready for integration (mock mode). Not integrated with the real API; not reviewed by a second author yet.
+Status: ready for integration. The full journey passes against the real API and PostgreSQL. Independent review is still pending.
 
-Usable outcome: A solo user can start private work from selected sources, watch honest queued/working/partial/ready states, read a recommendation with its evidence and uncertainty, open the plan and checklist, edit the plan and save a revision, request an agent revision, review a stale proposal with both bodies and their revision IDs, keep the current version or save a deliberate resolution that re-checks the current revision, inspect sources and history without silently restoring, and reopen the same assignment after the app process restarts. Desktop (1440), mobile (390) and 320px are covered with keyboard-only conflict resolution and focus return on drawers.
+**Usable outcome.** A person starts on the Agent home, hands over a request with chosen records, and watches honest queued and working states. They then inspect completed work, the recommendation and its evidence. They edit the plan and save. They review a proposed change with its exact differences, apply it or keep their version, and find the same work after the API and web processes restart. Spaces lists the authorized personal space with its work and records. On phones the document comes first, and switching to the agent pane keeps unsent instructions and unsaved edits.
 
-Branch / commit / PR: `claude/workagent-frontend-kyg51x` (based on `hermes/s0-s1-backend` @ `3f1b17b`) / `092e0098359fbdd5a4f9384d7e86b15503ba9640` (implementation and evidence; this note is the following commit) / PR #2 against `hermes/s0-s1-backend` (https://github.com/alindebergASL/Workagent/pull/2), acknowledged on issue #1.
+**What runs where.** Real: browser UI, FastAPI domain services, PostgreSQL, authorization, revisions, proposals, restart. Fixture: all analysis and revision text comes from the deterministic fixture worker. No live agent or model execution happened, and the UI says so on every screen.
 
-Shared contract commit or hash; generated client version: **none available**. Provisional adapter `frontend-provisional-0.1` (`web/src/lib/contract/types.ts`, `web/src/lib/client/api.ts`), to be replaced by the `workagent/v1` generated client from `contracts/`, to be replaced by Hermes's generated client.
+**Branch / commits / PR.**
 
-Owned paths and coordinated shared-file changes: see `handoffs/frontend/STATUS.md`.
+- Branch: `claude/workagent-frontend-kyg51x`.
+- `544531b`: patch applied unmodified.
+- `1e10dc5`: reconciliation (code).
+- The next commit holds evidence and notes.
+- PR #2, retargeted to `hermes/s0-s1-build`.
 
-Actual setup / launch / test commands (all executed in this session):
+**Shared contract.** `workagent/v1` as integrated on `hermes/s0-s1-build` @ `6f88a9d`. The adapter and generated client are unchanged.
 
-```bash
-cd web
-pnpm install
-pnpm dev                                   # http://127.0.0.1:3000, mock mode
-pnpm check                                 # tsc, eslint, prettier, vitest (8 tests)
-pnpm build && PLAYWRIGHT_CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome pnpm test:e2e
-PLAYWRIGHT_CHROMIUM_PATH=... pnpm demo:s1  # build → journey (3 viewports) → confirmed stop → restart → reopen → report.json
+**Owned paths and coordinated changes.** See `STATUS.md`.
+
+**Setup, launch and test commands** (all run in this session; Ubuntu 24.04, PostgreSQL 16, Node 22, Python 3.11 venv):
+
+```sh
+python3 scripts/workagent.py setup        # or the steps in README; this host skipped `playwright install`
+python3 scripts/workagent.py demo --skip-setup --env .local/final2.env   # fresh isolated DB
+python3 scripts/workagent.py serve        # use it at http://127.0.0.1:3000
+cd web && pnpm check                       # tsc, eslint, prettier, 16 unit tests
+cd web && NEXT_PUBLIC_WORKAGENT_API_BASE=/api/mock pnpm build && pnpm test:e2e   # 12 mock browser tests
 ```
 
-| Check | Mode: mock / real app / live runtime | Result: pass / fail / not observed | Evidence |
+Hosts without Playwright's own Chromium can set `PLAYWRIGHT_CHROMIUM_PATH` to a preinstalled browser.
+
+| Check | Mode | Result | Evidence |
 |---|---|---|---|
-| Start and inspect result | mock | pass | `evidence/{desktop,mobile,narrow}/01–05`; `journey.spec.ts` asserts queued/working then "Ready for review", recommendation "4 of 8 cases (50%)", three saved results, sources drawer with focus return |
-| Start and inspect result | real app / live runtime | not observed | no service or contract on the remote |
-| Human edit and save | mock | pass | `07-artifact-editing`, `08-artifact-saved`; server readback: revision 2 by a human author, protected Wednesday note unchanged, draft preserved until acknowledgement |
-| Stale proposal and resolution | mock | pass | `09-artifact-conflict` (both bodies, base/current/proposal IDs, accepted pointer unchanged, proposal body retained); keyboard-only "Keep current version"; `11–13` deliberate resolution with an intervening save returning to review with the draft intact, final revision 5 keeps the human text |
-| Restart and reopen | mock (app process only) | pass | `15–16`, `report.json`: process stopped with health endpoint confirmed down, new process started, same assignment/artifact/revision IDs and human text reopened. Mock state file, not PostgreSQL; the real restart with retained volumes is Hermes's |
-| Restart and reopen | real app | not observed | — |
-| Desktop/mobile/keyboard | mock | pass | all screenshots exist at 1440/390/320; no horizontal page scroll asserted on home, assignment, artifact and conflict; Escape closes drawers and returns focus; Enter on the default action resolves the conflict |
-| Sources/history/error states | mock | pass | `05`, `10` (declined proposal in history, old revision viewable without restore), `17-home-start-error` (request and selection kept; retry replays the same command; exactly one assignment created), `18-assignment-reconnecting` (stale data kept, same assignment resumed, no new run), indistinguishable not-found/not-authorized in API and UI, command_conflict on changed payload |
+| Start and inspect result | real app + fixture compute | pass | `real-agent-first/01`, `02`, `09` |
+| Human edit and save, protected note | real app | pass | `03`, `saved-artifact.json` |
+| Stale proposal: both bodies, exact differences including checklist state, keyboard "Keep current" | real app | pass | `04`, `05`, `stale-proposal.json`; stale accept returns `version_conflict` |
+| Fresh proposal: exact changes, apply, human text preserved, provenance shown | real app + fixture compute | pass | `10`, `11`, `applied-artifact.json` |
+| Completed state everywhere: no "in progress", decision or delegation controls | real app | pass | `13`, `14`; assertions in `real-journey.mjs` |
+| Phone: document first, unsent instruction and unsaved edit survive pane switches | real app | pass | `12` |
+| API and web restart, then reopen the same assignment, applied revision and retained human revision | real app, PostgreSQL retained | pass | `07`, `08`, `restart.json`, `demo.json` (commit `1e10dc5`, `dirty: false`) |
+| Nine fault regressions: response loss, ambiguous saves, decision replay, source drift | real app | pass | `fault-regressions/results.json` |
+| Full journey at 1440 / 390 / 320 px, errors, reconnect, replay | mock | pass (12/12) | `handoffs/frontend/evidence/{desktop,mobile,narrow}` |
+| Live agent or model execution | live runtime | not observed | No runtime grant. Every run is labeled fixture. |
 
-Unit tests (vitest): intake union count generic over rows, protected note carried verbatim, CAS/version_conflict with both bodies, command replay/conflict, historical reads never move the accepted pointer.
+**Independent review.** Not yet performed by a second author. Self-review against real screens found and fixed these issues:
 
-Independent review, findings, fixes and rechecks: Self-review of the actual browser output found and fixed (1) source-marker chips overlapping wrapped text, (2) 29px horizontal overflow at 320px from a non-wrapping button, fieldset min-width and chip labels, (3) full-page captures pinning the sticky action bar mid-page, (4) the demo runner failing to stop the Next server's forked child, which would have invalidated restart evidence (now signals the process group and refuses to proceed unless the health endpoint goes down, and refuses to start if the port is already answering). Also fixed after rebasing onto Hermes's bootstrap: the formatter had rewritten the frontend's fixture copy, breaking its byte-identity; the copy is removed and the mock now reads Hermes's canonical `fixtures/actor` file. Independent review by a second author is still pending; Hermes to coordinate.
+- A stale diff struck through the human's text.
+- Checklist changes were invisible in diffs.
+- Unchanged lines buried the exact changes.
+- Phone edit fields clipped their text.
+- Phones stayed on the agent pane after a request was sent.
+- An accepted proposal read as a plain human edit.
+- Raw IDs and duplicated status cluttered the screens.
+- The existing CI failure on PR #3, caused by the missing `contracts/` install. It was reproduced in a fresh clone and fixed.
 
-Screenshots and saved-result locations: `handoffs/frontend/evidence/<desktop|mobile|narrow>/NN-*.png`, `handoffs/frontend/evidence/journey-ids.json` (assignment, artifact, revision and proposal IDs from the run), `handoffs/frontend/evidence/report.json` (machine-readable pass/fail/not_observed), `server-1.log`/`server-2.log` (secret-free).
+**Screenshots and saved results.** `handoffs/frontend/evidence/real-agent-first/`, with a 28-file `MANIFEST.json` of sha256 hashes. It includes two design-reference captures for comparison.
 
-Known gaps / blocked dependency / exact requested action:
-- No real API: everything above is mock-mode application behavior; nothing certifies server authorization, CAS, durability or runtime behavior.
-- Needed from Hermes: contract version/hash, generated client and mock locations and generation command, service start command, test identity (see STATUS.md).
-- Not built (out of S1 frontend scope): team administration, Google OAuth/Picker, ChatGPT plugin, provider routing, billing. "Respond" for `needs_input` is rendered but has no backend operation to call yet.
-- Draft backup is per-tab `sessionStorage` keyed by base revision, cleared on acknowledgement or lost access; it is not persistence.
-- Mock controls (`/api/mock/_control/*`) are test hooks; disable with `WORKAGENT_MOCK_CONTROL=0`. They are not part of the product contract.
-- Evidence PNGs are ~19 MB in Git; happy to move them to CI artifacts only if preferred.
+**Known gaps and requested actions.** The four backend requests are in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant named in `docs/RUNTIME_STATUS.md`.
 
-Next integration step for Hermes: publish the contract baseline and client; point `NEXT_PUBLIC_WORKAGENT_API_BASE` at the service; run `web/e2e/journey.spec.ts` against it (the `_control` calls become the real worker/fixture adapter hooks or are replaced by waiting on real state); then extend `demo:s1` to restart API/worker with retained volumes.
+**Next integration step for Hermes.** Merge or review PR #2 into `hermes/s0-s1-build`, rerun `scripts/workagent.py demo` on your host, and coordinate a second-author review of the integrated commit.
 
-Resumption checkpoint if interrupted: branch `claude/workagent-frontend-kyg51x`, this file and `STATUS.md`; `cd web && pnpm install && pnpm demo:s1` reproduces all evidence from a clean checkout.
+**Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces all real evidence on a fresh database.
