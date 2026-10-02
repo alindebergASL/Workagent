@@ -38,3 +38,7 @@ Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns the b
 Independent review and the exact-head canonical rerun are complete. Shared integration was fast-forwarded to `e0da95c`; publish this documentation/evidence-only child and fast-forward the existing non-default `hermes/s0-s1-build` head to the same integrated history. The PR #3 checkpoint binds the publication SHA; no default-branch merge or deployment is authorized.
 
 Keep the nonblocking “Keep for later” frontend fix, the old model-proof badge assertion and the RuntimePort documentation reconciliation separate. Their scope and ownership are tracked in the [review publication](../backend/review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication). This update neither implements those fixes nor authorizes provider calls.
+
+## "Keep for later" follow-up (frontend)
+
+Implemented separately as `bed8fe3` on `claude/workagent-frontend-kyg51x`, built on integration `5ae4cbb`. The explicit collapse now closes the revision form and keeps the instruction (and any unconfirmed send's frozen command); "Resume your request" restores it. Focused desktop/mobile/narrow browser checks pass, and the full real demo passed at `bed8fe3` with a clean tree. Evidence: [`evidence/keep-for-later-bed8fe3/`](evidence/keep-for-later-bed8fe3/README.md). It is ready for Hermes to integrate by fast-forward; the accepted `e0da95c` candidate is unchanged.
