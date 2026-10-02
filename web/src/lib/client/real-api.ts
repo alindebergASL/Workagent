@@ -160,13 +160,16 @@ const rawRun = (ws: string, id: string, signal?: AbortSignal) =>
       signal,
     }),
   );
-const toSource = (s: S["Source"], used: string[] = []): V.SourceDetail => ({
+const toSource = (
+  s: S["Source"] | S["SourceDetail"],
+  used: string[] = [],
+): V.SourceDetail => ({
   id: s.id,
   title: s.title,
   version: s.external_version,
   observed_at: s.observed_at,
   surface: "Selected source",
-  excerpt: null,
+  excerpt: "content" in s ? JSON.stringify(s.content, null, 2) : null,
   used_by_artifact_ids: used,
 });
 function toBlocks(body: S["Body"]): V.Block[] {
@@ -196,6 +199,10 @@ function toBody(title: string, blocks: V.Block[]): S["Body"] {
             ? "heading"
             : "paragraph"),
       text: b.text,
+      ...((b.backend_kind ??
+        (b.kind === "check_item" ? "checklist" : "paragraph")) === "checklist"
+        ? { checked: Boolean(b.checked) }
+        : {}),
     })),
   };
 }
@@ -523,10 +530,20 @@ export const realApi = {
     };
   },
   async getAssignmentSources(ws: string, id: string, signal?: AbortSignal) {
-    const [a, sources] = await Promise.all([
-      rawAssignment(ws, id, signal),
-      rawSources(ws, signal),
-    ]);
+    const a = await rawAssignment(ws, id, signal);
+    const sources = await Promise.all(
+      a.selected_source_refs.map((ref) =>
+        unwrap(
+          client.GET("/v1/workspaces/{workspace_id}/sources/{source_id}", {
+            params: {
+              path: { workspace_id: ws, source_id: ref.source_id },
+              header: meta(),
+            },
+            signal,
+          }),
+        ),
+      ),
+    );
     const artifacts = await Promise.all(
       (a.artifact_ids ?? []).map((id) =>
         rawArtifact(ws, id, undefined, signal),

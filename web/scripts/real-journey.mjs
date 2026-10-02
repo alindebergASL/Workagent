@@ -86,6 +86,10 @@ try {
     const art = await api("/artifacts/" + state.artifact_id);
     expect(art.current_revision_id).toBe(state.human_revision_id);
     expect(art.current_revision.body_hash).toBe(state.human_body_hash);
+    expect(
+      art.current_revision.body.blocks.find((b) => b.block_id === "next-action")
+        .checked,
+    ).toBe(true);
     const proposals = await api(
       "/artifacts/" + state.artifact_id + "/proposals",
     );
@@ -154,6 +158,15 @@ try {
     const artifactUrl = new URL(page.url()).pathname;
     const artifactId = page.url().split("/").pop();
     await expect(page.getByText(note, { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Sources", exact: true }).click();
+    await expect(
+      page
+        .getByRole("dialog", { name: "Sources", exact: true })
+        .locator("pre")
+        .first(),
+    ).toContainText("owner_recorded");
+    await shot("09-supporting-sources");
+    await page.keyboard.press("Escape");
     const initial = await api("/artifacts/" + artifactId);
     const baseId = initial.current_revision_id;
     await page
@@ -175,6 +188,11 @@ try {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await page.getByLabel("Paragraph protected-0", { exact: true }).fill(human);
     await page
+      .getByRole("checkbox", {
+        name: /Mark done: Choose the next personal case/,
+      })
+      .check();
+    await page
       .getByRole("button", { name: "Save changes", exact: true })
       .click();
     await expect(page.locator(".save-state")).toContainText("revision 2");
@@ -182,6 +200,11 @@ try {
     await shot("03-human-saved");
     const saved = await api("/artifacts/" + artifactId);
     expect(saved.current_revision.author_kind).toBe("human");
+    expect(
+      saved.current_revision.body.blocks.find(
+        (b) => b.block_id === "next-action",
+      ).checked,
+    ).toBe(true);
     expect(
       saved.current_revision.body.blocks.find(
         (b) => b.block_id === "protected-0",

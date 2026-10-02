@@ -51,6 +51,8 @@ def generate(sources):
     if malformed:
         unresolved.append('Some supplied rows have unknown owner/next-action indicators and were not quantified.')
     evidence=f"{len(missing)} of {len(usable)} usable personal cases lack an owner or a next action (union, not a sum). Cases: {', '.join(missing) or 'none'}."
+    if usable:
+        evidence += f" {len(missing)}/{len(usable)} = {len(missing) * 100 / len(usable):g}%."
     unknowns=list(dict.fromkeys(unknowns+['No time-saved data collected.','No evidence of a causal effect.']))
     plan=Body(title='Private working plan',blocks=[
         Block(block_id='recommendation',kind='paragraph',text='Test one owner-and-next-action check in your own intake review; do not automate or share yet.'),
