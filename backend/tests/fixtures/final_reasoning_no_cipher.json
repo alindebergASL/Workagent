@@ -1,0 +1,16 @@
+{
+  "id": "resp_sanitized_final",
+  "object": "response",
+  "model": "gpt-6.1-sol",
+  "service_tier": "default",
+  "status": "completed",
+  "error": null,
+  "metadata": {"request_id": "synthetic_run", "attempt_id": "synthetic_attempt", "step_id": "final"},
+  "output": [
+    {"id": "rs_sanitized", "type": "reasoning", "content": [], "summary": []},
+    {"id": "msg_sanitized", "type": "message", "status": "completed", "phase": "final_answer", "role": "assistant", "content": [
+      {"type": "output_text", "text": "{\"title\":\"Proposed ownership check\",\"next_action\":\"Ask the intake owner to identify an owner and review date for each incomplete row.\",\"missing_information\":[\"The owner and review date are missing.\"],\"specific_judgment\":\"Resolve ownership before redesigning the intake process.\",\"source_basis\":[{\"source_id\":\"synthetic_source\",\"external_version\":\"v1\",\"basis\":\"The selected snapshot is planning evidence, not an execution receipt.\"}],\"task_not_performed\":true,\"underlying_action_performed\":false}"}
+    ]}
+  ],
+  "usage": {"input_tokens": 1571, "input_tokens_details": {"cache_write_tokens": 1568, "cached_tokens": 0}, "output_tokens": 884, "output_tokens_details": {"reasoning_tokens": 157}, "total_tokens": 2455}
+}

@@ -57,6 +57,8 @@ def main():
     action=parser.add_mutually_exclusive_group(required=True)
     action.add_argument('--once',action='store_true')
     action.add_argument('--install-grant',metavar='OPERATOR_JSON')
+    action.add_argument('--install-successor',metavar='OPERATOR_JSON')
+    action.add_argument('--reconcile-run',metavar='RUN_ID',help='Known-ID readback/publication only; never count or generate')
     args=parser.parse_args()
     try:
         if os.environ.get('LOCAL_TEST_MODE')!='true':
@@ -78,7 +80,19 @@ def main():
             raise TransportError('grant_binding_mismatch')
         with db.transaction() as c:
             _,config=active_configuration(c)
-            validate_pins(grant,config)
+            if not args.install_successor:validate_pins(grant,config,c)
+        if args.install_successor:
+            from .responses_recovery import SuccessorApproval,install_successor
+            approval=SuccessorApproval.model_validate_json(Path(args.install_successor).read_text())
+            if approval.grant_id!=grant.id:raise TransportError('grant_identity_mismatch')
+            installed=install_successor(Database(os.environ['MIGRATION_DATABASE_URL']),approval)
+            with db.transaction() as c:
+                actual=c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchone()
+                if not actual or SuccessorApproval.model_validate(actual['data'])!=installed:
+                    raise TransportError('successor_install_readback_failed')
+                validate_pins(grant,config,c)
+            print(json.dumps({'status':'operator_successor_installed','approval':installed.model_dump(mode='json')}))
+            return
         if args.install_grant:
             from .provider_attempts import configure_grant
             configure_grant(Database(os.environ['MIGRATION_DATABASE_URL']),grant)
@@ -89,12 +103,25 @@ def main():
             print(json.dumps({'status':'operator_grant_installed','grant_id':grant.id}))
             return
         from .models import now
-        if grant.expires_at<=now():raise TransportError('grant_expired')
+        from .responses_recovery import effective_expiry
+        with db.transaction() as c:
+            if effective_expiry(c,grant)<=now():raise TransportError('grant_expired')
+            if args.reconcile_run:
+                target=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                                 (args.workspace,args.reconcile_run)).fetchone()
+                if not target or target['data'].get('grant_id')!=grant.id:
+                    raise TransportError('grant_binding_mismatch')
         transport=ResponsesTransport(credential=load_credential(b.secret_reference),project_id=b.project_id,
                                      credential_reference=b.secret_reference,enabled=True)
         try:
-            worker=ResponsesWorker(Service(db),transport,args.state_dir)
-            print(json.dumps(ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id).once()))
+            worker=ResponsesWorker(Service(db),transport,args.state_dir,poll_limit=1 if args.reconcile_run else 10)
+            if args.reconcile_run:
+                status=worker.run(args.workspace,args.reconcile_run,reconcile_only=True)
+                from .responses_ledger import summary
+                with db.transaction() as c:budget=summary(c,grant.id)
+                print(json.dumps({'status':status,'run_id':args.reconcile_run,'grant_id':grant.id,'budget':budget}))
+            else:
+                print(json.dumps(ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id).once()))
         finally:transport.close()
     except (TransportError,DomainError,BundleDenied) as exc:
         # Never print request, receipt credentials, headers, provider text or DSNs.

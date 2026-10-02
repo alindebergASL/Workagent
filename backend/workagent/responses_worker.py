@@ -25,7 +25,7 @@ POLICY='''This profile offers only read_scoped_context, replacing the general re
 def consumer_hash():
     names=('responses_worker.py','responses_ledger.py','responses_schema.py','responses_transport.py',
            'broker.py','provider_attempts.py','runtime_config.py','service.py','models.py','outcomes.py',
-           'responses_dispatcher.py','tool_registry.py')
+           'responses_dispatcher.py','responses_recovery.py','tool_registry.py')
     return digest({name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in names})
 
 
@@ -43,10 +43,12 @@ def instruction_hash(config):
     return digest({kind:instructions(config,kind) for kind in ('initial','revision')})
 
 
-def validate_pins(grant,config):
+def validate_pins(grant,config,c=None):
     from .runtime_config import BundleDenied
+    from .responses_recovery import approved_successor
     b=grant.responses
-    if (b is None or grant.consumer_sha256!=consumer_hash() or b.instructions_sha256!=instruction_hash(config)
+    consumer_ok=grant.consumer_sha256==consumer_hash() or (c is not None and approved_successor(c,grant) is not None)
+    if (b is None or not consumer_ok or b.instructions_sha256!=instruction_hash(config)
         or b.schema_sha256!=sha256(FINAL_SCHEMA.material).hexdigest() or b.scope_tool_sha256!=digest(scope_registry())):
         raise BundleDenied('Responses consumer/instruction/schema/tool pin mismatch')
 
@@ -161,11 +163,11 @@ class ResponsesWorker:
         if not self.transport.matches_binding(b['transport_mode'],b['project_id'],b['secret_reference']):
             raise TransportError('grant_transport_mismatch')
 
-    def run(self,ws,rid):
+    def run(self,ws,rid,*,reconcile_only=False):
         with self.state.lock(ws,rid):
-            return self._run(ws,rid)
+            return self._run(ws,rid,reconcile_only=reconcile_only)
 
-    def _run(self,ws,rid):
+    def _run(self,ws,rid,*,reconcile_only=False):
         s=self.service
         with s.db.transaction() as c:
             row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,rid)).fetchone()
@@ -176,6 +178,7 @@ class ResponsesWorker:
             self._authorize_transport(config)  # BEFORE any count/network or claim
         saved=self.state.load(ws,rid)
         rc=ReceiptCapability(**saved['receipt']) if saved and saved.get('receipt') else None
+        if reconcile_only and not rc:raise DomainError('action_unresolved')
         if rc and s.reconcile_provider_attempt(rc):
             return 'reconciled'
         cap=WorkerCapability(**saved['worker']) if saved else None
@@ -197,15 +200,18 @@ class ResponsesWorker:
                 consumer_sha256=config['consumer_sha256'],evidence_origin='live_provider_receipt' if self.transport.provenance.mode=='official_api' else 'synthetic_provider_receipt',transport=self.transport)
             rc=s.bind_provider_receipt(cap,attempt.id)
             saved['receipt']=asdict(rc); self.state.save(ws,rid,saved)
+        from .responses_recovery import record_successor_use
+        record_successor_use(s,rc,cap)
         ledger=Ledger(s,rc)
         deadline=time.monotonic()+self.deadline_seconds
         selection,events=ledger.snapshot('selection',cap)
         if selection is None:
+            if reconcile_only:raise DomainError('action_unresolved')
             selection=build_tool_selection(instructions=context['instructions'],
                 source_context=canonical({k:context[k] for k in ('sources','kind','include_current_body')}),
                 read_schema=READ_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=rc.attempt_id,step_id='selection'))
             ledger.prepare(selection,cap)
-        selected=self._step(ledger,selection,cap,deadline)
+        selected=self._step(ledger,selection,cap,deadline,reconcile_only=reconcile_only)
         if selected is None: return self._deferred(ledger,selection,cap)
         if selected.state!='function_call': return 'invalid_selection'
         _,events=ledger.snapshot('selection',cap)
@@ -218,11 +224,12 @@ class ResponsesWorker:
             if result!=events['tool_result']: raise DomainError('source_changed')
         final,_=ledger.snapshot('final',cap)
         if final is None:
+            if reconcile_only:raise DomainError('action_unresolved')
             final=build_final(selection_request=selection,selection=selected,tool_output=canonical(result),
                 instructions=context['instructions'],artifact_schema=FINAL_SCHEMA,
                 metadata=RequestMetadata(request_id=rid,attempt_id=rc.attempt_id,step_id='final'))
             ledger.prepare(final,cap)
-        generated=self._step(ledger,final,cap,deadline)
+        generated=self._step(ledger,final,cap,deadline,reconcile_only=reconcile_only)
         if generated is None: return self._deferred(ledger,final,cap)
         if generated.state!='completed': return 'invalid_final'
         body=to_body(generated.value,result,rc.attempt_id)
@@ -250,11 +257,26 @@ class ResponsesWorker:
         with self.service.db.transaction() as c:
             self.service._check_capability(c,cap)
 
-    def _step(self,ledger,request,cap,deadline):
+    def _step(self,ledger,request,cap,deadline,*,reconcile_only=False):
         _,events=ledger.snapshot(request.phase,cap)
+        if 'corrected_readback' in events:
+            return restore_result(events['corrected_readback'],request)
         if 'result' in events:
+            old=events['result']
+            if (reconcile_only and request.phase=='final' and old['state']=='malformed' and
+                old['issue']=='invalid_reasoning_item' and old['usage'] is not None and old['output_items']=='[]'):
+                if self.poll_limit==0 or time.monotonic()>=deadline:return None
+                # Exactly one bounded GET per invocation; never regenerate or use
+                # an operator-supplied DTO. Only this narrowly identified defect.
+                read_id=ledger.reserve_operation(request,'read',cap)
+                self._fresh(cap)
+                if time.monotonic()>=deadline:return None
+                response=self.transport.retrieve(events['identity']['response_id'],request=request)
+                ledger.corrected_readback(request,response,read_id,cap)
+                return response
             return restore_result(events['result'],request)
         if 'dispatch' not in events:
+            if reconcile_only:return None
             if time.monotonic()>=deadline: return None
             if 'count_result' not in events:
                 if 'count_send' in events: return None  # ambiguous count is never repeated

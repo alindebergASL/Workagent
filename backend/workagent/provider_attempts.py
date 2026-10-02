@@ -57,7 +57,8 @@ def admission_grant(c, workspace_id, principal_id):
     if not row:
         return None
     grant=ProviderGrant.model_validate(row['data'])
-    if grant.expires_at<=now():
+    from .responses_recovery import effective_expiry
+    if effective_expiry(c,grant)<=now():
         raise DomainError('action_unresolved')
     count=c.execute("SELECT count(*) AS n FROM run_configurations WHERE workspace_id=%s AND data->>'grant_id'=%s",(workspace_id,grant.id)).fetchone()['n']
     if count>=grant.max_runs:
@@ -70,7 +71,8 @@ def check_grant(c, run, config):
     if not row or not row['active']:
         raise DomainError('action_unresolved')
     grant=ProviderGrant.model_validate(row['data'])
-    if (grant.expires_at<=now() or grant.workspace_id!=run.workspace_id or
+    from .responses_recovery import effective_expiry
+    if (effective_expiry(c,grant)<=now() or grant.workspace_id!=run.workspace_id or
         grant.principal_id!=run.principal_id or grant.profile!=run.profile or
         config['model']!=grant.model or config['consumer_sha256']!=grant.consumer_sha256 or
         config['max_received_output_tokens']!=grant.max_received_output_tokens or
@@ -285,10 +287,10 @@ class ProviderAttempts:
                 raise DomainError('command_conflict')
             if run.profile=='openai-responses-v1':
                 from .responses_schema import NextAction,to_body
-                rows=c.execute("SELECT phase,kind,data FROM responses_events WHERE attempt_id=%s AND kind IN ('result','tool_result')",(attempt.id,)).fetchall()
+                rows=c.execute("SELECT phase,kind,data FROM responses_events WHERE attempt_id=%s AND kind IN ('result','tool_result','corrected_readback')",(attempt.id,)).fetchall()
                 evidence={(r['phase'],r['kind']):r['data'] for r in rows}
                 selection=evidence.get(('selection','result'),{})
-                final=evidence.get(('final','result'),{})
+                final=evidence.get(('final','corrected_readback'),evidence.get(('final','result'),{}))
                 tool=evidence.get(('selection','tool_result'))
                 if selection.get('state')!='function_call' or final.get('state')!='completed' or not tool:
                     raise DomainError('action_unresolved')

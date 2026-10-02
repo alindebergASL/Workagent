@@ -5,6 +5,13 @@ This addendum supersedes the **unimplemented consumer** statement in the older
 `openai-agents-v1` checkpoint is retained for compatibility; it is not renamed,
 not used by this worker, and not an Agents SDK integration.
 
+## Same-ID parser repair
+
+See [RESPONSES_SAME_ID_RECOVERY.md](RESPONSES_SAME_ID_RECOVERY.md) for the final
+reasoning optional-content correction, explicit owner-only successor approval on
+the unchanged root grant, and bounded `--reconcile-run` procedure. It never
+regenerates the initial output, imports an artifact or resets cumulative caps.
+
 ## Implemented path
 
 An operator-installed, immutable `ProviderGrant` makes normal app admission pin

@@ -91,7 +91,7 @@ def check_pins(c, run):
         grant=check_grant(c,run,data)
         if run.profile=='openai-responses-v1':
             from .responses_worker import validate_pins
-            validate_pins(grant,data)
+            validate_pins(grant,data,c)
     return data
 
 

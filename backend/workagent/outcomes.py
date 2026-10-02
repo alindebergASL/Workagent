@@ -175,7 +175,8 @@ def continuation_blocker(service,c,p,assignment,run):
         row=c.execute('SELECT data,active FROM provider_grants WHERE id=%s',(config['data'].get('grant_id'),)).fetchone()
         if not row or not row['active']:
             return 'grant_revoked'
-        if ProviderGrant.model_validate(row['data']).expires_at<=provider_attempts.now():
+        from .responses_recovery import effective_expiry
+        if effective_expiry(c,ProviderGrant.model_validate(row['data']))<=provider_attempts.now():
             return 'grant_expired'
     try:
         service._runtime_pins(c,run)

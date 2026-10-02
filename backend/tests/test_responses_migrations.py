@@ -32,7 +32,7 @@ def test_exact_005_upgrade_and_runtime_acl(tmp_path):
     Database(runtime_dsn).check_runtime_role()
     with psycopg.connect(owner_dsn) as c:
         assert c.execute('SELECT count(*) FROM schema_migrations').fetchone()[0]==len(list((root/'migrations').glob('*.sql')))
-        for table in ('responses_steps','responses_events'):
+        for table in ('responses_steps','responses_events','responses_consumer_uses'):
             assert c.execute('SELECT has_table_privilege(%s,%s,\'SELECT\'),has_table_privilege(%s,%s,\'INSERT\'),has_table_privilege(%s,%s,\'UPDATE\'),has_table_privilege(%s,%s,\'DELETE\')',
                 (runtime,table,runtime,table,runtime,table,runtime,table)).fetchone()==(True,True,False,False)
     # No DB/role deletion: preserve test evidence and honor the non-destructive scope.
@@ -44,6 +44,6 @@ def test_clean_chain_provision_has_minimal_step_acl(tmp_path):
     values=dict(line.removeprefix('export ').split('=',1) for line in env.read_text().splitlines())
     db=Database(values['DATABASE_URL']);db.check_runtime_role()
     with db.transaction() as c:
-        for table in ('responses_steps','responses_events'):
+        for table in ('responses_steps','responses_events','responses_consumer_uses'):
             row=c.execute("SELECT has_table_privilege(current_user,%s,'INSERT') AS i,has_table_privilege(current_user,%s,'UPDATE') AS u,has_table_privilege(current_user,%s,'DELETE') AS d",(table,table,table)).fetchone()
             assert row=={'i':True,'u':False,'d':False}

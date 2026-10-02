@@ -339,7 +339,7 @@ def _usage(value) -> Usage | None:
     return result
 
 
-def _output_shape(output) -> list[dict]:
+def _output_shape(output, *, continuation=True) -> list[dict]:
     """Closed supported output item types; preserve complete JSON for continuation."""
     if not isinstance(output, list):
         raise TransportError('invalid_output')
@@ -359,8 +359,10 @@ def _output_shape(output) -> list[dict]:
                 raise TransportError('invalid_function_call')
             calls.append(item)
         elif kind == 'reasoning':
+            encrypted = item.get('encrypted_content')
             if (not isinstance(item.get('id'), str) or not isinstance(item.get('summary'), list) or
-                    not isinstance(item.get('encrypted_content'), str) or not item['encrypted_content']):
+                    (continuation and (not isinstance(encrypted, str) or not encrypted)) or
+                    (encrypted is not None and (not isinstance(encrypted, str) or not encrypted))):
                 raise TransportError('invalid_reasoning_item')
         elif kind == 'message':
             if item.get('role') != 'assistant' or not isinstance(item.get('content'), list):
@@ -398,7 +400,9 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
         output = document.get('output')
         if not isinstance(output, list):
             raise TransportError('invalid_output')
-        calls = _output_shape(output)
+        # Final output is never replayed to a model. Retrieve need not include
+        # encrypted_content; selection still requires complete continuation state.
+        calls = _output_shape(output, continuation=request.phase == 'selection')
         parts = [part for item in output if item['type'] == 'message' for part in item['content']]
         if any(part['type'] == 'refusal' for part in parts):
             return ParsedResponse(**base, state='refused', usage=usage)

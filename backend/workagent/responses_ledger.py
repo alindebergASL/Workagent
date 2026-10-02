@@ -4,7 +4,7 @@ from decimal import Decimal
 from hashlib import sha256
 from .errors import DomainError
 from .models import new_id
-from .service import encoded
+from .service import encoded, digest
 from .responses_transport import (PreparedRequest, RequestMetadata, DispatchPermit, ParsedResponse,
                                   Provenance, Usage, MODEL)
 from .responses_schema import READ_SCHEMA, FINAL_SCHEMA
@@ -32,8 +32,10 @@ class Ledger:
         return {r['kind']:r['data'] for r in rows if r['kind'] not in ('read','cancel')}
 
     def event(self,c,phase,kind,data):
+        event_id=new_id()
         c.execute('INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,%s,%s,%s)',
-                  (new_id(),self.receipt.attempt_id,phase,kind,encoded(data)))
+                  (event_id,self.receipt.attempt_id,phase,kind,encoded(data)))
+        return event_id
 
     def snapshot(self,phase,cap):
         with self.service.db.transaction() as c:
@@ -97,12 +99,13 @@ class Ledger:
                 if attempt.state=='prepared':
                     attempt.state='dispatched'
                     self.service._store_attempt(c,attempt)
-            self.event(c,request.phase,kind,data)
+            event_id=self.event(c,request.phase,kind,data)
             if kind=='dispatch':
                 return DispatchPermit(metadata=request.metadata,request_sha256=request.sha256,
                     input_tokens=events['count_result']['input_tokens'],model=MODEL,service_tier='default',
                     input_reservation_usd_per_million='2.5',output_reservation_usd_per_million='10',
                     durable_predispatch_committed=True,aggregate_budget_reserved=True,live_grant_id=attempt.grant_id)
+            return event_id
 
     def retain(self,request,kind,data):
         # Write-only retention survives revoke/lease expiry. No stored body returned.
@@ -134,6 +137,46 @@ class Ledger:
                     raise DomainError('command_conflict')
             self.event(c,request.phase,kind,data)
         return True
+
+    def corrected_readback(self,request,response,read_id,cap):
+        """One exact parser correction, NOT a general receipt replacement/import.
+
+        Arrival retention of original receipts remains unchanged. This correction
+        additionally requires current scope and an explicitly approved successor.
+        """
+        from .responses_worker import consumer_hash
+        import json
+        data=parsed_data(response)
+        with self.service.db.transaction() as c:
+            _,attempt,_=self._auth(c,cap)
+            row=c.execute('SELECT request_sha256,metadata FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                          (attempt.id,request.phase)).fetchone()
+            old_row=c.execute("SELECT id,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind='result'",
+                              (attempt.id,request.phase)).fetchone()
+            events=self._events(c,request.phase)
+            old=old_row['data'] if old_row else {}
+            if (request.phase!='final' or not row or row['request_sha256']!=request.sha256 or
+                row['metadata']!=request.metadata.model_dump() or old.get('state')!='malformed' or
+                old.get('issue')!='invalid_reasoning_item' or old.get('output_items')!='[]' or
+                old.get('value') is not None or not old.get('usage') or data['state']!='completed' or
+                data['issue'] is not None or data['value'] is None or
+                any(data[k]!=old[k] for k in ('response_id','request_sha256','metadata','usage','provenance')) or
+                data['response_id']!=events.get('identity',{}).get('response_id')):
+                raise DomainError('command_conflict')
+            # Revalidate strict schema before storing; provider parsing already
+            # checked model/tier/correlation and transport checked retrieved ID.
+            request.schema.model.model_validate(data['value'],strict=True)
+            data.update(original_event_id=old_row['id'],original_issue=old['issue'],
+                original_result_sha256=digest(old),read_event_id=read_id,
+                original_consumer_sha256=attempt.consumer_sha256,actual_consumer_sha256=consumer_hash(),
+                model=json.loads(request.body)['model'])
+            if 'corrected_readback' in events:raise DomainError('command_conflict')
+            self.event(c,request.phase,'corrected_readback',data)
+        # Explicit committed exact readback, still behind fresh current authority.
+        with self.service.db.transaction() as c:
+            self._auth(c,cap)
+            if self._events(c,request.phase).get('corrected_readback')!=data:
+                raise DomainError('command_conflict')
 
     def tool_result(self,request,data,cap):
         with self.service.db.transaction() as c:
@@ -172,7 +215,7 @@ def observations(c,attempt_id):
     for step in steps:
         rows=c.execute('SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind NOT IN (\'read\',\'cancel\')',(attempt_id,step['phase'])).fetchall()
         e={r['kind']:r['data'] for r in rows}
-        receipt=e.get('result',{}); usage=receipt.get('usage'); identity=e.get('identity',{})
+        receipt=e.get('corrected_readback',e.get('result',{})); usage=receipt.get('usage'); identity=e.get('identity',{})
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
         cost=(Decimal(usage['input_tokens'])*Decimal('2.5')+Decimal(usage['output_tokens'])*Decimal('10'))/Decimal(1000000) if usage else None
