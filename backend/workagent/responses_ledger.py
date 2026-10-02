@@ -1,0 +1,197 @@
+"""Append-only two-step durable authority. Every network slot commits before I/O."""
+from dataclasses import asdict
+from decimal import Decimal
+from hashlib import sha256
+from .errors import DomainError
+from .models import new_id
+from .service import encoded
+from .responses_transport import (PreparedRequest, RequestMetadata, DispatchPermit, ParsedResponse,
+                                  Provenance, Usage, MODEL)
+from .responses_schema import READ_SCHEMA, FINAL_SCHEMA
+
+RESERVED_INPUT=20000
+RESERVED_OUTPUT=8192
+RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal('2.5')+Decimal(RESERVED_OUTPUT)*Decimal('10'))/Decimal(1000000)
+
+class Ledger:
+    def __init__(self,service,receipt):
+        self.service=service
+        self.receipt=receipt
+
+    def _auth(self,c,cap=None):
+        run,attempt,origin=self.service._receipt_binding(c,self.receipt)
+        if cap is not None:
+            _,current,_=self.service._check_capability(c,cap)
+            if current.id!=run.id:
+                raise DomainError('not_found_or_not_authorized')
+        return run,attempt,origin
+
+    def _events(self,c,phase):
+        rows=c.execute('SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s ORDER BY created_at,id',
+                       (self.receipt.attempt_id,phase)).fetchall()
+        return {r['kind']:r['data'] for r in rows if r['kind'] not in ('read','cancel')}
+
+    def event(self,c,phase,kind,data):
+        c.execute('INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,%s,%s,%s)',
+                  (new_id(),self.receipt.attempt_id,phase,kind,encoded(data)))
+
+    def snapshot(self,phase,cap):
+        with self.service.db.transaction() as c:
+            self._auth(c,cap)
+            row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                          (self.receipt.attempt_id,phase)).fetchone()
+            if not row:
+                return None,{}
+            request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),
+                                    phase,READ_SCHEMA if phase=='selection' else FINAL_SCHEMA)
+            if request.sha256!=row['request_sha256'] or request.count_body()!=row['count_bytes'].encode():
+                raise DomainError('command_conflict')
+            return request,self._events(c,phase)
+
+    def prepare(self,request,cap):
+        with self.service.db.transaction() as c:
+            _,attempt,_=self._auth(c,cap)
+            if request.metadata.attempt_id!=attempt.id or request.metadata.step_id!=request.phase:
+                raise DomainError('command_conflict')
+            prior=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                            (attempt.id,request.phase)).fetchone()
+            if prior:
+                if prior['request_sha256']!=request.sha256:
+                    raise DomainError('command_conflict')
+                return
+            count=request.count_body()
+            c.execute('''INSERT INTO responses_steps(attempt_id,phase,grant_id,request_bytes,request_sha256,count_bytes,count_sha256,metadata)
+                         VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''',
+                      (attempt.id,request.phase,attempt.grant_id,request.body.decode(),request.sha256,count.decode(),
+                       sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
+
+    def reserve_operation(self,request,kind,cap):
+        if kind not in ('count_send','dispatch','read','cancel'):
+            raise ValueError('invalid operation')
+        with self.service.db.transaction() as c:
+            _,attempt,_=self._auth(c,cap)
+            events=self._events(c,request.phase)
+            stored=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                             (attempt.id,request.phase)).fetchone()
+            if not stored or stored['request_sha256']!=request.sha256:
+                raise DomainError('command_conflict')
+            if kind in events:
+                raise DomainError('action_unresolved')
+            if kind in ('read','cancel') and not events.get('identity'):
+                raise DomainError('action_unresolved')
+            if kind=='dispatch' and 'count_result' not in events:
+                raise DomainError('action_unresolved')
+            n=c.execute('''SELECT count(*) AS n FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
+                           WHERE s.grant_id=%s AND e.kind=%s''',(attempt.grant_id,kind)).fetchone()['n']
+            if n >= (40 if kind=='read' else 4):
+                raise DomainError('budget_exhausted')
+            data={}
+            if kind=='dispatch':
+                totals=summary(c,attempt.grant_id)
+                if (totals['reserved_input_tokens']+RESERVED_INPUT>80000 or
+                    totals['reserved_output_tokens']+RESERVED_OUTPUT>32768 or
+                    Decimal(totals['reserved_cost_usd'])+RESERVED_COST>Decimal('20.00')):
+                    raise DomainError('budget_exhausted')
+                data={'reserved_input_tokens':RESERVED_INPUT,'reserved_output_tokens':RESERVED_OUTPUT,
+                      'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None}
+                if attempt.state=='prepared':
+                    attempt.state='dispatched'
+                    self.service._store_attempt(c,attempt)
+            self.event(c,request.phase,kind,data)
+            if kind=='dispatch':
+                return DispatchPermit(metadata=request.metadata,request_sha256=request.sha256,
+                    input_tokens=events['count_result']['input_tokens'],model=MODEL,service_tier='default',
+                    input_reservation_usd_per_million='2.5',output_reservation_usd_per_million='10',
+                    durable_predispatch_committed=True,aggregate_budget_reserved=True,live_grant_id=attempt.grant_id)
+
+    def retain(self,request,kind,data):
+        # Write-only retention survives revoke/lease expiry. No stored body returned.
+        with self.service.db.transaction() as c:
+            _,attempt,origin=self._auth(c)
+            row=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                          (attempt.id,request.phase)).fetchone()
+            if not row or row['request_sha256']!=request.sha256:
+                raise DomainError('command_conflict')
+            events=self._events(c,request.phase)
+            if kind in events:
+                if events[kind]!=data:
+                    raise DomainError('command_conflict')
+                return True
+            if kind=='count_result':
+                if (data['request_sha256']!=request.sha256 or data['count_sha256']!=sha256(request.count_body()).hexdigest()
+                    or data['metadata']!=request.metadata.model_dump()):
+                    raise DomainError('command_conflict')
+            if kind in ('identity','result'):
+                if data['request_sha256']!=request.sha256 or data['metadata']!=request.metadata.model_dump():
+                    raise DomainError('command_conflict')
+                expected='official_api' if origin=='live_provider_receipt' else 'synthetic'
+                if data['provenance']['mode']!=expected:
+                    raise DomainError('command_conflict')
+                if events.get('identity') and events['identity']['response_id']!=data['response_id']:
+                    raise DomainError('command_conflict')
+            self.event(c,request.phase,kind,data)
+        return True
+
+    def tool_result(self,request,data,cap):
+        with self.service.db.transaction() as c:
+            self._auth(c,cap)
+            events=self._events(c,'selection')
+            if events.get('result',{}).get('state')!='function_call':
+                raise DomainError('action_unresolved')
+            if 'tool_result' in events:
+                if events['tool_result']!=data:
+                    raise DomainError('command_conflict')
+                return
+            self.event(c,'selection','tool_result',data)
+
+
+def parsed_data(result):
+    return {'response_id':result.response_id,'request_sha256':result.request_sha256,
+            'metadata':result.metadata.model_dump(),'provenance':asdict(result.provenance),
+            'state':result.state,'usage':asdict(result.usage) if result.usage else None,
+            'value':result.value.model_dump(mode='json') if result.value else None,
+            'call_id':result.call_id,'output_items':result.output_items.decode(),'issue':result.issue}
+
+
+def restore_result(data,request):
+    if data['request_sha256']!=request.sha256 or data['metadata']!=request.metadata.model_dump():
+        raise DomainError('command_conflict')
+    return ParsedResponse(response_id=data['response_id'],request_sha256=request.sha256,metadata=request.metadata,
+        provenance=Provenance(**data['provenance']),state=data['state'],usage=Usage(**data['usage']) if data['usage'] else None,
+        value=request.schema.model.model_validate(data['value'],strict=True) if data['value'] else None,
+        call_id=data['call_id'],output_items=data['output_items'].encode(),issue=data['issue'])
+
+
+def observations(c,attempt_id):
+    from .models import ResponseStepObservation
+    steps=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY CASE phase WHEN \'selection\' THEN 0 ELSE 1 END',(attempt_id,)).fetchall()
+    result=[]
+    for step in steps:
+        rows=c.execute('SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind NOT IN (\'read\',\'cancel\')',(attempt_id,step['phase'])).fetchall()
+        e={r['kind']:r['data'] for r in rows}
+        receipt=e.get('result',{}); usage=receipt.get('usage'); identity=e.get('identity',{})
+        state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
+            'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
+        cost=(Decimal(usage['input_tokens'])*Decimal('2.5')+Decimal(usage['output_tokens'])*Decimal('10'))/Decimal(1000000) if usage else None
+        result.append(ResponseStepObservation(phase=step['phase'],state=state,response_id=identity.get('response_id'),
+            reported_input_tokens=usage['input_tokens'] if usage else None,reported_output_tokens=usage['output_tokens'] if usage else None,
+            reserved_cost_usd=e.get('dispatch',{}).get('reserved_cost_usd'),
+            conservatively_calculated_cost_usd=str(cost) if cost is not None else None,billed_cost_usd=None))
+    return result
+
+
+def summary(c,grant_id):
+    rows=c.execute('''SELECT e.kind,e.data FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
+                      WHERE s.grant_id=%s''',(grant_id,)).fetchall()
+    counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
+    reservations=[r['data'] for r in rows if r['kind']=='dispatch']
+    receipts=[r['data'] for r in rows if r['kind']=='result']
+    usages=[r['usage'] for r in receipts if r.get('usage')]
+    unknown=len(reservations)-len(usages)
+    calculated=sum((Decimal(u['input_tokens'])*Decimal('2.5')+Decimal(u['output_tokens'])*Decimal('10'))/Decimal(1000000) for u in usages)
+    return {'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
+            'reserved_output_tokens':sum(r['reserved_output_tokens'] for r in reservations),
+            'reserved_cost_usd':str(sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
+            'reported_usage':{'input_tokens':sum(u['input_tokens'] for u in usages),'output_tokens':sum(u['output_tokens'] for u in usages)},
+            'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
+            'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

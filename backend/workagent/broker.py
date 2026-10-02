@@ -10,7 +10,39 @@ class Broker:
         self._service = service
         self._cap = capability
 
+    def _read_scoped_context(self, arguments):
+        from .responses_schema import ScopedRead, scope_registry
+        from .service import digest
+        request=ScopedRead.model_validate(arguments,strict=True)
+        service,cap=self._service,self._cap
+        with service.db.transaction() as c:
+            p,run,a=service._check_capability(c,cap)
+            if run.profile!='openai-responses-v1':
+                raise DomainError('unsupported_operation')
+            config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                             (run.workspace_id,run.id)).fetchone()['data']
+            if config['responses']['scope_tool_sha256']!=digest(scope_registry()):
+                deny()
+            ids=[ref.source_id for ref in a.selected_source_refs]
+            if (len(set(request.source_ids))!=len(request.source_ids) or set(request.source_ids)!=set(ids)
+                    or request.include_current_body!=(run.kind=='revision')):
+                deny()
+            sources=[]
+            for ref in a.selected_source_refs:
+                row=service._source(c,p,run.workspace_id,ref,True)
+                sources.append({'id':ref.source_id,'external_version':ref.external_version,
+                                'content':row['content'],'trust':'untrusted_evidence'})
+            body=None
+            if run.artifact_id:
+                artifact,_=service._artifact(c,p,run.workspace_id,run.artifact_id)
+                base=service._revision(c,p,run.workspace_id,artifact,a,run.base_revision_id)
+                body=base.body.model_dump(mode='json')
+            return {'sources':sources,'current_body':body,'base_revision_id':run.base_revision_id,
+                    'instruction':run.instruction,'goal':a.goal,'completion_criteria':a.completion_criteria}
+
     def call(self, name, arguments):
+        if name == 'read_scoped_context':
+            return self._read_scoped_context(arguments)
         if name not in TOOLS:
             raise DomainError('unsupported_operation')
         request = TOOLS[name][0].model_validate(arguments)

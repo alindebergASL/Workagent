@@ -37,7 +37,7 @@ def provision(env_file):
         c.execute(sql.SQL('GRANT CONNECT ON DATABASE {} TO {}').format(sql.Identifier(name),sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT USAGE ON SCHEMA public TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(sql.Identifier(runtime)))
-        mutable=['assignments','assignment_sources','artifacts','revisions','proposals','tasks','task_inspections','commands','audit','outbox','runs','run_configurations','run_contexts','run_dispatches','provider_attempts','run_publications']
+        mutable=['assignments','assignment_sources','artifacts','revisions','proposals','tasks','task_inspections','commands','audit','outbox','runs','run_configurations','run_contexts','run_dispatches','provider_attempts','run_publications','responses_steps','responses_events']
         c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.SQL(',').join(map(sql.Identifier,mutable)),sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT UPDATE ON assignments,artifacts,proposals,outbox,runs,run_dispatches,runtime_configuration,provider_attempts TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT USAGE ON SEQUENCE run_dispatches_cursor_seq TO {}').format(sql.Identifier(runtime)))

@@ -73,7 +73,8 @@ def check_grant(c, run, config):
     if (grant.expires_at<=now() or grant.workspace_id!=run.workspace_id or
         grant.principal_id!=run.principal_id or grant.profile!=run.profile or
         config['model']!=grant.model or config['consumer_sha256']!=grant.consumer_sha256 or
-        config['max_received_output_tokens']!=grant.max_received_output_tokens):
+        config['max_received_output_tokens']!=grant.max_received_output_tokens or
+        (grant.responses is not None and config.get('responses')!=grant.responses.model_dump(mode='json'))):
         raise DomainError('action_unresolved')
     return grant
 
@@ -129,20 +130,32 @@ class ProviderAttempts:
         c.execute('UPDATE provider_attempts SET data=%s WHERE workspace_id=%s AND run_id=%s',
                   (encoded(attempt),attempt.workspace_id,attempt.run_id))
 
-    def prepare_provider_attempt(self,cap,*,request_hash,consumer_sha256,evidence_origin='unverified'):
+    def prepare_provider_attempt(self,cap,*,request_hash,consumer_sha256,evidence_origin='unverified',transport=None):
         from .service import encoded, digest
         from .runtime_config import check_pins
         request_hash=TypeAdapter(Hash).validate_python(request_hash)
         consumer_sha256=TypeAdapter(Hash).validate_python(consumer_sha256)
-        # No live attestation exists here. Trusted consumer selects origin before
-        # dispatch; neither model output nor a received label can establish it.
-        if evidence_origin not in ('unverified','synthetic_provider_receipt'):
+        # Trusted concrete transport selects the receipt origin before dispatch;
+        # model output or a received label can never establish live provenance.
+        from .responses_transport import ResponsesTransport, OFFICIAL_ORIGIN
+        official=(type(transport) is ResponsesTransport and transport.provenance.mode=='official_api'
+                  and transport.provenance.origin==OFFICIAL_ORIGIN)
+        if evidence_origin not in ('unverified','synthetic_provider_receipt') and not (evidence_origin=='live_provider_receipt' and official):
             raise DomainError('unsupported_operation')
         with self.db.transaction() as c:
             p,run,a=self._check_capability(c,cap)
-            if run.profile!='openai-agents-v1':
+            if run.profile not in ('openai-agents-v1','openai-responses-v1'):
                 raise DomainError('unsupported_operation')
             config=check_pins(c,run)
+            if run.profile=='openai-responses-v1':
+                binding=config['responses']
+                if (type(transport) is not ResponsesTransport or transport.provenance.mode!=binding['transport_mode'] or
+                    evidence_origin!=('live_provider_receipt' if binding['transport_mode']=='official_api' else 'synthetic_provider_receipt') or
+                    (binding['transport_mode']=='official_api' and (transport.project_id!=binding['project_id'] or
+                     transport.credential_reference!=binding['secret_reference']))):
+                    raise DomainError('unsupported_operation')
+            elif evidence_origin=='live_provider_receipt':
+                raise DomainError('unsupported_operation')
             if consumer_sha256!=config['consumer_sha256']:
                 raise DomainError('unsupported_operation')
             previous=attempt_row(c,run.workspace_id,run.id)
@@ -271,6 +284,21 @@ class ProviderAttempts:
             if ((attempt.provider_session_id and attempt.provider_session_id!=result.provider_session_id) or
                 (attempt.provider_turn_id and attempt.provider_turn_id!=result.provider_turn_id)):
                 raise DomainError('command_conflict')
+            if run.profile=='openai-responses-v1':
+                from .responses_schema import NextAction,to_body
+                rows=c.execute("SELECT phase,kind,data FROM responses_events WHERE attempt_id=%s AND kind IN ('result','tool_result')",(attempt.id,)).fetchall()
+                evidence={(r['phase'],r['kind']):r['data'] for r in rows}
+                selection=evidence.get(('selection','result'),{})
+                final=evidence.get(('final','result'),{})
+                tool=evidence.get(('selection','tool_result'))
+                if selection.get('state')!='function_call' or final.get('state')!='completed' or not tool:
+                    raise DomainError('action_unresolved')
+                expected_body=to_body(NextAction.model_validate(final['value'],strict=True),tool,attempt.id)
+                if (result.bodies!=[expected_body] or result.unresolved or
+                    result.provider_session_id!=final['response_id'] or result.provider_turn_id!=final['response_id'] or
+                    result.usage.input_tokens!=selection['usage']['input_tokens']+final['usage']['input_tokens'] or
+                    result.usage.output_tokens!=selection['usage']['output_tokens']+final['usage']['output_tokens']):
+                    raise DomainError('command_conflict')
             attempt.state='responded'; attempt.result=result; attempt.result_hash=digest(result)
             attempt.provider_session_id=result.provider_session_id; attempt.provider_turn_id=result.provider_turn_id
             self._store_attempt(c,attempt)

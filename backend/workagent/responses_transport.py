@@ -376,7 +376,7 @@ def _output_shape(output) -> list[dict]:
     return calls
 
 
-def parse_response(document: object, request: PreparedRequest, provenance: Provenance) -> ParsedResponse:
+def parse_response(document: object, request: PreparedRequest, provenance: Provenance, *, require_correlation=False) -> ParsedResponse:
     """Pure parsing: never executes calls, repairs JSON, retries or resumes a model."""
     rid = _response_id(document.get('id')) if isinstance(document, dict) else None
     base: _ResponseIdentity = {'response_id': rid, 'request_sha256': request.sha256,
@@ -387,6 +387,8 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
                 document.get('object') != 'response' or document.get('model') != MODEL or
                 document.get('service_tier') != 'default'):
             raise TransportError('response_contract_mismatch')
+        if (require_correlation or 'metadata' in document) and document.get('metadata')!=request.metadata.model_dump():
+            raise TransportError('response_correlation_mismatch')
         usage = _usage(document.get('usage'))
         state = document.get('status')
         if state in ('queued', 'in_progress', 'incomplete', 'failed', 'cancelled'):
@@ -421,14 +423,21 @@ class ResponsesTransport:
     construction permits ONLY HTTPX MockTransport and labels every result as such.
     No aggregate counter, scheduler, broker, CLI, database or provider activation.
     """
-    def __init__(self, *, credential: str, enabled: bool = False):
+    def __init__(self, *, credential: str, project_id: str | None = None, credential_reference: str | None = None, enabled: bool = False):
         if enabled is not True:
             raise TransportError('transport_disabled')
         if not isinstance(credential, str) or not re.fullmatch(r'[!-~]+', credential):
             raise TransportError('invalid_injected_credential')
+        if not isinstance(project_id,str) or not re.fullmatch(r'proj_[A-Za-z0-9_-]{1,100}',project_id):
+            raise TransportError('explicit_project_required')
+        if not isinstance(credential_reference,str) or not re.fullmatch(r'file:/[A-Za-z0-9_./-]{1,400}',credential_reference):
+            raise TransportError('secure_key_reference_required')
         self._initialize(OFFICIAL_ORIGIN, 'official_api',
                          httpx.HTTPTransport(retries=0, trust_env=False),
-                         {'Authorization': 'Bearer ' + credential})
+                         {'Authorization': 'Bearer ' + credential, 'OpenAI-Project': project_id})
+        self.project_id=project_id
+        self.credential_reference=credential_reference
+        self.require_correlation=True
 
     @classmethod
     def synthetic(cls, transport: httpx.MockTransport, *, origin: str = 'https://synthetic.invalid'):
@@ -443,6 +452,8 @@ class ResponsesTransport:
 
     def _initialize(self, origin, mode, transport, headers):
         self.provenance = Provenance(mode, origin)
+        self.project_id=None
+        self.require_correlation=False
         self._issuer = object()
         self._sent = set()
         self._lock = Lock()
@@ -517,7 +528,18 @@ class ResponsesTransport:
                 failed = True
             if failed:
                 raise TransportError('acceptance_persistence_failed', outcome_unknown=True, response_id=rid)
-        return parse_response(data, request, self.provenance)
+        return parse_response(data, request, self.provenance, require_correlation=self.require_correlation)
+
+    def restore_count(self, request: PreparedRequest, *, input_tokens: int,
+                      count_sha256: str, provenance: Provenance) -> TokenCount:
+        """Consumer-only rehydration of an authenticated immutable DB count.
+
+        Not budget authority. create still needs a durable single-winner permit.
+        """
+        if (type(input_tokens) is not int or not 0<=input_tokens<=MAX_INPUT_TOKENS or
+                count_sha256!=sha256(request.count_body()).hexdigest() or provenance!=self.provenance):
+            raise TransportError('invalid_count_receipt')
+        return TokenCount(request.sha256,count_sha256,input_tokens,request.metadata,provenance,self._issuer)
 
     def retrieve(self, response_id: str, *, request: PreparedRequest) -> ParsedResponse:
         """ONE read-only GET. Scheduling, ownership checks and poll limits are external."""
@@ -535,4 +557,4 @@ class ResponsesTransport:
         data = self._send(method, path, None, mutating=cancel)
         if not isinstance(data, dict) or data.get('id') != response_id:
             raise TransportError('response_identity_mismatch', outcome_unknown=cancel, response_id=response_id)
-        return parse_response(data, request, self.provenance)
+        return parse_response(data, request, self.provenance, require_correlation=self.require_correlation)

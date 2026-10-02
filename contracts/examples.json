@@ -82,7 +82,7 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+          "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -204,7 +204,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+        "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -372,7 +372,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+        "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -447,7 +447,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+      "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -475,7 +475,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+      "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"

@@ -240,6 +240,10 @@ class Service(ProviderAttempts):
         activation_id, activation = active_configuration(c)
         bundle_hash,tool_registry_hash=activation['bundle_hash'],digest(registry())
         grant=admission_grant(c,a.workspace_id,p.id)
+        if grant and grant.profile=='openai-responses-v1':
+            previous=c.execute("SELECT r.assignment_id,r.data FROM runs r JOIN run_configurations rc ON rc.workspace_id=r.workspace_id AND rc.run_id=r.id WHERE rc.data->>'grant_id'=%s",(grant.id,)).fetchall()
+            if (not previous and kind!='initial') or (previous and (len(previous)!=1 or kind!='revision' or previous[0]['assignment_id']!=a.id or previous[0]['data']['kind']!='initial')):
+                raise DomainError('action_unresolved')
         profile=grant.profile if grant else 'fixture-deterministic-v1'
         execution=ExecutionProvenance(mode='managed' if grant else 'fixture',profile=profile,
                                      model=grant.model if grant else None,grant_id=grant.id if grant else None,
@@ -438,7 +442,7 @@ class Service(ProviderAttempts):
         """Trusted-process seam, never an HTTP/model tool. Returns a fenced lease."""
         return self._claim_run(p,ws,run_id)
 
-    def _claim_run(self,p,ws,run_id,received_result=False):
+    def _claim_run(self,p,ws,run_id,received_result=False,responses_receipt=None):
         with self.db.transaction() as c:
             generation=self._scope(c,p,ws,True)
             row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,run_id)).fetchone()
@@ -449,7 +453,11 @@ class Service(ProviderAttempts):
                 deny()
             a=self._assignment(c,p,ws,r.assignment_id,True)
             attempt=attempt_row(c,ws,run_id)
-            if received_result:
+            if responses_receipt is not None:
+                bound,existing,_=self._receipt_binding(c,responses_receipt)
+                if bound.id!=r.id or r.profile!='openai-responses-v1' or existing.state=='failed':
+                    raise DomainError('action_unresolved')
+            elif received_result:
                 if not attempt or attempt.state!='responded':
                     raise DomainError('action_unresolved')
             elif attempt:
@@ -544,7 +552,7 @@ class Service(ProviderAttempts):
                     return Run.model_validate(previous['result'])
             if r.state!='running':
                 raise DomainError('action_unresolved')
-            if r.profile=='openai-agents-v1':
+            if r.profile in ('openai-agents-v1','openai-responses-v1'):
                 attempt=attempt_row(c,ws,r.id)
                 if not attempt or attempt.state!='responded' or not attempt.result:
                     raise DomainError('action_unresolved')

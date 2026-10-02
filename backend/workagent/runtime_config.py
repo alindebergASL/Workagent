@@ -64,6 +64,9 @@ def pin_run(c, run, assignment, activation_id, activation, grant=None):
                     max_received_output_tokens=grant.max_received_output_tokens,
                     adapter_sha256=None, budget={'unit':'local_publication','limit':1},
                     provider_hard_budget='not_enforced')
+        if grant.responses:
+            data.update(responses=grant.responses.model_dump(mode='json'),
+                        provider_hard_budget='durable_consumer_reservations_not_provider_billing')
     c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
               (run.workspace_id, run.id, activation_id, encoded(data)))
 
@@ -85,13 +88,19 @@ def check_pins(c, run):
             raise BundleDenied('fixture adapter drift')
     else:
         from .provider_attempts import check_grant
-        check_grant(c,run,data)
+        grant=check_grant(c,run,data)
+        if run.profile=='openai-responses-v1':
+            from .responses_worker import validate_pins
+            validate_pins(grant,data)
     return data
 
 
 def assemble_context(service, c, cap):
     p, run, assignment = service._check_capability(c, cap)
     config = check_pins(c, run)
+    if run.profile=='openai-responses-v1':
+        from .responses_worker import assemble_metadata_context
+        return assemble_metadata_context(service,c,cap,run,assignment,config)
     sources = [service._source(c, p, run.workspace_id, ref, True) for ref in assignment.selected_source_refs]
     scope = Scope(assignment.id, run.access_generation,
                   frozenset(x.source_id for x in assignment.selected_source_refs),

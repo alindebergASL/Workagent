@@ -122,7 +122,7 @@ class SourceDetail(Source):
 
 
 Hash = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
-ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1']
+ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1']
 
 
 class ExecutionProvenance(Model):
@@ -158,8 +158,20 @@ class OutcomeQuestion(Model):
     base_revision_id: Id
 
 
+class ResponseStepObservation(Model):
+    phase: Literal['selection','final']
+    state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
+    response_id: str | None = None
+    reported_input_tokens: int | None = None
+    reported_output_tokens: int | None = None
+    reserved_cost_usd: str | None = None
+    conservatively_calculated_cost_usd: str | None = None
+    billed_cost_usd: str | None = None
+
+
 class RunOutcome(Model):
     run_id: Id
+    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=2)
     execution: ExecutionProvenance | None = None
     state: Literal['preparing', 'prepared', 'decision_required', 'decision_stale', 'approved', 'readback_verified', 'outcome_unknown', 'waiting', 'unverified']
     artifacts: list[ArtifactBinding] = Field(default_factory=list, max_length=10)
@@ -168,7 +180,7 @@ class RunOutcome(Model):
     safety_gate: Literal['passed', 'failed', 'unverified'] = 'unverified'
     continuation_available: bool = False
     attempt_state: Literal['prepared', 'dispatched', 'outcome_unknown', 'responded', 'reconciled', 'failed'] | None = None
-    blocker: Literal['paused', 'cancelled', 'grant_revoked', 'grant_expired', 'source_changed', 'runtime_unavailable', 'consumer_unavailable', 'lease_expired', 'prepared_attempt', 'provider_outcome_unknown', 'publication_pending', 'unsent_abandoned', 'unresolved_items', 'decision_required', 'decision_stale'] | None = None
+    blocker: Literal['paused', 'cancelled', 'grant_revoked', 'grant_expired', 'source_changed', 'runtime_unavailable', 'consumer_unavailable', 'lease_expired', 'prepared_attempt', 'provider_outcome_unknown', 'provider_response_pending', 'provider_result_rejected', 'publication_pending', 'unsent_abandoned', 'unresolved_items', 'decision_required', 'decision_stale'] | None = None
     reason: Annotated[str, Field(min_length=1, max_length=500)] | None = None
     next_action: Annotated[str, Field(min_length=1, max_length=500)] | None = None
     question: OutcomeQuestion | None = None
@@ -183,17 +195,46 @@ class ResponsibilityOutcome(Model):
     underlying_action_performed: Literal[False] = False
 
 
+class ResponsesBinding(Model):
+    # Explicit operator pins. A reference is not credential material.
+    project_id: Annotated[str, Field(pattern=r'^proj_[A-Za-z0-9_-]{1,100}$')]
+    secret_reference: Annotated[str, Field(pattern=r'^file:/[A-Za-z0-9_./-]{1,400}$')]
+    transport_mode: Literal['synthetic', 'official_api']
+    instructions_sha256: Hash
+    schema_sha256: Hash
+    scope_tool_sha256: Hash
+    generation_limit: Literal[4] = 4
+    count_limit: Literal[4] = 4
+    read_limit: Literal[40] = 40
+    cancel_limit: Literal[4] = 4
+    input_limit: Literal[80000] = 80000
+    output_limit: Literal[32768] = 32768
+    cost_limit_usd: Literal['20.00'] = '20.00'
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
-    profile: Literal['openai-agents-v1'] = 'openai-agents-v1'
+    profile: Literal['openai-agents-v1', 'openai-responses-v1'] = 'openai-agents-v1'
+    responses: ResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime
     max_runs: int = Field(default=1, strict=True, ge=1, le=10)
     # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
     max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
+
+
+    @model_validator(mode='after')
+    def exact_responses_binding(self):
+        if self.profile == 'openai-responses-v1':
+            if (self.responses is None or self.model != 'gpt-6.1-sol' or
+                    self.max_runs > 2 or self.max_received_output_tokens != 16384):
+                raise ValueError('exact bounded Responses grant required')
+        elif self.responses is not None:
+            raise ValueError('Responses binding requires Responses profile')
+        return self
 
 
 class ProviderUsage(Model):
@@ -216,7 +257,7 @@ class ProviderAttempt(Model):
     run_id: Id
     principal_id: Id
     grant_id: Id
-    profile: Literal['openai-agents-v1']
+    profile: Literal['openai-agents-v1', 'openai-responses-v1']
     model: Id
     request_hash: Hash
     consumer_sha256: Hash

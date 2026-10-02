@@ -369,9 +369,9 @@ def test_acceptance_persisted_before_output_validation(harness, monkeypatch, doc
     import workagent.responses_transport as module
     events = []
     original = module.parse_response
-    def parse(*args):
+    def parse(*args, **kwargs):
         assert events == ['resp_SYNTHETIC']
-        return original(*args)
+        return original(*args, **kwargs)
     monkeypatch.setattr(module, 'parse_response', parse)
     def handle(request):
         if request.url.path.endswith('/input_tokens'):
@@ -465,13 +465,39 @@ def test_production_is_disabled_without_optin_and_has_fixed_transport(monkeypatc
         captured['transport'] = kwargs
         return httpx.MockTransport(lambda _: pytest.fail('NO LIVE REQUEST AUTHORIZED'))
     monkeypatch.setattr(httpx, 'HTTPTransport', http_transport)
-    client = ResponsesTransport(credential='SYNTHETIC-NOT-A-KEY', enabled=True)
+    client = ResponsesTransport(credential='SYNTHETIC-NOT-A-KEY', project_id='proj_SYNTHETIC', credential_reference='file:/synthetic/no-key', enabled=True)
     assert client.provenance == Provenance('official_api', OFFICIAL_ORIGIN)
     assert captured['transport'] == {'retries': 0, 'trust_env': False}
     assert str(client._client.base_url) == OFFICIAL_ORIGIN + '/v1/'
     assert client._client.follow_redirects is False
     assert client._client.timeout.connect == 5 and client._client.timeout.read == 30
     client.close()
+
+
+def test_transport_project_header_and_restart_count(harness,monkeypatch):
+    with pytest.raises(TransportError,match='explicit_project_required'):
+        ResponsesTransport(credential='synthetic',enabled=True)
+    with pytest.raises(TransportError,match='secure_key_reference_required'):
+        ResponsesTransport(credential='synthetic',project_id='proj_SYNTHETIC',enabled=True)
+    seen=[]
+    def factory(**kwargs):
+        return httpx.MockTransport(lambda request: (seen.append(request) or httpx.Response(200,json={'object':'response.input_tokens','input_tokens':42})))
+    monkeypatch.setattr(httpx,'HTTPTransport',factory)
+    t=ResponsesTransport(credential='synthetic',project_id='proj_SYNTHETIC',credential_reference='file:/synthetic/key',enabled=True)
+    t.count(selection())
+    assert seen[0].headers['OpenAI-Project']=='proj_SYNTHETIC'
+    t.close()
+    t1,_=harness(); t2,calls=harness(); request=selection()
+    original=t1.count(request)
+    restored=t2.restore_count(request,input_tokens=original.input_tokens,count_sha256=original.count_sha256,provenance=original.provenance)
+    t2.create(request,count=restored,permit=permit(request,restored),on_accepted=lambda _:None)
+    assert len(calls)==1 and calls[0].url.path=='/v1/responses'
+
+
+@pytest.mark.parametrize('metadata',[None,{}, {'request_id':'wrong','attempt_id':'attempt-1','step_id':'select'}])
+def test_strict_transport_correlation_rejected(metadata):
+    result=parse_response(response(metadata=metadata),selection(),SYNTHETIC,require_correlation=True)
+    assert result.state=='malformed' and result.issue=='response_correlation_mismatch'
 
 
 @pytest.mark.parametrize('doc', [None, [], '', 1, True, {}])

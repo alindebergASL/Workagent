@@ -31,9 +31,13 @@ def verify_document(c,assignment,run):
     result=RunOutcome(run_id=run.id,execution=run.execution,state='unverified',unresolved=run.unresolved)
     attempt=attempt_row(c,ws,run.id)
     result.attempt_state=attempt.state if attempt else None
+    if attempt and run.profile=='openai-responses-v1':
+        from .responses_ledger import observations
+        result.response_steps=observations(c,attempt.id)
     if attempt and attempt.state in ('dispatched','outcome_unknown'):
         # Dispatch is potentially executed, even if a timeout/crash wasn't recorded.
-        result.state='outcome_unknown'
+        states={step.state for step in result.response_steps}
+        result.state=('waiting' if 'invalid' in states else 'preparing' if states and 'outcome_unknown' not in states else 'outcome_unknown')
         return result
     receipt=c.execute('SELECT data FROM run_publications WHERE workspace_id=%s AND run_id=%s',(ws,run.id)).fetchone()
     if not receipt:
@@ -103,7 +107,7 @@ def verify_document(c,assignment,run):
                       digest(revision.body)==revision.body_hash==binding.body_hash)
                 saved_hashes.append(digest(revision.body))
             states.append('prepared')
-    if run.profile=='openai-agents-v1':
+    if run.profile in ('openai-agents-v1','openai-responses-v1'):
         check('provider_result',attempt and attempt.result and attempt.state in ('responded','reconciled') and
               attempt.result_hash==digest(attempt.result) and saved_hashes==[digest(b) for b in attempt.result.bodies])
     result.artifacts=bindings
@@ -131,6 +135,8 @@ EXPLANATIONS = {
     'lease_expired': ('The execution lease expired.', 'Use the fenced recovery path; an existing attempt never authorizes a resend.'),
     'prepared_attempt': ('An unsent attempt is prepared, but has no dispatch receipt.', 'The bound consumer may abandon the unsent attempt; never reclaim it as another send.'),
     'provider_outcome_unknown': ('A dispatch may have executed; its result is unknown.', 'Retain a matching receipt through the bound consumer; never resend or classify a timeout as unsent.'),
+    'provider_response_pending': ('The bounded worker has a recorded provider response to recover or continue.', 'Recover the same immutable steps; never resend a dispatched request.'),
+    'provider_result_rejected': ('The recorded response failed the required output contract.', 'Do not publish or retry this response; retain its usage and reservation.'),
     'publication_pending': ('A receipt is retained but no document publication is verified.', 'Publish only the stored result under current authority and a valid fenced lease, then reconcile.'),
     'unsent_abandoned': ('The prepared attempt was terminally abandoned before dispatch.', 'No send occurred. Explicitly admit new work under current authority if still needed.'),
     'unresolved_items': ('The document is saved, but this run has unresolved items.', 'Review the unresolved items; prepared documents do not mean the underlying task was performed.'),
@@ -160,7 +166,7 @@ def continuation_blocker(service,c,p,assignment,run):
                           (run.workspace_id,source['id'])).fetchone()
             if not row or digest(row['content'])!=source['sha256']:
                 return 'source_changed'
-    if run.profile=='openai-agents-v1':
+    if run.profile in ('openai-agents-v1','openai-responses-v1'):
         from . import provider_attempts
         config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                          (run.workspace_id,run.id)).fetchone()
@@ -190,7 +196,9 @@ def verify_run(service,c,p,assignment,run):
         blocker='unsent_abandoned'
         result.continuation_available=False
     elif result.attempt_state in ('dispatched','outcome_unknown'):
-        blocker=blocker or 'provider_outcome_unknown'
+        states={step.state for step in result.response_steps}
+        blocker=blocker or ('provider_result_rejected' if 'invalid' in states else
+                           'provider_response_pending' if states and 'outcome_unknown' not in states else 'provider_outcome_unknown')
         result.continuation_available=False
     elif result.outcome_gate=='passed':
         blocker=blocker or (result.state if result.state in ('decision_required','decision_stale') else
