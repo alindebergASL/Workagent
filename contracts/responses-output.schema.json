@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "SourceBasis": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "maxLength": 2000,
+          "minLength": 10,
+          "title": "Basis",
+          "type": "string"
+        },
+        "external_version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "External Version",
+          "type": "string"
+        },
+        "source_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "external_version",
+        "basis"
+      ],
+      "title": "SourceBasis",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "missing_information": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Missing Information",
+      "type": "array"
+    },
+    "next_action": {
+      "maxLength": 3000,
+      "minLength": 20,
+      "title": "Next Action",
+      "type": "string"
+    },
+    "source_basis": {
+      "items": {
+        "$ref": "#/$defs/SourceBasis"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Source Basis",
+      "type": "array"
+    },
+    "specific_judgment": {
+      "maxLength": 3000,
+      "minLength": 20,
+      "title": "Specific Judgment",
+      "type": "string"
+    },
+    "task_not_performed": {
+      "const": true,
+      "title": "Task Not Performed",
+      "type": "boolean"
+    },
+    "title": {
+      "maxLength": 200,
+      "minLength": 5,
+      "title": "Title",
+      "type": "string"
+    },
+    "underlying_action_performed": {
+      "const": false,
+      "title": "Underlying Action Performed",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "title",
+    "next_action",
+    "missing_information",
+    "specific_judgment",
+    "source_basis",
+    "task_not_performed",
+    "underlying_action_performed"
+  ],
+  "title": "NextAction",
+  "type": "object"
+}

@@ -123,7 +123,24 @@ export interface Recommendation {
   summary: string;
   evidence: string[];
   uncertainty: string[];
+  /** The specific judgment the person is asked for, when the document names one. */
+  judgment?: string;
+  /** The saved document this recommendation was read from. */
+  artifact_id?: string;
 }
+
+/**
+ * Canonical responsibility outcome (handoffs/backend/INTAKE_CONTRACT.md),
+ * passed through from the generated contract unchanged. The current status is
+ * the run named by `latest_run_id`. An approved outcome covers the document
+ * revision only; `underlying_action_performed` is always false.
+ */
+export type Responsibility =
+  import("../../../../contracts/src/client").components["schemas"]["ResponsibilityOutcome"];
+export type RunOutcome =
+  import("../../../../contracts/src/client").components["schemas"]["RunOutcome"];
+export type ExecutionProvenance =
+  import("../../../../contracts/src/client").components["schemas"]["ExecutionProvenance"];
 
 export interface AssignmentSummary {
   id: string;
@@ -140,6 +157,8 @@ export interface AssignmentSummary {
   next_step: string | null;
   needs_review_artifact_ids: string[];
   selected_source_count: number;
+  /** Present when the backend projects one; absent in mock mode and on old records. */
+  responsibility?: Responsibility | null;
 }
 
 export interface Assignment extends AssignmentSummary {

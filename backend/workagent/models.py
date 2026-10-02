@@ -121,6 +121,155 @@ class SourceDetail(Source):
     content: dict
 
 
+Hash = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
+ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1']
+
+
+class ExecutionProvenance(Model):
+    mode: Literal['fixture', 'managed']
+    profile: ExecutionProfile
+    model: Id | None = None
+    grant_id: Id | None = None
+    attempt_id: Id | None = None
+    # Managed labels mean configured execution, NOT proof of a provider response.
+    provider_observation: Literal['not_observed', 'received'] = 'not_observed'
+    # Trusted origin, never inferred from model/profile/observation. Live is reserved
+    # for a future reviewed attestation path; this checkpoint cannot write it.
+    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt'] = 'unverified'
+
+
+class ArtifactBinding(Model):
+    artifact_id: Id
+    revision_id: Id | None = None
+    proposal_id: Id | None = None
+    base_revision_id: Id | None = None
+    body_hash: Hash
+
+
+class OutcomeCheck(Model):
+    name: Literal['publication_binding', 'saved_body', 'exact_base', 'current_revision', 'provider_result', 'authority']
+    status: Literal['passed', 'failed', 'unverified']
+
+
+class OutcomeQuestion(Model):
+    prompt: Annotated[str, Field(min_length=1, max_length=500)]
+    artifact_id: Id
+    proposal_id: Id
+    base_revision_id: Id
+
+
+class ResponseStepObservation(Model):
+    phase: Literal['selection','final']
+    state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
+    response_id: str | None = None
+    reported_input_tokens: int | None = None
+    reported_output_tokens: int | None = None
+    reserved_cost_usd: str | None = None
+    conservatively_calculated_cost_usd: str | None = None
+    billed_cost_usd: str | None = None
+
+
+class RunOutcome(Model):
+    run_id: Id
+    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=2)
+    execution: ExecutionProvenance | None = None
+    state: Literal['preparing', 'prepared', 'decision_required', 'decision_stale', 'approved', 'readback_verified', 'outcome_unknown', 'waiting', 'unverified']
+    artifacts: list[ArtifactBinding] = Field(default_factory=list, max_length=10)
+    checks: list[OutcomeCheck] = Field(default_factory=list, max_length=10)
+    outcome_gate: Literal['passed', 'failed', 'unverified'] = 'unverified'
+    safety_gate: Literal['passed', 'failed', 'unverified'] = 'unverified'
+    continuation_available: bool = False
+    attempt_state: Literal['prepared', 'dispatched', 'outcome_unknown', 'responded', 'reconciled', 'failed'] | None = None
+    blocker: Literal['paused', 'cancelled', 'grant_revoked', 'grant_expired', 'source_changed', 'runtime_unavailable', 'consumer_unavailable', 'lease_expired', 'prepared_attempt', 'provider_outcome_unknown', 'provider_response_pending', 'provider_result_rejected', 'publication_pending', 'unsent_abandoned', 'unresolved_items', 'decision_required', 'decision_stale'] | None = None
+    reason: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    next_action: Annotated[str, Field(min_length=1, max_length=500)] | None = None
+    question: OutcomeQuestion | None = None
+    unresolved: list[Text] = Field(default_factory=list, max_length=100)
+    underlying_action_performed: Literal[False] = False
+
+
+class ResponsibilityOutcome(Model):
+    latest_run_id: Id | None = None
+    runs: list[RunOutcome] = Field(default_factory=list, max_length=100)
+    approved_change: Literal['document_revision_only'] = 'document_revision_only'
+    underlying_action_performed: Literal[False] = False
+
+
+class ResponsesBinding(Model):
+    # Explicit operator pins. A reference is not credential material.
+    project_id: Annotated[str, Field(pattern=r'^proj_[A-Za-z0-9_-]{1,100}$')]
+    secret_reference: Annotated[str, Field(pattern=r'^file:/[A-Za-z0-9_./-]{1,400}$')]
+    transport_mode: Literal['synthetic', 'official_api']
+    instructions_sha256: Hash
+    schema_sha256: Hash
+    scope_tool_sha256: Hash
+    generation_limit: Literal[4] = 4
+    count_limit: Literal[4] = 4
+    read_limit: Literal[40] = 40
+    cancel_limit: Literal[4] = 4
+    input_limit: Literal[80000] = 80000
+    output_limit: Literal[32768] = 32768
+    cost_limit_usd: Literal['20.00'] = '20.00'
+
+
+class ProviderGrant(Model):
+    id: Id
+    workspace_id: Id
+    principal_id: Id
+    profile: Literal['openai-agents-v1', 'openai-responses-v1'] = 'openai-agents-v1'
+    responses: ResponsesBinding | None = None
+    model: Id
+    consumer_sha256: Hash
+    expires_at: AwareDatetime
+    max_runs: int = Field(default=1, strict=True, ge=1, le=10)
+    # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
+    max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
+
+
+    @model_validator(mode='after')
+    def exact_responses_binding(self):
+        if self.profile == 'openai-responses-v1':
+            if (self.responses is None or self.model != 'gpt-6.1-sol' or
+                    self.max_runs > 2 or self.max_received_output_tokens != 16384):
+                raise ValueError('exact bounded Responses grant required')
+        elif self.responses is not None:
+            raise ValueError('Responses binding requires Responses profile')
+        return self
+
+
+class ProviderUsage(Model):
+    input_tokens: int = Field(strict=True, ge=0, le=10000000)
+    output_tokens: int = Field(strict=True, ge=0, le=10000000)
+
+
+class ProviderResult(Model):
+    # Sanitized typed receipt only; never headers, credentials, or raw HTTP envelopes.
+    provider_session_id: Id
+    provider_turn_id: Id
+    bodies: list[Body] = Field(min_length=1, max_length=10)
+    unresolved: list[Text] = Field(default_factory=list, max_length=100)
+    usage: ProviderUsage
+
+
+class ProviderAttempt(Model):
+    id: Id
+    workspace_id: Id
+    run_id: Id
+    principal_id: Id
+    grant_id: Id
+    profile: Literal['openai-agents-v1', 'openai-responses-v1']
+    model: Id
+    request_hash: Hash
+    consumer_sha256: Hash
+    context_hash: Hash
+    fence: int = Field(ge=1)
+    state: Literal['prepared', 'dispatched', 'outcome_unknown', 'responded', 'reconciled', 'failed'] = 'prepared'
+    provider_session_id: Id | None = None
+    provider_turn_id: Id | None = None
+    result: ProviderResult | None = None
+    result_hash: Hash | None = None
+
+
 class Assignment(Model):
     id: Id
     workspace_id: Id
@@ -132,6 +281,7 @@ class Assignment(Model):
     selected_source_refs: list[SourceRef] = Field(max_length=50)
     artifact_ids: list[Id] = Field(default_factory=list, max_length=100)
     run_ids: list[Id] = Field(default_factory=list, max_length=100)
+    responsibility: ResponsibilityOutcome | None = None
     unresolved: list[Text] = Field(default_factory=list, max_length=100)
     observed_at: AwareDatetime = Field(default_factory=now)
 
@@ -158,7 +308,8 @@ class Run(Model):
     fence: int = Field(default=0, ge=0)
     access_generation: Version
     lease_expires_at: AwareDatetime | None = None
-    profile: Literal['fixture-deterministic-v1'] = 'fixture-deterministic-v1'
+    profile: ExecutionProfile = 'fixture-deterministic-v1'
+    execution: ExecutionProvenance | None = None
     bundle_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     tool_registry_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     provider_session_id: Id | None = None

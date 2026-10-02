@@ -46,8 +46,8 @@ LOGIN runtime role that is neither table/database owner, superuser nor BYPASSRLS
 Revoke public schema CREATE, grant runtime schema USAGE, table SELECT, INSERT on
 `assignments, assignment_sources, artifacts, revisions, proposals, tasks,
 task_inspections, commands, audit, outbox, runs, run_configurations, run_contexts,
-run_dispatches`, and UPDATE only on
-`assignments, artifacts, proposals, outbox, runs, run_dispatches, runtime_configuration` plus the authority tables for
+run_dispatches, provider_attempts, run_publications`, and UPDATE only on
+`assignments, artifacts, proposals, outbox, runs, run_dispatches, runtime_configuration, provider_attempts` plus the authority tables for
 row-lock permission. Grant USAGE on `run_dispatches_cursor_seq`. Runtime has SELECT
 only on `bundle_activations`; activation requires the migration/table-owner identity.
 **Migrations 002 and 003 must be installed:** PostgreSQL requires
@@ -55,6 +55,19 @@ UPDATE privilege even for `SELECT FOR SHARE`; its owner-only triggers prevent
 runtime updates to workspace/membership/source/access records. No runtime DELETE,
 TRUNCATE, DDL or function ownership. `dev_db.py` is executable provisioning evidence
 for these grants. Startup rejects owners, superusers and BYPASSRLS roles.
+
+**Intake upgrades require 004 and additive 005 too.** Do not edit applied 001–004.
+For an existing pre-004 installation, the migration owner must explicitly extend
+runtime SELECT to `provider_grants, provider_attempts, run_publications`, INSERT to
+`provider_attempts, run_publications`, and UPDATE to `provider_attempts`. Never grant
+grant mutation, publication UPDATE/DELETE or ownership. 005 adds columns/guards to
+the existing attempt table; existing table-level grants need no extension.
+Column-specific ACLs must cover only the three new attempt columns for their
+existing SELECT/INSERT/UPDATE operations. Apply via `workagent.db.migrate` before
+starting new code; journal checks and repeated no-op application still apply.
+Legacy attempts receive no fabricated receipt capability or live attestation.
+See [the focused intake contract](../handoffs/backend/INTAKE_CONTRACT.md) for
+upgrade behavior and the trusted receipt capability's private persistence rule.
 
 Authorization is in the canonical service, not RLS. The runtime process and its DB
 credential are trusted; do not give that credential to model-generated code.
@@ -238,6 +251,38 @@ unauthorized return the same 404 envelope. Source listing still excludes bodies.
 true/false state persists in immutable revisions and survives reopening.
 
 ## Contract generation, scenario mock, tests
+
+### Intake outcomes and trusted receipt retention
+
+Assignment/list GETs expose the same authoritative `responsibility` projection.
+Each `RunOutcome` has bounded blocker/reason/action, exact proposal/base question,
+run-level unresolved data, attempt state and continuation availability. Historical
+document verification is independent of current execution availability: an expired
+or revoked run is not preparing, but a saved document remains historically saved.
+Prepared/approved always means **document only**, not an underlying task performed.
+
+`ExecutionProvenance.evidence_origin` defaults to `unverified`. New fixture runs
+are explicit `fixture`; synthetic receipt consumers must explicitly choose
+`synthetic_provider_receipt` at preparation. Model/profile/received labels never
+imply `live_provider_receipt`. That contract value is reserved: no live attestation
+path exists in this checkpoint, and preparation rejects it.
+
+Before dispatch, the trusted consumer binds and privately persists a
+`ReceiptCapability` for the existing attempt/request/consumer/identity/secret.
+Receipt/usage retention and historical readback/ACK require this capability, not
+a free human Principal, and return only booleans. They survive revoke/expiry/pause/
+cancel without enabling sends, new publication or private reads. Human reads retain
+all membership/source checks. Publication still requires current grant/pins/lease.
+Only definitely-unsent `prepared` attempts may be terminally abandoned; abandonment
+atomically settles run/progress/outbox with a reason and fences the old capability.
+Dispatched/unknown attempts cannot be reclassified as unsent or resent.
+
+No HTTP inference transport or multi-step continuation is added. A user execution
+grant is separate from review gates, configured product credentials and live
+evidence. All receipt-shaped regression evidence here is synthetic. Full method
+signatures and residual recovery limitations are in the focused intake contract.
+
+### Generate and verify
 
 ```sh
 cd contracts

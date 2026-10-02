@@ -1,0 +1,30 @@
+{
+  "authority": "current-worker-capability-and-frozen-selected-source-versions",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "include_current_body": {
+        "title": "Include Current Body",
+        "type": "boolean"
+      },
+      "source_ids": {
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 50,
+        "minItems": 1,
+        "title": "Source Ids",
+        "type": "array"
+      }
+    },
+    "required": [
+      "source_ids",
+      "include_current_body"
+    ],
+    "title": "ScopedRead",
+    "type": "object"
+  },
+  "name": "read_scoped_context",
+  "profile": "openai-responses-v1",
+  "readOnly": true
+}

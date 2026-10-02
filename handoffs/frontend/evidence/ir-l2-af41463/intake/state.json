@@ -1,0 +1,141 @@
+{
+  "mode": "real_ui_api_postgresql; fixture compute; synthetic provider attempt for the unknown state; no provider calls",
+  "assignment_id": "f78f2895-e953-4765-83c7-70be516071e9",
+  "artifact_id": "f6c2d67a-c60a-4d4b-a978-a07286d9275e",
+  "artifact_url": "/assignments/f78f2895-e953-4765-83c7-70be516071e9/artifacts/f6c2d67a-c60a-4d4b-a978-a07286d9275e",
+  "approved_revision_id": "d86044ab-5531-480f-8309-8325df270d64",
+  "decision_question": {
+    "prompt": "Approve this exact document proposal against its base revision?",
+    "artifact_id": "f6c2d67a-c60a-4d4b-a978-a07286d9275e",
+    "proposal_id": "595efd54-d81d-422a-900e-cefa37b1a1c0",
+    "base_revision_id": "5850bda1-1f73-4498-88f6-322196ec93b5"
+  },
+  "approved_outcome": {
+    "run_id": "749c89ed-21de-499b-8cb4-2f9e5b71b9ae",
+    "response_steps": [],
+    "execution": {
+      "mode": "fixture",
+      "profile": "fixture-deterministic-v1",
+      "model": null,
+      "grant_id": null,
+      "attempt_id": null,
+      "provider_observation": "not_observed",
+      "evidence_origin": "fixture"
+    },
+    "state": "readback_verified",
+    "artifacts": [
+      {
+        "artifact_id": "f6c2d67a-c60a-4d4b-a978-a07286d9275e",
+        "revision_id": "d86044ab-5531-480f-8309-8325df270d64",
+        "proposal_id": "595efd54-d81d-422a-900e-cefa37b1a1c0",
+        "base_revision_id": "5850bda1-1f73-4498-88f6-322196ec93b5",
+        "body_hash": "300586268e0ff1f805b977b08eb34610c94e8cd629b57e309267f017c4695376"
+      }
+    ],
+    "checks": [
+      {
+        "name": "publication_binding",
+        "status": "passed"
+      },
+      {
+        "name": "saved_body",
+        "status": "passed"
+      },
+      {
+        "name": "exact_base",
+        "status": "passed"
+      },
+      {
+        "name": "current_revision",
+        "status": "passed"
+      },
+      {
+        "name": "authority",
+        "status": "passed"
+      }
+    ],
+    "outcome_gate": "passed",
+    "safety_gate": "passed",
+    "continuation_available": false,
+    "attempt_state": null,
+    "blocker": null,
+    "reason": null,
+    "next_action": null,
+    "question": null,
+    "unresolved": [],
+    "underlying_action_performed": false
+  },
+  "waiting_id": "43f91a15-b8e9-4435-9c24-6a708cd1c61d",
+  "waiting_outcome": {
+    "run_id": "b383e858-e5d2-43cf-9695-bd336928cf61",
+    "response_steps": [],
+    "execution": {
+      "mode": "managed",
+      "profile": "openai-agents-v1",
+      "model": "synthetic-no-provider",
+      "grant_id": "b642f431-4995-4411-92ac-e27a4f6cc858",
+      "attempt_id": null,
+      "provider_observation": "not_observed",
+      "evidence_origin": "unverified"
+    },
+    "state": "waiting",
+    "artifacts": [],
+    "checks": [
+      {
+        "name": "publication_binding",
+        "status": "unverified"
+      },
+      {
+        "name": "authority",
+        "status": "passed"
+      }
+    ],
+    "outcome_gate": "unverified",
+    "safety_gate": "passed",
+    "continuation_available": false,
+    "attempt_state": null,
+    "blocker": "consumer_unavailable",
+    "reason": "No inference transport is installed in this checkpoint.",
+    "next_action": "Wait for a separately reviewed consumer and explicit execution grant; do not send.",
+    "question": null,
+    "unresolved": [],
+    "underlying_action_performed": false
+  },
+  "unknown_id": "6db314dd-422d-4ab2-9d3f-17f518b896b9",
+  "unknown_run_ids": [
+    "9576fe28-309b-4191-b7f8-4c6753042606"
+  ],
+  "unknown_outcome": {
+    "run_id": "9576fe28-309b-4191-b7f8-4c6753042606",
+    "response_steps": [],
+    "execution": {
+      "mode": "managed",
+      "profile": "openai-agents-v1",
+      "model": "synthetic-no-provider",
+      "grant_id": "b642f431-4995-4411-92ac-e27a4f6cc858",
+      "attempt_id": "be2671d7-6b19-4ce6-9b33-434e049a8a28",
+      "provider_observation": "not_observed",
+      "evidence_origin": "unverified"
+    },
+    "state": "outcome_unknown",
+    "artifacts": [],
+    "checks": [
+      {
+        "name": "authority",
+        "status": "passed"
+      }
+    ],
+    "outcome_gate": "unverified",
+    "safety_gate": "passed",
+    "continuation_available": false,
+    "attempt_state": "outcome_unknown",
+    "blocker": "provider_outcome_unknown",
+    "reason": "A dispatch may have executed; its result is unknown.",
+    "next_action": "Retain a matching receipt through the bound consumer; never resend or classify a timeout as unsent.",
+    "question": null,
+    "unresolved": [],
+    "underlying_action_performed": false
+  },
+  "grant_id": "b642f431-4995-4411-92ac-e27a4f6cc858",
+  "errors": []
+}

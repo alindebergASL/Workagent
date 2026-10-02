@@ -1,0 +1,33 @@
+{
+  "evidence_mode": "synthetic HTTPX; real PostgreSQL/product worker/domain/broker/outbox",
+  "provider_inference_calls": 0,
+  "workspace_id": "responses-synthetic-66e6ff42-23c4-4b60-b2ad-fe7954ecc323",
+  "assignment_id": "f3549c56-fa4d-4813-8070-5eab92f736fc",
+  "initial_run_id": "c396c72a-c698-4b31-a98e-d2f9186d2362",
+  "revision_run_id": "563f2d9a-76d7-48e4-ac47-07b1dea324f7",
+  "proposal_id": "0e8cf264-238f-43f4-ab64-ce0d5415f42e",
+  "approved_revision_id": "709c9e94-dd35-49fc-b2d2-7dc47def93f3",
+  "restart": "reconciled",
+  "outcome_gate": "passed",
+  "safety_gate": "passed",
+  "underlying_action_performed": false,
+  "counters": {
+    "request_counts": {
+      "count_send": 4,
+      "dispatch": 4,
+      "read": 4,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 80000,
+    "reserved_output_tokens": 32768,
+    "reserved_cost_usd": "0.52768",
+    "reported_usage": {
+      "input_tokens": 4000,
+      "output_tokens": 400
+    },
+    "unknown_usage_steps": 0,
+    "conservatively_calculated_cost_usd": "0.0140",
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  }
+}

@@ -494,6 +494,11 @@ test.describe("S1 journey (mock mode)", () => {
 
     // Connection drops while working: the page keeps what it has, shows reconnecting, then resumes the same assignment.
     const assignmentId = page.url().split("/").pop()!;
+    // Cut the connection only after the first read has landed: with no data yet
+    // the page correctly shows an error, not "reconnecting".
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      /intake log/i,
+    );
     await page.route("**/api/mock/workspaces/*/assignments/*", (route) =>
       route.abort("connectionrefused"),
     );

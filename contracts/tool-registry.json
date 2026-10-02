@@ -50,6 +50,584 @@
       "name": "get_assignment",
       "outputSchema": {
         "$defs": {
+          "ArtifactBinding": {
+            "additionalProperties": false,
+            "properties": {
+              "artifact_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Artifact Id",
+                "type": "string"
+              },
+              "base_revision_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Base Revision Id"
+              },
+              "body_hash": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Body Hash",
+                "type": "string"
+              },
+              "proposal_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Proposal Id"
+              },
+              "revision_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Revision Id"
+              }
+            },
+            "required": [
+              "artifact_id",
+              "body_hash"
+            ],
+            "title": "ArtifactBinding",
+            "type": "object"
+          },
+          "ExecutionProvenance": {
+            "additionalProperties": false,
+            "properties": {
+              "attempt_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Attempt Id"
+              },
+              "evidence_origin": {
+                "default": "unverified",
+                "enum": [
+                  "unverified",
+                  "fixture",
+                  "synthetic_provider_receipt",
+                  "live_provider_receipt"
+                ],
+                "title": "Evidence Origin",
+                "type": "string"
+              },
+              "grant_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Grant Id"
+              },
+              "mode": {
+                "enum": [
+                  "fixture",
+                  "managed"
+                ],
+                "title": "Mode",
+                "type": "string"
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Model"
+              },
+              "profile": {
+                "enum": [
+                  "fixture-deterministic-v1",
+                  "openai-agents-v1",
+                  "openai-responses-v1"
+                ],
+                "title": "Profile",
+                "type": "string"
+              },
+              "provider_observation": {
+                "default": "not_observed",
+                "enum": [
+                  "not_observed",
+                  "received"
+                ],
+                "title": "Provider Observation",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "profile"
+            ],
+            "title": "ExecutionProvenance",
+            "type": "object"
+          },
+          "OutcomeCheck": {
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "enum": [
+                  "publication_binding",
+                  "saved_body",
+                  "exact_base",
+                  "current_revision",
+                  "provider_result",
+                  "authority"
+                ],
+                "title": "Name",
+                "type": "string"
+              },
+              "status": {
+                "enum": [
+                  "passed",
+                  "failed",
+                  "unverified"
+                ],
+                "title": "Status",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "status"
+            ],
+            "title": "OutcomeCheck",
+            "type": "object"
+          },
+          "OutcomeQuestion": {
+            "additionalProperties": false,
+            "properties": {
+              "artifact_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Artifact Id",
+                "type": "string"
+              },
+              "base_revision_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Base Revision Id",
+                "type": "string"
+              },
+              "prompt": {
+                "maxLength": 500,
+                "minLength": 1,
+                "title": "Prompt",
+                "type": "string"
+              },
+              "proposal_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Proposal Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "prompt",
+              "artifact_id",
+              "proposal_id",
+              "base_revision_id"
+            ],
+            "title": "OutcomeQuestion",
+            "type": "object"
+          },
+          "ResponseStepObservation": {
+            "additionalProperties": false,
+            "properties": {
+              "billed_cost_usd": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Billed Cost Usd"
+              },
+              "conservatively_calculated_cost_usd": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Conservatively Calculated Cost Usd"
+              },
+              "phase": {
+                "enum": [
+                  "selection",
+                  "final"
+                ],
+                "title": "Phase",
+                "type": "string"
+              },
+              "reported_input_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Input Tokens"
+              },
+              "reported_output_tokens": {
+                "anyOf": [
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reported Output Tokens"
+              },
+              "reserved_cost_usd": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reserved Cost Usd"
+              },
+              "response_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Response Id"
+              },
+              "state": {
+                "enum": [
+                  "prepared",
+                  "count_unknown",
+                  "counted",
+                  "outcome_unknown",
+                  "accepted",
+                  "received",
+                  "invalid"
+                ],
+                "title": "State",
+                "type": "string"
+              }
+            },
+            "required": [
+              "phase",
+              "state"
+            ],
+            "title": "ResponseStepObservation",
+            "type": "object"
+          },
+          "ResponsibilityOutcome": {
+            "additionalProperties": false,
+            "properties": {
+              "approved_change": {
+                "const": "document_revision_only",
+                "default": "document_revision_only",
+                "title": "Approved Change",
+                "type": "string"
+              },
+              "latest_run_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Latest Run Id"
+              },
+              "runs": {
+                "items": {
+                  "$ref": "#/$defs/RunOutcome"
+                },
+                "maxItems": 100,
+                "title": "Runs",
+                "type": "array"
+              },
+              "underlying_action_performed": {
+                "const": false,
+                "default": false,
+                "title": "Underlying Action Performed",
+                "type": "boolean"
+              }
+            },
+            "title": "ResponsibilityOutcome",
+            "type": "object"
+          },
+          "RunOutcome": {
+            "additionalProperties": false,
+            "properties": {
+              "artifacts": {
+                "items": {
+                  "$ref": "#/$defs/ArtifactBinding"
+                },
+                "maxItems": 10,
+                "title": "Artifacts",
+                "type": "array"
+              },
+              "attempt_state": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "prepared",
+                      "dispatched",
+                      "outcome_unknown",
+                      "responded",
+                      "reconciled",
+                      "failed"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Attempt State"
+              },
+              "blocker": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "paused",
+                      "cancelled",
+                      "grant_revoked",
+                      "grant_expired",
+                      "source_changed",
+                      "runtime_unavailable",
+                      "consumer_unavailable",
+                      "lease_expired",
+                      "prepared_attempt",
+                      "provider_outcome_unknown",
+                      "provider_response_pending",
+                      "provider_result_rejected",
+                      "publication_pending",
+                      "unsent_abandoned",
+                      "unresolved_items",
+                      "decision_required",
+                      "decision_stale"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Blocker"
+              },
+              "checks": {
+                "items": {
+                  "$ref": "#/$defs/OutcomeCheck"
+                },
+                "maxItems": 10,
+                "title": "Checks",
+                "type": "array"
+              },
+              "continuation_available": {
+                "default": false,
+                "title": "Continuation Available",
+                "type": "boolean"
+              },
+              "execution": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/ExecutionProvenance"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
+              "next_action": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Next Action"
+              },
+              "outcome_gate": {
+                "default": "unverified",
+                "enum": [
+                  "passed",
+                  "failed",
+                  "unverified"
+                ],
+                "title": "Outcome Gate",
+                "type": "string"
+              },
+              "question": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/OutcomeQuestion"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Reason"
+              },
+              "response_steps": {
+                "items": {
+                  "$ref": "#/$defs/ResponseStepObservation"
+                },
+                "maxItems": 2,
+                "title": "Response Steps",
+                "type": "array"
+              },
+              "run_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Run Id",
+                "type": "string"
+              },
+              "safety_gate": {
+                "default": "unverified",
+                "enum": [
+                  "passed",
+                  "failed",
+                  "unverified"
+                ],
+                "title": "Safety Gate",
+                "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "preparing",
+                  "prepared",
+                  "decision_required",
+                  "decision_stale",
+                  "approved",
+                  "readback_verified",
+                  "outcome_unknown",
+                  "waiting",
+                  "unverified"
+                ],
+                "title": "State",
+                "type": "string"
+              },
+              "underlying_action_performed": {
+                "const": false,
+                "default": false,
+                "title": "Underlying Action Performed",
+                "type": "boolean"
+              },
+              "unresolved": {
+                "items": {
+                  "maxLength": 10000,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 100,
+                "title": "Unresolved",
+                "type": "array"
+              }
+            },
+            "required": [
+              "run_id",
+              "state"
+            ],
+            "title": "RunOutcome",
+            "type": "object"
+          },
           "SourceRef": {
             "additionalProperties": false,
             "properties": {
@@ -130,6 +708,17 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Owner Id",
             "type": "string"
+          },
+          "responsibility": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ResponsibilityOutcome"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
           },
           "run_ids": {
             "items": {
@@ -917,6 +1506,101 @@
       },
       "name": "propose_artifact_revision",
       "outputSchema": {
+        "$defs": {
+          "ExecutionProvenance": {
+            "additionalProperties": false,
+            "properties": {
+              "attempt_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Attempt Id"
+              },
+              "evidence_origin": {
+                "default": "unverified",
+                "enum": [
+                  "unverified",
+                  "fixture",
+                  "synthetic_provider_receipt",
+                  "live_provider_receipt"
+                ],
+                "title": "Evidence Origin",
+                "type": "string"
+              },
+              "grant_id": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Grant Id"
+              },
+              "mode": {
+                "enum": [
+                  "fixture",
+                  "managed"
+                ],
+                "title": "Mode",
+                "type": "string"
+              },
+              "model": {
+                "anyOf": [
+                  {
+                    "maxLength": 128,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Model"
+              },
+              "profile": {
+                "enum": [
+                  "fixture-deterministic-v1",
+                  "openai-agents-v1",
+                  "openai-responses-v1"
+                ],
+                "title": "Profile",
+                "type": "string"
+              },
+              "provider_observation": {
+                "default": "not_observed",
+                "enum": [
+                  "not_observed",
+                  "received"
+                ],
+                "title": "Provider Observation",
+                "type": "string"
+              }
+            },
+            "required": [
+              "mode",
+              "profile"
+            ],
+            "title": "ExecutionProvenance",
+            "type": "object"
+          }
+        },
         "additionalProperties": false,
         "properties": {
           "access_generation": {
@@ -980,6 +1664,17 @@
             "title": "Cursor",
             "type": "integer"
           },
+          "execution": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/ExecutionProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null
+          },
           "fence": {
             "default": 0,
             "minimum": 0,
@@ -1041,8 +1736,12 @@
             "type": "string"
           },
           "profile": {
-            "const": "fixture-deterministic-v1",
             "default": "fixture-deterministic-v1",
+            "enum": [
+              "fixture-deterministic-v1",
+              "openai-agents-v1",
+              "openai-responses-v1"
+            ],
             "title": "Profile",
             "type": "string"
           },

@@ -15,6 +15,7 @@ from psycopg.types.json import Jsonb
 from .db import Database
 from .errors import DomainError, deny
 from .models import *
+from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
 
 
 def canonical(value) -> str:
@@ -54,7 +55,7 @@ class WorkerCapability:
     secret: str
 
 
-class Service:
+class Service(ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -133,7 +134,7 @@ class Service:
 
     def _store_assignment(self, c, a):
         a.observed_at=now()
-        c.execute('UPDATE assignments SET data=%s WHERE workspace_id=%s AND id=%s', (encoded(a),a.workspace_id,a.id))
+        c.execute('UPDATE assignments SET data=%s WHERE workspace_id=%s AND id=%s', (encoded(a.model_dump(mode='json',exclude={'responsibility'})),a.workspace_id,a.id))
 
     def _store_run(self, c, r):
         r.observed_at=now()
@@ -205,13 +206,15 @@ class Service:
                 WHERE s.workspace_id=a.workspace_id AND s.assignment_id=a.id
                 AND (g.active IS DISTINCT FROM true OR (src.data->>'available')::boolean IS DISTINCT FROM true))
               ORDER BY a.id LIMIT %s''', (ws,cursor or '',p.id,limit+1)).fetchall()
-            items = [self._assignment(c,p,ws,r['id']) for r in rows[:limit]]
+            from .outcomes import project_assignment
+            items = [project_assignment(self,c,p,self._assignment(c,p,ws,r['id'])) for r in rows[:limit]]
             return AssignmentPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
     def get_assignment(self,p,ws,assignment_id):
         with self.db.transaction() as c:
             self._scope(c,p,ws)
-            return self._assignment(c,p,ws,assignment_id)
+            from .outcomes import project_assignment
+            return project_assignment(self,c,p,self._assignment(c,p,ws,assignment_id))
 
     def get_run(self,p,ws,run_id):
         with self.db.transaction() as c:
@@ -224,16 +227,32 @@ class Service:
             return r
 
     def _new_run(self,c,p,a,kind='initial',**kwargs):
+        pending=c.execute("""SELECT 1 FROM provider_attempts t JOIN runs r
+            ON r.workspace_id=t.workspace_id AND r.id=t.run_id
+            WHERE r.workspace_id=%s AND r.assignment_id=%s
+            AND t.data->>'state' IN ('prepared','dispatched','outcome_unknown','responded') LIMIT 1""",
+            (a.workspace_id,a.id)).fetchone()
+        if pending:
+            raise DomainError('action_unresolved')
         generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(a.workspace_id,)).fetchone()['access_generation']
         from .runtime_config import active_configuration, pin_run
         from .tool_registry import registry
         activation_id, activation = active_configuration(c)
         bundle_hash,tool_registry_hash=activation['bundle_hash'],digest(registry())
+        grant=admission_grant(c,a.workspace_id,p.id)
+        if grant and grant.profile=='openai-responses-v1':
+            previous=c.execute("SELECT r.assignment_id,r.data FROM runs r JOIN run_configurations rc ON rc.workspace_id=r.workspace_id AND rc.run_id=r.id WHERE rc.data->>'grant_id'=%s",(grant.id,)).fetchall()
+            if (not previous and kind!='initial') or (previous and (len(previous)!=1 or kind!='revision' or previous[0]['assignment_id']!=a.id or previous[0]['data']['kind']!='initial')):
+                raise DomainError('action_unresolved')
+        profile=grant.profile if grant else 'fixture-deterministic-v1'
+        execution=ExecutionProvenance(mode='managed' if grant else 'fixture',profile=profile,
+                                     model=grant.model if grant else None,grant_id=grant.id if grant else None,
+                                     evidence_origin='unverified' if grant else 'fixture')
         r=Run(id=new_id(), workspace_id=a.workspace_id, assignment_id=a.id, principal_id=p.id,
               kind=kind, access_generation=generation, bundle_hash=bundle_hash,
-              tool_registry_hash=tool_registry_hash, **kwargs)
+              tool_registry_hash=tool_registry_hash, profile=profile, execution=execution, **kwargs)
         c.execute('INSERT INTO runs(workspace_id,id,assignment_id,data) VALUES (%s,%s,%s,%s)',(a.workspace_id,r.id,a.id,encoded(r)))
-        pin_run(c, r, a, activation_id, activation)
+        pin_run(c, r, a, activation_id, activation, grant)
         a.run_ids.append(r.id)
         self._refresh_progress(c,a)
         self._store_assignment(c,a)
@@ -421,6 +440,9 @@ class Service:
 
     def claim_run(self,p,ws,run_id):
         """Trusted-process seam, never an HTTP/model tool. Returns a fenced lease."""
+        return self._claim_run(p,ws,run_id)
+
+    def _claim_run(self,p,ws,run_id,received_result=False,responses_receipt=None):
         with self.db.transaction() as c:
             generation=self._scope(c,p,ws,True)
             row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,run_id)).fetchone()
@@ -430,6 +452,17 @@ class Service:
             if r.principal_id!=p.id:
                 deny()
             a=self._assignment(c,p,ws,r.assignment_id,True)
+            attempt=attempt_row(c,ws,run_id)
+            if responses_receipt is not None:
+                bound,existing,_=self._receipt_binding(c,responses_receipt)
+                if bound.id!=r.id or r.profile!='openai-responses-v1' or existing.state=='failed':
+                    raise DomainError('action_unresolved')
+            elif received_result:
+                if not attempt or attempt.state!='responded':
+                    raise DomainError('action_unresolved')
+            elif attempt:
+                # Lease expiry/repeated delivery is never permission for another send.
+                raise DomainError('action_unresolved')
             self._runtime_pins(c,r)
             if a.state in ('paused','cancelled') or r.state not in ('queued','running'):
                 raise DomainError('action_unresolved')
@@ -519,13 +552,24 @@ class Service:
                     return Run.model_validate(previous['result'])
             if r.state!='running':
                 raise DomainError('action_unresolved')
+            if r.profile in ('openai-agents-v1','openai-responses-v1'):
+                attempt=attempt_row(c,ws,r.id)
+                if not attempt or attempt.state!='responded' or not attempt.result:
+                    raise DomainError('action_unresolved')
+                if bodies!=attempt.result.bodies or (unresolved or [])!=attempt.result.unresolved:
+                    raise DomainError('command_conflict')
+                config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',(ws,r.id)).fetchone()['data']
+                if attempt.result.usage.output_tokens>config['max_received_output_tokens']:
+                    raise DomainError('budget_exhausted')
+            bindings=[]
             if r.kind=='initial':
                 if a.artifact_ids:
                     raise DomainError('version_conflict')
                 for body in bodies:
                     artifact_id=new_id()
                     c.execute('INSERT INTO artifacts(workspace_id,id,assignment_id) VALUES (%s,%s,%s)',(ws,artifact_id,a.id))
-                    self._append_revision(c,p,ws,{'id':artifact_id,'current_revision_id':None},a,body,a.selected_source_refs,'worker')
+                    published=self._append_revision(c,p,ws,{'id':artifact_id,'current_revision_id':None},a,body,a.selected_source_refs,'worker')
+                    bindings.append(ArtifactBinding(artifact_id=artifact_id,revision_id=published.current_revision_id,body_hash=digest(body)))
                     a.artifact_ids.append(artifact_id)
             else:
                 if len(bodies)!=1:
@@ -536,6 +580,10 @@ class Service:
                                   base_work_version=a.work_version,body=bodies[0],body_hash=digest(bodies[0]),source_dependencies=a.selected_source_refs,reason=r.instruction)
                 c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data) VALUES (%s,%s,%s,%s,%s)',(ws,proposal.id,r.artifact_id,r.base_revision_id,encoded(proposal)))
                 r.proposal_id=proposal.id
+                bindings.append(ArtifactBinding(artifact_id=r.artifact_id,proposal_id=proposal.id,
+                                               base_revision_id=r.base_revision_id,body_hash=proposal.body_hash))
+            c.execute('INSERT INTO run_publications(workspace_id,run_id,data) VALUES (%s,%s,%s)',
+                      (ws,r.id,encoded({'artifacts':[b.model_dump(mode='json') for b in bindings]})))
             r.state='partial' if unresolved else 'ready'; r.unresolved=unresolved or []; r.used_units+=1
             r.lease_expires_at=None; r.cursor+=1
             self._store_run(c,r)

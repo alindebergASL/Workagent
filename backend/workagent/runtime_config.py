@@ -14,7 +14,7 @@ from runtime.bundles import BundleDenied, BundleLoader, Scope, MAX_CONTEXT_BYTES
 from .db import Database
 from .models import new_id
 from .service import canonical, digest, encoded
-from .tool_registry import registry, TOOLS
+from .tool_registry import registry, registry_for_hash, TOOLS
 
 APPROVALS_SHA256 = '2b3c3f79e87c9a28ca127062d6c9deba299bf6f3febc140daee4468f21d721ff'
 LEGACY_APPROVALS_SHA256 = 'b531fd4981d5f00922dc1fb53488fcfec98a6d669c4919c9b40736f69a64006f'
@@ -52,13 +52,21 @@ def active_configuration(c):
     return row['activation_id'], activation['data']
 
 
-def pin_run(c, run, assignment, activation_id, activation):
+def pin_run(c, run, assignment, activation_id, activation, grant=None):
     data = {**activation, 'profile': run.profile, 'adapter_sha256': adapter_hash(),
             'tool_registry_sha256': run.tool_registry_hash,
             'source_dependencies': [x.model_dump(mode='json') for x in assignment.selected_source_refs],
             'budget': {'unit': 'fixture_completion', 'limit': run.budget_units},
             'live_usage': 'not_observed', 'live_cost': 'not_observed',
             'model': None, 'hosted_session': None}
+    if grant:
+        data.update(grant_id=grant.id, model=grant.model, consumer_sha256=grant.consumer_sha256,
+                    max_received_output_tokens=grant.max_received_output_tokens,
+                    adapter_sha256=None, budget={'unit':'local_publication','limit':1},
+                    provider_hard_budget='not_enforced')
+        if grant.responses:
+            data.update(responses=grant.responses.model_dump(mode='json'),
+                        provider_hard_budget='durable_consumer_reservations_not_provider_billing')
     c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
               (run.workspace_id, run.id, activation_id, encoded(data)))
 
@@ -70,23 +78,36 @@ def check_pins(c, run):
         raise BundleDenied('run has no approved configuration; explicit new run required')
     data = row['data']
     validate_activation(data)
-    if (run.bundle_hash != data['bundle_hash'] or run.tool_registry_hash != digest(registry()) or
-            run.tool_registry_hash != data['tool_registry_sha256'] or adapter_hash() != data['adapter_sha256'] or
+    registry_for_hash(run.tool_registry_hash)
+    if (run.bundle_hash != data['bundle_hash'] or
+            run.tool_registry_hash != data['tool_registry_sha256'] or
             run.profile != data['profile'] or run.budget_units > data['budget']['limit']):
         raise BundleDenied('run configuration drift')
+    if run.profile=='fixture-deterministic-v1':
+        if adapter_hash()!=data['adapter_sha256']:
+            raise BundleDenied('fixture adapter drift')
+    else:
+        from .provider_attempts import check_grant
+        grant=check_grant(c,run,data)
+        if run.profile=='openai-responses-v1':
+            from .responses_worker import validate_pins
+            validate_pins(grant,data,c)
     return data
 
 
 def assemble_context(service, c, cap):
     p, run, assignment = service._check_capability(c, cap)
     config = check_pins(c, run)
+    if run.profile=='openai-responses-v1':
+        from .responses_worker import assemble_metadata_context
+        return assemble_metadata_context(service,c,cap,run,assignment,config)
     sources = [service._source(c, p, run.workspace_id, ref, True) for ref in assignment.selected_source_refs]
     scope = Scope(assignment.id, run.access_generation,
                   frozenset(x.source_id for x in assignment.selected_source_refs),
                   frozenset(TOOLS), run.budget_units-run.used_units)
     selected = ('analyze-intake' if run.kind == 'initial' else 'resume-work') if config['skills_enabled'] else None
     resources = ['skills/analyze-intake/references/method.md'] if selected == 'analyze-intake' else []
-    tools = {t['name']: t for t in registry()['tools']}
+    tools = {t['name']: t for t in registry_for_hash(run.tool_registry_hash)['tools']}
     def current_generation():
         return service._check_capability(c, cap)[1].access_generation
     context = loader(config['registry_hash']).assemble(config['version'], scope, selected, resources,

@@ -1,28 +1,44 @@
 "use client";
 import Link from "next/link";
-import { phaseOf, shortTitle } from "@/lib/work-state";
+import {
+  currentRun,
+  decisionArtifactId,
+  phaseOf,
+  shortTitle,
+  statusOf,
+  waitingSummary,
+} from "@/lib/work-state";
 import type { AssignmentSummary } from "@/lib/contract/types";
-import { StatusBadge, workStatus } from "./ui";
+import { StatusBadge } from "./ui";
 
 /** One line of work: what it is, its status (same label on every surface), and where to go next. */
 export function WorkRow({ item }: { item: AssignmentSummary }) {
   const phase = phaseOf(item);
-  const review = item.needs_review_artifact_ids[0];
+  const review = decisionArtifactId(item);
+  const run = currentRun(item);
   const href =
     phase === "decision" && review
       ? `/assignments/${item.id}/artifacts/${review}`
       : `/assignments/${item.id}`;
-  const status = workStatus(item.state, item.stage, phase === "decision");
+  const status = statusOf(item);
   const note =
     phase === "decision"
-      ? "A proposed revision needs your decision"
-      : phase === "working"
-        ? "Results appear as they’re saved"
-        : phase === "stopped"
-          ? "Saved results are kept"
-          : phase === "approved"
-            ? (item.latest_result ?? "")
-            : (item.next_step ?? item.latest_result ?? "");
+      ? run?.state === "decision_stale"
+        ? "A proposal is based on an older version"
+        : "A proposed revision needs your decision"
+      : phase === "unknown"
+        ? "Waiting to confirm what happened"
+        : phase === "waiting"
+          ? waitingSummary(run)
+          : phase === "unverified"
+            ? "Couldn’t be verified, so it isn’t shown as done"
+            : phase === "working"
+              ? "Results appear as they’re saved"
+              : phase === "stopped"
+                ? "Saved results are kept"
+                : phase === "approved"
+                  ? (item.latest_result ?? "")
+                  : (item.next_step ?? item.latest_result ?? "");
   return (
     <li>
       <Link

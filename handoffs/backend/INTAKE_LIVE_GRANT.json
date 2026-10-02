@@ -1,0 +1,62 @@
+{
+  "grant_id": "intake-live-01",
+  "status": "authorized_access_configured_pending_implementation_gates",
+  "authority": {
+    "actor": "Andrew Lindeberg",
+    "channel": "Telegram direct conversation",
+    "recorded_at_utc": "2026-10-02T18:21:26Z",
+    "verbatim": "I give explicit grant and you can spend up to $20 before neeeding my approval again",
+    "scope": "Current Workagent private intake next-action slice, following the proposed GPT-6.1 Sol Responses route."
+  },
+  "runtime": {
+    "provider": "OpenAI",
+    "profile": "openai-responses-v1",
+    "model": "gpt-6.1-sol",
+    "reasoning_effort": "medium",
+    "service_tier": "default",
+    "background": true,
+    "store": true,
+    "product_project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+    "secure_secret_reference": "file:/home/ubuntu/.config/workagent/intake-openai.key"
+  },
+  "limits": {
+    "cumulative_model_spend_cap_usd": "20.00",
+    "supersedes_proposed_monetary_cap_usd": "1.00",
+    "generation_requests_max": 4,
+    "input_tokens_per_request_max": 20000,
+    "output_including_reasoning_tokens_per_request_max": 8192,
+    "aggregate_input_tokens_max": 80000,
+    "aggregate_output_including_reasoning_tokens_max": 32768,
+    "token_count_requests_max": 4,
+    "read_only_provider_requests_max": 40,
+    "safety_cancel_requests_max": 4,
+    "automatic_or_intentional_generation_retries": 0,
+    "fallback_calls": 0,
+    "decisions_api_calls": 0,
+    "hosted_tools_subagents_compaction_calls": 0,
+    "interpretation": "The user increased the cumulative dollar ceiling. Preserve the previously proposed scenario, call, token and no-retry bounds; do not treat monetary headroom as an obligation to spend or silently expand other bounds."
+  },
+  "scenarios": [
+    "Initial scoped-context tool read and next-action artifact preparation through product worker durable records.",
+    "One revision after human edits, specific decision, exact-version approval and authoritative readback.",
+    "Interruption/restart/repeated delivery against same recorded response and responsibility, plus revocation denial; no replacement inference for ambiguous dispatch."
+  ],
+  "data_and_retention": {
+    "data": "Synthetic intake, synthetic human edits and reviewed skill instructions only; no customer material.",
+    "provider": "Stored Responses for recovery; standard documented application-state retention at least 30 days and abuse monitoring up to 30 days subject to provider exceptions; not ZDR.",
+    "evidence": "Restricted local evidence and sanitized repository evidence; no credentials, third-party trace export or unapproved deletion."
+  },
+  "enforcement": [
+    "Persist logical dispatch identity and worst-case reservation before each generation; cumulative limits survive processes, tests, retries and restarts.",
+    "Count the exact complete request before dispatch; no uncounted conversation expansion.",
+    "Unknown provider outcome retains its full reservation, remains explicitly unknown and cannot cause inference redispatch.",
+    "Stop on exhausted bounds, revoked permission, uncertain outcome, invalid output, incompatible contract, missing usage, state conflict or successful verified completion.",
+    "This document records user authority; it does not itself enable credentials, bypass database authority, or establish implementation/live verification."
+  ],
+  "remaining_boundaries": [
+    "No deployment or default-branch merge.",
+    "No destructive data/history changes.",
+    "No external customer messages or other external task effects.",
+    "No unapproved provider/model route or Decisions API experiment."
+  ]
+}

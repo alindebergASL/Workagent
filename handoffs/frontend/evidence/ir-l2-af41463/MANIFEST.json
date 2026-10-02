@@ -1,0 +1,21 @@
+{
+  "commit": "af41463",
+  "base": "71bdb85d81ed5308c23fd373063d4bd21ad17707",
+  "mode": "real UI/API/PostgreSQL; product Responses worker with synthetic HTTPX transport; fixture compute; no provider calls",
+  "live_agent_execution": "not_observed",
+  "files": {
+    "README.md": "0e9e4db633637b03b25d7aa8f0b3966e3756ee49a8b08194f40e04238c1dd823",
+    "artifact-desktop.png": "332c7ad0d47819d88bb75ef2a86ae76065ef05f5a25bf264b75510c1072d1066",
+    "artifact-mobile.png": "b4bd8ee7bc746978e1b8276e097c2cbd89f47e533bd163086aa8dbfab844a198",
+    "artifact-narrow.png": "bcffb2b21a0489baec033ffd35584ec0138ec3ec66adf695a98a1965e8c7f030",
+    "assignment-desktop.png": "318cafe2b33405eac556dbf5dfd734636f3a25daa97b7db48968a88a02381683",
+    "assignment-mobile.png": "b23d10e7d8d7fdabb9d5e93c2e726cd5bb2fbafb38b0ae4a2fdaff2eba9fcb53",
+    "assignment-narrow.png": "e05544a95a58a2bbbf44d8870275c9b1181b9f81b80ae47f502c270cd34ccfed",
+    "intake/restart.json": "d18a259ad015888cbdd5464b0d6c090bdc04d9d9d26ad028330757b3c082a862",
+    "intake/state.json": "d1e0f07cc420b9a2b4bf51ba8628461334df23130702b16aa9b2595718c73617",
+    "journey.json": "99df8a31336528db53ee355ca3be61fb3e6a6e65cfe514bd8da7c15ad4cfd807",
+    "real-demo/demo.json": "593d58b3f365a273ac9c9c0707d1e5d0c755ab4ee570919f3d05130190684568",
+    "real-demo/fault-regressions.json": "2690024eac269ada26912dfdee35d39f3c9bce175b3f84b4272ce62abe09a8d2",
+    "result.json": "4e2bbda29c46c1bf0a365b03bb22b53afa17f791d0c14b4eb014075f70d1c308"
+  }
+}
