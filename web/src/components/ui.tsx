@@ -29,8 +29,8 @@ export function assignmentStatus(
 }
 
 /**
- * Assignment label that names a pending decision precisely; "Ready for review"
- * stays for first prepared work.
+ * Assignment label that names a pending decision as the artifact does
+ * ("Decision needed"); "Ready for review" stays for first prepared work.
  */
 export function workStatus(
   state: AssignmentState,
@@ -53,7 +53,7 @@ export function artifactStatus(
     case "generating":
       return { label: "Drafting", tone: "status-working" };
     case "needs_review":
-      return { label: "Revision needs review", tone: "status-attention" };
+      return { label: "Decision needed", tone: "status-attention" };
     case "ready":
       return partial
         ? { label: "Partial result", tone: "status-working" }

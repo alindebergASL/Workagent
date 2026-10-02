@@ -532,6 +532,7 @@ export default function ArtifactPage() {
           {art.state !== "ready" || art.partial || approved ? (
             <StatusBadge label={status.label} tone={status.tone} />
           ) : needsDecision ? (
+            // Matches the needs_review label when an adapter keeps the artifact ready.
             <StatusBadge label="Decision needed" tone="status-attention" />
           ) : (
             // Same label the assignment shows while nothing is approved yet.

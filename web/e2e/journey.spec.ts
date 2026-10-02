@@ -176,7 +176,7 @@ test.describe("S1 journey (mock mode)", () => {
     await control(request, "release-proposal", { proposal_id: proposalId1 });
     await page.reload();
     await expect(
-      page.getByText("Revision needs review", { exact: true }).first(),
+      page.getByText("Decision needed", { exact: true }).first(),
     ).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "Current saved version" }),
