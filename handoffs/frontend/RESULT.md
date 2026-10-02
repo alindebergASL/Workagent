@@ -54,7 +54,7 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 - A timing-dependent mock reconnect test (it now uses the focus re-read).
 - A delegation prompt on approved rows.
 
-**Model-proof labeling.** Hermes's operator-imported Qwen draft is saved as a human revision. Its first paragraph states its provenance. The mode line ("fixture worker, not a live agent") stays accurate because no agent ran in the product. Labeling each item by how it was produced needs backend request 3. His `handoffs/backend/model-proof/browser-probe.mjs` expects the header badge "Saved". This UI shows "Ready for review" for unapproved ready work, so update that probe's expectation before rerunning it.
+**Model-proof labeling.** Hermes's operator-imported Qwen draft is saved as a human revision. Its first paragraph states its provenance. The mode line ("fixture worker, not a live agent") stays accurate because no agent ran in the product. Labeling each item by how it was produced needs backend request 3. The hash-pinned `handoffs/backend/model-proof/browser-probe.mjs` remains historical evidence of the earlier "Saved" label; do not rewrite that archive. The maintained read-only `scripts/model_draft_browser_probe.mjs` expects "Ready for review" on the current UI, writes fresh evidence outside the archive, and performs no import or inference.
 
 **Known gaps.** Backend requests 3 and 4 in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant in `docs/RUNTIME_STATUS.md`.
 
