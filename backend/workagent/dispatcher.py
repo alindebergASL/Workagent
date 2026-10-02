@@ -25,14 +25,23 @@ class Dispatcher:
             row = c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s', (workspace,run_id)).fetchone()
             if not row or row['data']['state'] not in ('ready','partial','cancelled'):
                 return False
-            dispatch = c.execute('''UPDATE run_dispatches SET acknowledged_at=now()
-                WHERE workspace_id=%s AND run_id=%s AND acknowledged_at IS NULL RETURNING outbox_id''',
-                (workspace,run_id)).fetchone()
-            if dispatch:
-                c.execute('''UPDATE outbox SET consumed_at=now() WHERE id=%s AND consumed_at IS NULL
-                    AND NOT EXISTS (SELECT 1 FROM run_dispatches WHERE outbox_id=%s AND acknowledged_at IS NULL)''',
-                    (dispatch['outbox_id'],dispatch['outbox_id']))
-                c.execute("UPDATE outbox SET consumed_at=now() WHERE workspace_id=%s AND object_id=%s AND operation IN ('claim_run','complete_run') AND consumed_at IS NULL", (workspace,run_id))
+            if row['data'].get('profile','fixture-deterministic-v1')!='fixture-deterministic-v1':
+                return False  # Managed reconciliation is a distinct trusted seam.
+            if row['data']['state']!='cancelled':
+                from .models import Run
+                from .outcomes import verify_run
+                run=Run.model_validate(row['data'])
+                p=Principal(run.principal_id)
+                try:
+                    self.service._scope(c,p,workspace)
+                    assignment=self.service._assignment(c,p,workspace,run.assignment_id)
+                    outcome=verify_run(self.service,c,p,assignment,run)
+                except DomainError:
+                    return False
+                if outcome.outcome_gate!='passed' or outcome.safety_gate!='passed':
+                    return False
+            from .outcomes import acknowledge
+            acknowledge(c,workspace,run_id)
             return True
 
     def once(self, *, after_claim=None, after_completion=None):
@@ -55,6 +64,9 @@ class Dispatcher:
             for row in rows:
                 cursor = row['cursor']
                 ws, rid = row['workspace_id'], row['run_id']
+                if row['data'].get('profile','fixture-deterministic-v1')!='fixture-deterministic-v1':
+                    result['deferred'] += 1
+                    continue
                 if self.reconcile(ws,rid):
                     result['reconciled'] += 1
                     continue

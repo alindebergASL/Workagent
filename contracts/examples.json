@@ -45,6 +45,7 @@
           "id": "assignment-example",
           "observed_at": "2026-10-02T00:00:00Z",
           "owner_id": "local-human",
+          "responsibility": null,
           "run_ids": [
             "run-example"
           ],
@@ -68,6 +69,7 @@
           "budget_units": 1,
           "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
           "cursor": 0,
+          "execution": null,
           "fence": 0,
           "id": "run-example",
           "instruction": null,
@@ -80,7 +82,7 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+          "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -163,6 +165,7 @@
         "id": "assignment-example",
         "observed_at": "2026-10-02T00:00:00Z",
         "owner_id": "local-human",
+        "responsibility": null,
         "run_ids": [
           "run-example"
         ],
@@ -188,6 +191,7 @@
         "budget_units": 1,
         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
         "cursor": 0,
+        "execution": null,
         "fence": 1,
         "id": "run-example",
         "instruction": null,
@@ -200,7 +204,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+        "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -331,6 +335,7 @@
         "id": "assignment-example",
         "observed_at": "2026-10-02T00:00:00Z",
         "owner_id": "local-human",
+        "responsibility": null,
         "run_ids": [
           "run-example"
         ],
@@ -354,6 +359,7 @@
         "budget_units": 1,
         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
         "cursor": 0,
+        "execution": null,
         "fence": 0,
         "id": "run-example",
         "instruction": null,
@@ -366,7 +372,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+        "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -428,6 +434,7 @@
       "budget_units": 1,
       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
       "cursor": 0,
+      "execution": null,
       "fence": 0,
       "id": "run-example",
       "instruction": null,
@@ -440,7 +447,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+      "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -455,6 +462,7 @@
       "budget_units": 1,
       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
       "cursor": 0,
+      "execution": null,
       "fence": 1,
       "id": "run-example",
       "instruction": null,
@@ -467,7 +475,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+      "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"
@@ -483,6 +491,7 @@
       "id": "assignment-example",
       "observed_at": "2026-10-02T00:00:00Z",
       "owner_id": "local-human",
+      "responsibility": null,
       "run_ids": [
         "run-example"
       ],

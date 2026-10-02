@@ -313,6 +313,19 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** ArtifactBinding */
+        ArtifactBinding: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /** Body Hash */
+            body_hash: string;
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /** Revision Id */
+            revision_id?: string | null;
+        };
         /** Assignment */
         Assignment: {
             /** Artifact Ids */
@@ -330,6 +343,7 @@ export interface components {
             observed_at?: string;
             /** Owner Id */
             owner_id: string;
+            responsibility?: components["schemas"]["ResponsibilityOutcome"] | null;
             /** Run Ids */
             run_ids?: string[];
             /** Selected Source Refs */
@@ -486,6 +500,31 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** ExecutionProvenance */
+        ExecutionProvenance: {
+            /** Attempt Id */
+            attempt_id?: string | null;
+            /** Grant Id */
+            grant_id?: string | null;
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "fixture" | "managed";
+            /** Model */
+            model?: string | null;
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "fixture-deterministic-v1" | "openai-agents-v1";
+            /**
+             * Provider Observation
+             * @default not_observed
+             * @enum {string}
+             */
+            provider_observation: "not_observed" | "received";
+        };
         /** HumanSave */
         HumanSave: {
             body: components["schemas"]["Body"];
@@ -500,6 +539,19 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** OutcomeCheck */
+        OutcomeCheck: {
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "publication_binding" | "saved_body" | "exact_base" | "current_revision" | "provider_result" | "authority";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "passed" | "failed" | "unverified";
         };
         /** Proposal */
         Proposal: {
@@ -560,6 +612,25 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** ResponsibilityOutcome */
+        ResponsibilityOutcome: {
+            /**
+             * Approved Change
+             * @default document_revision_only
+             * @constant
+             */
+            approved_change: "document_revision_only";
+            /** Latest Run Id */
+            latest_run_id?: string | null;
+            /** Runs */
+            runs?: components["schemas"]["RunOutcome"][];
+            /**
+             * Underlying Action Performed
+             * @default false
+             * @constant
+             */
+            underlying_action_performed: false;
         };
         /** Revision */
         Revision: {
@@ -622,6 +693,7 @@ export interface components {
              * @default 0
              */
             cursor: number;
+            execution?: components["schemas"]["ExecutionProvenance"] | null;
             /**
              * Fence
              * @default 0
@@ -648,9 +720,9 @@ export interface components {
             /**
              * Profile
              * @default fixture-deterministic-v1
-             * @constant
+             * @enum {string}
              */
-            profile: "fixture-deterministic-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1";
             /** Proposal Id */
             proposal_id?: string | null;
             /** Provider Session Id */
@@ -674,6 +746,39 @@ export interface components {
             used_units: number;
             /** Workspace Id */
             workspace_id: string;
+        };
+        /** RunOutcome */
+        RunOutcome: {
+            /** Artifacts */
+            artifacts?: components["schemas"]["ArtifactBinding"][];
+            /** Checks */
+            checks?: components["schemas"]["OutcomeCheck"][];
+            execution?: components["schemas"]["ExecutionProvenance"] | null;
+            /**
+             * Outcome Gate
+             * @default unverified
+             * @enum {string}
+             */
+            outcome_gate: "passed" | "failed" | "unverified";
+            /** Run Id */
+            run_id: string;
+            /**
+             * Safety Gate
+             * @default unverified
+             * @enum {string}
+             */
+            safety_gate: "passed" | "failed" | "unverified";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "preparing" | "prepared" | "decision_required" | "decision_stale" | "approved" | "readback_verified" | "outcome_unknown" | "waiting" | "unverified";
+            /**
+             * Underlying Action Performed
+             * @default false
+             * @constant
+             */
+            underlying_action_performed: false;
         };
         /** Source */
         Source: {
@@ -1576,6 +1681,7 @@ export interface operations {
                      *         "id": "assignment-example",
                      *         "observed_at": "2026-10-02T00:00:00Z",
                      *         "owner_id": "local-human",
+                     *         "responsibility": null,
                      *         "run_ids": [
                      *           "run-example"
                      *         ],
@@ -1599,6 +1705,7 @@ export interface operations {
                      *         "budget_units": 1,
                      *         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
                      *         "cursor": 0,
+                     *         "execution": null,
                      *         "fence": 0,
                      *         "id": "run-example",
                      *         "instruction": null,
@@ -1611,7 +1718,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+                     *         "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -1711,6 +1818,7 @@ export interface operations {
                      *       "id": "assignment-example",
                      *       "observed_at": "2026-10-02T00:00:00Z",
                      *       "owner_id": "local-human",
+                     *       "responsibility": null,
                      *       "run_ids": [
                      *         "run-example"
                      *       ],
@@ -2188,6 +2296,7 @@ export interface operations {
                      *       "budget_units": 1,
                      *       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
                      *       "cursor": 0,
+                     *       "execution": null,
                      *       "fence": 1,
                      *       "id": "run-example",
                      *       "instruction": null,
@@ -2200,7 +2309,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+                     *       "tool_registry_hash": "b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"
