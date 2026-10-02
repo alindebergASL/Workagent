@@ -10,6 +10,7 @@ import { ApiError } from "@/lib/contract/errors";
 import type {
   Artifact,
   ArtifactHistory,
+  Assignment,
   Block,
   Revision,
   SaveRevisionCommand,
@@ -20,6 +21,7 @@ import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
+import { currentRun, provenanceOf } from "@/lib/work-state";
 import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
@@ -84,6 +86,42 @@ export default function ArtifactPage() {
   );
   const current = art?.accepted_revision ?? null;
   const proposal = art?.pending_proposal ?? null;
+  // The responsibility outcome for this work, re-read whenever the document or
+  // its proposal changes. It labels provenance and names the exact question;
+  // it never grants authority (commands still check the exact base).
+  const outcomeKey = art
+    ? `${art.accepted_revision_id}:${proposal?.id ?? ""}:${proposal?.status ?? ""}:${art.state}`
+    : "";
+  const assignment = useResource<Assignment>(
+    wsId && art
+      ? `artifact-outcome:${wsId}:${assignmentId}:${outcomeKey}`
+      : null,
+    (signal) => api.getAssignment(wsId!, assignmentId, signal),
+  );
+  const run = assignment.data ? currentRun(assignment.data) : null;
+  const unknownOutcome = run?.state === "outcome_unknown";
+  const question =
+    run?.question &&
+    proposal &&
+    run.question.artifact_id === artifactId &&
+    run.question.proposal_id === proposal.id
+      ? run.question
+      : null;
+  // The run that produced what is on screen: the pending proposal, else the current revision.
+  const producedBy =
+    [...(assignment.data?.responsibility?.runs ?? [])]
+      .reverse()
+      .find((r) =>
+        r.artifacts?.some(
+          (b) =>
+            b.artifact_id === artifactId &&
+            ((proposal && b.proposal_id === proposal.id) ||
+              (!proposal &&
+                b.revision_id != null &&
+                b.revision_id === art?.accepted_revision_id)),
+        ),
+      ) ?? null;
+  const provenance = provenanceOf(producedBy?.execution);
   const isHistorical = Boolean(
     viewingRevision && current && art?.accepted_revision_id !== current.id,
   );
@@ -915,6 +953,9 @@ export default function ArtifactPage() {
               ? `This proposal is based on revision ${proposal.base_sequence}, before your revision ${current.sequence}.`
               : "A proposed revision is ready"}
           </h2>
+          {question ? (
+            <p className="decision-question">{question.prompt}</p>
+          ) : null}
           <p>
             Requested: “{reason}”.{" "}
             {stale
@@ -926,8 +967,8 @@ export default function ArtifactPage() {
             <p className="ids">
               Base revision {proposal.base_sequence} (
               {proposal.base_revision_id}) · current revision {current.sequence}{" "}
-              ({current.id}) · proposal {proposal.id} · prepared by the{" "}
-              {EXECUTION.worker}
+              ({current.id}) · proposal {proposal.id} ·{" "}
+              {provenance?.label ?? `prepared by the ${EXECUTION.worker}`}
             </p>
           </details>
         </section>
@@ -1065,6 +1106,16 @@ export default function ArtifactPage() {
         <div className="agent-presence agent-presence-xs" aria-hidden="true" />
         <p>{outcome}</p>
       </div>
+      {unknownOutcome ? (
+        <p className="hint" role="status">
+          Waiting to confirm what happened with the last request. Nothing will
+          be sent again.
+        </p>
+      ) : null}
+      {/* Fixture items are covered by the footer mode line; anything else is named here. */}
+      {provenance && producedBy?.execution?.evidence_origin !== "fixture" ? (
+        <p className="hint provenance">{provenance.label}</p>
+      ) : null}
       {art.partial ? (
         <p className="hint" role="status">
           Partial result: this is what has been saved so far.
@@ -1126,7 +1177,10 @@ export default function ArtifactPage() {
               type="submit"
               className="btn btn-primary btn-sm"
               disabled={
-                !instruction.trim() || requestState.busy || Boolean(proposal)
+                !instruction.trim() ||
+                requestState.busy ||
+                Boolean(proposal) ||
+                unknownOutcome
               }
             >
               {requestState.busy ? "Sending…" : "Send request"}
@@ -1154,7 +1208,7 @@ export default function ArtifactPage() {
               setAskOpen(true);
               window.setTimeout(() => instructionRef.current?.focus(), 0);
             }}
-            disabled={Boolean(proposal) && !draftKept}
+            disabled={(Boolean(proposal) || unknownOutcome) && !draftKept}
           >
             {draftKept ? "Resume your request" : "Ask for a revision"}
           </button>
@@ -1247,7 +1301,7 @@ export default function ArtifactPage() {
                 setAgentFocus((n) => n + 1);
                 window.setTimeout(() => instructionRef.current?.focus(), 0);
               }}
-              disabled={Boolean(proposal)}
+              disabled={Boolean(proposal) || unknownOutcome}
             >
               Request revision
             </button>

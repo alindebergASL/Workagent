@@ -1,46 +1,7 @@
 "use client";
 import { useEffect, useRef, type ReactNode } from "react";
-import type { ArtifactState, AssignmentState } from "@/lib/contract/types";
+import type { ArtifactState } from "@/lib/contract/types";
 import { ApiError, describeError } from "@/lib/contract/errors";
-
-export function assignmentStatus(
-  state: AssignmentState,
-  stage?: string | null,
-): { label: string; tone: string } {
-  switch (state) {
-    case "queued":
-      return { label: "Queued", tone: "status-working" };
-    case "working":
-      return {
-        label: stage ? `Working · ${stage}` : "Working",
-        tone: "status-working",
-      };
-    case "ready_for_review":
-      return { label: "Ready for review", tone: "status-ready" };
-    case "needs_input":
-      return { label: "Needs your input", tone: "status-attention" };
-    case "finished":
-      return { label: "Approved revision", tone: "status-ok" };
-    case "stopped":
-      return { label: "Stopped", tone: "" };
-    case "failed":
-      return { label: "Didn’t finish", tone: "status-error" };
-  }
-}
-
-/**
- * Assignment label that names a pending decision as the artifact does
- * ("Decision needed"); "Ready for review" stays for first prepared work.
- */
-export function workStatus(
-  state: AssignmentState,
-  stage: string | null | undefined,
-  decisionPending: boolean,
-): { label: string; tone: string } {
-  if (decisionPending)
-    return { label: "Decision needed", tone: "status-attention" };
-  return assignmentStatus(state, stage);
-}
 
 export function artifactStatus(
   state: ArtifactState,
