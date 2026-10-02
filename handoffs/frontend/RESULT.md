@@ -58,6 +58,6 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 
 **Known gaps.** Backend requests 3 and 4 in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant in `docs/RUNTIME_STATUS.md`.
 
-**Integration checkpoint.** Independent review and the exact-head canonical demo are complete; shared integration was fast-forwarded to reviewed `e0da95c`. Publish this docs-only report/status child and advance the existing non-default PR #3 head by fast-forward; the PR checkpoint records the resulting publication SHA. Do not reapply the patch or reopen the passed review for the separate small follow-ups. Default-branch merge, deployment and provider spending remain unauthorized.
+**Integration checkpoint.** Independent review and the exact-head canonical demo are complete. Shared integration and the existing non-default PR #3 head were fast-forwarded through reviewed `e0da95c` to report/status publication `5ae4cbb`. Subsequent [bounded evaluator/documentation follow-ups](../backend/BASELINE_FOLLOWUPS.md) remain distinct from that accepted review; UI-1 is assigned to the existing Claude frontend owner through PR #2. Do not reapply the patch or reopen the passed review for these small follow-ups. Default-branch merge, deployment and provider spending remain unauthorized.
 
 **Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces the real evidence on a fresh database.

@@ -1,13 +1,13 @@
 # Agent-first integration — combined candidate
 
 Shared branch: **`hermes/agent-first-integration`**. Base milestone: `6f88a9d524d4ab7db1f800087d2f13f4ca1d130b`.
-Reviewed combined head: **`e0da95cc05a103af52cf5a31b328a2ee93486640`**, with application code at **`d354940e95def2c4cbd3edc683af946ea004c42c`**. The shared integration branch was fast-forwarded from `a779715` to that exact reviewed head with ancestry preserved. This documentation/evidence-only child records the result; its publication identity is bound by the PR #3 checkpoint.
+Reviewed combined head: **`e0da95cc05a103af52cf5a31b328a2ee93486640`**, with application code at **`d354940e95def2c4cbd3edc683af946ea004c42c`**. Shared integration and PR #3 were fast-forwarded through that exact reviewed head to documentation/evidence publication **`5ae4cbb`**, preserving ancestry. Later bounded evaluator/documentation follow-ups are recorded separately in [BASELINE_FOLLOWUPS.md](BASELINE_FOLLOWUPS.md); they do not replace the accepted implementation review.
 
 ## Current independent gate — PASS
 - Independent Hermes review at exact clean head `e0da95c`: untouched canonical real demo, both actual API/web restart readbacks, nine real fault cases, 25 frontend unit tests, type/lint/format, production real and mock builds, and 12 separately labeled mock-browser tests all passed.
 - Additional real-browser checks passed for later-human-save approval invalidation across all four surfaces, serialized focus refresh without mutation, and retained unsent instructions/unsaved edits across mobile/desktop layouts. The earlier `a779715` duplicate-text test-harness blocker is resolved at this head.
 - Published sanitized [report](review-pr2-e0da95c/REPORT.md), [structured result](review-pr2-e0da95c/review.json), and [evidence/provenance index](review-pr2-e0da95c/README.md). The tests belong to `e0da95c`; publication does not relabel them as new execution on its docs-only child.
-- UI-1 (“Keep for later”), the old model-proof badge assertion and the RuntimePort documentation contradiction remain [separate small follow-ups](review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication). No application or evaluator implementation changed in this publication.
+- The historical [publication follow-up list](review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication) is retained. The model-proof assertion is now handled by a maintained read-only current-UI probe, and RuntimePort guidance is reconciled; [focused evidence and current ownership](BASELINE_FOLLOWUPS.md) distinguish these later changes. UI-1 (“Keep for later”) remains nonblocking with the Claude frontend owner. No frontend application or backend runtime implementation changed in the evaluator/documentation follow-up.
 - No new provider call, model replay, public deployment, default-branch merge or owner usefulness acceptance. Fixture-backed integration PASS is not autonomous/live-runtime qualification.
 
 ## Coordination history and scope
@@ -16,7 +16,7 @@ Reviewed combined head: **`e0da95cc05a103af52cf5a31b328a2ee93486640`**, with app
 - Preserved Claude's Composer, Space detail, responsive document/agent panes, exact checklist diffs, keyboard controls, CI fix and tests. Moved the frozen full delegation-command guard into Composer; one authoritative adapter supplies proposal/approval summaries, avoiding a second competing overview derivation.
 - Corrected initial prepared work versus proposed-change decisions versus approved current revision. Approval explicitly does not complete task/responsibility criteria or imply external actions. A created but unfinished task remains created after restart.
 - Claude retains UI ownership. Further changes should be bounded post-candidate deltas; do not reapply the original patch. Hermes owns integration and exact-candidate verification. The later Claude branch incorporated `a779715` by ancestry, so the approved current route is a fast-forward to reviewed `e0da95c`, not another port or patch application.
-- PR #3's existing non-default head will be fast-forwarded to the verified combined branch; no default-branch merge or public deployment is authorized/performed.
+- PR #3's existing non-default head was fast-forwarded to the reviewed combined history and evidence publication; no default-branch merge or public deployment is authorized/performed.
 
 ## Historical combined-application evidence (`693a54f` / `42473fe`)
 - Real Next.js/FastAPI/PostgreSQL: delegation (including dropped 202 / same-command retry) → generated artifact → human note/checklist edit → stale proposal rejected without overwrite → fresh proposal → explicit approval → actual API/web restart/reopen.

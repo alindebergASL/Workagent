@@ -35,6 +35,6 @@ Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns the b
 
 ## Integration checkpoint and separate follow-ups
 
-Independent review and the exact-head canonical rerun are complete. Shared integration was fast-forwarded to `e0da95c`; publish this documentation/evidence-only child and fast-forward the existing non-default `hermes/s0-s1-build` head to the same integrated history. The PR #3 checkpoint binds the publication SHA; no default-branch merge or deployment is authorized.
+Independent review and the exact-head canonical rerun are complete. Shared integration and the existing non-default `hermes/s0-s1-build` head were fast-forwarded through `e0da95c` to publication `5ae4cbb`. The PR #3 checkpoint binds that publication; no default-branch merge or deployment is authorized.
 
-Keep the nonblocking “Keep for later” frontend fix, the old model-proof badge assertion and the RuntimePort documentation reconciliation separate. Their scope and ownership are tracked in the [review publication](../backend/review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication). This update neither implements those fixes nor authorizes provider calls.
+The [review publication](../backend/review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication) retains the original follow-up list. [Current follow-up status](../backend/BASELINE_FOLLOWUPS.md) records the maintained read-only model-proof probe and reconciled RuntimePort guidance. The nonblocking “Keep for later” fix remains with Claude under the [explicit current-base coordination](https://github.com/alindebergASL/Workagent/pull/2#issuecomment-5953182433); no concurrent frontend application edits were made. No provider calls are authorized by this update.

@@ -25,6 +25,8 @@ This is a real **operator-assisted model-backed draft and post-commit recovery p
 
 Evidence: `model-proof/` contains the actual request/response, consumed dispatch marker, immutable import command, unacknowledged receipt, recovery/read-back results and browser evidence. No secret values are included. The import path is evaluator-only, restricted to an explicitly configured loopback API.
 
+Current-UI reopening uses [`scripts/model_draft_browser_probe.mjs`](../../scripts/model_draft_browser_probe.mjs), not the archived probe's historical `Saved` assertion. The current unapproved artifact badge is **Ready for review**. The maintained probe reads the retained artifact only, blocks non-loopback/writing browser requests, preserves the original archive, and writes fresh screenshots/results to `.local/model-proof-recheck` (or `WORKAGENT_MODEL_PROOF_OUTPUT`). See [focused follow-up evidence](BASELINE_FOLLOWUPS.md). This correction does not replay the import or repeat the provider request.
+
 ## Remaining managed-first access gap
 
 The selected managed-runtime discovery route still lacks a usable product project/API secret reference and a route-specific bounded spend/trace grant. The local Codex development login is not that entitlement. No managed required-contract failure was observed, so neither Qwen model access nor this smoke proof selects a fallback SDK/framework or waives the managed-first decision.
