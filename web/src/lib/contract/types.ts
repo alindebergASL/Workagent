@@ -72,6 +72,12 @@ export interface SourceRef {
 export interface SourceDetail extends SourceRef {
   excerpt: string | null;
   used_by_artifact_ids: string[];
+  observed_dependencies?: {
+    version: string;
+    observed_at: string;
+    artifact_ids: string[];
+  }[];
+  version_drift?: boolean;
 }
 
 export type AssignmentState =

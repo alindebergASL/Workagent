@@ -63,8 +63,9 @@ export function SourcesDrawer({
       returnFocusTo={returnFocusTo}
     >
       <p className="small muted">
-        Only sources you currently have access to are shown, at the version this
-        work observed.
+        Source content is fetched under your current access. Observed versions
+        are listed separately: the latest source may have changed since this
+        work.
       </p>
       {error ? <ErrorNotice error={error} /> : null}
       {!items && !error ? <p className="muted">Loading…</p> : null}
@@ -81,21 +82,39 @@ export function SourcesDrawer({
           <div className="row row-between">
             <strong>{s.title}</strong>
             <span className="small muted">
-              {s.id} @{s.version}
+              {s.id} current @{s.version}
             </span>
           </div>
           <div className="small muted">
-            {s.surface} · observed {formatTime(s.observed_at, zone)}
+            {s.surface} · current source observed{" "}
+            {formatTime(s.observed_at, zone)}
           </div>
+          {s.observed_dependencies?.map((ref) => (
+            <div className="small" key={ref.version}>
+              Work observed @{ref.version} · {formatTime(ref.observed_at, zone)}
+              {ref.artifact_ids.length
+                ? ` · Used by: ${ref.artifact_ids.map((id) => artifactTitles[id] ?? id).join(", ")}`
+                : " · Selected for this assignment"}
+            </div>
+          ))}
+          {s.version_drift ? (
+            <div className="notice notice-warn" role="status">
+              This source changed after the work observed it. Historical source
+              bytes are unavailable. The latest content below is not evidence
+              used by artifacts that depend on an older version.
+            </div>
+          ) : null}
           {s.used_by_artifact_ids.length ? (
             <div className="small">
-              Used by:{" "}
+              This current version used by:{" "}
               {s.used_by_artifact_ids
                 .map((id) => artifactTitles[id] ?? id)
                 .join(", ")}
             </div>
           ) : (
-            <div className="small muted">Not yet used by a saved result.</div>
+            <div className="small muted">
+              This current version is not evidence for a saved result.
+            </div>
           )}
           {s.excerpt ? (
             <pre>{s.excerpt}</pre>

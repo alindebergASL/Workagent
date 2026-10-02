@@ -224,8 +224,11 @@ class Service:
     def create_assignment(self,p,ws,cmd):
         def auth(c):
             for ref in sorted(cmd.selected_source_refs,key=lambda s:s.source_id):
-                self._source(c,p,ws,ref,True)
+                self._source(c,p,ws,ref,False)
         def mutate(c,_):
+            # Freshness is an admission precondition, not a cached-result permission.
+            for ref in sorted(cmd.selected_source_refs,key=lambda s:s.source_id):
+                self._source(c,p,ws,ref,True)
             a=Assignment(id=new_id(),workspace_id=ws,owner_id=p.id,goal=cmd.goal,completion_criteria=cmd.completion_criteria,selected_source_refs=cmd.selected_source_refs)
             c.execute('INSERT INTO assignments(workspace_id,id,data) VALUES (%s,%s,%s)',(ws,a.id,encoded(a)))
             for ref in a.selected_source_refs:

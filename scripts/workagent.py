@@ -8,6 +8,7 @@ import shlex
 import signal
 import socket
 import subprocess
+import sys
 import time
 import urllib.request
 
@@ -107,7 +108,7 @@ class Stack:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=['setup', 'serve', 'demo'])
+    parser.add_argument('command', choices=['setup', 'serve', 'demo', 'faults'])
     parser.add_argument('--env', type=Path, default=ROOT / '.local/app.env')
     parser.add_argument('--skip-setup', action='store_true', help='Use already tested installed dependencies and production build')
     args = parser.parse_args()
@@ -118,6 +119,8 @@ def main():
     if not PYTHON.exists() or not (ROOT / 'web/.next/BUILD_ID').exists():
         raise RuntimeError('Run python3 scripts/workagent.py setup first.')
     free_ports()
+    if args.command == 'faults':
+        args.env = args.env.with_suffix('.faults.env')
     env = environment(args.env.resolve())
     stack = Stack(env)
     try:
@@ -127,6 +130,8 @@ def main():
             stack.stop()  # API and web really exit; PostgreSQL and immutable rows remain.
             stack.start()
             run(['node', ROOT / 'web/scripts/real-journey.mjs', '--reopen'], ROOT, env)
+            stack.stop()
+            run([sys.executable, ROOT / 'scripts/workagent.py', 'faults', '--env', args.env, '--skip-setup'])
             metadata = {'git_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                         'dirty': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip()),
                         'mode': 'real_ui_api_postgresql_with_deterministic_fixture_computation',
@@ -134,6 +139,8 @@ def main():
                         'database_recreated_between_phases': False}
             (ROOT / '.local/evidence/demo.json').write_text(json.dumps(metadata, indent=2) + '\n')
             print('PASS: .local/evidence contains saved bodies, task readback and desktop/mobile restart evidence. Database retained.')
+        elif args.command == 'faults':
+            run(['node', ROOT / 'web/scripts/fault-regressions.mjs'], ROOT, {**env, 'WORKAGENT_TEST_ENV_FILE': str(args.env.resolve())})
         else:
             print('Workagent: http://127.0.0.1:3000 — private local fixture mode; Ctrl-C stops processes, not saved work.', flush=True)
             while True:

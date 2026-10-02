@@ -6,20 +6,13 @@ export interface Resource<T> {
   data: T | null;
   error: ApiError | null;
   loading: boolean;
-  /** True while the last poll failed and we are retrying the same resource. */
   reconnecting: boolean;
   observedAt: string | null;
   refresh: () => Promise<T | null>;
-  /** Replace the local copy after a successful mutation. */
   set: (next: T) => void;
 }
 
-/**
- * Fetches a resource and, while `shouldPoll` is true, re-fetches it on an
- * interval. On failure it keeps the last good data, shows a reconnecting
- * state and retries with backoff. Reconnecting re-reads the same id; it never
- * creates anything.
- */
+/** One cancellable read scheduler per resource; mutations never originate here. */
 export function useResource<T>(
   key: string | null,
   fetcher: (signal: AbortSignal) => Promise<T>,
@@ -27,26 +20,31 @@ export function useResource<T>(
 ): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
-  const [loading, setLoading] = useState<boolean>(Boolean(key));
+  const [loading, setLoading] = useState(Boolean(key));
   const [reconnecting, setReconnecting] = useState(false);
   const [observedAt, setObservedAt] = useState<string | null>(null);
   const failures = useRef(0);
+  const terminal = useRef(false);
+  const generation = useRef(0);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
   const optionsRef = useRef(options);
   optionsRef.current = options;
   const dataRef = useRef<T | null>(null);
-  dataRef.current = data;
+  const refreshRef = useRef<() => Promise<T | null>>(async () => null);
+  const scheduleRef = useRef<() => void>(() => {});
 
   const load = useCallback(
-    async (signal?: AbortSignal): Promise<T | null> => {
+    async (signal: AbortSignal): Promise<T | null> => {
       if (!key) return null;
+      const requestGeneration = ++generation.current;
       try {
-        const next = await fetcherRef.current(
-          signal ?? new AbortController().signal,
-        );
-        if (signal?.aborted) return null;
+        const next = await fetcherRef.current(signal);
+        if (signal.aborted || requestGeneration !== generation.current)
+          return null;
+        dataRef.current = next;
         failures.current = 0;
+        terminal.current = false;
         setData(next);
         setError(null);
         setReconnecting(false);
@@ -54,7 +52,8 @@ export function useResource<T>(
         setLoading(false);
         return next;
       } catch (e) {
-        if (signal?.aborted) return null;
+        if (signal.aborted || requestGeneration !== generation.current)
+          return null;
         const err =
           e instanceof ApiError
             ? e
@@ -64,11 +63,11 @@ export function useResource<T>(
                 message: "Request failed.",
               });
         failures.current += 1;
-        if (
+        terminal.current =
           err.code === "not_found_or_not_authorized" ||
-          err.code === "unauthenticated"
-        ) {
-          // Access changed: do not keep showing stale content.
+          err.code === "unauthenticated";
+        if (terminal.current) {
+          dataRef.current = null;
           setData(null);
           setError(err);
           setReconnecting(false);
@@ -85,32 +84,58 @@ export function useResource<T>(
   );
 
   useEffect(() => {
-    if (!key) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout> | null = null;
     let stopped = false;
-    setLoading(true);
-    const tick = async () => {
-      const result = await load(controller.signal);
-      if (stopped) return;
+    let inFlight: Promise<T | null> | null = null;
+    dataRef.current = null;
+    setData(null);
+    setError(null);
+    setObservedAt(null);
+    failures.current = 0;
+    terminal.current = false;
+    setLoading(Boolean(key));
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = null;
+      if (stopped || !key || inFlight || terminal.current) return;
       const base = optionsRef.current.pollMs ?? 0;
-      const shouldPoll = optionsRef.current.shouldPoll
-        ? optionsRef.current.shouldPoll(result ?? dataRef.current)
-        : base > 0;
-      if (failures.current > 0 && dataRef.current) {
+      const shouldPoll =
+        optionsRef.current.shouldPoll?.(dataRef.current) ?? base > 0;
+      if (failures.current > 0) {
         timer = setTimeout(
-          tick,
+          () => void tick(),
           Math.min(15000, 1500 * 2 ** Math.min(failures.current, 4)),
         );
       } else if (shouldPoll && base > 0) {
-        timer = setTimeout(tick, base);
+        timer = setTimeout(() => void tick(), base);
       }
     };
-    void tick();
+    const tick = (): Promise<T | null> => {
+      if (stopped || !key) return Promise.resolve(null);
+      if (inFlight) return inFlight;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      inFlight = load(controller.signal).finally(() => {
+        inFlight = null;
+        schedule();
+      });
+      return inFlight;
+    };
+    // A refresh after a mutation waits out an existing read, then gets fresh state.
+    refreshRef.current = async () => {
+      if (inFlight) await inFlight;
+      return tick();
+    };
+    scheduleRef.current = schedule;
+    if (key) void tick();
     return () => {
       stopped = true;
+      generation.current += 1;
       controller.abort();
       if (timer) clearTimeout(timer);
+      refreshRef.current = async () => null;
+      scheduleRef.current = () => {};
     };
   }, [key, load]);
 
@@ -120,7 +145,16 @@ export function useResource<T>(
     loading,
     reconnecting,
     observedAt,
-    refresh: () => load(),
-    set: (next) => setData(next),
+    refresh: () => refreshRef.current(),
+    set: (next) => {
+      generation.current += 1; // An older in-flight response cannot replace a mutation result.
+      dataRef.current = next;
+      terminal.current = false;
+      failures.current = 0;
+      setData(next);
+      setError(null);
+      setReconnecting(false);
+      scheduleRef.current();
+    },
   };
 }

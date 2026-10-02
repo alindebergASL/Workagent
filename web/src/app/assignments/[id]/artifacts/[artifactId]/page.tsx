@@ -6,7 +6,14 @@ import { api, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
-import type { Artifact, Block, Revision } from "@/lib/contract/types";
+import type {
+  Artifact,
+  Block,
+  Revision,
+  SaveRevisionCommand,
+  RequestRevisionCommand,
+  ProposalDecisionCommand,
+} from "@/lib/contract/types";
 import { blocksEqual, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
 import { formatTime } from "@/lib/time";
@@ -92,7 +99,13 @@ export default function ArtifactPage() {
   });
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const historyBtn = useRef<HTMLButtonElement>(null);
-  const saveCommand = useRef<string | null>(null);
+  const saveCommand = useRef<SaveRevisionCommand | null>(null);
+  const revisionCommand = useRef<RequestRevisionCommand | null>(null);
+  const decisionCommand = useRef<{
+    operation: "accept" | "dismiss";
+    proposalId: string;
+    command: ProposalDecisionCommand;
+  } | null>(null);
   const liveRef = useRef<HTMLDivElement>(null);
 
   const dirty = Boolean(draft && current && !blocksEqual(draft, current.body));
@@ -151,6 +164,7 @@ export default function ArtifactPage() {
 
   const beginEdit = () => {
     if (!current) return;
+    saveCommand.current = null;
     setDraft(current.body.map((b) => ({ ...b })));
     setDraftBase(current.id);
     setSave({ kind: "idle" });
@@ -158,6 +172,7 @@ export default function ArtifactPage() {
   };
 
   const discardDraft = () => {
+    saveCommand.current = null;
     setDraft(null);
     setDraftBase(null);
     clearDraft(artifactId);
@@ -172,27 +187,43 @@ export default function ArtifactPage() {
 
   const doSave = useCallback(
     async (opts: { resolvesProposalId?: string; note?: string } = {}) => {
-      if (!wsId || !art || !draft || !draftBase) return;
+      if (!wsId || !art || !draft || !draftBase || save.kind === "conflict")
+        return;
       setSave({ kind: "saving" });
       try {
-        // Check the current revision again before writing. If it moved, go back to review with the draft kept.
-        const fresh = await api.getArtifact(wsId, art.id);
-        if (fresh.accepted_revision_id !== draftBase) {
-          res.set(fresh);
-          setSave({ kind: "conflict", newerCurrent: fresh.accepted_revision });
-          announce(
-            "A newer version was saved. Your draft is kept; review before saving.",
-          );
-          return;
+        if (!saveCommand.current) {
+          // A fresh operation checks its base. Ambiguous retries replay the already-frozen command.
+          const fresh = await api.getArtifact(wsId, art.id);
+          if (fresh.accepted_revision_id !== draftBase) {
+            res.set(fresh);
+            setSave({
+              kind: "conflict",
+              newerCurrent: fresh.accepted_revision,
+            });
+            announce(
+              "A newer version was saved. Your draft is kept; review before saving.",
+            );
+            return;
+          }
+          saveCommand.current = {
+            command_id: newCommandId(),
+            expected_current_revision_id: draftBase,
+            body: structuredClone(draft),
+            note:
+              opts.note ??
+              (mode === "resolve" && proposal
+                ? `Resolved proposal ${proposal.id}`
+                : undefined),
+            resolves_proposal_id:
+              opts.resolvesProposalId ??
+              (mode === "resolve" ? proposal?.id : undefined),
+          };
         }
-        if (!saveCommand.current) saveCommand.current = newCommandId();
-        const result = await api.saveRevision(wsId, art.id, {
-          command_id: saveCommand.current,
-          expected_current_revision_id: draftBase,
-          body: draft,
-          note: opts.note,
-          resolves_proposal_id: opts.resolvesProposalId,
-        });
+        const result = await api.saveRevision(
+          wsId,
+          art.id,
+          saveCommand.current,
+        );
         saveCommand.current = null;
         clearDraft(art.id);
         setDraft(null);
@@ -229,7 +260,7 @@ export default function ArtifactPage() {
         }
       }
     },
-    [wsId, art, draft, draftBase, res],
+    [wsId, art, draft, draftBase, res, save.kind, mode, proposal],
   );
 
   /** After an ambiguous write: read the artifact back and compare, instead of blindly sending a new command. */
@@ -242,6 +273,24 @@ export default function ArtifactPage() {
         fresh.accepted_revision &&
         blocksEqual(fresh.accepted_revision.body, draft)
       ) {
+        if (saveCommand.current?.resolves_proposal_id) {
+          const history = await api.getArtifactHistory(wsId, art.id);
+          const resolution = history.proposals.find(
+            (p) => p.id === saveCommand.current?.resolves_proposal_id,
+          );
+          if (resolution?.status !== "declined") {
+            setSave({
+              kind: "ambiguous",
+              error: new ApiError({
+                code: "transport",
+                status: 0,
+                message:
+                  "Your text is saved, but the proposal resolution is not confirmed. Retry the same save to finish that decision.",
+              }),
+            });
+            return;
+          }
+        }
         saveCommand.current = null;
         clearDraft(art.id);
         setDraft(null);
@@ -250,52 +299,94 @@ export default function ArtifactPage() {
         setMode("read");
         announce("The save had already been recorded.");
       } else {
-        setSave({ kind: "idle" });
+        setSave({
+          kind: "ambiguous",
+          error: new ApiError({
+            code: "transport",
+            status: 0,
+            message:
+              "The original save is not confirmed. Retry the same save; its original base and decision remain unchanged.",
+          }),
+        });
       }
     } catch (e) {
       setSave({ kind: "ambiguous", error: e });
     }
   };
 
-  const keepCurrent = async () => {
-    if (!wsId || !art || !proposal || !art.accepted_revision_id) return;
+  const performDecision = async (operation: "accept" | "dismiss") => {
+    if (
+      !wsId ||
+      !art ||
+      !proposal ||
+      !art.accepted_revision_id ||
+      decision.busy
+    )
+      return;
     setDecision({ busy: true });
     try {
-      const r = await api.declineProposal(wsId, art.id, proposal.id, {
-        command_id: newCommandId(),
-        expected_current_revision_id: art.accepted_revision_id,
-      });
-      res.set(r.artifact);
+      if (
+        decisionCommand.current &&
+        decisionCommand.current.proposalId !== proposal.id
+      ) {
+        const history = await api.getArtifactHistory(wsId, art.id);
+        const prior = history.proposals.find(
+          (p) => p.id === decisionCommand.current?.proposalId,
+        );
+        if (!prior || !["accepted", "declined"].includes(prior.status))
+          throw new ApiError({
+            code: "action_unresolved",
+            status: 409,
+            message:
+              "Check the prior decision in History before starting another.",
+          });
+        decisionCommand.current = null;
+      }
+      if (
+        decisionCommand.current &&
+        decisionCommand.current.operation !== operation
+      )
+        throw new ApiError({
+          code: "transport",
+          status: 0,
+          message:
+            "The prior decision is unconfirmed. Retry that same decision before changing intent.",
+        });
+      if (!decisionCommand.current)
+        decisionCommand.current = {
+          operation,
+          proposalId: proposal.id,
+          command: {
+            command_id: newCommandId(),
+            expected_current_revision_id: art.accepted_revision_id,
+          },
+        };
+      const intent = decisionCommand.current;
+      const result = await (
+        intent.operation === "accept" ? api.acceptProposal : api.declineProposal
+      )(wsId, art.id, intent.proposalId, intent.command);
+      decisionCommand.current = null;
+      res.set(result.artifact);
       setHistoryKey(String(Date.now()));
       setDecision({ busy: false });
       setMode("read");
-      announce("Kept your current version. The proposal remains in history.");
+      announce(
+        operation === "accept"
+          ? "Applied the proposal as a new revision."
+          : "Kept your current version. The proposal remains in history.",
+      );
     } catch (e) {
+      if (!(e instanceof ApiError && e.isAmbiguousWrite))
+        decisionCommand.current = null;
       setDecision({ busy: false, error: e });
       await res.refresh();
     }
   };
-
-  const applyProposal = async () => {
-    if (!wsId || !art || !proposal || !art.accepted_revision_id) return;
-    setDecision({ busy: true });
-    try {
-      const r = await api.acceptProposal(wsId, art.id, proposal.id, {
-        command_id: newCommandId(),
-        expected_current_revision_id: art.accepted_revision_id,
-      });
-      res.set(r.artifact);
-      setHistoryKey(String(Date.now()));
-      setDecision({ busy: false });
-      setMode("read");
-      announce("Applied the proposal as a new revision.");
-    } catch (e) {
-      setDecision({ busy: false, error: e });
-      await res.refresh();
-    }
-  };
+  const keepCurrent = () => performDecision("dismiss");
+  const applyProposal = () => performDecision("accept");
 
   const beginResolve = (seed: "current" | "proposal") => {
+    saveCommand.current = null;
     if (!current) return;
     const base =
       seed === "proposal" && proposal?.body ? proposal.body : current.body;
@@ -310,11 +401,14 @@ export default function ArtifactPage() {
       return;
     setRequestState({ busy: true });
     try {
-      await api.requestRevision(wsId, art.id, {
-        command_id: newCommandId(),
-        base_revision_id: art.accepted_revision_id,
-        instruction: instruction.trim(),
-      });
+      if (!revisionCommand.current)
+        revisionCommand.current = {
+          command_id: newCommandId(),
+          base_revision_id: art.accepted_revision_id,
+          instruction: instruction.trim(),
+        };
+      await api.requestRevision(wsId, art.id, revisionCommand.current);
+      revisionCommand.current = null;
       setRequestState({ busy: false, done: true });
       setInstruction("");
       setRevisionAsk(false);
@@ -323,6 +417,8 @@ export default function ArtifactPage() {
         "Revision requested. You can keep editing; the proposal will wait for your review.",
       );
     } catch (e) {
+      if (!(e instanceof ApiError && e.isAmbiguousWrite))
+        revisionCommand.current = null;
       setRequestState({ busy: false, error: e });
     }
   };
@@ -553,7 +649,7 @@ export default function ArtifactPage() {
               className="btn btn-sm btn-primary"
               onClick={() => {
                 setDraft(restorable.body);
-                setDraftBase(current.id);
+                setDraftBase(restorable.base);
                 setRestorable(null);
                 setMode("edit");
                 if (restorable.base !== current.id)
@@ -644,8 +740,9 @@ export default function ArtifactPage() {
             </>
           }
         >
-          Your draft is kept. Checking first avoids saving the same change
-          twice.
+          {save.error instanceof Error ? save.error.message + " " : ""}
+          Your complete save intent is kept, including any proposal decision.
+          Checking first avoids saving the same change twice.
         </Notice>
       ) : null}
       {save.kind === "error" ? (
@@ -676,7 +773,11 @@ export default function ArtifactPage() {
           <h2 id="edit-title" className="sr-only">
             Edit {art.title}
           </h2>
-          <DocEdit blocks={draft} onChange={setDraft} />
+          <DocEdit
+            blocks={draft}
+            onChange={setDraft}
+            disabled={save.kind === "saving" || save.kind === "ambiguous"}
+          />
         </section>
         <div className="sticky-actions row row-between">
           <div className="row">
@@ -684,7 +785,12 @@ export default function ArtifactPage() {
               type="button"
               className="btn btn-primary"
               onClick={() => void doSave()}
-              disabled={!dirty || save.kind === "saving"}
+              disabled={
+                !dirty ||
+                save.kind === "saving" ||
+                save.kind === "conflict" ||
+                save.kind === "ambiguous"
+              }
             >
               {save.kind === "saving" ? "Saving…" : "Save changes"}
             </button>
@@ -692,13 +798,13 @@ export default function ArtifactPage() {
               type="button"
               className="btn"
               onClick={discardDraft}
-              disabled={save.kind === "saving"}
+              disabled={save.kind === "saving" || save.kind === "ambiguous"}
             >
               {dirty ? "Discard changes" : "Stop editing"}
             </button>
           </div>
           <span className="small muted">
-            Based on revision {current.sequence}
+            Based on saved revision {draftBase}
           </span>
         </div>
         {drawers}
@@ -734,7 +840,11 @@ export default function ArtifactPage() {
                 {current.sequence} ({current.id})
               </span>
             </header>
-            <DocEdit blocks={draft} onChange={setDraft} />
+            <DocEdit
+              blocks={draft}
+              onChange={setDraft}
+              disabled={save.kind === "saving" || save.kind === "ambiguous"}
+            />
           </section>
           <section
             className="conflict-pane"
@@ -782,7 +892,11 @@ export default function ArtifactPage() {
                   note: `Resolved proposal ${proposal.id}`,
                 })
               }
-              disabled={save.kind === "saving"}
+              disabled={
+                save.kind === "saving" ||
+                save.kind === "ambiguous" ||
+                save.kind === "conflict"
+              }
             >
               {save.kind === "saving" ? "Saving…" : "Save resolution"}
             </button>
@@ -790,7 +904,7 @@ export default function ArtifactPage() {
               type="button"
               className="btn"
               onClick={discardDraft}
-              disabled={save.kind === "saving"}
+              disabled={save.kind === "saving" || save.kind === "ambiguous"}
             >
               Back to review
             </button>
@@ -955,6 +1069,7 @@ export default function ArtifactPage() {
               id="instruction"
               value={instruction}
               onChange={(e) => setInstruction(e.target.value)}
+              disabled={requestState.busy || Boolean(revisionCommand.current)}
               rows={3}
               placeholder="For example: add a default owner so no case is saved blank."
             />
@@ -978,6 +1093,7 @@ export default function ArtifactPage() {
               type="button"
               className="btn"
               onClick={() => setRevisionAsk(false)}
+              disabled={requestState.busy || Boolean(revisionCommand.current)}
             >
               Cancel
             </button>

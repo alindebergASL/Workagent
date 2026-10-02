@@ -73,9 +73,11 @@ function SourceMarks({
 export function DocEdit({
   blocks,
   onChange,
+  disabled = false,
 }: {
   blocks: Block[];
   onChange: (next: Block[]) => void;
+  disabled?: boolean;
 }) {
   const update = useCallback(
     (id: string, patch: Partial<Block>) => {
@@ -92,6 +94,7 @@ export function DocEdit({
               <input
                 type="checkbox"
                 checked={Boolean(b.checked)}
+                disabled={disabled}
                 onChange={(e) => update(b.id, { checked: e.target.checked })}
                 aria-label={`Mark done: ${b.text}`}
               />
@@ -99,6 +102,7 @@ export function DocEdit({
             <textarea
               aria-label={`${labelFor(b.kind)} ${b.id}`}
               value={b.text}
+              disabled={disabled}
               rows={Math.max(1, Math.ceil(b.text.length / 70))}
               onChange={(e) => update(b.id, { text: e.target.value })}
             />

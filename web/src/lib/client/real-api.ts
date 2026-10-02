@@ -550,52 +550,80 @@ export const realApi = {
       ),
     );
     return list(
-      sources
-        .filter((s) =>
-          a.selected_source_refs.some((ref) => ref.source_id === s.id),
-        )
-        .map((s) =>
-          toSource(
-            s,
-            artifacts
-              .filter((x) =>
-                x.current_revision.source_dependencies.some(
-                  (r) => r.source_id === s.id,
-                ),
-              )
-              .map((x) => x.id),
+      sources.map((source) => {
+        const dependencies = new Map<
+          string,
+          { version: string; observed_at: string; artifact_ids: string[] }
+        >();
+        for (const ref of a.selected_source_refs.filter(
+          (ref) => ref.source_id === source.id,
+        ))
+          dependencies.set(ref.external_version, {
+            version: ref.external_version,
+            observed_at: ref.observed_at,
+            artifact_ids: [],
+          });
+        for (const artifact of artifacts)
+          for (const ref of artifact.current_revision.source_dependencies.filter(
+            (ref) => ref.source_id === source.id,
+          )) {
+            const entry = dependencies.get(ref.external_version) ?? {
+              version: ref.external_version,
+              observed_at: ref.observed_at,
+              artifact_ids: [],
+            };
+            entry.artifact_ids.push(artifact.id);
+            dependencies.set(ref.external_version, entry);
+          }
+        return {
+          ...toSource(
+            source,
+            dependencies.get(source.external_version)?.artifact_ids ?? [],
           ),
-        ),
+          observed_dependencies: [...dependencies.values()],
+          version_drift: [...dependencies.keys()].some(
+            (version) => version !== source.external_version,
+          ),
+        };
+      }),
     );
   },
   async createAssignment(
     ws: string,
     c: V.CreateAssignmentCommand,
   ): Promise<V.CreateAssignmentResult> {
-    const sources = await rawSources(ws);
-    const refs = c.selected_source_refs.map((ref) => {
-      const s = sources.find((s) => s.id === ref.id);
-      if (!s || s.external_version !== ref.version)
-        throw new ApiError({
-          code: "source_changed",
-          status: 409,
-          message: "Selected source version changed; refresh sources.",
+    const body = await stablePayload<S["CreateAssignment"]>(
+      `${ws}:create-assignment`,
+      c.command_id,
+      c,
+      async () => {
+        const sources = await rawSources(ws);
+        const refs = c.selected_source_refs.map((ref) => {
+          const source = sources.find((s) => s.id === ref.id);
+          if (!source || source.external_version !== ref.version)
+            throw new ApiError({
+              code: "source_changed",
+              status: 409,
+              message: "Selected source version changed; refresh sources.",
+            });
+          return {
+            source_id: source.id,
+            external_version: ref.version,
+            observed_at: source.observed_at,
+          };
         });
-      return {
-        source_id: s.id,
-        external_version: ref.version,
-        observed_at: s.observed_at,
-      };
-    });
-    const r = await unwrap(
-      client.POST("/v1/workspaces/{workspace_id}/assignments", {
-        params: { path: { workspace_id: ws } },
-        body: {
+        return {
           ...command(c.command_id),
           goal: c.goal,
           completion_criteria: c.completion_criteria,
           selected_source_refs: refs,
-        },
+        };
+      },
+    );
+    const r = await unwrap(
+      client.POST("/v1/workspaces/{workspace_id}/assignments", {
+        params: { path: { workspace_id: ws } },
+        body,
       }),
     );
     return {
@@ -674,7 +702,7 @@ export const realApi = {
         );
       return {
         revision: toRevision(r.current_revision, r.current_revision_id),
-        artifact: await artifactView(r),
+        artifact: await artifactView(await rawArtifact(ws, id)),
       };
     });
   },
@@ -741,7 +769,7 @@ export const realApi = {
         });
       return {
         proposal: toProposal(p, r, history),
-        artifact: await artifactView(r),
+        artifact: await artifactView(await rawArtifact(ws, id)),
       };
     });
   },
