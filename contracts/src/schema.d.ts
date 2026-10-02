@@ -523,7 +523,7 @@ export interface components {
              * Profile
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1";
             /**
              * Provider Observation
              * @default not_observed
@@ -629,6 +629,31 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** ResponseStepObservation */
+        ResponseStepObservation: {
+            /** Billed Cost Usd */
+            billed_cost_usd?: string | null;
+            /** Conservatively Calculated Cost Usd */
+            conservatively_calculated_cost_usd?: string | null;
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "selection" | "final";
+            /** Reported Input Tokens */
+            reported_input_tokens?: number | null;
+            /** Reported Output Tokens */
+            reported_output_tokens?: number | null;
+            /** Reserved Cost Usd */
+            reserved_cost_usd?: string | null;
+            /** Response Id */
+            response_id?: string | null;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "prepared" | "count_unknown" | "counted" | "outcome_unknown" | "accepted" | "received" | "invalid";
         };
         /** ResponsibilityOutcome */
         ResponsibilityOutcome: {
@@ -739,7 +764,7 @@ export interface components {
              * @default fixture-deterministic-v1
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1";
             /** Proposal Id */
             proposal_id?: string | null;
             /** Provider Session Id */
@@ -771,7 +796,7 @@ export interface components {
             /** Attempt State */
             attempt_state?: ("prepared" | "dispatched" | "outcome_unknown" | "responded" | "reconciled" | "failed") | null;
             /** Blocker */
-            blocker?: ("paused" | "cancelled" | "grant_revoked" | "grant_expired" | "source_changed" | "runtime_unavailable" | "consumer_unavailable" | "lease_expired" | "prepared_attempt" | "provider_outcome_unknown" | "publication_pending" | "unsent_abandoned" | "unresolved_items" | "decision_required" | "decision_stale") | null;
+            blocker?: ("paused" | "cancelled" | "grant_revoked" | "grant_expired" | "source_changed" | "runtime_unavailable" | "consumer_unavailable" | "lease_expired" | "prepared_attempt" | "provider_outcome_unknown" | "provider_response_pending" | "provider_result_rejected" | "publication_pending" | "unsent_abandoned" | "unresolved_items" | "decision_required" | "decision_stale") | null;
             /** Checks */
             checks?: components["schemas"]["OutcomeCheck"][];
             /**
@@ -791,6 +816,8 @@ export interface components {
             question?: components["schemas"]["OutcomeQuestion"] | null;
             /** Reason */
             reason?: string | null;
+            /** Response Steps */
+            response_steps?: components["schemas"]["ResponseStepObservation"][];
             /** Run Id */
             run_id: string;
             /**
@@ -1751,7 +1778,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+                     *         "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -2342,7 +2369,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "5b4ec700d49b2b2debe28efc5230543b861763a37207b73c84f7e61de9019f10",
+                     *       "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

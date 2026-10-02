@@ -1,6 +1,6 @@
 {
   "grant_id": "intake-live-01",
-  "status": "authorized_pending_product_access_and_implementation_gates",
+  "status": "authorized_access_configured_pending_implementation_gates",
   "authority": {
     "actor": "Andrew Lindeberg",
     "channel": "Telegram direct conversation",
@@ -16,8 +16,8 @@
     "service_tier": "default",
     "background": true,
     "store": true,
-    "product_project_id": null,
-    "secure_secret_reference": null
+    "product_project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+    "secure_secret_reference": "file:/home/ubuntu/.config/workagent/intake-openai.key"
   },
   "limits": {
     "cumulative_model_spend_cap_usd": "20.00",
