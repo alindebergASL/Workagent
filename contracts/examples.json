@@ -1,0 +1,574 @@
+{
+  "label": "Illustrative schema examples; not live provider or test evidence",
+  "operations": {
+    "accept_revision": {
+      "request": {
+        "command_id": "command-example",
+        "expected_current_revision_id": "revision-1",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      }
+    },
+    "control_assignment": {
+      "request": {
+        "command_id": "command-example",
+        "expected_work_version": 3,
+        "operation": "pause",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      }
+    },
+    "create_assignment": {
+      "request": {
+        "command_id": "command-example",
+        "completion_criteria": [
+          "A reusable checklist"
+        ],
+        "goal": "Improve private intake review",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "selected_source_refs": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ]
+      },
+      "response": {
+        "assignment": {
+          "artifact_ids": [],
+          "completion_criteria": [
+            "A reusable checklist"
+          ],
+          "goal": "Improve private intake review",
+          "id": "assignment-example",
+          "observed_at": "2026-10-02T00:00:00Z",
+          "owner_id": "local-human",
+          "run_ids": [
+            "run-example"
+          ],
+          "selected_source_refs": [
+            {
+              "external_version": "1",
+              "observed_at": "2026-10-02T00:00:00Z",
+              "source_id": "SG-F2"
+            }
+          ],
+          "state": "queued",
+          "unresolved": [],
+          "work_version": 1,
+          "workspace_id": "workspace-example"
+        },
+        "run": {
+          "access_generation": 1,
+          "artifact_id": null,
+          "assignment_id": "assignment-example",
+          "base_revision_id": null,
+          "budget_units": 1,
+          "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+          "cursor": 0,
+          "fence": 0,
+          "id": "run-example",
+          "instruction": null,
+          "kind": "initial",
+          "lease_expires_at": null,
+          "observed_at": "2026-10-02T00:00:00Z",
+          "principal_id": "local-human",
+          "profile": "fixture-deterministic-v1",
+          "proposal_id": null,
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "state": "queued",
+          "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+          "unresolved": [],
+          "used_units": 0,
+          "workspace_id": "workspace-example"
+        }
+      }
+    },
+    "create_task": {
+      "request": {
+        "command_id": "command-example",
+        "desired_result": "Review checklist",
+        "evidence_refs": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ],
+        "expected_work_version": 3,
+        "owner_id": "local-human",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      }
+    },
+    "dismiss_proposal": {
+      "request": {
+        "command_id": "command-example",
+        "expected_current_revision_id": "revision-2",
+        "request_id": "request-example",
+        "resolution": "keep_current",
+        "schema_version": "workagent/v1"
+      }
+    },
+    "get_artifact": {
+      "response": {
+        "assignment_id": "assignment-example",
+        "current_revision": {
+          "artifact_id": "artifact-example",
+          "author_id": "local-human",
+          "author_kind": "worker",
+          "body": {
+            "blocks": [
+              {
+                "block_id": "next-action",
+                "kind": "checklist",
+                "text": "Record an owner and a next action for the next personal intake case."
+              }
+            ],
+            "title": "Private working plan"
+          },
+          "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+          "created_at": "2026-10-02T00:00:00Z",
+          "id": "revision-1",
+          "parent_revision_id": null,
+          "revision_number": 1,
+          "source_dependencies": [
+            {
+              "external_version": "1",
+              "observed_at": "2026-10-02T00:00:00Z",
+              "source_id": "SG-F2"
+            }
+          ]
+        },
+        "current_revision_id": "revision-1",
+        "id": "artifact-example",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "requested_revision": null,
+        "workspace_id": "workspace-example"
+      }
+    },
+    "get_assignment": {
+      "response": {
+        "artifact_ids": [
+          "artifact-example"
+        ],
+        "completion_criteria": [
+          "A reusable checklist"
+        ],
+        "goal": "Improve private intake review",
+        "id": "assignment-example",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "owner_id": "local-human",
+        "run_ids": [
+          "run-example"
+        ],
+        "selected_source_refs": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ],
+        "state": "ready",
+        "unresolved": [],
+        "work_version": 3,
+        "workspace_id": "workspace-example"
+      }
+    },
+    "get_run": {
+      "response": {
+        "access_generation": 1,
+        "artifact_id": null,
+        "assignment_id": "assignment-example",
+        "base_revision_id": null,
+        "budget_units": 1,
+        "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+        "cursor": 0,
+        "fence": 1,
+        "id": "run-example",
+        "instruction": null,
+        "kind": "initial",
+        "lease_expires_at": "2026-10-02T00:00:00Z",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "principal_id": "local-human",
+        "profile": "fixture-deterministic-v1",
+        "proposal_id": null,
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "state": "running",
+        "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+        "unresolved": [],
+        "used_units": 0,
+        "workspace_id": "workspace-example"
+      }
+    },
+    "human_save": {
+      "request": {
+        "body": {
+          "blocks": [
+            {
+              "block_id": "next-action",
+              "kind": "checklist",
+              "text": "Record an owner and a next action for the next personal intake case."
+            }
+          ],
+          "title": "Private working plan"
+        },
+        "command_id": "command-example",
+        "expected_current_revision_id": "revision-1",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      },
+      "response": {
+        "assignment_id": "assignment-example",
+        "current_revision": {
+          "artifact_id": "artifact-example",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "blocks": [
+              {
+                "block_id": "next-action",
+                "kind": "checklist",
+                "text": "Record an owner and a next action for the next personal intake case."
+              }
+            ],
+            "title": "Private working plan"
+          },
+          "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+          "created_at": "2026-10-02T00:00:00Z",
+          "id": "revision-2",
+          "parent_revision_id": "revision-1",
+          "revision_number": 2,
+          "source_dependencies": [
+            {
+              "external_version": "1",
+              "observed_at": "2026-10-02T00:00:00Z",
+              "source_id": "SG-F2"
+            }
+          ]
+        },
+        "current_revision_id": "revision-2",
+        "id": "artifact-example",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "requested_revision": null,
+        "workspace_id": "workspace-example"
+      }
+    },
+    "request_revision": {
+      "request": {
+        "base_revision_id": "revision-1",
+        "command_id": "command-example",
+        "expected_work_version": 3,
+        "instruction": "Make next action concrete",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      }
+    }
+  },
+  "scenarios": {
+    "artifact": {
+      "assignment_id": "assignment-example",
+      "current_revision": {
+        "artifact_id": "artifact-example",
+        "author_id": "local-human",
+        "author_kind": "worker",
+        "body": {
+          "blocks": [
+            {
+              "block_id": "next-action",
+              "kind": "checklist",
+              "text": "Record an owner and a next action for the next personal intake case."
+            }
+          ],
+          "title": "Private working plan"
+        },
+        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "created_at": "2026-10-02T00:00:00Z",
+        "id": "revision-1",
+        "parent_revision_id": null,
+        "revision_number": 1,
+        "source_dependencies": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ]
+      },
+      "current_revision_id": "revision-1",
+      "id": "artifact-example",
+      "observed_at": "2026-10-02T00:00:00Z",
+      "requested_revision": null,
+      "workspace_id": "workspace-example"
+    },
+    "command_conflict": {
+      "code": "command_conflict",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "fields": [],
+        "proposal_id": null
+      },
+      "message": "This command ID has a different payload.",
+      "next_action": "Use the original payload or a new command ID for a different intent.",
+      "request_id": "request-example"
+    },
+    "creation": {
+      "assignment": {
+        "artifact_ids": [],
+        "completion_criteria": [
+          "A reusable checklist"
+        ],
+        "goal": "Improve private intake review",
+        "id": "assignment-example",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "owner_id": "local-human",
+        "run_ids": [
+          "run-example"
+        ],
+        "selected_source_refs": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ],
+        "state": "queued",
+        "unresolved": [],
+        "work_version": 1,
+        "workspace_id": "workspace-example"
+      },
+      "run": {
+        "access_generation": 1,
+        "artifact_id": null,
+        "assignment_id": "assignment-example",
+        "base_revision_id": null,
+        "budget_units": 1,
+        "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+        "cursor": 0,
+        "fence": 0,
+        "id": "run-example",
+        "instruction": null,
+        "kind": "initial",
+        "lease_expires_at": null,
+        "observed_at": "2026-10-02T00:00:00Z",
+        "principal_id": "local-human",
+        "profile": "fixture-deterministic-v1",
+        "proposal_id": null,
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "state": "queued",
+        "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+        "unresolved": [],
+        "used_units": 0,
+        "workspace_id": "workspace-example"
+      }
+    },
+    "denied": {
+      "code": "not_found_or_not_authorized",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "fields": [],
+        "proposal_id": null
+      },
+      "message": "Resource unavailable.",
+      "next_action": "Check your workspace and current access.",
+      "request_id": "request-example"
+    },
+    "human_save": {
+      "assignment_id": "assignment-example",
+      "current_revision": {
+        "artifact_id": "artifact-example",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "blocks": [
+            {
+              "block_id": "next-action",
+              "kind": "checklist",
+              "text": "Record an owner and a next action for the next personal intake case."
+            }
+          ],
+          "title": "Private working plan"
+        },
+        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "created_at": "2026-10-02T00:00:00Z",
+        "id": "revision-2",
+        "parent_revision_id": "revision-1",
+        "revision_number": 2,
+        "source_dependencies": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ]
+      },
+      "current_revision_id": "revision-2",
+      "id": "artifact-example",
+      "observed_at": "2026-10-02T00:00:00Z",
+      "requested_revision": null,
+      "workspace_id": "workspace-example"
+    },
+    "partial": {
+      "access_generation": 1,
+      "artifact_id": null,
+      "assignment_id": "assignment-example",
+      "base_revision_id": null,
+      "budget_units": 1,
+      "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+      "cursor": 0,
+      "fence": 0,
+      "id": "run-example",
+      "instruction": null,
+      "kind": "initial",
+      "lease_expires_at": null,
+      "observed_at": "2026-10-02T00:00:00Z",
+      "principal_id": "local-human",
+      "profile": "fixture-deterministic-v1",
+      "proposal_id": null,
+      "provider_session_id": null,
+      "provider_turn_id": null,
+      "state": "partial",
+      "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+      "unresolved": [
+        "No usable intake rows supplied; the baseline cannot be quantified."
+      ],
+      "used_units": 0,
+      "workspace_id": "workspace-example"
+    },
+    "progress": {
+      "access_generation": 1,
+      "artifact_id": null,
+      "assignment_id": "assignment-example",
+      "base_revision_id": null,
+      "budget_units": 1,
+      "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+      "cursor": 0,
+      "fence": 1,
+      "id": "run-example",
+      "instruction": null,
+      "kind": "initial",
+      "lease_expires_at": "2026-10-02T00:00:00Z",
+      "observed_at": "2026-10-02T00:00:00Z",
+      "principal_id": "local-human",
+      "profile": "fixture-deterministic-v1",
+      "proposal_id": null,
+      "provider_session_id": null,
+      "provider_turn_id": null,
+      "state": "running",
+      "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+      "unresolved": [],
+      "used_units": 0,
+      "workspace_id": "workspace-example"
+    },
+    "ready": {
+      "artifact_ids": [
+        "artifact-example"
+      ],
+      "completion_criteria": [
+        "A reusable checklist"
+      ],
+      "goal": "Improve private intake review",
+      "id": "assignment-example",
+      "observed_at": "2026-10-02T00:00:00Z",
+      "owner_id": "local-human",
+      "run_ids": [
+        "run-example"
+      ],
+      "selected_source_refs": [
+        {
+          "external_version": "1",
+          "observed_at": "2026-10-02T00:00:00Z",
+          "source_id": "SG-F2"
+        }
+      ],
+      "state": "ready",
+      "unresolved": [],
+      "work_version": 3,
+      "workspace_id": "workspace-example"
+    },
+    "reopen_saved_work": {
+      "assignment_id": "assignment-example",
+      "current_revision": {
+        "artifact_id": "artifact-example",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "blocks": [
+            {
+              "block_id": "next-action",
+              "kind": "checklist",
+              "text": "Record an owner and a next action for the next personal intake case."
+            }
+          ],
+          "title": "Private working plan"
+        },
+        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "created_at": "2026-10-02T00:00:00Z",
+        "id": "revision-2",
+        "parent_revision_id": "revision-1",
+        "revision_number": 2,
+        "source_dependencies": [
+          {
+            "external_version": "1",
+            "observed_at": "2026-10-02T00:00:00Z",
+            "source_id": "SG-F2"
+          }
+        ]
+      },
+      "current_revision_id": "revision-2",
+      "id": "artifact-example",
+      "observed_at": "2026-10-02T00:00:00Z",
+      "requested_revision": null,
+      "workspace_id": "workspace-example"
+    },
+    "stale": {
+      "code": "version_conflict",
+      "details": {
+        "current_revision_id": "revision-2",
+        "current_version": null,
+        "fields": [],
+        "proposal_id": "proposal-example"
+      },
+      "message": "The current version changed.",
+      "next_action": "Refresh current work and review a new proposal against that base.",
+      "request_id": "request-example"
+    },
+    "stale_proposal": {
+      "accepted_revision_id": null,
+      "artifact_id": "artifact-example",
+      "assignment_id": "assignment-example",
+      "base_revision_id": "revision-1",
+      "base_work_version": 1,
+      "body": {
+        "blocks": [
+          {
+            "block_id": "next-action",
+            "kind": "checklist",
+            "text": "Record an owner and a next action for the next personal intake case."
+          }
+        ],
+        "title": "Private working plan"
+      },
+      "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+      "created_at": "2026-10-02T00:00:00Z",
+      "id": "proposal-example",
+      "reason": "Make the next action concrete",
+      "source_dependencies": [
+        {
+          "external_version": "1",
+          "observed_at": "2026-10-02T00:00:00Z",
+          "source_id": "SG-F2"
+        }
+      ],
+      "status": "pending",
+      "workspace_id": "workspace-example"
+    }
+  }
+}
