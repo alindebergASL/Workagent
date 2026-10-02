@@ -47,6 +47,8 @@ def environment(path):
                 'WORKAGENT_BACKEND_URL': 'http://127.0.0.1:8000', 'NEXT_PUBLIC_WORKAGENT_API_BASE': '/api/domain'})
     if fresh:
         run([PYTHON, '-m', 'workagent.fixture', 'seed', '--records', ROOT / 'fixtures/actor/solo-v0.1/initial_records.json'], ROOT / 'backend', env)
+    # Administrative credential belongs only to provisioning/explicit operator CLI.
+    env.pop("MIGRATION_DATABASE_URL", None)
     return env
 
 

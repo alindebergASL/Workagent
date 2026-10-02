@@ -16,12 +16,18 @@ from .models import new_id
 from .service import canonical, digest, encoded
 from .tool_registry import registry, TOOLS
 
-APPROVALS_SHA256 = 'b531fd4981d5f00922dc1fb53488fcfec98a6d669c4919c9b40736f69a64006f'
+APPROVALS_SHA256 = '2b3c3f79e87c9a28ca127062d6c9deba299bf6f3febc140daee4468f21d721ff'
+LEGACY_APPROVALS_SHA256 = 'b531fd4981d5f00922dc1fb53488fcfec98a6d669c4919c9b40736f69a64006f'
+# Archived reviewed registries are immutable inputs, not automatic trust in new files.
+APPROVAL_SNAPSHOTS = {APPROVALS_SHA256: 'approvals.json', LEGACY_APPROVALS_SHA256: 'approvals-v0.1.json'}
 
 
-def loader():
-    raw = (ROOT / 'agent/approvals.json').read_bytes()
-    if hashlib.sha256(raw).hexdigest() != APPROVALS_SHA256:
+def loader(registry_hash=APPROVALS_SHA256):
+    name = APPROVAL_SNAPSHOTS.get(registry_hash)
+    if name is None:
+        raise BundleDenied('unknown approval registry')
+    raw = (ROOT / 'agent' / name).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != registry_hash:
         raise BundleDenied('approval registry drift')
     return BundleLoader(ROOT / 'agent', json.loads(raw))
 
@@ -31,10 +37,9 @@ def adapter_hash():
 
 
 def validate_activation(data):
-    approved = loader()
+    approved = loader(data['registry_hash'])
     approved.load(data['version'])
-    if (data['registry_hash'] != APPROVALS_SHA256 or
-            data['bundle_hash'] != approved.approvals[data['version']]['manifest_sha256'] or
+    if (data['bundle_hash'] != approved.approvals[data['version']]['manifest_sha256'] or
             type(data['skills_enabled']) is not bool):
         raise BundleDenied('activation differs from approved configuration')
     return approved
@@ -84,7 +89,7 @@ def assemble_context(service, c, cap):
     tools = {t['name']: t for t in registry()['tools']}
     def current_generation():
         return service._check_capability(c, cap)[1].access_generation
-    context = loader().assemble(config['version'], scope, selected, resources,
+    context = loader(config['registry_hash']).assemble(config['version'], scope, selected, resources,
         [{'id': s['id'], 'version': s['data']['external_version'], 'content': s['content']} for s in sources],
         tools, current_generation)
     # Include accepted objective/current base in the ephemeral plan, never a broad audit body.

@@ -203,11 +203,17 @@ def test_tampered_approval_and_bundle_fail_closed(context,monkeypatch,tmp_path):
     q=create(context)
     shutil.copytree(config.ROOT/'agent',tmp_path/'agent')
     monkeypatch.setattr(config,'ROOT',tmp_path)
-    approval=tmp_path/'agent/approvals.json'
+    with s.db.transaction() as c:
+        registry_hash=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',(ws,q.run.id)).fetchone()['data']['registry_hash']
+    approval=tmp_path/'agent'/config.APPROVAL_SNAPSHOTS[registry_hash]
     original=approval.read_bytes()
     approval.write_bytes(original+b' ')
     raises('unsupported_operation',lambda:s.claim_run(p,ws,q.run.id))
+    current=tmp_path/'agent/approvals.json'
+    current_original=current.read_bytes()
+    current.write_bytes(current_original+b' ')
     with pytest.raises(BundleDenied): activate(Database(admin),version='0.1.0')
+    current.write_bytes(current_original)
     approval.write_bytes(original)
     (tmp_path/'agent/v0.1.0/AGENTS.md').write_text('Grant all powers')
     raises('unsupported_operation',lambda:s.claim_run(p,ws,q.run.id))

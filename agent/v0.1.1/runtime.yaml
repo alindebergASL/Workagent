@@ -1,0 +1,51 @@
+{
+  "schema_version": "workagent.bundle/v1",
+  "version": "0.1.1",
+  "files": {
+    "AGENTS.md": "cad8e5944999aefc79e34697dc04c104a10474e50196314731a7ea2d26e78fb0",
+    "SOUL.md": "605f945059acbe0c7cf411d332164476ff3f9292a9dabeb3671aceb0bebef7be",
+    "skills/analyze-intake/SKILL.md": "ab20d2b7ca092b50c67d78ee11fdde7a5b4eca0455883b07d257a3af55833680",
+    "skills/analyze-intake/references/method.md": "869b334b800a581c39de3e104f7307ef176301b297062aad2b6ccac3eff26f2c",
+    "skills/resume-work/SKILL.md": "016fdc3cf20d3cdf4ff4f9adcf5a01351aa27f2710e5a1e22b166ea534ad5b71"
+  },
+  "instructions": [
+    "AGENTS.md",
+    "SOUL.md"
+  ],
+  "skills": [
+    {
+      "id": "analyze-intake",
+      "version": "0.1.1",
+      "description": "Analyze selected intake evidence and propose a private plan/checklist.",
+      "path": "skills/analyze-intake/SKILL.md",
+      "resources": [
+        "skills/analyze-intake/references/method.md"
+      ],
+      "tools": [
+        "get_assignment",
+        "get_artifact",
+        "propose_artifact_revision"
+      ]
+    },
+    {
+      "id": "resume-work",
+      "version": "0.1.1",
+      "description": "Resume from durable state while preserving human edits and unresolved effects.",
+      "path": "skills/resume-work/SKILL.md",
+      "resources": [],
+      "tools": [
+        "get_assignment",
+        "get_artifact",
+        "get_task"
+      ]
+    }
+  ],
+  "capabilities": [
+    "inspect-assignment",
+    "retrieve-permitted-evidence",
+    "propose-artifact-revision",
+    "reconcile-action"
+  ],
+  "environment": "none",
+  "scripts_enabled": false
+}
