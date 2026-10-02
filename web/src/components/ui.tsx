@@ -129,13 +129,13 @@ export function Drawer({
     <dialog
       ref={ref}
       className="drawer"
-      aria-labelledby="drawer-title"
+      aria-label={title}
       onClick={(e) => {
         if (e.target === ref.current) ref.current?.close();
       }}
     >
       <div className="drawer-head">
-        <h2 id="drawer-title">{title}</h2>
+        <h2>{title}</h2>
         <button
           type="button"
           className="btn btn-quiet btn-sm"

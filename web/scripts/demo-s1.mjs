@@ -31,6 +31,7 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 
 const env = {
   ...process.env,
+  NEXT_PUBLIC_WORKAGENT_API_BASE: "/api/mock",
   WORKAGENT_MOCK_STATE_DIR: stateDir,
   WORKAGENT_MOCK_STAGE_MS: "700",
   WORKAGENT_MOCK_PROPOSAL_MS: "600000",

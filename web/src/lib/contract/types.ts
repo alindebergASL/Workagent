@@ -33,7 +33,9 @@ export type ErrorCode =
   | "command_conflict"
   // adapter-level codes (documented, not domain semantics)
   | "unauthenticated"
-  | "invalid_request";
+  | "invalid_request"
+  | "validation_error"
+  | "internal_error";
 
 export interface ErrorEnvelope {
   error: {
@@ -154,6 +156,8 @@ export interface Block {
   text: string;
   source_ids?: string[];
   checked?: boolean;
+  /** Canonical kind retained through editing; display kind is presentation only. */
+  backend_kind?: "heading" | "paragraph" | "checklist" | "protected_note";
 }
 
 export interface Author {

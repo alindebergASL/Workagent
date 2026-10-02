@@ -50,11 +50,24 @@ function errorResponse(err: unknown, requestId: string): NextResponse {
 }
 
 function controlEnabled(): boolean {
-  return process.env["WORKAGENT_MOCK_CONTROL"] !== "0";
+  return process.env["WORKAGENT_MOCK_CONTROL"] === "1";
 }
 
 async function handle(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
   const requestId = req.headers.get("x-request-id") ?? randomUUID();
+  if (process.env["NEXT_PUBLIC_WORKAGENT_API_BASE"] !== "/api/mock") {
+    return json(
+      {
+        error: {
+          code: "not_found_or_not_authorized",
+          message: "This endpoint is unavailable.",
+          request_id: requestId,
+        },
+      },
+      404,
+      requestId,
+    );
+  }
   const { path } = await ctx.params;
   const method = req.method;
   const url = new URL(req.url);

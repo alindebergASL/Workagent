@@ -4,8 +4,7 @@
  * sha256 da744323…) and exposes them as selectable sources. No events,
  * expected outcomes or evaluator material are read here.
  */
-import fs from "node:fs";
-import path from "node:path";
+import records from "../../../../fixtures/actor/solo-v0.1/initial_records.json";
 import type { SourceDetail } from "@/lib/contract/types";
 
 export interface FixtureRecord {
@@ -16,23 +15,9 @@ export interface FixtureRecord {
   content: Record<string, unknown>;
 }
 
-const FIXTURE_FILE =
-  process.env["WORKAGENT_FIXTURE_FILE"] ??
-  path.resolve(
-    process.cwd(),
-    "..",
-    "fixtures",
-    "actor",
-    "solo-v0.1",
-    "initial_records.json",
-  );
-
-let cache: FixtureRecord[] | null = null;
-
 export function loadInitialRecords(): FixtureRecord[] {
-  if (cache) return cache;
-  cache = JSON.parse(fs.readFileSync(FIXTURE_FILE, "utf8")) as FixtureRecord[];
-  return cache;
+  // Static actor-only import: build tracing cannot sweep private backend env/logs.
+  return records as FixtureRecord[];
 }
 
 export function recordById(id: string): FixtureRecord | undefined {

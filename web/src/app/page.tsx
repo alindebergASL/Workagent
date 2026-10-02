@@ -75,7 +75,9 @@ export default function WorkHome() {
         command_id: commandId.current,
         goal: request.trim(),
         selected_source_refs: refs,
-        completion_criteria: [],
+        completion_criteria: [
+          "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.",
+        ],
       });
       commandId.current = null;
       router.push(`/assignments/${result.assignment_id}`);
@@ -164,6 +166,12 @@ export default function WorkHome() {
               disabled={submitting}
               required
             />
+            <p className="hint">
+              Completion: a private plan and reusable checklist, preserving
+              human notes and showing evidence and uncertainty. This local mode
+              computes the intake fixture deterministically; it is not a live
+              model run.
+            </p>
             {mode === "mock" ? (
               <div className="hint">
                 Private pilot:{" "}
