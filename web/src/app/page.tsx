@@ -1,132 +1,47 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
-import { api, newCommandId } from "@/lib/client/api";
-import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
-import { ApiError } from "@/lib/contract/errors";
-import type {
-  AssignmentSummary,
-  SourceDetail,
-  CreateAssignmentCommand,
-} from "@/lib/contract/types";
-import { workAttention } from "@/lib/work-state";
-import { formatTime } from "@/lib/time";
-import { assignmentStatus, ErrorNotice, StatusBadge } from "@/components/ui";
+import { useWorkOverview } from "@/lib/client/overview";
+import {
+  completedSummary,
+  isCompleted,
+  isWorking,
+  phaseOf,
+  shortTitle,
+  workAttention,
+  type WorkItem,
+} from "@/lib/work-state";
+import { Composer } from "@/components/Composer";
+import { ErrorNotice } from "@/components/ui";
+import { WorkRow } from "@/components/WorkRow";
 
-const SAMPLE_REQUEST =
-  "Start with my own intake log and notes. Help me decide one change to test, produce a reusable review checklist and give me a private working plan. I should get value even if I collaborate with nobody this week.";
-const SAMPLE_SOURCE_IDS = ["SG-F2", "SG-F3", "SG-F7"];
+function lede(items: WorkItem[]): string {
+  const phases = items.map(phaseOf);
+  if (phases.includes("decision"))
+    return "One change is waiting for your decision. Or we can start something new.";
+  if (phases.includes("blocked"))
+    return "Something needs you before it can continue.";
+  const working = items.find(isWorking);
+  if (working)
+    return "I’m preparing your work now. You can hand over something else meanwhile.";
+  const done = items.find(isCompleted);
+  if (done)
+    return `${completedSummary(done)} Pick it up, or start something new.`;
+  return "Hand over something you’d like finished. I’ll work from the records you choose.";
+}
 
-export default function WorkHome() {
-  const {
-    workspace,
-    loading: wsLoading,
-    error: wsError,
-    zone,
-    mode,
-  } = useWorkspace();
-  const router = useRouter();
+export default function AgentHome() {
+  const { workspace, error: wsError } = useWorkspace();
   const wsId = workspace?.id ?? null;
-
-  const sources = useResource<SourceDetail[]>(
-    wsId ? `sources:${wsId}` : null,
-    async (signal) => (await api.listSources(wsId!, signal)).items,
-  );
-  const assignments = useResource<AssignmentSummary[]>(
-    wsId ? `assignments:${wsId}` : null,
-    async (signal) => (await api.listAssignments(wsId!, signal)).items,
-    {
-      pollMs: 3000,
-      shouldPoll: (list) =>
-        Boolean(
-          list?.some((a) => a.state === "queued" || a.state === "working"),
-        ),
-    },
-  );
-
-  const [request, setRequest] = useState("");
-  const [selected, setSelected] = useState<string[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<unknown>(null);
-  const commandId = useRef<{
-    workspace: string;
-    command: CreateAssignmentCommand;
-  } | null>(null);
-  const locked = submitting || Boolean(commandId.current);
-  const requestRef = useRef<HTMLTextAreaElement>(null);
-
-  const canStart =
-    request.trim().length > 0 &&
-    selected.length > 0 &&
-    !submitting &&
-    Boolean(wsId);
-
-  const start = useCallback(async () => {
-    if (!wsId || !canStart) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      if (commandId.current && commandId.current.workspace !== wsId)
-        throw new ApiError({
-          code: "transport",
-          status: 0,
-          message: "Return to the original Space to reconcile this request.",
-        });
-      if (!commandId.current) {
-        const refs = selected.map((id) => {
-          const source = sources.data?.find((x) => x.id === id);
-          if (!source)
-            throw new ApiError({
-              code: "source_changed",
-              status: 409,
-              message: "Refresh the selected sources before delegating.",
-            });
-          return { id, version: source.version };
-        });
-        commandId.current = {
-          workspace: wsId,
-          command: {
-            command_id: newCommandId(),
-            goal: request.trim(),
-            selected_source_refs: refs,
-            completion_criteria: [
-              "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.",
-            ],
-          },
-        };
-      }
-      const result = await api.createAssignment(
-        commandId.current.workspace,
-        commandId.current.command,
-      );
-      commandId.current = null;
-      router.push(`/assignments/${result.assignment_id}`);
-    } catch (e) {
-      setSubmitError(e);
-      if (!(e instanceof ApiError && e.isAmbiguousWrite))
-        commandId.current = null;
-      setSubmitting(false);
-    }
-  }, [wsId, canStart, selected, sources.data, request, router]);
-
-  const useSample = () => {
-    setRequest(SAMPLE_REQUEST);
-    setSelected(
-      SAMPLE_SOURCE_IDS.filter((id) => sources.data?.some((s) => s.id === id)),
-    );
-    requestRef.current?.focus();
-  };
-
-  const toggle = (id: string) =>
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-
-  const list = assignments.data ?? [];
-  const hasAssignments = list.length > 0;
-  const attention = workAttention(list);
+  const overview = useWorkOverview(wsId);
+  const items = overview.data ?? [];
+  const attention = workAttention(items);
+  const working = items.filter(isWorking);
+  const completed = items.filter((i) => {
+    const p = phaseOf(i);
+    return p === "completed" || p === "stopped";
+  });
+  const newest = completed[0];
 
   if (wsError) {
     return (
@@ -142,195 +57,120 @@ export default function WorkHome() {
   }
 
   return (
-    <div className="agent-home">
-      <section className="stack-lg stack" aria-labelledby="home-title">
+    <div className="agent-col">
+      <p className="context-line">
+        <span className="dot" aria-hidden="true" />
+        Your agent · {workspace?.name ?? "Personal workspace"}
+      </p>
+      <section className="agent-intro" aria-labelledby="home-title">
         <div className="agent-presence" aria-hidden="true" />
-        <div className="stack">
-          <div className="eyebrow">
-            {workspace?.name ?? "Your workspace"} ·{" "}
-            {workspace?.scope_label ?? "Private"}
-          </div>
-          <h1 id="home-title">What would you like to move forward?</h1>
-          <p className="muted">
-            Bring the work here. Continue something underway, or hand over a new
-            request.
-          </p>
-        </div>
-        {attention ? (
-          <section className="agent-initiative" aria-live="polite">
-            <h2>{attention.title}</h2>
-            <p>
-              {attention.assignment.latest_result || attention.assignment.title}
-            </p>
-            {attention.assignment.next_step ? (
-              <p className="small muted">{attention.assignment.next_step}</p>
-            ) : null}
-            <Link className="btn" href={attention.href}>
-              {attention.action}
-            </Link>
-          </section>
-        ) : null}
-        <form
-          className="agent-composer stack"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void start();
-          }}
-        >
-          <label className="field-label" htmlFor="request">
-            Tell me what you need
-          </label>
-          <textarea
-            id="request"
-            ref={requestRef}
-            value={request}
-            onChange={(event) => setRequest(event.target.value)}
-            placeholder="What would you like help carrying forward?"
-            disabled={locked}
-            required
-          />
-          <details className="agent-context">
-            <summary>
-              Context ·{" "}
-              {selected.length
-                ? `${selected.length} sources selected`
-                : "Choose sources"}
-            </summary>
-            <fieldset
-              className="field"
-              style={{ border: 0, padding: 0, marginTop: 16 }}
-            >
-              <legend className="field-label">Records this work may use</legend>
-              {sources.error ? (
-                <ErrorNotice
-                  error={sources.error}
-                  actions={
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => void sources.refresh()}
-                    >
-                      Try again
-                    </button>
-                  }
-                />
-              ) : null}
-              {sources.loading ? (
-                <p role="status">Loading permitted sources…</p>
-              ) : null}
-              <div className="chips">
-                {sources.data?.map((source) => (
-                  <label
-                    className="chip"
-                    key={source.id}
-                    data-selected={
-                      selected.includes(source.id) ? "true" : "false"
-                    }
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(source.id)}
-                      onChange={() => toggle(source.id)}
-                      disabled={locked}
-                    />
-                    <span>{source.title}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          </details>
-          {submitError ? (
-            <ErrorNotice
-              error={submitError}
-              actions={
-                <button
-                  type="button"
-                  className="btn"
-                  disabled={!canStart}
-                  onClick={() => void start()}
-                >
-                  Retry the same request
-                </button>
-              }
-            />
-          ) : null}
-          <div className="row row-between">
-            <button
-              type="button"
-              className="btn btn-quiet"
-              onClick={useSample}
-              disabled={!sources.data?.length || locked}
-            >
-              Try the intake example
-            </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!canStart || wsLoading}
-            >
-              {submitting
-                ? "Starting…"
-                : commandId.current
-                  ? "Retry same request"
-                  : "Start work"}
-            </button>
-          </div>
-          <p className="hint">
-            {mode === "mock" ? "Mock service" : "Connected local service"} ·
-            This build prepares an intake plan and checklist using deterministic
-            sample data. General-purpose live agent execution is not connected
-            yet.
-          </p>
-        </form>
+        <h1 id="home-title">Good to see you.</h1>
+        <p className="lede" aria-live="polite">
+          {overview.loading && !overview.data
+            ? "Checking on your work…"
+            : lede(items)}
+        </p>
       </section>
-      <details className="agent-handling" open={undefined}>
-        <summary>
-          I’m handling ·{" "}
-          {
-            list.filter(
-              (item) => item.state === "queued" || item.state === "working",
-            ).length
-          }{" "}
-          in progress
-        </summary>
-        {assignments.reconnecting ? (
-          <p role="status">Reconnecting. Last observed work is shown.</p>
-        ) : null}
-        {assignments.error ? <ErrorNotice error={assignments.error} /> : null}
-        {assignments.loading && !assignments.data ? (
-          <p role="status">Loading your work…</p>
-        ) : null}
-        {!hasAssignments && !assignments.loading ? (
-          <p className="muted">Your delegated work will appear here.</p>
-        ) : null}
-        <ul className="list">
-          {list.map((item) => {
-            const status = assignmentStatus(item.state, item.stage);
-            return (
-              <li className="assignment-item" key={item.id}>
-                <div className="stack">
-                  <Link href={`/assignments/${item.id}`}>
-                    <h3>{item.title}</h3>
-                  </Link>
-                  <div className="meta">
-                    <StatusBadge label={status.label} tone={status.tone} />
-                    <span>Updated {formatTime(item.updated_at, zone)}</span>
-                  </div>
-                  {item.latest_result ? (
-                    <p className="small">{item.latest_result}</p>
-                  ) : null}
-                  {item.next_step ? (
-                    <p className="small muted">{item.next_step}</p>
-                  ) : null}
-                </div>
-                <Link className="btn btn-sm" href={`/assignments/${item.id}`}>
-                  Open work
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </details>
+
+      {attention ? (
+        <section className="decision-card" aria-labelledby="decision-title">
+          <p className="eyebrow-caps">{attention.eyebrow}</p>
+          <h2 id="decision-title">{attention.title}</h2>
+          <p>{attention.body}</p>
+          <p className="small muted clamp-2">
+            {shortTitle(attention.item.summary.title)}
+          </p>
+          <Link className="btn btn-on-soft" href={attention.href}>
+            {attention.action}
+          </Link>
+        </section>
+      ) : null}
+
+      <Composer wsId={wsId} />
+
+      {overview.error && !overview.data ? (
+        <ErrorNotice
+          error={overview.error}
+          actions={
+            <button
+              className="btn btn-sm"
+              onClick={() => void overview.refresh()}
+            >
+              Try again
+            </button>
+          }
+        />
+      ) : null}
+
+      {items.length || overview.reconnecting ? (
+        <div className="since">
+          {overview.reconnecting ? (
+            <p className="hint" role="status">
+              Reconnecting. Showing the work last observed.
+            </p>
+          ) : null}
+          {completed.length ? (
+            <details
+              className="since-group"
+              open={!attention && !working.length}
+            >
+              <summary>
+                <span className="dot dot-done" aria-hidden="true" />
+                Approved revisions / stopped · {completed.length}
+                {newest ? (
+                  <span className="since-peek clamp-1">
+                    {completedSummary(newest)}
+                  </span>
+                ) : null}
+              </summary>
+              <ul className="work-list">
+                {completed.map((item) => (
+                  <WorkRow key={item.summary.id} item={item} />
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          {working.length ? (
+            <details className="since-group" open>
+              <summary>
+                <span className="dot dot-live" aria-hidden="true" />
+                I’m handling · {working.length}
+              </summary>
+              <ul className="work-list">
+                {working.map((item) => (
+                  <WorkRow key={item.summary.id} item={item} />
+                ))}
+              </ul>
+            </details>
+          ) : null}
+          {items.filter(
+            (i) =>
+              phaseOf(i) === "decision" ||
+              phaseOf(i) === "blocked" ||
+              phaseOf(i) === "prepared",
+          ).length > (attention ? 1 : 0) ? (
+            <details className="since-group">
+              <summary>
+                <span className="dot dot-attn" aria-hidden="true" />
+                Also waiting on you
+              </summary>
+              <ul className="work-list">
+                {items
+                  .filter(
+                    (i) =>
+                      phaseOf(i) === "decision" ||
+                      phaseOf(i) === "blocked" ||
+                      phaseOf(i) === "prepared",
+                  )
+                  .filter((i) => i !== attention?.item)
+                  .map((item) => (
+                    <WorkRow key={item.summary.id} item={item} />
+                  ))}
+              </ul>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

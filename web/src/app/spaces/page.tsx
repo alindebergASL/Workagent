@@ -1,75 +1,54 @@
 "use client";
 import Link from "next/link";
-import { api } from "@/lib/client/api";
 import { useWorkspace } from "@/lib/client/workspace";
-import { useResource } from "@/lib/client/hooks";
-import type { AssignmentSummary } from "@/lib/contract/types";
-import { ErrorNotice, StatusBadge, assignmentStatus } from "@/components/ui";
+import { ErrorNotice } from "@/components/ui";
 
 export default function SpacesPage() {
-  const { workspace, error } = useWorkspace();
-  const id = workspace?.id;
-  const work = useResource<AssignmentSummary[]>(
-    id ? `spaces:${id}` : null,
-    async (signal) => (await api.listAssignments(id!, signal)).items,
-    {
-      pollMs: 3000,
-      shouldPoll: (items) =>
-        Boolean(
-          items?.some(
-            (item) => item.state === "queued" || item.state === "working",
-          ),
-        ),
-    },
-  );
+  const { workspaces, loading, error } = useWorkspace();
   if (error) return <ErrorNotice error={error} />;
   return (
-    <section className="stack-lg stack">
-      <header className="stack">
-        <div className="eyebrow">Spaces</div>
-        <h1>{workspace?.name ?? "Loading your space…"}</h1>
-        <p className="muted">
-          Your work, its context, and the decisions that carry it forward.
-        </p>
-      </header>
-      <p className="small muted">
-        {workspace?.scope_label ?? "Private"} · This installation supports one
-        personal workspace. Shared Spaces and invitations are not enabled.
+    <section
+      className="page-wide stack-lg stack"
+      aria-labelledby="spaces-title"
+    >
+      <p className="context-line">
+        <span className="dot" aria-hidden="true" />
+        Spaces
       </p>
-      <Link className="btn btn-primary" href="/">
-        Start something with your agent
-      </Link>
-      {work.error ? <ErrorNotice error={work.error} /> : null}
-      {work.loading && !work.data ? (
-        <p role="status">Loading saved work…</p>
-      ) : null}
-      {work.data?.length === 0 ? (
-        <p className="muted">
-          Your first request will create a working area here.
-        </p>
-      ) : null}
-      <div className="space-work-grid">
-        {work.data?.map((item) => {
-          const status = assignmentStatus(item.state, item.stage);
-          return (
-            <Link
-              className="space-work"
-              href={`/assignments/${item.id}`}
-              key={item.id}
-            >
-              <StatusBadge label={status.label} tone={status.tone} />
-              <h2>{item.title}</h2>
-              <p>
-                {item.latest_result ??
-                  "Open this responsibility to inspect its progress and working materials."}
-              </p>
-              {item.next_step ? (
-                <p className="small muted">{item.next_step}</p>
-              ) : null}
-            </Link>
-          );
-        })}
+      <header className="page-head">
+        <div className="stack">
+          <h1 id="spaces-title">Spaces</h1>
+          <p className="lede">
+            A place for the work, and the records it needs.
+          </p>
+        </div>
+      </header>
+      {loading ? <p role="status">Loading your spaces…</p> : null}
+      <div className="space-grid">
+        {workspaces.map((w) => (
+          <Link
+            key={w.id}
+            className="space-card"
+            href={`/spaces/${encodeURIComponent(w.id)}`}
+          >
+            <span
+              className="space-banner"
+              data-kind={w.kind}
+              aria-hidden="true"
+            />
+            <span className="space-card-body">
+              <span className="space-card-title">{w.name}</span>
+              <span className="small muted">
+                {w.kind === "personal" ? "Private · Your own work" : "Shared"}
+              </span>
+            </span>
+          </Link>
+        ))}
       </div>
+      <p className="hint">
+        This build has one private space. Shared spaces and invitations are not
+        available yet.
+      </p>
     </section>
   );
 }

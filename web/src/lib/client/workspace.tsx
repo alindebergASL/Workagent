@@ -12,7 +12,10 @@ import { ApiError } from "@/lib/contract/errors";
 import type { Workspace } from "@/lib/contract/types";
 
 export interface WorkspaceContextValue {
+  /** The personal workspace: where new work starts by default. */
   workspace: Workspace | null;
+  /** Every workspace the server says this person can open (Spaces). */
+  workspaces: Workspace[];
   loading: boolean;
   error: ApiError | null;
   zone: string;
@@ -33,6 +36,7 @@ function localZone(): string {
 
 export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
   const [zoneChoice, setZoneChoiceState] = useState<"utc" | "local">("utc");
@@ -54,6 +58,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         const personal =
           r.items.find((w) => w.kind === "personal") ?? r.items[0] ?? null;
         setWorkspace(personal);
+        setWorkspaces(r.items);
         setLoading(false);
       })
       .catch((e: unknown) => {
@@ -75,6 +80,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const value = useMemo<WorkspaceContextValue>(
     () => ({
       workspace,
+      workspaces,
       loading,
       error,
       zone:
@@ -92,7 +98,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       },
       mode: API_MODE,
     }),
-    [workspace, loading, error, zoneChoice],
+    [workspace, workspaces, loading, error, zoneChoice],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

@@ -9,14 +9,16 @@ import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
 import type {
   Artifact,
+  ArtifactHistory,
   Block,
   Revision,
   SaveRevisionCommand,
   RequestRevisionCommand,
   ProposalDecisionCommand,
 } from "@/lib/contract/types";
-import { blocksEqual, diffBlocks } from "@/lib/diff";
+import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
+import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
 import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
@@ -35,6 +37,11 @@ interface SaveOutcome {
   error?: unknown;
   newerCurrent?: Revision | null;
   at?: string;
+}
+
+/** Changes only when the accepted revision changes, so polling doesn't refetch history. */
+function historyKeyForDiff(a: Artifact): string {
+  return a.accepted_revision?.parent_revision_id ?? "root";
 }
 
 const KIND_LABEL: Record<Artifact["kind"], string> = {
@@ -68,6 +75,13 @@ export default function ArtifactPage() {
     },
   );
   const art = res.data;
+  // Parent revision bodies for "what changed"; refreshed whenever the accepted revision moves.
+  const history = useResource<ArtifactHistory>(
+    wsId && res.data?.accepted_revision_id
+      ? `history:${wsId}:${artifactId}:${res.data.accepted_revision_id}:${historyKeyForDiff(res.data)}`
+      : null,
+    (signal) => api.getArtifactHistory(wsId!, artifactId, signal),
+  );
   const current = art?.accepted_revision ?? null;
   const proposal = art?.pending_proposal ?? null;
   const isHistorical = Boolean(
@@ -88,7 +102,9 @@ export default function ArtifactPage() {
   const [sourceHighlight, setSourceHighlight] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyKey, setHistoryKey] = useState("0");
-  const [revisionAsk, setRevisionAsk] = useState(false);
+  const [agentFocus, setAgentFocus] = useState(0);
+  const [workFocus, setWorkFocus] = useState(0);
+  const instructionRef = useRef<HTMLTextAreaElement>(null);
   const [instruction, setInstruction] = useState("");
   const [requestState, setRequestState] = useState<{
     busy: boolean;
@@ -412,7 +428,7 @@ export default function ArtifactPage() {
       revisionCommand.current = null;
       setRequestState({ busy: false, done: true });
       setInstruction("");
-      setRevisionAsk(false);
+      setWorkFocus((n) => n + 1); // Phones: back to the document; the request waits for review.
       await res.refresh();
       announce(
         "Revision requested. You can keep editing; the proposal will wait for your review.",
@@ -444,28 +460,31 @@ export default function ArtifactPage() {
 
   // ---------- rendering ----------
 
+  const back = (
+    <Link className="back-link" href={`/assignments/${assignmentId}`}>
+      ← Back to the assignment
+    </Link>
+  );
+
   if (res.error && !art) {
     return (
-      <>
-        <nav className="crumbs" aria-label="Breadcrumb">
-          <Link href="/">Work Home</Link>
-          <span aria-hidden="true">/</span>
-          <Link href={`/assignments/${assignmentId}`}>Assignment</Link>
-        </nav>
+      <div className="agent-col">
+        {back}
         <ErrorNotice
           error={res.error}
           actions={
             <Link className="btn btn-sm" href="/">
-              Work Home
+              Back to agent
             </Link>
           }
         />
-      </>
+      </div>
     );
   }
   if (!art) {
     return (
-      <div className="stack" aria-busy="true">
+      <div className="agent-col" aria-busy="true">
+        {back}
         <div className="skeleton" style={{ width: "30%" }} />
         <div className="skeleton" style={{ width: "60%", height: "2em" }} />
       </div>
@@ -481,6 +500,7 @@ export default function ArtifactPage() {
     proposal &&
     (proposal.status === "conflicted" || proposal.status === "proposed"),
   );
+  const generating = proposal?.status === "generating";
 
   const saveStateText = (() => {
     switch (save.kind) {
@@ -496,28 +516,30 @@ export default function ArtifactPage() {
     }
   })();
 
+  // An accepted proposal is recorded as the person's decision; keep where its text came from.
+  const appliedFrom = current
+    ? (history.data?.proposals.find(
+        (p) =>
+          p.status === "accepted" && p.resolved_by_revision_id === current.id,
+      ) ?? null)
+    : null;
+
+  const authorText = appliedFrom
+    ? "Applied by you from Workagent’s proposal"
+    : current
+      ? current.author.kind === "human"
+        ? `Edited by ${current.author.name === "You" ? "you" : current.author.name}`
+        : `Prepared by the ${EXECUTION.worker}`
+      : "Not prepared yet";
+
   const header = (
-    <header className="stack">
-      <div className="eyebrow">
-        <span>{KIND_LABEL[art.kind]}</span>
-        <span aria-hidden="true">·</span>
-        <span>{workspace?.scope_label ?? "Private"}</span>
-        <span aria-hidden="true">·</span>
-        <span>
-          {current
-            ? current.author.kind === "human"
-              ? `Edited by ${current.author.name}`
-              : "Drafted by Workagent"
-            : "No author yet"}
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>
-          Observed {formatTime(res.observedAt ?? art.observed_at, zone)}
-        </span>
-        {res.reconnecting ? (
-          <StatusBadge label="Reconnecting…" tone="status-attention" />
-        ) : null}
-      </div>
+    <header className="doc-head">
+      {back}
+      <p className="eyebrow">
+        {KIND_LABEL[art.kind]} · {workspace?.name ?? "Private"} · {authorText} ·
+        observed {formatTime(res.observedAt ?? art.observed_at, zone)}
+        {res.reconnecting ? " · reconnecting…" : ""}
+      </p>
       <h1>{art.title}</h1>
       <div className="row row-between">
         <div className="row">
@@ -530,7 +552,7 @@ export default function ArtifactPage() {
           <button
             ref={historyBtn}
             type="button"
-            className="btn btn-sm"
+            className="btn btn-sm btn-quiet-line"
             onClick={() => setHistoryOpen(true)}
           >
             History
@@ -538,7 +560,7 @@ export default function ArtifactPage() {
           <button
             ref={sourcesBtn}
             type="button"
-            className="btn btn-sm"
+            className="btn btn-sm btn-quiet-line"
             onClick={() => openSource("")}
           >
             Sources
@@ -546,16 +568,6 @@ export default function ArtifactPage() {
         </div>
       </div>
     </header>
-  );
-
-  const crumbs = (
-    <nav className="crumbs" aria-label="Breadcrumb">
-      <Link href="/">Work Home</Link>
-      <span aria-hidden="true">/</span>
-      <Link href={`/assignments/${assignmentId}`}>Assignment</Link>
-      <span aria-hidden="true">/</span>
-      <span>{art.title}</span>
-    </nav>
   );
 
   const drawers = (
@@ -590,26 +602,24 @@ export default function ArtifactPage() {
   // Generating / queued: never fabricate a body.
   if (!current) {
     return (
-      <>
-        {crumbs}
+      <div className="doc-page">
         {header}
-        <section className="card card-stack">
+        <section className="doc-card">
           <p className="muted">
             {art.state === "queued"
               ? "This result is queued."
-              : "This result is still being drafted."}{" "}
+              : "This result is still being prepared."}{" "}
             Its body appears here once it is saved.
           </p>
         </section>
         {drawers}
-      </>
+      </div>
     );
   }
 
   if (isHistorical) {
     return (
-      <>
-        {crumbs}
+      <div className="doc-page">
         {header}
         <Notice
           tone="notice-warn"
@@ -624,12 +634,12 @@ export default function ArtifactPage() {
             </Link>
           }
         >
-          {current.author.kind === "human" ? current.author.name : "Workagent"}{" "}
-          · {formatTime(current.created_at, zone)} · {current.id}. Viewing does
-          not change the current version. To restore it, open the current
-          version, edit and save.
+          {current.author.kind === "human" ? "You" : "Workagent"} ·{" "}
+          {formatTime(current.created_at, zone)} · {current.id}. Viewing does
+          not change the current version. To bring this text back, open the
+          current version, edit and save.
         </Notice>
-        <section className="card">
+        <section className="doc-card">
           <DocRead
             blocks={current.body}
             onSourceMark={openSource}
@@ -637,7 +647,7 @@ export default function ArtifactPage() {
           />
         </section>
         {drawers}
-      </>
+      </div>
     );
   }
 
@@ -697,7 +707,14 @@ export default function ArtifactPage() {
             <details className="disclosure" style={{ marginTop: 8 }}>
               <summary>Compare your draft with the current version</summary>
               <div className="disclosure-body">
-                <DocDiff ops={conflictDraftDiff} />
+                <DocDiff
+                  ops={conflictDraftDiff}
+                  labels={{
+                    added: "Only in your draft",
+                    removed: "Only in the saved version",
+                    tone: "compare",
+                  }}
+                />
               </div>
             </details>
           ) : null}
@@ -767,61 +784,10 @@ export default function ArtifactPage() {
     </>
   );
 
-  // ---------- edit mode ----------
-  if (mode === "edit" && draft) {
-    return (
-      <>
-        {crumbs}
-        {header}
-        {saveNotices}
-        <section className="card card-stack" aria-labelledby="edit-title">
-          <h2 id="edit-title" className="sr-only">
-            Edit {art.title}
-          </h2>
-          <DocEdit
-            blocks={draft}
-            onChange={setDraft}
-            disabled={save.kind === "saving" || save.kind === "ambiguous"}
-          />
-        </section>
-        <div className="sticky-actions row row-between">
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => void doSave()}
-              disabled={
-                !dirty ||
-                save.kind === "saving" ||
-                save.kind === "conflict" ||
-                save.kind === "ambiguous"
-              }
-            >
-              {save.kind === "saving" ? "Saving…" : "Save changes"}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={discardDraft}
-              disabled={save.kind === "saving" || save.kind === "ambiguous"}
-            >
-              {dirty ? "Discard changes" : "Stop editing"}
-            </button>
-          </div>
-          <span className="small muted">
-            Based on saved revision {draftBase}
-          </span>
-        </div>
-        {drawers}
-      </>
-    );
-  }
-
   // ---------- resolution editor ----------
   if (mode === "resolve" && draft && proposal) {
     return (
-      <>
-        {crumbs}
+      <div className="doc-page">
         {header}
         <Notice
           title={`Resolving the proposal based on revision ${proposal.base_sequence}`}
@@ -863,9 +829,18 @@ export default function ArtifactPage() {
               </span>
             </header>
             <details className="disclosure" open>
-              <summary>Differences from the current version</summary>
+              <summary>
+                How the proposal differs from the current version
+              </summary>
               <div className="disclosure-body">
-                <DocDiff ops={diffOps} />
+                <DocDiff
+                  ops={diffOps}
+                  labels={{
+                    added: "Only in the proposal",
+                    removed: "Only in your saved version",
+                    tone: "compare",
+                  }}
+                />
               </div>
             </details>
             <div className="row">
@@ -886,7 +861,7 @@ export default function ArtifactPage() {
             </div>
           </section>
         </div>
-        <div className="sticky-actions row row-between">
+        <div className="action-bar">
           <div className="row">
             <button
               type="button"
@@ -919,39 +894,71 @@ export default function ArtifactPage() {
           </span>
         </div>
         {drawers}
-      </>
+      </div>
     );
   }
 
-  // ---------- review (conflict or proposal) ----------
+  // ---------- decision: review a proposal ----------
   if (mode === "review" && needsDecision && proposal?.body) {
     const stale = proposal.status === "conflicted";
+    const { added, removed } = countChanges(diffOps);
+    const reason = proposal.reason.trim().replace(/[.!?]+$/, "");
     return (
-      <>
-        {crumbs}
+      <div className="doc-page">
         {header}
         {restoreBanner}
-        <Notice
-          tone="notice-warn"
-          title={
-            stale ? "Revision needs review" : "A proposed revision is ready"
-          }
-          role="status"
+        <section
+          className="decision-card decision-card-wide"
+          aria-labelledby="decision-title"
         >
-          {stale
-            ? `Workagent proposed changes based on revision ${proposal.base_sequence}, but you saved revision ${current.sequence} since then. Your saved version is unchanged. Decide what to keep.`
-            : `Workagent proposed changes to revision ${current.sequence}. Nothing is applied until you decide.`}
-          <div className="small muted" style={{ marginTop: 4 }}>
+          <p className="eyebrow-caps">Your decision</p>
+          <h2 id="decision-title">
+            {stale
+              ? `I proposed this before you saved revision ${current.sequence}. Your version is unchanged.`
+              : `I’ve proposed a change to revision ${current.sequence}. Nothing is applied until you decide.`}
+          </h2>
+          <p>
+            Requested: “{reason}”.{" "}
+            {stale
+              ? "It can’t be applied over your newer edit; keep your version, or review the changes and save your own resolution."
+              : "Apply it as a new revision, keep your version, or review the changes yourself."}
+          </p>
+          <p className="ids">
             Base {proposal.base_revision_id} · current {current.id} · proposal{" "}
-            {proposal.id} · reason: {proposal.reason}
-          </div>
-        </Notice>
+            {proposal.id} · prepared by the {EXECUTION.worker}
+          </p>
+        </section>
         {decision.error ? <ErrorNotice error={decision.error} /> : null}
+        <details className="disclosure exact-changes" open>
+          <summary>
+            {stale
+              ? `Differences · ${added} only in the proposal, ${removed} only in your version`
+              : `Exact changes · ${added} added, ${removed} removed`}
+          </summary>
+          <div className="disclosure-body">
+            <DocDiff
+              ops={diffOps}
+              labels={
+                stale
+                  ? {
+                      added: "Only in the proposal",
+                      removed: "Only in your saved version",
+                      tone: "compare",
+                    }
+                  : {
+                      added: "Added if applied",
+                      removed: "Removed if applied",
+                      tone: "edit",
+                    }
+              }
+            />
+          </div>
+        </details>
         <div className="conflict-grid">
           <ConflictPane
             role="current"
             title="Current saved version"
-            ids={`Revision ${current.sequence} · ${current.id} · ${current.author.kind === "human" ? `edited by ${current.author.name}` : "drafted by Workagent"} · ${formatTime(current.created_at, zone)}`}
+            ids={`Revision ${current.sequence} · ${current.id} · ${current.author.kind === "human" ? "edited by you" : `prepared by the ${EXECUTION.worker}`} · ${formatTime(current.created_at, zone)}`}
             body={current.body}
             expanded={showCurrentFull}
             onToggle={() => setShowCurrentFull((v) => !v)}
@@ -967,179 +974,280 @@ export default function ArtifactPage() {
             onSourceMark={openSource}
           />
         </div>
-        <details className="disclosure card card-quiet">
-          <summary>Show the differences</summary>
-          <div className="disclosure-body">
-            <DocDiff ops={diffOps} />
-          </div>
-        </details>
-        <div className="sticky-actions row row-between">
+        <div className="action-bar">
           <div className="row">
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => void keepCurrent()}
-              disabled={decision.busy}
-            >
-              Keep current version
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => beginResolve("current")}
-              disabled={decision.busy}
-            >
-              Review changes
-            </button>
-            {!stale ? (
-              <button
-                type="button"
-                className="btn"
-                onClick={() => void applyProposal()}
-                disabled={decision.busy}
-              >
-                Apply proposal
-              </button>
-            ) : null}
-          </div>
-          <span className="small muted">
-            Keeping the current version leaves the proposal in history.
-          </span>
-        </div>
-        {drawers}
-      </>
-    );
-  }
-
-  // ---------- read mode ----------
-  return (
-    <>
-      {crumbs}
-      {header}
-      {restoreBanner}
-      {saveNotices}
-      {save.kind === "saved" ? (
-        <Notice tone="notice-ok" role="status">
-          Saved as revision {current.sequence}.
-        </Notice>
-      ) : null}
-      {proposal?.status === "generating" ? (
-        <Notice role="status" title="A revision is being drafted">
-          Based on revision {proposal.base_sequence}. You can keep editing; a
-          proposal never replaces your saved version without your decision.
-        </Notice>
-      ) : null}
-      {art.partial ? (
-        <Notice role="status" title="Partial result">
-          This is what has been saved so far; more may follow.
-        </Notice>
-      ) : null}
-      <WorkSurface
-        requesting={revisionAsk}
-        work={
-          <>
-            <section className="card">
-              <DocRead
-                blocks={current.body}
-                onSourceMark={openSource}
-                idPrefix={current.id}
-              />
-            </section>
-            <div className="sticky-actions row row-between">
-              <div className="row">
+            {stale ? (
+              <>
                 <button
                   type="button"
                   className="btn btn-primary"
-                  onClick={beginEdit}
+                  onClick={() => void keepCurrent()}
+                  disabled={decision.busy}
                 >
-                  Edit
+                  Keep current version
                 </button>
                 <button
                   type="button"
                   className="btn"
-                  onClick={() => setRevisionAsk((v) => !v)}
-                  aria-expanded={revisionAsk}
-                  disabled={Boolean(proposal)}
+                  onClick={() => beginResolve("current")}
+                  disabled={decision.busy}
                 >
-                  Request revision
+                  Review changes
                 </button>
-              </div>
-              <span className="small muted">
-                {current.id} · {current.body_hash.slice(0, 19)}…
-              </span>
-            </div>
-          </>
-        }
-        revision={
-          <>
-            <h2>Work with your agent</h2>
-            <p className="small muted">
-              Request a change to this saved artifact. A proposal waits for your
-              review; your version stays intact.
-            </p>
-            {!revisionAsk ? (
-              <button
-                className="btn"
-                onClick={() => setRevisionAsk(true)}
-                disabled={Boolean(proposal)}
-              >
-                Ask for revision
-              </button>
-            ) : null}
-            {revisionAsk ? (
-              <form
-                className="card card-stack"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void sendRevisionRequest();
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => void applyProposal()}
+                  disabled={decision.busy}
+                >
+                  Apply proposal
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => void keepCurrent()}
+                  disabled={decision.busy}
+                >
+                  Keep current version
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  onClick={() => beginResolve("current")}
+                  disabled={decision.busy}
+                >
+                  Review changes
+                </button>
+              </>
+            )}
+          </div>
+          <span className="small muted">
+            Either way, both versions stay in History.
+          </span>
+        </div>
+        {drawers}
+      </div>
+    );
+  }
+
+  // ---------- working view: document + agent ----------
+  const editing = mode === "edit" && Boolean(draft);
+  const parent = current.parent_revision_id
+    ? history.data?.revisions.find((r) => r.id === current.parent_revision_id)
+    : null;
+  const lastChange = parent ? diffBlocks(parent.body, current.body) : [];
+  const changedCount = lastChange.filter((o) => o.type !== "same").length;
+
+  const agentPane = (
+    <div className="agent-pane stack-lg stack">
+      <div className="agent-say">
+        <div className="agent-presence agent-presence-xs" aria-hidden="true" />
+        <p>
+          {generating
+            ? `I’m drafting a revision from revision ${proposal?.base_sequence ?? current.sequence} with the ${EXECUTION.worker}. Keep working; it will wait for your review and never replaces your saved text on its own.`
+            : appliedFrom
+              ? `You applied my proposal as revision ${current.sequence}: “${appliedFrom.reason.trim().replace(/[.!?]+$/, "")}”. Your earlier text stays where I didn’t change it.`
+              : current.author.kind === "human"
+                ? `Your edits are saved as revision ${current.sequence}. I’ll work from this version.`
+                : `Here’s the ${art.title.toLowerCase()}. Your changes stay with the page; anything I propose waits for you.`}
+        </p>
+      </div>
+      {art.partial ? (
+        <p className="hint" role="status">
+          Partial result: this is what has been saved so far.
+        </p>
+      ) : null}
+
+      <section className="stack" aria-labelledby="changes-title">
+        <h2 id="changes-title" className="section-title">
+          {parent
+            ? `What changed in revision ${current.sequence}`
+            : "First version"}
+        </h2>
+        {parent ? (
+          <details className="disclosure">
+            <summary>
+              {changedCount
+                ? `${changedCount} line${changedCount === 1 ? "" : "s"} changed from revision ${parent.sequence} · ${appliedFrom ? "applied from my proposal" : current.author.kind === "human" ? "by you" : "by Workagent"}`
+                : "No changes to the text or checklist"}
+            </summary>
+            <div className="disclosure-body">
+              <DocDiff
+                ops={lastChange}
+                labels={{
+                  added: `Added in revision ${current.sequence}`,
+                  removed: `Removed in revision ${current.sequence}`,
+                  tone: "edit",
                 }}
-              >
-                <div className="field">
-                  <label htmlFor="instruction">What should change?</label>
-                  <textarea
-                    id="instruction"
-                    value={instruction}
-                    onChange={(e) => setInstruction(e.target.value)}
-                    disabled={
-                      requestState.busy || Boolean(revisionCommand.current)
-                    }
-                    rows={3}
-                    placeholder="For example: add a default owner so no case is saved blank."
-                  />
-                  <div className="hint">
-                    Sent with revision {current.sequence} as the base. The
-                    result waits for your review.
-                  </div>
-                </div>
-                {requestState.error ? (
-                  <ErrorNotice error={requestState.error} />
-                ) : null}
-                <div className="row">
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={!instruction.trim() || requestState.busy}
-                  >
-                    {requestState.busy ? "Sending…" : "Send request"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => setRevisionAsk(false)}
-                    disabled={
-                      requestState.busy || Boolean(revisionCommand.current)
-                    }
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            ) : null}
-          </>
-        }
+              />
+            </div>
+          </details>
+        ) : (
+          <p className="small muted">
+            Prepared from {art.source_refs.length} source
+            {art.source_refs.length === 1 ? "" : "s"} by the {EXECUTION.worker}.{" "}
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => setHistoryOpen(true)}
+            >
+              See history
+            </button>
+          </p>
+        )}
+      </section>
+
+      <form
+        className="ask"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void sendRevisionRequest();
+        }}
+      >
+        <label htmlFor="instruction" className="section-title">
+          What should change?
+        </label>
+        <textarea
+          id="instruction"
+          ref={instructionRef}
+          value={instruction}
+          onChange={(e) => setInstruction(e.target.value)}
+          disabled={
+            requestState.busy ||
+            Boolean(revisionCommand.current) ||
+            Boolean(proposal)
+          }
+          rows={3}
+          placeholder="For example: add a default owner so no case is saved blank."
+        />
+        <p className="hint">
+          {proposal
+            ? "A proposal for this page is already in progress or waiting for you."
+            : `Sent with revision ${current.sequence} as the base. The result waits for your review.`}
+        </p>
+        {requestState.error ? <ErrorNotice error={requestState.error} /> : null}
+        <div className="row">
+          <button
+            type="submit"
+            className="btn btn-primary btn-sm"
+            disabled={
+              !instruction.trim() || requestState.busy || Boolean(proposal)
+            }
+          >
+            {requestState.busy ? "Sending…" : "Send request"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+
+  const documentPane = (
+    <section className="doc-card" aria-labelledby="doc-card-title">
+      <div className="doc-card-bar">
+        <span id="doc-card-title">
+          {KIND_LABEL[art.kind]} · revision {current.sequence}
+          {editing ? " · editing" : ""}
+        </span>
+        <span>{dirty ? "Unsaved changes" : "Private · saved"}</span>
+      </div>
+      {editing && draft ? (
+        <>
+          <h2 className="sr-only">Edit {art.title}</h2>
+          <DocEdit
+            blocks={draft}
+            onChange={setDraft}
+            disabled={save.kind === "saving" || save.kind === "ambiguous"}
+          />
+          <div className="doc-card-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void doSave()}
+              disabled={
+                !dirty ||
+                save.kind === "saving" ||
+                save.kind === "conflict" ||
+                save.kind === "ambiguous"
+              }
+            >
+              {save.kind === "saving" ? "Saving…" : "Save changes"}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={discardDraft}
+              disabled={save.kind === "saving" || save.kind === "ambiguous"}
+            >
+              {dirty ? "Discard changes" : "Stop editing"}
+            </button>
+            <span className="small muted">
+              Based on saved revision {draftBase}
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          <DocRead
+            blocks={current.body}
+            onSourceMark={openSource}
+            idPrefix={current.id}
+          />
+          <div className="doc-card-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={beginEdit}
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setAgentFocus((n) => n + 1);
+                window.setTimeout(() => instructionRef.current?.focus(), 0);
+              }}
+              disabled={Boolean(proposal)}
+            >
+              Request revision
+            </button>
+            <span className="small muted mono">
+              {current.id} · {current.body_hash.slice(0, 19)}…
+            </span>
+          </div>
+        </>
+      )}
+    </section>
+  );
+
+  return (
+    <div className="doc-page">
+      {header}
+      {restoreBanner}
+      {saveNotices}
+      {save.kind === "saved" && !editing ? (
+        <Notice tone="notice-ok" role="status">
+          Saved as revision {current.sequence}.
+        </Notice>
+      ) : null}
+      {generating ? (
+        <Notice role="status" title="A revision is being drafted">
+          Based on revision {proposal?.base_sequence}, by the {EXECUTION.worker}
+          . You can keep editing; a proposal never replaces your saved version
+          without your decision.
+        </Notice>
+      ) : null}
+      <WorkSurface
+        document={documentPane}
+        agent={agentPane}
+        focusAgent={agentFocus}
+        focusWork={workFocus}
       />
       {drawers}
-    </>
+    </div>
   );
 }
 

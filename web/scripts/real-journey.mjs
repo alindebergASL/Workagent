@@ -38,6 +38,10 @@ const api = async (p, body, status = 200) => {
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
+  // Optional preinstalled browser for hosts that cannot download Playwright's own.
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
 });
 const context = await browser.newContext({
   viewport: { width: 1440, height: 1000 },
@@ -80,22 +84,47 @@ try {
     const state = JSON.parse(
       await readFile(path.join(evidence, "state.json"), "utf8"),
     );
+    await page.goto(origin);
+    await expect(
+      page.getByText(/^Approved revisions \/ stopped · \d+/),
+    ).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await page.goto(origin + state.artifact_url);
-    await expect(page.getByText(human, { exact: true })).toBeVisible();
-    await expect(page.locator(".save-state")).toContainText("revision 2");
+    await expect(
+      page.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
+    await expect(page.locator(".save-state")).toContainText("revision 3");
     const art = await api("/artifacts/" + state.artifact_id);
-    expect(art.current_revision_id).toBe(state.human_revision_id);
-    expect(art.current_revision.body_hash).toBe(state.human_body_hash);
+    expect(art.current_revision_id).toBe(state.applied_revision_id);
+    expect(art.current_revision.body_hash).toBe(state.applied_body_hash);
+    expect(
+      art.current_revision.body.blocks.find((b) => b.block_id === "protected-0")
+        .text,
+    ).toBe(human);
     expect(
       art.current_revision.body.blocks.find((b) => b.block_id === "next-action")
         .checked,
     ).toBe(true);
+    const humanRevision = (
+      await api("/artifacts/" + state.artifact_id + "/history")
+    ).items.find((r) => r.id === state.human_revision_id);
+    expect(humanRevision.body_hash).toBe(state.human_body_hash);
+    expect(humanRevision.author_kind).toBe("human");
     const proposals = await api(
       "/artifacts/" + state.artifact_id + "/proposals",
     );
     expect(
       proposals.items.find((p) => p.id === state.proposal_id).body_hash,
     ).toBe(state.proposal_hash);
+    const taskAfterRestart = await api(
+      "/tasks/" +
+        state.task_id +
+        "?expected_version=1&expected_desired_result=" +
+        encodeURIComponent("Review one personal intake case"),
+    );
+    expect(taskAfterRestart.task.state).toBe("created");
     await shot("07-reopened-desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await shot("08-reopened-mobile");
@@ -107,6 +136,7 @@ try {
           same_assignment: true,
           same_current_revision: true,
           same_body_hash: true,
+          human_revision_retained: true,
           proposal_preserved: true,
           errors,
         },
@@ -128,14 +158,14 @@ try {
     const note = records.find((r) => r.id === "SG-F7").content.protected_note;
     await page.goto(origin);
     await expect(
-      page.getByRole("heading", {
-        name: "What would you like to move forward?",
-      }),
+      page.getByRole("heading", { name: "Good to see you." }),
     ).toBeVisible();
+    // No stale in-progress or decision controls before any work exists.
+    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await page
-      .getByLabel("Tell me what you need")
+      .getByLabel("Message your agent")
       .fill(records.find((r) => r.id === "SG-F1").content.instruction);
-    await page.getByText("Context · Choose sources", { exact: true }).click();
+    await page.getByRole("button", { name: /^Your context/ }).click();
     for (const title of [
       "Personal intake review log",
       "Method notebook",
@@ -199,7 +229,9 @@ try {
       .getByRole("button", { name: "Save changes", exact: true })
       .click();
     await expect(page.locator(".save-state")).toContainText("revision 2");
-    await expect(page.getByText(human, { exact: true })).toBeVisible();
+    await expect(
+      page.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
     await shot("03-human-saved");
     const saved = await api("/artifacts/" + artifactId);
     expect(saved.current_revision.author_kind).toBe("human");
@@ -244,9 +276,25 @@ try {
     await shot("04-stale-proposal-desktop");
     await page.setViewportSize({ width: 390, height: 844 });
     await shot("05-stale-proposal-mobile");
+    await expect(
+      page.getByText(
+        /Differences · \d+ only in the proposal, \d+ only in your version/,
+      ),
+    ).toBeVisible();
+    // The proposal unchecks the human's done item: checklist state is part of the exact changes.
+    await expect(
+      page
+        .locator(".exact-changes [data-removed='true']")
+        .filter({ hasText: "☑ Done" }),
+    ).toHaveCount(1);
+    // Stale proposals cannot be applied over the newer human save.
+    await expect(
+      page.getByRole("button", { name: "Apply proposal", exact: true }),
+    ).toHaveCount(0);
     await page
       .getByRole("button", { name: "Keep current version", exact: true })
-      .click();
+      .focus();
+    await page.keyboard.press("Enter");
     await expect(
       page.getByRole("button", { name: "Edit", exact: true }),
     ).toBeVisible();
@@ -259,6 +307,127 @@ try {
     ).toBeVisible();
     await shot("06-retained-history");
     await page.keyboard.press("Escape");
+
+    // Fresh proposal on the human revision: inspect exact changes, then apply it.
+    const ask = "Add a reminder to compare the next eight cases on Friday.";
+    await page
+      .getByRole("button", { name: "Request revision", exact: true })
+      .click();
+    await page.getByLabel("What should change?").fill(ask);
+    await page
+      .getByRole("button", { name: "Send request", exact: true })
+      .click();
+    await expect(
+      page.getByText("A revision is being drafted", { exact: false }),
+    ).toBeVisible();
+    assignment = await api("/assignments/" + assignmentId);
+    advance(assignment.run_ids.at(-1));
+    await page.reload();
+    await expect(
+      page.getByRole("heading", { name: /Agent proposal based on revision 2/ }),
+    ).toBeVisible({ timeout: 30000 });
+    await expect(
+      page.getByText(/Exact changes · 1 added, 0 removed/),
+    ).toBeVisible();
+    await expect(
+      page.locator(".exact-changes [data-added='true']"),
+    ).toContainText(ask);
+    await expect(
+      page.locator('.conflict-pane[data-role="proposal"]').getByText(human, {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await shot("10-fresh-proposal-desktop");
+    const fresh = (
+      await api("/artifacts/" + artifactId + "/proposals")
+    ).items.find((p) => p.status === "pending");
+    expect(fresh.base_revision_id).toBe(saved.current_revision_id);
+    await page
+      .getByRole("button", { name: "Apply proposal", exact: true })
+      .click();
+    await expect(page.locator(".save-state")).toContainText("revision 3");
+    await expect(
+      page.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
+    const applied = await api("/artifacts/" + artifactId);
+    // Acceptance is the person's decision: the backend records the applied revision as theirs.
+    expect(applied.current_revision.author_kind).toBe("human");
+    await expect(
+      page.getByText(/You applied my proposal as revision 3/),
+    ).toBeVisible();
+    expect(applied.current_revision.parent_revision_id).toBe(
+      saved.current_revision_id,
+    );
+    expect(
+      applied.current_revision.body.blocks.find(
+        (b) => b.block_id === "protected-0",
+      ).text,
+    ).toBe(human);
+    expect(
+      (await api("/artifacts/" + artifactId + "/proposals")).items.find(
+        (p) => p.id === fresh.id,
+      ).status,
+    ).toBe("accepted");
+    // Completed: the agent pane reports what changed, no in-progress controls remain.
+    await expect(page.getByText("A revision is being drafted")).toHaveCount(0);
+    await page
+      .getByText(/line changed from revision 2|lines changed from revision 2/)
+      .click();
+    await expect(page.locator(".agent-pane [data-added='true']")).toContainText(
+      ask,
+    );
+    await shot("11-applied-with-changes");
+
+    // Phone: document first; switching panes keeps an unsent instruction and an unsaved edit.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(
+      page.getByRole("button", { name: "Work", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByLabel("What should change?")).toBeHidden();
+    await page.getByRole("button", { name: "Agent", exact: true }).click();
+    await page
+      .getByLabel("What should change?")
+      .fill("Draft instruction kept across panes");
+    await page.getByRole("button", { name: "Work", exact: true }).click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page
+      .getByLabel("Paragraph recommendation", { exact: true })
+      .fill("Unsaved phone edit kept across panes");
+    await page.getByRole("button", { name: "Agent", exact: true }).click();
+    await expect(page.getByLabel("What should change?")).toHaveValue(
+      "Draft instruction kept across panes",
+    );
+    await page.getByRole("button", { name: "Work", exact: true }).click();
+    await expect(
+      page.getByLabel("Paragraph recommendation", { exact: true }),
+    ).toHaveValue("Unsaved phone edit kept across panes");
+    await shot("12-mobile-unsaved-edit");
+    await page
+      .getByRole("button", { name: "Discard changes", exact: true })
+      .click();
+    expect((await api("/artifacts/" + artifactId)).current_revision_id).toBe(
+      applied.current_revision_id,
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
+    // Home reflects completion consistently: no decision card, nothing "in progress".
+    await page.goto(origin);
+    await expect(
+      page.getByText(/^Approved revisions \/ stopped · \d+/),
+    ).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: "Review the change" }),
+    ).toHaveCount(0);
+    await shot("13-home-completed");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await shot("14-home-completed-mobile");
+    await page.setViewportSize({ width: 1440, height: 1000 });
     assignment = await api("/assignments/" + assignmentId);
     const desired = "Review one personal intake case";
     const task = await api(
@@ -282,6 +451,15 @@ try {
     );
     expect(inspected.verification).toBe("verified_created");
     expect(inspected.inspection_id).toBeTruthy();
+    expect(inspected.task.state).toBe("created");
+    await page.goto(origin + "/assignments/" + assignmentId);
+    await expect(page.locator(".status-line")).toContainText(
+      "Approved revision saved",
+    );
+    await expect(page.locator(".status-line")).toContainText(
+      "does not mark tasks or responsibility criteria complete",
+    );
+    await shot("15-approved-with-unfinished-task");
     const state = {
       mode: "actual_application_postgresql_fixture_compute",
       assignment_id: assignmentId,
@@ -289,6 +467,9 @@ try {
       artifact_url: artifactUrl,
       human_revision_id: saved.current_revision_id,
       human_body_hash: saved.current_revision.body_hash,
+      applied_revision_id: applied.current_revision_id,
+      applied_body_hash: applied.current_revision.body_hash,
+      applied_proposal_id: fresh.id,
       proposal_id: proposal.id,
       proposal_hash: proposal.body_hash,
       task_id: task.task.id,
@@ -302,6 +483,10 @@ try {
     await writeFile(
       path.join(evidence, "saved-artifact.json"),
       JSON.stringify(saved, null, 2) + "\n",
+    );
+    await writeFile(
+      path.join(evidence, "applied-artifact.json"),
+      JSON.stringify(applied, null, 2) + "\n",
     );
     await writeFile(
       path.join(evidence, "stale-proposal.json"),

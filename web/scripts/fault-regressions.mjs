@@ -87,6 +87,10 @@ const propose = async (x) => {
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
+  // Optional preinstalled browser for hosts that cannot download Playwright's own.
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
 });
 const results = {};
 const freshPage = () =>
@@ -109,8 +113,9 @@ try {
     ).toBeVisible();
     const queued = await api("/assignments/" + x.a.id);
     advance(queued.run_ids.at(-1));
+    // The finished proposal arrives as an actionable decision, without a reload.
     await expect(
-      p.getByText("A proposed revision is ready", { exact: true }),
+      p.getByRole("button", { name: "Apply proposal", exact: true }),
     ).toBeVisible({ timeout: 12000 });
     results.polling_restarts = { passed: true, without_reload: true };
     await p.screenshot({

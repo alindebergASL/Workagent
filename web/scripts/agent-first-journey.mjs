@@ -57,23 +57,26 @@ const screenshot = async (name) => {
 async function surfaceStates(state, label) {
   const observed = {};
   await p.goto(origin);
-  const card = p.locator(".assignment-item").filter({ hasText: state.goal });
+  const card = p.locator(
+    `.decision-card:has(a[href^="/assignments/${state.assignment_id}"]), a.work-row[href^="/assignments/${state.assignment_id}"]`,
+  );
   await expect(card).toBeAttached();
-  const disclosure = p.locator(".agent-handling");
-  if (!(await disclosure.evaluate((e) => e.hasAttribute("open"))))
-    await disclosure.locator("summary").click();
-  await expect(card.locator(".status")).toHaveText(label);
-  observed.agent = await card.locator(".status").innerText();
-  await p.getByRole("link", { name: "Spaces", exact: true }).click();
-  const space = p.locator(".space-work").filter({ hasText: state.goal });
-  await expect(space.locator(".status")).toHaveText(label);
-  observed.spaces = await space.locator(".status").innerText();
-  await space.click();
-  await expect(p.locator("header .status").first()).toHaveText(label);
-  observed.responsibility = await p
-    .locator("header .status")
-    .first()
-    .innerText();
+  for (const disclosure of await p.locator("details.since-group").all())
+    if (!(await disclosure.evaluate((e) => e.open)))
+      await disclosure.locator("summary").click();
+  await expect(card).toContainText(new RegExp(label, "i"));
+  observed.agent = await card.innerText();
+  await p.goto(origin + "/spaces/local-workspace");
+  const space = p.locator(
+    `a.work-row[href^="/assignments/${state.assignment_id}"]`,
+  );
+  await expect(space).toContainText(new RegExp(label, "i"));
+  observed.spaces = await space.innerText();
+  await p.goto(origin + "/assignments/" + state.assignment_id);
+  await expect(p.locator("header .status-line")).toContainText(
+    new RegExp(label, "i"),
+  );
+  observed.responsibility = await p.locator("header .status-line").innerText();
   return observed;
 }
 try {
@@ -127,8 +130,8 @@ try {
       "Carry forward my private intake review; preserve Wednesday planning. " +
       crypto.randomUUID().slice(0, 8);
     await p.goto(origin);
-    await p.getByLabel("Tell me what you need").fill(goal);
-    await p.getByText("Context · Choose sources", { exact: true }).click();
+    await p.getByLabel("Message your agent").fill(goal);
+    await p.getByRole("button", { name: /^Your context/ }).click();
     for (const title of [
       "Personal intake review log",
       "Method notebook",
@@ -150,11 +153,11 @@ try {
     });
     await p.getByRole("button", { name: "Start work", exact: true }).click();
     await expect(
-      p.getByRole("button", { name: "Retry same request", exact: true }),
+      p.getByRole("button", { name: "Retry the same request", exact: true }),
     ).toBeVisible();
-    await expect(p.getByLabel("Tell me what you need")).toBeDisabled();
+    await expect(p.getByLabel("Message your agent")).toBeDisabled();
     await p
-      .getByRole("button", { name: "Retry same request", exact: true })
+      .getByRole("button", { name: "Retry the same request", exact: true })
       .click();
     await p.waitForURL(/\/assignments\/[^/]+$/);
     expect(sent).toHaveLength(2);
@@ -206,14 +209,10 @@ try {
     await expect(p.getByText(human, { exact: true })).toBeVisible();
     await p
       .locator(".working-switch")
-      .getByRole("button", { name: "Ask for revision", exact: true })
+      .getByRole("button", { name: "Agent", exact: true })
       .click();
-    await expect(p.locator(".working-revision")).toBeVisible();
+    await expect(p.locator(".working-agent")).toBeVisible();
     await expect(p.locator(".working-document")).toBeHidden();
-    await p
-      .locator(".working-revision")
-      .getByRole("button", { name: "Ask for revision", exact: true })
-      .click();
     await p
       .getByLabel("What should change?")
       .fill(
@@ -221,8 +220,9 @@ try {
       );
     await screenshot("03-mobile-revision-request");
     await p.getByRole("button", { name: "Send request", exact: true }).click();
+    await p.getByRole("button", { name: "Agent", exact: true }).click();
     await expect(
-      p.getByText("A revision is being drafted", { exact: true }),
+      p.getByText("A revision is being drafted", { exact: false }),
     ).toBeVisible();
     assignment = await api("/assignments/" + assignmentId);
     expect(assignment.state).toBe("queued");
@@ -231,7 +231,7 @@ try {
     await p.getByRole("link", { name: "Open plan", exact: true }).click();
     advance(revisionRun);
     await expect(
-      p.getByText("A proposed revision is ready", { exact: true }),
+      p.getByRole("button", { name: "Apply proposal", exact: true }),
     ).toBeVisible({ timeout: 15000 });
     const props = await api("/artifacts/" + artifactId + "/proposals");
     const proposal = props.items.find((x) => x.status === "pending");
@@ -242,6 +242,11 @@ try {
     expect(
       proposal.body.blocks.find((b) => b.block_id === "next-action").checked,
     ).toBe(true);
+    await surfaceStates(state, "proposed change");
+    await p.goto(origin + artifactUrl);
+    await expect(
+      p.getByRole("button", { name: "Apply proposal", exact: true }),
+    ).toBeVisible();
     await screenshot("04-review-proposal-mobile");
     await p
       .getByRole("button", { name: "Apply proposal", exact: true })
