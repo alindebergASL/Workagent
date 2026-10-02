@@ -10,8 +10,11 @@ canonical scenario v0.1 source, not a later evaluation copy.
 The application, API and PostgreSQL are real. Analysis/revision computation is an
 explicit deterministic fixture adapter. No fixture output is counted as a live model,
 selected hosted runtime, live skill ablation, customer acceptance or external effect.
-Independent recheck of the six fixed findings remains a separate release gate until
-its result is recorded. Owner usefulness judgment is still pending.
+Independent recheck **PASS** at the code candidate above: all six findings closed;
+46 Python tests, 10 frontend tests, 9 candidate browser fault cases and 5 additional
+reviewer-authored browser cases were exercised independently. Reports are in `review/`.
+This does not grant merge, deployment or full milestone acceptance. Owner usefulness
+judgment is still pending.
 
 ## Exact acceptance cases
 

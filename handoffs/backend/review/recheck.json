@@ -1,0 +1,179 @@
+{
+  "passed": true,
+  "reviewed_sha": "d937957521e1acdcffcac5d3ba3e70609f6cff98",
+  "baseline_reviewed_sha": "e74079123afc2ff392b38b31586736edc0617da1",
+  "scope": "Focused independent recheck of the six initial material findings and changed-code regressions. Read initial review, fix handoff and complete intervening delta. No implementation, provider calls, other agents, commits, or changes to parent evidence/saved databases.",
+  "closed_findings": [
+    {
+      "id": "R1",
+      "original_severity": "P1",
+      "status": "closed",
+      "summary": "Restored stale drafts retain their original base; ordinary save is disabled until explicit continuation; a later intervening human save is still protected by a fresh CAS.",
+      "source": [
+        "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx:188-225",
+        "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx:649-656",
+        "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx:785-795"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#restored_draft",
+        "/home/ubuntu/workagent-recheck-results/additional-results.json#restored_original_base_and_explicit_success"
+      ],
+      "observed": "Original sessionStorage base verified unchanged on restore. Protected third-human revision survives attempted stale save. Separate explicit continuation/edit succeeds as revision 3."
+    },
+    {
+      "id": "R2",
+      "original_severity": "P1",
+      "status": "closed",
+      "summary": "Revision and decision retries preserve logical command identity and expected metadata after ambiguous delivery.",
+      "source": [
+        "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx:317-423",
+        "web/src/lib/client/real-api.ts:709-738"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#revision_response_loss",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#decision_accept",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#decision_dismiss",
+        "/home/ubuntu/workagent-recheck-results/additional-results.json"
+      ],
+      "observed": "Real committed revision 202 dropped; retry sends identical full payload and produces one new run, including after an intervening human save. Accept and dismiss independently tested after committed 200 loss plus unavailable readback: retry preserves command_id and expected_current_revision_id; accept creates exactly revision 2 and dismiss leaves revision 1."
+    },
+    {
+      "id": "R3",
+      "original_severity": "P2",
+      "status": "closed",
+      "summary": "Polling reactivates after ready-to-generating transitions and reaches proposal review without navigation or reload.",
+      "source": [
+        "web/src/lib/client/hooks.ts:37-158"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#polling_restarts",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/polling-completed.png",
+        "/home/ubuntu/workagent-recheck-results/additional-results.json#revision_response_loss_then_intervening_human_save"
+      ],
+      "observed": "Browser request initiates work; actual admitted fixture worker completes it; mounted page reaches proposed/review state. Scheduler serializes reads and generation-guards replaced state on inspection."
+    },
+    {
+      "id": "R4",
+      "original_severity": "P2",
+      "status": "closed",
+      "summary": "Complete resolution intent survives before-save, after-save-commit, and after-dismiss-commit loss; read-only reconciliation distinguishes partial save from finished resolution.",
+      "source": [
+        "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx:188-314",
+        "web/src/lib/client/real-api.ts:662-707"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#resolution_before-save",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#resolution_after-save-commit",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#resolution_after-dismiss-commit",
+        "/home/ubuntu/workagent-recheck-results/additional-results.json#resolution_after_dismiss_commit_read_only_reconciliation"
+      ],
+      "observed": "Each failure/retry ends with intended body, exactly revision 2, and dismissed proposal. Readback after only body commit explicitly says proposal resolution is not confirmed. Readback after dismissal commit confirms completion with zero additional POSTs."
+    },
+    {
+      "id": "R5",
+      "original_severity": "P2",
+      "status": "closed",
+      "summary": "Current source authorization precedes command-result disclosure; source freshness now applies only to new admission.",
+      "source": [
+        "backend/workagent/service.py:140-155",
+        "backend/workagent/service.py:224-234",
+        "web/src/lib/client/real-api.ts:591-628"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/source-http-results.json",
+        "/home/ubuntu/workagent-recheck-results/source-http-probes.py",
+        "/home/ubuntu/workagent-recheck-results/pytest.log",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#source_drift"
+      ],
+      "observed": "Independent real HTTP/PostgreSQL matrix: authorized drift exact replay 202 with identical original receipt; changed intent 409 command_conflict; new stale command 409 source_changed; revoked source replay and source detail both 404 not_found_or_not_authorized. SQL counts remain one assignment/run/command/audit/outbox each."
+    },
+    {
+      "id": "R6",
+      "original_severity": "P2",
+      "status": "closed",
+      "summary": "Current source bytes are no longer presented as evidence used by artifacts pinned to older versions.",
+      "source": [
+        "web/src/lib/client/real-api.ts:532-589",
+        "web/src/components/SourcesDrawer.tsx:65-127"
+      ],
+      "evidence": [
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json#source_drift",
+        "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/source-drift-labelled.png"
+      ],
+      "observed": "Real evaluator-controlled SG-F1 drift shows current @review-v2 separately from Work observed @1 and old artifact usage. Visible warning says historical bytes are unavailable and latest content is not evidence used by older-version artifacts. Screenshot inspected; source restored and canonical bytes verified."
+    }
+  ],
+  "remaining_findings": [],
+  "new_material_regressions": [],
+  "environment": {
+    "checkout": "/home/ubuntu/workagent-recheck",
+    "tested_source_copy": "/home/ubuntu/workagent-recheck-results/candidate",
+    "source_equivalence": "/home/ubuntu/workagent-recheck-results/verification.json",
+    "tracked_files_hash_verified": 182,
+    "database": "workagent_test_1f95aca7d73b",
+    "database_scope": "New reviewer-owned disposable PostgreSQL database, separate from parent and prior-review databases; synthetic fixtures only. Retained for reproduction.",
+    "env_file": "/home/ubuntu/workagent-recheck-results/recheck.env",
+    "env_file_mode": "0600",
+    "migration_credentials": "Stripped from API/web/fault browser processes; exposed only to explicit provisioning/test/evaluator harness.",
+    "api_port": 8113,
+    "web_port": 3113,
+    "servers_stopped_and_ports_verified": true,
+    "tracked_checkout_unchanged": true
+  },
+  "tests_executed": [
+    {
+      "test": "backend/tests + runtime/tests",
+      "result": "46 passed, zero skipped, one Starlette/AnyIO deprecation warning",
+      "evidence": "/home/ubuntu/workagent-recheck-results/pytest.log"
+    },
+    {
+      "test": "Exact-copy webpack production build",
+      "result": "passed",
+      "evidence": "/home/ubuntu/workagent-recheck-results/build.log"
+    },
+    {
+      "test": "Frontend tsc, eslint, prettier and vitest",
+      "result": "passed; 10 tests in 3 files",
+      "evidence": "/home/ubuntu/workagent-recheck-results/frontend-check-rerun.log"
+    },
+    {
+      "test": "Contracts complete npm run check",
+      "result": "Canonical Python export, generated TypeScript drift and contracts tsc all passed",
+      "evidence": "/home/ubuntu/workagent-recheck-results/contracts-check.log"
+    },
+    {
+      "test": "Candidate real Playwright/HTTP/PG fault regressions independently rerun",
+      "result": "9 of 9 passed",
+      "evidence": "/home/ubuntu/workagent-recheck-results/candidate/.local/evidence/fault-regressions/results.json"
+    },
+    {
+      "test": "Additional reviewer-authored real browser regressions",
+      "result": "5 of 5 passed",
+      "evidence": "/home/ubuntu/workagent-recheck-results/additional-results.json",
+      "script": "/home/ubuntu/workagent-recheck-results/additional-probes.mjs"
+    },
+    {
+      "test": "Additional reviewer-authored source drift/replay/admission/revocation HTTP and PostgreSQL matrix",
+      "result": "passed with exact receipt comparison, denial checks and durable row counts",
+      "evidence": "/home/ubuntu/workagent-recheck-results/source-http-results.json",
+      "script": "/home/ubuntu/workagent-recheck-results/source-http-probes.py"
+    },
+    {
+      "test": "Final exact-SHA/source-hash/clean-worktree/source-restoration verification",
+      "result": "passed; 182 tracked files unchanged and identical in executed copy",
+      "evidence": "/home/ubuntu/workagent-recheck-results/verification.json"
+    }
+  ],
+  "issues_encountered": [
+    "pnpm check refused the review copy's external node_modules symlink during automatic dependency validation. No shared dependencies were changed; the exact underlying scripts were successfully rerun via npm. Initial harness failure retained in frontend-check.log.",
+    "First supplemental probe raced an intervening save against an in-flight revision admission because input-disabled alone did not prove failure handling completed. Backend correctly returned 409. Added wait for the retry control to be enabled, then all five supplemental cases passed; initial log retained as additional-harness-race.log. Only reviewer test script changed.",
+    "Production build used supported webpack mode for the controlled dependency-symlink harness; no Turbopack-specific qualification is claimed."
+  ],
+  "acceptance_limits": [
+    "This passed verdict closes only the six reviewed local-mode findings and the bounded regression scope.",
+    "No live A16/A17, provider behavior, model quality, full release or owner-usefulness acceptance is claimed. Owner usefulness remains pending.",
+    "The revised root demo/fault child orchestration was inspected, but the full root demo was not rerun; independent servers and own database executed the same candidate fault script."
+  ],
+  "artifacts_created": "Reports, scripts, logs, source manifest, exact-source execution copy, screenshots and private disposable env under /home/ubuntu/workagent-recheck-results/",
+  "skill_note": "Reusable fault-injection and exact-copy harness lessons staged for skill approval as pending 271410fa; not applied."
+}

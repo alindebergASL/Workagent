@@ -1,0 +1,10 @@
+{
+  "reviewed_sha": "d937957521e1acdcffcac5d3ba3e70609f6cff98",
+  "tracked_worktree_clean": true,
+  "copied_tracked_files_hash_verified": 182,
+  "candidate_fault_cases_passed": 9,
+  "reviewer_additional_browser_cases_passed": 5,
+  "reviewer_http_source_matrix_passed": true,
+  "canonical_synthetic_source_restored": true,
+  "environment_file_mode": "0o600"
+}

@@ -34,7 +34,7 @@ conflict evaluation. No live model/runtime execution is implied.
 - 46 Python tests, no skips; 10 frontend tests; contract drift/types and production build passed.
 - Nine actual-browser/API/PostgreSQL fault cases passed. Main demo and API/web restart passed at clean exact code SHA above.
 - `handoffs/backend/evidence/MANIFEST.json` pins 22 selected synthetic evidence files, including desktop/mobile/source screenshots, saved bodies, task readback and run/context pins.
-- Initial independent review found two P1 and four P2 issues. All six have implemented fixes and targeted regression evidence (`REVIEW_FIXES.md`). Focused independent recheck is pending; do not treat this note as final reviewer approval.
+- Initial independent review found two P1 and four P2 issues. All six have implemented fixes and targeted regression evidence (`REVIEW_FIXES.md`). Focused independent recheck **PASS** at `d937957`; all six findings closed with no material regression reproduced in that scope. See `review/recheck.json`. This is not live-runtime, owner-usefulness or merge approval.
 - `ACCEPTANCE.md` separates fixture/application evidence from missing live-runtime and owner-usefulness acceptance.
 
 ## Start / generation
@@ -52,5 +52,5 @@ are not observed, and development-agent cost is unmeasured rather than claimed z
 Coordinator session identifies `gpt-6-astra` / `openai-codex`; delegated completion metadata
 did not expose model identifiers. Installed Codex/Claude CLI access is not product entitlement.
 
-Next action: resolve independent recheck, then publish final local-mode milestone handoff.
+Next action: Andrew reviews the usable local milestone; live qualification needs scoped product API access and a bounded grant.
 S2–S5 remains outside this build.
