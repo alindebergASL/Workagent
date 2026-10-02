@@ -39,6 +39,10 @@ const advance = (run) =>
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
+  // Optional preinstalled browser for hosts that cannot download Playwright's own.
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
 });
 const p = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
@@ -56,19 +60,30 @@ const screenshot = async (name) => {
 };
 async function surfaceStates(state, label) {
   const observed = {};
+  // Agent home: the assignment appears either as the one timely card or as a row.
   await p.goto(origin);
-  const card = p.locator(".assignment-item").filter({ hasText: state.goal });
-  await expect(card).toBeAttached();
-  const disclosure = p.locator(".agent-handling");
-  if (!(await disclosure.evaluate((e) => e.hasAttribute("open"))))
-    await disclosure.locator("summary").click();
-  await expect(card.locator(".status")).toHaveText(label);
-  observed.agent = await card.locator(".status").innerText();
-  await p.getByRole("link", { name: "Spaces", exact: true }).click();
-  const space = p.locator(".space-work").filter({ hasText: state.goal });
+  const onHome = p
+    .locator(`[data-assignment="${state.assignment_id}"]`)
+    .first();
+  await expect(onHome).toBeAttached({ timeout: 15000 });
+  const group = onHome.locator("xpath=ancestor::details[1]");
+  if (
+    (await group.count()) &&
+    !(await group.evaluate((e) => e.hasAttribute("open")))
+  )
+    await group.locator("summary").click();
+  await expect(onHome.locator(".status")).toHaveText(label);
+  observed.agent = await onHome.locator(".status").innerText();
+  // Spaces: the personal space's work list.
+  await p.getByRole("link", { name: "Spaces", exact: true }).first().click();
+  await p.locator(".space-card").first().click();
+  const space = p.locator(
+    `.work-row[data-assignment="${state.assignment_id}"]`,
+  );
   await expect(space.locator(".status")).toHaveText(label);
   observed.spaces = await space.locator(".status").innerText();
-  await space.click();
+  // The responsibility (assignment) page.
+  await p.goto(origin + "/assignments/" + state.assignment_id);
   await expect(p.locator("header .status").first()).toHaveText(label);
   observed.responsibility = await p
     .locator("header .status")
@@ -82,7 +97,9 @@ try {
       await readFile(path.join(output, "state.json"), "utf8"),
     );
     await p.goto(origin + state.artifact_url);
-    await expect(p.getByText(human, { exact: true })).toBeVisible();
+    await expect(
+      p.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
     await expect(p.locator("header .status").first()).toHaveText(
       "Approved revision",
     );
@@ -127,8 +144,8 @@ try {
       "Carry forward my private intake review; preserve Wednesday planning. " +
       crypto.randomUUID().slice(0, 8);
     await p.goto(origin);
-    await p.getByLabel("Tell me what you need").fill(goal);
-    await p.getByText("Context · Choose sources", { exact: true }).click();
+    await p.getByLabel("Message your agent").fill(goal);
+    await p.getByRole("button", { name: /^Your context/ }).click();
     for (const title of [
       "Personal intake review log",
       "Method notebook",
@@ -152,7 +169,7 @@ try {
     await expect(
       p.getByRole("button", { name: "Retry same request", exact: true }),
     ).toBeVisible();
-    await expect(p.getByLabel("Tell me what you need")).toBeDisabled();
+    await expect(p.getByLabel("Message your agent")).toBeDisabled();
     await p
       .getByRole("button", { name: "Retry same request", exact: true })
       .click();
@@ -203,16 +220,18 @@ try {
     await surfaceStates(state, "Ready for review");
     await p.getByRole("link", { name: "Open plan", exact: true }).click();
     await p.setViewportSize({ width: 390, height: 844 });
-    await expect(p.getByText(human, { exact: true })).toBeVisible();
+    await expect(
+      p.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
     await p
       .locator(".working-switch")
-      .getByRole("button", { name: "Ask for revision", exact: true })
+      .getByRole("button", { name: "Agent", exact: true })
       .click();
-    await expect(p.locator(".working-revision")).toBeVisible();
+    await expect(p.locator(".working-agent")).toBeVisible();
     await expect(p.locator(".working-document")).toBeHidden();
     await p
-      .locator(".working-revision")
-      .getByRole("button", { name: "Ask for revision", exact: true })
+      .locator(".working-agent")
+      .getByRole("button", { name: "Ask for a revision", exact: true })
       .click();
     await p
       .getByLabel("What should change?")
@@ -252,7 +271,9 @@ try {
     await expect(p.locator("header .status").first()).toHaveText(
       "Approved revision",
     );
-    await expect(p.getByText(human, { exact: true })).toBeVisible();
+    await expect(
+      p.locator(".doc-card").getByText(human, { exact: true }),
+    ).toBeVisible();
     await screenshot("05-approved-mobile");
     const approved = await api("/artifacts/" + artifactId);
     expect(approved.current_revision.parent_revision_id).toBe(

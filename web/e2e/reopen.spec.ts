@@ -13,10 +13,12 @@ test("reopen the same assignment and artifact after restart @reopen", async ({
   const ids = readJourney();
   await page.goto("/");
   await expect(
-    page.locator(`a.work-row[href="/assignments/${ids.assignment_id}"]`),
-  ).toBeVisible();
+    page.locator(`[data-assignment="${ids.assignment_id}"] .status`),
+  ).toHaveText("Ready for review");
   await page.goto(`/assignments/${ids.assignment_id}`);
-  await expect(page.locator(".status-line")).toContainText("Completed.");
+  await expect(page.locator(".status-line")).toContainText(
+    "Ready for you to review",
+  );
   await expect(page.getByRole("link", { name: "Open plan" })).toBeVisible();
   await shot(page, info, "15-reopen-assignment");
   await page.goto(

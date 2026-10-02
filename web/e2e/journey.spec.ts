@@ -70,8 +70,10 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(page.getByRole("link", { name: "Open plan" })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(status).toContainText("Completed.");
-    await expect(status).toContainText("Prepared by the mock worker");
+    await expect(status).toContainText("Ready for you to review");
+    await expect(page.locator("header .status").first()).toHaveText(
+      "Ready for review",
+    );
     await expect(page.getByText(/I’m on it/)).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Recommendation" }),
@@ -185,10 +187,14 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(proposalPane.getByText(HUMAN_TEXT)).toHaveCount(0);
     await expect(proposalPane.getByText("Proposed change")).toBeVisible();
     await expect(currentPane.getByText(PROTECTED_NOTE)).toBeVisible();
-    await expect(page.getByText(`Base rev_`).first()).toBeVisible();
+    // Revision numbers in view; exact identifiers on demand.
     await expect(
       page.locator(".conflict-pane header .ids").first(),
-    ).toContainText(humanRevisionId);
+    ).toContainText("Revision 2");
+    await page.getByText("Revision details", { exact: true }).click();
+    await expect(page.locator(".decision-card .ids")).toContainText(
+      humanRevisionId,
+    );
     await noHorizontalScroll(page);
     await shot(page, info, "09-artifact-conflict");
 
@@ -349,10 +355,12 @@ test.describe("S1 journey (mock mode)", () => {
 
     // Home shows the resumable assignment.
     await page.goto("/");
-    // Completed work is listed as completed, with no in-progress or decision controls.
-    await expect(page.getByText(/^Completed · \d+/)).toBeVisible();
+    // Prepared work keeps its review route; nothing claims to be in progress.
     await expect(
-      page.locator(`a.work-row[href="/assignments/${assignmentId}"]`),
+      page.locator(`[data-assignment="${assignmentId}"] .status`),
+    ).toHaveText("Ready for review");
+    await expect(
+      page.getByRole("link", { name: "Open prepared work" }),
     ).toBeVisible();
     await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await expect(
@@ -463,7 +471,8 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByRole("button", { name: "Your context · 3 sources" }),
     ).toBeVisible();
     await shot(page, info, "17-home-start-error");
-    await page.getByRole("button", { name: "Retry the same request" }).click();
+    await expect(page.getByLabel("Message your agent")).toBeDisabled();
+    await page.getByRole("button", { name: "Retry same request" }).click();
     await page.waitForURL(/\/assignments\/asg_\d+$/);
     const after = (
       (
@@ -485,6 +494,8 @@ test.describe("S1 journey (mock mode)", () => {
     await page.route("**/api/mock/workspaces/*/assignments/*", (route) =>
       route.abort("connectionrefused"),
     );
+    // Returning to the tab re-reads the assignment, whether or not it was still polling.
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
     await expect(page.getByText("Reconnecting…")).toBeVisible({
       timeout: 15_000,
     });

@@ -89,9 +89,9 @@ try {
       await readFile(path.join(evidence, "state.json"), "utf8"),
     );
     await page.goto(origin);
-    await expect(page.getByText(/^Completed · \d+/)).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(
+      page.locator(`[data-assignment="${state.assignment_id}"] .status`),
+    ).toHaveText("Approved revision", { timeout: 15000 });
     await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await page.goto(origin + state.artifact_url);
     await expect(
@@ -348,7 +348,7 @@ try {
     // Acceptance is the person's decision: the backend records the applied revision as theirs.
     expect(applied.current_revision.author_kind).toBe("human");
     await expect(
-      page.getByText(/You applied my proposal as revision 3/),
+      page.getByText(/You approved my proposal as revision 3/),
     ).toBeVisible();
     expect(applied.current_revision.parent_revision_id).toBe(
       saved.current_revision_id,
@@ -365,9 +365,7 @@ try {
     ).toBe("accepted");
     // Completed: the agent pane reports what changed, no in-progress controls remain.
     await expect(page.getByText("A revision is being drafted")).toHaveCount(0);
-    await page
-      .getByText(/line changed from revision 2|lines changed from revision 2/)
-      .click();
+    await page.getByText(/What changed · \d+ lines? from revision 2/).click();
     await expect(page.locator(".agent-pane [data-added='true']")).toContainText(
       ask,
     );
@@ -383,6 +381,9 @@ try {
     ).toBeVisible();
     await expect(page.getByLabel("What should change?")).toBeHidden();
     await page.getByRole("button", { name: "Agent", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Ask for a revision", exact: true })
+      .click();
     await page
       .getByLabel("What should change?")
       .fill("Draft instruction kept across panes");
@@ -410,13 +411,14 @@ try {
 
     // Home reflects completion consistently: no decision card, nothing "in progress".
     await page.goto(origin);
-    await expect(page.getByText(/^Completed · \d+/)).toBeVisible({
-      timeout: 15000,
-    });
+    await expect(
+      page.locator(`[data-assignment="${assignmentId}"] .status`),
+    ).toHaveText("Approved revision", { timeout: 15000 });
     await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Review the change" }),
     ).toHaveCount(0);
+    await expect(page.getByText(/delegate/i)).toHaveCount(0);
     await shot("13-home-completed");
     await page.setViewportSize({ width: 390, height: 844 });
     await shot("14-home-completed-mobile");

@@ -983,3 +983,44 @@ details.disclosure.card {
   overflow: hidden;
   min-height: 2.5em;
 }
+
+/* ---------- calmer working view ---------- */
+.agent-pane {
+  gap: 14px;
+}
+.agent-say p {
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
+.changes-peek > summary {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.ask-open {
+  align-self: flex-start;
+}
+.ids-details > summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+.ids-details .ids {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.decision-card .ids-details {
+  margin-top: 2px;
+}
+.work-row-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.work-row-note {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}

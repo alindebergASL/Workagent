@@ -10,7 +10,7 @@ import {
   workAttention,
 } from "@/lib/work-state";
 import { Composer } from "@/components/Composer";
-import { ErrorNotice } from "@/components/ui";
+import { assignmentStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
 
 function lede(items: AssignmentSummary[]): string {
@@ -71,8 +71,14 @@ export default function AgentHome() {
           className="decision-card"
           aria-labelledby="decision-title"
           data-phase={phaseOf(attention.item)}
+          data-assignment={attention.item.id}
         >
-          <p className="eyebrow-caps">{attention.eyebrow}</p>
+          <div className="row row-between">
+            <p className="eyebrow-caps">{attention.eyebrow}</p>
+            <StatusBadge
+              {...assignmentStatus(attention.item.state, attention.item.stage)}
+            />
+          </div>
           <h2 id="decision-title">{attention.title}</h2>
           <p className="small clamp-2">{shortTitle(attention.item.title)}</p>
           <p className="small muted">{attention.body}</p>

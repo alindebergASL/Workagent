@@ -20,7 +20,9 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
         ? "Results appear as they’re saved"
         : phase === "stopped"
           ? "Saved results are kept"
-          : (item.next_step ?? item.latest_result ?? "");
+          : phase === "approved"
+            ? (item.latest_result ?? "")
+            : (item.next_step ?? item.latest_result ?? "");
   return (
     <li>
       <Link

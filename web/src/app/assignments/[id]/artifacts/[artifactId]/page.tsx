@@ -104,6 +104,7 @@ export default function ArtifactPage() {
   const [historyKey, setHistoryKey] = useState("0");
   const [agentFocus, setAgentFocus] = useState(0);
   const [workFocus, setWorkFocus] = useState(0);
+  const [askOpen, setAskOpen] = useState(false);
   const instructionRef = useRef<HTMLTextAreaElement>(null);
   const [instruction, setInstruction] = useState("");
   const [requestState, setRequestState] = useState<{
@@ -428,6 +429,7 @@ export default function ArtifactPage() {
       revisionCommand.current = null;
       setRequestState({ busy: false, done: true });
       setInstruction("");
+      setAskOpen(false);
       setWorkFocus((n) => n + 1); // Phones: back to the document; the request waits for review.
       await res.refresh();
       announce(
@@ -521,22 +523,9 @@ export default function ArtifactPage() {
       ) ?? null)
     : null;
 
-  const authorText = appliedFrom
-    ? "Applied by you from Workagent’s proposal"
-    : current
-      ? current.author.kind === "human"
-        ? `Edited by ${current.author.name === "You" ? "you" : current.author.name}`
-        : `Prepared by the ${EXECUTION.worker}`
-      : "Not prepared yet";
-
   const header = (
     <header className="doc-head">
       {back}
-      <p className="eyebrow">
-        {KIND_LABEL[art.kind]} · {workspace?.name ?? "Private"} · {authorText} ·
-        observed {formatTime(res.observedAt ?? art.observed_at, zone)}
-        {res.reconnecting ? " · reconnecting…" : ""}
-      </p>
       <h1>{art.title}</h1>
       <div className="row row-between">
         <div className="row">
@@ -546,6 +535,9 @@ export default function ArtifactPage() {
           <span className="save-state" aria-live="polite">
             {saveStateText}
           </span>
+          {res.reconnecting ? (
+            <span className="hint">Reconnecting…</span>
+          ) : null}
         </div>
         <div className="row">
           <button
@@ -634,9 +626,9 @@ export default function ArtifactPage() {
           }
         >
           {current.author.kind === "human" ? "You" : "Workagent"} ·{" "}
-          {formatTime(current.created_at, zone)} · {current.id}. Viewing does
-          not change the current version. To bring this text back, open the
-          current version, edit and save.
+          {formatTime(current.created_at, zone)}. Viewing does not change the
+          current version. To bring this text back, open the current version,
+          edit and save.
         </Notice>
         <section className="doc-card">
           <DocRead
@@ -913,19 +905,24 @@ export default function ArtifactPage() {
           <p className="eyebrow-caps">Your decision</p>
           <h2 id="decision-title">
             {stale
-              ? `I proposed this before you saved revision ${current.sequence}. Your version is unchanged.`
-              : `I’ve proposed a change to revision ${current.sequence}. Nothing is applied until you decide.`}
+              ? `This proposal is based on revision ${proposal.base_sequence}, before your revision ${current.sequence}.`
+              : "A proposed revision is ready"}
           </h2>
           <p>
             Requested: “{reason}”.{" "}
             {stale
-              ? "It can’t be applied over your newer edit; keep your version, or review the changes and save your own resolution."
-              : "Apply it as a new revision, keep your version, or review the changes yourself."}
+              ? "Your version is unchanged. Keep it, or review the changes and save your own resolution."
+              : `Based on revision ${current.sequence}. Nothing is applied until you decide.`}
           </p>
-          <p className="ids">
-            Base {proposal.base_revision_id} · current {current.id} · proposal{" "}
-            {proposal.id} · prepared by the {EXECUTION.worker}
-          </p>
+          <details className="ids-details">
+            <summary>Revision details</summary>
+            <p className="ids">
+              Base revision {proposal.base_sequence} (
+              {proposal.base_revision_id}) · current revision {current.sequence}{" "}
+              ({current.id}) · proposal {proposal.id} · prepared by the{" "}
+              {EXECUTION.worker}
+            </p>
+          </details>
         </section>
         {decision.error ? <ErrorNotice error={decision.error} /> : null}
         <details className="disclosure exact-changes" open>
@@ -957,7 +954,7 @@ export default function ArtifactPage() {
           <ConflictPane
             role="current"
             title="Current saved version"
-            ids={`Revision ${current.sequence} · ${current.id} · ${current.author.kind === "human" ? "edited by you" : `prepared by the ${EXECUTION.worker}`} · ${formatTime(current.created_at, zone)}`}
+            ids={`Revision ${current.sequence} · ${appliedFrom ? "approved from a proposal" : current.author.kind === "human" ? "edited by you" : "prepared by Workagent"} · ${formatTime(current.created_at, zone)}`}
             body={current.body}
             expanded={showCurrentFull}
             onToggle={() => setShowCurrentFull((v) => !v)}
@@ -966,7 +963,7 @@ export default function ArtifactPage() {
           <ConflictPane
             role="proposal"
             title={`Agent proposal based on revision ${proposal.base_sequence}`}
-            ids={`${proposal.id} · based on ${proposal.base_revision_id} · ${formatTime(proposal.updated_at, zone)}`}
+            ids={`Based on revision ${proposal.base_sequence} · ${formatTime(proposal.updated_at, zone)}`}
             body={proposal.body}
             expanded={showProposalFull}
             onToggle={() => setShowProposalFull((v) => !v)}
@@ -1040,106 +1037,111 @@ export default function ArtifactPage() {
   const lastChange = parent ? diffBlocks(parent.body, current.body) : [];
   const changedCount = lastChange.filter((o) => o.type !== "same").length;
 
+  const outcome = generating
+    ? `I’m drafting a revision from revision ${proposal?.base_sequence ?? current.sequence}. It will wait for your review.`
+    : appliedFrom
+      ? `You approved my proposal as revision ${current.sequence}.`
+      : current.author.kind === "human"
+        ? `Your edits are saved as revision ${current.sequence}.`
+        : "Ready for your review. Edit anything, or ask me to revise it.";
+  const showAsk =
+    askOpen || Boolean(instruction.trim()) || Boolean(requestState.error);
+
   const agentPane = (
-    <div className="agent-pane stack-lg stack">
+    <div className="agent-pane stack">
       <div className="agent-say">
         <div className="agent-presence agent-presence-xs" aria-hidden="true" />
-        <p>
-          {generating
-            ? `I’m drafting a revision from revision ${proposal?.base_sequence ?? current.sequence} with the ${EXECUTION.worker}. Keep working; it will wait for your review and never replaces your saved text on its own.`
-            : appliedFrom
-              ? `You applied my proposal as revision ${current.sequence}: “${appliedFrom.reason.trim().replace(/[.!?]+$/, "")}”. Your earlier text stays where I didn’t change it.`
-              : current.author.kind === "human"
-                ? `Your edits are saved as revision ${current.sequence}. I’ll work from this version.`
-                : `Here’s the ${art.title.toLowerCase()}. Your changes stay with the page; anything I propose waits for you.`}
-        </p>
+        <p>{outcome}</p>
       </div>
       {art.partial ? (
         <p className="hint" role="status">
           Partial result: this is what has been saved so far.
         </p>
       ) : null}
-
-      <section className="stack" aria-labelledby="changes-title">
-        <h2 id="changes-title" className="section-title">
-          {parent
-            ? `What changed in revision ${current.sequence}`
-            : "First version"}
-        </h2>
-        {parent ? (
-          <details className="disclosure">
-            <summary>
-              {changedCount
-                ? `${changedCount} line${changedCount === 1 ? "" : "s"} changed from revision ${parent.sequence} · ${appliedFrom ? "applied from my proposal" : current.author.kind === "human" ? "by you" : "by Workagent"}`
-                : "No changes to the text or checklist"}
-            </summary>
-            <div className="disclosure-body">
-              <DocDiff
-                ops={lastChange}
-                labels={{
-                  added: `Added in revision ${current.sequence}`,
-                  removed: `Removed in revision ${current.sequence}`,
-                  tone: "edit",
-                }}
-              />
-            </div>
-          </details>
-        ) : (
-          <p className="small muted">
-            Prepared from {art.source_refs.length} source
-            {art.source_refs.length === 1 ? "" : "s"} by the {EXECUTION.worker}.{" "}
+      {parent ? (
+        <details className="disclosure changes-peek">
+          <summary>
+            {changedCount
+              ? `What changed · ${changedCount} line${changedCount === 1 ? "" : "s"} from revision ${parent.sequence}`
+              : `What changed · nothing since revision ${parent.sequence}`}
+          </summary>
+          <div className="disclosure-body">
+            <DocDiff
+              ops={lastChange}
+              labels={{
+                added: `Added in revision ${current.sequence}`,
+                removed: `Removed in revision ${current.sequence}`,
+                tone: "edit",
+              }}
+            />
+          </div>
+        </details>
+      ) : null}
+      {showAsk ? (
+        <form
+          className="ask"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void sendRevisionRequest();
+          }}
+        >
+          <label htmlFor="instruction" className="section-title">
+            What should change?
+          </label>
+          <textarea
+            id="instruction"
+            ref={instructionRef}
+            value={instruction}
+            onChange={(e) => setInstruction(e.target.value)}
+            disabled={
+              requestState.busy ||
+              Boolean(revisionCommand.current) ||
+              Boolean(proposal)
+            }
+            rows={3}
+            placeholder="For example: add a default owner so no case is saved blank."
+          />
+          <p className="hint">
+            {proposal
+              ? "A proposal for this page is already in progress or waiting for you."
+              : `Based on revision ${current.sequence}. The result waits for your review.`}
+          </p>
+          {requestState.error ? (
+            <ErrorNotice error={requestState.error} />
+          ) : null}
+          <div className="row">
+            <button
+              type="submit"
+              className="btn btn-primary btn-sm"
+              disabled={
+                !instruction.trim() || requestState.busy || Boolean(proposal)
+              }
+            >
+              {requestState.busy ? "Sending…" : "Send request"}
+            </button>
             <button
               type="button"
-              className="link-quiet"
-              onClick={() => setHistoryOpen(true)}
+              className="btn btn-sm btn-quiet"
+              onClick={() => setAskOpen(false)}
+              disabled={requestState.busy}
             >
-              See history
+              {instruction.trim() ? "Keep for later" : "Cancel"}
             </button>
-          </p>
-        )}
-      </section>
-
-      <form
-        className="ask"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void sendRevisionRequest();
-        }}
-      >
-        <label htmlFor="instruction" className="section-title">
-          What should change?
-        </label>
-        <textarea
-          id="instruction"
-          ref={instructionRef}
-          value={instruction}
-          onChange={(e) => setInstruction(e.target.value)}
-          disabled={
-            requestState.busy ||
-            Boolean(revisionCommand.current) ||
-            Boolean(proposal)
-          }
-          rows={3}
-          placeholder="For example: add a default owner so no case is saved blank."
-        />
-        <p className="hint">
-          {proposal
-            ? "A proposal for this page is already in progress or waiting for you."
-            : `Sent with revision ${current.sequence} as the base. The result waits for your review.`}
-        </p>
-        {requestState.error ? <ErrorNotice error={requestState.error} /> : null}
-        <div className="row">
-          <button
-            type="submit"
-            className="btn btn-primary btn-sm"
-            disabled={
-              !instruction.trim() || requestState.busy || Boolean(proposal)
-            }
-          >
-            {requestState.busy ? "Sending…" : "Send request"}
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          className="btn btn-sm ask-open"
+          onClick={() => {
+            setAskOpen(true);
+            window.setTimeout(() => instructionRef.current?.focus(), 0);
+          }}
+          disabled={Boolean(proposal)}
+        >
+          Ask for a revision
+        </button>
+      )}
     </div>
   );
 
@@ -1150,7 +1152,13 @@ export default function ArtifactPage() {
           {KIND_LABEL[art.kind]} · revision {current.sequence}
           {editing ? " · editing" : ""}
         </span>
-        <span>{dirty ? "Unsaved changes" : "Private · saved"}</span>
+        <span>
+          {dirty
+            ? "Unsaved changes"
+            : approved
+              ? "Approved · private"
+              : "Saved · private"}
+        </span>
       </div>
       {editing && draft ? (
         <>
@@ -1183,7 +1191,11 @@ export default function ArtifactPage() {
               {dirty ? "Discard changes" : "Stop editing"}
             </button>
             <span className="small muted">
-              Based on saved revision {draftBase}
+              Based on revision{" "}
+              {draftBase === current.id
+                ? current.sequence
+                : (history.data?.revisions.find((r) => r.id === draftBase)
+                    ?.sequence ?? "an earlier one")}
             </span>
           </div>
         </>
@@ -1206,6 +1218,7 @@ export default function ArtifactPage() {
               type="button"
               className="btn"
               onClick={() => {
+                setAskOpen(true);
                 setAgentFocus((n) => n + 1);
                 window.setTimeout(() => instructionRef.current?.focus(), 0);
               }}
@@ -1213,9 +1226,6 @@ export default function ArtifactPage() {
             >
               Request revision
             </button>
-            <span className="small muted mono">
-              {current.id} · {current.body_hash.slice(0, 19)}…
-            </span>
           </div>
         </>
       )}
@@ -1234,9 +1244,8 @@ export default function ArtifactPage() {
       ) : null}
       {generating ? (
         <Notice role="status" title="A revision is being drafted">
-          Based on revision {proposal?.base_sequence}, by the {EXECUTION.worker}
-          . You can keep editing; a proposal never replaces your saved version
-          without your decision.
+          Based on revision {proposal?.base_sequence}. Keep working; nothing
+          changes until you decide.
         </Notice>
       ) : null}
       <WorkSurface

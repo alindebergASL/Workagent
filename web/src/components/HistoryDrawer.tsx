@@ -78,15 +78,23 @@ export function HistoryDrawer({
                     Revision {r.sequence}
                     {r.id === history.accepted_revision_id ? " · current" : ""}
                   </strong>
-                  <span className="small muted">{r.id}</span>
+                  <span
+                    className="small muted mono"
+                    title={`Body ${r.body_hash}`}
+                  >
+                    {r.id.slice(0, 8)}
+                  </span>
                 </div>
                 <div className="small muted">
-                  {r.author.kind === "human"
-                    ? r.author.name
-                    : "Workagent (agent draft)"}{" "}
-                  · {formatTime(r.created_at, zone)}
+                  {r.author.name} · {formatTime(r.created_at, zone)}
                 </div>
                 {r.note ? <div className="small">{r.note}</div> : null}
+                <details className="ids-details">
+                  <summary>Identifiers</summary>
+                  <p className="ids">
+                    Revision {r.id} · body {r.body_hash}
+                  </p>
+                </details>
                 <div className="row">
                   {r.id === history.accepted_revision_id ? (
                     <button
@@ -119,7 +127,9 @@ export function HistoryDrawer({
                       <strong>
                         Proposal based on revision {p.base_sequence}
                       </strong>
-                      <span className="small muted">{p.id}</span>
+                      <span className="small muted mono">
+                        {p.id.slice(0, 8)}
+                      </span>
                     </div>
                     <div className="small muted">
                       {proposalLabel[p.status] ?? p.status} ·{" "}

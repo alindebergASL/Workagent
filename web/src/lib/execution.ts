@@ -17,5 +17,5 @@ export const EXECUTION =
     : {
         short: "Local fixture computation",
         worker: "deterministic fixture worker",
-        line: "Local private build · Deterministic fixture computation, not a live agent run · No connected accounts or external actions",
+        line: "Local preview · Work is prepared by a fixture worker, not a live agent · No connected accounts",
       };
