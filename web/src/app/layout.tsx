@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "@/styles/globals.css";
+import "@/styles/agent-first.css";
 import { WorkspaceProvider } from "@/lib/client/workspace";
 import { Shell } from "@/components/Shell";
 

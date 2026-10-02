@@ -1,0 +1,207 @@
+/* Agent-first shell; domain actions, conflicts, and evidence remain intact. */
+:root {
+  --bg: #fcfcfd;
+  --surface: #fff;
+  --surface-2: #f1f3f6;
+  --surface-3: #e9edf3;
+  --line: #e7eaf0;
+  --line-strong: #c9d1de;
+  --ink: #202632;
+  --ink-2: #505c70;
+  --ink-3: #687387;
+  --accent: #294dbb;
+  --accent-soft: #edf2ff;
+  --accent-line: #bccbf2;
+  --focus: #3e63dc;
+  --nav-w: 184px;
+  --content-w: 1024px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121419;
+    --surface: #20242d;
+    --surface-2: #191c23;
+    --surface-3: #293140;
+    --line: #303643;
+    --line-strong: #536078;
+    --ink: #edf0f7;
+    --ink-2: #c2cad8;
+    --ink-3: #a1aaba;
+    --accent: #99b2ff;
+    --accent-ink: #172345;
+    --accent-soft: #252f4b;
+    --accent-line: #526991;
+    --focus: #99b2ff;
+  }
+}
+.nav {
+  padding: 30px 16px;
+  border-right: 0;
+}
+.nav-brand strong {
+  font-size: 1.125rem;
+  letter-spacing: -0.035em;
+}
+.nav-link[aria-current="page"] {
+  background: var(--surface);
+}
+.main {
+  padding-top: 55px;
+}
+.agent-home {
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+}
+.agent-home h1 {
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+.agent-presence {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: radial-gradient(circle at 25% 25%, #d8e9ff, #8aacf9 50%, #465ab0);
+  transform: rotate(-9deg);
+  margin-bottom: 4px;
+}
+.agent-initiative {
+  background: var(--accent-soft);
+  border-radius: 16px;
+  padding: 22px;
+  display: grid;
+  gap: 12px;
+}
+.agent-initiative h2 {
+  font-size: 1.125rem;
+}
+.agent-initiative .btn {
+  justify-self: start;
+}
+.agent-composer {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 8px 35px #22365508;
+}
+.agent-composer textarea {
+  min-height: 112px;
+  border: 0;
+  background: transparent;
+  padding: 8px 0;
+  resize: vertical;
+}
+.agent-context summary,
+.agent-handling summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-2);
+}
+.agent-context summary::before,
+.agent-handling summary::before {
+  content: "+";
+}
+.agent-context[open] summary::before,
+.agent-handling[open] summary::before {
+  content: "−";
+}
+.agent-handling {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.space-work-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+.space-work {
+  display: grid;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.space-work h2 {
+  font-size: 1.2rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 860px) {
+  .main {
+    padding-top: 28px;
+  }
+  .agent-home {
+    gap: 20px;
+  }
+  .space-work-grid {
+    grid-template-columns: 1fr;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    position: static;
+  }
+  .agent-composer {
+    padding: 18px;
+  }
+  .agent-composer .row {
+    flex-wrap: wrap;
+  }
+}
+
+.working-surface {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.working-switch {
+  display: none;
+}
+.working-document,
+.working-revision {
+  min-width: 0;
+}
+.working-revision {
+  background: var(--surface-2);
+  padding: 20px;
+  border-radius: 16px;
+}
+.working-revision h2 {
+  font-size: 1.125rem;
+}
+.working-surface .sticky-actions {
+  position: static;
+}
+.working-surface .card {
+  padding: 20px;
+}
+@media (max-width: 860px) {
+  .working-surface {
+    display: block;
+  }
+  .working-switch {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .working-switch [aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--surface);
+  }
+  .working-surface[data-pane="work"] > .working-revision {
+    display: none;
+  }
+  .working-surface[data-pane="revision"] > .working-document {
+    display: none;
+  }
+}
