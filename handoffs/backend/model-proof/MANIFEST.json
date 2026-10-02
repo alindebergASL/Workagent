@@ -2,16 +2,18 @@
   "application_code_commit": "693a54f",
   "evidence_mode": "operator_assisted_live_model_draft",
   "files": {
-    "browser-probe.mjs": "dceeeaaf27d19ef290bafb25db77fb86b3a5fab7d755a3a452b491cd92882e81",
+    "browser-probe.mjs": "d97be0af3fb0ab2358d4e473db2e3187be396a22492b2796464a0d4f0557052e",
     "browser.json": "7ae402707fa7822ef6fc7359447a6bf4507a8b7601775eeb3b629672cf6a8567",
     "dispatch.json": "1f3e02bc0093ffcd169ed2245bf30a27a2e8a7e3b51e8e9eb179dc8e0a331745",
     "operation.json": "e3fd362a5ef8c0ef3b571e7c42cb735987e68c990c5c2a1da3aa1533bb946c72",
     "recover.json": "c553d5322e7cfb739a2c32373661e42b149cd4ce5ce1871424e51802cfcd34ca",
-    "reopened-model-draft-mobile.png": "bd8b576ace4ad7cce5bdd91e1be8718b8d576596c559186b22629acb6494a582",
-    "reopened-model-draft.png": "a68a4a7099f8464df606fa4f7ce77b8745498b1619bfaf618e947bb6f8dcb94b",
+    "reopened-model-draft-mobile.png": "d8a16629e77e8755f7a2338f489bf7d1649a3f66dcc40b970d6ce562e496fdea",
+    "reopened-model-draft.png": "314706cd1f9962d63f2509cbcecce651836a627e0e48348c9ab848c71c4c5845",
     "request.json": "da4bc712484b16e3ae61c515244cbc7b54fadac2c6a96b02d6cb660f148196ff",
     "response.json": "201e8d199c138b4735826b924acd4d410de2debba9b6f8d2b01edcf4cd62fbc8",
     "unacknowledged-commit.json": "cfa49348d6d97ddeca2adea9ca969ae040c094aac4b61c31c792f6df26e50209",
     "verify.json": "d1d47d20dd7cc02cdc6fc8b9a1721050160a58a3101deb5fd6082035e35047ba"
-  }
+  },
+  "provider_call_and_initial_recovery_context": "f88f63c plus the operator proof harness committed unchanged in 693a54f; default application mode unchanged",
+  "browser_reopen_verified_at": "2a078b3b5d4d855a6507483762f15ecb9adaf4be"
 }
