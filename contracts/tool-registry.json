@@ -273,6 +273,18 @@
                 "title": "Block Id",
                 "type": "string"
               },
+              "checked": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Checked"
+              },
               "kind": {
                 "enum": [
                   "heading",
@@ -740,6 +752,18 @@
                 "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
                 "title": "Block Id",
                 "type": "string"
+              },
+              "checked": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Checked"
               },
               "kind": {
                 "enum": [

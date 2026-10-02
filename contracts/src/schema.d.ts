@@ -243,6 +243,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/sources/{source_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Source */
+        get: operations["get_source"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/tasks/{task_id}": {
         parameters: {
             query?: never;
@@ -349,6 +366,8 @@ export interface components {
         Block: {
             /** Block Id */
             block_id: string;
+            /** Checked */
+            checked?: boolean | null;
             /**
              * Kind
              * @enum {string}
@@ -677,6 +696,31 @@ export interface components {
             /** Workspace Id */
             workspace_id: string;
         };
+        /** SourceDetail */
+        SourceDetail: {
+            /**
+             * Available
+             * @default true
+             */
+            available: boolean;
+            /** Content */
+            content: {
+                [key: string]: unknown;
+            };
+            /** External Version */
+            external_version: string;
+            /** Id */
+            id: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Title */
+            title: string;
+            /** Workspace Id */
+            workspace_id: string;
+        };
         /** SourcePage */
         SourcePage: {
             /** Items */
@@ -911,13 +955,14 @@ export interface operations {
                      *           "blocks": [
                      *             {
                      *               "block_id": "next-action",
+                     *               "checked": null,
                      *               "kind": "checklist",
                      *               "text": "Record an owner and a next action for the next personal intake case."
                      *             }
                      *           ],
                      *           "title": "Private working plan"
                      *         },
-                     *         "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+                     *         "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
                      *         "created_at": "2026-10-02T00:00:00Z",
                      *         "id": "revision-1",
                      *         "parent_revision_id": null,
@@ -1279,6 +1324,7 @@ export interface operations {
                  *         "blocks": [
                  *           {
                  *             "block_id": "next-action",
+                 *             "checked": null,
                  *             "kind": "checklist",
                  *             "text": "Record an owner and a next action for the next personal intake case."
                  *           }
@@ -1310,13 +1356,14 @@ export interface operations {
                      *           "blocks": [
                      *             {
                      *               "block_id": "next-action",
+                     *               "checked": null,
                      *               "kind": "checklist",
                      *               "text": "Record an owner and a next action for the next personal intake case."
                      *             }
                      *           ],
                      *           "title": "Private working plan"
                      *         },
-                     *         "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+                     *         "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
                      *         "created_at": "2026-10-02T00:00:00Z",
                      *         "id": "revision-2",
                      *         "parent_revision_id": "revision-1",
@@ -1550,7 +1597,7 @@ export interface operations {
                      *         "assignment_id": "assignment-example",
                      *         "base_revision_id": null,
                      *         "budget_units": 1,
-                     *         "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+                     *         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
                      *         "cursor": 0,
                      *         "fence": 0,
                      *         "id": "run-example",
@@ -1564,7 +1611,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+                     *         "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -2139,7 +2186,7 @@ export interface operations {
                      *       "assignment_id": "assignment-example",
                      *       "base_revision_id": null,
                      *       "budget_units": 1,
-                     *       "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+                     *       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
                      *       "cursor": 0,
                      *       "fence": 1,
                      *       "id": "run-example",
@@ -2153,7 +2200,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+                     *       "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"
@@ -2244,6 +2291,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SourcePage"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_source: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                source_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceDetail"];
                 };
             };
             /** @description Missing or invalid local authentication */

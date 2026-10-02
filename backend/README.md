@@ -45,9 +45,12 @@ For a separately provisioned database, use a dedicated migration owner and a
 LOGIN runtime role that is neither table/database owner, superuser nor BYPASSRLS.
 Revoke public schema CREATE, grant runtime schema USAGE, table SELECT, INSERT on
 `assignments, assignment_sources, artifacts, revisions, proposals, tasks,
-task_inspections, commands, audit, outbox, runs`, and UPDATE only on
-`assignments, artifacts, proposals, outbox, runs` plus the authority tables for
-row-lock permission. **Migration 002 must be installed:** PostgreSQL requires
+task_inspections, commands, audit, outbox, runs, run_configurations, run_contexts,
+run_dispatches`, and UPDATE only on
+`assignments, artifacts, proposals, outbox, runs, run_dispatches, runtime_configuration` plus the authority tables for
+row-lock permission. Grant USAGE on `run_dispatches_cursor_seq`. Runtime has SELECT
+only on `bundle_activations`; activation requires the migration/table-owner identity.
+**Migrations 002 and 003 must be installed:** PostgreSQL requires
 UPDATE privilege even for `SELECT FOR SHARE`; its owner-only triggers prevent
 runtime updates to workspace/membership/source/access records. No runtime DELETE,
 TRUNCATE, DDL or function ownership. `dev_db.py` is executable provisioning evidence
@@ -133,7 +136,9 @@ keys and unique revision sequences enforce workspace/artifact relationships.
 
 `workspaces`, `memberships`, `sources`, `source_access`, `assignments`,
 `assignment_sources`, `artifacts`, `revisions`, `proposals`, `tasks`,
-`task_inspections`, `commands`, `audit`, `outbox`, `runs`, plus `schema_migrations`.
+`task_inspections`, `commands`, `audit`, `outbox`, `runs`, `bundle_activations`,
+`runtime_configuration`, `run_configurations`, `run_contexts`, `run_dispatches`,
+plus `schema_migrations`.
 Artifact revisions use their own sequence under lock; assignment work versions
 are independent; source versions are read-only to runtime. Outbox has a pending
 index and consumed timestamps. Runs persist profile/bundle/tool hashes, principal,
@@ -152,10 +157,20 @@ After creating an assignment, use the returned workspace/run IDs:
   --workspace local-workspace --run <returned-run-id>
 ```
 
-This is an explicit one-run fixture adapter, not an always-on provider loop. It
-reads only the persisted selected current source rows. Missing owner **OR** missing
+This explicit one-run seam remains supported (`work_once` and the compatible
+`run_fixture` alias). The application-owned fixture scheduler also runs continuously:
+
+```sh
+.venv/bin/python -m workagent.dispatcher --once  # one bounded queue sweep
+.venv/bin/python -m workagent.dispatcher         # repeat every second
+```
+
+Use `--workspace ID` for a scoped local test. Both paths claim existing durable runs,
+assemble the approved product bundle, and read only selected current source rows.
+There is no provider loop. Missing owner **OR** missing
 next action is computed from arbitrary valid boolean rows; no expected count is
-hardcoded. It generates a useful private plan/checklist, preserves every supplied
+hardcoded. Identical case IDs are counted once; conflicting duplicate IDs are
+excluded and mark the output partial. It generates a useful private plan/checklist, preserves every supplied
 `protected_note` literally, records selected source dependencies/observed times,
 and retains unknowns. No usable/malformed rows yield partial work, not invented
 confidence. Revision fixture work appends the requested instruction for review;
@@ -187,14 +202,40 @@ reviewed typed names `get_assignment`, `get_artifact`, `get_task`,
 `propose_artifact_revision`. The last has an implemented
 `Service.propose_artifact_revision(cap, ProposeArtifactRevisionInput)` seam that
 requires the run's exact artifact/base/dependencies and stable command ID. The
-parent must bind query tools to that capability's assignment and validate the
-lease on **every** invocation; do not pass a free-form Principal into model tools.
-Tool schema annotations are not grants. No generic execute/approval route exists.
-The provider broker and approved-bundle loader remain the parent's integration;
-this baseline's profile and pins identify the fixture adapter bytes and generated
-tool registry. Dispatch and commit reject pin drift. Do not pass a parent bundle's
-hash through this fixture-only profile without explicitly integrating profile/pin
-validation; trusted-bundle activation/rollback is not implemented here.
+implemented `workagent.broker.Broker(service, cap)` binds query tools to the exact
+assignment and validates the lease on **every** invocation; do not pass a free-form
+Principal into model tools. Tool schema annotations are not grants. No generic
+execute/approval route exists. `Run.bundle_hash` now identifies the approved product
+manifest, not the fixture Python file. The immutable run configuration separately
+pins fixture adapter bytes, approval registry, tool registry, sources and budget.
+Dispatch and commit reject pin drift. `runtime/bundles.py` provides application-owned
+context assembly, not native hosted filesystem loading.
+
+### Trusted local activation and rollback
+
+Only the migration identity can change the active configuration, never the worker
+or a model tool/API. Migration 003 seeds approved version 0.1.0.
+
+```sh
+.venv/bin/python -m workagent.runtime_config --activate 0.1.0
+# Adapter-only enabled/disabled comparison (not live ablation):
+.venv/bin/python -m workagent.runtime_config --activate 0.1.0 --disable-skills
+.venv/bin/python -m workagent.runtime_config --rollback approved-default-0.1.0
+```
+
+CLI output is a read-back immutable activation record. Rollback targets a prior
+activation ID and only affects future runs; it cannot restore source grants.
+Approval registry bytes are pinned in application code. Adding an approved version
+requires a reviewed deployment, not editing a customer source or calling a tool.
+See `RUNTIME_VERIFICATION.md` for ownership, recovery evidence and limitations.
+
+### Compatible source/editor additions
+
+`GET /v1/workspaces/{workspace_id}/sources/{source_id}` returns typed `SourceDetail`
+(metadata plus `content` object), rechecking current source access. Missing and
+unauthorized return the same 404 envelope. Source listing still excludes bodies.
+`Block.checked` is nullable/optional and is accepted only for `kind: checklist`;
+true/false state persists in immutable revisions and survives reopening.
 
 ## Contract generation, scenario mock, tests
 
@@ -215,7 +256,7 @@ client. Separate package-lock and exact generator versions are committed.
 execution results: queued/progress/ready, human save, stale proposal, denied lookup,
 command conflict, partial and reopened saved work. The PostgreSQL-backed API above
 is the stateful frontend scenario/mock service; isolate its database from other
-work. Run the fixture adapter between polls to advance queued work.
+work. Run the fixture scheduler while polling to advance queued work.
 
 Tests require real `DATABASE_URL` AND a migration owner URL to seed independent
 random workspaces. Missing PostgreSQL configuration fails; it is never skipped as

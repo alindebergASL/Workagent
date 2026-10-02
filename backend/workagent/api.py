@@ -129,6 +129,10 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def list_sources(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_sources(p,workspace_id,cursor,limit)
 
+    @route('/v1/workspaces/{workspace_id}/sources/{source_id}','GET','get_source',SourceDetail)
+    def get_source(workspace_id:Id,source_id:Id,p:P,meta:Meta):
+        return service.get_source(p,workspace_id,source_id)
+
     @route('/v1/workspaces/{workspace_id}/assignments','GET','list_assignments',AssignmentPage)
     def list_assignments(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_assignments(p,workspace_id,cursor,limit)

@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from .db import Database
 from .models import *
-from .service import Service, Principal, encoded
+from .service import Service, Principal, encoded, canonical
 
 
 def seed(dsn, records, workspace_id='local-workspace', principal_id='local-human'):
@@ -33,11 +33,22 @@ def generate(sources):
             notes.append(content['protected_note'])
     usable=[r for r in rows if isinstance(r,dict) and isinstance(r.get('id'),str)
             and type(r.get('owner_recorded')) is bool and type(r.get('next_action_recorded')) is bool]
+    malformed = len(usable) != len(rows)
+    by_id = {}
+    conflicts = set()
+    for row in usable:
+        if row['id'] in by_id and canonical(by_id[row['id']]) != canonical(row):
+            conflicts.add(row['id'])
+        else:
+            by_id[row['id']] = row
+    usable = [row for id, row in by_id.items() if id not in conflicts]
     missing=[r['id'] for r in usable if not r['owner_recorded'] or not r['next_action_recorded']]
     unresolved=[]
+    if conflicts:
+        unresolved.append('Conflicting duplicate case IDs excluded from quantification: '+', '.join(sorted(conflicts))+'.')
     if not usable:
         unresolved.append('No usable intake rows supplied; the baseline cannot be quantified.')
-    if len(usable)!=len(rows):
+    if malformed:
         unresolved.append('Some supplied rows have unknown owner/next-action indicators and were not quantified.')
     evidence=f"{len(missing)} of {len(usable)} usable personal cases lack an owner or a next action (union, not a sum). Cases: {', '.join(missing) or 'none'}."
     unknowns=list(dict.fromkeys(unknowns+['No time-saved data collected.','No evidence of a causal effect.']))
@@ -58,7 +69,26 @@ def generate(sources):
 
 def work_once(service,p,ws,run_id):
     cap=service.claim_run(p,ws,run_id)
+    result=run_claimed(service,cap)
+    from .dispatcher import Dispatcher
+    Dispatcher(service).reconcile(ws,run_id)
+    return result
+
+
+# Backward-compatible trusted-process seam for the parent integration.
+run_fixture = work_once
+
+
+def run_claimed(service,cap):
+    from .broker import Broker
+    context=service.worker_context(cap)
     r,a,sources,base=service.worker_inputs(cap)
+    Broker(service,cap).call('get_assignment', {
+        'schema_version':'workagent/v1', 'request_id':new_id(),
+        'workspace_id':cap.workspace_id, 'assignment_id':a.id})
+    # Local deterministic compute consumes the assembled permitted evidence, not
+    # a second broad source fetch or instructions discovered in customer content.
+    sources=[{'content':source['content']} for source in context['sources']]
     bodies,unresolved=generate(sources)
     if r.kind=='revision':
         # Fixture adapter creates a reviewable separate proposal, not a simulated LLM result.

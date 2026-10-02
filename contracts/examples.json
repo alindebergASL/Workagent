@@ -66,7 +66,7 @@
           "assignment_id": "assignment-example",
           "base_revision_id": null,
           "budget_units": 1,
-          "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+          "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
           "cursor": 0,
           "fence": 0,
           "id": "run-example",
@@ -80,7 +80,7 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+          "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -124,13 +124,14 @@
             "blocks": [
               {
                 "block_id": "next-action",
+                "checked": null,
                 "kind": "checklist",
                 "text": "Record an owner and a next action for the next personal intake case."
               }
             ],
             "title": "Private working plan"
           },
-          "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+          "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
           "created_at": "2026-10-02T00:00:00Z",
           "id": "revision-1",
           "parent_revision_id": null,
@@ -185,7 +186,7 @@
         "assignment_id": "assignment-example",
         "base_revision_id": null,
         "budget_units": 1,
-        "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+        "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
         "cursor": 0,
         "fence": 1,
         "id": "run-example",
@@ -199,7 +200,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+        "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -211,6 +212,7 @@
           "blocks": [
             {
               "block_id": "next-action",
+              "checked": null,
               "kind": "checklist",
               "text": "Record an owner and a next action for the next personal intake case."
             }
@@ -232,13 +234,14 @@
             "blocks": [
               {
                 "block_id": "next-action",
+                "checked": null,
                 "kind": "checklist",
                 "text": "Record an owner and a next action for the next personal intake case."
               }
             ],
             "title": "Private working plan"
           },
-          "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+          "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
           "created_at": "2026-10-02T00:00:00Z",
           "id": "revision-2",
           "parent_revision_id": "revision-1",
@@ -280,13 +283,14 @@
           "blocks": [
             {
               "block_id": "next-action",
+              "checked": null,
               "kind": "checklist",
               "text": "Record an owner and a next action for the next personal intake case."
             }
           ],
           "title": "Private working plan"
         },
-        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
         "created_at": "2026-10-02T00:00:00Z",
         "id": "revision-1",
         "parent_revision_id": null,
@@ -348,7 +352,7 @@
         "assignment_id": "assignment-example",
         "base_revision_id": null,
         "budget_units": 1,
-        "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+        "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
         "cursor": 0,
         "fence": 0,
         "id": "run-example",
@@ -362,7 +366,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+        "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -390,13 +394,14 @@
           "blocks": [
             {
               "block_id": "next-action",
+              "checked": null,
               "kind": "checklist",
               "text": "Record an owner and a next action for the next personal intake case."
             }
           ],
           "title": "Private working plan"
         },
-        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
         "created_at": "2026-10-02T00:00:00Z",
         "id": "revision-2",
         "parent_revision_id": "revision-1",
@@ -421,7 +426,7 @@
       "assignment_id": "assignment-example",
       "base_revision_id": null,
       "budget_units": 1,
-      "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+      "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
       "cursor": 0,
       "fence": 0,
       "id": "run-example",
@@ -435,7 +440,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -448,7 +453,7 @@
       "assignment_id": "assignment-example",
       "base_revision_id": null,
       "budget_units": 1,
-      "bundle_hash": "407cd0bdd1b393bf99ab927e0129b96170cd81b835384d57c121c5c91743d82e",
+      "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
       "cursor": 0,
       "fence": 1,
       "id": "run-example",
@@ -462,7 +467,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "c83dfa2a4b1bc40fff08e90252b99b3a20fb8cda6588c456ff91c6492cbff3d0",
+      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"
@@ -503,13 +508,14 @@
           "blocks": [
             {
               "block_id": "next-action",
+              "checked": null,
               "kind": "checklist",
               "text": "Record an owner and a next action for the next personal intake case."
             }
           ],
           "title": "Private working plan"
         },
-        "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+        "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
         "created_at": "2026-10-02T00:00:00Z",
         "id": "revision-2",
         "parent_revision_id": "revision-1",
@@ -550,13 +556,14 @@
         "blocks": [
           {
             "block_id": "next-action",
+            "checked": null,
             "kind": "checklist",
             "text": "Record an owner and a next action for the next personal intake case."
           }
         ],
         "title": "Private working plan"
       },
-      "body_hash": "6c3b1590b52873b24237b6c7f36f92a4bdd54da8922c02951375ef6fd922f83a",
+      "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
       "created_at": "2026-10-02T00:00:00Z",
       "id": "proposal-example",
       "reason": "Make the next action concrete",

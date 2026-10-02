@@ -9,7 +9,6 @@ import json
 import secrets
 from dataclasses import dataclass
 from datetime import timedelta
-from pathlib import Path
 from typing import Callable
 
 from psycopg.types.json import Jsonb
@@ -30,7 +29,10 @@ def digest(value) -> str:
 
 def fixture_pins():
     from .tool_registry import registry
-    return hashlib.sha256(Path(__file__).with_name('fixture.py').read_bytes()).hexdigest(), digest(registry())
+    from .runtime_config import loader
+    approved = loader()
+    approved.load('0.1.0')
+    return approved.approvals['0.1.0']['manifest_sha256'], digest(registry())
 
 
 def encoded(value):
@@ -123,6 +125,11 @@ class Service:
         event_id = new_id()
         c.execute('INSERT INTO audit(id,workspace_id,principal_id,operation,object_id) VALUES (%s,%s,%s,%s,%s)', (event_id,ws,p.id,operation,object_id))
         c.execute('INSERT INTO outbox(id,workspace_id,operation,object_id) VALUES (%s,%s,%s,%s)', (event_id,ws,operation,object_id))
+        if operation in ('create_assignment', 'request_revision', 'control_assignment'):
+            c.execute('''INSERT INTO run_dispatches(workspace_id,run_id,outbox_id)
+                SELECT workspace_id,id,%s FROM runs WHERE workspace_id=%s
+                AND (id=%s OR assignment_id=%s) AND data->>'state'='queued'
+                ON CONFLICT(workspace_id,run_id) DO NOTHING''', (event_id,ws,object_id,object_id))
 
     def _store_assignment(self, c, a):
         c.execute('UPDATE assignments SET data=%s WHERE workspace_id=%s AND id=%s', (encoded(a),a.workspace_id,a.id))
@@ -160,6 +167,16 @@ class Service:
             items = [Source.model_validate(r['data']) for r in rows[:limit]]
             return SourcePage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
+    def get_source(self,p,ws,source_id):
+        with self.db.transaction() as c:
+            self._scope(c,p,ws)
+            row=c.execute('SELECT data FROM sources WHERE workspace_id=%s AND id=%s',(ws,source_id)).fetchone()
+            if not row:
+                deny()
+            source=Source.model_validate(row['data'])
+            row=self._source(c,p,ws,SourceRef(source_id=source.id,external_version=source.external_version,observed_at=source.observed_at))
+            return SourceDetail(**source.model_dump(),content=row['content'])
+
     def list_assignments(self, p, ws, cursor=None, limit=25):
         with self.db.transaction() as c:
             self._scope(c,p,ws)
@@ -191,11 +208,15 @@ class Service:
 
     def _new_run(self,c,p,a,kind='initial',**kwargs):
         generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(a.workspace_id,)).fetchone()['access_generation']
-        bundle_hash,tool_registry_hash=fixture_pins()
+        from .runtime_config import active_configuration, pin_run
+        from .tool_registry import registry
+        activation_id, activation = active_configuration(c)
+        bundle_hash,tool_registry_hash=activation['bundle_hash'],digest(registry())
         r=Run(id=new_id(), workspace_id=a.workspace_id, assignment_id=a.id, principal_id=p.id,
               kind=kind, access_generation=generation, bundle_hash=bundle_hash,
               tool_registry_hash=tool_registry_hash, **kwargs)
         c.execute('INSERT INTO runs(workspace_id,id,assignment_id,data) VALUES (%s,%s,%s,%s)',(a.workspace_id,r.id,a.id,encoded(r)))
+        pin_run(c, r, a, activation_id, activation)
         a.run_ids.append(r.id)
         self._store_assignment(c,a)
         return r
@@ -365,6 +386,18 @@ class Service:
             return a
         return self._command(p,ws,'control_assignment',{'assignment_id':assignment_id},cmd,Assignment,lambda c:self._assignment(c,p,ws,assignment_id),mutate)
 
+    def _runtime_pins(self,c,r):
+        from .runtime_config import check_pins, BundleDenied
+        try:
+            check_pins(c,r)
+        except (BundleDenied, OSError, KeyError, ValueError) as exc:
+            raise DomainError('unsupported_operation') from exc
+
+    def worker_context(self,cap):
+        from .runtime_config import assemble_context
+        with self.db.transaction() as c:
+            return assemble_context(self,c,cap)
+
     def claim_run(self,p,ws,run_id):
         """Trusted-process seam, never an HTTP/model tool. Returns a fenced lease."""
         with self.db.transaction() as c:
@@ -376,8 +409,7 @@ class Service:
             if r.principal_id!=p.id:
                 deny()
             a=self._assignment(c,p,ws,r.assignment_id,True)
-            if (r.bundle_hash,r.tool_registry_hash)!=fixture_pins():
-                raise DomainError('unsupported_operation')
+            self._runtime_pins(c,r)
             if a.state in ('paused','cancelled') or r.state not in ('queued','running'):
                 raise DomainError('action_unresolved')
             if r.access_generation!=generation:
@@ -398,7 +430,10 @@ class Service:
             if r.kind=='initial':
                 a.state='running'; a.work_version+=1; self._store_assignment(c,a)
             self._event(c,p,ws,'claim_run',r.id)
-            return WorkerCapability(ws,r.id,p.id,r.fence,secret)
+            cap=WorkerCapability(ws,r.id,p.id,r.fence,secret)
+            from .runtime_config import assemble_context
+            assemble_context(self,c,cap)
+            return cap
 
     def _check_capability(self,c,cap,allow_completed=False):
         if not isinstance(cap,WorkerCapability):
@@ -415,14 +450,19 @@ class Service:
         if not completed and (r.state!='running' or not r.lease_expires_at or r.lease_expires_at<=now()):
             raise DomainError('action_unresolved')
         a=self._assignment(c,p,cap.workspace_id,r.assignment_id,True)
-        if (r.bundle_hash,r.tool_registry_hash)!=fixture_pins():
-            raise DomainError('unsupported_operation')
+        self._runtime_pins(c,r)
         if r.access_generation!=generation:
             raise DomainError('source_changed')
         if a.state in ('paused','cancelled'):
             raise DomainError('action_unresolved')
         if not completed and r.used_units>=r.budget_units:
             raise DomainError('budget_exhausted')
+        context=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(r.workspace_id,r.id)).fetchone()
+        if context:
+            for source in context['data']['source_manifest']:
+                row=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',(r.workspace_id,source['id'])).fetchone()
+                if not row or digest(row['content'])!=source['sha256']:
+                    raise DomainError('source_changed')
         return p,r,a
 
     def worker_inputs(self,cap):
@@ -481,9 +521,8 @@ class Service:
             a.state=r.state; a.unresolved=r.unresolved; a.work_version+=1
             self._store_assignment(c,a)
             self._event(c,p,ws,'complete_run',r.id)
-            c.execute("UPDATE outbox SET consumed_at=now() WHERE workspace_id=%s AND object_id=%s AND operation IN ('request_revision','claim_run') AND consumed_at IS NULL",(ws,r.id))
-            if r.kind=='initial':
-                c.execute("UPDATE outbox SET consumed_at=now() WHERE workspace_id=%s AND object_id=%s AND operation='create_assignment' AND consumed_at IS NULL",(ws,a.id))
+            # Outbox admission is acknowledged only by post-commit reconciliation.
+            # A crash here leaves durable terminal state, never another computation.
             if command:
                 c.execute('INSERT INTO commands(principal_id,workspace_id,command_id,payload_hash,result) VALUES (%s,%s,%s,%s,%s)',(p.id,ws,command.command_id,payload_hash,encoded(r)))
             return r

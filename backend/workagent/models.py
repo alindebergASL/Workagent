@@ -79,6 +79,13 @@ class Block(Model):
     block_id: Id
     kind: Literal['heading', 'paragraph', 'checklist', 'protected_note']
     text: Text
+    checked: bool | None = None
+
+    @model_validator(mode='after')
+    def checklist_state(self):
+        if self.checked is not None and self.kind != 'checklist':
+            raise ValueError('checked is only valid for checklist blocks')
+        return self
 
 
 class Body(Model):
@@ -108,6 +115,10 @@ class Source(Model):
     observed_at: AwareDatetime
     available: bool = True
     # Content is intentionally not returned by source listing.
+
+
+class SourceDetail(Source):
+    content: dict
 
 
 class Assignment(Model):
