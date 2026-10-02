@@ -128,8 +128,15 @@ export function useResource<T>(
       return tick();
     };
     scheduleRef.current = schedule;
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") void refreshRef.current();
+    };
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
     if (key) void tick();
     return () => {
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
       stopped = true;
       generation.current += 1;
       controller.abort();

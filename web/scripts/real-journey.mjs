@@ -128,11 +128,14 @@ try {
     const note = records.find((r) => r.id === "SG-F7").content.protected_note;
     await page.goto(origin);
     await expect(
-      page.getByRole("heading", { name: "What would you like to finish?" }),
+      page.getByRole("heading", {
+        name: "What would you like to move forward?",
+      }),
     ).toBeVisible();
     await page
-      .getByLabel("Your request")
+      .getByLabel("Tell me what you need")
       .fill(records.find((r) => r.id === "SG-F1").content.instruction);
+    await page.getByText("Context · Choose sources", { exact: true }).click();
     for (const title of [
       "Personal intake review log",
       "Method notebook",

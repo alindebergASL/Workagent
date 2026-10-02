@@ -472,7 +472,11 @@ export default function ArtifactPage() {
     );
   }
 
-  const status = artifactStatus(art.state, art.partial);
+  const status = artifactStatus(
+    art.state,
+    art.partial,
+    Boolean(art.approved_revision_id),
+  );
   const needsDecision = Boolean(
     proposal &&
     (proposal.status === "conflicted" || proposal.status === "proposed"),

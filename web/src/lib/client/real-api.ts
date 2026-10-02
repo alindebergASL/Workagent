@@ -4,6 +4,7 @@ import {
   type components,
 } from "../../../../contracts/src/client";
 import { ApiError } from "@/lib/contract/errors";
+import { assignmentSummary } from "./assignment-summary";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
 const stablePayload = commandPayloadCache();
@@ -324,9 +325,21 @@ async function artifactView(
     title: selected.body.title,
     kind: kind(selected.body.title),
     state:
-      proposal && proposal.status !== "generating" ? "needs_review" : "ready",
+      proposal?.status === "generating"
+        ? "generating"
+        : proposal
+          ? "needs_review"
+          : "ready",
     partial: assignment.state === "partial",
     accepted_revision_id: raw.current_revision_id,
+    approved_revision_id:
+      selected.id === raw.current_revision_id &&
+      proposals.some(
+        (p) =>
+          p.status === "accepted" && p.accepted_revision_id === selected.id,
+      )
+        ? selected.id
+        : null,
     accepted_revision: toRevision(selected, raw.current_revision_id),
     pending_proposal: proposal,
     observed_at: raw.observed_at ?? "",
@@ -338,45 +351,6 @@ async function artifactView(
       observed_at: ref.observed_at,
       surface: "Selected source",
     })),
-  };
-}
-function summary(a: S["Assignment"]): V.AssignmentSummary {
-  const state: V.AssignmentState =
-    a.state === "ready"
-      ? "ready_for_review"
-      : a.state === "running"
-        ? "working"
-        : a.state === "partial" || a.state === "paused"
-          ? "needs_input"
-          : a.state === "cancelled"
-            ? "stopped"
-            : "queued";
-  return {
-    id: a.id,
-    workspace_id: a.workspace_id,
-    title: a.goal,
-    goal: a.goal,
-    state,
-    work_revision: a.work_version ?? 1,
-    stage:
-      a.state === "queued"
-        ? "Queued for local fixture work"
-        : a.state === "running"
-          ? "Preparing private artifacts"
-          : null,
-    created_at: a.observed_at ?? "",
-    updated_at: a.observed_at ?? "",
-    observed_at: a.observed_at ?? "",
-    latest_result: (a.artifact_ids ?? []).length
-      ? "Saved private artifacts are available"
-      : null,
-    next_step:
-      a.unresolved?.[0] ??
-      ((a.artifact_ids ?? []).length
-        ? "Review the plan and checklist"
-        : "Wait for the local worker"),
-    needs_review_artifact_ids: [],
-    selected_source_count: a.selected_source_refs.length,
   };
 }
 async function enrichConflict<T>(
@@ -434,20 +408,34 @@ export const realApi = {
   },
   async listAssignments(ws: string, signal?: AbortSignal) {
     return list(
-      (
-        await all((cursor) =>
-          unwrap(
-            client.GET("/v1/workspaces/{workspace_id}/assignments", {
-              params: {
-                path: { workspace_id: ws },
-                header: meta(),
-                query: { limit: 100, cursor },
-              },
-              signal,
-            }),
+      await Promise.all(
+        (
+          await all((cursor) =>
+            unwrap(
+              client.GET("/v1/workspaces/{workspace_id}/assignments", {
+                params: {
+                  path: { workspace_id: ws },
+                  header: meta(),
+                  query: { limit: 100, cursor },
+                },
+                signal,
+              }),
+            ),
+          )
+        ).map(async (a) =>
+          assignmentSummary(
+            a,
+            await Promise.all(
+              (a.artifact_ids ?? []).map(async (id) =>
+                artifactView(
+                  await rawArtifact(ws, id, undefined, signal),
+                  signal,
+                ),
+              ),
+            ),
           ),
-        )
-      ).map(summary),
+        ),
+      ),
     );
   },
   async getAssignment(
@@ -470,11 +458,9 @@ export const realApi = {
     const plan = artifacts.find((x) => x.kind === "plan")?.accepted_revision;
     const blocks = plan?.body ?? [];
     return {
-      ...summary(a),
+      ...assignmentSummary(a, artifacts),
       created_at: initial?.observed_at ?? a.observed_at ?? "",
-      needs_review_artifact_ids: artifacts
-        .filter((x) => x.state === "needs_review")
-        .map((x) => x.id),
+
       completion_criteria: a.completion_criteria,
       selected_source_refs: a.selected_source_refs.map((ref) => ({
         id: ref.source_id,
@@ -503,6 +489,7 @@ export const realApi = {
         kind: x.kind,
         state: x.state,
         accepted_revision_id: x.accepted_revision_id,
+        approved_revision_id: x.approved_revision_id,
         partial: x.partial,
         updated_at: x.accepted_revision?.created_at ?? x.observed_at,
       })),

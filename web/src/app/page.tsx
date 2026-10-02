@@ -1,12 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { api, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
-import type { AssignmentSummary, SourceDetail } from "@/lib/contract/types";
+import type {
+  AssignmentSummary,
+  SourceDetail,
+  CreateAssignmentCommand,
+} from "@/lib/contract/types";
 import { workAttention } from "@/lib/work-state";
 import { formatTime } from "@/lib/time";
 import { assignmentStatus, ErrorNotice, StatusBadge } from "@/components/ui";
@@ -46,7 +50,11 @@ export default function WorkHome() {
   const [selected, setSelected] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
-  const commandId = useRef<string | null>(null);
+  const commandId = useRef<{
+    workspace: string;
+    command: CreateAssignmentCommand;
+  } | null>(null);
+  const locked = submitting || Boolean(commandId.current);
   const requestRef = useRef<HTMLTextAreaElement>(null);
 
   const canStart =
@@ -59,22 +67,40 @@ export default function WorkHome() {
     if (!wsId || !canStart) return;
     setSubmitting(true);
     setSubmitError(null);
-    // One command ID per attempt of the same content: a retry after a transport
-    // failure replays the same command rather than creating a second assignment.
-    if (!commandId.current) commandId.current = newCommandId();
     try {
-      const refs = selected.map((id) => {
-        const s = sources.data?.find((x) => x.id === id);
-        return { id, version: s?.version ?? "1" };
-      });
-      const result = await api.createAssignment(wsId, {
-        command_id: commandId.current,
-        goal: request.trim(),
-        selected_source_refs: refs,
-        completion_criteria: [
-          "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.",
-        ],
-      });
+      if (commandId.current && commandId.current.workspace !== wsId)
+        throw new ApiError({
+          code: "transport",
+          status: 0,
+          message: "Return to the original Space to reconcile this request.",
+        });
+      if (!commandId.current) {
+        const refs = selected.map((id) => {
+          const source = sources.data?.find((x) => x.id === id);
+          if (!source)
+            throw new ApiError({
+              code: "source_changed",
+              status: 409,
+              message: "Refresh the selected sources before delegating.",
+            });
+          return { id, version: source.version };
+        });
+        commandId.current = {
+          workspace: wsId,
+          command: {
+            command_id: newCommandId(),
+            goal: request.trim(),
+            selected_source_refs: refs,
+            completion_criteria: [
+              "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.",
+            ],
+          },
+        };
+      }
+      const result = await api.createAssignment(
+        commandId.current.workspace,
+        commandId.current.command,
+      );
       commandId.current = null;
       router.push(`/assignments/${result.assignment_id}`);
     } catch (e) {
@@ -84,11 +110,6 @@ export default function WorkHome() {
       setSubmitting(false);
     }
   }, [wsId, canStart, selected, sources.data, request, router]);
-
-  useEffect(() => {
-    // Editing the request after a failed attempt starts a new command.
-    commandId.current = null;
-  }, [request, selected]);
 
   const useSample = () => {
     setRequest(SAMPLE_REQUEST);
@@ -165,7 +186,7 @@ export default function WorkHome() {
             value={request}
             onChange={(event) => setRequest(event.target.value)}
             placeholder="What would you like help carrying forward?"
-            disabled={submitting}
+            disabled={locked}
             required
           />
           <details className="agent-context">
@@ -210,7 +231,7 @@ export default function WorkHome() {
                       type="checkbox"
                       checked={selected.includes(source.id)}
                       onChange={() => toggle(source.id)}
-                      disabled={submitting}
+                      disabled={locked}
                     />
                     <span>{source.title}</span>
                   </label>
@@ -238,7 +259,7 @@ export default function WorkHome() {
               type="button"
               className="btn btn-quiet"
               onClick={useSample}
-              disabled={!sources.data || submitting}
+              disabled={!sources.data?.length || locked}
             >
               Try the intake example
             </button>
@@ -247,7 +268,11 @@ export default function WorkHome() {
               className="btn btn-primary"
               disabled={!canStart || wsLoading}
             >
-              {submitting ? "Starting…" : "Start work"}
+              {submitting
+                ? "Starting…"
+                : commandId.current
+                  ? "Retry same request"
+                  : "Start work"}
             </button>
           </div>
           <p className="hint">

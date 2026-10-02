@@ -204,7 +204,11 @@ export default function AssignmentPage() {
             ) : (
               <div className="artifact-links">
                 {a.artifacts.map((x) => {
-                  const s = artifactStatus(x.state, x.partial);
+                  const s = artifactStatus(
+                    x.state,
+                    x.partial,
+                    Boolean(x.approved_revision_id),
+                  );
                   return (
                     <Link
                       className="artifact-link"

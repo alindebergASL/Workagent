@@ -132,10 +132,27 @@ class Service:
                 ON CONFLICT(workspace_id,run_id) DO NOTHING''', (event_id,ws,object_id,object_id))
 
     def _store_assignment(self, c, a):
+        a.observed_at=now()
         c.execute('UPDATE assignments SET data=%s WHERE workspace_id=%s AND id=%s', (encoded(a),a.workspace_id,a.id))
 
     def _store_run(self, c, r):
+        r.observed_at=now()
         c.execute('UPDATE runs SET data=%s WHERE workspace_id=%s AND id=%s', (encoded(r),r.workspace_id,r.id))
+
+    def _refresh_progress(self,c,a):
+        # Preparation state is authoritative across all admitted runs, not whichever
+        # completion happened last. Human proposal approval is a separate receipt.
+        rows=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s',(a.workspace_id,a.id)).fetchall()
+        runs={row['data']['id']:Run.model_validate(row['data']) for row in rows}
+        ordered=[runs[id] for id in a.run_ids if id in runs]
+        terminal={}
+        for run in ordered:
+            if run.state in ('ready','partial'):
+                terminal[run.artifact_id or 'initial']=run
+        a.unresolved=list(dict.fromkeys(note for run in terminal.values() for note in run.unresolved))
+        a.state=('running' if any(r.state=='running' for r in ordered) else
+                 'queued' if any(r.state=='queued' for r in ordered) else
+                 'partial' if a.unresolved else 'ready')
 
     def _command(self, p, ws, op, path_args, command, result_model, authorize: Callable, mutate: Callable):
         if p.kind != 'human':
@@ -218,6 +235,7 @@ class Service:
         c.execute('INSERT INTO runs(workspace_id,id,assignment_id,data) VALUES (%s,%s,%s,%s)',(a.workspace_id,r.id,a.id,encoded(r)))
         pin_run(c, r, a, activation_id, activation)
         a.run_ids.append(r.id)
+        self._refresh_progress(c,a)
         self._store_assignment(c,a)
         return r
 
@@ -381,7 +399,7 @@ class Service:
             if cmd.operation=='resume':
                 self._assignment(c,p,ws,a.id,True)
                 if a.artifact_ids:
-                    a.state='ready'
+                    self._refresh_progress(c,a)
                 else:
                     self._new_run(c,p,a)
             self._store_assignment(c,a)
@@ -430,8 +448,8 @@ class Service:
             r.fence+=1; r.state='running'; r.lease_expires_at=now()+timedelta(seconds=120)
             self._store_run(c,r)
             c.execute('UPDATE runs SET lease_hash=%s WHERE workspace_id=%s AND id=%s',(digest(secret),ws,r.id))
-            if r.kind=='initial':
-                a.state='running'; a.work_version+=1; self._store_assignment(c,a)
+            self._refresh_progress(c,a)
+            a.work_version+=1; self._store_assignment(c,a)
             self._event(c,p,ws,'claim_run',r.id)
             cap=WorkerCapability(ws,r.id,p.id,r.fence,secret)
             from .runtime_config import assemble_context
@@ -521,7 +539,8 @@ class Service:
             r.state='partial' if unresolved else 'ready'; r.unresolved=unresolved or []; r.used_units+=1
             r.lease_expires_at=None; r.cursor+=1
             self._store_run(c,r)
-            a.state=r.state; a.unresolved=r.unresolved; a.work_version+=1
+            self._refresh_progress(c,a)
+            a.work_version+=1
             self._store_assignment(c,a)
             self._event(c,p,ws,'complete_run',r.id)
             # Outbox admission is acknowledged only by post-commit reconciliation.
