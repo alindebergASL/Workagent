@@ -1,0 +1,577 @@
+{
+  "config": {
+    "argv": [
+      "<REVIEW_HOME>/.hermes/node/bin/node",
+      "<REVIEW_WORKTREE>/web/node_modules/@playwright/test/cli.js",
+      "test"
+    ],
+    "configFile": "<REVIEW_WORKTREE>/web/playwright.config.ts",
+    "rootDir": "<REVIEW_WORKTREE>/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "<REVIEW_WORKTREE>/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "<REVIEW_WORKTREE>/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "<REVIEW_WORKTREE>/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "mobile",
+        "name": "mobile",
+        "testDir": "<REVIEW_WORKTREE>/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "<REVIEW_WORKTREE>/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "narrow",
+        "name": "narrow",
+        "testDir": "<REVIEW_WORKTREE>/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-report.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.0",
+    "workers": 1,
+    "webServer": {
+      "command": "pnpm start --hostname 127.0.0.1 --port 3100",
+      "url": "http://127.0.0.1:3100/api/mock/health",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "env": {
+        "WORKAGENT_MOCK_STAGE_MS": "700",
+        "WORKAGENT_MOCK_PROPOSAL_MS": "600000",
+        "WORKAGENT_MOCK_STATE_DIR": "<REVIEW_WORKTREE>/web/.workagent-mock/e2e",
+        "WORKAGENT_MOCK_CONTROL": "1"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "journey.spec.ts",
+      "file": "journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "S1 journey (mock mode)",
+          "file": "journey.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "start → inspect → edit → save → stale proposal → resolve @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14486,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:00.472Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-9270204d8db73bd7d9c6",
+              "file": "journey.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "protected lookups and command replay @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 682,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:15.174Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-484e44c6b0f31952b7c7",
+              "file": "journey.spec.ts",
+              "line": 389,
+              "column": 7
+            },
+            {
+              "title": "start error keeps the request; retry replays the same command; reconnect resumes @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4553,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:15.881Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-8c6f618da756123e1bd3",
+              "file": "journey.spec.ts",
+              "line": 445,
+              "column": 7
+            },
+            {
+              "title": "start → inspect → edit → save → stale proposal → resolve @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16526,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:24.541Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-112567f60cdaaedf403e",
+              "file": "journey.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "protected lookups and command replay @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 540,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:41.386Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-46f745de808fadac9181",
+              "file": "journey.spec.ts",
+              "line": 389,
+              "column": 7
+            },
+            {
+              "title": "start error keeps the request; retry replays the same command; reconnect resumes @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "mobile",
+                  "projectName": "mobile",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4915,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:41.949Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-694b8b88c1dd728b0837",
+              "file": "journey.spec.ts",
+              "line": 445,
+              "column": 7
+            },
+            {
+              "title": "start → inspect → edit → save → stale proposal → resolve @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 120000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "narrow",
+                  "projectName": "narrow",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 16128,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:12:49.600Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-cce4f6761a362750d613",
+              "file": "journey.spec.ts",
+              "line": 18,
+              "column": 7
+            },
+            {
+              "title": "protected lookups and command replay @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "narrow",
+                  "projectName": "narrow",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 516,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:13:05.916Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-2b1a6c72db0b133cb209",
+              "file": "journey.spec.ts",
+              "line": 389,
+              "column": 7
+            },
+            {
+              "title": "start error keeps the request; retry replays the same command; reconnect resumes @journey",
+              "ok": true,
+              "tags": [
+                "journey"
+              ],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "narrow",
+                  "projectName": "narrow",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4551,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-02T11:13:06.463Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bf222bad70f76648f722-801365194753b23af5da",
+              "file": "journey.spec.ts",
+              "line": 445,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "reopen.spec.ts",
+      "file": "reopen.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "reopen the same assignment and artifact after restart @reopen",
+          "ok": true,
+          "tags": [
+            "reopen"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "desktop",
+              "projectName": "desktop",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2876,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-02T11:12:20.465Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0abb33399108ca7f5eb7-f269fe6994f1ae8948c1",
+          "file": "reopen.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "reopen the same assignment and artifact after restart @reopen",
+          "ok": true,
+          "tags": [
+            "reopen"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "mobile",
+              "projectName": "mobile",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1859,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-02T11:12:46.895Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0abb33399108ca7f5eb7-bed19cbecd734d230dae",
+          "file": "reopen.spec.ts",
+          "line": 9,
+          "column": 5
+        },
+        {
+          "title": "reopen the same assignment and artifact after restart @reopen",
+          "ok": true,
+          "tags": [
+            "reopen"
+          ],
+          "tests": [
+            {
+              "timeout": 30000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "narrow",
+              "projectName": "narrow",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2258,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-02T11:13:11.060Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0abb33399108ca7f5eb7-0d214c90dfa2a524ee8f",
+          "file": "reopen.spec.ts",
+          "line": 9,
+          "column": 5
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-02T11:11:57.342Z",
+    "duration": 76182.761,
+    "expected": 12,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

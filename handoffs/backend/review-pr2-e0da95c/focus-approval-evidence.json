@@ -1,0 +1,188 @@
+{
+  "passed": true,
+  "mode": "real_browser_api_postgresql_no_mocked_success",
+  "old_current": "cac5d8a3-358f-4336-946e-b3dcfc7ea7cf",
+  "new_current": "6d875306-f23c-42b6-b036-a675d52556b3",
+  "approved_proposal": {
+    "id": "c04ebd9b-0337-4f94-aa5f-fd1eff9a421c",
+    "workspace_id": "local-workspace",
+    "assignment_id": "bca98c48-f3ad-4ef8-991d-de30e21ee892",
+    "artifact_id": "10d8f489-2007-47c6-9af7-7ee71507f6c6",
+    "base_revision_id": "575df4c1-2e64-4f03-af5e-e2ffd1e7af11",
+    "base_work_version": 5,
+    "body": {
+      "title": "Private working plan",
+      "blocks": [
+        {
+          "block_id": "recommendation",
+          "kind": "paragraph",
+          "text": "Test one owner-and-next-action check in your own intake review; do not automate or share yet.",
+          "checked": null
+        },
+        {
+          "block_id": "evidence",
+          "kind": "paragraph",
+          "text": "4 of 8 usable personal cases lack an owner or a next action (union, not a sum). Cases: P1, P2, P3, P4. 4/8 = 50%.",
+          "checked": null
+        },
+        {
+          "block_id": "next-action",
+          "kind": "checklist",
+          "text": "Choose the next personal case. Record one owner, one concrete next action and an observation before comparing outcomes.",
+          "checked": true
+        },
+        {
+          "block_id": "protected-0",
+          "kind": "protected_note",
+          "text": "Keep Wednesday 14:00–15:00 for method drafting; do not trade this block for either team’s review.",
+          "checked": null
+        },
+        {
+          "block_id": "unknowns",
+          "kind": "paragraph",
+          "text": "Unknowns: No time-saved data collected. No evidence of a causal effect.",
+          "checked": null
+        },
+        {
+          "block_id": "scope",
+          "kind": "paragraph",
+          "text": "Private draft from selected current source references only. No calendar write, sharing, causal claim or external task effect occurred.",
+          "checked": null
+        },
+        {
+          "block_id": "fixture-revision-request",
+          "kind": "paragraph",
+          "text": "Fixture revision request for human review: Preserve my protected Wednesday note and checked next action; add a bounded follow-up reminder.",
+          "checked": null
+        }
+      ]
+    },
+    "body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+    "source_dependencies": [
+      {
+        "source_id": "SG-F2",
+        "external_version": "1",
+        "observed_at": "2026-10-02T11:08:40.079156Z"
+      },
+      {
+        "source_id": "SG-F3",
+        "external_version": "1",
+        "observed_at": "2026-10-02T11:08:40.080280Z"
+      },
+      {
+        "source_id": "SG-F7",
+        "external_version": "1",
+        "observed_at": "2026-10-02T11:08:40.084267Z"
+      }
+    ],
+    "reason": "Preserve my protected Wednesday note and checked next action; add a bounded follow-up reminder.",
+    "status": "accepted",
+    "accepted_revision_id": "cac5d8a3-358f-4336-946e-b3dcfc7ea7cf",
+    "created_at": "2026-10-02T11:09:38.453773Z"
+  },
+  "artifact": {
+    "id": "10d8f489-2007-47c6-9af7-7ee71507f6c6",
+    "workspace_id": "local-workspace",
+    "assignment_id": "bca98c48-f3ad-4ef8-991d-de30e21ee892",
+    "current_revision_id": "6d875306-f23c-42b6-b036-a675d52556b3",
+    "current_revision": {
+      "id": "6d875306-f23c-42b6-b036-a675d52556b3",
+      "artifact_id": "10d8f489-2007-47c6-9af7-7ee71507f6c6",
+      "revision_number": 4,
+      "parent_revision_id": "cac5d8a3-358f-4336-946e-b3dcfc7ea7cf",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "title": "Private working plan",
+        "blocks": [
+          {
+            "block_id": "recommendation",
+            "kind": "paragraph",
+            "text": "Test one owner-and-next-action check in your own intake review; do not automate or share yet.",
+            "checked": null
+          },
+          {
+            "block_id": "evidence",
+            "kind": "paragraph",
+            "text": "4 of 8 usable personal cases lack an owner or a next action (union, not a sum). Cases: P1, P2, P3, P4. 4/8 = 50%.",
+            "checked": null
+          },
+          {
+            "block_id": "next-action",
+            "kind": "checklist",
+            "text": "Choose the next personal case. Record one owner, one concrete next action and an observation before comparing outcomes.",
+            "checked": true
+          },
+          {
+            "block_id": "protected-0",
+            "kind": "protected_note",
+            "text": "Keep Wednesday 14:00–15:00 for method drafting; do not trade this block for either team’s review.",
+            "checked": null
+          },
+          {
+            "block_id": "unknowns",
+            "kind": "paragraph",
+            "text": "Unknowns: No time-saved data collected. No evidence of a causal effect.",
+            "checked": null
+          },
+          {
+            "block_id": "scope",
+            "kind": "paragraph",
+            "text": "Private draft from selected current source references only. No calendar write, sharing, causal claim or external task effect occurred.",
+            "checked": null
+          },
+          {
+            "block_id": "fixture-revision-request",
+            "kind": "paragraph",
+            "text": "Fixture revision request for human review: Preserve my protected Wednesday note and checked next action; add a bounded follow-up reminder.",
+            "checked": null
+          },
+          {
+            "block_id": "reviewer-focus-human",
+            "kind": "paragraph",
+            "text": "Reviewer focus probe: this human change is saved, not approved.",
+            "checked": null
+          }
+        ]
+      },
+      "body_hash": "d700749f674806903effa46fe24c147ea49ce7fbe11b84e7e3dba4165d02bf8e",
+      "source_dependencies": [
+        {
+          "source_id": "SG-F2",
+          "external_version": "1",
+          "observed_at": "2026-10-02T11:08:40.079156Z"
+        },
+        {
+          "source_id": "SG-F3",
+          "external_version": "1",
+          "observed_at": "2026-10-02T11:08:40.080280Z"
+        },
+        {
+          "source_id": "SG-F7",
+          "external_version": "1",
+          "observed_at": "2026-10-02T11:08:40.084267Z"
+        }
+      ],
+      "created_at": "2026-10-02T11:11:08.667066Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-02T11:11:14.026422Z"
+  },
+  "labels": {
+    "agent": "Ready for review",
+    "spaces": "Ready for review",
+    "responsibility": "Ready for review",
+    "artifact": "Ready for review"
+  },
+  "focus": {
+    "max_concurrent_assignment_reads": 1,
+    "completed_assignment_reads": 2,
+    "writes": [],
+    "events_per_surface": 24
+  },
+  "mobile_unsent_instruction_preserved": true,
+  "mobile_unsaved_edit_preserved": true,
+  "desktop_both_panes_preserved": true,
+  "keep_for_later_form_still_visible": true,
+  "errors": []
+}

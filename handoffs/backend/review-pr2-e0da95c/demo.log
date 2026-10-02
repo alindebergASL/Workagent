@@ -1,0 +1,102 @@
+Using CPython 3.12.3 interpreter at: /usr/bin/python3
+Creating virtual environment at: backend/.venv
+Activate with: source backend/.venv/bin/activate
+Using Python 3.12.3 environment at: backend/.venv
+Resolved 21 packages in 160ms
+Installed 21 packages in 21ms
+ + annotated-types==0.8.0
+ + anyio==4.15.1
+ + certifi==2026.7.22
+ + click==8.5.0
+ + fastapi==0.115.12
+ + h11==0.16.0
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + idna==3.20
+ + iniconfig==2.3.0
+ + packaging==26.3
+ + pluggy==1.6.0
+ + psycopg==3.2.9
+ + psycopg-binary==3.2.9
+ + pydantic==2.11.5
+ + pydantic-core==2.33.2
+ + pytest==8.3.5
+ + starlette==0.46.2
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.4
+ + uvicorn==0.34.3
+
+added 35 packages, and audited 36 packages in 2s
+
+6 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+✓ Lockfile passes supply-chain policies (verified 7h ago)
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +152
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are hard linked from the content-addressable store to the virtual store.
+  Content-addressable store is at: <REVIEW_HOME>/.local/share/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 152, reused 152, downloaded 0, added 152, done
+
+dependencies:
++ next 16.3.4
++ react 19.2.8
++ react-dom 19.2.8
+
+devDependencies:
++ @playwright/test 1.62.0
++ @types/node 22.20.4
++ @types/react 19.3.0
++ @types/react-dom 19.3.0
++ eslint 10.11.0
++ prettier 3.9.9
++ typescript 5.9.3
++ typescript-eslint 8.71.0
++ vitest 5.0.3
+
+Done in 1.9s using pnpm v11.22.0
+$ next build
+▲ Next.js 16.3.4 (Turbopack)
+✓ Running next.config.ts took 69ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 16.4s
+  Running TypeScript ...
+  Finished TypeScript in 10.5s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/5) ...
+  Generating static pages using 1 worker (1/5)
+  Generating static pages using 1 worker (2/5)
+  Generating static pages using 1 worker (3/5)
+✓ Generating static pages using 1 worker (5/5) in 296ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/domain/[...path]
+├ ƒ /api/mock/[...path]
+├ ƒ /assignments/[id]
+├ ƒ /assignments/[id]/artifacts/[artifactId]
+├ ○ /icon.svg
+├ ○ /spaces
+└ ƒ /spaces/[spaceId]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+Created isolated database <REVIEW_APP_DATABASE>; environment: <REVIEW_WORKTREE>/.local/recheck.env. No credentials printed.
+{"id":"local-workspace","name":"Private fixture workspace","kind":"personal","owner_id":"local-human","access_generation":1}
+{"result":"PASS","mode":"actual_application_postgresql_fixture_compute","assignment_id":"5f677f94-edaf-474c-b009-17747e516c4e","artifact_id":"692a3752-607f-4e88-893a-c34e56a1c2d7","artifact_url":"/assignments/5f677f94-edaf-474c-b009-17747e516c4e/artifacts/692a3752-607f-4e88-893a-c34e56a1c2d7","human_revision_id":"15fc4300-cfd4-470b-be81-31fe7445fb49","human_body_hash":"1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204","applied_revision_id":"77a2b9f0-bd6f-4c7d-b499-e1f3950919da","applied_body_hash":"9dcd13c890a7779bca46b41435cc3cf5dfde73cb7085c1e13dfa571375d7d2a1","applied_proposal_id":"97ebb74c-7041-4d6b-aba5-0e60b623fe39","proposal_id":"3ac22296-feb9-45ad-be69-6752a7aa2646","proposal_hash":"2ff9111625b8cff228919bd0e463736019f20b465e311c3e467683ea538b77da","task_id":"bd033b0f-5d9e-4ecf-b2ee-b109f9f6a48a","task_inspection_id":"a81991d8-5f1b-4a74-9232-70ea6514b97e","errors":[]}
+PASS: real delegation (including lost 202) -> artifact -> human edit -> mobile proposal -> approval; all surfaces agree
+PASS: real UI reopened same PostgreSQL artifact after restart
+PASS: approved human-preserving work reopens after API/web restart; Agent/Spaces/responsibility/artifact agree
+Created isolated database <REVIEW_FAULT_DATABASE>; environment: <REVIEW_WORKTREE>/.local/recheck.faults.env. No credentials printed.
+{"id":"local-workspace","name":"Private fixture workspace","kind":"personal","owner_id":"local-human","access_generation":1}
+{"result":"PASS","case_count":9,"results":{"polling_restarts":{"passed":true,"without_reload":true},"restored_draft":{"passed":true,"base":"523c51b7-f321-4b7c-8f85-a859dc5623a5","preserved":"a4168456-3c9e-447b-a1f2-4026eb2182b6","explicit_continuation_still_checks_cas":true},"revision_response_loss":{"passed":true,"command_id":"4c04efae-83f8-4228-bd18-dc7ed350f9b7","revision_run_count":1},"resolution_before-save":{"passed":true,"save_command":"9d34cfb9-bd4f-4ea4-ae15-0c3d88e4fdce","dismiss_command":"resolve:9d34cfb9-bd4f-4ea4-ae15-0c3d88e4fdce","revision_number":2,"proposal_status":"dismissed"},"resolution_after-save-commit":{"passed":true,"save_command":"eee21526-cbef-4ac3-88d3-221ebce92f40","dismiss_command":"resolve:eee21526-cbef-4ac3-88d3-221ebce92f40","revision_number":2,"proposal_status":"dismissed"},"resolution_after-dismiss-commit":{"passed":true,"save_command":"5b72139b-7338-4937-8c0d-3f50eb04b2b5","dismiss_command":"resolve:5b72139b-7338-4937-8c0d-3f50eb04b2b5","revision_number":2,"proposal_status":"dismissed"},"decision_dismiss":{"passed":true,"command_id":"e531c6c2-19fb-435f-999d-497156e6bd3a"},"decision_accept":{"passed":true,"command_id":"87afb616-6a6f-45a6-ac5e-f2b512d9eabe"},"source_drift":{"passed":true,"recorded_version":"1","latest_version":"review-v2","exact_replay":true,"changed_intent_conflicts":true,"historical_bytes_substituted":false}}}
+PASS: .local/evidence contains saved bodies, task readback and desktop/mobile restart evidence. Database retained.

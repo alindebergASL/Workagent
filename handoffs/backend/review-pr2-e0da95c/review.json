@@ -1,0 +1,173 @@
+{
+  "reviewed_sha": "e0da95cc05a103af52cf5a31b328a2ee93486640",
+  "application_code_sha": "d354940e95def2c4cbd3edc683af946ea004c42c",
+  "base_sha": "a779715a3a6067f5e8e2a6eae3000482af280890",
+  "worktree": "<REVIEW_WORKTREE>",
+  "passed": true,
+  "verdict": "PASS focused independent frontend/backend integration recheck; old canonical-demo blocker resolved at this exact head. One nonblocking UI affordance issue.",
+  "security_concerns": [],
+  "blocking_logic_errors": [],
+  "nonblocking_findings": [
+    {
+      "id": "UI-1",
+      "priority": "P3",
+      "location": "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx (showAsk and Keep for later handler)",
+      "title": "Keep for later leaves the instruction form open",
+      "observation": "With a non-empty unsent instruction, clicking Keep for later preserves the text but leaves the form visible. showAsk includes Boolean(instruction.trim()), while the handler only clears askOpen. Reproduced in the independent real browser.",
+      "impact": "No data loss, mutation, approval or retry regression; the dismiss affordance appears ineffective. Nonblocking for this focused integration gate.",
+      "recommendation": "Make the label/behavior agree in a follow-up, without discarding the unsent text or ambiguous command. No change made by reviewer.",
+      "evidence": "focus-approval-evidence.json: keep_for_later_form_still_visible=true"
+    }
+  ],
+  "resolved_findings": [
+    {
+      "id": "QA-1",
+      "old_sha": "a779715",
+      "resolution": "Committed .doc-card-scoped saved-body assertions eliminate the duplicate history/document matcher. Untouched root demo passed on a fresh database at e0da95c; no reviewer replacement of the canonical journey was used.",
+      "evidence": [
+        "demo.log",
+        "evidence/demo.json"
+      ]
+    }
+  ],
+  "executed_checks": {
+    "real_production_build": {
+      "passed": true,
+      "evidence": "demo.log"
+    },
+    "canonical_root_demo": {
+      "passed": true,
+      "exit_code": 0,
+      "command": "python3 scripts/workagent.py demo --env .local/recheck.env",
+      "journeys": 2,
+      "real_api_web_restart_readbacks": 2,
+      "fault_cases": 9,
+      "evidence": [
+        "demo.log",
+        "evidence/demo.json",
+        "evidence/restart.json",
+        "evidence/agent-first/restart.json",
+        "evidence/fault-regressions/results.json"
+      ]
+    },
+    "web_check": {
+      "passed": true,
+      "typecheck": true,
+      "lint": true,
+      "format": true,
+      "unit_tests_passed": 25,
+      "unit_tests_failed": 0,
+      "test_files": 6,
+      "evidence": "web-check.log"
+    },
+    "mock_build": {
+      "passed": true,
+      "evidence": "mock-build.log"
+    },
+    "mock_browser": {
+      "passed": 12,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "viewports": [
+        1440,
+        390,
+        320
+      ],
+      "evidence": [
+        "mock-browser.log",
+        "mock-e2e-report.json"
+      ]
+    },
+    "reviewer_real_focus_approval_panes": {
+      "passed": true,
+      "focus_events_per_surface": 24,
+      "max_concurrent_intercepted_assignment_reads": 1,
+      "completed_intercepted_assignment_reads": 2,
+      "focus_triggered_writes": 0,
+      "labels_after_human_save": {
+        "agent": "Ready for review",
+        "spaces": "Ready for review",
+        "responsibility": "Ready for review",
+        "artifact": "Ready for review"
+      },
+      "page_errors": [],
+      "unsent_instruction_and_unsaved_edit_preserved": true,
+      "raw_screenshots_without_style_injection": true,
+      "evidence": [
+        "focus.log",
+        "focus-approval-evidence.json",
+        "focus-approval-probe.mjs"
+      ]
+    },
+    "published_combined_evidence_manifest": {
+      "application_commit": "d354940e95def2c4cbd3edc683af946ea004c42c",
+      "file_count": 77,
+      "all_hashes_match": true
+    },
+    "github_checks": {
+      "passed": 2,
+      "head_unchanged": true,
+      "evidence": "github-checks.json"
+    }
+  },
+  "observed_invariants": [
+    "Committed delegation with dropped 202 retries exact command and source versions; one admitted assignment/run, inputs locked. Original-workspace guard retained in source.",
+    "Ready for review, Decision needed and Approved revision agree across Home, Space detail, assignment and artifact at their corresponding canonical checkpoints.",
+    "Acceptance preserves human note and checked next action; actual API/web restart reopens the exact revision/body hash. Approval does not mark task/responsibility completion or external effects.",
+    "Later human save clears current approval on all four already-open surfaces; historical accepted proposal remains bound to the old revision.",
+    "Delayed real assignment read plus focus/visibility burst remains serialized and mutation-free.",
+    "Mobile Work/Agent switching and desktop resize preserve unsent instruction and unsaved document edit. Raw 320px capture and exercised screenshots show no horizontal overflow.",
+    "Nine real fault scenarios preserve stale/current CAS, source authority and exact complete retry intent."
+  ],
+  "source_identity": {
+    "backend_contracts_scripts_adapter_hooks_unchanged_from_a779715": true,
+    "application_paths_equal_d354940": true,
+    "descendant_of_a779715": true,
+    "broad_unchanged_backend_suite_repeated": false
+  },
+  "mode": {
+    "real_ui_api_postgresql": true,
+    "deterministic_fixture_compute": true,
+    "app_database": "<REVIEW_APP_DATABASE>",
+    "fault_database": "<REVIEW_FAULT_DATABASE>",
+    "mock_browser_results_separate_from_real": true,
+    "provider_calls": 0,
+    "model_proof_replay": false,
+    "implementation_edits": false,
+    "merge_push_commit": false
+  },
+  "visual_evidence_inspected": [
+    "evidence/agent-first/04-review-proposal-mobile.png",
+    "approved-desktop.png",
+    "retained-edit-and-request-desktop.png",
+    "ready-for-review-narrow.png"
+  ],
+  "limitations": [
+    "This PASS is the local fixture integration gate, not owner usefulness/customer acceptance or a qualified live managed runtime.",
+    "No provider calls, recorded-model replay, production authentication, shared workspace lifecycle, calendar or other external effect was exercised.",
+    "Cross-workspace ambiguous-command guard is source-reviewed only in this one-private-workspace fixture.",
+    "The canonical real-journey screenshot helper temporarily makes .action-bar static for full-page captures. The independent focus/pane screenshots are raw with no style injection; this distinction is preserved.",
+    "The 12 mock tests include named reopen cases but this invocation does not itself establish a mock process restart; actual API/web restart is established separately by the real canonical demo.",
+    "Existing backend/model-proof artifacts and broader f88f63c safeguards are inherited from earlier verified unchanged code, not claimed as fresh full-suite execution.",
+    "The older recorded-model browser probe still expects Saved instead of the new Ready for review label, as disclosed in the frontend handoff; no model replay was needed or attempted."
+  ],
+  "cleanup": {
+    "reviewed_sha": "e0da95cc05a103af52cf5a31b328a2ee93486640",
+    "mock_generated_artifacts_archived_and_restored": 55,
+    "only_test_generated_evidence_restored": true,
+    "git_status_porcelain": "",
+    "published_evidence_manifest": {
+      "application_commit": "d354940e95def2c4cbd3edc683af946ea004c42c",
+      "file_count": 77,
+      "all_hashes_match": true
+    },
+    "backend_contracts_scripts_real_adapter_hooks_unchanged": true,
+    "application_paths_equal_d354940": true,
+    "listening_ports_3000_8000_3100": "State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+    "last_build_mode": "mock",
+    "provider_calls": 0,
+    "commits_pushes_merges": false
+  },
+  "recommendation": "The old HOLD is cleared for e0da95c. Eligible for the separately authorized integration step; no merge or branch fast-forward performed by this review."
+}

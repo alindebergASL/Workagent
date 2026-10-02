@@ -1,6 +1,6 @@
 # Frontend result: agent-first, combined candidate `d354940`
 
-Status: ready for integration. The combined candidate passes the full journey against the real API and PostgreSQL. An independent second-author review of the combined commit is still pending.
+Status: independently reviewed **PASS** at `e0da95cc05a103af52cf5a31b328a2ee93486640` (application code `d354940`), then integrated by fast-forward into `hermes/agent-first-integration`. See the published [Hermes report](../backend/review-pr2-e0da95c/REPORT.md) and [structured result](../backend/review-pr2-e0da95c/review.json). This status/evidence publication changes no application code and does not claim another broad test run.
 
 **Usable outcome.** A person starts on the Agent home and hands over a request with chosen records. They see honest queued and working states. Prepared work appears above the composer as one timely card with "Open prepared work". The plan opens as a calm document with an agent pane: one outcome line, a collapsed "What changed", and "Ask for a revision" on demand. A proposed revision shows its exact changes; the person applies it or keeps their version. An applied revision reads "Approved revision" on Home, in the space, on the assignment and on the artifact. It never implies an external effect. Everything reopens after the API and web processes restart.
 
@@ -14,9 +14,9 @@ Status: ready for integration. The combined candidate passes the full journey ag
 - `e92c27d`: merge of Hermes's `a779715` (his port of my older `1e10dc5`, plus model-proof tooling and docs). This branch keeps its newer UI and carries over his additional guards.
 - `7e3a519`: per the 08:44 review checkpoint, the approval and review explanations sit one disclosure away on the assignment page.
 - `d2f0684`, `d354940`: per the 09:40 checkpoint, a pending proposal reads "Decision needed" on every surface, and the Home lede orients instead of repeating the card.
-- The next commit holds evidence and notes.
+- `e0da95c` holds the evidence and notes and is the exact independently reviewed head.
 
-PR #2 targets `hermes/agent-first-integration`.
+PR #2 targeted `hermes/agent-first-integration`; it was integrated by fast-forward at exact head `e0da95c`, preserving ancestry.
 
 **Commands run at `d354940`:**
 
@@ -48,7 +48,7 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 4. Context collapses to a count: done (`02`).
 5. Less repeated fixture copy: done, with one mode line and provenance on demand.
 
-**Independent review.** Pending. Self-review on real screens found and fixed:
+**Independent review.** PASS at `e0da95c`: the untouched canonical real demo, actual API/web restart, all nine real fault cases, 25 unit tests, type/lint/format and 12 mock-browser tests passed. Extra real-browser checks covered approval invalidation, serialized refresh and retained drafts. No provider calls or live product execution occurred. “Keep for later” remains a nonblocking, separately tracked frontend follow-up. Earlier frontend self-review on real screens found and fixed:
 
 - The prepared artifact header disagreed with the other surfaces (fixed in `37169bb`).
 - A timing-dependent mock reconnect test (it now uses the focus re-read).
@@ -58,6 +58,6 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 
 **Known gaps.** Backend requests 3 and 4 in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant in `docs/RUNTIME_STATUS.md`.
 
-**Next integration step for Hermes.** Review PR #2, then fast-forward `hermes/agent-first-integration` to this branch head (a descendant of `a779715`) and rerun the demo.
+**Integration checkpoint.** Independent review and the exact-head canonical demo are complete; shared integration was fast-forwarded to reviewed `e0da95c`. Publish this docs-only report/status child and advance the existing non-default PR #3 head by fast-forward; the PR checkpoint records the resulting publication SHA. Do not reapply the patch or reopen the passed review for the separate small follow-ups. Default-branch merge, deployment and provider spending remain unauthorized.
 
 **Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces the real evidence on a fresh database.

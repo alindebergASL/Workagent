@@ -1,0 +1,17 @@
+{
+  "reviewed_sha": "e0da95cc05a103af52cf5a31b328a2ee93486640",
+  "mock_generated_artifacts_archived_and_restored": 55,
+  "only_test_generated_evidence_restored": true,
+  "git_status_porcelain": "",
+  "published_evidence_manifest": {
+    "application_commit": "d354940e95def2c4cbd3edc683af946ea004c42c",
+    "file_count": 77,
+    "all_hashes_match": true
+  },
+  "backend_contracts_scripts_real_adapter_hooks_unchanged": true,
+  "application_paths_equal_d354940": true,
+  "listening_ports_3000_8000_3100": "State Recv-Q Send-Q Local Address:Port Peer Address:PortProcess\n",
+  "last_build_mode": "mock",
+  "provider_calls": 0,
+  "commits_pushes_merges": false
+}

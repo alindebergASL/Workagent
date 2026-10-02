@@ -1,22 +1,29 @@
 # Agent-first integration — combined candidate
 
 Shared branch: **`hermes/agent-first-integration`**. Base milestone: `6f88a9d524d4ab7db1f800087d2f13f4ca1d130b`.
-Application candidate: **`693a54f`**, followed only by frontend historical evidence at `42473fed44af7e4675945830b5931cf1acab93b6` and the backend evidence/review notes in this handoff.
+Reviewed combined head: **`e0da95cc05a103af52cf5a31b328a2ee93486640`**, with application code at **`d354940e95def2c4cbd3edc683af946ea004c42c`**. The shared integration branch was fast-forwarded from `a779715` to that exact reviewed head with ancestry preserved. This documentation/evidence-only child records the result; its publication identity is bound by the PR #3 checkpoint.
 
-## Coordination and scope
+## Current independent gate — PASS
+- Independent Hermes review at exact clean head `e0da95c`: untouched canonical real demo, both actual API/web restart readbacks, nine real fault cases, 25 frontend unit tests, type/lint/format, production real and mock builds, and 12 separately labeled mock-browser tests all passed.
+- Additional real-browser checks passed for later-human-save approval invalidation across all four surfaces, serialized focus refresh without mutation, and retained unsent instructions/unsaved edits across mobile/desktop layouts. The earlier `a779715` duplicate-text test-harness blocker is resolved at this head.
+- Published sanitized [report](review-pr2-e0da95c/REPORT.md), [structured result](review-pr2-e0da95c/review.json), and [evidence/provenance index](review-pr2-e0da95c/README.md). The tests belong to `e0da95c`; publication does not relabel them as new execution on its docs-only child.
+- UI-1 (“Keep for later”), the old model-proof badge assertion and the RuntimePort documentation contradiction remain [separate small follow-ups](review-pr2-e0da95c/README.md#separate-follow-ups-not-part-of-this-publication). No application or evaluator implementation changed in this publication.
+- No new provider call, model replay, public deployment, default-branch merge or owner usefulness acceptance. Fixture-backed integration PASS is not autonomous/live-runtime qualification.
+
+## Coordination history and scope
 - The patch was applied exactly once here as `f0929b5`; its stable Git patch ID equals Claude's separate patch-only `544531b`: `7d238aa505a9961f7dadaf798d09c5e6d66169c6`.
 - Integrated only Claude's **post-patch** refinement delta `1e10dc5` into `693a54f`, resolving three conflicts; retained historical evidence/handoff `70ff04a` as `42473fe`. No duplicate patch application and no replacement frontend session.
 - Preserved Claude's Composer, Space detail, responsive document/agent panes, exact checklist diffs, keyboard controls, CI fix and tests. Moved the frozen full delegation-command guard into Composer; one authoritative adapter supplies proposal/approval summaries, avoiding a second competing overview derivation.
 - Corrected initial prepared work versus proposed-change decisions versus approved current revision. Approval explicitly does not complete task/responsibility criteria or imply external actions. A created but unfinished task remains created after restart.
-- Claude retains UI ownership. Further changes should be bounded post-candidate deltas; do not reapply the original patch. Hermes owns integration and exact-candidate verification. Earlier instructions in the preserved frontend handoff to merge the entire old branch are superseded by this reconciled route.
+- Claude retains UI ownership. Further changes should be bounded post-candidate deltas; do not reapply the original patch. Hermes owns integration and exact-candidate verification. The later Claude branch incorporated `a779715` by ancestry, so the approved current route is a fast-forward to reviewed `e0da95c`, not another port or patch application.
 - PR #3's existing non-default head will be fast-forwarded to the verified combined branch; no default-branch merge or public deployment is authorized/performed.
 
-## Demonstrated on the combined application
+## Historical combined-application evidence (`693a54f` / `42473fe`)
 - Real Next.js/FastAPI/PostgreSQL: delegation (including dropped 202 / same-command retry) → generated artifact → human note/checklist edit → stale proposal rejected without overwrite → fresh proposal → explicit approval → actual API/web restart/reopen.
 - Agent Home, Space detail, assignment and artifact checked at prepared, pending-decision and approved checkpoints. Checked human note remains exact and checklist state durable. Approval remains visible while a separate task is unfinished.
 - 49 backend/runtime tests; 22 frontend unit tests; contract drift/type checks, lint/format and production builds passed. All nine real browser fault regressions passed. Twelve separately labeled mock browser cases passed at desktop/mobile/320px; those are not backend/runtime evidence.
 - Code paths did not change between `693a54f` and the combined real-demo run at `42473fe`; the only untracked files during that run were the upstream research documents. The evidence records this dirty-docs state rather than falsely claiming a pristine checkout.
-- Independent review of the final combined candidate is **pending**. Earlier independently reviewed milestones and separate-branch results do not close this gate.
+- Independent review was pending at this historical checkpoint. It is now complete for `e0da95c` as recorded above; these older runs are retained as history, not substituted for that exact-head review.
 
 ## Model access / upstream decisions
 See [RUNTIME_ACCESS_AUDIT.md](RUNTIME_ACCESS_AUDIT.md): recovered prior Qwen app/subscription authorization; one actual model response, durable import, intentional post-commit crash, exact-command recovery and browser reopen, no second model call. This is explicitly **operator-assisted**, not an autonomous product worker or owner approval. The default fixture profile is unchanged; managed product access remains a separate gap.
