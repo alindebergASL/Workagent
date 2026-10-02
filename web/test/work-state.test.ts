@@ -7,6 +7,7 @@ import {
   provenanceOf,
   shortTitle,
   statusOf,
+  waitingSummary,
   workAttention,
 } from "../src/lib/work-state";
 import type { Assignment, AssignmentSummary } from "../src/lib/contract/types";
@@ -206,6 +207,15 @@ describe("responsibility outcome from the backend projection", () => {
         .label,
     ).toBe("Agent not connected");
     expect(statusOf(withRuns([run("unverified")])).label).toBe("Not verified");
+    // Every blocker the contract can project has a plain label (exhaustive map).
+    expect(
+      statusOf(
+        withRuns([run("waiting", { blocker: "provider_result_rejected" })]),
+      ).label,
+    ).toBe("Reply not accepted");
+    expect(
+      waitingSummary(run("waiting", { blocker: "provider_response_pending" })),
+    ).toMatch(/Nothing will be sent again/);
     expect(phaseOf(withRuns([run("prepared")]))).toBe("prepared");
     expect(statusOf(withRuns([run("approved")])).label).toBe(
       "Approved, since edited",

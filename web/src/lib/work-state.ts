@@ -96,6 +96,8 @@ const BLOCKER_LABEL: Record<NonNullable<RunOutcome["blocker"]>, string> = {
   lease_expired: "Waiting to resume",
   prepared_attempt: "Not sent",
   provider_outcome_unknown: "Waiting to confirm",
+  provider_response_pending: "Reply being recovered",
+  provider_result_rejected: "Reply not accepted",
   publication_pending: "Saving result",
   unsent_abandoned: "Not sent",
   unresolved_items: "Needs your input",
@@ -121,6 +123,10 @@ const WAITING_SUMMARY: Partial<
   prepared_attempt: "A request was prepared but not sent.",
   unsent_abandoned: "A prepared request was closed without being sent.",
   publication_pending: "A result arrived and is waiting to be saved.",
+  provider_response_pending:
+    "A reply was recorded and is being recovered. Nothing will be sent again.",
+  provider_result_rejected:
+    "The reply didn’t pass the required checks, so nothing was saved from it.",
 };
 
 /** Plain words for a waiting run; the server's own reason stays available on demand. */
