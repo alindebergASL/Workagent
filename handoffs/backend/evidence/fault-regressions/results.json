@@ -1,0 +1,57 @@
+{
+  "case_count": 9,
+  "results": {
+    "polling_restarts": {
+      "passed": true,
+      "without_reload": true
+    },
+    "restored_draft": {
+      "passed": true,
+      "base": "bee569a6-3ac6-450a-91f6-78667998526a",
+      "preserved": "2ad89cd9-4f5a-49a4-b899-ede7bbfbd0dd",
+      "explicit_continuation_still_checks_cas": true
+    },
+    "revision_response_loss": {
+      "passed": true,
+      "command_id": "a2e15502-edf7-461c-9ea4-c0dafbede15f",
+      "revision_run_count": 1
+    },
+    "resolution_before-save": {
+      "passed": true,
+      "save_command": "19c1017a-aa66-453b-880d-20085cd14f8d",
+      "dismiss_command": "resolve:19c1017a-aa66-453b-880d-20085cd14f8d",
+      "revision_number": 2,
+      "proposal_status": "dismissed"
+    },
+    "resolution_after-save-commit": {
+      "passed": true,
+      "save_command": "c39983fd-c64f-4c24-a7f6-edc48187a1e5",
+      "dismiss_command": "resolve:c39983fd-c64f-4c24-a7f6-edc48187a1e5",
+      "revision_number": 2,
+      "proposal_status": "dismissed"
+    },
+    "resolution_after-dismiss-commit": {
+      "passed": true,
+      "save_command": "7836e69f-ad61-4ba5-a9bb-54cdcfb28ace",
+      "dismiss_command": "resolve:7836e69f-ad61-4ba5-a9bb-54cdcfb28ace",
+      "revision_number": 2,
+      "proposal_status": "dismissed"
+    },
+    "decision_dismiss": {
+      "passed": true,
+      "command_id": "7b93b457-d336-40eb-9fd5-41b6807bace7"
+    },
+    "decision_accept": {
+      "passed": true,
+      "command_id": "f43e0214-a926-4bd2-9730-054b9abd08c5"
+    },
+    "source_drift": {
+      "passed": true,
+      "recorded_version": "1",
+      "latest_version": "review-v2",
+      "exact_replay": true,
+      "changed_intent_conflicts": true,
+      "historical_bytes_substituted": false
+    }
+  }
+}

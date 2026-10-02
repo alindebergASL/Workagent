@@ -1,0 +1,8 @@
+{
+  "mode": "actual_application_postgresql_fixture_compute",
+  "same_assignment": true,
+  "same_current_revision": true,
+  "same_body_hash": true,
+  "proposal_preserved": true,
+  "errors": []
+}

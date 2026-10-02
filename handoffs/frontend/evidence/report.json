@@ -1,0 +1,36 @@
+{
+  "mode": "mock",
+  "generated_at": "2026-10-02T03:36:30.237Z",
+  "contract": "frontend-provisional-0.1",
+  "notice": "Mock-mode frontend evidence only. Real-app and live-runtime rows are not observed here.",
+  "checks": [
+    {
+      "id": "journey",
+      "title": "Start → inspect → edit → save → stale proposal → resolution (desktop, mobile, 320px)",
+      "mode": "mock",
+      "result": "pass",
+      "evidence": "e2e/journey.spec.ts, screenshots 01–14 per project"
+    },
+    {
+      "id": "reopen",
+      "title": "Reopen the same assignment/artifact after app process restart",
+      "mode": "mock",
+      "result": "pass",
+      "evidence": "e2e/reopen.spec.ts, screenshots 15–16; process 8992 stopped at 2026-10-02T03:37:55.572Z (health down), process 9500 started; mock state file retained, not a database"
+    },
+    {
+      "id": "real_api",
+      "title": "Same journey against Hermes's real API and PostgreSQL",
+      "mode": "mock",
+      "result": "not_observed",
+      "evidence": "No shared contract or service on the remote at the time of this run"
+    },
+    {
+      "id": "live_runtime",
+      "title": "Live model/runtime behavior",
+      "mode": "mock",
+      "result": "not_observed",
+      "evidence": "Not exercised by the frontend demo"
+    }
+  ]
+}

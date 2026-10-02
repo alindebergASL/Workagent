@@ -1,0 +1,2 @@
+PASS: retained model draft visible on current UI; no new inference, import, mutation or approval.
+{"probe_exit_code": 0, "expected_legacy_failure": false, "same_current_revision": true, "same_body_hash": true, "history_count": 2, "provider_calls": 0, "import_replays": 0, "dispatcher_started": false}

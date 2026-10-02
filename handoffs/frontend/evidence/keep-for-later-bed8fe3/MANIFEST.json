@@ -1,0 +1,21 @@
+{
+  "commit": "bed8fe3ca72a74b0b3384cce2b9c58c5fac9e6a5",
+  "base": "5ae4cbb0d8be00c27a63ccbc5f6852c1a476c40b",
+  "mode": "mock browser + real_ui_api_postgresql_with_deterministic_fixture_computation",
+  "live_agent_execution": "not_observed",
+  "files": {
+    "README.md": "f6a803d899e595a79090be2f9d3765215a8462d32d026fc9168841cc0b50b762",
+    "mock/desktop/21-revision-kept-for-later.png": "5ff83f13b0f1d6a72a0b479b1368a5bbb7af61cc85bdf2d811ec70881a80413f",
+    "mock/desktop/22-revision-resumed.png": "25c7bfb9d16581789e53395325ec1c6d94c3b4d4daf7c0002d77e3b71f1e6311",
+    "mock/desktop/23-revision-unconfirmed-kept.png": "0023afac5b8018052240ae053d40e4c3f824434956306e8f95fd7b8d02c880b0",
+    "mock/mobile/21-revision-kept-for-later.png": "bfc3e15f923007ea594449a8ded2768704c9265edd8b7032389701fe0d972d45",
+    "mock/mobile/22-revision-resumed.png": "a7a074fb0a9912cd047ea3517b8b13a91778171f37892293542c532fdb51ed7e",
+    "mock/mobile/23-revision-unconfirmed-kept.png": "071f2ce2273571859d9e2d0c7c1c4d3bdf09f402633af3c77ab36f250d94a1c0",
+    "mock/narrow/21-revision-kept-for-later.png": "6ec75b978449a8a7af3863dd57b4424f2f6c3bf09738236faae2de581e79d806",
+    "mock/narrow/22-revision-resumed.png": "69a47890e783642bcc711279ef26c65df50e98838b727f32b7f1499a4e0aad2b",
+    "mock/narrow/23-revision-unconfirmed-kept.png": "5aa77485d041ec5e015c1db6cc8e15f5c2b42c1eac883caad308cf1129bc789d",
+    "real-demo/agent-first-restart.json": "e1a5f0cff42a4f97397a5f878bb687234a12dd96af5a7418d453d222082c2dff",
+    "real-demo/demo.json": "2107f0ea2363cd079864930ffb78eca14dc0bcea53a9cb2a09768f4443733d95",
+    "real-demo/fault-regressions.json": "cb6a5ee5fd2932292629cdd8c0b2a777b19734a39c790630b5515397c3fd0092"
+  }
+}

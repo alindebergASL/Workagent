@@ -1,0 +1,55 @@
+{
+  "passed": true,
+  "workspace": "recheck-http-11dabdaa-90d3-454b-ba2a-03d7a5078462",
+  "assignment_id": "2bc875f4-1cfb-4985-923d-3ac514d848d3",
+  "checks": [
+    {
+      "path": "/sources",
+      "status": 200,
+      "code": null
+    },
+    {
+      "path": "/assignments",
+      "status": 202,
+      "code": null
+    },
+    {
+      "path": "/sources/SG-F1",
+      "status": 200,
+      "code": null
+    },
+    {
+      "path": "/assignments",
+      "status": 202,
+      "code": null
+    },
+    {
+      "path": "/assignments",
+      "status": 409,
+      "code": "command_conflict"
+    },
+    {
+      "path": "/assignments",
+      "status": 409,
+      "code": "source_changed"
+    },
+    {
+      "path": "/assignments",
+      "status": 404,
+      "code": "not_found_or_not_authorized"
+    },
+    {
+      "path": "/sources/SG-F1",
+      "status": 404,
+      "code": "not_found_or_not_authorized"
+    }
+  ],
+  "durable_counts": {
+    "assignments": 1,
+    "runs": 1,
+    "commands": 1,
+    "audit": 1,
+    "outbox": 1
+  },
+  "revocation_retained_in_isolated_test_workspace": true
+}

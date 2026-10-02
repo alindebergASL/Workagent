@@ -1,0 +1,16 @@
+{
+  "task": {
+    "id": "a39acbbf-2429-462b-bc90-6d3e90042490",
+    "workspace_id": "local-workspace",
+    "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+    "owner_id": "local-human",
+    "desired_result": "Review one personal intake case",
+    "version": 1,
+    "state": "created",
+    "evidence_refs": [],
+    "created_at": "2026-10-02T05:03:24.282668Z"
+  },
+  "inspection_id": "b7b70688-a804-40bc-9105-61f497956d3f",
+  "observed_at": "2026-10-02T05:03:24.319657Z",
+  "verification": "verified_created"
+}

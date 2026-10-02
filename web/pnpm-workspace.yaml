@@ -1,0 +1,7 @@
+# Preserve pnpm's release-age security check; pin older verified candidates.
+# This is web-local configuration, not a root monorepo workspace.
+packages:
+  - .
+overrides:
+  vite: 8.3.1
+  baseline-browser-mapping: 2.11.26

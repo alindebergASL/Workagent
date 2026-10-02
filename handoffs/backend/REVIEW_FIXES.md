@@ -1,0 +1,19 @@
+# Independent review findings and fixes
+
+Initial independent reviewer assessed code commit `e74079123afc2ff392b38b31586736edc0617da1` and returned **NOT PASS** with six reproduced material findings. Full original review/probes are preserved outside the application at `/home/ubuntu/workagent-review-results/`. Focused independent recheck subsequently **PASS** at `d937957521e1acdcffcac5d3ba3e70609f6cff98`: all six closed; see `review/recheck.json` and `review/REPORT.md`. This remains a local-mode technical verdict, not live/owner/merge approval.
+
+1. **P1 — restored stale draft silently rebased.** Restore keeps the recorded base; ordinary Save is disabled until explicit resolution. The backend/current-read CAS is checked again even after explicit continuation. Browser fault test preserves the intervening protected note, then verifies a third human edit is also protected after continuation.
+2. **P1 — lost revision response admitted duplicate work.** Revision and decision controls retain full logical commands. Ambiguous revision inputs stay locked; retry carries the same command ID, base, instruction and server-derived work version. Real committed 202 response is dropped, then retried: one durable revision run. Decision accept/dismiss controls also pass stable-command failure/retry probes.
+3. **P2 — polling stopped after requesting new work.** One cancellable read scheduler now reactivates on refresh/set transitions, serializes reads and rejects late pre-mutation responses. A ready → generating → proposed browser journey completes without reload/navigation.
+4. **P2 — retry lost proposal-resolution intent.** The complete save payload and resolution ID/note are retained. Retries skip new-admission freshness reads and replay the original command, allowing post-commit reconciliation. Read-only checking does not falsely declare the resolution complete when only its body saved. Before-save, after-save-commit and after-dismiss-commit loss probes all end with exactly one human revision and the intended dismissed proposal.
+5. **P2 — source drift blocked committed command replay.** Current authorization remains ahead of cached result disclosure; source freshness is enforced only for a new mutation. Exact replay survives authorized version drift, changed intent yields `command_conflict`, a new stale mutation yields `source_changed`, and revoked access still denies replay.
+6. **P2 — latest source content mislabeled as old artifact evidence.** The view retains observed version dependencies and exact per-version artifact usage. The drawer distinguishes currently authorized latest content from older observed evidence and explicitly says historical bytes are unavailable rather than substituting new bytes.
+
+## Executed after fixes
+- `backend/tests` + `runtime/tests`: **46 passed**, no skips; one existing Starlette/AnyIO deprecation warning.
+- Contract export, generated declaration drift and contracts-package TypeScript check: PASS.
+- Frontend typecheck/lint/format: PASS; **10 unit tests passed**; production build PASS.
+- `python3 scripts/workagent.py faults --env .local/review-fixed.env --skip-setup`: **9 real browser/API/PostgreSQL fault cases passed**. They deliberately drop actual successful responses or prevent dispatch at defined boundaries; they never manufacture a success response or replace persistence with mocks.
+- Fault controls and migration credential access live only in evaluator scripts, not model tools or application routes. Source drift mutates only byte-matching canonical synthetic SG-F1 in a disposable test DB and restores it under an expected-state guard.
+
+The main `demo` command now includes these fault checks in a **separate isolated database**, preserving the canonical saved demonstration assignment. Evidence is generated at `.local/evidence/fault-regressions/`.

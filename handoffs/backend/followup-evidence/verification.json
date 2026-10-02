@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "evaluator_commit": "5e887f1480b1b6a006c2aa8f07731d707cbb7208",
+  "evaluator_sha256": "33bcd478b0690501ddd9aa791badc52029e9a4ccb752d8d6d2665c5877f82e0a",
+  "application_served_from": "5ae4cbb0d8be00c27a63ccbc5f6852c1a476c40b",
+  "app_backend_contracts_web_equal_to_evaluator_commit": true,
+  "read_only_retained_synthetic_database": true,
+  "legacy_probe_expected_failure": "Saved != Ready for review",
+  "current_probe_passed": true,
+  "desktop_and_mobile": [
+    1440,
+    390
+  ],
+  "current_revision_and_body_hash_unchanged": true,
+  "history_count_before_and_after": 2,
+  "response_observed_at_ignored_as_read_timestamp": true,
+  "original_model_evidence_hashes_preserved": 11,
+  "safety_controls": [
+    {
+      "case": "non_loopback",
+      "passed": true,
+      "exit_code": 1
+    },
+    {
+      "case": "archive_overwrite",
+      "passed": true,
+      "exit_code": 1
+    }
+  ],
+  "provider_calls": 0,
+  "import_replays": 0,
+  "dispatcher_started": false,
+  "files": {
+    "legacy-probe-confirmed-red.log": {
+      "original_sha256": "d437a99d4077d24828b5c048b798883657e1cd66b351bba0b66fc68cba1809f4",
+      "published_sha256": "b28ee2aa97472ab0ebecfde224acf294bf05712aea721af6ad996fbf43737e68"
+    },
+    "exact-commit-probe-green.log": {
+      "original_sha256": "4fb202191bbd425d9c8f1a1a922666b919ad8ead5455d3ffaf15288691af1f52",
+      "published_sha256": "4fb202191bbd425d9c8f1a1a922666b919ad8ead5455d3ffaf15288691af1f52"
+    },
+    "model-probe/browser.json": {
+      "original_sha256": "4f63360635f45763d1e92772c152d7102564d90e220ed165b3524f68ced8058e",
+      "published_sha256": "4f63360635f45763d1e92772c152d7102564d90e220ed165b3524f68ced8058e"
+    },
+    "model-probe/reopened-model-draft.png": {
+      "original_sha256": "1cd0c4485be40e7fe71494d1fd18ebf8dfd1bd9b2b6bad7d65ead2d1194c79d9",
+      "published_sha256": "1cd0c4485be40e7fe71494d1fd18ebf8dfd1bd9b2b6bad7d65ead2d1194c79d9"
+    },
+    "model-probe/reopened-model-draft-mobile.png": {
+      "original_sha256": "347c00df9d4fefcb07d412b55e02c0fedbfc2948aa476c9f7efefd1ff6a58926",
+      "published_sha256": "347c00df9d4fefcb07d412b55e02c0fedbfc2948aa476c9f7efefd1ff6a58926"
+    }
+  },
+  "copied_log_sanitization": "host paths redacted and trailing whitespace normalized"
+}

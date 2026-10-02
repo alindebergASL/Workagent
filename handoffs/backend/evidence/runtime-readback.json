@@ -1,0 +1,268 @@
+{
+  "mode": "actual_application_deterministic_fixture",
+  "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+  "runs": [
+    {
+      "id": "235a32c2-a02c-43e6-926b-ab729fc9169b",
+      "kind": "initial",
+      "fence": 1,
+      "state": "ready",
+      "cursor": 1,
+      "profile": "fixture-deterministic-v1",
+      "unresolved": [],
+      "used_units": 1,
+      "artifact_id": null,
+      "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+      "instruction": null,
+      "observed_at": "2026-10-02T05:03:14.030466Z",
+      "proposal_id": null,
+      "budget_units": 1,
+      "principal_id": "local-human",
+      "workspace_id": "local-workspace",
+      "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+      "base_revision_id": null,
+      "lease_expires_at": null,
+      "provider_turn_id": null,
+      "access_generation": 1,
+      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+      "provider_session_id": null
+    },
+    {
+      "id": "56e13ff2-0101-4108-b8cf-ac88234359ce",
+      "kind": "revision",
+      "fence": 1,
+      "state": "ready",
+      "cursor": 1,
+      "profile": "fixture-deterministic-v1",
+      "unresolved": [],
+      "used_units": 1,
+      "artifact_id": "3571202a-66d7-4ab3-9fc8-bb4a91dc0589",
+      "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+      "instruction": "Add an explicit next-step reminder without removing my protected note.",
+      "observed_at": "2026-10-02T05:03:19.046068Z",
+      "proposal_id": "cca58f36-f3f6-495c-987b-fac9e769f65e",
+      "budget_units": 1,
+      "principal_id": "local-human",
+      "workspace_id": "local-workspace",
+      "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+      "base_revision_id": "1382e966-ee89-4114-8b01-13856ecf47f7",
+      "lease_expires_at": null,
+      "provider_turn_id": null,
+      "access_generation": 1,
+      "tool_registry_hash": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572",
+      "provider_session_id": null
+    }
+  ],
+  "configurations": [
+    {
+      "run_id": "235a32c2-a02c-43e6-926b-ab729fc9169b",
+      "activation_id": "approved-default-0.1.0",
+      "data": {
+        "model": null,
+        "budget": {
+          "unit": "fixture_completion",
+          "limit": 1
+        },
+        "profile": "fixture-deterministic-v1",
+        "version": "0.1.0",
+        "live_cost": "not_observed",
+        "live_usage": "not_observed",
+        "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+        "registry_hash": "b531fd4981d5f00922dc1fb53488fcfec98a6d669c4919c9b40736f69a64006f",
+        "adapter_sha256": "1f33db454d6dfcf2687ada37c7fd314f1b82040fc92a392b6312cd54773cb89b",
+        "hosted_session": null,
+        "skills_enabled": true,
+        "source_dependencies": [
+          {
+            "source_id": "SG-F2",
+            "observed_at": "2026-10-02T04:27:22.775107Z",
+            "external_version": "1"
+          },
+          {
+            "source_id": "SG-F3",
+            "observed_at": "2026-10-02T04:27:22.776487Z",
+            "external_version": "1"
+          },
+          {
+            "source_id": "SG-F7",
+            "observed_at": "2026-10-02T04:27:22.781307Z",
+            "external_version": "1"
+          }
+        ],
+        "tool_registry_sha256": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572"
+      }
+    },
+    {
+      "run_id": "56e13ff2-0101-4108-b8cf-ac88234359ce",
+      "activation_id": "approved-default-0.1.0",
+      "data": {
+        "model": null,
+        "budget": {
+          "unit": "fixture_completion",
+          "limit": 1
+        },
+        "profile": "fixture-deterministic-v1",
+        "version": "0.1.0",
+        "live_cost": "not_observed",
+        "live_usage": "not_observed",
+        "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+        "registry_hash": "b531fd4981d5f00922dc1fb53488fcfec98a6d669c4919c9b40736f69a64006f",
+        "adapter_sha256": "1f33db454d6dfcf2687ada37c7fd314f1b82040fc92a392b6312cd54773cb89b",
+        "hosted_session": null,
+        "skills_enabled": true,
+        "source_dependencies": [
+          {
+            "source_id": "SG-F2",
+            "observed_at": "2026-10-02T04:27:22.775107Z",
+            "external_version": "1"
+          },
+          {
+            "source_id": "SG-F3",
+            "observed_at": "2026-10-02T04:27:22.776487Z",
+            "external_version": "1"
+          },
+          {
+            "source_id": "SG-F7",
+            "observed_at": "2026-10-02T04:27:22.781307Z",
+            "external_version": "1"
+          }
+        ],
+        "tool_registry_sha256": "3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572"
+      }
+    }
+  ],
+  "contexts": [
+    {
+      "run_id": "235a32c2-a02c-43e6-926b-ab729fc9169b",
+      "data": {
+        "mode": "application_context_adapter",
+        "files": [
+          {
+            "path": "AGENTS.md",
+            "sha256": "cad8e5944999aefc79e34697dc04c104a10474e50196314731a7ea2d26e78fb0"
+          },
+          {
+            "path": "SOUL.md",
+            "sha256": "605f945059acbe0c7cf411d332164476ff3f9292a9dabeb3671aceb0bebef7be"
+          },
+          {
+            "path": "skills/analyze-intake/SKILL.md",
+            "sha256": "1c82735857998b5822aab37023703810f5f55b8dcbbfc31c385ebce46532f80d"
+          },
+          {
+            "path": "skills/analyze-intake/references/method.md",
+            "sha256": "e5d4484ed1d98931fe49af75463b6b255937dad94aba887381dfd426d73d56c5"
+          }
+        ],
+        "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+        "live_ablation": "not_observed",
+        "offered_tools": [
+          "get_artifact",
+          "get_assignment",
+          "get_task",
+          "propose_artifact_revision"
+        ],
+        "bundle_version": "0.1.0",
+        "context_sha256": "144214d1b151096f790876ef7d5e70db4cd2f18b9fd91db64748046714f5128d",
+        "selected_skill": {
+          "id": "analyze-intake",
+          "version": "0.1.0"
+        },
+        "source_manifest": [
+          {
+            "id": "SG-F2",
+            "sha256": "27eb85fee5ed5b2573966aee49d22eee826412812f7bd12d37a4e77816aa295d",
+            "version": "1"
+          },
+          {
+            "id": "SG-F3",
+            "sha256": "869d411b6a9d65f6e0c39a30448c6bfadd779696de68b57dfe7ccb8c1c6ebed1",
+            "version": "1"
+          },
+          {
+            "id": "SG-F7",
+            "sha256": "3cf3764ae653fad87265d2d537b6ca2dba5a0400e04ea1af0193bf0bbad11e09",
+            "version": "1"
+          }
+        ],
+        "access_generation": 1,
+        "tool_registry_sha256": "6539d2de87d2421fe927fc74a7cbcec69209a1afb80ffe71196d7a854d558786",
+        "bundle_manifest_sha256": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3"
+      }
+    },
+    {
+      "run_id": "56e13ff2-0101-4108-b8cf-ac88234359ce",
+      "data": {
+        "mode": "application_context_adapter",
+        "files": [
+          {
+            "path": "AGENTS.md",
+            "sha256": "cad8e5944999aefc79e34697dc04c104a10474e50196314731a7ea2d26e78fb0"
+          },
+          {
+            "path": "SOUL.md",
+            "sha256": "605f945059acbe0c7cf411d332164476ff3f9292a9dabeb3671aceb0bebef7be"
+          },
+          {
+            "path": "skills/resume-work/SKILL.md",
+            "sha256": "d7f68fa89ed3e22b2b50b9346d9a05a6977e808ce0c313ed4def92e056df04b2"
+          }
+        ],
+        "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+        "live_ablation": "not_observed",
+        "offered_tools": [
+          "get_artifact",
+          "get_assignment",
+          "get_task",
+          "propose_artifact_revision"
+        ],
+        "bundle_version": "0.1.0",
+        "context_sha256": "2df8e69c25d091f5e16847b2946ede1805a219e4efa4e44688a50c1d6b22ac5b",
+        "selected_skill": {
+          "id": "resume-work",
+          "version": "0.1.0"
+        },
+        "source_manifest": [
+          {
+            "id": "SG-F2",
+            "sha256": "27eb85fee5ed5b2573966aee49d22eee826412812f7bd12d37a4e77816aa295d",
+            "version": "1"
+          },
+          {
+            "id": "SG-F3",
+            "sha256": "869d411b6a9d65f6e0c39a30448c6bfadd779696de68b57dfe7ccb8c1c6ebed1",
+            "version": "1"
+          },
+          {
+            "id": "SG-F7",
+            "sha256": "3cf3764ae653fad87265d2d537b6ca2dba5a0400e04ea1af0193bf0bbad11e09",
+            "version": "1"
+          }
+        ],
+        "access_generation": 1,
+        "tool_registry_sha256": "6539d2de87d2421fe927fc74a7cbcec69209a1afb80ffe71196d7a854d558786",
+        "bundle_manifest_sha256": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3"
+      }
+    }
+  ],
+  "dispatches": [
+    {
+      "cursor": 6,
+      "workspace_id": "local-workspace",
+      "run_id": "235a32c2-a02c-43e6-926b-ab729fc9169b",
+      "outbox_id": "d6394e1a-44fe-4b19-ab86-ef6928e3588c",
+      "acknowledged_at": "2026-10-02 05:03:15.234029+00:00"
+    },
+    {
+      "cursor": 7,
+      "workspace_id": "local-workspace",
+      "run_id": "56e13ff2-0101-4108-b8cf-ac88234359ce",
+      "outbox_id": "22dfc17e-4d81-4c1f-a7f0-364b8b4712af",
+      "acknowledged_at": "2026-10-02 05:03:21.907867+00:00"
+    }
+  ],
+  "fixture_completion_units": 2,
+  "provider_usage": "not_observed",
+  "provider_cost": "not_observed",
+  "development_cost": "unmeasured"
+}

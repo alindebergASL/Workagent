@@ -1,0 +1,18 @@
+$ pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
+$ tsc --noEmit
+$ eslint . --max-warnings 0
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+$ vitest run
+
+ RUN  v5.0.3 <REVIEW_WORKTREE>/web
+
+
+ Test Files  6 passed (6)
+      Tests  25 passed (25)
+   Start at  11:09:22
+   Duration  2.11s (transform 58%, import 21%, tests 14%, worker 7%)
+
+    Isolate  6 workers spawned · ~210ms startup each (spawn + environment, per file)
+             at least ~1.05s faster with isolate: false — reuses workers across files instead of one per file

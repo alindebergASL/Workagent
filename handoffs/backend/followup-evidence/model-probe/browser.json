@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "mode": "read_only_reopen_of_retained_operator_import",
+  "assignment_id": "6e194bfc-9712-4c7e-801f-0d6faa66a99a",
+  "artifact_id": "38b44bff-2fb5-4bcd-a996-54e2caae05e0",
+  "current_badge": "Ready for review",
+  "approval_claimed": false,
+  "autonomous_worker_claimed": false,
+  "provider_calls": 0,
+  "import_replays": 0,
+  "widths": [
+    1440,
+    390
+  ],
+  "blocked_requests": [],
+  "page_errors": []
+}

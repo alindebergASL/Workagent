@@ -1,0 +1,29 @@
+{
+  "baseRefName": "hermes/agent-first-integration",
+  "headRefName": "claude/workagent-frontend-kyg51x",
+  "headRefOid": "e0da95cc05a103af52cf5a31b328a2ee93486640",
+  "state": "OPEN",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-02T10:16:28Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/alindebergASL/Workagent/actions/runs/36994363891/job/110797567142",
+      "name": "checks",
+      "startedAt": "2026-10-02T10:14:27Z",
+      "status": "COMPLETED",
+      "workflowName": "frontend"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-02T10:17:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/alindebergASL/Workagent/actions/runs/36994358611/job/110797550454",
+      "name": "checks",
+      "startedAt": "2026-10-02T10:14:59Z",
+      "status": "COMPLETED",
+      "workflowName": "frontend"
+    }
+  ],
+  "url": "https://github.com/alindebergASL/Workagent/pull/2"
+}

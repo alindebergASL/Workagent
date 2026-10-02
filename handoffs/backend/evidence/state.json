@@ -1,0 +1,13 @@
+{
+  "mode": "actual_application_postgresql_fixture_compute",
+  "assignment_id": "7af57a4f-5edc-4ec0-a36f-d317cd9873b8",
+  "artifact_id": "3571202a-66d7-4ab3-9fc8-bb4a91dc0589",
+  "artifact_url": "/assignments/7af57a4f-5edc-4ec0-a36f-d317cd9873b8/artifacts/3571202a-66d7-4ab3-9fc8-bb4a91dc0589",
+  "human_revision_id": "a02ab53f-8142-4d06-b87d-cb91569ed0be",
+  "human_body_hash": "1001d61f75e6477d4bd4c517288b5eafcdf415d226f467e0934569a6564d9204",
+  "proposal_id": "cca58f36-f3f6-495c-987b-fac9e769f65e",
+  "proposal_hash": "2ff9111625b8cff228919bd0e463736019f20b465e311c3e467683ea538b77da",
+  "task_id": "a39acbbf-2429-462b-bc90-6d3e90042490",
+  "task_inspection_id": "b7b70688-a804-40bc-9105-61f497956d3f",
+  "errors": []
+}

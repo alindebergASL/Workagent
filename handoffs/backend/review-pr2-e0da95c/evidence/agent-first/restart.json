@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "same_assignment": "bca98c48-f3ad-4ef8-991d-de30e21ee892",
+  "same_revision": "cac5d8a3-358f-4336-946e-b3dcfc7ea7cf",
+  "same_body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+  "proposal_status": "accepted",
+  "surfaces": {
+    "agent": "Approved revision",
+    "spaces": "Approved revision",
+    "responsibility": "Approved revision"
+  },
+  "errors": []
+}

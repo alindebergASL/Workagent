@@ -1,0 +1,8 @@
+{
+  "git_commit": "d354940e95def2c4cbd3edc683af946ea004c42c",
+  "dirty": false,
+  "mode": "real_ui_api_postgresql_with_deterministic_fixture_computation",
+  "runtime_provider": "not_observed",
+  "process_restart": "api_and_web",
+  "database_recreated_between_phases": false
+}

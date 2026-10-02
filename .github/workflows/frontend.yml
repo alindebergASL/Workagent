@@ -1,0 +1,60 @@
+name: frontend
+
+on:
+  push:
+    paths:
+      [
+        "web/**",
+        "contracts/**",
+        "fixtures/actor/**",
+        ".github/workflows/frontend.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "web/**",
+        "contracts/**",
+        "fixtures/actor/**",
+        ".github/workflows/frontend.yml",
+      ]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+      # The web app imports the generated client from contracts/, which has its own lockfile.
+      - run: npm ci --ignore-scripts
+        working-directory: contracts
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      # Production build against the real domain proxy (what scripts/workagent.py serves).
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_WORKAGENT_API_BASE: /api/domain
+      # Browser suite without PostgreSQL: rebuild against the in-process mock.
+      # The real UI/API/PostgreSQL journey runs via `python3 scripts/workagent.py demo`.
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_WORKAGENT_API_BASE: /api/mock
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-evidence
+          path: |
+            handoffs/frontend/evidence
+            web/test-results
+          if-no-files-found: ignore

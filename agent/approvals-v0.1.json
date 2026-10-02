@@ -1,0 +1,11 @@
+{
+  "0.1.0": {
+    "approved": true,
+    "manifest": "v0.1.0/runtime.yaml",
+    "manifest_sha256": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+    "review_ref": "Hermes initial product-guidance review; independent integrated review pending",
+    "positive_checks_ref": "runtime/tests/test_bundles.py",
+    "negative_checks_ref": "runtime/tests/test_bundles.py",
+    "provenance": "Original Workagent product guidance implementing supplied Step 4 AGENT_FILES.md conventions; no third-party scripts"
+  }
+}

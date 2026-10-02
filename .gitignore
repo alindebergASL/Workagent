@@ -10,3 +10,6 @@ dist/
 .pytest_cache/
 playwright-report/
 test-results/
+# Next dev emits coding-agent pointers; not product bundles.
+web/AGENTS.md
+web/CLAUDE.md

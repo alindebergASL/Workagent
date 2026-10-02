@@ -7,5 +7,14 @@
     "positive_checks_ref": "runtime/tests/test_bundles.py",
     "negative_checks_ref": "runtime/tests/test_bundles.py",
     "provenance": "Original Workagent product guidance implementing supplied Step 4 AGENT_FILES.md conventions; no third-party scripts"
+  },
+  "0.1.1": {
+    "approved": true,
+    "manifest": "v0.1.1/runtime.yaml",
+    "manifest_sha256": "3447eaa18d108caa6a6d6fca37004442d35f700f8a2caa54171dd13b2a8511ac",
+    "review_ref": "Hermes guidance-only revision review; independent integrated release review required",
+    "positive_checks_ref": "backend/tests/test_bundle_versions.py",
+    "negative_checks_ref": "backend/tests/test_bundle_versions.py and runtime/tests/test_bundles.py",
+    "provenance": "0.1.0 guidance with explicit descriptive-evidence versus human-acceptance distinction; no new tools or scripts"
   }
 }

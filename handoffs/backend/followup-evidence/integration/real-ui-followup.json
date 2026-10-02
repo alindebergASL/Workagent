@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "mode": "real_ui_api_postgresql_fixture",
+  "assignment_id": "aaf9643f-07a4-45e0-b5f8-aa5c4b7fd79d",
+  "artifact_id": "a624f9a6-0d95-4c9d-9e9d-0992fc185fd9",
+  "collapsed_and_resumed_widths": [
+    1440,
+    390
+  ],
+  "committed_202_dropped": true,
+  "identical_full_command_retried": true,
+  "request_count": 2,
+  "admitted_revision_runs": 1,
+  "same_current_revision": true,
+  "same_current_body_hash": true,
+  "provider_calls": 0,
+  "errors": []
+}

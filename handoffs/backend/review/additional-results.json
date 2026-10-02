@@ -1,0 +1,81 @@
+[
+  {
+    "name": "restored_original_base_and_explicit_success",
+    "passed": true,
+    "original_base": "4a228d83-aadc-431a-923e-14362c120bab",
+    "explicit_save_revision": "24581b26-c59d-4b4a-9656-b4a2a4a3151c"
+  },
+  {
+    "name": "revision_response_loss_then_intervening_human_save",
+    "passed": true,
+    "sent": [
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "ec9c939f-9b6e-4a99-a8fa-62d962cdfc85",
+        "command_id": "16834738-3017-40f3-a11c-86b970255cbc",
+        "base_revision_id": "23dbbeab-5895-40a4-a5d8-e242d22111a1",
+        "expected_work_version": 3,
+        "instruction": "Frozen intent across changed base"
+      },
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "ec9c939f-9b6e-4a99-a8fa-62d962cdfc85",
+        "command_id": "16834738-3017-40f3-a11c-86b970255cbc",
+        "base_revision_id": "23dbbeab-5895-40a4-a5d8-e242d22111a1",
+        "expected_work_version": 3,
+        "instruction": "Frozen intent across changed base"
+      }
+    ],
+    "one_new_run": true,
+    "polling_reached_review": true
+  },
+  {
+    "name": "decision_accept_postcommit_loss_and_failed_readback",
+    "passed": true,
+    "sent": [
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "cad1bde9-a01a-4db6-8ebc-eb425b0840b0",
+        "command_id": "1f362086-4782-44df-a4b5-dfd999ca5002",
+        "expected_current_revision_id": "06d6675e-e358-46fd-b5b2-c284e4d39572"
+      },
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "229a4175-725b-4468-b01d-14674b03ed5a",
+        "command_id": "1f362086-4782-44df-a4b5-dfd999ca5002",
+        "expected_current_revision_id": "06d6675e-e358-46fd-b5b2-c284e4d39572"
+      }
+    ],
+    "blocked_read_count": 1,
+    "revision_number": 2
+  },
+  {
+    "name": "decision_dismiss_postcommit_loss_and_failed_readback",
+    "passed": true,
+    "sent": [
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "ece907cc-a2e9-4d9d-bc16-4f3b00ddf5f1",
+        "command_id": "49763a1e-43b2-42be-8f70-c7da2c3d0343",
+        "expected_current_revision_id": "9a4aaf31-4873-438a-ab47-b468814f460f",
+        "resolution": "keep_current"
+      },
+      {
+        "schema_version": "workagent/v1",
+        "request_id": "38bddacf-1667-47b3-9576-78bb5caf43f8",
+        "command_id": "49763a1e-43b2-42be-8f70-c7da2c3d0343",
+        "expected_current_revision_id": "9a4aaf31-4873-438a-ab47-b468814f460f",
+        "resolution": "keep_current"
+      }
+    ],
+    "blocked_read_count": 1,
+    "revision_number": 1
+  },
+  {
+    "name": "resolution_after_dismiss_commit_read_only_reconciliation",
+    "passed": true,
+    "reconciliation_writes": 0,
+    "revision_number": 2,
+    "proposal_status": "dismissed"
+  }
+]

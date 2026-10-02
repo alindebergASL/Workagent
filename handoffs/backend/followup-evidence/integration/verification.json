@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "tested_merged_sha": "80eb2c06c79d5007c14ca9e754a9c803b73ff0c7",
+  "parents": [
+    "f305608ff28ad237ecacb23f25321776581a7d33",
+    "a1c9df0058675f2a446babef5b42f53e4674910b"
+  ],
+  "frontend_tree_equal_claude_head": true,
+  "typecheck_and_real_mock_builds_passed": true,
+  "focused_mock_tests": {
+    "startTime": "2026-10-02T13:34:45.398Z",
+    "duration": 29733.553,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "independent_real_ui": {
+    "passed": true,
+    "mode": "real_ui_api_postgresql_fixture",
+    "assignment_id": "aaf9643f-07a4-45e0-b5f8-aa5c4b7fd79d",
+    "artifact_id": "a624f9a6-0d95-4c9d-9e9d-0992fc185fd9",
+    "collapsed_and_resumed_widths": [
+      1440,
+      390
+    ],
+    "committed_202_dropped": true,
+    "identical_full_command_retried": true,
+    "request_count": 2,
+    "admitted_revision_runs": 1,
+    "same_current_revision": true,
+    "same_current_body_hash": true,
+    "provider_calls": 0,
+    "errors": []
+  },
+  "model_probe_on_merged_tree_passed": true,
+  "model_probe_read_only_history_count": 2,
+  "provider_calls": 0,
+  "import_replays": 0,
+  "mock_screenshots_archived_privately": 9,
+  "owner_published_hashes_verified": 13,
+  "conflict_resolution": [
+    {
+      "file": "handoffs/frontend/STATUS.md",
+      "hunks": 1,
+      "classification": "disjoint intents plus superseded pending/fast-forward-only wording",
+      "resolution": "Kept completed evaluator/documentation status and Claude UI-fix provenance. No application code conflict or redesign."
+    }
+  ],
+  "files": {
+    "focused-ui-mock.log": {
+      "original_sha256": "976c824971949e4b4e9d4006cf6590cc3e2160a9aafef5660b8c676276764be2",
+      "published_sha256": "976c824971949e4b4e9d4006cf6590cc3e2160a9aafef5660b8c676276764be2"
+    },
+    "real-ui-followup.json": {
+      "original_sha256": "a90a45ff251a080d56e70f75958226de8eb4b90908f4a01b2453f275972b7175",
+      "published_sha256": "a90a45ff251a080d56e70f75958226de8eb4b90908f4a01b2453f275972b7175"
+    },
+    "merged-model-probe-green.log": {
+      "original_sha256": "4fb202191bbd425d9c8f1a1a922666b919ad8ead5455d3ffaf15288691af1f52",
+      "published_sha256": "4fb202191bbd425d9c8f1a1a922666b919ad8ead5455d3ffaf15288691af1f52"
+    },
+    "merged-real-ui-green.log": {
+      "original_sha256": "c44bf5024021dc872a43e9a457006abc8a330870000982f46743d71b2d6b7962",
+      "published_sha256": "c44bf5024021dc872a43e9a457006abc8a330870000982f46743d71b2d6b7962"
+    },
+    "real-ui-probe.mjs": {
+      "original_sha256": "c62c8f6e6a83734b6190c0b6f36d07498b6485fa0d87d9cb8da2ba228c60d670",
+      "published_sha256": "cc6e6c68f2e8a4fbbbee18b8751c88f8266e4b52a3d4d730f3952207d290d842"
+    },
+    "real-collapse-1440.png": {
+      "original_sha256": "c1baf6355ae6d97c78b720ebadbbf74f9900bf2d7fdcef03beaacd1df438506d",
+      "published_sha256": "c1baf6355ae6d97c78b720ebadbbf74f9900bf2d7fdcef03beaacd1df438506d"
+    },
+    "real-collapse-390.png": {
+      "original_sha256": "ba8f79aaa93b0395e3e3bec197e8c528f0c0b5bdfec245395c1641e548b9aad1",
+      "published_sha256": "ba8f79aaa93b0395e3e3bec197e8c528f0c0b5bdfec245395c1641e548b9aad1"
+    },
+    "real-committed-response-loss-collapsed.png": {
+      "original_sha256": "a2b50ea0e5646abf32cec38575a84ea29592d527becaf45e0be14bc37a74b639",
+      "published_sha256": "a2b50ea0e5646abf32cec38575a84ea29592d527becaf45e0be14bc37a74b639"
+    }
+  },
+  "scope": "Focused follow-up verification, not a repeat of broad accepted e0da95c review. Historical owner full demo remains reported evidence."
+}

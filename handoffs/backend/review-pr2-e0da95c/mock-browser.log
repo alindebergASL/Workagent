@@ -1,0 +1,19 @@
+$ playwright test
+[WebServer] $ next start --hostname 127.0.0.1 --port 3000 --hostname 127.0.0.1 --port 3100
+
+Running 12 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (14.5s)
+  ✓   2 [desktop] › e2e/journey.spec.ts:389:7 › S1 journey (mock mode) › protected lookups and command replay @journey (682ms)
+  ✓   3 [desktop] › e2e/journey.spec.ts:445:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (4.6s)
+  ✓   4 [desktop] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (2.9s)
+  ✓   5 [mobile] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (16.5s)
+  ✓   6 [mobile] › e2e/journey.spec.ts:389:7 › S1 journey (mock mode) › protected lookups and command replay @journey (540ms)
+  ✓   7 [mobile] › e2e/journey.spec.ts:445:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (4.9s)
+  ✓   8 [mobile] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (1.9s)
+  ✓   9 [narrow] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (16.1s)
+  ✓  10 [narrow] › e2e/journey.spec.ts:389:7 › S1 journey (mock mode) › protected lookups and command replay @journey (516ms)
+  ✓  11 [narrow] › e2e/journey.spec.ts:445:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (4.6s)
+  ✓  12 [narrow] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (2.3s)
+
+  12 passed (1.3m)

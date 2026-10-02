@@ -1,0 +1,117 @@
+{
+  "application_code_sha": "d937957521e1acdcffcac5d3ba3e70609f6cff98",
+  "mode": "real_ui_api_postgresql_with_deterministic_fixture_computation",
+  "file_count": 22,
+  "files": [
+    {
+      "path": "01-home-connected.png",
+      "bytes": 205832,
+      "sha256": "cd2d0fd6f21b4d36f4ed831849b87027106192cdb488d3b5f12e8dfc1dcb7624"
+    },
+    {
+      "path": "02-assignment-ready.png",
+      "bytes": 193196,
+      "sha256": "3be6026ac9ad181edc380fb314fc14b58bec5f4a7e9ef284fa9dcd9e490eedf3"
+    },
+    {
+      "path": "03-human-saved.png",
+      "bytes": 131475,
+      "sha256": "005aa080cc376be328292eb1bf4e759bdce1f5ef8f212a9dacd244d9b540b975"
+    },
+    {
+      "path": "04-stale-proposal-desktop.png",
+      "bytes": 211403,
+      "sha256": "efc678c3653c030cd3207babcbebc5c41463d3f47baa7e8602b55223bb21ce2e"
+    },
+    {
+      "path": "05-stale-proposal-mobile.png",
+      "bytes": 216040,
+      "sha256": "8185e3009dff5bbc888b9e5844c3e62e8ea39ccf7dbf02a4ac831ab4f3d1a401"
+    },
+    {
+      "path": "06-retained-history.png",
+      "bytes": 164983,
+      "sha256": "3eb1744165bd4a5cea9dcd184c0ff72aea6551f18e2e7087b6024ae0a072b805"
+    },
+    {
+      "path": "07-reopened-desktop.png",
+      "bytes": 114750,
+      "sha256": "88acd9b1c655a71dfd0da75f57f1d9140fec117673f5750935089db67dc9c0ef"
+    },
+    {
+      "path": "08-reopened-mobile.png",
+      "bytes": 100696,
+      "sha256": "181214492736594e614bb40de1fb35b5b5aead709600b0dac26537031dc3d0a1"
+    },
+    {
+      "path": "09-supporting-sources.png",
+      "bytes": 186490,
+      "sha256": "f7d56351b82e65877545e8af70bd6d1759c255197b20696fa3bb61d46a2a3979"
+    },
+    {
+      "path": "demo.json",
+      "bytes": 276,
+      "sha256": "82d7e8e925177265112655cd300b5f175db1b5dd6700ee0c1336d45414a3a1d4"
+    },
+    {
+      "path": "fault-regressions/polling-completed.png",
+      "bytes": 182970,
+      "sha256": "80ff0d14ab37e8e46726d442682446e8d34b2cbae504dd121349464ca5ed632e"
+    },
+    {
+      "path": "fault-regressions/restored-draft-protected.png",
+      "bytes": 142592,
+      "sha256": "648835b44dc36dce7bb766541abc952ef67a07f1deee6846e2bf16c14ff63677"
+    },
+    {
+      "path": "fault-regressions/results.json",
+      "bytes": 1751,
+      "sha256": "21f921c2e8f79d2a2615865802338e568d4ab10cce5bee7d4b70de52498c4fea"
+    },
+    {
+      "path": "fault-regressions/source-drift-labelled.png",
+      "bytes": 237525,
+      "sha256": "26435fb7591bbeb85bc7d4e0bd328947d47fe8eccff74d8a54aa9838696474eb"
+    },
+    {
+      "path": "restart.json",
+      "bytes": 194,
+      "sha256": "b6c3854245b9f95465ec984887f206244304d2e23a9ea6ba9e5d7813fbe9bf5d"
+    },
+    {
+      "path": "runtime-readback.json",
+      "bytes": 9449,
+      "sha256": "e98d15cc7e2d52a4da09b31f5b16c083a5419816dc1778de1d7227c07973ee2a"
+    },
+    {
+      "path": "samples/checklist.md",
+      "bytes": 1005,
+      "sha256": "6328bcf345672122bf13860629946467cafe9422b2b164c136c72eca01bdba46"
+    },
+    {
+      "path": "samples/human-saved-plan.md",
+      "bytes": 1265,
+      "sha256": "c31e3a9b79e8662f19b427ba77c7d78ac4245f2129967a04a287edea6073b539"
+    },
+    {
+      "path": "saved-artifact.json",
+      "bytes": 2681,
+      "sha256": "460955ea971f0cf77728581ebe57b82902419ebc39084e273c201278bbc7b620"
+    },
+    {
+      "path": "stale-proposal.json",
+      "bytes": 2614,
+      "sha256": "5ab8743890c53b32033db2dd56f776a21bdd71641516518893fc544a1154ca8e"
+    },
+    {
+      "path": "state.json",
+      "bytes": 725,
+      "sha256": "bd2d9dad95d4bd75aed5c5d02d8ab230072f00e4c933723d66987364c3968d22"
+    },
+    {
+      "path": "task-readback.json",
+      "bytes": 518,
+      "sha256": "36ba73c70003a82c7c149dca642511087bbc04cb48242cbfd9edb0dea36a9051"
+    }
+  ]
+}

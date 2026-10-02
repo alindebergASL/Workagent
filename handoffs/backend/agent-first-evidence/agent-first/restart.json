@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "same_assignment": "45ccf04b-b4a5-4413-8034-be2687732293",
+  "same_revision": "bf2069e7-bebe-47ff-8e4c-7517de7ea514",
+  "same_body_hash": "0fa435d403c3503f2b6ffd74bfbe55be1a2e118a33b8f94ebf17af592e16cef7",
+  "proposal_status": "accepted",
+  "surfaces": {
+    "agent": "Carry forward my private intake review; preserve Wednesday planning\nApproved revision · task and responsibility completion not implied\n↗",
+    "spaces": "Carry forward my private intake review; preserve Wednesday planning\nApproved revision · task and responsibility completion not implied\n↗",
+    "responsibility": "Approved revision saved. This does not mark tasks or responsibility criteria complete; no external action was taken."
+  },
+  "errors": []
+}
