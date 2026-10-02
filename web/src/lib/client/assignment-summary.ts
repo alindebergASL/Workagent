@@ -82,5 +82,6 @@ export function assignmentSummary(
               : null),
     needs_review_artifact_ids: pending,
     selected_source_count: a.selected_source_refs.length,
+    responsibility: a.responsibility ?? null,
   };
 }

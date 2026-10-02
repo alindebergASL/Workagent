@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   completedSummary,
+  currentRun,
+  decisionArtifactId,
   phaseOf,
+  provenanceOf,
   shortTitle,
+  statusOf,
   workAttention,
 } from "../src/lib/work-state";
 import type { Assignment, AssignmentSummary } from "../src/lib/contract/types";
@@ -113,5 +117,131 @@ describe("work phases from the authoritative summary", () => {
     expect(shortTitle("Start with my notes. Then more.")).toBe(
       "Start with my notes",
     );
+  });
+});
+
+type Run = NonNullable<
+  NonNullable<AssignmentSummary["responsibility"]>["runs"]
+>[number];
+
+const run = (state: Run["state"], changes: Partial<Run> = {}): Run => ({
+  run_id: "run-2",
+  state,
+  continuation_available: false,
+  outcome_gate: "unverified",
+  safety_gate: "unverified",
+  underlying_action_performed: false,
+  ...changes,
+});
+
+const withRuns = (
+  runs: Run[],
+  latest = runs.at(-1)?.run_id,
+  base: AssignmentSummary["state"] = "ready_for_review",
+): AssignmentSummary =>
+  item(base, {
+    responsibility: {
+      approved_change: "document_revision_only",
+      underlying_action_performed: false,
+      latest_run_id: latest,
+      runs,
+    },
+  });
+
+describe("responsibility outcome from the backend projection", () => {
+  it("uses the run named by latest_run_id, not the last historical entry", () => {
+    const a = withRuns(
+      [
+        run("readback_verified", { run_id: "run-1" }),
+        run("decision_required", { run_id: "run-2" }),
+      ],
+      "run-1",
+    );
+    expect(currentRun(a)?.run_id).toBe("run-1");
+    expect(phaseOf(a)).toBe("approved");
+    expect(statusOf(a).label).toBe("Approved revision");
+  });
+
+  it("binds the decision to the exact question and artifact", () => {
+    const a = withRuns([
+      run("decision_required", {
+        question: {
+          prompt: "Should the owner check apply to all eight cases?",
+          artifact_id: "plan-1",
+          proposal_id: "proposal-1",
+          base_revision_id: "rev-2",
+        },
+      }),
+    ]);
+    expect(statusOf(a).label).toBe("Decision needed");
+    expect(decisionArtifactId(a)).toBe("plan-1");
+    const card = workAttention([a]);
+    expect(card?.body).toMatch(/Nothing is applied until you decide/);
+    expect(card?.href).toBe("/assignments/assignment-a/artifacts/plan-1");
+  });
+
+  it("keeps a stale base a decision without claiming the proposal applies", () => {
+    const a = withRuns([run("decision_stale")]);
+    expect(phaseOf(a)).toBe("decision");
+    expect(workAttention([a])?.title).toBe(
+      "A proposal is based on an older version.",
+    );
+  });
+
+  it("never presents an unknown provider outcome as done, failed or actionable", () => {
+    const a = withRuns([
+      run("outcome_unknown", {
+        blocker: "provider_outcome_unknown",
+        attempt_state: "outcome_unknown",
+      }),
+    ]);
+    expect(phaseOf(a)).toBe("unknown");
+    expect(statusOf(a).label).toBe("Waiting to confirm");
+    expect(workAttention([a])).toBeNull();
+  });
+
+  it("names waiting blockers and refuses to call unverified work complete", () => {
+    expect(
+      statusOf(withRuns([run("waiting", { blocker: "consumer_unavailable" })]))
+        .label,
+    ).toBe("Agent not connected");
+    expect(statusOf(withRuns([run("unverified")])).label).toBe("Not verified");
+    expect(phaseOf(withRuns([run("prepared")]))).toBe("prepared");
+    expect(statusOf(withRuns([run("approved")])).label).toBe(
+      "Approved, since edited",
+    );
+  });
+
+  it("labels provenance only from the attested evidence origin", () => {
+    const exec = (
+      evidence_origin:
+        | "unverified"
+        | "fixture"
+        | "synthetic_provider_receipt"
+        | "live_provider_receipt",
+    ) => ({
+      evidence_origin,
+      mode: "managed" as const,
+      profile: "openai-agents-v1" as const,
+      model: "some-model",
+      provider_observation: "received" as const,
+    });
+    // Managed mode, a model string and a received observation are not live evidence.
+    expect(provenanceOf(exec("unverified"))).toEqual({
+      label: "Run origin not verified",
+      live: false,
+    });
+    expect(provenanceOf(exec("synthetic_provider_receipt"))?.live).toBe(false);
+    expect(provenanceOf(exec("fixture"))?.label).toMatch(/fixture/);
+    expect(provenanceOf(null)).toBeNull();
+  });
+
+  it("falls back to the summary when no projection exists", () => {
+    expect(phaseOf(item("finished", { responsibility: null }))).toBe(
+      "approved",
+    );
+    expect(
+      phaseOf(withRuns([run("prepared")], "missing-run", "needs_input")),
+    ).toBe("blocked");
   });
 });

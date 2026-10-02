@@ -7,10 +7,11 @@ import {
   isWorking,
   phaseOf,
   shortTitle,
+  statusOf,
   workAttention,
 } from "@/lib/work-state";
 import { Composer } from "@/components/Composer";
-import { ErrorNotice, StatusBadge, workStatus } from "@/components/ui";
+import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
 
 function lede(items: AssignmentSummary[]): string {
@@ -24,6 +25,8 @@ function lede(items: AssignmentSummary[]): string {
     return "Here’s where your work stands. Or hand over something new.";
   if (items.some(isWorking))
     return "I’m preparing your work now. You can hand over something else meanwhile.";
+  if (phases.includes("unknown") || phases.includes("waiting"))
+    return "Some work is waiting on something outside your control. I’ll keep it as it is.";
   if (phases.includes("approved"))
     return "Your approved work is saved. What should we move forward next?";
   return "Hand over something you’d like finished. I’ll work from the records you choose.";
@@ -76,13 +79,7 @@ export default function AgentHome() {
         >
           <div className="row row-between">
             <p className="eyebrow-caps">{attention.eyebrow}</p>
-            <StatusBadge
-              {...workStatus(
-                attention.item.state,
-                attention.item.stage,
-                phaseOf(attention.item) === "decision",
-              )}
-            />
+            <StatusBadge {...statusOf(attention.item)} />
           </div>
           <h2 id="decision-title">{attention.title}</h2>
           <p className="small clamp-2">{shortTitle(attention.item.title)}</p>
