@@ -531,7 +531,10 @@ export default function ArtifactPage() {
         <div className="row">
           {art.state !== "ready" || art.partial || approved ? (
             <StatusBadge label={status.label} tone={status.tone} />
-          ) : null}
+          ) : (
+            // Same label the assignment shows while nothing is approved yet.
+            <StatusBadge label="Ready for review" tone="status-ready" />
+          )}
           <span className="save-state" aria-live="polite">
             {saveStateText}
           </span>
