@@ -1,7 +1,9 @@
 # Backend / integration status
 
 ## Active scope
-- Hermes coordinates backend and integration on `hermes/s0-s1-backend`.
+- Hermes coordinates backend and integration on `hermes/s0-s1-build` in an isolated local worktree.
+- Initial empty-repository push made `hermes/s0-s1-backend` GitHub's automatic default at `3f1b17b60ac035514862d9ecf39127d324ba10b7`. No merge occurred. Further implementation stays on `hermes/s0-s1-build`; default-branch merge remains pending authorization.
+- Shared bootstrap is available for the frontend owner to branch from. Coordination is published in GitHub issue #1; no acknowledgement by the frontend owner has been observed.
 - Existing separate Claude Code instance owns frontend; no duplicate frontend writer.
 - Repository was empty with no remote frontend note at startup. Public visibility explicitly accepted by Andrew after startup. Only implementation/synthetic examples will be published; original packet stays outside application/repository.
 - No default-branch merge or public app deployment authorized.
