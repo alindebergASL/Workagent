@@ -26,9 +26,17 @@ The default evidence directory is `.local/model-proof-recheck`; override `WORKAG
 
 [Upstream review](upstream/REPORT.md) now explicitly follows the later [runtime access/integration decision](RUNTIME_ACCESS_AUDIT.md#source-review-integration-decision): reuse the existing Workagent broker, context, authority and outbox; **do not build a new fixture-only receipt framework**. Add the smallest adapter with the first authorized real runtime consumer. Source pins/licensing findings remain unchanged. No runtime code, framework, provider dispatch or new feature program was introduced.
 
-## Frontend ownership: UI-1 remains nonblocking
+## Completed: Claude UI-1, independently checked on the merged tree
 
-Claude retains “Keep for later” ownership. [Current-base handoff and focused acceptance checks](https://github.com/alindebergASL/Workagent/pull/2#issuecomment-5953182433) request collapse/resume with retained text on desktop/mobile and unchanged ambiguous-request retry behavior. No new frontend commit or response was available when this follow-up was prepared; no competing frontend edits were made. Integrate the returned compatible fix separately after checking its exact head and focused evidence. The coherent accepted baseline remains usable while this nonblocking affordance awaits its owner.
+Claude delivered [PR #4](https://github.com/alindebergASL/Workagent/pull/4), code `bed8fe3` and evidence head `a1c9df0058675f2a446babef5b42f53e4674910b`, following the [explicit owner coordination](https://github.com/alindebergASL/Workagent/pull/2#issuecomment-5953182433). Hermes preserved Claude's frontend tree exactly and merged it with the separate evaluator/documentation commits at **`80eb2c06c79d5007c14ca9e754a9c803b73ff0c7`**. The only conflict was one frontend STATUS documentation hunk: both completed-work intents were retained; stale pending/fast-forward-only wording was superseded. No frontend code was ported, rewritten or concurrently edited.
+
+Independent focused execution on exact merged head `80eb2c0` passed:
+- Three owner-authored mock browser cases at 1440, 390 and 320px: collapse, visible resume, retained exact text and keyboard focus, plus preserved unconfirmed-send retry.
+- A separate **real UI/API/PostgreSQL** probe: desktop/mobile collapse and resume; a revision command actually committed with HTTP 202, then its response was deliberately dropped. After collapsing and resuming the error, retry sent the identical full command and admitted exactly one revision run. The current artifact revision/body remained unchanged; no provider ran.
+- Maintained model-draft evaluator rerun against the merged current UI: the retained historical model artifact still read Ready for review, with the same revision/body and two history entries; zero inference or import replays.
+- Typecheck and production real/mock builds passed. Claude's 13 published evidence hashes were verified. His broader real demo remains owner-reported evidence, not relabeled as a new independent broad run.
+
+[Exact-merge verification](followup-evidence/integration/verification.json), [focused mock results](followup-evidence/integration/focused-ui-mock.log), [real response-loss/retry readback](followup-evidence/integration/real-ui-followup.json), [desktop collapse](followup-evidence/integration/real-collapse-1440.png), [mobile unconfirmed-send disclosure](followup-evidence/integration/real-committed-response-loss-collapsed.png). Original accepted `e0da95c` evidence remains unchanged. This later evidence/status-only child is bound externally by the PR checkpoint; it does not pretend to be the tested merge SHA.
 
 ## Recommended next responsibility — not commissioned here
 

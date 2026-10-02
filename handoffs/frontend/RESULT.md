@@ -48,7 +48,7 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 4. Context collapses to a count: done (`02`).
 5. Less repeated fixture copy: done, with one mode line and provenance on demand.
 
-**Independent review.** PASS at `e0da95c`: the untouched canonical real demo, actual API/web restart, all nine real fault cases, 25 unit tests, type/lint/format and 12 mock-browser tests passed. Extra real-browser checks covered approval invalidation, serialized refresh and retained drafts. No provider calls or live product execution occurred. “Keep for later” remains a nonblocking, separately tracked frontend follow-up. Earlier frontend self-review on real screens found and fixed:
+**Independent review.** PASS at `e0da95c`: the untouched canonical real demo, actual API/web restart, all nine real fault cases, 25 unit tests, type/lint/format and 12 mock-browser tests passed. Extra real-browser checks covered approval invalidation, serialized refresh and retained drafts. No provider calls or live product execution occurred. The later “Keep for later” follow-up is now integrated separately and passed [focused checks at merged head `80eb2c0`](../backend/BASELINE_FOLLOWUPS.md); those checks do not replace or relabel this original review. Earlier frontend self-review on real screens found and fixed:
 
 - The prepared artifact header disagreed with the other surfaces (fixed in `37169bb`).
 - A timing-dependent mock reconnect test (it now uses the focus re-read).
@@ -58,6 +58,6 @@ node web/scripts/capture-states.mjs <dir>                  # matched checkpoint 
 
 **Known gaps.** Backend requests 3 and 4 in `STATUS.md`. Live runtime remains blocked on the authorized project or secret reference and spend grant in `docs/RUNTIME_STATUS.md`.
 
-**Integration checkpoint.** Independent review and the exact-head canonical demo are complete. Shared integration and the existing non-default PR #3 head were fast-forwarded through reviewed `e0da95c` to report/status publication `5ae4cbb`. Subsequent [bounded evaluator/documentation follow-ups](../backend/BASELINE_FOLLOWUPS.md) remain distinct from that accepted review; UI-1 is assigned to the existing Claude frontend owner through PR #2. Do not reapply the patch or reopen the passed review for these small follow-ups. Default-branch merge, deployment and provider spending remain unauthorized.
+**Integration checkpoint.** Independent review and the exact-head canonical demo are complete. Shared integration and the existing non-default PR #3 head were fast-forwarded through reviewed `e0da95c` to report/status publication `5ae4cbb`. Subsequent [bounded follow-ups](../backend/BASELINE_FOLLOWUPS.md) are complete and remain distinct from that accepted review; Claude's intact UI-1 tree was integrated with the evaluator/docs work at tested merge `80eb2c0`. The latest publication head is bound by the PR checkpoint. Default-branch merge, deployment and provider spending remain unauthorized.
 
 **Resumption checkpoint.** Branch head and these notes. `scripts/workagent.py demo` reproduces the real evidence on a fresh database.

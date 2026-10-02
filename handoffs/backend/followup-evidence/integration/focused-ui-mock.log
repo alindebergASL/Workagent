@@ -1,0 +1,9 @@
+[WebServer] $ next start --hostname 127.0.0.1 --port 3000 --hostname 127.0.0.1 --port 3100
+
+Running 3 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/revision-draft.spec.ts:24:5 › Keep for later collapses the revision form and keeps the draft @journey (8.4s)
+  ✓  2 [mobile] › e2e/revision-draft.spec.ts:24:5 › Keep for later collapses the revision form and keeps the draft @journey (8.2s)
+  ✓  3 [narrow] › e2e/revision-draft.spec.ts:24:5 › Keep for later collapses the revision form and keeps the draft @journey (8.3s)
+
+  3 passed (29.7s)
