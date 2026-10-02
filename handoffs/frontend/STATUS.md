@@ -46,3 +46,7 @@ Implemented separately as `bed8fe3` with evidence at `a1c9df0` on `claude/workag
 ## Intake next-action outcome UI (frontend)
 
 `4c36ede` on `claude/workagent-frontend-kyg51x`, built on contract checkpoint `1c04566` (`hermes/intake-next-action`). Home, Spaces and the work surface now read `Assignment.responsibility`, using the run named by `latest_run_id`. They show prepared, decision needed (with the exact question), approved and read back, waiting with a named blocker, provider outcome unknown (no retry; read-only "Check again") and not verified. Provenance comes from `execution.evidence_origin` only. Evidence: [`evidence/intake-4c36ede/`](evidence/intake-4c36ede/README.md). The canonical demo and the intake evidence passed at `4c36ede` with a clean tree; no provider calls. Open backend observation: the synthetic attempt's run projects `evidence_origin=unverified`.
+
+## IR-L2 and footer provenance (frontend)
+
+`af41463` (plus the test-only `f583ecb`) on `claude/workagent-frontend-kyg51x`, built on `71bdb85`. The assignment recommendation is read from the first `managed.current.<attempt>` group of the current saved document, with fixture blocks as the fallback. The global footer no longer claims fixture-only work; each item states its own `evidence_origin`. Checked against the backend's no-inference Responses journey records in the real UI at 1440/390/320. Evidence: [`evidence/ir-l2-af41463/`](evidence/ir-l2-af41463/README.md).

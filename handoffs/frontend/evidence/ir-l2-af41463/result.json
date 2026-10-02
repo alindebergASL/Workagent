@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "evidence_mode": "synthetic HTTPX; real PostgreSQL/product worker/domain/broker/outbox",
+  "provider_inference_calls": 0,
+  "assignment_id": "f3549c56-fa4d-4813-8070-5eab92f736fc",
+  "approved_revision_id": "709c9e94-dd35-49fc-b2d2-7dc47def93f3",
+  "current_attempt": "1d329ed5-d6b7-4da1-a1dd-12875dade992",
+  "managed_groups_in_saved_document": 2,
+  "run_state": "readback_verified",
+  "evidence_origin": "synthetic_provider_receipt",
+  "expected": {
+    "summary": "Ask the intake owner to identify the missing owner and a dated next step for each incomplete intake row before the next review.",
+    "evidence": [
+      "SG-F1@1: Selected intake snapshot supplied by the authorized scoped broker; no external task execution evidence."
+    ],
+    "missing": [
+      "Confirm the owner of each unassigned row and its next review date."
+    ],
+    "judgment": "Prioritize incomplete ownership records before process redesign; the selected intake evidence is not an execution receipt.",
+    "historical_groups": 2
+  },
+  "errors": []
+}
