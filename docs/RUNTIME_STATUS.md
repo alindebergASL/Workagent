@@ -50,10 +50,17 @@ skill comparison; model outcome/latency comparison. S4 multi-hour lifecycle rema
 out of scope. Application fixture proofs will be recorded separately.
 
 ## Product bundle
-`agent/v0.1.0/runtime.yaml` is a product schema serialized as JSON (valid YAML), not
-provider configuration. `agent/approvals.json` is trusted deployment review metadata,
-not discovered source content. Runtime sources never control either path. The loader
-pins every byte, offers only registry+scope intersections, and assembles guidance and
-untrusted evidence separately. Scripts and prepare-contribution are inactive.
-Activation/rollback persistence and actual worker integration are pending the domain
-baseline; unit context-plan tests are not presented as provider execution evidence.
+`agent/v0.1.0/runtime.yaml` and `agent/v0.1.1/runtime.yaml` are product schemas
+serialized as JSON (valid YAML), not provider configuration. Reviewed approval registry
+snapshots are exact-hash allowlisted: existing runs retain their original registry and
+manifest, while explicit operator activation selects a version for future runs.
+Runtime sources control neither path. The loader pins every byte, offers only
+registry+scope intersections, and assembles guidance and untrusted evidence separately.
+Scripts and prepare-contribution are inactive.
+
+Actual PostgreSQL tests establish a proposed version absent from the old approval
+registry cannot activate through that registry; explicit approved 0.1.1 activation,
+continued 0.1.0 run pins, exact prior instruction/source-input reproduction after
+rollback, and denial after current source revocation. Fixture worker context loading,
+activation audits and outbox/fenced recovery are integrated and exercised. These are
+application adapter/fixture observations, not provider execution or live skill ablation.
