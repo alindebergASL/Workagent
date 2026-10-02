@@ -23,9 +23,12 @@ python3 scripts/workagent.py demo
 
 That command installs locked dependencies, builds the actual app, provisions only
 when the ignored local env file does not exist, runs desktop/mobile browser checks,
-terminates and restarts API/web, and reads back the same PostgreSQL state. It uses
-controlled worker release for the stale-proposal scenario; no route mocking or JSON
-mock persistence stands in for the API/database. Logs, screenshots, exact artifact
+terminates and restarts API/web, and reads back the same PostgreSQL state. It then runs
+nine response-loss/conflict/source-drift regressions against a **separate** isolated
+database, leaving that saved assignment unchanged. It uses controlled worker release
+for the stale-proposal scenario and deliberate network interruption for loss tests;
+no fabricated success response or JSON mock persistence stands in for the API/database.
+Logs, screenshots, exact artifact
 bodies and identifiers are under `.local/evidence/` and `.local/logs/`.
 
 ## Use the workspace
