@@ -629,6 +629,17 @@ h2 {
 .status-line[data-tone="live"] .dot {
   animation: pulse 1.6s ease-in-out infinite;
 }
+.status-more {
+  margin-left: 18px;
+}
+.status-more > summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+.status-more > p {
+  margin-top: 4px;
+}
 .section-title {
   font-size: 0.9375rem;
   font-weight: 550;

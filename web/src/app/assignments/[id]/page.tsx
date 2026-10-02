@@ -81,7 +81,11 @@ export default function AssignmentPage() {
   const review = a.needs_review_artifact_ids[0];
   const reviewTitle = review ? artifactTitles[review] : null;
 
-  const statusLine = (() => {
+  const statusLine: {
+    tone: string;
+    text: string;
+    more?: { summary: string; text: string };
+  } = (() => {
     switch (phase) {
       case "working":
         return {
@@ -105,12 +109,20 @@ export default function AssignmentPage() {
       case "approved":
         return {
           tone: "done",
-          text: "Approved revision saved. This does not mark tasks or responsibility criteria complete; no external action was taken.",
+          text: "Revision approved. No external action was taken.",
+          more: {
+            summary: "What approval covers",
+            text: "Approving saves this revision as your current version. It does not mark tasks or responsibility criteria complete.",
+          },
         };
       default:
         return {
           tone: "done",
-          text: `${completedSummary(a)} Ready for you to review. Preparation is not approval.`,
+          text: `${completedSummary(a)} Ready for you to review.`,
+          more: {
+            summary: "What review means",
+            text: "Preparation is not approval. Nothing becomes an approved revision until you apply it.",
+          },
         };
     }
   })();
@@ -132,6 +144,12 @@ export default function AssignmentPage() {
           <span className="dot" aria-hidden="true" />
           <span>{statusLine.text}</span>
         </p>
+        {statusLine.more ? (
+          <details className="status-more">
+            <summary>{statusLine.more.summary}</summary>
+            <p className="small muted">{statusLine.more.text}</p>
+          </details>
+        ) : null}
       </header>
 
       {phase === "decision" && review ? (

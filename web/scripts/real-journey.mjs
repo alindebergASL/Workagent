@@ -456,9 +456,10 @@ try {
     expect(inspected.task.state).toBe("created");
     await page.goto(origin + "/assignments/" + assignmentId);
     await expect(page.locator(".status-line")).toContainText(
-      "Approved revision saved",
+      "Revision approved",
     );
-    await expect(page.locator(".status-line")).toContainText(
+    // The explanation stays one disclosure away rather than on every surface.
+    await expect(page.locator(".status-more")).toContainText(
       "does not mark tasks or responsibility criteria complete",
     );
     await shot("15-approved-with-unfinished-task");
