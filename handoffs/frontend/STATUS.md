@@ -5,7 +5,7 @@ Updated: 2026-10-02 (UTC). Owner: Claude Code frontend stream. Hermes owns integ
 ## Where the work is
 
 - Branch: `claude/workagent-frontend-kyg51x` (the mission-designated branch; `feat/s1-frontend` was not used), based on `hermes/s0-s1-backend` @ `3f1b17b60ac035514862d9ecf39127d324ba10b7`.
-- Commit: `092e0098359fbdd5a4f9384d7e86b15503ba9640` (implementation + evidence). This note is the following commit.
+- Commit: `092e0098359fbdd5a4f9384d7e86b15503ba9640` (implementation + evidence). PR #2 against `hermes/s0-s1-backend`: https://github.com/alindebergASL/Workagent/pull/2
 - Repository state at start: empty remote. Hermes pushed `hermes/s0-s1-backend` (now GitHub's default) and `hermes/s0-s1-build` while the first frontend pass was in progress; the frontend was then rebased onto that bootstrap and moved to `web/` as the backend note (issue #1) asked. Nothing of Hermes's was changed.
 
 ## Owned paths

@@ -4,7 +4,7 @@ Status: ready for integration (mock mode). Not integrated with the real API; not
 
 Usable outcome: A solo user can start private work from selected sources, watch honest queued/working/partial/ready states, read a recommendation with its evidence and uncertainty, open the plan and checklist, edit the plan and save a revision, request an agent revision, review a stale proposal with both bodies and their revision IDs, keep the current version or save a deliberate resolution that re-checks the current revision, inspect sources and history without silently restoring, and reopen the same assignment after the app process restarts. Desktop (1440), mobile (390) and 320px are covered with keyboard-only conflict resolution and focus return on drawers.
 
-Branch / commit / PR: `claude/workagent-frontend-kyg51x` (based on `hermes/s0-s1-backend` @ `3f1b17b`) / `092e0098359fbdd5a4f9384d7e86b15503ba9640` (implementation and evidence; this note is the following commit) / PR against `hermes/s0-s1-backend`, linked from issue #1.
+Branch / commit / PR: `claude/workagent-frontend-kyg51x` (based on `hermes/s0-s1-backend` @ `3f1b17b`) / `092e0098359fbdd5a4f9384d7e86b15503ba9640` (implementation and evidence; this note is the following commit) / PR #2 against `hermes/s0-s1-backend` (https://github.com/alindebergASL/Workagent/pull/2), acknowledged on issue #1.
 
 Shared contract commit or hash; generated client version: **none available**. Provisional adapter `frontend-provisional-0.1` (`web/src/lib/contract/types.ts`, `web/src/lib/client/api.ts`), to be replaced by the `workagent/v1` generated client from `contracts/`, to be replaced by Hermes's generated client.
 
