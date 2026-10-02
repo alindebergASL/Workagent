@@ -1,7 +1,7 @@
 "use client";
-import { useCallback } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import type { Block } from "@/lib/contract/types";
-import type { DiffOp } from "@/lib/diff";
+import { condenseDiff, type DiffItem, type DiffOp } from "@/lib/diff";
 
 export function DocRead({
   blocks,
@@ -99,18 +99,62 @@ export function DocEdit({
                 aria-label={`Mark done: ${b.text}`}
               />
             ) : null}
-            <textarea
-              aria-label={`${labelFor(b.kind)} ${b.id}`}
+            <AutoTextarea
+              label={`${labelFor(b.kind)} ${b.id}`}
               value={b.text}
               disabled={disabled}
-              rows={Math.max(1, Math.ceil(b.text.length / 70))}
-              onChange={(e) => update(b.id, { text: e.target.value })}
+              onChange={(text) => update(b.id, { text })}
             />
           </div>
           <SourceMarks block={b} />
         </div>
       ))}
     </div>
+  );
+}
+
+/** Grows with its content; re-measures when a hidden pane becomes visible. */
+function AutoTextarea({
+  label,
+  value,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  disabled: boolean;
+  onChange: (text: string) => void;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const fit = useCallback(() => {
+    const el = ref.current;
+    if (!el || el.offsetWidth === 0) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, []);
+  useLayoutEffect(fit, [value, fit]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    let width = el.offsetWidth;
+    const observer = new ResizeObserver(() => {
+      if (el.offsetWidth !== width) {
+        width = el.offsetWidth;
+        fit();
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fit]);
+  return (
+    <textarea
+      ref={ref}
+      aria-label={label}
+      value={value}
+      disabled={disabled}
+      rows={1}
+      onChange={(e) => onChange(e.target.value)}
+    />
   );
 }
 
@@ -127,37 +171,74 @@ function labelFor(kind: Block["kind"]): string {
   }
 }
 
-export function DocDiff({ ops }: { ops: DiffOp[] }) {
+export interface DiffLabels {
+  added: string;
+  removed: string;
+  /** "edit": removed text is struck through. "compare": two versions side by side, nothing is struck. */
+  tone?: "edit" | "compare";
+}
+
+const EDIT_LABELS: DiffLabels = {
+  added: "Added",
+  removed: "Removed",
+  tone: "edit",
+};
+
+export function DocDiff({
+  ops,
+  labels = EDIT_LABELS,
+  condensed = true,
+}: {
+  ops: DiffOp[];
+  labels?: DiffLabels;
+  condensed?: boolean;
+}) {
+  const items: DiffItem[] = condensed ? condenseDiff(ops) : ops;
+  const tone = labels.tone ?? "edit";
   return (
-    <div
-      className="doc"
-      aria-label="Changes between the current version and the proposal"
-    >
-      {ops.map((op, i) => (
-        <div
-          className="doc-block"
-          data-kind={op.block.kind}
-          data-added={op.type === "added" ? "true" : undefined}
-          data-removed={op.type === "removed" ? "true" : undefined}
-          key={`${op.type}-${op.block.id}-${i}`}
-        >
-          <div className="doc-text">
-            <span className="sr-only">
-              {op.type === "added"
-                ? "Added: "
-                : op.type === "removed"
-                  ? "Removed: "
-                  : ""}
-            </span>
-            {op.block.kind === "heading" ? (
-              <h3>{op.block.text}</h3>
-            ) : (
-              <span>{op.block.text}</span>
-            )}
-          </div>
-          <span />
-        </div>
-      ))}
+    <div className="diff" data-tone={tone}>
+      <p className="diff-legend" aria-hidden="true">
+        <span className="swatch swatch-added" /> {labels.added}
+        <span className="swatch swatch-removed" /> {labels.removed}
+      </p>
+      <div className="doc" aria-label="Exact changes">
+        {items.map((op, i) =>
+          op.type === "gap" ? (
+            <p className="diff-gap" key={`gap-${i}`}>
+              {op.count} unchanged line{op.count === 1 ? "" : "s"}
+            </p>
+          ) : (
+            <div
+              className="doc-block"
+              data-kind={op.block.kind}
+              data-added={op.type === "added" ? "true" : undefined}
+              data-removed={op.type === "removed" ? "true" : undefined}
+              key={`${op.type}-${op.block.id}-${i}`}
+            >
+              <div className="doc-text">
+                <span className="sr-only">
+                  {op.type === "added"
+                    ? `${labels.added}: `
+                    : op.type === "removed"
+                      ? `${labels.removed}: `
+                      : ""}
+                </span>
+                {op.block.kind === "check_item" ? (
+                  <span className="diff-check">
+                    {op.block.checked ? "☑ Done · " : "☐ Not done · "}
+                  </span>
+                ) : null}
+                {op.block.kind === "heading" ? (
+                  <h3>{op.block.text}</h3>
+                ) : (
+                  <span>{op.block.text}</span>
+                )}
+              </div>
+              <span />
+            </div>
+          ),
+        )}
+      </div>
     </div>
   );
 }

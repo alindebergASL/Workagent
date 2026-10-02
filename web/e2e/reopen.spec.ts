@@ -13,12 +13,10 @@ test("reopen the same assignment and artifact after restart @reopen", async ({
   const ids = readJourney();
   await page.goto("/");
   await expect(
-    page.locator(`a[href="/assignments/${ids.assignment_id}"]`, {
-      hasText: "Continue",
-    }),
+    page.locator(`a.work-row[href="/assignments/${ids.assignment_id}"]`),
   ).toBeVisible();
   await page.goto(`/assignments/${ids.assignment_id}`);
-  await expect(page.locator(".status").first()).toHaveText("Ready for review");
+  await expect(page.locator(".status-line")).toContainText("Completed.");
   await expect(page.getByRole("link", { name: "Open plan" })).toBeVisible();
   await shot(page, info, "15-reopen-assignment");
   await page.goto(
@@ -27,8 +25,12 @@ test("reopen the same assignment and artifact after restart @reopen", async ({
   await expect(page.locator(".save-state")).toHaveText(
     new RegExp(`Saved · revision ${ids.final_revision_sequence}`),
   );
-  await expect(page.getByText(ids.human_text)).toBeVisible();
-  await expect(page.getByText(ids.protected_note)).toBeVisible();
+  await expect(
+    page.locator(".doc-card").getByText(ids.human_text),
+  ).toBeVisible();
+  await expect(
+    page.locator(".doc-card").getByText(ids.protected_note),
+  ).toBeVisible();
   await noHorizontalScroll(page);
   await shot(page, info, "16-reopen-artifact");
 

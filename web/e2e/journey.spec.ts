@@ -25,27 +25,36 @@ test.describe("S1 journey (mock mode)", () => {
     // ---- Work Home: empty state ----
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "What would you like to finish?" }),
+      page.getByRole("heading", { name: "Good to see you." }),
     ).toBeVisible();
-    await expect(page.getByText("No assignments yet")).toBeVisible();
+    await expect(
+      page.getByText(/Hand over something you’d like finished/),
+    ).toBeVisible();
+    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Start work" }),
     ).toBeDisabled();
     await noHorizontalScroll(page);
     await shot(page, info, "01-home-empty");
 
-    // Error path first: a request with no sources keeps the request text.
-    await page.getByLabel("Your request").fill("Draft a plan from nothing");
-    await expect(
-      page.getByRole("button", { name: "Start work" }),
-    ).toBeDisabled();
-    await expect(page.getByText("Choose at least one source")).toBeVisible();
-
+    // Error path first: a request with no sources keeps the text and asks for context.
     await page
-      .getByRole("button", { name: "Use the sample request and sources" })
-      .click();
-    await expect(page.getByLabel("Your request")).toHaveValue(/intake log/);
-    await expect(page.getByText("3 sources selected")).toBeVisible();
+      .getByLabel("Message your agent")
+      .fill("Draft a plan from nothing");
+    await page.getByRole("button", { name: "Start work" }).click();
+    await expect(page.getByText("Records this work may use")).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByLabel("Message your agent")).toHaveValue(
+      "Draft a plan from nothing",
+    );
+
+    await page.getByRole("button", { name: /Try the intake example/ }).click();
+    await expect(page.getByLabel("Message your agent")).toHaveValue(
+      /intake log/,
+    );
+    await expect(
+      page.getByRole("button", { name: "Your context · 3 sources" }),
+    ).toBeVisible();
     await shot(page, info, "02-home-filled");
     await page.getByRole("button", { name: "Start work" }).click();
 
@@ -55,22 +64,27 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /intake log/i,
     );
-    const status = page.locator(".status").first();
-    await expect(status).toHaveText(/Queued|Working/);
+    const status = page.locator(".status-line");
+    await expect(status).toContainText(/I’m on it/);
     await shot(page, info, "03-assignment-working");
     await expect(page.getByRole("link", { name: "Open plan" })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(status).toHaveText("Ready for review");
+    await expect(status).toContainText("Completed.");
+    await expect(status).toContainText("Prepared by the mock worker");
+    await expect(page.getByText(/I’m on it/)).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Recommendation" }),
     ).toBeVisible();
     await expect(page.getByText(/4 of 8 cases \(50%\)/)).toBeVisible();
-    await expect(page.locator(".artifact-link")).toHaveCount(3);
+    await expect(
+      page.locator('section[aria-labelledby="saved-title"] .work-row'),
+    ).toHaveCount(3);
     await noHorizontalScroll(page);
     await shot(page, info, "04-assignment-ready");
 
     // Sources drawer with focus return.
+    await page.getByText("What I checked", { exact: true }).click();
     const sourcesBtn = page.getByRole("button", { name: "Open sources" });
     await sourcesBtn.focus();
     await page.keyboard.press("Enter");
@@ -88,7 +102,7 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(sourcesBtn).toBeFocused();
 
     // Activity is available on demand.
-    await page.getByText("Activity", { exact: true }).click();
+    await page.getByText("What happened", { exact: true }).click();
     await expect(
       page.getByText("Assignment created from 3 selected sources."),
     ).toBeVisible();
@@ -100,7 +114,9 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Working plan" }),
     ).toBeVisible();
-    await expect(page.getByText(PROTECTED_NOTE)).toBeVisible();
+    await expect(
+      page.locator(".doc-card").getByText(PROTECTED_NOTE),
+    ).toBeVisible();
     await expect(page.locator(".save-state")).toHaveText(/Saved · revision 1/);
     await noHorizontalScroll(page);
     await shot(page, info, "06-artifact-read");
@@ -130,9 +146,13 @@ test.describe("S1 journey (mock mode)", () => {
     await shot(page, info, "07-artifact-editing");
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(page.locator(".save-state")).toHaveText(/Saved · revision 2/);
-    await expect(page.getByText("Saved as revision 2.")).toBeVisible();
-    await expect(page.getByText(HUMAN_TEXT)).toBeVisible();
-    await expect(page.getByText(PROTECTED_NOTE)).toBeVisible();
+    await expect(
+      page.locator(".notice").getByText("Saved as revision 2."),
+    ).toBeVisible();
+    await expect(page.locator(".doc-card").getByText(HUMAN_TEXT)).toBeVisible();
+    await expect(
+      page.locator(".doc-card").getByText(PROTECTED_NOTE),
+    ).toBeVisible();
     await shot(page, info, "08-artifact-saved");
 
     // Server readback of the human save.
@@ -192,7 +212,7 @@ test.describe("S1 journey (mock mode)", () => {
     await page.keyboard.press("Enter");
     await expect(page.getByRole("button", { name: "Edit" })).toBeVisible();
     await expect(page.locator(".save-state")).toHaveText(/Saved · revision 2/);
-    await expect(page.getByText(HUMAN_TEXT)).toBeVisible();
+    await expect(page.locator(".doc-card").getByText(HUMAN_TEXT)).toBeVisible();
 
     // History keeps the declined proposal and allows viewing an old revision without restoring it.
     await page.getByRole("button", { name: "History" }).click();
@@ -204,10 +224,12 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(
       page.getByText(/Viewing revision 1 \(not the current version\)/),
     ).toBeVisible();
-    await expect(page.getByText(HUMAN_TEXT)).toHaveCount(0);
+    await expect(page.locator(".doc-card").getByText(HUMAN_TEXT)).toHaveCount(
+      0,
+    );
     await expect(page.getByRole("button", { name: "Edit" })).toHaveCount(0);
     await page.getByRole("link", { name: "Show current version" }).click();
-    await expect(page.getByText(HUMAN_TEXT)).toBeVisible();
+    await expect(page.locator(".doc-card").getByText(HUMAN_TEXT)).toBeVisible();
 
     // ---- Second proposal, deliberate resolution with an intervening save ----
     await page.getByRole("button", { name: "Request revision" }).click();
@@ -298,9 +320,13 @@ test.describe("S1 journey (mock mode)", () => {
     await page.getByRole("button", { name: "Save resolution" }).click();
     await expect(page.locator(".save-state")).toHaveText(/Saved · revision 5/);
     await expect(page.getByRole("button", { name: "Edit" })).toBeVisible();
-    await expect(page.getByText(HUMAN_TEXT)).toBeVisible();
-    await expect(page.getByText(PROTECTED_NOTE)).toBeVisible();
-    await expect(page.getByText(/default owner of me/)).toBeVisible();
+    await expect(page.locator(".doc-card").getByText(HUMAN_TEXT)).toBeVisible();
+    await expect(
+      page.locator(".doc-card").getByText(PROTECTED_NOTE),
+    ).toBeVisible();
+    await expect(
+      page.locator(".doc-card").getByText(/default owner of me/),
+    ).toBeVisible();
     await shot(page, info, "13-artifact-resolved");
 
     const fin = await (
@@ -323,10 +349,15 @@ test.describe("S1 journey (mock mode)", () => {
 
     // Home shows the resumable assignment.
     await page.goto("/");
-    await expect(page.getByRole("link", { name: "Continue" })).toBeVisible();
-    await expect(page.locator(".assignment-item .status").first()).toHaveText(
-      "Ready for review",
-    );
+    // Completed work is listed as completed, with no in-progress or decision controls.
+    await expect(page.getByText(/^Completed · \d+/)).toBeVisible();
+    await expect(
+      page.locator(`a.work-row[href="/assignments/${assignmentId}"]`),
+    ).toBeVisible();
+    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: "Review the change" }),
+    ).toHaveCount(0);
     await shot(page, info, "14-home-resume");
 
     const ids: JourneyIds = {
@@ -372,7 +403,7 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByText("This item isn’t available to you"),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Work Home" }).last(),
+      page.getByRole("link", { name: "Back to agent" }).last(),
     ).toBeVisible();
 
     // Command replay: same id + same payload → same result; different payload → command_conflict.
@@ -405,9 +436,7 @@ test.describe("S1 journey (mock mode)", () => {
     request,
   }, info) => {
     await page.goto("/");
-    await page
-      .getByRole("button", { name: "Use the sample request and sources" })
-      .click();
+    await page.getByRole("button", { name: /Try the intake example/ }).click();
     const before = (
       (
         await (
@@ -427,8 +456,12 @@ test.describe("S1 journey (mock mode)", () => {
     });
     await page.getByRole("button", { name: "Start work" }).click();
     await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
-    await expect(page.getByLabel("Your request")).toHaveValue(/intake log/);
-    await expect(page.getByText("3 sources selected")).toBeVisible();
+    await expect(page.getByLabel("Message your agent")).toHaveValue(
+      /intake log/,
+    );
+    await expect(
+      page.getByRole("button", { name: "Your context · 3 sources" }),
+    ).toBeVisible();
     await shot(page, info, "17-home-start-error");
     await page.getByRole("button", { name: "Retry the same request" }).click();
     await page.waitForURL(/\/assignments\/asg_\d+$/);

@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { workAttention } from "../src/lib/work-state";
-import type { AssignmentSummary } from "../src/lib/contract/types";
+import {
+  completedSummary,
+  phaseOf,
+  workAttention,
+  type WorkItem,
+} from "../src/lib/work-state";
+import type { Assignment, AssignmentSummary } from "../src/lib/contract/types";
 
-const item = (
+const summary = (
   state: AssignmentSummary["state"],
   changes: Partial<AssignmentSummary> = {},
 ): AssignmentSummary => ({
@@ -23,23 +28,82 @@ const item = (
   ...changes,
 });
 
-describe("persisted work attention", () => {
-  it("replaces in-progress framing when preparation completes", () => {
-    expect(workAttention([item("working")])?.action).toBe("Inspect progress");
-    expect(workAttention([item("ready_for_review")])?.action).toBe(
-      "Open prepared work",
-    );
-    expect(workAttention([item("finished")])).toBeNull();
+const detail = (
+  s: AssignmentSummary,
+  changes: Partial<Assignment> = {},
+): Assignment => ({
+  ...s,
+  completion_criteria: ["Plan and checklist"],
+  selected_source_refs: [],
+  recommendation: null,
+  artifacts: [
+    {
+      id: "plan",
+      title: "Working plan",
+      kind: "plan",
+      state: "ready",
+      accepted_revision_id: "r1",
+      partial: false,
+      updated_at: "",
+    },
+    {
+      id: "check",
+      title: "Checklist",
+      kind: "checklist",
+      state: "ready",
+      accepted_revision_id: "r2",
+      partial: false,
+      updated_at: "",
+    },
+  ],
+  activity: [],
+  unresolved: [],
+  run: null,
+  ...changes,
+});
+
+const item = (s: AssignmentSummary, d: Assignment | null = null): WorkItem => ({
+  summary: s,
+  detail: d,
+});
+
+describe("work phases from persisted state", () => {
+  it("drops in-progress framing once preparation completes", () => {
+    expect(phaseOf(item(summary("working")))).toBe("working");
+    expect(phaseOf(item(summary("ready_for_review")))).toBe("completed");
+    expect(phaseOf(item(summary("finished")))).toBe("completed");
+    // Neither in-progress nor completed work is presented as a decision.
+    expect(workAttention([item(summary("working"))])).toBeNull();
+    expect(workAttention([item(summary("ready_for_review"))])).toBeNull();
   });
-  it("takes the person directly to the exact artifact awaiting a decision", () => {
+
+  it("finds pending decisions from the detail read, which the summary lacks", () => {
+    const s = summary("ready_for_review", { id: "b" });
+    const withReview = detail(s, { needs_review_artifact_ids: ["plan"] });
+    expect(phaseOf(item(s))).toBe("completed");
+    expect(phaseOf(item(s, withReview))).toBe("decision");
     const attention = workAttention([
-      item("working"),
-      item("ready_for_review", {
-        id: "b",
-        needs_review_artifact_ids: ["proposal-artifact"],
-      }),
+      item(summary("working")),
+      item(s, withReview),
     ]);
-    expect(attention?.href).toBe("/assignments/b/artifacts/proposal-artifact");
-    expect(workAttention([item("finished", { id: "b" })])).toBeNull();
+    expect(attention?.href).toBe("/assignments/b/artifacts/plan");
+    expect(attention?.title).toContain("working plan");
+  });
+
+  it("surfaces blocked work with its recorded reason, never a fabricated one", () => {
+    const s = summary("needs_input", { id: "c" });
+    const a = workAttention([
+      item(s, detail(s, { unresolved: ["Source SG-F2 is unavailable."] })),
+    ]);
+    expect(a?.href).toBe("/assignments/c");
+    expect(a?.body).toBe("Source SG-F2 is unavailable.");
+  });
+
+  it("describes completed work from saved artifacts only", () => {
+    const s = summary("ready_for_review");
+    expect(completedSummary(item(s, detail(s)))).toBe(
+      "Prepared working plan and checklist.",
+    );
+    expect(completedSummary(item(s))).toBe("Saved results are available.");
   });
 });

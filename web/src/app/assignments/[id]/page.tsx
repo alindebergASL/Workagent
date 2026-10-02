@@ -6,15 +6,11 @@ import { api } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import type { Assignment } from "@/lib/contract/types";
+import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
+import { completedSummary, phaseOf, shortTitle } from "@/lib/work-state";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
-import {
-  artifactStatus,
-  assignmentStatus,
-  ErrorNotice,
-  Notice,
-  StatusBadge,
-} from "@/components/ui";
+import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
 export default function AssignmentPage() {
   const params = useParams<{ id: string }>();
@@ -43,231 +39,200 @@ export default function AssignmentPage() {
     [a],
   );
 
+  const back = (
+    <Link className="back-link" href="/">
+      ← Back to agent
+    </Link>
+  );
+
   if (res.error && !a) {
     return (
-      <>
-        <nav className="crumbs" aria-label="Breadcrumb">
-          <Link href="/">Work Home</Link>
-        </nav>
+      <div className="agent-col">
+        {back}
         <ErrorNotice
           error={res.error}
           actions={
             <Link className="btn btn-sm" href="/">
-              Work Home
+              Back to agent
             </Link>
           }
         />
-      </>
+      </div>
     );
   }
   if (!a) {
     return (
-      <div className="stack" aria-busy="true">
+      <div className="agent-col" aria-busy="true">
+        {back}
         <div className="skeleton" style={{ width: "30%" }} />
         <div className="skeleton" style={{ width: "60%", height: "2em" }} />
       </div>
     );
   }
 
-  const st = assignmentStatus(a.state, a.stage);
+  const item = { summary: a, detail: a };
+  const phase = phaseOf(item);
   const plan = a.artifacts.find((x) => x.kind === "plan");
-  const working = a.state === "queued" || a.state === "working";
-  const primary = plan ? (
-    <Link
-      className="btn btn-primary"
-      href={`/assignments/${a.id}/artifacts/${plan.id}`}
-    >
-      Open plan
-    </Link>
-  ) : a.state === "needs_input" ? (
-    <button className="btn btn-primary" type="button">
-      Respond
-    </button>
-  ) : null;
+  const review = a.needs_review_artifact_ids[0];
+  const reviewTitle = review ? artifactTitles[review] : null;
+
+  const statusLine = (() => {
+    switch (phase) {
+      case "working":
+        return {
+          tone: "live",
+          text: `I’m on it · ${a.stage ?? "Preparing"}. Saved results appear below as they’re ready; nothing is shown before it exists.`,
+        };
+      case "decision":
+        return {
+          tone: "attn",
+          text: `A proposed change to your ${(reviewTitle ?? "saved work").toLowerCase()} needs your decision. Your saved version is unchanged.`,
+        };
+      case "blocked":
+        return {
+          tone: "attn",
+          text:
+            a.unresolved[0] ??
+            "This work can’t continue without you. Saved results are kept.",
+        };
+      case "stopped":
+        return { tone: "done", text: "Stopped. Saved results are kept." };
+      default:
+        return {
+          tone: "done",
+          text: `Completed. ${completedSummary(item)} Prepared by the ${EXECUTION.worker}.`,
+        };
+    }
+  })();
 
   return (
-    <>
-      <nav className="crumbs" aria-label="Breadcrumb">
-        <Link href="/">Work Home</Link>
-        <span aria-hidden="true">/</span>
-        <span>{a.title}</span>
-      </nav>
-
-      <header className="stack">
-        <div className="eyebrow">
-          <span>{workspace?.scope_label ?? "Private"}</span>
-          <span aria-hidden="true">·</span>
-          <span>{a.id}</span>
-          <span aria-hidden="true">·</span>
-          <span>
-            Last observed {formatTime(res.observedAt ?? a.observed_at, zone)}
-          </span>
-          {res.reconnecting ? (
-            <StatusBadge label="Reconnecting…" tone="status-attention" />
-          ) : null}
-        </div>
-        <h1>{a.title}</h1>
-        <div className="row">
-          <StatusBadge label={st.label} tone={st.tone} />
-          {a.next_step ? (
-            <span className="small muted">Next: {a.next_step}</span>
-          ) : null}
-        </div>
+    <div className="agent-col">
+      {back}
+      <header className="agent-intro stack">
+        <div className="agent-presence agent-presence-sm" aria-hidden="true" />
+        <p className="eyebrow">
+          {workspace?.name ?? "Private"} · observed{" "}
+          {formatTime(res.observedAt ?? a.observed_at, zone)}
+          {res.reconnecting ? " · reconnecting…" : ""}
+        </p>
+        <h1>{shortTitle(a.title)}</h1>
+        <p className="status-line" data-tone={statusLine.tone} role="status">
+          <span className="dot" aria-hidden="true" />
+          <span>{statusLine.text}</span>
+        </p>
       </header>
 
-      {a.needs_review_artifact_ids.length ? (
-        <Notice tone="notice-warn" title="Revision needs review" role="status">
-          {a.needs_review_artifact_ids.map((aid) => (
-            <div key={aid}>
-              <Link href={`/assignments/${a.id}/artifacts/${aid}`}>
-                {artifactTitles[aid] ?? aid}
-              </Link>
-              : a proposed change is waiting for your decision. Your saved
-              version is unchanged.
-            </div>
-          ))}
-        </Notice>
-      ) : null}
-
-      {a.state === "failed" ? (
-        <Notice
-          tone="notice-error"
-          title="This work didn’t finish"
-          role="alert"
-        >
-          {a.unresolved.length
-            ? a.unresolved.join(" ")
-            : "Existing results are kept."}
-        </Notice>
-      ) : null}
-
-      <div className="two-col">
-        <div className="card-stack">
-          <section className="card card-stack" aria-labelledby="result-title">
-            <h2 id="result-title">
-              {a.recommendation
-                ? "Recommendation"
-                : working
-                  ? "Working on it"
-                  : "Result"}
-            </h2>
-            {a.recommendation ? (
-              <>
-                <p style={{ fontSize: "1.0625rem" }}>
-                  {a.recommendation.summary}
-                </p>
-                {a.recommendation.evidence.length ? (
-                  <ul
-                    className="stack small"
-                    style={{ margin: 0, paddingLeft: "1.2em" }}
-                  >
-                    {a.recommendation.evidence.map((e, i) => (
-                      <li key={i}>{e}</li>
-                    ))}
-                  </ul>
-                ) : null}
-                {a.recommendation.uncertainty.length ? (
-                  <details className="disclosure">
-                    <summary>What this doesn’t tell you</summary>
-                    <ul
-                      className="disclosure-body small stack"
-                      style={{ paddingLeft: "1.2em" }}
-                    >
-                      {a.recommendation.uncertainty.map((u, i) => (
-                        <li key={i}>{u}</li>
-                      ))}
-                    </ul>
-                  </details>
-                ) : null}
-              </>
-            ) : working ? (
-              <p className="muted">
-                {a.stage ? `${a.stage}.` : "Waiting to start."} Saved results
-                appear below as they are ready; nothing is shown before it
-                exists.
-              </p>
-            ) : (
-              <p className="muted">No result was produced.</p>
-            )}
-            <div className="row">{primary}</div>
-          </section>
-
-          <section
-            className="card card-stack"
-            aria-labelledby="artifacts-title"
+      {phase === "decision" && review ? (
+        <section className="decision-card" aria-labelledby="next-title">
+          <p className="eyebrow-caps">Your next decision</p>
+          <h2 id="next-title">
+            Keep your version, or apply the proposed change.
+          </h2>
+          <p>
+            Nothing is applied until you decide. Both versions stay available.
+          </p>
+          <Link
+            className="btn btn-on-soft"
+            href={`/assignments/${a.id}/artifacts/${review}`}
           >
-            <h2 id="artifacts-title">Saved results</h2>
-            {a.artifacts.length === 0 ? (
-              <p className="muted">
-                {working ? "Nothing saved yet." : "No results were saved."}
-              </p>
-            ) : (
-              <div className="artifact-links">
-                {a.artifacts.map((x) => {
-                  const s = artifactStatus(x.state, x.partial);
-                  return (
-                    <Link
-                      className="artifact-link"
-                      href={`/assignments/${a.id}/artifacts/${x.id}`}
-                      key={x.id}
-                    >
-                      <strong>{x.title}</strong>
-                      <span className="meta">
-                        <StatusBadge label={s.label} tone={s.tone} />
-                        {x.accepted_revision_id ? (
-                          <span>{x.accepted_revision_id}</span>
-                        ) : null}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-            {working && a.artifacts.length ? (
-              <p className="small muted">
-                More results are still being drafted.
-              </p>
-            ) : null}
-          </section>
+            Review the change
+          </Link>
+        </section>
+      ) : null}
 
-          <details className="disclosure card card-quiet" open={false}>
-            <summary>Activity</summary>
-            <div className="disclosure-body">
-              <ul className="activity">
-                {[...a.activity].reverse().map((ev) => (
-                  <li key={ev.id}>
-                    <time dateTime={ev.at}>{formatTime(ev.at, zone)}</time>
-                    <span>{ev.message}</span>
-                  </li>
+      {a.recommendation ? (
+        <section className="result" aria-labelledby="result-title">
+          <h2 id="result-title">Recommendation</h2>
+          <p className="result-lead">{a.recommendation.summary}</p>
+          {a.recommendation.evidence.length ? (
+            <ul className="evidence">
+              {a.recommendation.evidence.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          ) : null}
+          {a.recommendation.uncertainty.length ? (
+            <details className="disclosure">
+              <summary>What this doesn’t tell you</summary>
+              <ul className="disclosure-body evidence">
+                {a.recommendation.uncertainty.map((u, i) => (
+                  <li key={i}>{u}</li>
                 ))}
               </ul>
+            </details>
+          ) : null}
+          {plan && phase !== "decision" ? (
+            <div className="row">
+              <Link
+                className="btn btn-primary"
+                href={`/assignments/${a.id}/artifacts/${plan.id}`}
+              >
+                Open plan
+              </Link>
             </div>
-          </details>
-        </div>
+          ) : null}
+        </section>
+      ) : null}
 
-        <aside className="card-stack">
-          <section
-            className="card card-quiet card-stack"
-            aria-labelledby="goal-title"
-          >
-            <h2 id="goal-title">Goal</h2>
+      <section aria-labelledby="saved-title" className="stack">
+        <h2 id="saved-title" className="section-title">
+          Saved work
+        </h2>
+        {a.artifacts.length === 0 ? (
+          <p className="muted">
+            {phase === "working"
+              ? "Nothing saved yet."
+              : "No results were saved."}
+          </p>
+        ) : (
+          <ul className="work-list">
+            {a.artifacts.map((x) => {
+              const s = artifactStatus(x.state, x.partial);
+              return (
+                <li key={x.id}>
+                  <Link
+                    className="work-row"
+                    href={`/assignments/${a.id}/artifacts/${x.id}`}
+                    data-phase={
+                      x.state === "needs_review" ? "decision" : "completed"
+                    }
+                  >
+                    <span className="work-row-main">
+                      <span className="work-row-title">{x.title}</span>
+                      <span className="work-row-status">
+                        <StatusBadge label={s.label} tone={s.tone} />
+                      </span>
+                    </span>
+                    <span className="work-row-go" aria-hidden="true">
+                      ↗
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <details className="disclosure">
+        <summary>What I checked</summary>
+        <div className="disclosure-body stack-lg stack">
+          <div className="stack">
+            <h3>Your request</h3>
             <p className="small">{a.goal}</p>
+            <p className="hint mono">Reference {a.id}</p>
+          </div>
+          <div className="stack">
             <h3>Done when</h3>
-            <ul
-              className="small stack"
-              style={{ margin: 0, paddingLeft: "1.2em" }}
-            >
+            <ul className="evidence">
               {a.completion_criteria.map((c, i) => (
                 <li key={i}>{c}</li>
               ))}
             </ul>
-          </section>
-          <section
-            className="card card-quiet card-stack"
-            aria-labelledby="sources-title"
-          >
+          </div>
+          <div className="stack">
             <div className="row row-between">
-              <h2 id="sources-title">Sources</h2>
+              <h3>Sources</h3>
               <button
                 ref={sourcesBtn}
                 type="button"
@@ -285,9 +250,23 @@ export default function AssignmentPage() {
                 </span>
               ))}
             </div>
-          </section>
-        </aside>
-      </div>
+          </div>
+        </div>
+      </details>
+
+      {a.activity.length ? (
+        <details className="disclosure">
+          <summary>What happened</summary>
+          <ul className="disclosure-body activity">
+            {[...a.activity].reverse().map((ev) => (
+              <li key={ev.id}>
+                <time dateTime={ev.at}>{formatTime(ev.at, zone)}</time>
+                <span>{ev.message}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
 
       <SourcesDrawer
         open={sourcesOpen}
@@ -296,6 +275,6 @@ export default function AssignmentPage() {
         artifactTitles={artifactTitles}
         returnFocusTo={sourcesBtn}
       />
-    </>
+    </div>
   );
 }
