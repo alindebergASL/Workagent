@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Generate versioned manifests; approval is a separate reviewed file, not generated."""
+from pathlib import Path
+import hashlib
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def main():
+    directory = ROOT / 'agent/v0.1.0'
+    paths = [
+        'AGENTS.md', 'SOUL.md', 'skills/analyze-intake/SKILL.md',
+        'skills/analyze-intake/references/method.md', 'skills/resume-work/SKILL.md',
+    ]
+    manifest = {
+        'schema_version': 'workagent.bundle/v1', 'version': '0.1.0',
+        'files': {p: hashlib.sha256((directory / p).read_bytes()).hexdigest() for p in paths},
+        'instructions': ['AGENTS.md', 'SOUL.md'],
+        'skills': [
+            {'id': 'analyze-intake', 'version': '0.1.0',
+             'description': 'Analyze selected intake evidence and propose a private plan/checklist.',
+             'path': 'skills/analyze-intake/SKILL.md',
+             'resources': ['skills/analyze-intake/references/method.md'],
+             'tools': ['get_assignment', 'get_artifact', 'propose_artifact_revision']},
+            {'id': 'resume-work', 'version': '0.1.0',
+             'description': 'Resume from durable state while preserving human edits and unresolved effects.',
+             'path': 'skills/resume-work/SKILL.md', 'resources': [],
+             'tools': ['get_assignment', 'get_artifact', 'get_task']},
+        ],
+        'capabilities': ['inspect-assignment', 'retrieve-permitted-evidence', 'propose-artifact-revision', 'reconcile-action'],
+        'environment': 'none', 'scripts_enabled': False,
+    }
+    # JSON is a strict YAML subset; stdlib parser avoids implicit YAML coercion.
+    path = directory / 'runtime.yaml'
+    path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
+    print('manifest_sha256=' + hashlib.sha256(path.read_bytes()).hexdigest())
+
+
+if __name__ == '__main__':
+    main()
