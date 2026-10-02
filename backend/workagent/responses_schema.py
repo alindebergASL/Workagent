@@ -47,14 +47,19 @@ def to_body(value,tool_result,attempt_id):
     if any(permitted.get(b.source_id)!=b.external_version for b in value.source_basis):
         raise ValueError('unread source basis')
     base=tool_result['current_body']
-    # Preserve ALL human/base blocks and title, not just protected notes. Changes
-    # are an inspectable append-only proposal; never overwrite/rebase human text.
-    blocks=[] if base is None else Body.model_validate(base).blocks.copy()
-    title=value.title if base is None else base['title']
-    additions=[('Next action (proposed)',value.next_action),('Missing information','\n'.join(value.missing_information)),
-               ('Specific judgment',value.specific_judgment),
-               ('Source basis','\n'.join(f'{b.source_id}@{b.external_version}: {b.basis}' for b in value.source_basis)),
-               ('Task not performed','This document prepares a next action only. No task, message, approval, or external action has been performed.')]
-    for index,(heading,text) in enumerate(additions):
-        blocks.append(Block(block_id=f'{attempt_id}-{index}',kind='paragraph',text=heading+': '+text))
-    return Body(title=title,blocks=blocks)
+    # Current group FIRST is the consumer selector contract. A revision proposes
+    # the returned title; the exact base title/body remain in immutable history.
+    # Retain every historical block unchanged, including its original ID/text.
+    additions=[('current','Current proposal', 'This current proposal supersedes prior agent advice. Human approval is required for a revision.'),
+               ('next-action','Next action (proposed)',value.next_action),
+               ('missing-information','Missing information','\n'.join(value.missing_information)),
+               ('source-basis','Source basis','\n'.join(f'{b.source_id}@{b.external_version}: {b.basis}' for b in value.source_basis)),
+               ('specific-judgment','Specific judgment',value.specific_judgment),
+               ('scope','Task not performed','This document prepares a next action only. No task, message, approval, or external action has been performed.')]
+    blocks=[Block(block_id=f'managed.{section}.{attempt_id}',kind='paragraph',text=heading+': '+text)
+            for section,heading,text in additions]
+    if base is not None:
+        blocks.append(Block(block_id=f'managed.history.{attempt_id}',kind='paragraph',
+            text='History: prior saved content retained for context; earlier agent recommendations superseded by the current proposal above. Human text is preserved unchanged.'))
+        blocks.extend(Body.model_validate(base).blocks)
+    return Body(title=value.title,blocks=blocks)

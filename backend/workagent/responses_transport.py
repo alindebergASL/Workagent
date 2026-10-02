@@ -416,6 +416,18 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
         return ParsedResponse(**base, state='malformed', usage=usage, issue=error.code)
 
 
+@dataclass(frozen=True)
+class _ConstructionBinding:
+    provenance: Provenance
+    project_id: str | None
+    credential_reference: str | None
+
+
+# Pin exact client construction types, including when tests instrument factories.
+_OFFICIAL_HTTP_TRANSPORT = httpx.HTTPTransport
+_SYNTHETIC_HTTP_TRANSPORT = httpx.MockTransport
+
+
 class ResponsesTransport:
     """Explicit one-operation HTTP boundary. Close when finished.
 
@@ -434,9 +446,8 @@ class ResponsesTransport:
             raise TransportError('secure_key_reference_required')
         self._initialize(OFFICIAL_ORIGIN, 'official_api',
                          httpx.HTTPTransport(retries=0, trust_env=False),
-                         {'Authorization': 'Bearer ' + credential, 'OpenAI-Project': project_id})
-        self.project_id=project_id
-        self.credential_reference=credential_reference
+                         {'Authorization': 'Bearer ' + credential, 'OpenAI-Project': project_id},
+                         project_id=project_id, credential_reference=credential_reference)
         self.require_correlation=True
 
     @classmethod
@@ -450,9 +461,38 @@ class ResponsesTransport:
         result._initialize(origin, 'synthetic', transport, {})
         return result
 
-    def _initialize(self, origin, mode, transport, headers):
-        self.provenance = Provenance(mode, origin)
-        self.project_id=None
+    @property
+    def provenance(self):
+        return self._binding.provenance
+
+    @property
+    def project_id(self):
+        return self._binding.project_id
+
+    @property
+    def credential_reference(self):
+        return self._binding.credential_reference
+
+    def matches_binding(self, mode, project_id, credential_reference):
+        """Validate construction/client mode, not caller-supplied public labels.
+
+        Supported-interface integrity only; not a sandbox against arbitrary Python
+        code mutating private state or replacing implementation methods.
+        """
+        b = self._binding
+        if (type(self) is not ResponsesTransport or b.provenance.mode != mode or
+                str(self._client.base_url) != b.provenance.origin + '/v1/'):
+            return False
+        if mode == 'synthetic':
+            return (type(self._client._transport) is _SYNTHETIC_HTTP_TRANSPORT and
+                    b.project_id is None and b.credential_reference is None)
+        return (mode == 'official_api' and b.provenance.origin == OFFICIAL_ORIGIN and
+                type(self._client._transport) is _OFFICIAL_HTTP_TRANSPORT and
+                b.project_id == project_id and b.credential_reference == credential_reference and
+                self._client.headers.get('OpenAI-Project') == project_id)
+
+    def _initialize(self, origin, mode, transport, headers, *, project_id=None, credential_reference=None):
+        self._binding = _ConstructionBinding(Provenance(mode, origin), project_id, credential_reference)
         self.require_correlation=False
         self._issuer = object()
         self._sent = set()
@@ -520,6 +560,10 @@ class ResponsesTransport:
             self._sent.add(key)  # Local defense only; never removed on failure.
         data = self._send('POST', 'responses', request.body, mutating=True)
         rid = _response_id(data.get('id')) if isinstance(data, dict) else None
+        if not rid:
+            # A 2xx without a usable identity is still an incurred/ambiguous send,
+            # not a terminal result that can satisfy identity-bound persistence.
+            raise TransportError('missing_or_invalid_response_id', outcome_unknown=True)
         if rid:
             failed = False
             try:

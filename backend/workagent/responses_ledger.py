@@ -106,6 +106,9 @@ class Ledger:
 
     def retain(self,request,kind,data):
         # Write-only retention survives revoke/lease expiry. No stored body returned.
+        # Scheduling and broker writes require their separate live-capability path.
+        if kind not in ('count_result','identity','result'):
+            raise DomainError('unsupported_operation')
         with self.service.db.transaction() as c:
             _,attempt,origin=self._auth(c)
             row=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',

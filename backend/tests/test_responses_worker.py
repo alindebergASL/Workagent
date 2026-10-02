@@ -59,7 +59,13 @@ def test_initial_human_edit_revision_exact_approval(context,tmp_path):
     assert worker.run(ws,revision.run.id)=='completed'
     run=s.get_run(p,ws,revision.run.id)
     proposal=next(x for x in s.proposals(p,ws,art.id).items if x.id==run.proposal_id)
-    assert proposal.body.blocks[:len(body.blocks)]==body.blocks
+    attempt=s.get_provider_attempt(p,ws,revision.run.id).id
+    assert [b.block_id for b in proposal.body.blocks[:7]]==[
+        f'managed.{part}.{attempt}' for part in ('current','next-action','missing-information',
+            'source-basis','specific-judgment','scope','history')]
+    assert 'supersedes prior agent advice' in proposal.body.blocks[0].text
+    assert 'earlier agent recommendations superseded' in proposal.body.blocks[6].text
+    assert proposal.body.blocks[7:]==body.blocks
     assert s.get_artifact(p,ws,art.id).current_revision_id==human.current_revision_id
     accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=human.current_revision_id))
     outcome=s.get_assignment(p,ws,a.id).responsibility.runs[-1]

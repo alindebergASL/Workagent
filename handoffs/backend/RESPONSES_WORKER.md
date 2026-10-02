@@ -20,10 +20,15 @@ instructions, and owns exactly two immutable steps under one run attempt:
    the frozen human base body in a function-call result. The final model result
    is a strict `NextAction` DTO, mapped to a domain `Body`.
 
-The initial body contains next action, missing information, a specific judgment,
-source/version basis, and a fixed **task not performed** statement. A revision
-preserves every base block (including protected notes and ordinary human edits)
-and appends inspectable proposed advice. `complete_run` publishes the initial
+The initial body contains a current-proposal marker, next action, missing
+information, source/version basis, a specific judgment, and a fixed **task not
+performed** statement. The current managed group is always FIRST. A revision
+proposes the returned title, then places a history separator after that group and
+preserves every base block unchanged (including protected notes, human edits,
+earlier managed advice and IDs). The prior title/body remain in immutable revision
+history. Earlier agent advice is explicitly superseded, not relabeled or deleted.
+See [RESPONSES_REVIEW_FIXES.md](RESPONSES_REVIEW_FIXES.md) for exact semantic IDs.
+`complete_run` publishes the initial
 artifact or immutable revision proposal. Only the existing human-domain
 `accept_proposal` can approve the exact base version. The verifier reads stored
 publication, proposal and revision records back; neither model text nor a
@@ -55,8 +60,11 @@ and pinned independently.
 - Reported usage, reserved cost, conservatively calculated cost and billed cost
   are distinct. Missing/ambiguous usage yields a null calculated total and an
   explicit unknown-step count; billed cost remains null, never invented.
-- A dispatched step with no response ID is permanently ambiguous and cannot
-  resend. A known ID permits only bounded read-only recovery. Correlation and
+- A dispatched step with no valid response ID is permanently ambiguous and cannot
+  resend. This includes a 2xx create response with missing/invalid identity: the
+  first invocation returns controlled `outcome_unknown`, retains its reservation,
+  and never attempts identity-bound result persistence. A known ID permits only
+  bounded read-only recovery. Correlation and
   retrieved-ID mismatches reject the output. Count-response loss never recounts;
   a durably received count can be rehydrated after a safely-unsent restart with
   no extra count request.
@@ -65,6 +73,9 @@ and pinned independently.
   generation HTTP**. Keep this state directory on restart. Losing it fails
   closed; there is no operator receipt-import recovery shortcut.
 - Retaining an already-arrived receipt is write-only and can survive revocation.
+  `Ledger.retain` permits only `count_result`, `identity`, and `result`, rejecting
+  all other event kinds before opening a transaction. Reservation/broker writes
+  remain restricted to their separately current-capability-checked methods.
   Every subsequent source read, count, generation, poll and publication requires
   current authority. Authority is rechecked after reservation and immediately
   before network dispatch. Revocation cannot retract an already-dispatched HTTP
@@ -77,15 +88,20 @@ and pinned independently.
 
 `live_provider_receipt` is possible only on the concrete official Responses
 transport path with matching grant/project/reference and durable two-phase
-receipts. No model field can choose that origin. Synthetic evidence is always
-`synthetic_provider_receipt`.
+receipts. Construction provenance/project/reference are frozen and exposed only
+through read-only properties; worker authorization and grant attestation validate
+the exact underlying client transport mode, origin and official project/reference
+binding. Public relabeling cannot promote a synthetic factory result. No model
+field can choose that origin. Synthetic evidence is always
+`synthetic_provider_receipt`. This is supported-interface integrity, not a Python
+sandbox or defense against arbitrary trusted code mutating private implementation.
 
 ## Commands (from repository `backend/`)
 
-Use the existing review interpreter when `backend/.venv` is absent:
+Use the existing local interpreter; set `PY` explicitly if a review venv is needed:
 
 ```bash
-PY=/home/ubuntu/.hermes/cache/scratch/intake-review-venv/bin/python
+PY=${PY:-.venv/bin/python}
 source ../.local/intake-checkpoint-v3.env
 # Upgrade the existing disposable DB with its owner; never use the runtime role.
 "$PY" -c 'import os; from workagent.db import migrate; migrate(os.environ["MIGRATION_DATABASE_URL"])'
@@ -97,6 +113,8 @@ source ../.local/intake-checkpoint-v3.env
 # Full backend + bundle runtime + transport + clean/005-prefix migration/ACL gates.
 "$PY" -m pytest tests ../runtime/tests -q --tb=short
 "$PY" export_contracts.py --check
+# Regenerate BOTH JSON and TypeScript, then verify drift and typecheck.
+(cd ../contracts && npm run generate && npm run check)
 "$PY" -m compileall -q workagent tests ../runtime
 git diff --check
 ```
@@ -109,7 +127,7 @@ journeys (unknown ID, accepted ID, count loss/reuse, revoke, postcommit loss,
 concurrency, bounds, false completion) are maintained in
 `tests/test_responses_worker.py` and use the same worker.
 
-### Live command: deliberately blocked until product access exists
+### Live command: parent/operator review and authorization gate
 
 ```bash
 "$PY" -m workagent.responses_dispatcher \
@@ -118,9 +136,11 @@ concurrency, bounds, false completion) are maintained in
   --state-dir ../.local/responses-live-state --once
 ```
 
-The current unchanged authority record has no product project or key reference.
-The command exits **2**, before DB/key/count access, with
-`product_project_and_secure_key_reference_missing`.
+If the authority record has no product project or key reference, the command exits
+**2**, before DB/key/count access, with
+`product_project_and_secure_key_reference_missing`. Supplied access is not review
+approval: this patch was verified only against the disposable DB with synthetic
+HTTPX traffic and made zero product/provider/account calls or key reads.
 
 After the parent/operator closes review and access gates, the operator must
 explicitly install one `ProviderGrant` using the same command with

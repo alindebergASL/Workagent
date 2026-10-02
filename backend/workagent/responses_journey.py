@@ -57,7 +57,13 @@ def journey(state_dir):
         revision=dispatcher.once(); assert revision['results'][0]['status']=='completed'
         run=service.get_run(p,ws,revised.run.id)
         proposal=next(x for x in service.proposals(p,ws,artifact.id).items if x.id==run.proposal_id)
-        assert proposal.body.blocks[:len(body.blocks)]==body.blocks
+        attempt=service.get_provider_attempt(p,ws,revised.run.id).id
+        assert [b.block_id for b in proposal.body.blocks[:7]]==[
+            f'managed.{part}.{attempt}' for part in ('current','next-action','missing-information',
+                'source-basis','specific-judgment','scope','history')]
+        assert 'supersedes prior agent advice' in proposal.body.blocks[0].text
+        assert 'earlier agent recommendations superseded' in proposal.body.blocks[6].text
+        assert proposal.body.blocks[7:]==body.blocks
         approved=service.accept_proposal(p,ws,proposal.id,command(AcceptProposal,expected_current_revision_id=human.current_revision_id))
         assert service.get_artifact(p,ws,artifact.id).current_revision_id==approved.current_revision_id
     with _transport(fake) as transport:

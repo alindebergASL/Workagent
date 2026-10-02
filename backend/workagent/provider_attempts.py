@@ -137,9 +137,9 @@ class ProviderAttempts:
         consumer_sha256=TypeAdapter(Hash).validate_python(consumer_sha256)
         # Trusted concrete transport selects the receipt origin before dispatch;
         # model output or a received label can never establish live provenance.
-        from .responses_transport import ResponsesTransport, OFFICIAL_ORIGIN
-        official=(type(transport) is ResponsesTransport and transport.provenance.mode=='official_api'
-                  and transport.provenance.origin==OFFICIAL_ORIGIN)
+        from .responses_transport import ResponsesTransport
+        official=(type(transport) is ResponsesTransport and
+                  transport.matches_binding('official_api',transport.project_id,transport.credential_reference))
         if evidence_origin not in ('unverified','synthetic_provider_receipt') and not (evidence_origin=='live_provider_receipt' and official):
             raise DomainError('unsupported_operation')
         with self.db.transaction() as c:
@@ -149,10 +149,9 @@ class ProviderAttempts:
             config=check_pins(c,run)
             if run.profile=='openai-responses-v1':
                 binding=config['responses']
-                if (type(transport) is not ResponsesTransport or transport.provenance.mode!=binding['transport_mode'] or
-                    evidence_origin!=('live_provider_receipt' if binding['transport_mode']=='official_api' else 'synthetic_provider_receipt') or
-                    (binding['transport_mode']=='official_api' and (transport.project_id!=binding['project_id'] or
-                     transport.credential_reference!=binding['secret_reference']))):
+                if (type(transport) is not ResponsesTransport or
+                    not transport.matches_binding(binding['transport_mode'],binding['project_id'],binding['secret_reference']) or
+                    evidence_origin!=('live_provider_receipt' if binding['transport_mode']=='official_api' else 'synthetic_provider_receipt')):
                     raise DomainError('unsupported_operation')
             elif evidence_origin=='live_provider_receipt':
                 raise DomainError('unsupported_operation')
