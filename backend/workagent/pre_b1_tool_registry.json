@@ -142,8 +142,7 @@
                   "unverified",
                   "fixture",
                   "synthetic_provider_receipt",
-                  "live_provider_receipt",
-                  "controlled_transport"
+                  "live_provider_receipt"
                 ],
                 "title": "Evidence Origin",
                 "type": "string"
@@ -190,8 +189,7 @@
                 "enum": [
                   "fixture-deterministic-v1",
                   "openai-agents-v1",
-                  "openai-responses-v1",
-                  "general-controlled-v1"
+                  "openai-responses-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -685,21 +683,6 @@
             "minItems": 1,
             "title": "Completion Criteria",
             "type": "array"
-          },
-          "conversation_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Conversation Id"
           },
           "goal": {
             "maxLength": 10000,
@@ -1548,8 +1531,7 @@
                   "unverified",
                   "fixture",
                   "synthetic_provider_receipt",
-                  "live_provider_receipt",
-                  "controlled_transport"
+                  "live_provider_receipt"
                 ],
                 "title": "Evidence Origin",
                 "type": "string"
@@ -1596,8 +1578,7 @@
                 "enum": [
                   "fixture-deterministic-v1",
                   "openai-agents-v1",
-                  "openai-responses-v1",
-                  "general-controlled-v1"
+                  "openai-responses-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -1644,19 +1625,11 @@
             "title": "Artifact Id"
           },
           "assignment_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Assignment Id"
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Assignment Id",
+            "type": "string"
           },
           "base_revision_id": {
             "anyOf": [
@@ -1684,21 +1657,6 @@
             "pattern": "^[0-9a-f]{64}$",
             "title": "Bundle Hash",
             "type": "string"
-          },
-          "conversation_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Conversation Id"
           },
           "cursor": {
             "default": 0,
@@ -1747,8 +1705,7 @@
           "kind": {
             "enum": [
               "initial",
-              "revision",
-              "conversation_turn"
+              "revision"
             ],
             "title": "Kind",
             "type": "string"
@@ -1783,8 +1740,7 @@
             "enum": [
               "fixture-deterministic-v1",
               "openai-agents-v1",
-              "openai-responses-v1",
-              "general-controlled-v1"
+              "openai-responses-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -1879,6 +1835,7 @@
         "required": [
           "id",
           "workspace_id",
+          "assignment_id",
           "principal_id",
           "kind",
           "access_generation",
