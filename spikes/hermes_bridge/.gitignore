@@ -1,0 +1,6 @@
+.venv/
+.uv-cache/
+.install-home/
+.runs/
+__pycache__/
+.pytest_cache/

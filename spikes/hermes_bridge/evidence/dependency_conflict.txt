@@ -1,0 +1,10 @@
+Observed command (from /home/ubuntu/workagent-general-harness):
+env -i HOME=/home/ubuntu/workagent-general-harness/spikes/hermes_bridge/.install-home PATH=/usr/bin:/bin UV_CACHE_DIR=/home/ubuntu/workagent-general-harness/spikes/hermes_bridge/.uv-cache /home/ubuntu/.local/bin/uv pip compile --offline --python /usr/bin/python3 backend/requirements.txt spikes/hermes_bridge/requirements.txt
+
+Exit status: 1
+Output:
+  × No solution found when resolving dependencies:
+  ╰─▶ Because you require pydantic==2.11.5 and pydantic==2.13.4, we can
+      conclude that your requirements are unsatisfiable.
+
+This was a resolver probe, not a package install or provider call. No dependency file outside spikes/hermes_bridge was edited.
