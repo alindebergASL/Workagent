@@ -2,10 +2,9 @@
  * Product-reset checkpoint 1 against the actual API and PostgreSQL (the
  * database retained by the canonical demo; no dispatcher, no provider).
  *
- * - Source-free entry: sending without delegation states that conversation
- *   isn't connected and sends nothing; the text is kept (also by keyboard).
- * - Explicit delegation: "Take it from here" asks for context only because the
- *   deployed schema requires a source, then creates real work.
+ * - The Home draft survives a reload before anything is sent (source-free
+ *   conversation itself is covered by conversation-journey.mjs).
+ * - Explicit delegation with chosen context creates real intake work.
  * - Ownership at a glance with real Pause / Resume / Stop (control endpoint),
  *   each checked against the API.
  * - The conversation beside the demo's document, built from its records.
@@ -83,29 +82,19 @@ try {
     await noScroll(page);
     await shot(page, `01-home-${label}`);
 
-    // ---- Source-free entry: honest, nothing sent, text kept ----
+    // ---- The draft survives a reload before anything is sent ----
     const message = "Help me think through how to plan next week.";
     const box = page.getByLabel("Message your agent");
     await box.fill(message);
-    await box.press("Control+Enter");
-    await expect(
-      page.getByText(/I can’t reply in conversation yet/),
-    ).toBeVisible();
-    await expect(box).toHaveValue(message);
-    expect(writes, "sending without delegation writes nothing").toEqual([]);
-    await shot(page, `02-entry-conversation-unavailable-${label}`);
-    // The unsent text survives a reload of the tab.
     await page.reload();
     await expect(page.getByLabel("Message your agent")).toHaveValue(message);
     await expect(page.locator(".lede")).not.toHaveText(/Checking/);
+    expect(writes, "typing and reloading write nothing").toEqual([]);
 
-    // ---- Explicit delegation asks for context (deployed schema needs one) ----
-    await page.getByRole("button", { name: "Take it from here" }).click();
-    await expect(
-      page.getByText(/To hand this over, choose at least one record/),
-    ).toBeVisible();
-    expect(writes).toEqual([]);
-    await shot(page, `03-entry-needs-context-${label}`);
+    // ---- With context chosen, "Take it from here" starts real work ----
+    await page.getByRole("button", { name: /^Your context/ }).click();
+    await expect(page.getByText("Records this work may use")).toBeVisible();
+    await shot(page, `03-entry-context-${label}`);
 
     if (label === "desktop") {
       await page
@@ -113,6 +102,9 @@ try {
         .first()
         .locator("input")
         .check();
+      await expect(
+        page.getByRole("button", { name: "Your context · 1 source" }),
+      ).toBeVisible();
       await page.getByRole("button", { name: "Take it from here" }).click();
       await page.waitForURL(/\/assignments\/[^/]+$/, { timeout: 15000 });
       created = page.url().split("/").pop();
