@@ -23,7 +23,9 @@ function glance(a: Assignment, phase: WorkPhase) {
     working: "Preparing this from the context you chose.",
     waiting: waitingSummary(run),
     unknown: "Confirming what happened with the last request.",
-    paused: "Nothing while this is paused.",
+    paused: a.conversation_id
+      ? "Nothing yet. You handed this over, but I can’t carry work forward on my own yet."
+      : "Nothing while this is paused.",
     decision: "Nothing new until you decide.",
     blocked: "Nothing until what’s missing is resolved.",
     prepared: "The prepared work is with you now.",
@@ -40,7 +42,10 @@ function glance(a: Assignment, phase: WorkPhase) {
   };
   return {
     mine: mine[phase],
-    waitingOn: waitingOn[phase] ?? "Nothing",
+    waitingOn:
+      phase === "paused" && a.conversation_id
+        ? "The ability to start handed-over work on my own, which isn’t available yet"
+        : (waitingOn[phase] ?? "Nothing"),
     yours:
       "Approving changes and any next action. Nothing is carried out without you.",
     doneWhen: a.completion_criteria,
@@ -80,8 +85,12 @@ export function Ownership({
     !cancelled &&
     a.lifecycle !== "paused" &&
     (phase === "working" || phase === "waiting");
-  const canResume = !cancelled && a.lifecycle === "paused";
-  const canStop = !cancelled && (canPause || canResume);
+  // A hand-over recorded from a conversation can't be resumed yet (B1).
+  const handover = Boolean(a.conversation_id);
+  const canResume = !cancelled && a.lifecycle === "paused" && !handover;
+  const canStop =
+    !cancelled &&
+    (canPause || canResume || (handover && a.lifecycle === "paused"));
 
   const control = async (operation: ControlOperation) => {
     setBusy(operation);

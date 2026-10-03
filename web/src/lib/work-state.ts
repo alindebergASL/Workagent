@@ -172,7 +172,9 @@ export function statusOf(a: AssignmentSummary): {
     case "stopped":
       return { label: "Stopped", tone: "" };
     case "paused":
-      return { label: "Paused", tone: "" };
+      return a.conversation_id
+        ? { label: "Handed over · not started", tone: "" }
+        : { label: "Paused", tone: "" };
   }
   return legacyStatus(a);
 }
@@ -298,6 +300,10 @@ export function workAttention(items: AssignmentSummary[]): Attention | null {
     };
   return null;
 }
+
+/** A hand-over recorded from a conversation: paused, and B1 can't start it. */
+export const isRecordedHandover = (i: AssignmentSummary) =>
+  Boolean(i.conversation_id) && i.lifecycle === "paused";
 
 export const isWorking = (i: AssignmentSummary) => phaseOf(i) === "working";
 

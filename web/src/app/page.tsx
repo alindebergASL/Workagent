@@ -4,6 +4,7 @@ import { useWorkspace } from "@/lib/client/workspace";
 import { useWorkOverview } from "@/lib/client/overview";
 import type { AssignmentSummary } from "@/lib/contract/types";
 import {
+  isRecordedHandover,
   isWorking,
   phaseOf,
   shortTitle,
@@ -45,10 +46,15 @@ export default function AgentHome() {
   const items = overview.data ?? [];
   const attention = workAttention(items);
   const others = items.filter((i) => i !== attention?.item);
-  const handling = others.filter((i) => HANDLING.has(phaseOf(i)));
+  // A recorded hand-over that can't start yet is never shown as being handled.
+  const handling = others.filter(
+    (i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i),
+  );
   const done = others.filter((i) => DONE.has(phaseOf(i)));
   const ready = others.filter(
-    (i) => !HANDLING.has(phaseOf(i)) && !DONE.has(phaseOf(i)),
+    (i) =>
+      (!HANDLING.has(phaseOf(i)) && !DONE.has(phaseOf(i))) ||
+      isRecordedHandover(i),
   );
   const groups = [
     {

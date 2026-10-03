@@ -814,3 +814,236 @@ export const realApi = {
     });
   },
 };
+
+// ---- conversation (B1) ----
+
+function toConversation(c: S["Conversation"]): V.ConversationSummary {
+  return {
+    id: c.id,
+    title: c.title,
+    state: c.state,
+    work_version: c.work_version,
+    created_at: c.created_at ?? "",
+    context_count: c.selected_source_refs?.length ?? 0,
+  };
+}
+
+/** Run state → turn state. A ready run without a recorded reply is not shown as replied. */
+export function turnStateOf(
+  run: Pick<S["Run"], "id" | "state">,
+  messages: Pick<S["ConversationMessage"], "run_id" | "author_kind">[],
+): V.TurnState {
+  switch (run.state) {
+    case "queued":
+      return "queued";
+    case "running":
+      return "responding";
+    case "cancelled":
+      return "cancelled";
+    case "ready":
+      return messages.some(
+        (m) => m.run_id === run.id && m.author_kind === "assistant",
+      )
+        ? "replied"
+        : "no_reply";
+    default:
+      return "no_reply";
+  }
+}
+
+export function conversationDetail(
+  d: S["ConversationDetail"],
+): V.ConversationDetailView {
+  const messages = [...d.messages].sort((a, b) => a.sequence - b.sequence);
+  return {
+    conversation: toConversation(d.conversation),
+    messages: messages.map((m) => ({
+      id: m.id,
+      author: m.author_kind === "assistant" ? "agent" : "person",
+      text: m.text,
+      created_at: m.created_at ?? "",
+      sequence: m.sequence,
+      run_id: m.run_id,
+      origin: m.evidence_origin,
+    })),
+    turns: d.runs.map((r) => ({
+      run_id: r.id,
+      state: turnStateOf(r, messages),
+      message_id:
+        messages.find((m) => m.run_id === r.id && m.author_kind === "human")
+          ?.id ?? null,
+    })),
+    assignment_ids: d.assignment_ids,
+  };
+}
+
+export const conversationApi = {
+  async list(ws: string, signal?: AbortSignal) {
+    const items = await all((cursor) =>
+      unwrap(
+        client.GET("/v1/workspaces/{workspace_id}/conversations", {
+          params: {
+            path: { workspace_id: ws },
+            header: meta(),
+            query: { limit: 100, cursor },
+          },
+          signal,
+        }),
+      ),
+    );
+    return items.map(toConversation);
+  },
+  async get(ws: string, id: string, signal?: AbortSignal) {
+    return conversationDetail(
+      await unwrap(
+        client.GET(
+          "/v1/workspaces/{workspace_id}/conversations/{conversation_id}",
+          {
+            params: {
+              path: { workspace_id: ws, conversation_id: id },
+              header: meta(),
+            },
+            signal,
+          },
+        ),
+      ),
+    );
+  },
+  /** Creating does not send text; the message is a second command. */
+  async create(
+    ws: string,
+    c: {
+      command_id: string;
+      title: string;
+      context_ids: { id: string; version: string }[];
+    },
+  ): Promise<V.ConversationSummary> {
+    const body = await stablePayload<S["CreateConversation"]>(
+      `${ws}:create-conversation`,
+      c.command_id,
+      c,
+      async () => {
+        const base: S["CreateConversation"] = {
+          ...command(c.command_id),
+          title: c.title,
+        };
+        if (!c.context_ids.length) return base;
+        const sources = await rawSources(ws);
+        return {
+          ...base,
+          selected_source_refs: c.context_ids.map((ref) => {
+            const s = sources.find((x) => x.id === ref.id);
+            if (!s || s.external_version !== ref.version)
+              throw new ApiError({
+                code: "source_changed",
+                status: 409,
+                message: "Selected source version changed; refresh sources.",
+              });
+            return {
+              source_id: s.id,
+              external_version: ref.version,
+              observed_at: s.observed_at,
+            };
+          }),
+        };
+      },
+    );
+    return toConversation(
+      await unwrap(
+        client.POST("/v1/workspaces/{workspace_id}/conversations", {
+          params: { path: { workspace_id: ws } },
+          body,
+        }),
+      ),
+    );
+  },
+  async send(
+    ws: string,
+    id: string,
+    c: { command_id: string; expected_work_version: number; text: string },
+  ) {
+    const body = await stablePayload<S["PostMessage"]>(
+      `${ws}:message:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        expected_work_version: c.expected_work_version,
+        text: c.text,
+      }),
+    );
+    const r = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages",
+        {
+          params: { path: { workspace_id: ws, conversation_id: id } },
+          body,
+        },
+      ),
+    );
+    return {
+      conversation: toConversation(r.conversation),
+      message_id: r.message.id,
+      run_id: r.run.id,
+    };
+  },
+  async cancel(
+    ws: string,
+    id: string,
+    c: { command_id: string; expected_work_version: number },
+  ) {
+    const body = await stablePayload<S["CancelConversation"]>(
+      `${ws}:cancel-conversation:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        expected_work_version: c.expected_work_version,
+      }),
+    );
+    return toConversation(
+      await unwrap(
+        client.POST(
+          "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel",
+          {
+            params: { path: { workspace_id: ws, conversation_id: id } },
+            body,
+          },
+        ),
+      ),
+    );
+  },
+  /** Records a paused, linked assignment. B1 does not execute it. */
+  async delegate(
+    ws: string,
+    id: string,
+    c: {
+      command_id: string;
+      expected_work_version: number;
+      goal: string;
+      completion_criteria: string[];
+    },
+  ) {
+    const body = await stablePayload<S["DelegateConversation"]>(
+      `${ws}:delegate:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        expected_work_version: c.expected_work_version,
+        goal: c.goal,
+        completion_criteria: c.completion_criteria,
+      }),
+    );
+    const a = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/delegate",
+        {
+          params: { path: { workspace_id: ws, conversation_id: id } },
+          body,
+        },
+      ),
+    );
+    return { assignment_id: a.id };
+  },
+};

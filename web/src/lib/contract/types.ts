@@ -161,6 +161,8 @@ export interface AssignmentSummary {
   responsibility?: Responsibility | null;
   /** Steering state from the backend's own assignment state (pause/resume/cancel). */
   lifecycle?: Lifecycle;
+  /** Set when the work was handed over from a conversation (B1: recorded, not executed). */
+  conversation_id?: string | null;
 }
 
 /** Steering state the person controls. Only what the backend actually records. */
@@ -328,4 +330,47 @@ export interface ListResult<T> {
   items: T[];
   next_cursor: string | null;
   observed_at: string;
+}
+
+// ---- conversation (B1, generated contract at 9a8944b) ----
+
+/**
+ * A turn's state, from the persisted run only. `replied` needs both a ready
+ * run and a recorded assistant message; nothing is inferred from `queued`.
+ */
+export type TurnState =
+  "queued" | "responding" | "replied" | "cancelled" | "no_reply";
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  state: "open" | "cancelled";
+  work_version: number;
+  created_at: string;
+  context_count: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  author: "person" | "agent";
+  text: string;
+  created_at: string;
+  sequence: number;
+  run_id: string;
+  /** Server-attested origin; a controlled reply is a wiring receipt, not model output. */
+  origin: "human" | "controlled_transport";
+}
+
+export interface ChatTurn {
+  run_id: string;
+  state: TurnState;
+  /** The person's message that admitted this turn. */
+  message_id: string | null;
+}
+
+export interface ConversationDetailView {
+  conversation: ConversationSummary;
+  messages: ChatMessage[];
+  turns: ChatTurn[];
+  assignment_ids: string[];
 }

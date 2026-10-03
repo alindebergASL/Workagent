@@ -210,3 +210,62 @@
     gap: 2px;
   }
 }
+
+/* ---------- conversation page ---------- */
+.thread-turn {
+  display: grid;
+  gap: var(--sp-2);
+}
+.msg-tag {
+  justify-self: start;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+  background: var(--surface-3);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.msg-pending {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  padding-left: calc(24px + var(--sp-3));
+}
+.msg-pending[data-state="responding"],
+.msg-pending[data-state="queued"] {
+  color: var(--ink-2);
+}
+.conversation-ask {
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  box-shadow: var(--shadow-soft);
+}
+.conversation-ask textarea {
+  background: transparent;
+  resize: vertical;
+}
+.conversation-ask textarea:focus-visible {
+  outline: none;
+}
+.conversation-ask .ask-bar .hint {
+  flex: 1 1 12em;
+}
+.handover {
+  display: grid;
+  gap: var(--sp-3);
+}
+.handover .field {
+  display: grid;
+  gap: var(--sp-1);
+}
+.handover input,
+.handover textarea {
+  width: 100%;
+}
+@media (max-width: 560px) {
+  .conversation-ask .ask-bar .hint {
+    flex-basis: 100%;
+  }
+  .conversation-ask .ask-bar .delegate {
+    margin-left: auto;
+  }
+}

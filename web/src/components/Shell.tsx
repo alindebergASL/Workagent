@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
+import { CAPABILITIES } from "@/lib/client/capabilities";
 import { EXECUTION } from "@/lib/execution";
 
 function Mark() {
@@ -29,6 +30,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const onAgent = pathname === "/" || pathname.startsWith("/assignments");
   const onSpaces = pathname.startsWith("/spaces");
+  const onConversations = pathname.startsWith("/conversations");
 
   const nav = (
     <>
@@ -50,6 +52,17 @@ export function Shell({ children }: { children: ReactNode }) {
           Spaces
         </Link>
       </li>
+      {CAPABILITIES.conversation ? (
+        <li>
+          <Link
+            className="nav-link"
+            href="/conversations"
+            aria-current={onConversations ? "page" : undefined}
+          >
+            Conversations
+          </Link>
+        </li>
+      ) : null}
     </>
   );
 

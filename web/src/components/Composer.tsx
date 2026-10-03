@@ -1,13 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { api, newCommandId } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
@@ -17,6 +10,8 @@ import type {
   CreateAssignmentCommand,
   SourceDetail,
 } from "@/lib/contract/types";
+import { conversationApi } from "@/lib/client/real-api";
+import { shortTitle } from "@/lib/work-state";
 import { ErrorNotice } from "./ui";
 
 const SAMPLE_REQUEST =
@@ -81,10 +76,30 @@ export function Composer({
     workspace: string;
     command: CreateAssignmentCommand;
   } | null>(null);
+  // Starting a conversation is two commands (create, then send). Each is
+  // frozen once its outcome is uncertain so a retry replays it exactly.
+  const chat = useRef<{
+    workspace: string;
+    text: string;
+    create: {
+      command_id: string;
+      title: string;
+      context_ids: { id: string; version: string }[];
+    };
+    conversation: { id: string; work_version: number } | null;
+    send: {
+      command_id: string;
+      expected_work_version: number;
+      text: string;
+    } | null;
+    handover: boolean;
+    uncertain: boolean;
+  } | null>(null);
   const [, rerender] = useState(0);
   const requestRef = useRef<HTMLTextAreaElement>(null);
   const panelId = useId();
-  const locked = submitting || Boolean(pending.current);
+  const chatUncertain = Boolean(chat.current?.uncertain);
+  const locked = submitting || Boolean(pending.current) || chatUncertain;
 
   // Restore this tab's unsent text once the Space is known.
   useEffect(() => {
@@ -106,11 +121,24 @@ export function Composer({
 
   const hasText = request.trim().length > 0;
 
-  const delegate = useCallback(async () => {
+  const delegate = async () => {
     if (!wsId || submitting) return;
     setUnsentNote(false);
+    // An uncertain conversation start is retried exactly as it was sent.
+    if (chat.current) {
+      void startConversation(chat.current.handover);
+      return;
+    }
     if (!pending.current && !hasText) {
       requestRef.current?.focus();
+      return;
+    }
+    if (
+      !pending.current &&
+      selected.length === 0 &&
+      CAPABILITIES.conversation
+    ) {
+      void startConversation(true);
       return;
     }
     if (
@@ -167,24 +195,96 @@ export function Composer({
       setSubmitting(false);
       rerender((n) => n + 1);
     }
-  }, [
-    wsId,
-    submitting,
-    hasText,
-    selected,
-    sources.data,
-    request,
-    router,
-    draftScope,
-  ]);
+  };
 
-  // Conversation without handing work over needs the conversation service.
-  const send = () => {
-    if (!hasText || locked) return;
+  /**
+   * Talk without handing anything over. Creates the conversation, sends the
+   * message, then opens it. With `handover`, the conversation opens on the
+   * explicit hand-over step instead. The text is kept until the server has
+   * admitted the message.
+   */
+  const startConversation = async (handover: boolean) => {
+    if (!wsId || submitting) return;
+    if (!chat.current && !hasText) return;
     if (!CAPABILITIES.conversation) {
       setUnsentNote(true);
       return;
     }
+    setUnsentNote(false);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      if (!chat.current) {
+        const text = request.trim();
+        chat.current = {
+          workspace: wsId,
+          text,
+          create: {
+            command_id: newCommandId(),
+            title: shortTitle(text, 120),
+            context_ids: selected.flatMap((id) => {
+              const s = sources.data?.find((x) => x.id === id);
+              return s ? [{ id, version: s.version }] : [];
+            }),
+          },
+          conversation: null,
+          send: null,
+          handover,
+          uncertain: false,
+        };
+      }
+      const c = chat.current;
+      if (c.workspace !== wsId)
+        throw new ApiError({
+          code: "transport",
+          status: 0,
+          message: "Return to the original Space to reconcile this message.",
+        });
+      if (!c.conversation) {
+        const created = await conversationApi.create(c.workspace, c.create);
+        c.conversation = { id: created.id, work_version: created.work_version };
+      }
+      if (!c.send)
+        c.send = {
+          command_id: newCommandId(),
+          expected_work_version: c.conversation.work_version,
+          text: c.text,
+        };
+      await conversationApi.send(c.workspace, c.conversation.id, c.send);
+      const id = c.conversation.id;
+      const goHandover = c.handover;
+      chat.current = null;
+      writeDraft(draftScope, "");
+      router.push(`/conversations/${id}${goHandover ? "?handover=1" : ""}`);
+    } catch (e) {
+      setSubmitError(e);
+      const c = chat.current;
+      if (c) {
+        if (e instanceof ApiError && e.isAmbiguousWrite) c.uncertain = true;
+        else if (!c.conversation) chat.current = null;
+        else {
+          // The conversation exists; a definite refusal of the message keeps
+          // it and lets a new send use its current version.
+          c.send = null;
+          c.uncertain = false;
+          try {
+            const now = await conversationApi.get(
+              c.workspace,
+              c.conversation.id,
+            );
+            c.conversation.work_version = now.conversation.work_version;
+          } catch {
+            /* the next attempt re-reads it */
+          }
+        }
+      }
+      setSubmitting(false);
+      rerender((n) => n + 1);
+    }
+  };
+  const send = () => {
+    if ((!hasText && !chat.current) || (locked && !chatUncertain)) return;
+    void startConversation(false);
   };
 
   useEffect(() => {
@@ -216,7 +316,7 @@ export function Composer({
   const contextText = selected.length
     ? `${contextLabel} · ${selected.length} source${selected.length === 1 ? "" : "s"}`
     : contextLabel;
-  const ambiguous = Boolean(pending.current) && !submitting;
+  const ambiguous = (Boolean(pending.current) || chatUncertain) && !submitting;
 
   return (
     <div className="composer-wrap">

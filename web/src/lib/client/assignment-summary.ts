@@ -85,6 +85,7 @@ export function assignmentSummary(
     selected_source_count: a.selected_source_refs.length,
     responsibility: a.responsibility ?? null,
     lifecycle: lifecycleOf(a.state),
+    conversation_id: a.conversation_id ?? null,
   };
 }
 
