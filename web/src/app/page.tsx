@@ -29,8 +29,14 @@ function lede(items: AssignmentSummary[]): string {
     return "Some work is waiting on something outside your control. I’ll keep it as it is.";
   if (phases.includes("approved"))
     return "Your approved work is saved. What should we move forward next?";
-  return "Hand over something you’d like finished. I’ll work from the records you choose.";
+  if (phases.includes("paused"))
+    return "Some work is paused. Resume it whenever you’re ready, or start something new.";
+  return "Ask, think something through, or hand over something you’d like finished.";
 }
+
+/** Owned work I’m carrying, separate from what is ready for the person and what is done. */
+const HANDLING = new Set(["working", "waiting", "unknown", "paused"]);
+const DONE = new Set(["approved", "stopped"]);
 
 export default function AgentHome() {
   const { workspace, error: wsError } = useWorkspace();
@@ -38,8 +44,24 @@ export default function AgentHome() {
   const overview = useWorkOverview(wsId);
   const items = overview.data ?? [];
   const attention = workAttention(items);
-  const working = items.filter(isWorking);
-  const rest = items.filter((i) => !isWorking(i) && i !== attention?.item);
+  const others = items.filter((i) => i !== attention?.item);
+  const handling = others.filter((i) => HANDLING.has(phaseOf(i)));
+  const done = others.filter((i) => DONE.has(phaseOf(i)));
+  const ready = others.filter(
+    (i) => !HANDLING.has(phaseOf(i)) && !DONE.has(phaseOf(i)),
+  );
+  const groups = [
+    {
+      key: "handling",
+      label: "I’m handling",
+      dot: "dot-live",
+      items: handling,
+    },
+    { key: "ready", label: "Ready for you", dot: "dot-attn", items: ready },
+    { key: "done", label: "Done", dot: "dot-done", items: done },
+  ].filter((g) => g.items.length);
+  // Open the most useful group first: what I'm carrying, else what's ready.
+  const openKey = groups[0]?.key;
 
   if (wsError) {
     return (
@@ -106,42 +128,30 @@ export default function AgentHome() {
         />
       ) : null}
 
-      {items.length || overview.reconnecting ? (
+      {groups.length || overview.reconnecting ? (
         <div className="since">
           {overview.reconnecting ? (
             <p className="hint" role="status">
               Reconnecting. Showing the work last observed.
             </p>
           ) : null}
-          {working.length ? (
-            <details className="since-group" open>
-              <summary>
-                <span className="dot dot-live" aria-hidden="true" />
-                I’m handling · {working.length}
-              </summary>
-              <ul className="work-list">
-                {working.map((item) => (
-                  <WorkRow key={item.id} item={item} />
-                ))}
-              </ul>
-            </details>
-          ) : null}
-          {rest.length ? (
+          {groups.map((g) => (
             <details
-              className="since-group your-work"
-              open={!attention && !working.length}
+              key={g.key}
+              className={`since-group since-${g.key}`}
+              open={g.key === openKey && (!attention || g.key === "handling")}
             >
               <summary>
-                <span className="dot dot-done" aria-hidden="true" />
-                Your work · {rest.length}
+                <span className={`dot ${g.dot}`} aria-hidden="true" />
+                {g.label} · {g.items.length}
               </summary>
               <ul className="work-list">
-                {rest.map((item) => (
+                {g.items.map((item) => (
                   <WorkRow key={item.id} item={item} />
                 ))}
               </ul>
             </details>
-          ) : null}
+          ))}
         </div>
       ) : null}
     </div>

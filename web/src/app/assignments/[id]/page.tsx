@@ -19,6 +19,7 @@ import {
   statusOf,
   waitingSummary,
 } from "@/lib/work-state";
+import { Ownership } from "@/components/Ownership";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -157,6 +158,11 @@ export default function AssignmentPage() {
         };
       case "stopped":
         return { tone: "done", text: "Stopped. Saved results are kept." };
+      case "paused":
+        return {
+          tone: "done",
+          text: "Paused. Nothing new is prepared until you resume. Saved results are kept.",
+        };
       case "approved":
         return {
           tone: "done",
@@ -278,6 +284,8 @@ export default function AssignmentPage() {
           ) : null}
         </section>
       ) : null}
+
+      <Ownership assignment={a} onChanged={res.refresh} />
 
       <section aria-labelledby="saved-title" className="stack">
         <h2 id="saved-title" className="section-title">

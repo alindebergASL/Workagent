@@ -4,7 +4,7 @@ import {
   type components,
 } from "../../../../contracts/src/client";
 import { ApiError } from "@/lib/contract/errors";
-import { assignmentSummary } from "./assignment-summary";
+import { assignmentSummary, lifecycleOf } from "./assignment-summary";
 import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
@@ -613,6 +613,36 @@ export const realApi = {
       assignment_id: r.assignment.id,
       work_revision: r.assignment.work_version ?? 1,
       run_id: r.run.id,
+    };
+  },
+  async controlAssignment(
+    ws: string,
+    id: string,
+    c: V.ControlAssignmentCommand,
+  ): Promise<V.ControlAssignmentResult> {
+    const body = await stablePayload<S["ControlAssignment"]>(
+      `${ws}:control-assignment:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        // The version the person was looking at: a newer change is a conflict, never overridden.
+        expected_work_version: c.expected_work_revision,
+        operation: c.operation,
+      }),
+    );
+    const r = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/control",
+        {
+          params: { path: { workspace_id: ws, assignment_id: id } },
+          body,
+        },
+      ),
+    );
+    return {
+      work_revision: r.work_version ?? c.expected_work_revision + 1,
+      lifecycle: lifecycleOf(r.state),
     };
   },
   async getArtifact(

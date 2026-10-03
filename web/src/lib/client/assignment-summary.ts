@@ -3,6 +3,7 @@ import type {
   Artifact,
   AssignmentSummary,
   AssignmentState,
+  Lifecycle,
 } from "@/lib/contract/types";
 
 /** Read model only: ready computation is not human approval or an external effect. */
@@ -83,5 +84,16 @@ export function assignmentSummary(
     needs_review_artifact_ids: pending,
     selected_source_count: a.selected_source_refs.length,
     responsibility: a.responsibility ?? null,
+    lifecycle: lifecycleOf(a.state),
   };
+}
+
+export function lifecycleOf(
+  state: components["schemas"]["Assignment"]["state"],
+): Lifecycle {
+  return state === "paused"
+    ? "paused"
+    : state === "cancelled"
+      ? "cancelled"
+      : "active";
 }

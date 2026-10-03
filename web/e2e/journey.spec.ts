@@ -28,20 +28,30 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByRole("heading", { name: "Good to see you." }),
     ).toBeVisible();
     await expect(
-      page.getByText(/Hand over something you’d like finished/),
+      page.getByText(/hand over something you’d like finished/),
     ).toBeVisible();
     await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Start work" }),
+      page.getByRole("button", { name: "Take it from here" }),
     ).toBeDisabled();
     await noHorizontalScroll(page);
     await shot(page, info, "01-home-empty");
 
-    // Error path first: a request with no sources keeps the text and asks for context.
+    // Conversation isn't connected yet: sending says so, sends nothing and keeps the text.
     await page
       .getByLabel("Message your agent")
       .fill("Draft a plan from nothing");
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(
+      page.getByText(/I can’t reply in conversation yet/),
+    ).toBeVisible();
+    await expect(page.getByLabel("Message your agent")).toHaveValue(
+      "Draft a plan from nothing",
+    );
+    await shot(page, info, "01b-home-conversation-unavailable");
+
+    // Handing over without context asks for it (the deployed API requires a source).
+    await page.getByRole("button", { name: "Take it from here" }).click();
     await expect(page.getByText("Records this work may use")).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByLabel("Message your agent")).toHaveValue(
@@ -56,7 +66,7 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByRole("button", { name: "Your context · 3 sources" }),
     ).toBeVisible();
     await shot(page, info, "02-home-filled");
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Take it from here" }).click();
 
     // ---- Assignment: queued/working → ready ----
     await page.waitForURL(/\/assignments\/asg_\d+$/);
@@ -465,7 +475,7 @@ test.describe("S1 journey (mock mode)", () => {
         return route.abort("connectionrefused");
       return route.continue();
     });
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Take it from here" }).click();
     await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
     await expect(page.getByLabel("Message your agent")).toHaveValue(
       /intake log/,

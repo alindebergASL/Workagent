@@ -1,0 +1,212 @@
+/*
+ * Shared foundations from the approved prototype (workagent-design-preview):
+ * one spacing scale, one type scale, one radius scale and the card, nav,
+ * conversation and responsive rules every surface reuses. Loaded last so
+ * these names are the single source for new work; colours stay in
+ * agent-first.css (light and dark).
+ */
+:root {
+  /* spacing: 4px base */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+  /* type: 15px body; headings step by ~1.25 */
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-base: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: clamp(1.6rem, 2.6vw, 2.1rem);
+  --lh-tight: 1.2;
+  --lh-body: 1.6;
+  /* radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 22px;
+  /* the soft surface of quiet cards (prototype "What I'll take care of") */
+  --card-quiet: var(--surface-2);
+}
+
+/* ---------- cards: one thing the person can understand or act on ---------- */
+.card {
+  border-radius: var(--r-lg);
+  padding: var(--sp-5);
+}
+.card-quiet {
+  background: var(--card-quiet);
+  border-color: transparent;
+}
+.card > h2,
+.card > h3 {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ---------- ownership at a glance ---------- */
+.glance {
+  display: grid;
+  gap: var(--sp-3);
+}
+.glance-list {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+}
+.glance-list > div {
+  display: grid;
+  grid-template-columns: 7.5em minmax(0, 1fr);
+  gap: var(--sp-3);
+  font-size: var(--fs-md);
+  line-height: 1.5;
+}
+.glance-list dt {
+  color: var(--muted);
+}
+.glance-list dd {
+  margin: 0;
+  color: var(--ink);
+}
+.steer {
+  padding-top: var(--sp-1);
+}
+.steer-confirm {
+  display: grid;
+  gap: var(--sp-2);
+}
+.btn-danger-quiet {
+  color: var(--danger-ink, #b42318);
+  border-color: color-mix(in srgb, var(--danger-ink, #b42318) 40%, transparent);
+}
+
+/* ---------- composer: talk, or hand it over ---------- */
+.send-round {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 1.0625rem;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  flex: none;
+}
+.send-round:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.send-round:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+.delegate {
+  border-radius: var(--r-md);
+}
+.agent-note {
+  padding: 0 var(--sp-1);
+}
+.agent-note p {
+  color: var(--ink-2);
+  font-size: var(--fs-md);
+}
+.stack-sm {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+/* ---------- conversation beside work ---------- */
+.conversation {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.msg p {
+  margin: 0;
+  font-size: var(--fs-md);
+  line-height: var(--lh-body);
+  overflow-wrap: anywhere;
+}
+.msg-person {
+  align-self: stretch;
+}
+.msg-person p {
+  background: var(--surface-3);
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--ink);
+}
+.msg-agent {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+}
+.msg-agent p {
+  color: var(--ink);
+}
+.msg-agent[data-waiting="true"] p {
+  font-weight: 500;
+}
+.msg-event p {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  padding-left: calc(24px + var(--sp-3));
+}
+.conversation .ask {
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  box-shadow: var(--shadow-soft);
+  gap: var(--sp-2);
+}
+.conversation .ask textarea {
+  background: transparent;
+  padding: var(--sp-1) 0;
+  min-height: 3.2em;
+  resize: vertical;
+}
+.conversation .ask textarea:focus-visible {
+  outline: none;
+}
+.conversation .ask:focus-within {
+  border-color: var(--line-strong);
+}
+.ask-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-3);
+  flex-wrap: wrap;
+}
+.ask-bar .hint {
+  flex: 1 1 14em;
+}
+
+/* ---------- Home groups ---------- */
+.since-group > summary {
+  font-weight: 500;
+}
+
+@media (max-width: 860px) {
+  .card {
+    padding: var(--sp-4);
+  }
+  .glance-list > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}

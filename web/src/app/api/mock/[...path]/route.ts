@@ -138,6 +138,10 @@ async function handle(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
       const id = rest[1]!;
       if (rest.length === 2 && method === "GET")
         return json(svc.getAssignment(principal, ws, id), 200, requestId);
+      if (rest.length === 3 && rest[2] === "control" && method === "POST") {
+        const r = svc.controlAssignment(principal, ws, id, await readBody());
+        return json(r.body, r.status, requestId);
+      }
       if (rest.length === 3 && rest[2] === "sources" && method === "GET")
         return json(
           svc.getAssignmentSources(principal, ws, id),

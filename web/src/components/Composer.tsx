@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { api, newCommandId } from "@/lib/client/api";
+import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
@@ -21,14 +22,39 @@ import { ErrorNotice } from "./ui";
 const SAMPLE_REQUEST =
   "Start with my own intake log and notes. Help me decide one change to test, produce a reusable review checklist and give me a private working plan. I should get value even if I collaborate with nobody this week.";
 const SAMPLE_SOURCE_IDS = ["SG-F2", "SG-F3", "SG-F7"];
-const COMPLETION =
-  "Produce a private working plan and reusable checklist from the selected sources, preserving human notes and identifying evidence and uncertainty.";
+/**
+ * The deployed API needs at least one completion criterion. General work gets a
+ * neutral one (never a fixed plan/checklist shape) until success conditions
+ * become optional in the agreed delta.
+ */
+const GENERAL_COMPLETION =
+  "Bring the result back for my review, with what it is based on and anything still uncertain.";
+
+const DRAFT_KEY = "workagent:composer-draft";
+
+function readDraft(scope: string): string {
+  try {
+    return sessionStorage.getItem(`${DRAFT_KEY}:${scope}`) ?? "";
+  } catch {
+    return "";
+  }
+}
+function writeDraft(scope: string, text: string): void {
+  try {
+    if (text) sessionStorage.setItem(`${DRAFT_KEY}:${scope}`, text);
+    else sessionStorage.removeItem(`${DRAFT_KEY}:${scope}`);
+  } catch {
+    /* storage unavailable: the in-memory draft still exists */
+  }
+}
 
 /**
- * Hand work to the agent. Creating work is a durable command. Once an attempt's
- * outcome is unknown (lost response), the exact command and its Space are
- * frozen and the inputs lock: retrying replays that command, never a new one.
- * Text and source choices survive every error.
+ * Talk to the agent, or hand something over. Context is optional to write;
+ * "Take it from here" is the explicit delegation. Creating work is a durable
+ * command: once an attempt's outcome is unknown (lost response) the exact
+ * command and its Space are frozen and the inputs lock, so retrying replays it
+ * and never creates a second piece of work. The text survives every error and
+ * a reload of this tab.
  */
 export function Composer({
   wsId,
@@ -43,9 +69,12 @@ export function Composer({
     wsId ? `sources:${wsId}` : null,
     async (signal) => (await api.listSources(wsId!, signal)).items,
   );
+  const draftScope = wsId ?? "none";
   const [request, setRequest] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [contextOpen, setContextOpen] = useState(false);
+  const [needsContext, setNeedsContext] = useState(false);
+  const [unsentNote, setUnsentNote] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
   const pending = useRef<{
@@ -57,6 +86,16 @@ export function Composer({
   const panelId = useId();
   const locked = submitting || Boolean(pending.current);
 
+  // Restore this tab's unsent text once the Space is known.
+  useEffect(() => {
+    if (!wsId) return;
+    const saved = readDraft(wsId);
+    if (saved) setRequest((current) => current || saved);
+  }, [wsId]);
+  useEffect(() => {
+    if (wsId) writeDraft(draftScope, request);
+  }, [wsId, draftScope, request]);
+
   // The request field grows with its text so a long request stays readable.
   useLayoutEffect(() => {
     const el = requestRef.current;
@@ -65,20 +104,24 @@ export function Composer({
     el.style.height = `${Math.max(el.scrollHeight, 72)}px`;
   }, [request]);
 
-  const canStart =
-    (request.trim().length > 0 &&
-      selected.length > 0 &&
-      !submitting &&
-      Boolean(wsId)) ||
-    (Boolean(pending.current) && !submitting);
+  const hasText = request.trim().length > 0;
 
-  const start = useCallback(async () => {
-    if (!wsId) return;
-    if (!pending.current && selected.length === 0) {
+  const delegate = useCallback(async () => {
+    if (!wsId || submitting) return;
+    setUnsentNote(false);
+    if (!pending.current && !hasText) {
+      requestRef.current?.focus();
+      return;
+    }
+    if (
+      !pending.current &&
+      selected.length === 0 &&
+      !CAPABILITIES.delegateWithoutContext
+    ) {
+      setNeedsContext(true);
       setContextOpen(true);
       return;
     }
-    if (!canStart) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -95,7 +138,7 @@ export function Composer({
             throw new ApiError({
               code: "source_changed",
               status: 409,
-              message: "Refresh the selected sources before delegating.",
+              message: "Refresh your context before handing this over.",
             });
           return { id, version: source.version };
         });
@@ -105,7 +148,7 @@ export function Composer({
             command_id: newCommandId(),
             goal: request.trim(),
             selected_source_refs: refs,
-            completion_criteria: [COMPLETION],
+            completion_criteria: [GENERAL_COMPLETION],
           },
         };
       }
@@ -114,6 +157,7 @@ export function Composer({
         pending.current.command,
       );
       pending.current = null;
+      writeDraft(draftScope, "");
       router.push(`/assignments/${result.assignment_id}`);
     } catch (e) {
       setSubmitError(e);
@@ -123,7 +167,25 @@ export function Composer({
       setSubmitting(false);
       rerender((n) => n + 1);
     }
-  }, [wsId, canStart, selected, sources.data, request, router]);
+  }, [
+    wsId,
+    submitting,
+    hasText,
+    selected,
+    sources.data,
+    request,
+    router,
+    draftScope,
+  ]);
+
+  // Conversation without handing work over needs the conversation service.
+  const send = () => {
+    if (!hasText || locked) return;
+    if (!CAPABILITIES.conversation) {
+      setUnsentNote(true);
+      return;
+    }
+  };
 
   useEffect(() => {
     if (!contextOpen) return;
@@ -139,13 +201,17 @@ export function Composer({
     setSelected(
       SAMPLE_SOURCE_IDS.filter((id) => sources.data?.some((s) => s.id === id)),
     );
+    setNeedsContext(false);
+    setUnsentNote(false);
     requestRef.current?.focus();
   };
 
-  const toggle = (id: string) =>
+  const toggle = (id: string) => {
+    setNeedsContext(false);
     setSelected((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+  };
 
   const contextText = selected.length
     ? `${contextLabel} · ${selected.length} source${selected.length === 1 ? "" : "s"}`
@@ -158,7 +224,7 @@ export function Composer({
         className="composer"
         onSubmit={(event) => {
           event.preventDefault();
-          void start();
+          send();
         }}
       >
         <label className="sr-only" htmlFor="request">
@@ -168,14 +234,17 @@ export function Composer({
           id="request"
           ref={requestRef}
           value={request}
-          onChange={(event) => setRequest(event.target.value)}
+          onChange={(event) => {
+            setRequest(event.target.value);
+            setUnsentNote(false);
+          }}
           placeholder="Ask, think aloud, or hand something over…"
           disabled={locked}
           rows={3}
           onKeyDown={(event) => {
             if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
               event.preventDefault();
-              void start();
+              send();
             }
           }}
         />
@@ -193,23 +262,27 @@ export function Composer({
           </button>
           <span className="composer-spacer" />
           <button
-            type="submit"
-            className="btn btn-primary send"
+            type="button"
+            className="btn btn-sm delegate"
+            onClick={() => void delegate()}
             disabled={
-              (!request.trim() && !pending.current) ||
-              submitting ||
-              wsLoading ||
-              !wsId
+              (!hasText && !pending.current) || submitting || wsLoading || !wsId
             }
           >
             {submitting
-              ? "Starting…"
+              ? "Handing over…"
               : ambiguous
                 ? "Retry same request"
-                : "Start work"}
-            <span aria-hidden="true" className="send-arrow">
-              ↑
-            </span>
+                : "Take it from here"}
+          </button>
+          <button
+            type="submit"
+            className="send-round"
+            aria-label="Send"
+            title="Send"
+            disabled={!hasText || locked || wsLoading || !wsId}
+          >
+            <span aria-hidden="true">↑</span>
           </button>
         </div>
         <div id={panelId} className="context-panel" hidden={!contextOpen}>
@@ -218,8 +291,10 @@ export function Composer({
             style={{ border: 0, padding: 0, margin: 0 }}
           >
             <legend className="field-label">Records this work may use</legend>
-            <p className="hint">
-              Only records you can access now. Work uses the version shown.
+            <p className="hint" role={needsContext ? "status" : undefined}>
+              {needsContext
+                ? "To hand this over, choose at least one record. Handing over without context isn’t available yet."
+                : "Optional. Only records you can access now; work uses the version shown."}
             </p>
             {sources.error ? (
               <ErrorNotice
@@ -236,7 +311,7 @@ export function Composer({
               />
             ) : null}
             {sources.loading && !sources.data ? (
-              <p role="status">Loading your sources…</p>
+              <p role="status">Loading your context…</p>
             ) : null}
             <div className="chips">
               {sources.data?.map((source) => (
@@ -270,13 +345,22 @@ export function Composer({
           </div>
         </div>
       </form>
-      {request.trim() &&
-      selected.length === 0 &&
-      !contextOpen &&
-      !pending.current ? (
-        <p className="hint">
-          Choose the records this work may use before starting.
-        </p>
+      {unsentNote ? (
+        <div className="agent-say agent-note" role="status">
+          <div
+            className="agent-presence agent-presence-xs"
+            aria-hidden="true"
+          />
+          <div className="stack-sm">
+            <p>
+              I can’t reply in conversation yet: it isn’t connected in this
+              build. Nothing was sent, and your message is still here.
+            </p>
+            <p className="hint">
+              To have me work on it, choose <strong>Take it from here</strong>.
+            </p>
+          </div>
+        </div>
       ) : null}
       {submitError ? (
         <ErrorNotice
@@ -286,8 +370,8 @@ export function Composer({
               <button
                 type="button"
                 className="btn btn-sm"
-                disabled={!canStart}
-                onClick={() => void start()}
+                disabled={submitting}
+                onClick={() => void delegate()}
               >
                 Try again
               </button>
@@ -308,7 +392,7 @@ export function Composer({
           onClick={useSample}
           disabled={!sources.data?.length || locked}
         >
-          Try the intake example
+          Try the intake example ↗
         </button>
       </div>
     </div>

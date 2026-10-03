@@ -34,7 +34,7 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
             ? "Couldn’t be verified, so it isn’t shown as done"
             : phase === "working"
               ? "Results appear as they’re saved"
-              : phase === "stopped"
+              : phase === "stopped" || phase === "paused"
                 ? "Saved results are kept"
                 : phase === "approved"
                   ? (item.latest_result ?? "")

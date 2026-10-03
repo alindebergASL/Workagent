@@ -21,6 +21,7 @@ import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
+import { threadFrom } from "@/lib/thread";
 import { currentRun, provenanceOf } from "@/lib/work-state";
 import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
 import { HistoryDrawer } from "@/components/HistoryDrawer";
@@ -151,10 +152,27 @@ export default function ArtifactPage() {
   const [historyKey, setHistoryKey] = useState("0");
   const [agentFocus, setAgentFocus] = useState(0);
   const [workFocus, setWorkFocus] = useState(0);
-  const [askOpen, setAskOpen] = useState(false);
   const instructionRef = useRef<HTMLTextAreaElement>(null);
-  const askButtonRef = useRef<HTMLButtonElement>(null);
   const [instruction, setInstruction] = useState("");
+  // The unsent message survives pane switches (both panes stay mounted) and a
+  // reload of this tab; it is cleared only once the server records it.
+  const askKey = `workagent:ask:${artifactId}`;
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(askKey);
+      if (saved) setInstruction((v) => v || saved);
+    } catch {
+      /* storage unavailable */
+    }
+  }, [askKey]);
+  useEffect(() => {
+    try {
+      if (instruction) sessionStorage.setItem(askKey, instruction);
+      else sessionStorage.removeItem(askKey);
+    } catch {
+      /* storage unavailable: the in-memory text still exists */
+    }
+  }, [askKey, instruction]);
   const [requestState, setRequestState] = useState<{
     busy: boolean;
     error?: unknown;
@@ -477,7 +495,6 @@ export default function ArtifactPage() {
       revisionCommand.current = null;
       setRequestState({ busy: false, done: true });
       setInstruction("");
-      setAskOpen(false);
       setWorkFocus((n) => n + 1); // Phones: back to the document; the request waits for review.
       await res.refresh();
       announce(
@@ -1104,29 +1121,59 @@ export default function ArtifactPage() {
       : current.author.kind === "human"
         ? `Your edits are saved as revision ${current.sequence}.`
         : "Ready for your review. Edit anything, or ask me to revise it.";
-  // The form opens and closes only on request. A kept instruction (and any
-  // unconfirmed send, whose exact command stays frozen for retry) survives
-  // collapsing and comes back when the person resumes.
-  const showAsk = askOpen;
-  const draftKept = Boolean(instruction.trim());
   const sendUnconfirmed =
     Boolean(requestState.error) && Boolean(revisionCommand.current);
+  const thread = threadFrom({
+    goal: assignment.data?.goal ?? null,
+    goalAt: assignment.data?.created_at ?? "",
+    title: art.title,
+    revisions: history.data?.revisions ?? [current],
+    proposals: [
+      ...(history.data?.proposals ?? []),
+      ...(proposal &&
+      !(history.data?.proposals ?? []).some((p) => p.id === proposal.id)
+        ? [proposal]
+        : []),
+    ],
+  });
+  const askBlocked = Boolean(proposal) || unknownOutcome;
 
   const agentPane = (
-    <div className="agent-pane stack">
-      <div className="agent-say">
-        <div className="agent-presence agent-presence-xs" aria-hidden="true" />
-        <p>{outcome}</p>
-      </div>
+    <div className="agent-pane conversation">
+      <ol className="thread" aria-label="Conversation about this work">
+        {thread.map((e) => (
+          <li
+            key={e.id}
+            className={`msg msg-${e.who}`}
+            data-waiting={e.waiting ? "true" : undefined}
+          >
+            {e.who === "agent" ? (
+              <div
+                className="agent-presence agent-presence-xs"
+                aria-hidden="true"
+              />
+            ) : null}
+            <p>
+              <span className="sr-only">
+                {e.who === "person"
+                  ? "You: "
+                  : e.who === "agent"
+                    ? "Agent: "
+                    : ""}
+              </span>
+              {e.text}
+            </p>
+          </li>
+        ))}
+      </ol>
+      <p className="sr-only" role="status">
+        {outcome}
+      </p>
       {unknownOutcome ? (
         <p className="hint" role="status">
           Waiting to confirm what happened with the last request. Nothing will
           be sent again.
         </p>
-      ) : null}
-      {/* Each item says how it was prepared; the footer makes no global claim. */}
-      {itemProvenance ? (
-        <p className="hint provenance">{itemProvenance}</p>
       ) : null}
       {art.partial ? (
         <p className="hint" role="status">
@@ -1152,87 +1199,57 @@ export default function ArtifactPage() {
           </div>
         </details>
       ) : null}
-      {showAsk ? (
-        <form
-          className="ask"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void sendRevisionRequest();
-          }}
-        >
-          <label htmlFor="instruction" className="section-title">
-            What should change?
-          </label>
-          <textarea
-            id="instruction"
-            ref={instructionRef}
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            disabled={
-              requestState.busy ||
-              Boolean(revisionCommand.current) ||
-              Boolean(proposal)
+      <form
+        className="ask"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void sendRevisionRequest();
+        }}
+      >
+        <label htmlFor="instruction" className="sr-only">
+          What should change?
+        </label>
+        <textarea
+          id="instruction"
+          ref={instructionRef}
+          value={instruction}
+          onChange={(e) => setInstruction(e.target.value)}
+          disabled={requestState.busy || Boolean(revisionCommand.current)}
+          rows={2}
+          placeholder="Ask for a change to this page…"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              void sendRevisionRequest();
             }
-            rows={3}
-            placeholder="For example: add a default owner so no case is saved blank."
-          />
-          <p className="hint">
-            {proposal
-              ? "A proposal for this page is already in progress or waiting for you."
-              : `Based on revision ${current.sequence}. The result waits for your review.`}
-          </p>
-          {requestState.error ? (
-            <ErrorNotice error={requestState.error} />
-          ) : null}
-          <div className="row">
-            <button
-              type="submit"
-              className="btn btn-primary btn-sm"
-              disabled={
-                !instruction.trim() ||
-                requestState.busy ||
-                Boolean(proposal) ||
-                unknownOutcome
-              }
-            >
-              {requestState.busy ? "Sending…" : "Send request"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-sm btn-quiet"
-              onClick={() => {
-                setAskOpen(false);
-                window.setTimeout(() => askButtonRef.current?.focus(), 0);
-              }}
-              disabled={requestState.busy}
-            >
-              {draftKept ? "Keep for later" : "Cancel"}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="ask-resume">
+          }}
+        />
+        {requestState.error ? <ErrorNotice error={requestState.error} /> : null}
+        <div className="ask-bar">
+          <span className="hint">
+            {askBlocked
+              ? proposal
+                ? "One change at a time: decide on the current proposal first. Your message is kept."
+                : "Waiting to confirm the last request. Your message is kept."
+              : sendUnconfirmed
+                ? "Your last send wasn’t confirmed. Sending again replays the same request."
+                : "Changes come back as a proposal for your review."}
+          </span>
           <button
-            ref={askButtonRef}
-            type="button"
-            className="btn btn-sm ask-open"
-            onClick={() => {
-              setAskOpen(true);
-              window.setTimeout(() => instructionRef.current?.focus(), 0);
-            }}
-            disabled={(Boolean(proposal) || unknownOutcome) && !draftKept}
+            type="submit"
+            className="btn btn-primary btn-sm"
+            disabled={!instruction.trim() || requestState.busy || askBlocked}
           >
-            {draftKept ? "Resume your request" : "Ask for a revision"}
+            {requestState.busy ? "Sending…" : "Send request"}
           </button>
-          {draftKept ? (
-            <p className="hint" role="status">
-              {sendUnconfirmed
-                ? "Your last send wasn’t confirmed. Resume to retry the same request."
-                : "Your unsent request is kept here."}
-            </p>
-          ) : null}
         </div>
-      )}
+      </form>
+      {itemProvenance ? (
+        <details className="ids-details">
+          <summary>How this was prepared</summary>
+          <p className="ids provenance">{itemProvenance}</p>
+        </details>
+      ) : null}
     </div>
   );
 
@@ -1309,7 +1326,6 @@ export default function ArtifactPage() {
               type="button"
               className="btn"
               onClick={() => {
-                setAskOpen(true);
                 setAgentFocus((n) => n + 1);
                 window.setTimeout(() => instructionRef.current?.focus(), 0);
               }}

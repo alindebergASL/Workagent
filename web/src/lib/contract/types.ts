@@ -159,7 +159,12 @@ export interface AssignmentSummary {
   selected_source_count: number;
   /** Present when the backend projects one; absent in mock mode and on old records. */
   responsibility?: Responsibility | null;
+  /** Steering state from the backend's own assignment state (pause/resume/cancel). */
+  lifecycle?: Lifecycle;
 }
+
+/** Steering state the person controls. Only what the backend actually records. */
+export type Lifecycle = "active" | "paused" | "cancelled";
 
 export interface Assignment extends AssignmentSummary {
   completion_criteria: string[];
@@ -263,6 +268,20 @@ export interface CreateAssignmentCommand {
   goal: string;
   selected_source_refs: { id: string; version: string }[];
   completion_criteria: string[];
+}
+
+export type ControlOperation = "pause" | "resume" | "cancel";
+
+/** Compare-and-swap on the work version the person was looking at. */
+export interface ControlAssignmentCommand {
+  command_id: string;
+  operation: ControlOperation;
+  expected_work_revision: number;
+}
+
+export interface ControlAssignmentResult {
+  work_revision: number;
+  lifecycle: Lifecycle;
 }
 
 export interface CreateAssignmentResult {

@@ -85,6 +85,16 @@ describe("shared authoritative read-model projection", () => {
         ]).state,
       ).toBe(want);
   });
+  it("projects pause and cancel as steering state the person controls", () => {
+    for (const [state, want] of [
+      ["running", "active"],
+      ["paused", "paused"],
+      ["cancelled", "cancelled"],
+    ] as const)
+      expect(assignmentSummary({ ...assignment, state }, []).lifecycle).toBe(
+        want,
+      );
+  });
   it("a later saved revision invalidates earlier approval attribution", () => {
     expect(
       assignmentSummary(assignment, [

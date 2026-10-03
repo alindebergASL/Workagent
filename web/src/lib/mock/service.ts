@@ -16,6 +16,8 @@ import type {
   Assignment,
   AssignmentSummary,
   Block,
+  ControlAssignmentCommand,
+  ControlAssignmentResult,
   CreateAssignmentCommand,
   CreateAssignmentResult,
   ErrorCode,
@@ -1002,6 +1004,87 @@ export function declineProposal(
 }
 
 // ---------- mock-only controls (test/demo; never part of the product contract) ----------
+
+/**
+ * Pause, resume or cancel, mirroring the backend's rules: compare-and-swap on
+ * the work version, resume only from paused, cancelled is final. Pausing halts
+ * the mock run; saved results are kept.
+ */
+export function controlAssignment(
+  principal: string,
+  workspaceId: string,
+  id: string,
+  cmd: ControlAssignmentCommand,
+): { status: number; body: ControlAssignmentResult } {
+  const state = loadState();
+  scope(state, principal, workspaceId);
+  const a = state.assignments[id];
+  if (!a || a.workspace_id !== workspaceId) throw notFound();
+  materialize(state, a);
+  const { command_id, ...payload } = cmd;
+  const result = withCommand(
+    state,
+    `${workspaceId}:${id}:control`,
+    command_id,
+    payload,
+    () => {
+      const lifecycle = a.lifecycle ?? "active";
+      if (a.work_revision !== payload.expected_work_revision)
+        throw new MockError(
+          "version_conflict",
+          409,
+          "This work changed since you last looked.",
+          "Review the current state, then try again.",
+          { current_version: a.work_revision },
+        );
+      if (
+        lifecycle === "cancelled" ||
+        (payload.operation === "resume" && lifecycle !== "paused")
+      )
+        throw new MockError(
+          "unsupported_operation",
+          409,
+          lifecycle === "cancelled"
+            ? "This work was stopped and can’t be changed."
+            : "Only paused work can be resumed.",
+        );
+      const run = a.run ? state.runs[a.run.run_id] : undefined;
+      const at = nowIso();
+      if (payload.operation === "resume") {
+        a.lifecycle = "active";
+        if (run) {
+          run.failed = false;
+          run.started_at = new Date(
+            Date.now() - run.materialized_stage * STAGE_MS,
+          ).toISOString();
+        }
+        pushActivity(a, state, "stage", "Resumed.", at);
+      } else {
+        if (run) run.failed = true;
+        if (a.run && (a.run.state === "queued" || a.run.state === "running"))
+          a.run.state = "waiting";
+        a.lifecycle = payload.operation === "pause" ? "paused" : "cancelled";
+        if (payload.operation === "cancel") a.state = "stopped";
+        pushActivity(
+          a,
+          state,
+          "stage",
+          payload.operation === "pause"
+            ? "Paused. Saved results are kept."
+            : "Stopped. Saved results are kept.",
+          at,
+        );
+      }
+      a.work_revision += 1;
+      return {
+        status: 200,
+        body: { work_revision: a.work_revision, lifecycle: a.lifecycle },
+      };
+    },
+  );
+  saveState(state);
+  return { status: result.status, body: result.body };
+}
 
 export function controlReleaseProposal(proposalId: string): {
   released: boolean;

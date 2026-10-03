@@ -3,12 +3,14 @@ import { control, headers, noHorizontalScroll, shot } from "./helpers";
 
 const DRAFT = "Add a default owner so no case is saved blank.";
 
-/** Phones show one pane at a time; the revision form lives in the Agent pane. */
+/** Phones show one pane at a time; the conversation is the second pane. */
 async function showAgent(page: Page): Promise<void> {
   await expect(page.locator(".doc-card")).toBeVisible();
   const toggle = page.locator(".working-switch");
   if (await toggle.isVisible()) {
-    await toggle.getByRole("button", { name: "Agent", exact: true }).click();
+    await toggle
+      .getByRole("button", { name: "Conversation", exact: true })
+      .click();
     await expect(page.locator(".working-agent")).toBeVisible();
   }
 }
@@ -21,7 +23,7 @@ async function showWork(page: Page): Promise<void> {
   }
 }
 
-test("Keep for later collapses the revision form and keeps the draft @journey", async ({
+test("An unsent request survives pane switches and a reload @journey", async ({
   page,
   request,
 }, info) => {
@@ -29,7 +31,7 @@ test("Keep for later collapses the revision form and keeps the draft @journey", 
   await control(request, "reset");
   await page.goto("/");
   await page.getByRole("button", { name: /Try the intake example/ }).click();
-  await page.getByRole("button", { name: "Start work" }).click();
+  await page.getByRole("button", { name: "Take it from here" }).click();
   await page.waitForURL(/\/assignments\/asg_\d+$/);
   await page
     .getByRole("link", { name: "Open plan" })
@@ -38,30 +40,29 @@ test("Keep for later collapses the revision form and keeps the draft @journey", 
   const artifactId = page.url().split("/").pop()!;
   await showAgent(page);
 
-  // Open, type, then keep for later: the form closes and the text is kept.
-  await page.getByRole("button", { name: "Ask for a revision" }).click();
-  await page.getByLabel("What should change?").fill(DRAFT);
-  await page.getByRole("button", { name: "Keep for later" }).click();
-  await expect(page.getByLabel("What should change?")).toHaveCount(0);
-  const resume = page.getByRole("button", { name: "Resume your request" });
-  await expect(resume).toBeVisible();
-  await expect(resume).toBeFocused();
-  await expect(
-    page.getByText("Your unsent request is kept here."),
-  ).toBeVisible();
-  await noHorizontalScroll(page);
-  await shot(page, info, "21-revision-kept-for-later");
+  // The conversation opens with the person's own request and what was saved.
+  const thread = page.getByRole("list", {
+    name: "Conversation about this work",
+  });
+  await expect(thread.locator(".msg-person").first()).toContainText(
+    "Start with my own intake log",
+  );
+  await expect(thread.locator(".msg-agent").first()).toContainText(
+    "I prepared the working plan",
+  );
 
-  // Switching panes on a phone keeps it too; resuming restores the exact text.
+  // Typing is kept across pane switches (both panes stay mounted) and a reload.
+  await page.getByLabel("What should change?").fill(DRAFT);
   await showWork(page);
   await showAgent(page);
-  await resume.click();
   await expect(page.getByLabel("What should change?")).toHaveValue(DRAFT);
-  await expect(page.getByLabel("What should change?")).toBeFocused();
-  await shot(page, info, "22-revision-resumed");
+  await page.reload();
+  await showAgent(page);
+  await expect(page.getByLabel("What should change?")).toHaveValue(DRAFT);
+  await noHorizontalScroll(page);
+  await shot(page, info, "21-conversation-draft-kept");
 
-  // An unconfirmed send keeps its exact command: collapsing and resuming
-  // shows the same error, and retrying replays the same command once.
+  // An unconfirmed send keeps its exact command; retrying replays it once.
   const sent: string[] = [];
   await page.route("**/artifacts/*/request-revision", async (route) => {
     sent.push(
@@ -73,23 +74,21 @@ test("Keep for later collapses the revision form and keeps the draft @journey", 
   await page.getByRole("button", { name: "Send request" }).click();
   await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
   await expect(page.getByLabel("What should change?")).toBeDisabled();
-  await page.getByRole("button", { name: "Keep for later" }).click();
-  await expect(page.getByLabel("What should change?")).toHaveCount(0);
   await expect(
     page.getByText(
-      "Your last send wasn’t confirmed. Resume to retry the same request.",
+      "Your last send wasn’t confirmed. Sending again replays the same request.",
     ),
   ).toBeVisible();
   await shot(page, info, "23-revision-unconfirmed-kept");
-  await page.getByRole("button", { name: "Resume your request" }).click();
-  await expect(page.getByLabel("What should change?")).toHaveValue(DRAFT);
-  await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
   await page.getByRole("button", { name: "Send request" }).click();
-  await expect(page.getByLabel("What should change?")).toHaveCount(0);
-  // Phones return to the document after a send; the request waits for review.
+  await expect(page.getByLabel("What should change?")).toHaveValue("");
+  // Phones return to the document after a send; the request joins the thread.
   await showAgent(page);
+  await expect(thread.locator(".msg-person").last()).toHaveText(
+    `You: ${DRAFT}`,
+  );
   await expect(
-    page.getByRole("button", { name: "Ask for a revision" }),
+    page.getByRole("button", { name: "Send request" }),
   ).toBeDisabled();
   await page.unroute("**/artifacts/*/request-revision");
   expect(sent, "the retry replays the frozen command").toHaveLength(2);
