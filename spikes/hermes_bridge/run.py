@@ -28,7 +28,11 @@ def main():
         'tools': {'tool_search': {'enabled':'off'}},
         'compression': {'enabled':False},
         'memory': {'memory_enabled':False, 'user_profile_enabled':False}}))
-    env = {'PATH': '/usr/bin:/bin', 'HOME': str(run / 'home'),
+    env = {'WORKAGENT_SOURCE_SHA': subprocess.check_output(
+               ['git', '-C', str(REPO), 'rev-parse', 'HEAD'], text=True).strip(),
+           'WORKAGENT_TRACKED_DIRTY': str(bool(subprocess.check_output(
+               ['git', '-C', str(REPO), 'status', '--porcelain', '--untracked-files=no'], text=True).strip())).lower(),
+           'PATH': '/usr/bin:/bin', 'HOME': str(run / 'home'),
            'HERMES_HOME': str(run / 'home/hermes'), 'TMPDIR': str(run),
            'XDG_CONFIG_HOME': str(run / 'home/config'), 'XDG_CACHE_HOME': str(run / 'home/cache'),
            'XDG_DATA_HOME': str(run / 'home/data'), 'LANG': 'C.UTF-8',

@@ -36,7 +36,9 @@ s, principal, ws, refs, q, cap = scope(repo, runtime, owner)
 binding = BrokerBinding(Broker(s, cap)); binding.register()
 args = {'schema_version':'workagent/v1','request_id':'bridge-request',
     'workspace_id':ws, 'assignment_id':q.assignment.id}
-evidence = {'provenance':'controlled in-memory provider responses; no inference', 'cases':{}}
+evidence = {'provenance':'controlled in-memory provider responses; no inference',
+            'external_inference_calls':0, 'counter_scope':'HTTPX MockTransport invocations, not provider/network calls',
+            'cases':{}}
 
 def case(name, messages, *, tools=True, history=None, before=None, max_iterations=3):
     provider = ControlledProvider(messages, before)
@@ -50,7 +52,7 @@ def case(name, messages, *, tools=True, history=None, before=None, max_iteration
         'broker_callbacks':binding.trace[before_count:], 'upstream_calls':dict(calls - before_calls)}
     evidence['cases'][name] = row
     (run / 'hermes_results.json').write_text(json.dumps(evidence, indent=2, default=str) + '\n')
-    print(name, result.get('turn_exit_reason'), 'provider_calls=', len(provider.requests),
+    print(name, result.get('turn_exit_reason'), 'controlled_sdk_invocations=', len(provider.requests),
           'callbacks=', len(row['broker_callbacks']), flush=True)
     return row
 
@@ -118,9 +120,14 @@ print('HERMES_CASES_PASSED', len(evidence['cases']))
 from compare import compare
 compare(repo, run)
 import importlib.metadata
+import os
 from hashlib import sha256
 metadata = {'python':sys.version, 'upstream_pin':'f97608f178d1ffeca59860195ab7da295f7c8e5f',
-    'workagent_base':'b76eef865b13486e045d20e2c4586b3975e6ba2c',
+    'comparison_reference_base':'b76eef865b13486e045d20e2c4586b3975e6ba2c',
+    'workagent_source_sha':os.environ['WORKAGENT_SOURCE_SHA'],
+    'workagent_tracked_dirty':os.environ['WORKAGENT_TRACKED_DIRTY']=='true',
+    'workagent_source_sha256':{name:sha256((repo/'backend/workagent'/name).read_bytes()).hexdigest()
+        for name in ['broker.py','service.py','models.py','responses_worker.py','responses_transport.py']},
     'dependencies':sorted(f'{d.metadata["Name"]}=={d.version}' for d in importlib.metadata.distributions()),
     'upstream_source_sha256':{name:sha256((upstream/name).read_bytes()).hexdigest()
         for name in ['LICENSE','pyproject.toml','uv.lock','run_agent.py','agent/conversation_loop.py',
