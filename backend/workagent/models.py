@@ -122,7 +122,7 @@ class SourceDetail(Source):
 
 
 Hash = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
-ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1']
+ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1']
 
 
 class ExecutionProvenance(Model):
@@ -135,7 +135,7 @@ class ExecutionProvenance(Model):
     provider_observation: Literal['not_observed', 'received'] = 'not_observed'
     # Trusted origin, never inferred from model/profile/observation. Live is reserved
     # for a future reviewed attestation path; this checkpoint cannot write it.
-    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt'] = 'unverified'
+    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt', 'controlled_transport'] = 'unverified'
 
 
 class ArtifactBinding(Model):
@@ -273,6 +273,7 @@ class ProviderAttempt(Model):
 class Assignment(Model):
     id: Id
     workspace_id: Id
+    conversation_id: Id | None = None
     owner_id: Id
     goal: Text
     completion_criteria: list[Text] = Field(min_length=1, max_length=30)
@@ -301,9 +302,10 @@ class CreateAssignment(Command):
 class Run(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     principal_id: Id
-    kind: Literal['initial', 'revision']
+    kind: Literal['initial', 'revision', 'conversation_turn']
     state: Literal['queued', 'running', 'ready', 'partial', 'cancelled'] = 'queued'
     fence: int = Field(default=0, ge=0)
     access_generation: Version
@@ -323,6 +325,95 @@ class Run(Model):
     proposal_id: Id | None = None
     unresolved: list[Text] = Field(default_factory=list, max_length=100)
     observed_at: AwareDatetime = Field(default_factory=now)
+
+    @model_validator(mode='after')
+    def exactly_one_owner(self):
+        if (self.assignment_id is None) == (self.conversation_id is None):
+            raise ValueError('run requires exactly one assignment or conversation owner')
+        if (self.kind == 'conversation_turn') != (self.conversation_id is not None):
+            raise ValueError('conversation turns require a conversation owner')
+        if (self.profile == 'general-controlled-v1') != (self.conversation_id is not None):
+            raise ValueError('general controlled profile requires a conversation turn')
+        return self
+
+
+class CreateConversation(Command):
+    title: Annotated[str, Field(min_length=1, max_length=240)] = 'Conversation'
+    selected_source_refs: list[SourceRef] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode='after')
+    def unique_sources(self):
+        if len({s.source_id for s in self.selected_source_refs}) != len(self.selected_source_refs):
+            raise ValueError('source IDs must be unique')
+        return self
+
+
+class Conversation(Model):
+    id: Id
+    workspace_id: Id
+    owner_id: Id
+    title: Annotated[str, Field(min_length=1, max_length=240)]
+    work_version: Version = 1
+    state: Literal['open', 'cancelled'] = 'open'
+    selected_source_refs: list[SourceRef] = Field(default_factory=list, max_length=50)
+    created_at: AwareDatetime = Field(default_factory=now)
+
+
+class PostMessage(Command):
+    expected_work_version: Version
+    text: Text
+
+
+class CancelConversation(Command):
+    expected_work_version: Version
+
+
+class DelegateConversation(Command):
+    expected_work_version: Version
+    goal: Text
+    completion_criteria: list[Text] = Field(min_length=1, max_length=30)
+
+
+class TextResult(Model):
+    kind: Literal['text'] = 'text'
+    text: Text
+
+
+class TurnResult(Model):
+    # Extend this typed result family when a broker-backed operation is implemented.
+    # No opaque dicts, simulated files/tools, or authority/acceptance fields.
+    results: list[TextResult] = Field(min_length=1, max_length=1)
+
+
+class ConversationMessage(Model):
+    id: Id
+    conversation_id: Id
+    run_id: Id
+    sequence: Version
+    author_id: Id
+    author_kind: Literal['human', 'assistant']
+    text: Text
+    evidence_origin: Literal['human', 'controlled_transport']
+    result: TurnResult | None = None
+    created_at: AwareDatetime = Field(default_factory=now)
+
+
+class MessageQueued(Model):
+    conversation: Conversation
+    message: ConversationMessage
+    run: Run
+
+
+class ConversationPage(Model):
+    items: list[Conversation]
+    next_cursor: Id | None = None
+
+
+class ConversationDetail(Model):
+    conversation: Conversation
+    messages: list[ConversationMessage]
+    runs: list[Run]
+    assignment_ids: list[Id]
 
 
 class Revision(Model):
