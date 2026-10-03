@@ -1,73 +1,52 @@
-# Runtime decision and evidence boundary
+# Runtime status and execution boundary
 
-## Current mode
-Local deterministic fixture adapter is the only executable product mode. It is not a
-selected live agent runtime and does not qualify live A16/S1 or A17/S0. `MODE=live`
-must fail closed; no silent fixture fallback, credential inference or new paid calls.
+Snapshot: intake evidence commit `93db754c28385401d62703116313cfd23e153855`.
+This corrects stale fixture-only/no-live-execution claims. It does not select
+a general harness or authorize calls.
 
-## Bounded model access observation
-One actual Qwen subscription draft was produced and recovered as an explicitly
-operator-assisted import, not as an autonomous fixture worker or a selected managed
-runtime. See [the access audit](../handoffs/backend/RUNTIME_ACCESS_AUDIT.md) for
-actual provider receipt, usage, recovered prior authorization, and limits. This does
-not change the default executable product mode or qualify the live observations below.
+## Observed
 
-## Managed-first discovery
-Primary documentation retrieved during this build:
-- https://developers.openai.com/api/docs/guides/agents
-- https://developers.openai.com/api/docs/guides/agents-api/architecture
-- https://developers.openai.com/api/docs/guides/agents-api/configuration
+- Real Next.js/FastAPI/PostgreSQL app with immutable revisions, scoped broker,
+  replay, fences, human edits, exact proposal acceptance and persisted readback.
+- Actual `gpt-6.1-sol` Responses API initial/revision journey through the product
+  worker on synthetic intake context. Final app candidate: `ae52a61`.
+  `handoffs/backend/INTAKE_ACCEPTANCE.md` records evidence at `93db754`.
+- Four generation submissions used the full allowance. Reported usage: 5,798 input
+  and 1,814 output tokens; calculated cost $0.0326350, billing not independently
+  confirmed. Recovery reused the response without another generation; exact
+  document readback and surviving edits were observed.
+- The report records 248 backend tests, 37 frontend tests and passing CI for
+  that candidate. These are historical counts, not checks run by this reset.
 
-The current docs describe a managed Codex harness with durable sessions, application
-function handlers and `environment.type=none`. The Python example uses
-`client.beta.agents.sessions.create` and `gpt-6-astra`. This establishes documentation,
-not account access, installed product SDK support, lifecycle proof or entitlement.
+Saved intake is an engineering checkpoint. Document approval did not perform
+or authorize the underlying work. General product, usefulness and visual
+acceptance remain separate.
 
-Local Codex development cache lists `gpt-6.1-sol` and `gpt-6-astra` with
-`supported_in_api=true`; CLI 0.160.0 reports a ChatGPT login. Neither observation proves
-this product can call either model through a managed Agents API project.
+## Current limits
 
-## Selection remains pending
-The managed route is the first candidate. No required-contract failure has been
-observed, so no SDK/Responses contingency is selected. There is no Temporal service,
-second agent loop or default product delegation. An unavailable account is not proof
-that the managed API fails a contract.
+The current consumer is intake-specific: fixed preparation workflow, restricted
+tools/shapes, source-required creation, and one initial plus one revision grant
+semantics. Fixture modes remain labeled engineering tools. Source-free
+conversation, broad work products, event-driven ownership and a general prompt
+CLI are not yet demonstrated.
 
-Required before a live spike: authorized project/secret reference, explicit maximum
-incremental spend, permitted synthetic-data route, verified SDK/model/API access and
-trace/retention controls. Do not store secret values in Git or chat.
+The previous four-call grant is exhausted and expired despite low cost. No
+inference, new private-data access or paid experiment is authorized by this reset.
+A new grant binds concrete route, scope and limits. Development login is not
+product entitlement; never infer/expose secrets.
 
-## Ownership map
-- PostgreSQL/domain services: assignments, source/access scope, immutable revisions,
-  human decisions/proposals, commands, task inspection, audit/outbox, run/fence state.
-- Application dispatcher: one active lease/fence, admission/control checks, durable
-  submission intent and reconciliation before retry after uncertain acknowledgement.
-- Selected live runtime (not yet selected): sole owner of model/tool loop, once tested.
-- Broker: rechecks current principal, assignment sources, access generation, fence,
-  budget, operation and exact applicable grant at dispatch and commit.
-- Fixture computation: bounded deterministic derivation; no network/external effects.
-- Human app: authorized save and exact proposal acceptance, never model-callable tools.
-- Outbox: stable event consumption, not a second owner of model/provider retries.
+Managed-first research and historical Qwen observations remain historical inputs,
+not the current consumer selection or general managed-lifecycle proof. No claims
+here for live compaction, long-lived managed sessions, skill ablation, portable
+distributed recovery or general-model comparison.
 
-## Required live observations: all NOT OBSERVED
-Session/turn binding; stream loss and same-session restart; basic approval wait/resume;
-configuration change/session replacement; actual compaction event; usage/cost and
-trace redaction/retention; selected-runtime approved skill loading; enabled/disabled
-skill comparison; model outcome/latency comparison. S4 multi-hour lifecycle remains
-out of scope. Application fixture proofs will be recorded separately.
+## Next decision
 
-## Product bundle
-`agent/v0.1.0/runtime.yaml` and `agent/v0.1.1/runtime.yaml` are product schemas
-serialized as JSON (valid YAML), not provider configuration. Reviewed approval registry
-snapshots are exact-hash allowlisted: existing runs retain their original registry and
-manifest, while explicit operator activation selects a version for future runs.
-Runtime sources control neither path. The loader pins every byte, offers only
-registry+scope intersections, and assembles guidance and untrusted evidence separately.
-Scripts and prepare-contribution are inactive.
+`WORK_CONTRACT.md` defines the target. Hermes runs a local adapter spike using
+existing upstream research, compares the current adapter and records a concrete
+keep/adopt/reject decision. One harness owns the loop; domain/broker retain
+committed state and authority. Controlled proof precedes a fresh live-grant request.
 
-Actual PostgreSQL tests establish a proposed version absent from the old approval
-registry cannot activate through that registry; explicit approved 0.1.1 activation,
-continued 0.1.0 run pins, exact prior instruction/source-input reproduction after
-rollback, and denial after current source revocation. Fixture worker context loading,
-activation audits and outbox/fenced recovery are integrated and exercised. These are
-application adapter/fixture observations, not provider execution or live skill ablation.
+Accepted bundles keep their pins/semantics. New profiles need reviewed versions;
+do not repin old runs or rewrite evidence. Default merge, production authentication,
+deployment and external actions remain unapproved. See `PRODUCT_ACCEPTANCE.md`.

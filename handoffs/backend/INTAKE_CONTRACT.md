@@ -1,5 +1,11 @@
 # Intake domain checkpoint — frontend/consumer contract
 
+> **Intake capability contract, not the general product contract.**
+> Preserve deployed semantics and historical records. For new common primitives
+> follow `../../docs/WORK_CONTRACT.md` through additive migration.
+> `../../docs/PRODUCT_CONTRACT.md` and `../PRODUCT_RESET.md` govern new direction.
+> Preparation-only outcomes and experiment limits stay local to this profile.
+
 ## Status and authority
 
 **This implementation includes no provider/account calls or inference transport.**

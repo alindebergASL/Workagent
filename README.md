@@ -1,14 +1,28 @@
-# Workagent — private-work local build
+# Workagent
 
-A solo workspace for selected-source intake analysis, a saved working plan/checklist,
-human edits, inspectable stale proposals and reopening persisted work after restart.
+Workagent is a general, persistent work partner: think, make, handle, coordinate,
+own and learn from work. Agent conversation and appropriate work surfaces form
+one clean experience, with optional private/shared Spaces.
 
-**Current operating mode:** real Next.js application + FastAPI domain services +
-PostgreSQL, with **deterministic synthetic-fixture computation**. It is not live-model
-inference, production authentication, Google integration or a hosted deployment.
-The existing frontend is Claude Code's work; Hermes owns backend and integration.
+**Start here:** [Product contract](docs/PRODUCT_CONTRACT.md),
+[current build plan](docs/BUILD_PLAN.md), [work contract](docs/WORK_CONTRACT.md)
+and [acceptance](docs/PRODUCT_ACCEPTANCE.md).
+Development ownership and instructions: [AGENTS.md](AGENTS.md).
+Current coordinated handoff: [product reset](handoffs/PRODUCT_RESET.md).
 
-## Run the complete demonstration
+**Implemented baseline:** real Next.js + FastAPI + PostgreSQL private-work app
+with durable intake artifacts, human edits, exact proposal acceptance and recovery.
+A bounded live Responses intake journey on synthetic context was completed;
+[its report](handoffs/backend/INTAKE_ACCEPTANCE.md) is engineering evidence for
+that slice, not acceptance of a general agent. The prior grant is exhausted and
+expired. Default local demonstrations use labeled deterministic fixtures.
+Source-free conversation, broad work products and ongoing ownership are the next
+implementation work, not currently demonstrated capabilities.
+
+The existing Claude Code session owns frontend; Hermes owns backend/runtime and
+integration. Historical S0/S1 and intake constraints do not define product scope.
+
+## Run the preserved intake demonstration
 Tested on Ubuntu 24.04, Python 3.12, PostgreSQL 16, Node 22, npm, pnpm 11 and uv.
 PostgreSQL must already run locally; provisioning uses `sudo -n -u postgres` to
 create a **new** isolated database and separate owner/runtime roles. No existing DB
@@ -17,7 +31,7 @@ is reset. Browser dependency installation may need the host's normal system pack
 ```sh
 git clone https://github.com/alindebergASL/Workagent.git
 cd Workagent
-git checkout hermes/s0-s1-build
+git checkout hermes/intake-next-action
 python3 scripts/workagent.py demo
 ```
 
@@ -31,7 +45,7 @@ no fabricated success response or JSON mock persistence stands in for the API/da
 Logs, screenshots, exact artifact
 bodies and identifiers are under `.local/evidence/` and `.local/logs/`.
 
-## Use the workspace
+## Use the current intake profile
 
 ```sh
 # After the demo, or after `python3 scripts/workagent.py setup`:
@@ -85,7 +99,8 @@ reset or repin old runs. The historical standalone frontend mock demo remains in
 - `handoffs/backend/`: contract/integration checkpoints and exact limitations.
 - `docs/RUNTIME_STATUS.md`: live-runtime selection/authorization boundary.
 
-**Qualification remains incomplete:** live managed-first session/recovery/wait/compaction
-proof and live approved-skill ablation require authorized product API access and a
-bounded grant. Andrew's usefulness judgment is also required. Fixture behavior does
-not close those requirements. No S2–S5 work or default-branch merge is implied.
+**Next qualification:** varied work through the same runtime and an integrated
+experience against the prototype. Report engineering, usefulness and experience
+independently. Controlled fixtures cannot establish general model capability.
+See the current acceptance contract; do not reinstate historical stage ceilings
+as global defaults. No new inference, default merge or deployment is implied.
