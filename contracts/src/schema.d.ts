@@ -175,6 +175,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conversations */
+        get: operations["list_conversations"];
+        put?: never;
+        /** Create Conversation */
+        post: operations["create_conversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Conversation */
+        post: operations["cancel_conversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/delegate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delegate Conversation */
+        post: operations["delegate_conversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post Message */
+        post: operations["post_message"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/proposals/{proposal_id}/accept": {
         parameters: {
             query?: never;
@@ -332,6 +418,8 @@ export interface components {
             artifact_ids?: string[];
             /** Completion Criteria */
             completion_criteria: string[];
+            /** Conversation Id */
+            conversation_id?: string | null;
             /** Goal */
             goal: string;
             /** Id */
@@ -397,6 +485,20 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** CancelConversation */
+        CancelConversation: {
+            /** Command Id */
+            command_id: string;
+            /** Expected Work Version */
+            expected_work_version: number;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+        };
         /** ControlAssignment */
         ControlAssignment: {
             /** Command Id */
@@ -416,6 +518,83 @@ export interface components {
              */
             schema_version: "workagent/v1";
         };
+        /** Conversation */
+        Conversation: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Id */
+            id: string;
+            /** Owner Id */
+            owner_id: string;
+            /** Selected Source Refs */
+            selected_source_refs?: components["schemas"]["SourceRef"][];
+            /**
+             * State
+             * @default open
+             * @enum {string}
+             */
+            state: "open" | "cancelled";
+            /** Title */
+            title: string;
+            /**
+             * Work Version
+             * @default 1
+             */
+            work_version: number;
+            /** Workspace Id */
+            workspace_id: string;
+        };
+        /** ConversationDetail */
+        ConversationDetail: {
+            /** Assignment Ids */
+            assignment_ids: string[];
+            conversation: components["schemas"]["Conversation"];
+            /** Messages */
+            messages: components["schemas"]["ConversationMessage"][];
+            /** Runs */
+            runs: components["schemas"]["Run"][];
+        };
+        /** ConversationMessage */
+        ConversationMessage: {
+            /** Author Id */
+            author_id: string;
+            /**
+             * Author Kind
+             * @enum {string}
+             */
+            author_kind: "human" | "assistant";
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Evidence Origin
+             * @enum {string}
+             */
+            evidence_origin: "human" | "controlled_transport";
+            /** Id */
+            id: string;
+            result?: components["schemas"]["TurnResult"] | null;
+            /** Run Id */
+            run_id: string;
+            /** Sequence */
+            sequence: number;
+            /** Text */
+            text: string;
+        };
+        /** ConversationPage */
+        ConversationPage: {
+            /** Items */
+            items: components["schemas"]["Conversation"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
         /** CreateAssignment */
         CreateAssignment: {
             /** Command Id */
@@ -434,6 +613,25 @@ export interface components {
             /** Selected Source Refs */
             selected_source_refs: components["schemas"]["SourceRef"][];
         };
+        /** CreateConversation */
+        CreateConversation: {
+            /** Command Id */
+            command_id: string;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+            /** Selected Source Refs */
+            selected_source_refs?: components["schemas"]["SourceRef"][];
+            /**
+             * Title
+             * @default Conversation
+             */
+            title: string;
+        };
         /** CreateTask */
         CreateTask: {
             /** Command Id */
@@ -446,6 +644,24 @@ export interface components {
             expected_work_version: number;
             /** Owner Id */
             owner_id: string;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+        };
+        /** DelegateConversation */
+        DelegateConversation: {
+            /** Command Id */
+            command_id: string;
+            /** Completion Criteria */
+            completion_criteria: string[];
+            /** Expected Work Version */
+            expected_work_version: number;
+            /** Goal */
+            goal: string;
             /** Request Id */
             request_id: string;
             /**
@@ -509,7 +725,7 @@ export interface components {
              * @default unverified
              * @enum {string}
              */
-            evidence_origin: "unverified" | "fixture" | "synthetic_provider_receipt" | "live_provider_receipt";
+            evidence_origin: "unverified" | "fixture" | "synthetic_provider_receipt" | "live_provider_receipt" | "controlled_transport";
             /** Grant Id */
             grant_id?: string | null;
             /**
@@ -523,7 +739,7 @@ export interface components {
              * Profile
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1";
             /**
              * Provider Observation
              * @default not_observed
@@ -545,6 +761,12 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** MessageQueued */
+        MessageQueued: {
+            conversation: components["schemas"]["Conversation"];
+            message: components["schemas"]["ConversationMessage"];
+            run: components["schemas"]["Run"];
         };
         /** OutcomeCheck */
         OutcomeCheck: {
@@ -569,6 +791,22 @@ export interface components {
             prompt: string;
             /** Proposal Id */
             proposal_id: string;
+        };
+        /** PostMessage */
+        PostMessage: {
+            /** Command Id */
+            command_id: string;
+            /** Expected Work Version */
+            expected_work_version: number;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+            /** Text */
+            text: string;
         };
         /** Proposal */
         Proposal: {
@@ -720,7 +958,7 @@ export interface components {
             /** Artifact Id */
             artifact_id?: string | null;
             /** Assignment Id */
-            assignment_id: string;
+            assignment_id?: string | null;
             /** Base Revision Id */
             base_revision_id?: string | null;
             /**
@@ -730,6 +968,8 @@ export interface components {
             budget_units: number;
             /** Bundle Hash */
             bundle_hash: string;
+            /** Conversation Id */
+            conversation_id?: string | null;
             /**
              * Cursor
              * @default 0
@@ -749,7 +989,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "initial" | "revision";
+            kind: "initial" | "revision" | "conversation_turn";
             /** Lease Expires At */
             lease_expires_at?: string | null;
             /**
@@ -764,7 +1004,7 @@ export interface components {
              * @default fixture-deterministic-v1
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1";
             /** Proposal Id */
             proposal_id?: string | null;
             /** Provider Session Id */
@@ -967,6 +1207,22 @@ export interface components {
              * @constant
              */
             verification: "unresolved";
+        };
+        /** TextResult */
+        TextResult: {
+            /**
+             * Kind
+             * @default text
+             * @constant
+             */
+            kind: "text";
+            /** Text */
+            text: string;
+        };
+        /** TurnResult */
+        TurnResult: {
+            /** Results */
+            results: components["schemas"]["TextResult"][];
         };
         /** Workspace */
         Workspace: {
@@ -1737,6 +1993,7 @@ export interface operations {
                      *         "completion_criteria": [
                      *           "A reusable checklist"
                      *         ],
+                     *         "conversation_id": null,
                      *         "goal": "Improve private intake review",
                      *         "id": "assignment-example",
                      *         "observed_at": "2026-10-02T00:00:00Z",
@@ -1764,6 +2021,7 @@ export interface operations {
                      *         "base_revision_id": null,
                      *         "budget_units": 1,
                      *         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+                     *         "conversation_id": null,
                      *         "cursor": 0,
                      *         "execution": null,
                      *         "fence": 0,
@@ -1778,7 +2036,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+                     *         "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -1874,6 +2132,7 @@ export interface operations {
                      *       "completion_criteria": [
                      *         "A reusable checklist"
                      *       ],
+                     *       "conversation_id": null,
                      *       "goal": "Improve private intake review",
                      *       "id": "assignment-example",
                      *       "observed_at": "2026-10-02T00:00:00Z",
@@ -2146,6 +2405,717 @@ export interface operations {
             };
         };
     };
+    list_conversations: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "items": [
+                     *         {
+                     *           "created_at": "2026-10-02T00:00:00Z",
+                     *           "id": "conversation-example",
+                     *           "owner_id": "local-human",
+                     *           "selected_source_refs": [],
+                     *           "state": "open",
+                     *           "title": "Conversation",
+                     *           "work_version": 1,
+                     *           "workspace_id": "workspace-example"
+                     *         }
+                     *       ],
+                     *       "next_cursor": null
+                     *     } */
+                    "application/json": components["schemas"]["ConversationPage"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    create_conversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "command_id": "command-example",
+                 *       "request_id": "request-example",
+                 *       "schema_version": "workagent/v1",
+                 *       "selected_source_refs": [],
+                 *       "title": "Conversation"
+                 *     } */
+                "application/json": components["schemas"]["CreateConversation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "created_at": "2026-10-02T00:00:00Z",
+                     *       "id": "conversation-example",
+                     *       "owner_id": "local-human",
+                     *       "selected_source_refs": [],
+                     *       "state": "open",
+                     *       "title": "Conversation",
+                     *       "work_version": 1,
+                     *       "workspace_id": "workspace-example"
+                     *     } */
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_conversation: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "assignment_ids": [],
+                     *       "conversation": {
+                     *         "created_at": "2026-10-02T00:00:00Z",
+                     *         "id": "conversation-example",
+                     *         "owner_id": "local-human",
+                     *         "selected_source_refs": [],
+                     *         "state": "open",
+                     *         "title": "Conversation",
+                     *         "work_version": 2,
+                     *         "workspace_id": "workspace-example"
+                     *       },
+                     *       "messages": [
+                     *         {
+                     *           "author_id": "local-human",
+                     *           "author_kind": "human",
+                     *           "conversation_id": "conversation-example",
+                     *           "created_at": "2026-10-02T00:00:00Z",
+                     *           "evidence_origin": "human",
+                     *           "id": "message-example",
+                     *           "result": null,
+                     *           "run_id": "turn-example",
+                     *           "sequence": 1,
+                     *           "text": "Help me think this through"
+                     *         }
+                     *       ],
+                     *       "runs": [
+                     *         {
+                     *           "access_generation": 1,
+                     *           "artifact_id": null,
+                     *           "assignment_id": null,
+                     *           "base_revision_id": null,
+                     *           "budget_units": 1,
+                     *           "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+                     *           "conversation_id": "conversation-example",
+                     *           "cursor": 0,
+                     *           "execution": {
+                     *             "attempt_id": null,
+                     *             "evidence_origin": "controlled_transport",
+                     *             "grant_id": null,
+                     *             "mode": "fixture",
+                     *             "model": null,
+                     *             "profile": "general-controlled-v1",
+                     *             "provider_observation": "not_observed"
+                     *           },
+                     *           "fence": 0,
+                     *           "id": "turn-example",
+                     *           "instruction": null,
+                     *           "kind": "conversation_turn",
+                     *           "lease_expires_at": null,
+                     *           "observed_at": "2026-10-02T00:00:00Z",
+                     *           "principal_id": "local-human",
+                     *           "profile": "general-controlled-v1",
+                     *           "proposal_id": null,
+                     *           "provider_session_id": null,
+                     *           "provider_turn_id": null,
+                     *           "state": "queued",
+                     *           "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                     *           "unresolved": [],
+                     *           "used_units": 0,
+                     *           "workspace_id": "workspace-example"
+                     *         }
+                     *       ]
+                     *     } */
+                    "application/json": components["schemas"]["ConversationDetail"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    cancel_conversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "command_id": "command-example",
+                 *       "expected_work_version": 2,
+                 *       "request_id": "request-example",
+                 *       "schema_version": "workagent/v1"
+                 *     } */
+                "application/json": components["schemas"]["CancelConversation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "created_at": "2026-10-02T00:00:00Z",
+                     *       "id": "conversation-example",
+                     *       "owner_id": "local-human",
+                     *       "selected_source_refs": [],
+                     *       "state": "cancelled",
+                     *       "title": "Conversation",
+                     *       "work_version": 3,
+                     *       "workspace_id": "workspace-example"
+                     *     } */
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    delegate_conversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "command_id": "command-example",
+                 *       "completion_criteria": [
+                 *         "Review together"
+                 *       ],
+                 *       "expected_work_version": 2,
+                 *       "goal": "Carry this forward",
+                 *       "request_id": "request-example",
+                 *       "schema_version": "workagent/v1"
+                 *     } */
+                "application/json": components["schemas"]["DelegateConversation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "artifact_ids": [],
+                     *       "completion_criteria": [
+                     *         "Review together"
+                     *       ],
+                     *       "conversation_id": "conversation-example",
+                     *       "goal": "Carry this forward",
+                     *       "id": "delegation-example",
+                     *       "observed_at": "2026-10-02T00:00:00Z",
+                     *       "owner_id": "local-human",
+                     *       "responsibility": null,
+                     *       "run_ids": [],
+                     *       "selected_source_refs": [],
+                     *       "state": "paused",
+                     *       "unresolved": [
+                     *         "Delegation recorded; autonomous execution is not supported by B1. Resume is disabled."
+                     *       ],
+                     *       "work_version": 1,
+                     *       "workspace_id": "workspace-example"
+                     *     } */
+                    "application/json": components["schemas"]["Assignment"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    post_message: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /** @example {
+                 *       "command_id": "command-example",
+                 *       "expected_work_version": 1,
+                 *       "request_id": "request-example",
+                 *       "schema_version": "workagent/v1",
+                 *       "text": "Help me think this through"
+                 *     } */
+                "application/json": components["schemas"]["PostMessage"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "conversation": {
+                     *         "created_at": "2026-10-02T00:00:00Z",
+                     *         "id": "conversation-example",
+                     *         "owner_id": "local-human",
+                     *         "selected_source_refs": [],
+                     *         "state": "open",
+                     *         "title": "Conversation",
+                     *         "work_version": 2,
+                     *         "workspace_id": "workspace-example"
+                     *       },
+                     *       "message": {
+                     *         "author_id": "local-human",
+                     *         "author_kind": "human",
+                     *         "conversation_id": "conversation-example",
+                     *         "created_at": "2026-10-02T00:00:00Z",
+                     *         "evidence_origin": "human",
+                     *         "id": "message-example",
+                     *         "result": null,
+                     *         "run_id": "turn-example",
+                     *         "sequence": 1,
+                     *         "text": "Help me think this through"
+                     *       },
+                     *       "run": {
+                     *         "access_generation": 1,
+                     *         "artifact_id": null,
+                     *         "assignment_id": null,
+                     *         "base_revision_id": null,
+                     *         "budget_units": 1,
+                     *         "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+                     *         "conversation_id": "conversation-example",
+                     *         "cursor": 0,
+                     *         "execution": {
+                     *           "attempt_id": null,
+                     *           "evidence_origin": "controlled_transport",
+                     *           "grant_id": null,
+                     *           "mode": "fixture",
+                     *           "model": null,
+                     *           "profile": "general-controlled-v1",
+                     *           "provider_observation": "not_observed"
+                     *         },
+                     *         "fence": 0,
+                     *         "id": "turn-example",
+                     *         "instruction": null,
+                     *         "kind": "conversation_turn",
+                     *         "lease_expires_at": null,
+                     *         "observed_at": "2026-10-02T00:00:00Z",
+                     *         "principal_id": "local-human",
+                     *         "profile": "general-controlled-v1",
+                     *         "proposal_id": null,
+                     *         "provider_session_id": null,
+                     *         "provider_turn_id": null,
+                     *         "state": "queued",
+                     *         "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                     *         "unresolved": [],
+                     *         "used_units": 0,
+                     *         "workspace_id": "workspace-example"
+                     *       }
+                     *     } */
+                    "application/json": components["schemas"]["MessageQueued"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     accept_revision: {
         parameters: {
             query?: never;
@@ -2355,6 +3325,7 @@ export interface operations {
                      *       "base_revision_id": null,
                      *       "budget_units": 1,
                      *       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+                     *       "conversation_id": null,
                      *       "cursor": 0,
                      *       "execution": null,
                      *       "fence": 1,
@@ -2369,7 +3340,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+                     *       "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

@@ -1,0 +1,12 @@
+{
+  "profile": "general-controlled-v1",
+  "version": "1",
+  "transport": "controlled-only",
+  "result_kinds": ["text"],
+  "tools": [],
+  "external_effects": false,
+  "provider_inference": false,
+  "max_turns_per_conversation": 100,
+  "max_context_bytes": 256000,
+  "purpose": "B1 persistence and authority wiring only; model usefulness unverified"
+}

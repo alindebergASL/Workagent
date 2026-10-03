@@ -65,11 +65,13 @@ def registry_for_hash(expected):
             if isinstance(value,dict):
                 return {k:previous(v) for k,v in value.items() if k not in ('ResponseStepObservation','response_steps')}
             return value
-        old=previous(current)
+        old=previous(registry_for_hash('a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b'))
         if digest(old)!=expected:
             raise ValueError('pre-Responses registry projection drift')
         return old
     archives={
+        'a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b':
+            ('pre_b1_tool_registry.json','88a5ffa71414f234ea9eb8662edbb0f952903f4e6bd7ca572cea1ba2b9a11508'),
         '3e2f8620ade8655d26866eaed34e383d3f0a4ee31a96ad1fcc65909a28018572':
             ('legacy_tool_registry.json','2adb7311d13fdc420278f48b35b8432a107046cfce9ed77c21c882fe5a559aa2'),
         'b33dadca5b8c9c4b3e2f01041cd1c31d4b56723194edc0057d468f6de2f5d480':

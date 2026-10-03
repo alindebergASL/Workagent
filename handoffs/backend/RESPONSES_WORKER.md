@@ -1,5 +1,12 @@
 # Bounded Responses product worker — consumer handoff
 
+> **Historical intake adapter documentation.**
+> This remains evidence/instructions for its implemented profile; its fixed
+> tool/turn/output limits do not define the general work agent.
+> Follow `../../docs/RUNTIME_STATUS.md` for current observations/authority and
+> `../../docs/WORK_CONTRACT.md` for the next adapter boundary.
+> Accepted bundles/grants retain their original pins and scope.
+
 This addendum supersedes the **unimplemented consumer** statement in the older
 `INTAKE_CONTRACT.md` for `openai-responses-v1` only. The legacy
 `openai-agents-v1` checkpoint is retained for compatibility; it is not renamed,

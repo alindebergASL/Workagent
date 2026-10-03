@@ -1,0 +1,20 @@
+source_free_dialogue text_response(finish_reason=stop) provider_calls= 1 callbacks= 0
+source_free_tool_denied text_response(finish_reason=stop) provider_calls= 2 callbacks= 0
+typed_broker_round_trip text_response(finish_reason=stop) provider_calls= 2 callbacks= 1
+history_resume_no_duplicate_tool text_response(finish_reason=stop) provider_calls= 1 callbacks= 0
+unknown_tool_denied text_response(finish_reason=stop) provider_calls= 2 callbacks= 0
+typed_arguments_denied text_response(finish_reason=stop) provider_calls= 2 callbacks= 1
+foreign_scope_denied text_response(finish_reason=stop) provider_calls= 2 callbacks= 1
+⚠️ Iteration budget exhausted (2/2) — asking model to summarise
+⚠️  Reached maximum iterations (2). Requesting summary...
+bounded_iterations max_iterations_reached(2/2) provider_calls= 4 callbacks= 2
+revoked_callback text_response(finish_reason=stop) provider_calls= 2 callbacks= 1
+⚡ Interrupted during API call.
+HERMES_CASES_PASSED 10
+RESPONSES_COMPARISON {'normal_two_phase': 'completed', 'subset_denied': 'domain_error:not_found_or_not_authorized', 'tool_escalation_denied': 'invalid_selection'}
+........................................................................ [ 31%]
+........................................................................ [ 63%]
+........................................................................ [ 95%]
+...........                                                              [100%]
+- generated xml file: /home/ubuntu/workagent-general-harness/spikes/hermes_bridge/.runs/2089694/responses_tests.xml -
+227 passed, 1 deselected in 231.20s (0:03:51)

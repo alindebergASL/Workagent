@@ -1,31 +1,46 @@
-# S0/S1 implementation and evidence plan
+# Current build plan: general work partner reset
 
-1. Canonical typed Python domain services and PostgreSQL transaction/migration baseline;
-   exported OpenAPI 3.1; generated TypeScript client; stateful frontend scenario service;
-   real authorization, replay/CAS tests; early informational contract checkpoint.
-2. Connect existing frontend owner's UI to creation, ready artifact and human save.
-   Hermes owns integration, not a parallel frontend implementation.
-3. Integrate approved pinned bundle and fenced deterministic worker; preserve independent
-   source/work/artifact revisions, stable commands, separate task readback, audit/outbox.
-4. Demonstrate stale proposal review preserving both bodies, deliberate resolution and
-   same assignment/revisions after process restart with PostgreSQL retained.
-5. Independently review exact integrated candidate for specification/security/recovery,
-   then quality/UX/content; reproduce and fix material findings with focused rechecks.
-6. Deliver one-command browser/API/PostgreSQL demo and sample artifacts; acceptance
-   statuses report fixture/app/live separately. Owner usefulness and blocked live tests
-   remain explicit, not converted to PASS.
+This replaces active S0/S1 direction. Historical intake correctness is preserved;
+the next work changes common contracts and experience together.
 
-No default-branch merge, production deployment, paid product runtime, Google side effects
-or S2–S5 work is authorized by this implementation plan. Public repository visibility was
-explicitly permitted after kickoff. Full originals remain outside application/runtime.
+## 1. Install the reset and agree one migration
 
-## Body-storage decision
-Prefer transactional immutable PostgreSQL JSONB for this small private-work slice.
-No S3 distributed-transaction claim or new object-storage dependency. If the implemented
-baseline chooses this, DB immutability must be tested and accepted-byte hashes retained.
-A future object-store adapter needs its own staged/hash/commit/orphan reconciliation tests.
+Hermes applies `handoffs/PRODUCT_RESET.md` on an isolated development branch,
+reports its SHA, and updates active mission/status. Claude resumes the existing
+session from that shared base. Both acknowledge the product contract and agree
+the minimal API delta: source-free conversation, responsibilities and product
+shapes. Leave immutable runtime bundles/captured acceptance evidence intact.
 
-## Coordination
-See handoffs/backend/STATUS.md and GitHub issue #1. Backend/contracts are implemented in
-an isolated bounded development child; root/runtime/bundles/fixture import stay with
-Hermes. Child work receives controller verification and independent integrated review.
+## 2. Implement two coordinated tracks
+
+- Hermes: generalize runtime/domain defaults additively; build a thin prompt CLI
+  through the actual worker; demonstrate B1–B3 using controlled transport; run
+  the upstream adapter spike and publish an adoption decision/limits. Preserve
+  database, authority and recovery invariants.
+- Claude: coherent design system from the prototype; real conversation entry and
+  companion to work; Home/owned-work hierarchy; operational/maker surfaces.
+  Integrate actual contracts; preserve editing, review and reopen. Move machinery
+  into meaningful details.
+
+Use generated clients, not speculative endpoints or copied mockup state.
+Early outputs: contract delta, working source-free entry screenshot, and one
+runnable CLI case. Do not spend the iteration rewriting plans.
+
+## 3. Review the integrated product
+
+Run relevant checks, actual PostgreSQL recovery and desktop/phone browser journeys.
+Report the three verdicts using `PRODUCT_ACCEPTANCE.md`. Present B1–B3 evidence
+and a coherent interface to Andrew, with B4–B7 capability gaps explicit.
+
+Then request a concrete bounded grant for model-backed breadth/usefulness proof
+and a small real-context responsibility. Do not wait for connectors to prove
+conversation, local operations and making. Controlled transports/UI labels do
+not prove generality. Extend event-driven ownership, coordination and shared
+Spaces incrementally through the same contracts.
+
+## Execution boundary
+
+The approved course correction authorizes this development/handoff direction
+and relevant no-inference verification. It grants no paid calls, new context
+access, external effects, default merge or deployment. Routine changes continue
+within scope. Grants constrain runs, not the product's permanent capability.
