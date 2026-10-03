@@ -1,0 +1,33 @@
+{
+  "status": "PASS_BOUNDED_SPIKE_NOT_ADOPTED",
+  "tested_spike_sha": "e08156d321ae37179795ec9adaf8c1439494f1eb",
+  "tracked_tree_clean": true,
+  "upstream_pin": "f97608f178d1ffeca59860195ab7da295f7c8e5f",
+  "parent_rerun": "--quick",
+  "bridge_cases_passed": 10,
+  "responses_comparisons_passed": 3,
+  "external_inference_calls": 0,
+  "total_controlled_sdk_invocations": 19,
+  "separate_child_regression_xml_verified": {
+    "passed": 227,
+    "deselected": [
+      "test_responses_worker.py::test_cross_process_predispatch_single_winner"
+    ],
+    "not_rerun_by_parent": true
+  },
+  "budget_finding": {
+    "max_iterations": 2,
+    "controlled_sdk_invocations": 4,
+    "reported_api_calls": 2,
+    "broker_callbacks": 2
+  },
+  "disposable_cluster_stopped": true,
+  "workagent_source_sha256": {
+    "broker.py": "5394c3f834468e2de10465d7358fce5b48ca21d10a7c2d5e34110d7798c97e19",
+    "service.py": "4d516465b3832e2bc2ff421a65763ad1b692d8a42b1e1efc2cdd9de9dcc28cc6",
+    "models.py": "df7faff458d86ba91761f18dc3b5291e87db452ebaf15bdc6978dd2d98e208c8",
+    "responses_worker.py": "c437b6727bee0bb4b22db2d12d864c336ee5834994293c25b5d3c4afeddca304",
+    "responses_transport.py": "0b27ef8b1983fe7bae3f01d363bdacda2655c45c60d370fd3e86b8a366a6dde2"
+  },
+  "decision": "Keep Workagent authority boundary and existing qualified Responses profile; defer production Hermes adoption until exact dispatch accounting, general broker/effect-recovery binding and reviewed isolation/dependency packaging are solved."
+}

@@ -6,6 +6,12 @@ Hermes is a **viable candidate for the next isolated general-runtime adapter**, 
 
 Keep the existing Responses path **for its existing narrow approved profile**, plus Workagent's domain/broker/ledger authority. Do not make its mandatory-source/two-phase/next-action restrictions the general product contract. No backend, frontend, shared contract, accepted bundle, host Hermes/profile, live database or deployment was changed by this spike.
 
+## Parent verification
+
+Parent inspected the adapter and pre-import/kernel containment, reran the 10 bridge cases and three Responses comparisons at clean spike SHA `e08156d321ae37179795ec9adaf8c1439494f1eb`, and independently parsed the original 227-case regression XML and all recorded evidence hashes. The parent quick rerun intentionally did not repeat the regression suite. [Parent verification](../../spikes/hermes_bridge/evidence/parent-verification.json) preserves the scope and observed 2-iteration/4-request accounting mismatch. No production harness adoption is approved by these passing tests.
+
+Historical stdout's `provider_calls` and JSON's `provider_requests` refer to **HTTPX MockTransport invocations**, not network inference. The parent clarified new stdout to `controlled_sdk_invocations` and added explicit actual source SHA/dirty/source-hash provenance. The rerun made 19 controlled SDK invocations across the ten cases and **zero external inference calls**; INET/INET6 remained kernel-blocked. Historical evidence files were not overwritten to pretend those new labels existed in the earlier run.
+
 ## Scope, pins and licenses
 
 | Component | Exact reviewed/executed pin | License and use |
