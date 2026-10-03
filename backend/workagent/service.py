@@ -16,6 +16,7 @@ from .db import Database
 from .errors import DomainError, deny
 from .models import *
 from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
+from .conversations import Conversations
 
 
 def canonical(value) -> str:
@@ -55,7 +56,7 @@ class WorkerCapability:
     secret: str
 
 
-class Service(ProviderAttempts):
+class Service(Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -126,7 +127,7 @@ class Service(ProviderAttempts):
         event_id = new_id()
         c.execute('INSERT INTO audit(id,workspace_id,principal_id,operation,object_id) VALUES (%s,%s,%s,%s,%s)', (event_id,ws,p.id,operation,object_id))
         c.execute('INSERT INTO outbox(id,workspace_id,operation,object_id) VALUES (%s,%s,%s,%s)', (event_id,ws,operation,object_id))
-        if operation in ('create_assignment', 'request_revision', 'control_assignment'):
+        if operation in ('create_assignment', 'request_revision', 'control_assignment', 'post_message'):
             c.execute('''INSERT INTO run_dispatches(workspace_id,run_id,outbox_id)
                 SELECT workspace_id,id,%s FROM runs WHERE workspace_id=%s
                 AND (id=%s OR assignment_id=%s) AND data->>'state'='queued'
@@ -223,7 +224,10 @@ class Service(ProviderAttempts):
             if not row:
                 deny()
             r=Run.model_validate(row['data'])
-            self._assignment(c,p,ws,r.assignment_id)
+            if r.conversation_id:
+                self._conversation(c,p,ws,r.conversation_id)
+            else:
+                self._assignment(c,p,ws,r.assignment_id)
             return r
 
     def _new_run(self,c,p,a,kind='initial',**kwargs):
@@ -401,6 +405,9 @@ class Service(ProviderAttempts):
 
     def control_assignment(self,p,ws,assignment_id,cmd):
         def mutate(c,a):
+            if a.conversation_id and cmd.operation=='resume':
+                # A recorded B1 delegation is not an intake run or autonomy grant.
+                raise DomainError('unsupported_operation')
             if a.work_version != cmd.expected_work_version:
                 raise DomainError('version_conflict',current_version=a.work_version)
             if cmd.operation=='resume' and a.state!='paused':
@@ -427,6 +434,9 @@ class Service(ProviderAttempts):
         return self._command(p,ws,'control_assignment',{'assignment_id':assignment_id},cmd,Assignment,lambda c:self._assignment(c,p,ws,assignment_id),mutate)
 
     def _runtime_pins(self,c,r):
+        if r.conversation_id:
+            from .conversations import check_general_pins
+            return check_general_pins(c,r)
         from .runtime_config import check_pins, BundleDenied
         try:
             check_pins(c,r)
@@ -451,7 +461,8 @@ class Service(ProviderAttempts):
             r=Run.model_validate(row['data'])
             if r.principal_id!=p.id:
                 deny()
-            a=self._assignment(c,p,ws,r.assignment_id,True)
+            a=(self._conversation(c,p,ws,r.conversation_id,True) if r.conversation_id else
+               self._assignment(c,p,ws,r.assignment_id,True))
             attempt=attempt_row(c,ws,run_id)
             if responses_receipt is not None:
                 bound,existing,_=self._receipt_binding(c,responses_receipt)
@@ -472,7 +483,8 @@ class Service(ProviderAttempts):
                 raise DomainError('action_unresolved')
             if r.used_units>=r.budget_units:
                 raise DomainError('budget_exhausted')
-            others=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s AND id<>%s',(ws,a.id,r.id)).fetchall()
+            owner_column='conversation_id' if r.conversation_id else 'assignment_id'
+            others=c.execute(f'SELECT data FROM runs WHERE workspace_id=%s AND {owner_column}=%s AND id<>%s',(ws,a.id,r.id)).fetchall()
             for other in others:
                 active=Run.model_validate(other['data'])
                 if active.state=='running' and active.lease_expires_at and active.lease_expires_at>now():
@@ -481,12 +493,16 @@ class Service(ProviderAttempts):
             r.fence+=1; r.state='running'; r.lease_expires_at=now()+timedelta(seconds=120)
             self._store_run(c,r)
             c.execute('UPDATE runs SET lease_hash=%s WHERE workspace_id=%s AND id=%s',(digest(secret),ws,r.id))
-            self._refresh_progress(c,a)
-            a.work_version+=1; self._store_assignment(c,a)
+            if not r.conversation_id:
+                self._refresh_progress(c,a)
+                a.work_version+=1; self._store_assignment(c,a)
             self._event(c,p,ws,'claim_run',r.id)
             cap=WorkerCapability(ws,r.id,p.id,r.fence,secret)
-            from .runtime_config import assemble_context
-            assemble_context(self,c,cap)
+            if r.conversation_id:
+                self._general_context(c,cap)
+            else:
+                from .runtime_config import assemble_context
+                assemble_context(self,c,cap)
             return cap
 
     def _check_capability(self,c,cap,allow_completed=False):
@@ -503,7 +519,8 @@ class Service(ProviderAttempts):
         completed=allow_completed and r.state in ('ready','partial')
         if not completed and (r.state!='running' or not r.lease_expires_at or r.lease_expires_at<=now()):
             raise DomainError('action_unresolved')
-        a=self._assignment(c,p,cap.workspace_id,r.assignment_id,True)
+        a=(self._conversation(c,p,cap.workspace_id,r.conversation_id,True) if r.conversation_id else
+           self._assignment(c,p,cap.workspace_id,r.assignment_id,True))
         self._runtime_pins(c,r)
         if r.access_generation!=generation:
             raise DomainError('source_changed')
@@ -543,6 +560,8 @@ class Service(ProviderAttempts):
                              'command':command.model_dump(mode='json',exclude={'request_id','command_id'}) if command else None})
         with self.db.transaction() as c:
             p,r,a=self._check_capability(c,cap,allow_completed=command is not None)
+            if r.conversation_id:
+                raise DomainError('unsupported_operation')
             ws=a.workspace_id
             if command:
                 previous=c.execute('SELECT payload_hash,result FROM commands WHERE principal_id=%s AND workspace_id=%s AND command_id=%s',(p.id,ws,command.command_id)).fetchone()
