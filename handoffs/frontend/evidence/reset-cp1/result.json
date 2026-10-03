@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "mode": "actual_application_postgresql_fixture_compute",
+  "provider_inference_calls": 0,
+  "demo_assignment_id": "650a0af8-df87-425f-9c14-d2d4d29baa97",
+  "delegated_assignment_id": "42f2b16c-3345-46ce-bd82-156c0d6029c1",
+  "checks": {
+    "delegated": "queued",
+    "paused": "paused",
+    "resumed": "queued",
+    "stopped": "cancelled",
+    "thread_desktop": [
+      "You:\nStart with my own intake log and notes. Help me decide one change to test, produce a reusable review checklist and give me a private working plan. I should get value even if I collaborate with nobody this week.",
+      "Agent:\nI prepared the private working plan. Edit anything, or ask me for a change.",
+      "You saved your edits as revision 2.",
+      "You:\nAdd an explicit next-step reminder without removing my protected note.",
+      "Agent:\nI proposed this change.",
+      "You kept your version. The proposal stays in history.",
+      "You:\nAdd a reminder to compare the next eight cases on Friday.",
+      "Agent:\nI proposed this change.",
+      "You applied it as revision 3."
+    ],
+    "thread_mobile": [
+      "You:\nStart with my own intake log and notes. Help me decide one change to test, produce a reusable review checklist and give me a private working plan. I should get value even if I collaborate with nobody this week.",
+      "Agent:\nI prepared the private working plan. Edit anything, or ask me for a change.",
+      "You saved your edits as revision 2.",
+      "You:\nAdd an explicit next-step reminder without removing my protected note.",
+      "Agent:\nI proposed this change.",
+      "You kept your version. The proposal stays in history.",
+      "You:\nAdd a reminder to compare the next eight cases on Friday.",
+      "Agent:\nI proposed this change.",
+      "You applied it as revision 3."
+    ]
+  },
+  "errors": []
+}
