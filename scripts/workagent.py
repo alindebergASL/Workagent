@@ -75,7 +75,7 @@ class Stack:
         commands = [('api', [PYTHON, '-m', 'workagent'], ROOT / 'backend'),
                     ('web', ['pnpm', 'start'], ROOT / 'web')]
         if worker:
-            commands.append(('dispatcher', [PYTHON, '-m', 'workagent.dispatcher'], ROOT / 'backend'))
+            commands.append(('dispatcher', [PYTHON, '-m', 'workagent.dispatcher', '--general-controlled'], ROOT / 'backend'))
         for name, command, cwd in commands:
             log = (logdir / f'{name}.log').open('ab')
             self.logs.append(log)

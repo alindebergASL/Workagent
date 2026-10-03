@@ -44,11 +44,32 @@
         "additionalProperties": false,
         "properties": {
           "assignment_id": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Assignment Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignment Id"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "current_revision": {
             "$ref": "#/components/schemas/Revision"
@@ -93,7 +114,6 @@
         "required": [
           "id",
           "workspace_id",
-          "assignment_id",
           "current_revision_id",
           "current_revision"
         ],
@@ -427,6 +447,65 @@
         "title": "Body",
         "type": "object"
       },
+      "CSVObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "discrepancies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Discrepancies",
+            "type": "array"
+          },
+          "expected_sum": {
+            "title": "Expected Sum",
+            "type": "string"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "reconcile_csv",
+            "default": "reconcile_csv",
+            "title": "Kind",
+            "type": "string"
+          },
+          "reported_sum": {
+            "title": "Reported Sum",
+            "type": "string"
+          },
+          "rounding": {
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          },
+          "source_values_preserved": {
+            "const": true,
+            "default": true,
+            "title": "Source Values Preserved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input_sha256",
+          "formula",
+          "rounding",
+          "reported_sum",
+          "expected_sum",
+          "discrepancies"
+        ],
+        "title": "CSVObservation",
+        "type": "object"
+      },
       "CancelConversation": {
         "additionalProperties": false,
         "properties": {
@@ -528,6 +607,18 @@
             "title": "Id",
             "type": "string"
           },
+          "last_message_preview": {
+            "anyOf": [
+              {
+                "maxLength": 240,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message Preview"
+          },
           "owner_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -558,6 +649,18 @@
             "title": "Title",
             "type": "string"
           },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
           "work_version": {
             "default": 1,
             "maximum": 2147483647.0,
@@ -585,6 +688,16 @@
       "ConversationDetail": {
         "additionalProperties": false,
         "properties": {
+          "artifact_ids": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "title": "Artifact Ids",
+            "type": "array"
+          },
           "assignment_ids": {
             "items": {
               "maxLength": 128,
@@ -610,6 +723,13 @@
               "$ref": "#/components/schemas/Run"
             },
             "title": "Runs",
+            "type": "array"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnState"
+            },
+            "title": "Turns",
             "type": "array"
           }
         },
@@ -666,6 +786,31 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Id",
             "type": "string"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "reconcile_csv": "#/components/schemas/ReconcileCSV",
+                    "run_wasm": "#/components/schemas/RunWasm"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ReconcileCSV"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RunWasm"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
           },
           "result": {
             "anyOf": [
@@ -1197,7 +1342,8 @@
               "fixture-deterministic-v1",
               "openai-agents-v1",
               "openai-responses-v1",
-              "general-controlled-v1"
+              "general-controlled-v1",
+              "general-products-controlled-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -1219,11 +1365,76 @@
         "title": "ExecutionProvenance",
         "type": "object"
       },
+      "FileBody": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|wat|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "kind": {
+            "const": "file",
+            "default": "file",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain",
+              "application/wasm-text"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "filename",
+          "mime_type",
+          "content",
+          "content_sha256"
+        ],
+        "title": "FileBody",
+        "type": "object"
+      },
       "HumanSave": {
         "additionalProperties": false,
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "command_id": {
             "maxLength": 128,
@@ -1262,6 +1473,46 @@
         "title": "HumanSave",
         "type": "object"
       },
+      "InputField": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "maximum": {
+            "const": 1000000000,
+            "default": 1000000000,
+            "title": "Maximum",
+            "type": "integer"
+          },
+          "minimum": {
+            "const": -1000000000,
+            "default": -1000000000,
+            "title": "Minimum",
+            "type": "integer"
+          },
+          "name": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "const": "integer",
+            "default": "integer",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label"
+        ],
+        "title": "InputField",
+        "type": "object"
+      },
       "MessageQueued": {
         "additionalProperties": false,
         "properties": {
@@ -1281,6 +1532,34 @@
           "run"
         ],
         "title": "MessageQueued",
+        "type": "object"
+      },
+      "ObservationReadback": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_state": {
+            "enum": [
+              "current_revision",
+              "pending_proposal",
+              "historical"
+            ],
+            "title": "Binding State",
+            "type": "string"
+          },
+          "current_scope": {
+            "title": "Current Scope",
+            "type": "boolean"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/ProductObservation"
+          }
+        },
+        "required": [
+          "observation",
+          "binding_state",
+          "current_scope"
+        ],
+        "title": "ObservationReadback",
         "type": "object"
       },
       "OutcomeCheck": {
@@ -1371,6 +1650,31 @@
             "title": "Expected Work Version",
             "type": "integer"
           },
+          "operation": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "reconcile_csv": "#/components/schemas/ReconcileCSV",
+                    "run_wasm": "#/components/schemas/RunWasm"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ReconcileCSV"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RunWasm"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
           "request_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -1400,6 +1704,195 @@
         "title": "PostMessage",
         "type": "object"
       },
+      "ProductObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "evidence_origin": {
+            "const": "controlled_transport",
+            "default": "controlled_transport",
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "operation_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Operation Hash",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservation"
+              }
+            ],
+            "title": "Output"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "conversation_id",
+          "run_id",
+          "artifact_id",
+          "body_hash",
+          "operation_hash",
+          "access_generation",
+          "output"
+        ],
+        "title": "ProductObservation",
+        "type": "object"
+      },
+      "ProductResult": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "table",
+              "file",
+              "tool"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "observation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          }
+        },
+        "required": [
+          "kind",
+          "artifact_id",
+          "observation_id"
+        ],
+        "title": "ProductResult",
+        "type": "object"
+      },
       "Proposal": {
         "additionalProperties": false,
         "properties": {
@@ -1425,11 +1918,18 @@
             "type": "string"
           },
           "assignment_id": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Assignment Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignment Id"
           },
           "base_revision_id": {
             "maxLength": 128,
@@ -1445,12 +1945,40 @@
             "type": "integer"
           },
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "body_hash": {
             "pattern": "^[0-9a-f]{64}$",
             "title": "Body Hash",
             "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "created_at": {
             "format": "date-time",
@@ -1499,7 +2027,6 @@
         "required": [
           "id",
           "workspace_id",
-          "assignment_id",
           "artifact_id",
           "base_revision_id",
           "base_work_version",
@@ -1540,6 +2067,71 @@
           "items"
         ],
         "title": "ProposalPage",
+        "type": "object"
+      },
+      "ReconcileCSV": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "input_csv": {
+            "anyOf": [
+              {
+                "maxLength": 200000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Csv"
+          },
+          "kind": {
+            "const": "reconcile_csv",
+            "title": "Kind",
+            "type": "string"
+          },
+          "rounding": {
+            "default": "ROUND_HALF_UP",
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ReconcileCSV",
         "type": "object"
       },
       "RequestRevision": {
@@ -1760,7 +2352,21 @@
             "type": "string"
           },
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "body_hash": {
             "pattern": "^[0-9a-f]{64}$",
@@ -2024,7 +2630,8 @@
               "fixture-deterministic-v1",
               "openai-agents-v1",
               "openai-responses-v1",
-              "general-controlled-v1"
+              "general-controlled-v1",
+              "general-products-controlled-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -2318,6 +2925,88 @@
         "title": "RunOutcome",
         "type": "object"
       },
+      "RunWasm": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "entrypoint": {
+            "default": "total",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "input_form": {
+            "items": {
+              "$ref": "#/components/schemas/InputField"
+            },
+            "maxItems": 8,
+            "title": "Input Form",
+            "type": "array"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "arguments",
+          "input_form"
+        ],
+        "title": "RunWasm",
+        "type": "object"
+      },
       "Source": {
         "additionalProperties": false,
         "properties": {
@@ -2488,6 +3177,75 @@
         "title": "SourceRef",
         "type": "object"
       },
+      "TableBody": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 33,
+            "title": "Columns",
+            "type": "array"
+          },
+          "kind": {
+            "const": "table",
+            "default": "table",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Notes",
+            "type": "array"
+          },
+          "rounding": {
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "maxItems": 500,
+            "title": "Rows",
+            "type": "array"
+          },
+          "source_csv": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Source Csv",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "source_csv",
+          "rounding",
+          "columns",
+          "rows"
+        ],
+        "title": "TableBody",
+        "type": "object"
+      },
       "Task": {
         "additionalProperties": false,
         "properties": {
@@ -2645,14 +3403,86 @@
         "title": "TextResult",
         "type": "object"
       },
+      "ToolBody": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "entrypoint": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "input_form": {
+            "items": {
+              "$ref": "#/components/schemas/InputField"
+            },
+            "maxItems": 8,
+            "title": "Input Form",
+            "type": "array"
+          },
+          "kind": {
+            "const": "tool",
+            "default": "tool",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Notes",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "code",
+          "entrypoint",
+          "arguments",
+          "input_form"
+        ],
+        "title": "ToolBody",
+        "type": "object"
+      },
       "TurnResult": {
         "additionalProperties": false,
         "properties": {
           "results": {
             "items": {
-              "$ref": "#/components/schemas/TextResult"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TextResult"
+                },
+                {
+                  "$ref": "#/components/schemas/ProductResult"
+                }
+              ]
             },
-            "maxItems": 1,
+            "maxItems": 3,
             "minItems": 1,
             "title": "Results",
             "type": "array"
@@ -2662,6 +3492,134 @@
           "results"
         ],
         "title": "TurnResult",
+        "type": "object"
+      },
+      "TurnState": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_origin": {
+            "const": "controlled_transport",
+            "default": "controlled_transport",
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "provider_observation": {
+            "const": "not_observed",
+            "default": "not_observed",
+            "title": "Provider Observation",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "responding",
+              "replied",
+              "failed",
+              "unavailable",
+              "outcome_unknown",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "state",
+          "reason"
+        ],
+        "title": "TurnState",
+        "type": "object"
+      },
+      "WasmObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Code Sha256",
+            "type": "string"
+          },
+          "engine": {
+            "const": "wasmtime-49.0.0",
+            "title": "Engine",
+            "type": "string"
+          },
+          "entrypoint": {
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "execution_observed": {
+            "const": true,
+            "title": "Execution Observed",
+            "type": "boolean"
+          },
+          "fuel_consumed": {
+            "title": "Fuel Consumed",
+            "type": "integer"
+          },
+          "fuel_limit": {
+            "const": 50000,
+            "title": "Fuel Limit",
+            "type": "integer"
+          },
+          "host_imports": {
+            "const": 0,
+            "title": "Host Imports",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "default": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          },
+          "memory_limit_bytes": {
+            "const": 1048576,
+            "title": "Memory Limit Bytes",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "entrypoint",
+          "arguments",
+          "code_sha256",
+          "input_sha256",
+          "engine",
+          "execution_observed",
+          "fuel_consumed",
+          "fuel_limit",
+          "memory_limit_bytes",
+          "host_imports"
+        ],
+        "title": "WasmObservation",
         "type": "object"
       },
       "Workspace": {
@@ -3004,6 +3962,7 @@
               "application/json": {
                 "example": {
                   "assignment_id": "assignment-example",
+                  "conversation_id": null,
                   "current_revision": {
                     "artifact_id": "artifact-example",
                     "author_id": "local-human",
@@ -3144,6 +4103,186 @@
           }
         ],
         "summary": "Get Artifact"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download": {
+      "get": {
+        "operationId": "download_product",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Download"
       }
     },
     "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/history": {
@@ -3755,6 +4894,7 @@
               "application/json": {
                 "example": {
                   "assignment_id": "assignment-example",
+                  "conversation_id": null,
                   "current_revision": {
                     "artifact_id": "artifact-example",
                     "author_id": "local-human",
@@ -4173,7 +5313,7 @@
                     "provider_session_id": null,
                     "provider_turn_id": null,
                     "state": "queued",
-                    "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+                    "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -4881,10 +6021,12 @@
                     {
                       "created_at": "2026-10-02T00:00:00Z",
                       "id": "conversation-example",
+                      "last_message_preview": null,
                       "owner_id": "local-human",
                       "selected_source_refs": [],
                       "state": "open",
                       "title": "Conversation",
+                      "updated_at": null,
                       "work_version": 1,
                       "workspace_id": "workspace-example"
                     }
@@ -5038,10 +6180,12 @@
                 "example": {
                   "created_at": "2026-10-02T00:00:00Z",
                   "id": "conversation-example",
+                  "last_message_preview": null,
                   "owner_id": "local-human",
                   "selected_source_refs": [],
                   "state": "open",
                   "title": "Conversation",
+                  "updated_at": null,
                   "work_version": 1,
                   "workspace_id": "workspace-example"
                 },
@@ -5209,14 +6353,17 @@
             "content": {
               "application/json": {
                 "example": {
+                  "artifact_ids": [],
                   "assignment_ids": [],
                   "conversation": {
                     "created_at": "2026-10-02T00:00:00Z",
                     "id": "conversation-example",
+                    "last_message_preview": null,
                     "owner_id": "local-human",
                     "selected_source_refs": [],
                     "state": "open",
                     "title": "Conversation",
+                    "updated_at": null,
                     "work_version": 2,
                     "workspace_id": "workspace-example"
                   },
@@ -5228,6 +6375,7 @@
                       "created_at": "2026-10-02T00:00:00Z",
                       "evidence_origin": "human",
                       "id": "message-example",
+                      "operation": null,
                       "result": null,
                       "run_id": "turn-example",
                       "sequence": 1,
@@ -5270,7 +6418,8 @@
                       "used_units": 0,
                       "workspace_id": "workspace-example"
                     }
-                  ]
+                  ],
+                  "turns": []
                 },
                 "schema": {
                   "$ref": "#/components/schemas/ConversationDetail"
@@ -5432,10 +6581,12 @@
                 "example": {
                   "created_at": "2026-10-02T00:00:00Z",
                   "id": "conversation-example",
+                  "last_message_preview": null,
                   "owner_id": "local-human",
                   "selected_source_refs": [],
                   "state": "cancelled",
                   "title": "Conversation",
+                  "updated_at": null,
                   "work_version": 3,
                   "workspace_id": "workspace-example"
                 },
@@ -5763,6 +6914,7 @@
               "example": {
                 "command_id": "command-example",
                 "expected_work_version": 1,
+                "operation": null,
                 "request_id": "request-example",
                 "schema_version": "workagent/v1",
                 "text": "Help me think this through"
@@ -5782,10 +6934,12 @@
                   "conversation": {
                     "created_at": "2026-10-02T00:00:00Z",
                     "id": "conversation-example",
+                    "last_message_preview": null,
                     "owner_id": "local-human",
                     "selected_source_refs": [],
                     "state": "open",
                     "title": "Conversation",
+                    "updated_at": null,
                     "work_version": 2,
                     "workspace_id": "workspace-example"
                   },
@@ -5796,6 +6950,7 @@
                     "created_at": "2026-10-02T00:00:00Z",
                     "evidence_origin": "human",
                     "id": "message-example",
+                    "operation": null,
                     "result": null,
                     "run_id": "turn-example",
                     "sequence": 1,
@@ -5943,6 +7098,169 @@
           }
         ],
         "summary": "Post Message"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/observations/{observation_id}": {
+      "get": {
+        "operationId": "get_product_observation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "observation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Observation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationReadback"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Observation"
       }
     },
     "/v1/workspaces/{workspace_id}/proposals/{proposal_id}/accept": {
@@ -6337,7 +7655,7 @@
                   "provider_session_id": null,
                   "provider_turn_id": null,
                   "state": "running",
-                  "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+                  "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

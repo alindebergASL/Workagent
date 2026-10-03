@@ -62,4 +62,12 @@ def examples():
                                     owner_id=cv.owner_id,goal='Carry this forward',completion_criteria=['Review together'],selected_source_refs=[],state='paused',
                                     unresolved=['Delegation recorded; autonomous execution is not supported by B1. Resume is disabled.'],observed_at=at))}
     })
+    from .product_models import ReconcileCSV, RunWasm, InputField
+    csv_input='id,quantity,unit_price,reported_total,note\nA,2,19.95,39.90,Keep my wording\nB,3,12.50,38.50,Await credit\n'
+    wat='(module (func (export "total") (param i64 i64) (result i64) local.get 0 local.get 1 i64.mul))'
+    operations.update({
+        'post_csv_operation':{'request':dump(PostMessage(**meta,expected_work_version=1,text='Reconcile these invoice rows',operation=ReconcileCSV(kind='reconcile_csv',input_csv=csv_input)))},
+        'post_wasm_operation':{'request':dump(PostMessage(**meta,expected_work_version=1,text='Run this integer cents tool',operation=RunWasm(kind='run_wasm',code=wat,arguments=[3,1250],input_form=[InputField(name='quantity',label='Quantity'),InputField(name='unit_price_cents',label='Unit price cents')])))},
+        'recalculate_saved_table':{'request':dump(PostMessage(**meta,expected_work_version=2,text='Use half-even rounding and preserve my saved cells/notes',operation=ReconcileCSV(kind='reconcile_csv',artifact_id='artifact-example',base_revision_id='revision-2',rounding='ROUND_HALF_EVEN')))}
+    })
     return {'label':'Illustrative schema examples; not live provider or test evidence','scenarios':scenarios,'operations':operations}

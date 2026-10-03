@@ -6,8 +6,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator
 
-Id = Annotated[str, Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9][A-Za-z0-9_.:-]*$')]
-Text = Annotated[str, Field(min_length=1, max_length=10000)]
+from .model_base import Model, Id, Text, Hash
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 
 
@@ -17,10 +16,6 @@ def now() -> datetime:
 
 def new_id() -> str:
     return str(uuid4())
-
-
-class Model(BaseModel):
-    model_config = ConfigDict(extra='forbid', validate_assignment=True)
 
 
 class ErrorCode(str, Enum):
@@ -121,8 +116,10 @@ class SourceDetail(Source):
     content: dict
 
 
-Hash = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
-ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1']
+from .product_models import (TableBody, FileBody, ToolBody, LocalOperation, ProductResult,
+    ProductObservation, ObservationReadback, TurnState)
+ProductBody = Body | TableBody | FileBody | ToolBody
+ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1', 'general-products-controlled-v1']
 
 
 class ExecutionProvenance(Model):
@@ -332,7 +329,7 @@ class Run(Model):
             raise ValueError('run requires exactly one assignment or conversation owner')
         if (self.kind == 'conversation_turn') != (self.conversation_id is not None):
             raise ValueError('conversation turns require a conversation owner')
-        if (self.profile == 'general-controlled-v1') != (self.conversation_id is not None):
+        if (self.profile in ('general-controlled-v1','general-products-controlled-v1')) != (self.conversation_id is not None):
             raise ValueError('general controlled profile requires a conversation turn')
         return self
 
@@ -349,6 +346,9 @@ class CreateConversation(Command):
 
 
 class Conversation(Model):
+    # List/detail projections derived from the immutable message ledger.
+    updated_at: AwareDatetime | None = None
+    last_message_preview: Annotated[str, Field(max_length=240)] | None = None
     id: Id
     workspace_id: Id
     owner_id: Id
@@ -362,6 +362,7 @@ class Conversation(Model):
 class PostMessage(Command):
     expected_work_version: Version
     text: Text
+    operation: LocalOperation | None = None
 
 
 class CancelConversation(Command):
@@ -382,7 +383,7 @@ class TextResult(Model):
 class TurnResult(Model):
     # Extend this typed result family when a broker-backed operation is implemented.
     # No opaque dicts, simulated files/tools, or authority/acceptance fields.
-    results: list[TextResult] = Field(min_length=1, max_length=1)
+    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
 
 
 class ConversationMessage(Model):
@@ -395,6 +396,7 @@ class ConversationMessage(Model):
     text: Text
     evidence_origin: Literal['human', 'controlled_transport']
     result: TurnResult | None = None
+    operation: LocalOperation | None = None
     created_at: AwareDatetime = Field(default_factory=now)
 
 
@@ -414,6 +416,8 @@ class ConversationDetail(Model):
     messages: list[ConversationMessage]
     runs: list[Run]
     assignment_ids: list[Id]
+    artifact_ids: list[Id] = Field(default_factory=list)
+    turns: list[TurnState] = Field(default_factory=list)
 
 
 class Revision(Model):
@@ -423,7 +427,7 @@ class Revision(Model):
     parent_revision_id: Id | None
     author_id: Id
     author_kind: Literal['human', 'worker']
-    body: Body
+    body: ProductBody
     body_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     source_dependencies: list[SourceRef] = Field(max_length=50)
     created_at: AwareDatetime = Field(default_factory=now)
@@ -432,7 +436,8 @@ class Revision(Model):
 class Artifact(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     current_revision_id: Id
     current_revision: Revision
     requested_revision: Revision | None = None
@@ -442,11 +447,12 @@ class Artifact(Model):
 class Proposal(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     artifact_id: Id
     base_revision_id: Id
     base_work_version: Version
-    body: Body
+    body: ProductBody
     body_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     source_dependencies: list[SourceRef] = Field(max_length=50)
     reason: Text
@@ -457,7 +463,7 @@ class Proposal(Model):
 
 class HumanSave(Command):
     expected_current_revision_id: Id
-    body: Body
+    body: ProductBody
 
 
 class RequestRevision(Command):
