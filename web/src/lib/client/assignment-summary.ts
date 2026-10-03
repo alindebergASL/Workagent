@@ -60,9 +60,9 @@ export function assignmentSummary(
     observed_at: a.observed_at ?? "",
     stage:
       state === "queued"
-        ? "Queued for local fixture work"
+        ? "Waiting to start"
         : state === "working"
-          ? "Preparing private artifacts"
+          ? "Preparing your work"
           : null,
     latest_result:
       state === "finished"
