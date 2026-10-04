@@ -1,11 +1,10 @@
 "use client";
-import Link from "next/link";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
 import type { ConversationSummary } from "@/lib/contract/types";
-import { formatTime } from "@/lib/time";
+import { ConversationRow } from "@/components/ConversationRow";
 import { ErrorNotice } from "@/components/ui";
 
 export default function ConversationsPage() {
@@ -35,26 +34,7 @@ export default function ConversationsPage() {
       {items.length ? (
         <ul className="work-list">
           {items.map((c) => (
-            <li key={c.id}>
-              <Link
-                className="work-row"
-                href={`/conversations/${c.id}`}
-                data-conversation={c.id}
-              >
-                <span className="work-row-main">
-                  <span className="work-row-title clamp-2">{c.title}</span>
-                  <span className="work-row-note">
-                    {c.state === "open" ? "Open" : "Ended"}
-                    {c.created_at
-                      ? ` · started ${formatTime(c.created_at, zone)}`
-                      : ""}
-                  </span>
-                </span>
-                <span className="work-row-go" aria-hidden="true">
-                  ↗
-                </span>
-              </Link>
-            </li>
+            <ConversationRow key={c.id} c={c} zone={zone} />
           ))}
         </ul>
       ) : null}

@@ -27,6 +27,12 @@ const GENERAL_COMPLETION =
 
 const DRAFT_KEY = "workagent:composer-draft";
 
+/** Ways to begin, from the prototype; each only fills the message. */
+const STARTERS = [
+  { label: "Think something through", text: "Help me think through " },
+  { label: "Take something off my plate", text: "Take this off my plate: " },
+];
+
 function readDraft(scope: string): string {
   try {
     return sessionStorage.getItem(`${DRAFT_KEY}:${scope}`) ?? "";
@@ -306,6 +312,18 @@ export function Composer({
     requestRef.current?.focus();
   };
 
+  /** A starter only begins the sentence; nothing is sent until the person sends it. */
+  const start = (text: string) => {
+    setRequest(text);
+    setUnsentNote(false);
+    window.setTimeout(() => {
+      const el = requestRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(text.length, text.length);
+    }, 0);
+  };
+
   const toggle = (id: string) => {
     setNeedsContext(false);
     setSelected((prev) =>
@@ -486,9 +504,20 @@ export function Composer({
         </p>
       ) : null}
       <div className="composer-after">
+        {STARTERS.map((st) => (
+          <button
+            key={st.label}
+            type="button"
+            className="link-quiet starter"
+            onClick={() => start(st.text)}
+            disabled={locked}
+          >
+            {st.label} ↗
+          </button>
+        ))}
         <button
           type="button"
-          className="link-quiet"
+          className="link-quiet starter-quiet"
           onClick={useSample}
           disabled={!sources.data?.length || locked}
         >

@@ -500,7 +500,9 @@ test.describe("S1 journey (mock mode)", () => {
       after - before,
       "exactly one assignment created across the failed attempt and its retry",
     ).toBe(1);
-    await page.unroute("**/api/mock/workspaces/*/assignments");
+    // The handler stays installed (it already passes everything through after
+    // the first POST): changing interception patterns while the next page's
+    // first read is in flight can leave that read unanswered.
 
     // Connection drops while working: the page keeps what it has, shows reconnecting, then resumes the same assignment.
     const assignmentId = page.url().split("/").pop()!;
@@ -509,8 +511,9 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /intake log/i,
     );
+    let offline = true;
     await page.route("**/api/mock/workspaces/*/assignments/*", (route) =>
-      route.abort("connectionrefused"),
+      offline ? route.abort("connectionrefused") : route.continue(),
     );
     // Returning to the tab re-reads the assignment, whether or not it was still polling.
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
@@ -521,7 +524,7 @@ test.describe("S1 journey (mock mode)", () => {
       /intake log/i,
     );
     await shot(page, info, "18-assignment-reconnecting");
-    await page.unroute("**/api/mock/workspaces/*/assignments/*");
+    offline = false;
     await expect(page.getByText("Reconnecting…")).toBeHidden({
       timeout: 30_000,
     });

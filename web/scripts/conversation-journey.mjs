@@ -215,6 +215,35 @@ try {
   await expect(page.locator(".since-handling")).toHaveCount(0);
   await shot(page, "06-home-desktop");
 
+  // ---- starters only begin the sentence; nothing is sent ----
+  await page.getByRole("button", { name: "Think something through ↗" }).click();
+  await expect(page.getByLabel("Message your agent")).toHaveValue(
+    "Help me think through ",
+  );
+  await expect(page.getByLabel("Message your agent")).toBeFocused();
+  expect((await api("/conversations")).body.items).toHaveLength(1);
+  await page.getByLabel("Message your agent").fill("");
+
+  // ---- Activity: latest recorded change of each item ----
+  await page.getByRole("link", { name: "Activity", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
+  await expect(page.locator(`[data-activity="work:${aid}"]`)).toContainText(
+    "Handed over · not started",
+  );
+  await expect(
+    page.locator(`[data-activity="conversation:${cid}"]`),
+  ).toContainText("Conversation started");
+  await shot(page, "06b-activity-desktop");
+
+  // ---- the Space shows the same conversation and work ----
+  await page.goto(`${origin}/spaces/local-workspace`);
+  await page.getByRole("tab", { name: "Conversations" }).click();
+  await expect(page.locator(`[data-conversation="${cid}"]`)).toBeVisible();
+  await shot(page, "06c-space-conversations-desktop");
+  await page.getByRole("tab", { name: "Context" }).click();
+  await expect(page.locator(".source-row").first()).toContainText("Version");
+  await page.goto(origin);
+
   // ---- a second conversation from Home: "Take it from here" without context ----
   await page
     .getByLabel("Message your agent")
@@ -270,6 +299,18 @@ try {
   await shot(phone, "09-conversation-mobile");
   await phone.goto(`${origin}/conversations/${cid}`);
   await shot(phone, "10-conversation-ended-mobile");
+  await phone.goto(`${origin}/activity`);
+  await expect(
+    phone.locator(`[data-activity="conversation:${cid}"]`),
+  ).toContainText("Conversation ended");
+  await noScroll(phone);
+  await shot(phone, "11-activity-mobile");
+  await phone.goto(origin);
+  await expect(
+    phone.getByRole("button", { name: "Take something off my plate ↗" }),
+  ).toBeVisible();
+  await noScroll(phone);
+  await shot(phone, "12-home-mobile");
 
   expect(errors).toEqual([]);
   await writeFile(

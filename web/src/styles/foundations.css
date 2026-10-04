@@ -269,3 +269,25 @@
     margin-left: auto;
   }
 }
+
+/* ---------- quiet in-card status ---------- */
+.doc-card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--ink-2);
+  margin-left: auto;
+  margin-right: var(--sp-3);
+}
+.doc-card-bar {
+  flex-wrap: wrap;
+}
+.starter-quiet {
+  color: var(--muted);
+}
+
+/* ---------- activity ---------- */
+.activity-day {
+  display: grid;
+  gap: var(--sp-2);
+}

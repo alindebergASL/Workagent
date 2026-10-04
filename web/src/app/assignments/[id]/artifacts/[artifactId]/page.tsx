@@ -1260,6 +1260,14 @@ export default function ArtifactPage() {
           {KIND_LABEL[art.kind]} · revision {current.sequence}
           {editing ? " · editing" : ""}
         </span>
+        {/* The conversation carries the detail; the page keeps a quiet cue so
+            phones (which return to the document after a send) still see it. */}
+        {generating ? (
+          <span className="doc-card-status" role="status">
+            <span className="dot dot-live" aria-hidden="true" />
+            <span>A revision is being drafted</span>
+          </span>
+        ) : null}
         <span>
           {dirty
             ? "Unsaved changes"
@@ -1347,12 +1355,6 @@ export default function ArtifactPage() {
       {save.kind === "saved" && !editing ? (
         <Notice tone="notice-ok" role="status">
           Saved as revision {current.sequence}.
-        </Notice>
-      ) : null}
-      {generating ? (
-        <Notice role="status" title="A revision is being drafted">
-          Based on revision {proposal?.base_sequence}. Keep working; nothing
-          changes until you decide.
         </Notice>
       ) : null}
       <WorkSurface

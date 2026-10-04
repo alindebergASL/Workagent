@@ -31,6 +31,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const onAgent = pathname === "/" || pathname.startsWith("/assignments");
   const onSpaces = pathname.startsWith("/spaces");
   const onConversations = pathname.startsWith("/conversations");
+  const onActivity = pathname.startsWith("/activity");
 
   const nav = (
     <>
@@ -50,6 +51,15 @@ export function Shell({ children }: { children: ReactNode }) {
           aria-current={onSpaces ? "page" : undefined}
         >
           Spaces
+        </Link>
+      </li>
+      <li>
+        <Link
+          className="nav-link"
+          href="/activity"
+          aria-current={onActivity ? "page" : undefined}
+        >
+          Activity
         </Link>
       </li>
       {CAPABILITIES.conversation ? (

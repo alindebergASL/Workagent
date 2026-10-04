@@ -90,7 +90,6 @@ test("An unsent request survives pane switches and a reload @journey", async ({
   await expect(
     page.getByRole("button", { name: "Send request" }),
   ).toBeDisabled();
-  await page.unroute("**/artifacts/*/request-revision");
   expect(sent, "the retry replays the frozen command").toHaveLength(2);
   expect(sent[1]).toBe(sent[0]);
   const art = await (
