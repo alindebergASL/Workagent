@@ -30,8 +30,10 @@ function lede(items: AssignmentSummary[]): string {
     return "Some work is waiting on something outside your control. I’ll keep it as it is.";
   if (phases.includes("approved"))
     return "Your approved work is saved. What should we move forward next?";
-  if (phases.includes("paused"))
+  if (items.some((i) => phaseOf(i) === "paused" && !isRecordedHandover(i)))
     return "Some work is paused. Resume it whenever you’re ready, or start something new.";
+  if (items.some(isRecordedHandover))
+    return "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.";
   return "Ask, think something through, or hand over something you’d like finished.";
 }
 

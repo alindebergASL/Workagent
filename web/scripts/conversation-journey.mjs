@@ -311,6 +311,16 @@ try {
   ).toBeVisible();
   await noScroll(phone);
   await shot(phone, "12-home-mobile");
+  await expect(phone.locator(".lede")).toHaveText(
+    "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.",
+  );
+  await phone.setViewportSize({ width: 320, height: 640 });
+  await phone.goto(origin);
+  await expect(
+    phone.getByRole("heading", { name: "Good to see you." }),
+  ).toBeVisible();
+  await noScroll(phone);
+  await shot(phone, "13-home-narrow");
 
   expect(errors).toEqual([]);
   await writeFile(

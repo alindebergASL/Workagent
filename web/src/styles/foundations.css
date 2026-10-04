@@ -291,3 +291,25 @@
   display: grid;
   gap: var(--sp-2);
 }
+
+/* Phone nav: four destinations stay on one line and scroll within the bar
+   rather than widening the page. */
+@media (max-width: 860px) {
+  .topbar-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    max-width: 100%;
+    white-space: nowrap;
+  }
+  .topbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .topbar {
+    min-width: 0;
+  }
+}
+@media (max-width: 400px) {
+  .topbar-nav .nav-link {
+    padding: 8px 10px;
+  }
+}
