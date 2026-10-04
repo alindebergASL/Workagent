@@ -91,3 +91,33 @@ states are `ready, cancelled, ready`. Captures are in
    conversation is created. There is no way to add context later.
 6. **No B2/B3 products yet.** There are no table, file or tool products,
    downloads, edits or runs.
+
+## Follow-ups at `494a97c` (frontend only, no new backend)
+
+- **Activity.** Work and conversations grouped by day, each showing its
+  latest recorded change. With no event-history route, it doesn't invent
+  intermediate steps, and the page says so.
+- **Starters.** "Think something through" and "Take something off my plate"
+  only begin the message. The intake example stays as a quieter option.
+- **Spaces.** The Space uses the same column as Home, with Work /
+  Conversations / Context tabs. Record IDs are in details.
+- **Quieter drafting cue.** The full-width "revision is being drafted" banner
+  is now a quiet status in the document's header bar. Phones still see it
+  after a send.
+- **Honest Home lede.** Home no longer invites resuming a recorded hand-over.
+- **Phone nav.** All four destinations stay on one line down to 320 px.
+- **Mock e2e race fixed.** Unrouting just as the next page fired its first
+  read left that read unanswered about 1 run in 8. Handlers now stay
+  installed and pass through: 12/12 repeats, then the full suite twice.
+
+| Check at `494a97c` | Result |
+| --- | --- |
+| `pnpm check` | PASS, 52 tests |
+| Mock browser suite | PASS, 15/15 |
+| Canonical demo (fresh DB) | PASS |
+| Fault regressions | PASS, 9/9 |
+| Conversation journey (fresh DB; now also starters, Activity, Space conversations, 320 px) | PASS |
+| Reset checkpoint | PASS |
+
+Evidence images in `evidence/b1-conversation/` and `evidence/reset-cp1/` were
+refreshed from these runs.
