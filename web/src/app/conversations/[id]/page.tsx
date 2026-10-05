@@ -282,11 +282,15 @@ export default function ConversationPage() {
                   {m.products?.map((product) => (
                     <Link
                       key={`${product.artifact_id}:${product.observation_id}`}
-                      className="btn btn-sm"
+                      className="product-link"
+                      data-kind={product.kind}
                       href={`/conversations/${id}/artifacts/${product.artifact_id}`}
                     >
-                      Open {product.kind}
-                      {product.proposal_id ? " proposed change" : " product"}
+                      <span>
+                        Open {product.kind}
+                        {product.proposal_id ? " proposed change" : " product"}
+                      </span>
+                      <span aria-hidden="true">↗</span>
                     </Link>
                   ))}
                   {m.author === "agent" &&
@@ -314,9 +318,11 @@ export default function ConversationPage() {
           Connection lost. Displaying previously read state; refresh to confirm.
         </p>
       ) : null}
-      <button className="btn btn-sm" onClick={() => void res.refresh()}>
-        Refresh conversation
-      </button>
+      <div className="row">
+        <button className="link-quiet small" onClick={() => void res.refresh()}>
+          Refresh conversation
+        </button>
+      </div>
 
       {controlled ? (
         <details className="ids-details">

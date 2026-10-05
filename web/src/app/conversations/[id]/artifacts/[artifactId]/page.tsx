@@ -17,10 +17,21 @@ import {
 } from "@/lib/client/products";
 import { ApiError } from "@/lib/contract/errors";
 import { ErrorNotice } from "@/components/ui";
+import { ConversationPeek } from "@/components/ConversationPeek";
 import { ObservedOutput } from "@/components/ObservedOutput";
+import { WorkSurface } from "@/components/WorkSurface";
+import type { ConversationDetailView } from "@/lib/contract/types";
+import {
+  columnLabel,
+  DERIVED_COLUMNS,
+  ROUNDING_LABEL,
+  tableSummary,
+  toolInputs,
+} from "@/lib/product-summary";
 
 type Data = {
   artifact: S["Artifact"];
+  conversation: ConversationDetailView;
   proposals: S["Proposal"][];
   history: S["Revision"][];
   observations: Awaited<ReturnType<typeof resolveObservations>>;
@@ -114,6 +125,7 @@ export default function ProductPage() {
       );
       return {
         artifact,
+        conversation,
         proposals,
         history,
         observations,
@@ -123,7 +135,7 @@ export default function ProductPage() {
     },
   );
   return (
-    <div className="agent-col product-page">
+    <div className="doc-page product-page">
       <Link className="back-link" href={`/conversations/${id}`}>
         ← Back to conversation
       </Link>
@@ -142,13 +154,24 @@ export default function ProductPage() {
           <p>Loading authorized product…</p>
         )
       ) : (
-        <ProductEditor
-          key={`${ws}:${id}:${artifactId}`}
-          ws={ws!}
-          cid={id}
-          data={resource.data}
-          stale={resource.reconnecting}
-          refresh={resource.refresh}
+        <WorkSurface
+          focusAgent={0}
+          document={
+            <ProductEditor
+              key={`${ws}:${id}:${artifactId}`}
+              ws={ws!}
+              cid={id}
+              data={resource.data}
+              stale={resource.reconnecting}
+              refresh={resource.refresh}
+            />
+          }
+          agent={
+            <ConversationPeek
+              conversation={resource.data.conversation}
+              artifactId={artifactId}
+            />
+          }
         />
       )}
     </div>
@@ -224,7 +247,7 @@ function ProductEditor({
           body: saved.current_revision.body,
           pending: null,
         });
-        setNotice("Your edits are saved. Re-run to verify the saved version.");
+        setNotice("Your edits are saved. Recalculate or run it to check them.");
       } else if (exact.kind === "accept") {
         const saved = await productApi.accept(
           ws,
@@ -239,7 +262,7 @@ function ProductEditor({
           body: saved.current_revision.body,
           pending: null,
         });
-        setNotice("Exact proposed version accepted.");
+        setNotice("The proposed version is now your saved version.");
       } else {
         await conversationApi.send(ws, cid, {
           command_id: exact.id,
@@ -285,68 +308,158 @@ function ProductEditor({
     });
   }
   const locked = busy || Boolean(draft.pending) || stale;
+  const saved = artifact.current_revision.body as ProductBody;
+  const pendingProposals = data.proposals.filter((p) => p.status === "pending");
+  // The verified result for this saved version, else the latest output with
+  // its own binding said plainly. Nothing is promoted to "checked".
+  const lead = data.observations.current ?? data.observations.latest;
+  const leadIsCurrent = Boolean(verified);
+  const statusText = verified
+    ? dirty
+      ? "Your unsaved changes haven’t been checked yet."
+      : "Checked against this saved version."
+    : "This saved version hasn’t been checked yet.";
+  const runLabel =
+    draft.body.kind === "table" ? "Recalculate saved rows" : "Run saved tool";
+  const kindLabel =
+    draft.body.kind === "table"
+      ? "Table"
+      : draft.body.kind === "tool"
+        ? "Runnable tool"
+        : "File";
   return (
-    <div className="stack">
+    <div className="stack product">
       <header className="stack-sm">
-        <h1>{artifact.current_revision.body.title}</h1>
-        <p className="small muted">
-          {draft.body.kind} · Controlled local work · No model was called
-        </p>
+        <h1>{saved.title}</h1>
+        <div className="row product-meta">
+          <span className="small muted">
+            {kindLabel} · calculated locally, no model involved
+          </span>
+          <span className="composer-spacer" />
+          <button
+            className="link-quiet small"
+            disabled={busy || stale}
+            onClick={() =>
+              void productApi
+                .download(ws, artifact)
+                .catch((e) =>
+                  setError(e instanceof Error ? e.message : "Download failed"),
+                )
+            }
+          >
+            Download saved file
+          </button>
+          <button className="link-quiet small" onClick={() => void refresh()}>
+            Check for updates
+          </button>
+        </div>
       </header>
-      <p role="status" data-testid="product-verification">
-        {verified
-          ? dirty
-            ? "Saved revision verified; your unsaved draft is not verified."
-            : "Current saved revision verified"
-          : "No current verified result for this saved version"}
-      </p>
+
       {stale ? (
-        <p role="alert">
-          Connection lost. Previously read state is shown; mutations are
-          disabled until refreshed.
+        <p role="alert" className="notice-line">
+          Connection lost. Showing what was last read; changes are paused until
+          it reconnects.
         </p>
       ) : null}
       {changed ? (
-        <p role="alert">
-          The saved version changed. Your draft is retained. Reload the saved
-          version or review the conflict before saving.
+        <p role="alert" className="notice-line">
+          The saved version changed. Your draft is kept; discard it to see the
+          new version, or save to compare.
         </p>
       ) : null}
-      {error ? <p role="alert">{error}</p> : null}
-      {notice ? <p role="status">{notice}</p> : null}
-      <div className="row">
-        <button className="btn" onClick={() => void refresh()}>
-          Refresh saved state
-        </button>
-        <button
-          className="btn"
-          disabled={busy || stale}
-          onClick={() =>
-            void productApi
-              .download(ws, artifact)
-              .catch((e) =>
-                setError(e instanceof Error ? e.message : "Download failed"),
-              )
-          }
+      {error ? (
+        <p role="alert" className="notice-line">
+          {error}
+        </p>
+      ) : null}
+      {notice ? (
+        <p role="status" className="notice-line">
+          {notice}
+        </p>
+      ) : null}
+
+      <ResultCard
+        body={saved}
+        read={lead}
+        current={leadIsCurrent}
+        status={statusText}
+        verified={Boolean(verified) && !dirty}
+      />
+
+      {pendingProposals.map((p) => (
+        <section
+          key={p.id}
+          className="card decision-card product-proposal"
+          data-testid="product-proposal"
+          aria-labelledby={`proposal-${p.id}`}
         >
-          Download saved file
-        </button>
-      </div>
-      {observations.map((read) => (
-        <ObservedOutput
-          key={read.observation.id}
-          artifact={artifact}
-          read={read}
-          stale={stale}
-        />
+          <p className="eyebrow-caps">Waiting for you</p>
+          <h2 id={`proposal-${p.id}`}>A proposed version is ready</h2>
+          <p className="small">{p.reason}</p>
+          {isProduct(p.body) ? (
+            <>
+              {p.body.kind === "table" ? (
+                <p className="decision-question">
+                  {tableSummary(p.body).headline}
+                </p>
+              ) : null}
+              <details className="ids-details">
+                <summary>See the proposed version</summary>
+                <ProductView body={p.body} />
+                {p.body.kind !== "file" ? (
+                  <p className="small">
+                    Your notes kept: {(p.body.notes ?? []).join("; ") || "none"}
+                  </p>
+                ) : null}
+              </details>
+            </>
+          ) : null}
+          <div className="row">
+            <button
+              className="btn btn-on-soft"
+              disabled={
+                locked ||
+                dirty ||
+                p.base_revision_id !== artifact.current_revision_id
+              }
+              onClick={() =>
+                void submit({
+                  kind: "accept",
+                  id: crypto.randomUUID(),
+                  pid: p.id,
+                  base: artifact.current_revision_id,
+                })
+              }
+            >
+              Apply proposed version
+            </button>
+          </div>
+          {p.base_revision_id !== artifact.current_revision_id ? (
+            <p role="status" className="small">
+              Your saved version changed since this was proposed, so it can’t
+              replace it.
+            </p>
+          ) : dirty ? (
+            <p className="small">Save or discard your changes first.</p>
+          ) : null}
+        </section>
       ))}
+
       {draft.body.kind === "file" ? (
         <ProductView body={draft.body} />
       ) : (
-        <>
+        <section className="stack product-work" aria-label="Your working copy">
           <fieldset disabled={locked} className="stack">
             {draft.body.kind === "table" ? (
               <>
+                <p className="hint table-hint">
+                  Edit the raw values or notes. Calculated columns update when
+                  you recalculate.
+                  <span className="scroll-cue" aria-hidden="true">
+                    {" "}
+                    Scroll sideways for more columns →
+                  </span>
+                </p>
                 <div
                   className="product-scroll"
                   tabIndex={0}
@@ -357,22 +470,57 @@ function ProductEditor({
                     <thead>
                       <tr>
                         {draft.body.columns.map((c) => (
-                          <th key={c}>{c}</th>
+                          <th
+                            key={c}
+                            scope="col"
+                            data-derived={
+                              DERIVED_COLUMNS.includes(c) ? "true" : undefined
+                            }
+                          >
+                            {columnLabel(c)}
+                          </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {draft.body.rows.map((row, i) => (
-                        <tr key={i}>
+                        <tr
+                          key={i}
+                          data-discrepancy={
+                            row["check"] === "discrepancy" ? "true" : undefined
+                          }
+                        >
                           {draft.body.kind === "table" &&
                             draft.body.columns.map((c) => (
-                              <td key={c}>
-                                {[
-                                  "calculated_total",
-                                  "difference",
-                                  "check",
-                                ].includes(c) ? (
-                                  row[c]
+                              <td
+                                key={c}
+                                data-derived={
+                                  DERIVED_COLUMNS.includes(c)
+                                    ? "true"
+                                    : undefined
+                                }
+                              >
+                                {DERIVED_COLUMNS.includes(c) ? (
+                                  <span
+                                    className={
+                                      dirty
+                                        ? "derived derived-stale"
+                                        : "derived"
+                                    }
+                                    title={
+                                      dirty
+                                        ? "Not recalculated since your changes"
+                                        : undefined
+                                    }
+                                  >
+                                    {c === "check"
+                                      ? row[c] === "discrepancy"
+                                        ? "Doesn’t match"
+                                        : row[c] === "matched"
+                                          ? "Matches"
+                                          : row[c]
+                                      : row[c]}
+                                  </span>
                                 ) : (
                                   <input
                                     aria-label={`Row ${i + 1} ${c}`}
@@ -400,7 +548,7 @@ function ProductEditor({
                   </table>
                 </div>
                 <label className="field">
-                  <span>Rounding</span>
+                  <span className="field-label">Rounding</span>
                   <select
                     aria-label="Rounding"
                     value={draft.body.rounding}
@@ -416,54 +564,68 @@ function ProductEditor({
                         });
                     }}
                   >
-                    <option>ROUND_HALF_UP</option>
-                    <option>ROUND_HALF_EVEN</option>
+                    <option value="ROUND_HALF_UP">
+                      {ROUNDING_LABEL.ROUND_HALF_UP}
+                    </option>
+                    <option value="ROUND_HALF_EVEN">
+                      {ROUNDING_LABEL.ROUND_HALF_EVEN}
+                    </option>
                   </select>
                 </label>
               </>
             ) : (
               <>
-                <label className="field">
-                  <span>WebAssembly text (WAT)</span>
-                  <textarea
-                    className="product-code"
-                    rows={8}
-                    value={draft.body.code}
-                    onChange={(e) => {
-                      if (draft.body.kind === "tool")
-                        keep({
-                          ...draft,
-                          body: { ...draft.body, code: e.target.value },
-                        });
-                    }}
-                  />
-                </label>
-                <label className="field">
-                  <span>Entrypoint</span>
-                  <input
-                    value={draft.body.entrypoint}
-                    onChange={(e) => {
-                      if (draft.body.kind === "tool")
-                        keep({
-                          ...draft,
-                          body: { ...draft.body, entrypoint: e.target.value },
-                        });
-                    }}
-                  />
-                </label>
-                <p className="hint">
-                  Import-free i64 inputs/return only. Saving code does not
-                  execute it.
-                </p>
                 <ToolInputs
                   key={`${draft.base}:${inputReset}`}
                   body={draft.body}
                   update={(body) => keep({ ...draft, body })}
                 />
+                <details className="disclosure tool-code" open>
+                  <summary>Tool code</summary>
+                  <div className="disclosure-body stack">
+                    <label className="field">
+                      <span className="field-label">
+                        WebAssembly text (WAT)
+                      </span>
+                      <textarea
+                        className="product-code"
+                        rows={8}
+                        value={draft.body.code}
+                        onChange={(e) => {
+                          if (draft.body.kind === "tool")
+                            keep({
+                              ...draft,
+                              body: { ...draft.body, code: e.target.value },
+                            });
+                        }}
+                      />
+                    </label>
+                    <label className="field">
+                      <span className="field-label">Entrypoint</span>
+                      <input
+                        value={draft.body.entrypoint}
+                        onChange={(e) => {
+                          if (draft.body.kind === "tool")
+                            keep({
+                              ...draft,
+                              body: {
+                                ...draft.body,
+                                entrypoint: e.target.value,
+                              },
+                            });
+                        }}
+                      />
+                    </label>
+                    <p className="hint">
+                      Whole-number inputs and result only; the tool can’t read
+                      files or reach the network. Saving code doesn’t run it.
+                    </p>
+                  </div>
+                </details>
               </>
             )}
             <label className="field">
-              <span>Human notes (one per line)</span>
+              <span className="field-label">Your notes (one per line)</span>
               <textarea
                 value={(draft.body.notes ?? []).join("\n")}
                 onChange={(e) => {
@@ -479,30 +641,31 @@ function ProductEditor({
               />
             </label>
           </fieldset>
-          <div className="row">
-            <button
-              className="btn btn-primary"
-              disabled={locked || !dirty}
-              onClick={() =>
-                void submit({
-                  kind: "save",
-                  id: crypto.randomUUID(),
-                  base: draft.base,
-                  body: structuredClone(draft.body),
-                })
-              }
-            >
-              Save human edits
-            </button>
-            <button
-              className="btn"
-              disabled={locked || dirty || changed || !data.open}
-              onClick={run}
-            >
-              {draft.body.kind === "table"
-                ? "Recalculate saved rows"
-                : "Run saved tool"}
-            </button>
+          <div className="row product-actions">
+            {dirty ? (
+              <button
+                className="btn btn-primary"
+                disabled={locked}
+                onClick={() =>
+                  void submit({
+                    kind: "save",
+                    id: crypto.randomUUID(),
+                    base: draft.base,
+                    body: structuredClone(draft.body),
+                  })
+                }
+              >
+                Save my edits
+              </button>
+            ) : (
+              <button
+                className="btn btn-primary"
+                disabled={locked || changed || !data.open}
+                onClick={run}
+              >
+                {runLabel}
+              </button>
+            )}
             <button
               className="btn btn-quiet"
               disabled={locked}
@@ -516,10 +679,19 @@ function ProductEditor({
                   });
               }}
             >
-              Discard draft and reload saved version
+              Discard my changes
             </button>
           </div>
-        </>
+          <p className="hint">
+            {dirty
+              ? `Save first, then ${draft.body.kind === "table" ? "recalculate" : "run it"} to check your changes.`
+              : !data.open
+                ? "This conversation has ended, so nothing new can run."
+                : draft.body.kind === "table"
+                  ? "Recalculating proposes a new version for you to apply; your notes are kept."
+                  : "Running proposes a new version with the result for you to apply; your notes are kept."}
+          </p>
+        </section>
       )}
       {draft.pending ? (
         <button
@@ -530,74 +702,135 @@ function ProductEditor({
           Retry same {draft.pending.kind}
         </button>
       ) : null}
-      {data.proposals
-        .filter((p) => p.status === "pending")
-        .map((p) => (
-          <section
-            key={p.id}
-            className="card stack"
-            data-testid="product-proposal"
-          >
-            <h2>Proposed version</h2>
-            <p>{p.reason}</p>
-            {isProduct(p.body) ? (
-              <>
-                <ProductView body={p.body} />
-                {p.body.kind !== "file" ? (
-                  <p>Human notes: {(p.body.notes ?? []).join("; ")}</p>
-                ) : null}
-              </>
-            ) : null}
-            <button
-              className="btn btn-primary"
-              disabled={
-                locked ||
-                dirty ||
-                p.base_revision_id !== artifact.current_revision_id
-              }
-              onClick={() =>
-                void submit({
-                  kind: "accept",
-                  id: crypto.randomUUID(),
-                  pid: p.id,
-                  base: artifact.current_revision_id,
-                })
-              }
-            >
-              Accept exact proposed version
-            </button>
-            {p.base_revision_id !== artifact.current_revision_id ? (
-              <p role="status">
-                Saved version changed; this proposal cannot overwrite it.
-              </p>
-            ) : null}
-          </section>
-        ))}
-      <details>
+
+      {observations.length ? (
+        <details className="disclosure">
+          <summary>How this was checked</summary>
+          <div className="disclosure-body stack">
+            {observations.map((read) => (
+              <ObservedOutput
+                key={read.observation.id}
+                artifact={artifact}
+                read={read}
+                stale={stale}
+              />
+            ))}
+          </div>
+        </details>
+      ) : null}
+
+      <details className="disclosure">
         <summary>Saved history and original input</summary>
-        {data.history.map((r) => (
-          <section key={r.id}>
-            <h3>
-              Revision {r.revision_number} · {r.author_kind}
-            </h3>
-            {isProduct(r.body) ? (
-              <>
-                <ProductView body={r.body} />
-                {r.body.kind === "table" ? (
-                  <details>
-                    <summary>Original attached CSV</summary>
-                    <pre className="product-code">{r.body.source_csv}</pre>
-                  </details>
-                ) : null}
-              </>
-            ) : null}
-            <p className="ids">
-              {r.id} · {r.body_hash}
-            </p>
-          </section>
-        ))}
+        <div className="disclosure-body stack">
+          {data.history.map((r) => (
+            <section key={r.id} className="stack-sm">
+              <h3>
+                Version {r.revision_number} ·{" "}
+                {r.author_kind === "human" ? "your edit" : "calculated"}
+              </h3>
+              {isProduct(r.body) ? (
+                <>
+                  <ProductView body={r.body} />
+                  {r.body.kind === "table" ? (
+                    <details>
+                      <summary>Original attached CSV</summary>
+                      <pre className="product-code">{r.body.source_csv}</pre>
+                    </details>
+                  ) : null}
+                </>
+              ) : null}
+              <p className="ids">
+                {r.id} · {r.body_hash}
+              </p>
+            </section>
+          ))}
+        </div>
       </details>
     </div>
+  );
+}
+
+/** The result first: what was found, then whether it applies to this saved version. */
+function ResultCard({
+  body,
+  read,
+  current,
+  status,
+  verified,
+}: {
+  body: ProductBody;
+  read: S["ObservationReadback"] | null;
+  current: boolean;
+  status: string;
+  verified: boolean;
+}) {
+  const output = read?.observation.output;
+  const where =
+    !read || current
+      ? null
+      : read.binding_state === "pending_proposal"
+        ? "This result is for the proposed version below."
+        : "This result is from an earlier version.";
+  return (
+    <section className="card result-card" aria-labelledby="result-title">
+      <h2 id="result-title" className="sr-only">
+        Result
+      </h2>
+      {body.kind === "table" ? (
+        (() => {
+          const t = tableSummary(body);
+          return (
+            <>
+              <p className="result-headline">{t.headline}</p>
+              {t.calculated && t.reportedTotal && t.calculatedTotal ? (
+                <dl className="result-figures">
+                  <div>
+                    <dt>Reported total</dt>
+                    <dd>{t.reportedTotal}</dd>
+                  </div>
+                  <div>
+                    <dt>Calculated</dt>
+                    <dd>{t.calculatedTotal}</dd>
+                  </div>
+                  {t.mismatches.length ? (
+                    <div>
+                      <dt>Rows off</dt>
+                      <dd>{t.mismatches.map((m) => m.id).join(", ")}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              ) : null}
+            </>
+          );
+        })()
+      ) : body.kind === "tool" ? (
+        <>
+          <p className="result-headline">
+            {output?.kind === "run_wasm" ? (
+              <>
+                Returns <strong>{output.value}</strong>
+              </>
+            ) : (
+              "Not run yet."
+            )}
+          </p>
+          <p className="small muted">
+            {toolInputs(body)
+              .map((x) => `${x.label} ${x.value}`)
+              .join(" · ")}
+          </p>
+        </>
+      ) : (
+        <p className="result-headline">{body.filename}</p>
+      )}
+      {where ? <p className="small">{where}</p> : null}
+      <p className="result-status" data-verified={verified ? "true" : "false"}>
+        <span className="dot" aria-hidden="true" />
+        <span role="status" data-testid="product-verification">
+          {status}
+        </span>
+      </p>
+    </section>
   );
 }
 function ToolInputs({
@@ -629,7 +862,7 @@ function ToolInputs({
         <input value={values} onChange={(e) => setValues(e.target.value)} />
       </label>
       <button
-        className="btn"
+        className="btn btn-sm tool-apply"
         type="button"
         onClick={() => {
           try {

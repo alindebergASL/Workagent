@@ -87,7 +87,7 @@ try {
   const tableId = tableURL.split("/").pop();
   report.table_id = tableId;
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
   await expect(page.getByLabel("Row 2 reported_total")).toHaveValue("38.50");
   await expect(
@@ -97,7 +97,7 @@ try {
     .getByLabel("Row 2 note", { exact: true })
     .fill("Human credit note retained");
   await page
-    .getByLabel("Human notes (one per line)")
+    .getByLabel("Your notes (one per line)")
     .fill("Human review note retained");
   await page
     .getByLabel("Rounding", { exact: true })
@@ -107,16 +107,16 @@ try {
     "Human credit note retained",
   );
   await page
-    .getByRole("button", { name: "Save human edits", exact: true })
+    .getByRole("button", { name: "Save my edits", exact: true })
     .click();
   await expect(
     page.getByText(
-      "Your edits are saved. Re-run to verify the saved version.",
+      "Your edits are saved. Recalculate or run it to check them.",
       { exact: true },
     ),
   ).toBeVisible();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "No current verified result for this saved version",
+    "This saved version hasn’t been checked yet.",
   );
   await shot(page, "01-table-human-save");
   await page
@@ -130,10 +130,10 @@ try {
     "Human review note retained",
   );
   await page
-    .getByRole("button", { name: "Accept exact proposed version", exact: true })
+    .getByRole("button", { name: "Apply proposed version", exact: true })
     .click();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
   await expect(page.getByLabel("Row 2 note", { exact: true })).toHaveValue(
     "Human credit note retained",
@@ -154,23 +154,23 @@ try {
   const other = await browser.newPage();
   await other.goto(tableURL);
   await other
-    .getByLabel("Human notes (one per line)")
+    .getByLabel("Your notes (one per line)")
     .fill("Stale second-tab draft");
-  await page.getByLabel("Human notes (one per line)").fill("Newest human note");
+  await page.getByLabel("Your notes (one per line)").fill("Newest human note");
   await page
-    .getByRole("button", { name: "Save human edits", exact: true })
+    .getByRole("button", { name: "Save my edits", exact: true })
     .click();
   await expect(
     page.getByText(
-      "Your edits are saved. Re-run to verify the saved version.",
+      "Your edits are saved. Recalculate or run it to check them.",
       { exact: true },
     ),
   ).toBeVisible();
   await other
-    .getByRole("button", { name: "Save human edits", exact: true })
+    .getByRole("button", { name: "Save my edits", exact: true })
     .click();
   await expect(other.getByRole("alert").first()).toBeVisible();
-  await expect(other.getByLabel("Human notes (one per line)")).toHaveValue(
+  await expect(other.getByLabel("Your notes (one per line)")).toHaveValue(
     "Stale second-tab draft",
   );
   expect(
@@ -191,7 +191,7 @@ try {
   report.tool_id = toolId;
   await expect(page.getByTestId("observed-return")).toHaveText("3750");
   await page
-    .getByLabel("Human notes (one per line)")
+    .getByLabel("Your notes (one per line)")
     .fill("Human: all amounts are cents");
   await page
     .getByLabel("WebAssembly text (WAT)")
@@ -212,16 +212,16 @@ try {
     .getByRole("button", { name: "Apply input form to draft", exact: true })
     .click();
   await page
-    .getByRole("button", { name: "Save human edits", exact: true })
+    .getByRole("button", { name: "Save my edits", exact: true })
     .click();
   await expect(
     page.getByText(
-      "Your edits are saved. Re-run to verify the saved version.",
+      "Your edits are saved. Recalculate or run it to check them.",
       { exact: true },
     ),
   ).toBeVisible();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "No current verified result for this saved version",
+    "This saved version hasn’t been checked yet.",
   );
   await page
     .getByRole("button", { name: "Run saved tool", exact: true })
@@ -232,15 +232,15 @@ try {
     .click({ timeout: 15000 });
   await expect(page.getByTestId("observed-return")).toHaveText("4250");
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "No current verified result for this saved version",
+    "This saved version hasn’t been checked yet.",
   );
   await page
-    .getByRole("button", { name: "Accept exact proposed version", exact: true })
+    .getByRole("button", { name: "Apply proposed version", exact: true })
     .click();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
-  await expect(page.getByLabel("Human notes (one per line)")).toHaveValue(
+  await expect(page.getByLabel("Your notes (one per line)")).toHaveValue(
     "Human: all amounts are cents",
   );
   await shot(page, "03-tool-shipping");
@@ -273,7 +273,7 @@ try {
   const reopened = await browser.newPage();
   await reopened.goto(toolURL);
   await expect(reopened.getByTestId("observed-return")).toHaveText("4250");
-  await expect(reopened.getByLabel("Human notes (one per line)")).toHaveValue(
+  await expect(reopened.getByLabel("Your notes (one per line)")).toHaveValue(
     "Human: all amounts are cents",
   );
   await reopened.close();

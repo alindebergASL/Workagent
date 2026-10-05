@@ -76,7 +76,7 @@ try {
     "9007199254740993",
   );
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
   const artifactURL = page.url();
   const getConversation = async () => {
@@ -98,7 +98,7 @@ try {
     .click({ timeout: 15000 });
   await expect(page.getByTestId("product-proposal")).toBeVisible();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
   await expect(page.getByTestId("observed-return").first()).toHaveText(
     "9007199254740993",

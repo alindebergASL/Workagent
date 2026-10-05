@@ -339,6 +339,19 @@ try {
     ],
     history: [artifact.current_revision],
     observations: { current: observation, latest },
+    conversation: {
+      conversation: {
+        id: "c",
+        title: "Fixture conversation",
+        state: "open",
+        work_version: 1,
+        created_at: "",
+        context_count: 0,
+      },
+      messages: [],
+      turns: [],
+      assignment_ids: [],
+    },
     version: 1,
     open: true,
   };
@@ -353,17 +366,19 @@ try {
   }, data);
   await expect(page.getByTestId("product-proposal")).toBeVisible();
   await expect(page.getByTestId("product-verification")).toHaveText(
-    "Current saved revision verified",
+    "Checked against this saved version.",
   );
   await expect(page.getByTestId("observed-return")).toHaveText([
     "1000000000000000001",
     "-1000000000000000001",
   ]);
+  // Each observation states its own binding (inside "How this was checked").
   await expect(
-    page.getByText(
-      "pending proposal · scope current · not current verification",
-    ),
-  ).toBeVisible();
+    page.getByText("Checked against the proposed version, not your saved one."),
+  ).toHaveCount(1);
+  await expect(
+    page.getByText("Checked against the current saved version."),
+  ).toHaveCount(1);
   for (const value of ["9223372036854775807", "-9223372036854775808"]) {
     await page.evaluate((value) => {
       window.resource.data.observations.current.observation.output.value =
@@ -379,9 +394,7 @@ try {
 
   await page.getByLabel("Integer inputs (comma-separated)").fill("99");
   await page.getByLabel("Input labels (comma-separated)").fill("Discard me");
-  await page
-    .getByRole("button", { name: "Discard draft and reload saved version" })
-    .click();
+  await page.getByRole("button", { name: "Discard my changes" }).click();
   await expect(page.getByLabel("Integer inputs (comma-separated)")).toHaveValue(
     "3",
   );

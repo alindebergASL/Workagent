@@ -1,5 +1,20 @@
 import { currentObservation, type S } from "@/lib/client/products";
+import { ROUNDING_LABEL } from "@/lib/product-summary";
 
+/** Which saved state an observation belongs to, in plain words. */
+function bindingText(read: S["ObservationReadback"], verified: boolean) {
+  if (verified) return "Checked against the current saved version.";
+  if (read.binding_state === "pending_proposal")
+    return "Checked against the proposed version, not your saved one.";
+  if (!read.current_scope)
+    return "Your access or context has changed since this was checked.";
+  return "Checked against an earlier version.";
+}
+
+/**
+ * One recorded execution and exactly what it was bound to. The plain summary
+ * comes first; the full record (hashes, engine, limits) stays available.
+ */
 export function ObservedOutput({
   artifact,
   read,
@@ -12,40 +27,29 @@ export function ObservedOutput({
   const output = read.observation.output;
   const verified = currentObservation(artifact, read) && !stale;
   return (
-    <section className="card card-quiet">
-      <h2>
-        {verified ? "Saved revision observed output" : "Latest local output"}
-      </h2>
-      <p className="hint">
-        {read.binding_state.replaceAll("_", " ")} ·{" "}
-        {read.current_scope ? "scope current" : "scope changed"}
-        {verified ? "" : " · not current verification"}
-      </p>
+    <section className="observed stack-sm">
+      <p className="small">{bindingText(read, verified)}</p>
       {output.kind === "run_wasm" ? (
-        <>
-          <p>
-            Observed return:{" "}
-            <strong data-testid="observed-return">{output.value}</strong>
-          </p>
-          <p>
-            Inputs: {JSON.stringify(output.arguments)} · {output.engine}
-          </p>
-        </>
+        <p>
+          Returned <strong data-testid="observed-return">{output.value}</strong>{" "}
+          for inputs {output.arguments.join(", ")}.
+        </p>
       ) : (
         <>
           <p>
-            Reported: {output.reported_sum} · Calculated:{" "}
+            Reported {output.reported_sum} · calculated{" "}
             <strong>{output.expected_sum}</strong>
+            {output.discrepancies.length
+              ? ` · rows off: ${output.discrepancies.join(", ")}`
+              : " · every row matches"}
           </p>
-          <p>{output.formula}</p>
-          <p>
-            Rounding: {output.rounding}; discrepancies:{" "}
-            {output.discrepancies.join(", ") || "none"}
+          <p className="small muted">
+            {output.formula}. {ROUNDING_LABEL[output.rounding]}.
           </p>
         </>
       )}
-      <details>
-        <summary>Execution binding and provenance</summary>
+      <details className="ids-details">
+        <summary>Exact record</summary>
         <pre className="product-code">{JSON.stringify(read, null, 2)}</pre>
       </details>
     </section>
