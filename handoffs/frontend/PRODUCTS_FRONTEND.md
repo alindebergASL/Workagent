@@ -106,3 +106,29 @@ Captures are in `evidence/products/` (desktop, 390 and 320 px).
    controlled-transport wording.
 4. **Operation choice.** Choosing CSV reconcile or Wasm is explicit; the
    agent doesn't decide.
+
+## Reconciled with Hermes' `19e1478` at `9b6fd00`
+
+I merged Hermes' failure-isolation and parent-verification commit; it applied
+cleanly.
+
+Hermes' compatibility edit made my conversation journey expect the service's
+technical turn reason as visible text. The UI now leads with plain words and
+keeps that reason under "Why", so I:
+- kept Hermes' `data-state` locators and asserted the plain wording;
+- updated `scripts/verify_general_integration.py` one-to-one for the
+  product-page strings, and let its inline browser use the preinstalled
+  Chromium.
+
+Its outage assertion holds unchanged, because the exact reason is still in the
+turn's DOM.
+
+| Check at `9b6fd00` (clean tree, fresh databases, zero provider calls) | Result |
+| --- | --- |
+| `pnpm check` | PASS, 80 tests |
+| Mock browser suite | PASS, 15/15 |
+| `scripts/verify_general_integration.py`: products journey, readback, consumer outage → unavailable, restart and recovery of the same run, saved notes, tool 4250 and exact i64 | PASS |
+| Canonical demo | PASS |
+| Fault regressions | PASS, 9/9 |
+| Reset checkpoint | PASS |
+| Conversation journey | PASS |
