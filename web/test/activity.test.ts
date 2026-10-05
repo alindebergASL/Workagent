@@ -52,7 +52,9 @@ describe("activity from recorded state", () => {
     expect(items[1]).toMatchObject({
       status: "Conversation ended",
       href: "/conversations/c",
+      timeLabel: "started",
     });
+    expect(items[0]!.timeLabel).toBe("updated");
   });
 
   it("sends a waiting decision straight to the document", () => {
@@ -82,6 +84,21 @@ describe("activity from recorded state", () => {
       [],
     );
     expect(i!.status).toBe("Handed over · not started");
+  });
+
+  it("never presents a conversation's start as its latest change", () => {
+    // Started yesterday and ended today: placed under yesterday, labelled as a start.
+    const now = new Date("2026-10-04T09:00:00Z");
+    const [i] = activityFrom(
+      [],
+      [convo("x", "2026-10-03T22:00:00Z", "cancelled")],
+    );
+    expect(i).toMatchObject({
+      status: "Conversation ended",
+      at: "2026-10-03T22:00:00Z",
+      timeLabel: "started",
+    });
+    expect(dayLabel(i!.at, "UTC", now)).toBe("Yesterday");
   });
 
   it("groups by day in the display zone", () => {

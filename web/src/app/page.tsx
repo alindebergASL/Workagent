@@ -37,9 +37,14 @@ function lede(items: AssignmentSummary[]): string {
   return "Ask, think something through, or hand over something you’d like finished.";
 }
 
-/** Owned work I’m carrying, separate from what is ready for the person and what is done. */
+/** Owned work I’m carrying, separate from what needs the person and what has settled. */
 const HANDLING = new Set(["working", "waiting", "unknown", "paused"]);
-const DONE = new Set(["approved", "stopped"]);
+/**
+ * Approval saves a document revision and stopping ends work; neither is a
+ * verified goal outcome, so nothing here is called "Done". A Done group waits
+ * for an authoritative goal-completion record from the backend.
+ */
+const SETTLED = new Set(["approved", "stopped"]);
 
 export default function AgentHome() {
   const { workspace, error: wsError } = useWorkspace();
@@ -52,10 +57,11 @@ export default function AgentHome() {
   const handling = others.filter(
     (i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i),
   );
-  const done = others.filter((i) => DONE.has(phaseOf(i)));
+  const approved = others.filter((i) => phaseOf(i) === "approved");
+  const stopped = others.filter((i) => phaseOf(i) === "stopped");
   const ready = others.filter(
     (i) =>
-      (!HANDLING.has(phaseOf(i)) && !DONE.has(phaseOf(i))) ||
+      (!HANDLING.has(phaseOf(i)) && !SETTLED.has(phaseOf(i))) ||
       isRecordedHandover(i),
   );
   const groups = [
@@ -66,7 +72,13 @@ export default function AgentHome() {
       items: handling,
     },
     { key: "ready", label: "Ready for you", dot: "dot-attn", items: ready },
-    { key: "done", label: "Done", dot: "dot-done", items: done },
+    {
+      key: "approved",
+      label: "Approved and saved",
+      dot: "dot-done",
+      items: approved,
+    },
+    { key: "stopped", label: "Stopped", dot: "", items: stopped },
   ].filter((g) => g.items.length);
   // Open the most useful group first: what I'm carrying, else what's ready.
   const openKey = groups[0]?.key;

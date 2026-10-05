@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
+import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
@@ -70,17 +71,25 @@ export default function ConversationPage() {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<unknown>(null);
-  const sendCmd = useRef<{
+  // Unresolved commands survive a reload so retrying replays them exactly.
+  const pendingKey = (kind: string) =>
+    wsId ? `workagent:pending:${wsId}:conversation:${id}:${kind}` : null;
+  const sendCmd = usePendingCommand<{
     command_id: string;
     expected_work_version: number;
     text: string;
-  } | null>(null);
+  }>(pendingKey("send"));
   const boxRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const kept = readKept(draftKey);
     if (kept) setText((v) => v || kept);
   }, [draftKey]);
   useEffect(() => keep(draftKey, text), [draftKey, text]);
+  // A send restored from before a reload shows its exact words, locked.
+  const restoredSend = sendCmd.restored ? sendCmd.current : null;
+  useEffect(() => {
+    if (restoredSend) setText(restoredSend.text);
+  }, [restoredSend]);
   useLayoutEffect(() => {
     const el = boxRef.current;
     if (!el) return;
@@ -95,18 +104,18 @@ export default function ConversationPage() {
     setSendError(null);
     try {
       if (!sendCmd.current)
-        sendCmd.current = {
+        sendCmd.set({
           command_id: newCommandId(),
           expected_work_version: d.conversation.work_version,
           text: text.trim(),
-        };
-      await conversationApi.send(wsId, id, sendCmd.current);
-      sendCmd.current = null;
+        });
+      await conversationApi.send(wsId, id, sendCmd.current!);
+      sendCmd.set(null);
       setText("");
       await res.refresh();
     } catch (e) {
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
-        sendCmd.current = null;
+        sendCmd.set(null);
         if (e instanceof ApiError && e.isVersionConflict) await res.refresh();
       }
       setSendError(e);
@@ -123,12 +132,19 @@ export default function ConversationPage() {
   const [doneWhen, setDoneWhen] = useState("");
   const [handing, setHanding] = useState(false);
   const [handError, setHandError] = useState<unknown>(null);
-  const handCmd = useRef<{
+  const handCmd = usePendingCommand<{
     command_id: string;
     expected_work_version: number;
     goal: string;
     completion_criteria: string[];
-  } | null>(null);
+  }>(pendingKey("handover"));
+  const restoredHand = handCmd.restored ? handCmd.current : null;
+  useEffect(() => {
+    if (!restoredHand) return;
+    setHandoverOpen(true);
+    setGoal(restoredHand.goal);
+    setDoneWhen(restoredHand.completion_criteria[0] ?? "");
+  }, [restoredHand]);
   const firstAsk = d?.messages.find((m) => m.author === "person")?.text ?? "";
   const goalText = goal ?? firstAsk;
 
@@ -139,20 +155,20 @@ export default function ConversationPage() {
     setHandError(null);
     try {
       if (!handCmd.current)
-        handCmd.current = {
+        handCmd.set({
           command_id: newCommandId(),
           expected_work_version: d.conversation.work_version,
           goal: goalText.trim(),
           completion_criteria: [doneWhen.trim()],
-        };
-      await conversationApi.delegate(wsId, id, handCmd.current);
-      handCmd.current = null;
+        });
+      await conversationApi.delegate(wsId, id, handCmd.current!);
+      handCmd.set(null);
       setHandoverOpen(false);
       setDoneWhen("");
       await res.refresh();
     } catch (e) {
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
-        handCmd.current = null;
+        handCmd.set(null);
         if (e instanceof ApiError && e.isVersionConflict) await res.refresh();
       }
       setHandError(e);
@@ -165,26 +181,26 @@ export default function ConversationPage() {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<unknown>(null);
-  const endCmd = useRef<{
+  const endCmd = usePendingCommand<{
     command_id: string;
     expected_work_version: number;
-  } | null>(null);
+  }>(pendingKey("end"));
   const end = async () => {
     if (!wsId || !d) return;
     setEnding(true);
     setEndError(null);
     try {
       if (!endCmd.current)
-        endCmd.current = {
+        endCmd.set({
           command_id: newCommandId(),
           expected_work_version: d.conversation.work_version,
-        };
-      await conversationApi.cancel(wsId, id, endCmd.current);
-      endCmd.current = null;
+        });
+      await conversationApi.cancel(wsId, id, endCmd.current!);
+      endCmd.set(null);
       setConfirmEnd(false);
       await res.refresh();
     } catch (e) {
-      if (!(e instanceof ApiError && e.isAmbiguousWrite)) endCmd.current = null;
+      if (!(e instanceof ApiError && e.isAmbiguousWrite)) endCmd.set(null);
       setEndError(e);
     } finally {
       setEnding(false);
@@ -221,6 +237,7 @@ export default function ConversationPage() {
     (m) => m.author === "agent" && m.origin === "controlled_transport",
   );
   const uncertainSend = Boolean(sendCmd.current) && !sending;
+  const endPending = Boolean(endCmd.current) && !ending;
 
   return (
     <div className="agent-col conversation-page">
@@ -472,14 +489,19 @@ export default function ConversationPage() {
       ) : null}
 
       {open ? (
-        <details className="ids-details">
+        <details className="ids-details" open={endPending || undefined}>
           <summary>End this conversation</summary>
           <div className="stack-sm" style={{ marginTop: 8 }}>
             <p className="small muted">
               Ending stops any reply in progress. The history and anything you
               handed over are kept.
             </p>
-            {confirmEnd ? (
+            {endPending ? (
+              <p className="hint" role="status">
+                Ending wasn’t confirmed. Ending again replays the same request.
+              </p>
+            ) : null}
+            {confirmEnd || endPending ? (
               <div className="row">
                 <button
                   type="button"

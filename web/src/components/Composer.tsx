@@ -102,6 +102,49 @@ export function Composer({
     uncertain: boolean;
   } | null>(null);
   const [, rerender] = useState(0);
+  // Unresolved commands are kept for this tab so a reload can only replay
+  // them exactly (never a fresh command that could duplicate the work).
+  const homeKey = (kind: string) =>
+    wsId ? `workagent:pending:${wsId}:home-${kind}` : null;
+  const saveCommands = () => {
+    for (const [kind, value] of [
+      ["chat", chat.current],
+      ["assignment", pending.current],
+    ] as const) {
+      const key = homeKey(kind);
+      if (!key) continue;
+      try {
+        if (value) sessionStorage.setItem(key, JSON.stringify(value));
+        else sessionStorage.removeItem(key);
+      } catch {
+        /* storage unavailable: the in-memory command still holds */
+      }
+    }
+  };
+  useEffect(() => {
+    if (!wsId) return;
+    const read = <T,>(kind: string): T | null => {
+      try {
+        const raw = sessionStorage.getItem(
+          `workagent:pending:${wsId}:home-${kind}`,
+        );
+        return raw ? (JSON.parse(raw) as T) : null;
+      } catch {
+        return null;
+      }
+    };
+    const c = read<NonNullable<typeof chat.current>>("chat");
+    const a = read<NonNullable<typeof pending.current>>("assignment");
+    if (c) {
+      // Its outcome is unknown after a reload: only an exact replay is offered.
+      chat.current = { ...c, uncertain: true };
+      setRequest(c.text);
+    } else if (a) {
+      pending.current = a;
+      setRequest(a.command.goal);
+    }
+    if (c || a) rerender((n) => n + 1);
+  }, [wsId]);
   const requestRef = useRef<HTMLTextAreaElement>(null);
   const panelId = useId();
   const chatUncertain = Boolean(chat.current?.uncertain);
@@ -186,11 +229,13 @@ export function Composer({
           },
         };
       }
+      saveCommands();
       const result = await api.createAssignment(
         pending.current.workspace,
         pending.current.command,
       );
       pending.current = null;
+      saveCommands();
       writeDraft(draftScope, "");
       router.push(`/assignments/${result.assignment_id}`);
     } catch (e) {
@@ -198,6 +243,7 @@ export function Composer({
       // Only an ambiguous outcome keeps the frozen command; anything definite starts fresh.
       if (!(e instanceof ApiError && e.isAmbiguousWrite))
         pending.current = null;
+      saveCommands();
       setSubmitting(false);
       rerender((n) => n + 1);
     }
@@ -247,6 +293,7 @@ export function Composer({
           message: "Return to the original Space to reconcile this message.",
         });
       if (!c.conversation) {
+        saveCommands();
         const created = await conversationApi.create(c.workspace, c.create);
         c.conversation = { id: created.id, work_version: created.work_version };
       }
@@ -256,10 +303,12 @@ export function Composer({
           expected_work_version: c.conversation.work_version,
           text: c.text,
         };
+      saveCommands();
       await conversationApi.send(c.workspace, c.conversation.id, c.send);
       const id = c.conversation.id;
       const goHandover = c.handover;
       chat.current = null;
+      saveCommands();
       writeDraft(draftScope, "");
       router.push(`/conversations/${id}${goHandover ? "?handover=1" : ""}`);
     } catch (e) {
@@ -284,6 +333,7 @@ export function Composer({
           }
         }
       }
+      saveCommands();
       setSubmitting(false);
       rerender((n) => n + 1);
     }

@@ -80,6 +80,18 @@ try {
     ).toHaveText("Approved revision", { timeout: 15000 });
     await expect(page.locator(".lede")).not.toHaveText(/Checking/);
     await noScroll(page);
+    // Approval saves a document; it is not goal completion, so nothing is "Done".
+    await expect(page.locator(".since-approved summary")).toContainText(
+      "Approved and saved",
+    );
+    await expect(
+      page.locator(
+        `.since-approved [data-assignment="${state.assignment_id}"]`,
+      ),
+    ).toHaveCount(1);
+    await expect(
+      page.locator(".since-group summary", { hasText: /^Done/ }),
+    ).toHaveCount(0);
     await shot(page, `01-home-${label}`);
 
     // ---- The draft survives a reload before anything is sent ----
