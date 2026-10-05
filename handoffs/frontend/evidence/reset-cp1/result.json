@@ -2,8 +2,8 @@
   "passed": true,
   "mode": "actual_application_postgresql_fixture_compute",
   "provider_inference_calls": 0,
-  "demo_assignment_id": "c054bbe4-be91-4603-bef2-873aa2f5829d",
-  "delegated_assignment_id": "4826918e-f662-4a91-90fd-e86b6b633373",
+  "demo_assignment_id": "76ea7ba0-f87a-4514-988c-c9936a956c10",
+  "delegated_assignment_id": "b04686f2-cea2-421b-8b25-1806553ae4df",
   "checks": {
     "delegated": "queued",
     "paused": "paused",
