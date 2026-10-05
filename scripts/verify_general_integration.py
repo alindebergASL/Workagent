@@ -39,16 +39,16 @@ try{
   const p=JSON.parse(await readFile(out+'/products/result.json','utf8'));
   await page.goto(origin+'/conversations/'+p.csv_conversation+'/artifacts/'+p.table_id);
   await expect(page.getByLabel('Row 2 note',{exact:true})).toHaveValue('Human credit note retained');
-  await expect(page.getByLabel('Human notes (one per line)')).toHaveValue('Newest human note');
-  await expect(page.getByTestId('product-verification')).toHaveText('No current verified result for this saved version');
+  await expect(page.getByLabel('Your notes (one per line)')).toHaveValue('Newest human note');
+  await expect(page.getByTestId('product-verification')).toHaveText('This saved version hasn’t been checked yet.');
   await page.goto(origin+'/conversations/'+p.tool_conversation+'/artifacts/'+p.tool_id);
   await expect(page.getByTestId('observed-return')).toHaveText('4250');
-  await expect(page.getByLabel('Human notes (one per line)')).toHaveValue('Human: all amounts are cents');
-  await expect(page.getByTestId('product-verification')).toHaveText('Current saved revision verified');
+  await expect(page.getByLabel('Your notes (one per line)')).toHaveValue('Human: all amounts are cents');
+  await expect(page.getByTestId('product-verification')).toHaveText('Checked against this saved version.');
   const exact=JSON.parse(await readFile(out+'/readback/readback.json','utf8'));
   await page.goto(exact.artifact_url);
   await expect(page.getByTestId('observed-return').first()).toHaveText('9007199254740993');
-  await expect(page.getByTestId('product-verification')).toHaveText('Current saved revision verified');
+  await expect(page.getByTestId('product-verification')).toHaveText('Checked against this saved version.');
   await writeFile(out+'/restart.json',JSON.stringify({passed:true,processes_restarted:['web','api','dispatcher'],same_recovered_run:outage.run_id,shipping_return:'4250',exact_i64_return:'9007199254740993',human_notes_preserved:true},null,2));
  }
  console.log('PASS: '+phase+' browser/database readback');

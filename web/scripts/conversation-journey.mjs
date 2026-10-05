@@ -123,7 +123,8 @@ try {
   await expect(
     page.locator('[data-state="queued"]').filter({
       hasText:
-        "Waiting for the controlled local consumer; no provider response observed.",
+        // Plain words lead; the service's exact reason stays under "Why".
+        "Waiting for a reply. Nothing has been answered yet.",
     }),
   ).toBeVisible();
   await expect(page.locator(".msg-agent")).toHaveCount(0);
@@ -159,7 +160,8 @@ try {
   await expect(
     page.locator('[data-state="queued"]').filter({
       hasText:
-        "Waiting for the controlled local consumer; no provider response observed.",
+        // Plain words lead; the service's exact reason stays under "Why".
+        "Waiting for a reply. Nothing has been answered yet.",
     }),
   ).toBeVisible();
   await expect(
@@ -170,7 +172,7 @@ try {
   await expect(
     page
       .locator('[data-state="cancelled"]')
-      .filter({ hasText: "Turn cancelled or superseded." }),
+      .filter({ hasText: "Stopped before a reply. Your message is kept." }),
   ).toBeVisible();
   record.worker_batches.push(worker());
   await expect(thread.locator(".msg-agent")).toHaveCount(2, { timeout: 15000 });
