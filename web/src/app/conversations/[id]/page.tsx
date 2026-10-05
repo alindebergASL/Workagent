@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
+import { useConversationReply } from "@/lib/client/conversation-reply";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
@@ -27,22 +28,6 @@ const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   outcome_unknown:
     "The outcome couldn’t be confirmed. Check the saved work before trying again.",
 };
-
-function readKept(key: string): string {
-  try {
-    return sessionStorage.getItem(key) ?? "";
-  } catch {
-    return "";
-  }
-}
-function keep(key: string, text: string): void {
-  try {
-    if (text) sessionStorage.setItem(key, text);
-    else sessionStorage.removeItem(key);
-  } catch {
-    /* storage unavailable: the in-memory text still exists */
-  }
-}
 
 /**
  * One conversation, from recorded state only: the person's messages, the
@@ -68,62 +53,24 @@ export default function ConversationPage() {
   const d = res.data;
 
   // ---- follow-up composer ----
-  const draftKey = `workagent:conversation:${id}`;
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState<unknown>(null);
+  const reply = useConversationReply({
+    wsId,
+    cid: id,
+    version: d?.conversation.work_version ?? null,
+    refresh: res.refresh,
+  });
+  const { text, setText, sending, send } = reply;
+  const sendError = reply.error;
   // Unresolved commands survive a reload so retrying replays them exactly.
   const pendingKey = (kind: string) =>
     wsId ? `workagent:pending:${wsId}:conversation:${id}:${kind}` : null;
-  const sendCmd = usePendingCommand<{
-    command_id: string;
-    expected_work_version: number;
-    text: string;
-  }>(pendingKey("send"));
   const boxRef = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    const kept = readKept(draftKey);
-    if (kept) setText((v) => v || kept);
-  }, [draftKey]);
-  useEffect(() => keep(draftKey, text), [draftKey, text]);
-  // A send restored from before a reload shows its exact words, locked.
-  const restoredSend = sendCmd.restored ? sendCmd.current : null;
-  useEffect(() => {
-    if (restoredSend) setText(restoredSend.text);
-  }, [restoredSend]);
   useLayoutEffect(() => {
     const el = boxRef.current;
     if (!el) return;
     el.style.height = "auto";
     el.style.height = `${Math.max(el.scrollHeight, 56)}px`;
   }, [text]);
-
-  const send = async () => {
-    if (!wsId || !d || sending) return;
-    if (!sendCmd.current && !text.trim()) return;
-    setSending(true);
-    setSendError(null);
-    try {
-      if (!sendCmd.current)
-        sendCmd.set({
-          command_id: newCommandId(),
-          expected_work_version: d.conversation.work_version,
-          text: text.trim(),
-        });
-      await conversationApi.send(wsId, id, sendCmd.current!);
-      sendCmd.set(null);
-      setText("");
-      await res.refresh();
-    } catch (e) {
-      if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
-        sendCmd.set(null);
-        if (e instanceof ApiError && e.isVersionConflict) await res.refresh();
-      }
-      setSendError(e);
-    } finally {
-      setSending(false);
-    }
-  };
 
   // ---- explicit hand-over ----
   const [handoverOpen, setHandoverOpen] = useState(
@@ -237,7 +184,7 @@ export default function ConversationPage() {
   const controlled = d.messages.some(
     (m) => m.author === "agent" && m.origin === "controlled_transport",
   );
-  const uncertainSend = Boolean(sendCmd.current) && !sending;
+  const uncertainSend = reply.uncertain;
   const endPending = Boolean(endCmd.current) && !ending;
 
   return (

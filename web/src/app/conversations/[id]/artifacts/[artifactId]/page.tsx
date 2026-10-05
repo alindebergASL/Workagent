@@ -170,6 +170,8 @@ export default function ProductPage() {
             <ConversationPeek
               conversation={resource.data.conversation}
               artifactId={artifactId}
+              wsId={ws!}
+              refreshWork={resource.refresh}
             />
           }
         />

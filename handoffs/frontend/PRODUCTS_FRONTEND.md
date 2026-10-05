@@ -97,9 +97,8 @@ Captures are in `evidence/products/` (desktop, 390 and 320 px).
 
 ## Remaining gaps
 
-1. **Replying from beside the work.** The product page shows the
-   conversation but sends you back to it to reply. That keeps the existing
-   recovery-safe command handling.
+1. ~~**Replying from beside the work.**~~ Closed below: you can reply from the
+   pane beside the product.
 2. ~~**Tool inputs.**~~ Closed below: each input is now its own field.
 3. **Controlled replies.** Their text is still the backend's
    controlled-transport wording.
@@ -163,3 +162,39 @@ the new `fieldInputs`. The two products scripts were updated one-to-one:
 
 The refreshed tool captures (`03-tool-shipping`, `04-tool-390`,
 `04-tool-320`) are in `evidence/products/`.
+
+## Replying from beside the work
+
+The conversation pane beside a table or tool now has its own reply box. You
+can ask about the work or ask for a change without leaving it.
+
+- **Shared send path.** The reply uses the same send code as the full
+  conversation (`useConversationReply`). The draft and any unconfirmed send
+  are keyed by conversation, so both places share them. A send whose
+  acknowledgement was lost can only be replayed exactly, from either place.
+- **Live replies.** The pane reads the conversation itself and polls only
+  while a turn is waiting or replying.
+- **Proposals appear without a reload.** When a turn settles, the product
+  is read again.
+- **Edits are kept.** Unsaved edits to the work stay as they are.
+- "Open the full conversation" is now a quiet link.
+
+The conversation page now uses the same hook, with no change in behaviour.
+The conversation journey, which covers lost responses and reload replay,
+still passes.
+
+| Check (fresh databases, zero provider calls) | Result |
+| --- | --- |
+| `pnpm check` | PASS, 80 tests |
+| Mock browser suite | PASS, 15/15 |
+| `products-review-regressions.mjs` | PASS, 9/9 (adds: a reply beside the work keeps and replays the exact unconfirmed send, under the conversation's own key) |
+| `scripts/verify_general_integration.py` | PASS |
+| Conversation journey | PASS |
+
+The `verify_general_integration.py` run covers the products journey. It now
+replies from beside the tool, and the reply and controlled answer appear in
+the pane while the URL and an unsaved notes edit stay. It also covers
+readback, outage → unavailable, and restart.
+
+The capture is `evidence/products/03b-tool-reply-beside.png`. The reply in
+that run is answered by the controlled transport, not a model.

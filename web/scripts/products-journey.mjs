@@ -242,6 +242,37 @@ try {
     "Human: all amounts are cents",
   );
   await shot(page, "03-tool-shipping");
+  // Reply from beside the work: the message is recorded and answered without
+  // leaving the product, and an unsaved edit survives the round trip.
+  const notes = page.getByLabel("Your notes (one per line)");
+  await notes.fill("Human: all amounts are cents\nUnsaved while replying");
+  const peek = page.locator(".agent-pane");
+  await peek
+    .getByLabel("Reply about this work", { exact: true })
+    .fill("Does 4250 include shipping?");
+  await peek.getByRole("button", { name: "Send", exact: true }).click();
+  const mine = peek.locator("ol.thread > li.msg-person", {
+    hasText: "Does 4250 include shipping?",
+  });
+  await expect(mine).toHaveCount(1);
+  await expect(
+    mine.locator("xpath=following-sibling::li[contains(@class,'msg-agent')]"),
+  ).toHaveCount(1, { timeout: 20000 });
+  await expect(peek.locator(".msg-pending")).toHaveCount(0);
+  expect(page.url()).toBe(toolURL);
+  await expect(notes).toHaveValue(
+    "Human: all amounts are cents\nUnsaved while replying",
+  );
+  await shot(page, "03b-tool-reply-beside");
+  await page.getByRole("button", { name: "Discard my changes" }).click();
+  await expect(notes).toHaveValue("Human: all amounts are cents");
+  const thread = await get("/conversations/" + toolCid);
+  expect(
+    thread.messages.some(
+      (m) =>
+        m.author_kind === "human" && m.text === "Does 4250 include shipping?",
+    ),
+  ).toBe(true);
   const watPromise = page.waitForEvent("download");
   await page
     .getByRole("button", { name: "Download saved file", exact: true })

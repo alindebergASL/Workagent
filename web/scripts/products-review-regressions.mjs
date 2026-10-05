@@ -51,7 +51,11 @@ export const conversationApi = {send: async (ws,cid,payload) => {
 }};
 export const client = {}; export const command = () => ({}); export const meta = () => ({});
 export const unwrap = x => x; export const all = () => {throw new Error('Unexpected list call in DOM fixture');};`,
-  "@/lib/client/hooks": "export const useResource = () => window.resource;",
+  // The product read is the fixture; the conversation pane beside it keeps
+  // its initial record (no polling in the DOM fixture).
+  "@/lib/client/hooks":
+    "export const useResource = (key) => key && key.startsWith('peek:') ? {data:null,error:null,reconnecting:false,refresh:async()=>null} : window.resource;",
+  "@/lib/client/api": "export const newCommandId = () => crypto.randomUUID();",
   "@/lib/client/workspace":
     "export const useWorkspace = () => ({workspace:{id:window.scope.ws}});",
   "next/navigation":
@@ -411,6 +415,38 @@ try {
   passed++;
   console.log(
     "PASS same-base discard resets per-field tool inputs; invalid input stays out of the draft",
+  );
+
+  // Replying beside the work: a lost acknowledgement keeps the exact command
+  // under the conversation's own key, and retrying replays it unchanged.
+  const reply = page.getByLabel("Reply about this work", { exact: true });
+  await reply.fill("Beside the work");
+  await page.evaluate(() => {
+    window.calls.length = 0;
+    window.ambiguous = true;
+  });
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByText("Your last send wasn’t confirmed.", { exact: false }),
+  ).toBeVisible();
+  await expect(reply).toBeDisabled();
+  const lost = await page.evaluate(() => window.calls[0]);
+  assert.equal(lost.payload.text, "Beside the work");
+  const stored = await page.evaluate(() =>
+    sessionStorage.getItem(
+      `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
+    ),
+  );
+  assert.deepEqual(JSON.parse(stored), lost.payload);
+  await page.evaluate(() => {
+    window.ambiguous = false;
+  });
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(reply).toHaveValue("");
+  assert.deepEqual(await page.evaluate(() => window.calls[1]), lost);
+  passed++;
+  console.log(
+    "PASS reply beside the work keeps and replays the exact unconfirmed send",
   );
 
   await page.evaluate(() => {

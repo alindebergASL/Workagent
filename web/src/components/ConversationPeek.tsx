@@ -1,6 +1,12 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
+import { useConversationReply } from "@/lib/client/conversation-reply";
+import { useResource } from "@/lib/client/hooks";
+import { conversationApi } from "@/lib/client/real-api";
+import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
+import { ErrorNotice } from "@/components/ui";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
   queued: "Waiting for a reply.",
@@ -11,21 +17,54 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   no_reply: "No reply was recorded.",
 };
 
+const inFlight = (d: ConversationDetailView | null) =>
+  Boolean(
+    d?.turns.some((t) => t.state === "queued" || t.state === "responding"),
+  );
+
 /**
  * The conversation this work came from, shown beside it: the latest
- * messages and the current turn's state, from the conversation record only.
- * Replying happens in the conversation itself so its commands keep their
- * exact identity and recovery.
+ * messages, the current turn's state, and a reply box. Replies use the same
+ * draft and unconfirmed-send record as the full conversation, so a send whose
+ * outcome is unknown can only be replayed exactly, from here or there. When a
+ * turn settles, the work is re-read so a proposed change shows up.
  */
 export function ConversationPeek({
-  conversation: d,
+  conversation: initial,
   artifactId,
+  wsId,
+  refreshWork,
 }: {
   conversation: ConversationDetailView;
   artifactId: string;
+  wsId: string;
+  refreshWork: () => Promise<unknown>;
 }) {
+  const cid = initial.conversation.id;
+  const res = useResource<ConversationDetailView>(
+    `peek:${wsId}:${cid}`,
+    (signal) => conversationApi.get(wsId, cid, signal),
+    { pollMs: 2000, shouldPoll: (d) => inFlight(d) },
+  );
+  const d = res.data ?? initial;
+  const reply = useConversationReply({
+    wsId,
+    cid,
+    version: d.conversation.work_version,
+    refresh: res.refresh,
+  });
+
+  // A turn that was running and has now settled may carry new work.
+  const waiting = inFlight(d);
+  const wasWaiting = useRef(waiting);
+  useEffect(() => {
+    if (wasWaiting.current && !waiting) void refreshWork();
+    wasWaiting.current = waiting;
+  }, [waiting, refreshWork]);
+
   const recent = d.messages.slice(-8);
   const last = d.turns.at(-1);
+  const open = d.conversation.state === "open";
   return (
     <div className="agent-pane conversation stack">
       <p className="eyebrow-caps">From the conversation</p>
@@ -58,8 +97,65 @@ export function ConversationPeek({
           {TURN_TEXT[last.state]}
         </p>
       ) : null}
-      <Link className="btn btn-sm" href={`/conversations/${d.conversation.id}`}>
-        Continue in the conversation
+      {open ? (
+        <form
+          className="ask peek-ask"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void reply.send();
+          }}
+        >
+          <label htmlFor="peek-reply" className="sr-only">
+            Reply about this work
+          </label>
+          <textarea
+            id="peek-reply"
+            value={reply.text}
+            onChange={(e) => reply.setText(e.target.value)}
+            placeholder="Reply about this work…"
+            rows={2}
+            disabled={reply.sending || reply.uncertain}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                void reply.send();
+              }
+            }}
+          />
+          {reply.error instanceof ApiError && reply.error.isVersionConflict ? (
+            <p className="hint" role="status">
+              This conversation changed since you looked. Your message is kept;
+              send it again to add it after what’s new.
+            </p>
+          ) : reply.error ? (
+            <ErrorNotice error={reply.error} />
+          ) : null}
+          <div className="ask-bar">
+            <span className="hint">
+              {reply.uncertain
+                ? "Your last send wasn’t confirmed. Sending again replays the same message."
+                : "Ask about this work or ask for a change."}
+            </span>
+            <button
+              type="submit"
+              className="send-round"
+              aria-label="Send"
+              title="Send"
+              disabled={
+                (!reply.text.trim() && !reply.uncertain) || reply.sending
+              }
+            >
+              <span aria-hidden="true">↑</span>
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p className="hint">
+          This conversation has ended. Its history is kept.
+        </p>
+      )}
+      <Link className="link-quiet small" href={`/conversations/${cid}`}>
+        Open the full conversation
       </Link>
     </div>
   );
