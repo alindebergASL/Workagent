@@ -121,7 +121,10 @@ try {
     `You: ${first}`,
   );
   await expect(
-    page.getByText("Waiting for a reply. Nothing has been answered yet."),
+    page.locator('[data-state="queued"]').filter({
+      hasText:
+        "Waiting for the controlled local consumer; no provider response observed.",
+    }),
   ).toBeVisible();
   await expect(page.locator(".msg-agent")).toHaveCount(0);
   let detail = (await api(`/conversations/${cid}`)).body;
@@ -154,7 +157,10 @@ try {
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(box).toHaveValue("");
   await expect(
-    page.getByText("Waiting for a reply. Nothing has been answered yet."),
+    page.locator('[data-state="queued"]').filter({
+      hasText:
+        "Waiting for the controlled local consumer; no provider response observed.",
+    }),
   ).toBeVisible();
   await expect(
     page.getByText(/Sending now replaces the reply in progress/),
@@ -162,7 +168,9 @@ try {
   await box.fill("Actually, focus on Monday.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await expect(
-    page.getByText("Stopped before a reply. Your message is kept."),
+    page
+      .locator('[data-state="cancelled"]')
+      .filter({ hasText: "Turn cancelled or superseded." }),
   ).toBeVisible();
   record.worker_batches.push(worker());
   await expect(thread.locator(".msg-agent")).toHaveCount(2, { timeout: 15000 });
