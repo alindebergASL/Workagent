@@ -55,26 +55,46 @@ export async function resolveObservations(
 export function formInputs(values: string, labels: string) {
   const parts = values.trim() ? values.split(",").map((x) => x.trim()) : [];
   const names = labels.trim() ? labels.split(",").map((x) => x.trim()) : [];
-  if (
-    parts.length > 8 ||
-    parts.length !== names.length ||
-    parts.some((x) => !/^-?\d+$/.test(x)) ||
-    names.some((x) => !x || x.length > 120)
-  )
+  if (parts.length !== names.length)
     throw new Error(
       "Provide up to eight integer values and one label per value, separated by commas.",
     );
-  const arguments_ = parts.map(Number);
+  return fieldInputs(parts.map((value, i) => ({ label: names[i]!, value })));
+}
+/**
+ * One input per field, as people edit them. Same bounds as the contract: at
+ * most eight, whole numbers within ±1,000,000,000, non-empty labels. Existing
+ * field names are kept so a saved form keeps its identity.
+ */
+export function fieldInputs(
+  fields: { name?: string; label: string; value: string }[],
+) {
+  if (fields.length > 8)
+    throw new Error("A tool can take at most eight inputs.");
+  const labels = fields.map((f) => f.label.trim());
+  const values = fields.map((f) => f.value.trim());
+  if (labels.some((x) => !x || x.length > 120))
+    throw new Error("Give every input a name (up to 120 characters).");
+  if (values.some((x) => !/^-?\d+$/.test(x)))
+    throw new Error("Inputs must be whole numbers.");
+  const arguments_ = values.map(Number);
   if (
     arguments_.some((x) => !Number.isSafeInteger(x) || Math.abs(x) > 1000000000)
   )
     throw new Error(
-      "Inputs must be integers between -1000000000 and 1000000000.",
+      "Inputs must be whole numbers between -1000000000 and 1000000000.",
     );
+  const used = new Set<string>();
+  const names = fields.map((f, i) => {
+    let name = f.name && !used.has(f.name) ? f.name : `input_${i + 1}`;
+    for (let n = i + 1; used.has(name); n++) name = `input_${n + 1}`;
+    used.add(name);
+    return name;
+  });
   return {
     arguments: arguments_,
-    input_form: names.map((label, i) => ({
-      name: `input_${i + 1}`,
+    input_form: labels.map((label, i) => ({
+      name: names[i]!,
       label,
       type: "integer" as const,
       minimum: -1000000000 as const,

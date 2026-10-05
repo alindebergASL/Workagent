@@ -204,13 +204,11 @@ try {
         "utf8",
       ),
     );
-  await page
-    .getByLabel("Input labels (comma-separated)")
-    .fill("Quantity,Unit price cents,Shipping cents");
-  await page.getByLabel("Integer inputs (comma-separated)").fill("3,1250,500");
-  await page
-    .getByRole("button", { name: "Apply input form to draft", exact: true })
-    .click();
+  await setToolInputs(page, [
+    ["Quantity", "3"],
+    ["Unit price cents", "1250"],
+    ["Shipping cents", "500"],
+  ]);
   await page
     .getByRole("button", { name: "Save my edits", exact: true })
     .click();
@@ -332,4 +330,27 @@ try {
   );
 } finally {
   await browser.close();
+}
+
+/** Fill the per-field tool inputs: one name and whole-number value each. */
+async function setToolInputs(page, fields) {
+  const rows = page.locator(".tool-input-row");
+  while ((await rows.count()) > fields.length)
+    await page
+      .getByRole("button", { name: `Remove input ${await rows.count()}` })
+      .click();
+  while ((await rows.count()) < fields.length)
+    await page
+      .getByRole("button", { name: "Add an input", exact: true })
+      .click();
+  for (const [i, [label, value]] of fields.entries()) {
+    await page.getByLabel(`Input ${i + 1} name`, { exact: true }).fill(label);
+    await rows.nth(i).locator("input").nth(1).fill(value);
+  }
+  await expect(
+    page
+      .getByLabel("Input 1 name")
+      .locator("xpath=ancestor::fieldset")
+      .getByRole("alert"),
+  ).toHaveCount(0);
 }

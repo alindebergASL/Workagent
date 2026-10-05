@@ -225,3 +225,31 @@
   align-self: flex-start;
   width: auto;
 }
+.tool-inputs {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.tool-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  gap: var(--sp-2);
+  align-items: center;
+}
+.tool-input-row input {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 480px) {
+  .tool-input-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .tool-input-row input:first-child {
+    grid-column: 1 / -1;
+  }
+  .tool-input-row + .tool-input-row {
+    border-top: 1px solid var(--line);
+    padding-top: var(--sp-2);
+  }
+}

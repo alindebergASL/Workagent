@@ -100,8 +100,7 @@ Captures are in `evidence/products/` (desktop, 390 and 320 px).
 1. **Replying from beside the work.** The product page shows the
    conversation but sends you back to it to reply. That keeps the existing
    recovery-safe command handling.
-2. **Tool inputs.** They are edited as comma-separated labels and values,
-   then applied. A per-field form would be kinder.
+2. ~~**Tool inputs.**~~ Closed below: each input is now its own field.
 3. **Controlled replies.** Their text is still the backend's
    controlled-transport wording.
 4. **Operation choice.** Choosing CSV reconcile or Wasm is explicit; the
@@ -132,3 +131,35 @@ turn's DOM.
 | Fault regressions | PASS, 9/9 |
 | Reset checkpoint | PASS |
 | Conversation journey | PASS |
+
+## Per-field tool inputs
+
+Tool inputs used to be two comma-separated lists plus an "Apply" step. Each
+input is now its own row, with a name, a whole-number value and a Remove
+button, plus "Add an input" (up to eight).
+
+- Valid edits go straight into the draft, so "Save my edits" and "Discard my
+  changes" cover them like any other edit.
+- An invalid value stays on screen with its reason and never reaches the
+  draft.
+- Existing input names are kept; new ones get a unique `input_N`.
+- On phones the name sits above its value.
+
+Validation is the same as before: integers within ±1,000,000,000, at most
+eight inputs, and names up to 120 characters. `formInputs` now delegates to
+the new `fieldInputs`. The two products scripts were updated one-to-one:
+- the journey fills Quantity 3, Unit price cents 1250 and Shipping cents 500
+  field by field;
+- the DOM regression checks that Discard resets the rows and that a
+  non-integer is held back.
+
+| Check (fresh databases, zero provider calls) | Result |
+| --- | --- |
+| `pnpm check` | PASS, 80 tests |
+| Mock browser suite | PASS, 15/15 |
+| `products-review-regressions.mjs` | PASS, 8/8 |
+| `scripts/verify_general_integration.py` (products journey: tool 3750 → 4250; readback, outage, restart) | PASS |
+| Conversation journey | PASS |
+
+The refreshed tool captures (`03-tool-shipping`, `04-tool-390`,
+`04-tool-320`) are in `evidence/products/`.

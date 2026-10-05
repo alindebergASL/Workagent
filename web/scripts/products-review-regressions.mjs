@@ -392,21 +392,26 @@ try {
     "PASS signed i64 decimal rendering and saved verification plus pending output",
   );
 
-  await page.getByLabel("Integer inputs (comma-separated)").fill("99");
-  await page.getByLabel("Input labels (comma-separated)").fill("Discard me");
+  await page.getByLabel("Quantity", { exact: true }).fill("99");
+  await page.getByLabel("Input 1 name", { exact: true }).fill("Discard me");
+  await expect(
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Discard my changes" }).click();
-  await expect(page.getByLabel("Integer inputs (comma-separated)")).toHaveValue(
-    "3",
-  );
-  await expect(page.getByLabel("Input labels (comma-separated)")).toHaveValue(
+  await expect(page.getByLabel("Input 1 name", { exact: true })).toHaveValue(
     "Quantity",
   );
-  await page.getByRole("button", { name: "Apply input form to draft" }).click();
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
+  await page.getByLabel("Quantity", { exact: true }).fill("3.5");
   await expect(
-    page.getByText("Saved inputs: Quantity: 3", { exact: true }),
+    page.getByRole("alert").filter({ hasText: "whole numbers" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Discard my changes" }).click();
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
   passed++;
-  console.log("PASS same-base discard resets unapplied ToolInputs text");
+  console.log(
+    "PASS same-base discard resets per-field tool inputs; invalid input stays out of the draft",
+  );
 
   await page.evaluate(() => {
     window.resource = {

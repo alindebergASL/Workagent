@@ -8,7 +8,7 @@ import { conversationApi } from "@/lib/client/real-api";
 import {
   currentObservation,
   resolveObservations,
-  formInputs,
+  fieldInputs,
   isProduct,
   productApi,
   type ProductBody,
@@ -833,6 +833,11 @@ function ResultCard({
     </section>
   );
 }
+/**
+ * The tool's inputs, one field each: a name and a whole-number value. Valid
+ * edits go straight into the draft (so Save and Discard cover them); an
+ * invalid edit stays on screen with its reason and never reaches the draft.
+ */
 function ToolInputs({
   body,
   update,
@@ -840,42 +845,80 @@ function ToolInputs({
   body: S["ToolBody"];
   update: (b: S["ToolBody"]) => void;
 }) {
-  const [labels, setLabels] = useState(
-    body.input_form.map((f) => f.label).join(","),
+  const [rows, setRows] = useState(() =>
+    body.input_form.map((f, i) => ({
+      name: f.name,
+      label: f.label,
+      value: String(body.arguments[i] ?? ""),
+    })),
   );
-  const [values, setValues] = useState(body.arguments.join(","));
   const [error, setError] = useState("");
+  function change(next: typeof rows) {
+    setRows(next);
+    try {
+      update({ ...body, ...fieldInputs(next) });
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Check the inputs.");
+    }
+  }
   return (
-    <div className="stack">
-      <p className="small">
-        Saved inputs:{" "}
-        {body.input_form
-          .map((f, i) => `${f.label}: ${body.arguments[i]}`)
-          .join(" · ")}
-      </p>
-      <label className="field">
-        <span>Input labels (comma-separated)</span>
-        <input value={labels} onChange={(e) => setLabels(e.target.value)} />
-      </label>
-      <label className="field">
-        <span>Integer inputs (comma-separated)</span>
-        <input value={values} onChange={(e) => setValues(e.target.value)} />
-      </label>
-      <button
-        className="btn btn-sm tool-apply"
-        type="button"
-        onClick={() => {
-          try {
-            update({ ...body, ...formInputs(values, labels) });
-            setError("");
-          } catch (e) {
-            setError(e instanceof Error ? e.message : "Invalid inputs");
-          }
-        }}
-      >
-        Apply input form to draft
-      </button>
-      {error ? <p role="alert">{error}</p> : null}
-    </div>
+    <fieldset className="tool-inputs stack-sm">
+      <legend className="field-label">Inputs</legend>
+      {rows.map((r, i) => (
+        <div key={i} className="tool-input-row">
+          <input
+            aria-label={`Input ${i + 1} name`}
+            value={r.label}
+            placeholder="Name"
+            onChange={(e) =>
+              change(
+                rows.map((x, n) =>
+                  n === i ? { ...x, label: e.target.value } : x,
+                ),
+              )
+            }
+          />
+          <input
+            aria-label={r.label.trim() || `Input ${i + 1} value`}
+            inputMode="numeric"
+            value={r.value}
+            placeholder="0"
+            onChange={(e) =>
+              change(
+                rows.map((x, n) =>
+                  n === i ? { ...x, value: e.target.value } : x,
+                ),
+              )
+            }
+          />
+          <button
+            type="button"
+            className="btn btn-sm btn-quiet"
+            aria-label={`Remove input ${i + 1}`}
+            onClick={() => change(rows.filter((_, n) => n !== i))}
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      <div className="row">
+        <button
+          type="button"
+          className="btn btn-sm"
+          disabled={rows.length >= 8}
+          onClick={() => change([...rows, { name: "", label: "", value: "" }])}
+        >
+          Add an input
+        </button>
+      </div>
+      {error ? (
+        <p role="alert" className="small">
+          {error}
+        </p>
+      ) : (
+        <p className="hint">Whole numbers only. Up to eight inputs.</p>
+      )}
+    </fieldset>
   );
 }
