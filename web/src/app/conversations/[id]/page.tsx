@@ -21,10 +21,11 @@ const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   responding: "Replying…",
   cancelled: "Stopped before a reply. Your message is kept.",
   no_reply: "No reply was recorded for this message.",
-  failed: "The local operation failed. Your message is kept.",
+  failed: "This didn’t complete. Your message is kept.",
   unavailable:
-    "The controlled local consumer is unavailable. No provider fallback ran.",
-  outcome_unknown: "The outcome could not be confirmed; inspect saved state.",
+    "Nothing has picked this up yet. Your message is kept and runs once the local worker is running.",
+  outcome_unknown:
+    "The outcome couldn’t be confirmed. Check the saved work before trying again.",
 };
 
 function readKept(key: string): string {
@@ -300,13 +301,24 @@ export default function ConversationPage() {
                 </div>
               </div>
               {turn && turn.state !== "replied" ? (
-                <p
+                <div
                   className="msg-pending"
                   data-state={turn.state}
                   role={turn.state === "queued" ? "status" : undefined}
                 >
-                  {turn.reason || PENDING[turn.state]}
-                </p>
+                  <span>{PENDING[turn.state]}</span>
+                  {/* The service's exact reason explains a failure or what to
+                      do next; it stays one click away, not in primary copy. */}
+                  {turn.reason &&
+                  (turn.state === "failed" ||
+                    turn.state === "unavailable" ||
+                    turn.state === "outcome_unknown") ? (
+                    <details className="ids-details">
+                      <summary>Why</summary>
+                      <p className="ids">{turn.reason}</p>
+                    </details>
+                  ) : null}
+                </div>
               ) : null}
             </li>
           );

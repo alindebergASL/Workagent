@@ -7,7 +7,7 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   responding: "Replying…",
   cancelled: "Stopped before a reply.",
   failed: "This didn’t complete.",
-  unavailable: "Couldn’t run right now.",
+  unavailable: "Nothing has picked this up yet.",
   no_reply: "No reply was recorded.",
 };
 
@@ -55,7 +55,7 @@ export function ConversationPeek({
       </ol>
       {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
         <p className="msg-pending" data-state={last.state}>
-          {last.reason || TURN_TEXT[last.state]}
+          {TURN_TEXT[last.state]}
         </p>
       ) : null}
       <Link className="btn btn-sm" href={`/conversations/${d.conversation.id}`}>
