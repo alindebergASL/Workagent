@@ -18,7 +18,7 @@ const origin='http://127.0.0.1:3000';
 const base=origin+'/api/domain/v1/workspaces/local-workspace';
 const headers={'X-Workagent-Client':'local-ui','Content-Type':'application/json'};
 const cmd=()=>({schema_version:'workagent/v1',request_id:crypto.randomUUID(),command_id:crypto.randomUUID()});
-async function api(p,body){const r=await fetch(base+p,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{})});expect(r.ok()).toBe(true);return r.json();}
+async function api(p,body){const r=await fetch(base+p,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{})});expect(r.ok).toBe(true);return r.json();}
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 try{
  const page=await browser.newPage();

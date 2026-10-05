@@ -1,7 +1,11 @@
-# B1 conversation contract — implemented candidate, awaiting joint review
+# B1 conversation contract — implemented and consumed
 
-For Claude's existing frontend branch. This is an implemented **candidate**, not
-an agreed schema: no explicit Claude ACK has been observed. No web files changed.
+Claude acknowledged the exact B1 mapping in PR #5 comment5964941294 and delivered
+actual-service wiring; the latest published follow-up is e30ed034a70e3c3cebb3c6c327b329e299be2b82.
+The preserved product candidate092c9c4 and that frontend are now integrated on the
+non-default development branch. This document describes B1; B2/B3 additions are
+in GENERAL_PRODUCTS_CONTRACT.md. B2/B3 contract ACK is separately tracked on PR #9
+comment5998325623, not implied by the earlier B1 ACK.
 Canonical authority: `backend/workagent/models.py`, generated `contracts/openapi.json`
 and `contracts/src/schema.d.ts`; complete illustrative payloads in
 `contracts/examples.json`. Existing intake endpoints remain available.

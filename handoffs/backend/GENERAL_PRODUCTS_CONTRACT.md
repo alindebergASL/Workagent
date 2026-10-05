@@ -84,7 +84,7 @@ Human-save never accepts execution/provenance fields. For conversation products 
 
 - `observation`: immutable ID, workspace/conversation/run/artifact IDs, exact published revision or proposal/base IDs, canonical `body_hash`, typed `operation_hash`, access-generation and `evidence_origin:"controlled_transport"`.
 - CSV output: exact input SHA256, fixed formula, rounding, discrepancy IDs, reported/calculated sums and source-preservation result. Initial input hash is attachment bytes; recalculation hash is the canonical CSV projection of saved raw rows. The exact base revision binds those rows.
-- Wasm output: exact code SHA256 and input SHA256 (canonical JSON of entrypoint/arguments), actual integer return, arguments/entrypoint, `engine:"wasmtime-49.0.0"`, observed execution flag and fuel/memory/import limits/readback.
+- Wasm output: exact code SHA256 and input SHA256 (canonical JSON of entrypoint/arguments), actual signed-i64 return serialized as an **exact decimal string** in JSON `output.value`, arguments/entrypoint, `engine:"wasmtime-49.0.0"`, observed execution flag and fuel/memory/import limits/readback. Display the string verbatim, never convert it with JavaScript `Number`. Kernel/internal/stored observations retain exact integers; only the readback adapter changes transport. This preserves historical body/observation storage while representing values beyond JavaScript's safe integer range losslessly.
 - `binding_state`: `current_revision`, `pending_proposal`, or `historical`.
 - `current_scope`: current generation and selected-source manifest/version match. Revoked access denies the read entirely.
 
