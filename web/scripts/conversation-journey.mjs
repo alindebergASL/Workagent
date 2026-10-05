@@ -309,7 +309,7 @@ try {
   await page
     .getByLabel("Message your agent")
     .fill("Take the weekly review off my plate.");
-  const before = (await api("/conversations")).body.items.length;
+  const conversationsBefore = (await api("/conversations")).body.items.length;
   loseNext = /\/conversations$/;
   await page.getByRole("button", { name: "Take it from here" }).click();
   await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
@@ -331,7 +331,7 @@ try {
   expect(
     (await api("/conversations")).body.items.length,
     "the replayed create reused the committed conversation",
-  ).toBe(before + 1);
+  ).toBe(conversationsBefore + 1);
   await page.getByRole("button", { name: "Not now" }).click();
 
   // ---- end the conversation ----
