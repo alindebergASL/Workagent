@@ -1,0 +1,127 @@
+{
+  "runtime_commit": "4664e744c7fbb4922fc1646ca9dcbdbb9da27219",
+  "mode": "controlled_transport",
+  "provider_observation": "not_observed",
+  "csv_conversation": "f59c1be7-9f1e-49cd-a306-8a8aaf80d666",
+  "tool_conversation": "52d923a1-30ff-4b3b-abca-48e0960e1b29",
+  "ui_runs": [
+    {
+      "conversation": "f59c1be7-9f1e-49cd-a306-8a8aaf80d666",
+      "id": "ed45bdb9-f15b-47d6-98a6-db37b2f3777f",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "f59c1be7-9f1e-49cd-a306-8a8aaf80d666",
+      "id": "718b0339-2dac-4e20-9167-9ba2ae472240",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "f59c1be7-9f1e-49cd-a306-8a8aaf80d666",
+      "id": "0d0a0108-bd8f-4e3f-b532-1447b3616110",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "52d923a1-30ff-4b3b-abca-48e0960e1b29",
+      "id": "0385ba42-f873-44b8-a906-34a3591677c7",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "52d923a1-30ff-4b3b-abca-48e0960e1b29",
+      "id": "49360b2d-02d6-41ce-9ebe-eb4e3bbdbc67",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "52d923a1-30ff-4b3b-abca-48e0960e1b29",
+      "id": "6f6b39e2-2327-4c42-a32b-36a45df5be1c",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "66519fc7-29c0-4552-9e32-0f08308ad55b",
+      "id": "6bb4fa37-01b9-4d15-8e14-b4fb45a172eb",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "66519fc7-29c0-4552-9e32-0f08308ad55b",
+      "id": "523084f1-5404-40ce-a596-40f1d81303f7",
+      "state": "partial",
+      "profile": "general-products-controlled-v1"
+    }
+  ],
+  "exact_i64_runs": [
+    {
+      "id": "5274fb76-8205-4f64-bbfe-378476c57c1c",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "id": "dff52c43-ff07-4cf7-974c-01b460c6ad50",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "id": "bd7736df-229b-49b6-a524-e3163706f6eb",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    }
+  ],
+  "outage": {
+    "conversation_id": "d17301bb-a4ef-41aa-bda5-a76755b73263",
+    "run_id": "2adba0a4-cd3d-4313-97f1-cfd80d18d414",
+    "observed_state": "unavailable",
+    "fabricated_replies": 0
+  },
+  "restart": {
+    "passed": true,
+    "processes_restarted": [
+      "web",
+      "api",
+      "dispatcher"
+    ],
+    "same_recovered_run": "2adba0a4-cd3d-4313-97f1-cfd80d18d414",
+    "shipping_return": "4250",
+    "exact_i64_return": "9007199254740993",
+    "human_notes_preserved": true
+  },
+  "cli_summary": {
+    "csv_reported": "78.40",
+    "csv_calculated": "77.40",
+    "wasm_return": 3750,
+    "shipping_return": 4250,
+    "human_notes_preserved": true,
+    "run_ids": {
+      "csv_initial": "4ab78ad2-3962-4371-9b97-49d99b822746",
+      "csv_changed": "3b3e8835-6092-47e2-8b0b-878486f55159",
+      "wasm_initial": "0fa67387-979e-4835-917c-f8353d8e60fd",
+      "wasm_shipping": "1cbae0a3-aea9-43c8-803a-55775ad60289"
+    }
+  },
+  "files": {
+    ".local/parent-integration/4664-verified/products/result.json": {
+      "sha256": "5ec60a9ec7b8cbe1f54486eab6068fdad89b0ca4e241a0c497e6965da1dc7287",
+      "bytes": 6504
+    },
+    ".local/parent-integration/4664-verified/readback/readback.json": {
+      "sha256": "2d45f86592b330d2ab0f4453d766dbc8980ecb4ed375e3c1604866320b269095",
+      "bytes": 3698
+    },
+    ".local/parent-integration/4664-verified/outage.json": {
+      "sha256": "27cadc87ef8bfbe76645681fae9d51e0a135d5aaa650c4958d42a14e156913a6",
+      "bytes": 177
+    },
+    ".local/parent-integration/4664-verified/restart.json": {
+      "sha256": "1b2d37d631e1a9cb482f1b74b8a994b5b733de7daa02adbc8c5c5c676afb9134",
+      "bytes": 259
+    },
+    ".local/parent-integration/4664-cli.json": {
+      "sha256": "d0775decf1117a1e82b033c9d31c019a0129ad6f87431805f870965e2c98d222",
+      "bytes": 61483
+    }
+  }
+}

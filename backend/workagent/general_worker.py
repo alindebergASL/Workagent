@@ -43,6 +43,42 @@ class GeneralWorker:
         self.service=service
         self.transport=transport
 
+    def _terminal_readback(self,p,ws,run):
+        if run.state=='ready':
+            detail=self.service.get_conversation(p,ws,run.conversation_id)
+            if not any(m.run_id==run.id and m.author_kind=='assistant' for m in detail.messages):
+                raise DomainError('action_unresolved')
+        return run
+
+    def _recover_failure(self,p,ws,run_id,cap):
+        """One failure publication attempt; durable authority wins over a lost ACK."""
+        service=self.service
+        try:
+            observed=service.get_run(p,ws,run_id)
+            if observed.state in ('ready','partial'):
+                return self._terminal_readback(p,ws,observed)
+            # Recheck context before attempting publication. fail_local_turn checks
+            # the fenced capability again in its own terminal-write transaction.
+            service.conversation_worker_context(cap)
+            try:
+                service.fail_local_turn(cap,
+                    'Controlled worker failed; no result was fabricated. Submit a fresh turn to retry.')
+            except DomainError:
+                raise
+            except Exception:
+                # No retry: publication itself may have committed before losing ACK.
+                pass
+            observed=service.get_run(p,ws,run_id)
+            if observed.state not in ('ready','partial'):
+                raise DomainError('action_unresolved')
+            return self._terminal_readback(p,ws,observed)
+        except DomainError as exc:
+            raise exc from None
+        except Exception:
+            # Recovery/readback unavailable: leave the existing lease/outbox alone.
+            # Never leak transport, validation, or persistence exception contents.
+            raise DomainError('action_unresolved') from None
+
     def work(self,p,ws,run_id):
         service=self.service
         run=service.get_run(p,ws,run_id)
@@ -50,29 +86,32 @@ class GeneralWorker:
             raise DomainError('unsupported_operation')
         if run.state in ('ready','partial','cancelled'):
             # Exact durable readback; duplicate delivery must not invoke transport.
-            if run.state=='ready':
-                detail=service.get_conversation(p,ws,run.conversation_id)
-                if not any(m.run_id==run.id and m.author_kind=='assistant' for m in detail.messages):
-                    raise DomainError('action_unresolved')
-            return run
+            return self._terminal_readback(p,ws,run)
         cap=service.claim_run(p,ws,run_id)
-        context=service.conversation_worker_context(cap)
-        result=self.transport.respond(context)
-        if run.profile==PRODUCT_PROFILE:
-            if not isinstance(result,dict) or set(result)!= {'tool'}:
-                return service.fail_local_turn(cap,'Controlled transport did not select the authorized local tool.')
-            try:
-                service.execute_local_product(cap,result['tool'])
-            except DomainError as exc:
-                if exc.code.value in ('version_conflict','unsupported_operation','budget_exhausted'):
-                    return service.fail_local_turn(cap,exc.code.value+'; inspect saved state and submit a fresh turn.')
-                raise
-        else:
-            service.complete_conversation_turn(cap,result)
-        observed=service.get_run(p,ws,run_id)
-        if observed.state not in ('ready','partial'):
-            raise DomainError('action_unresolved')
-        return observed
+        try:
+            context=service.conversation_worker_context(cap)
+            result=self.transport.respond(context)
+            if run.profile==PRODUCT_PROFILE:
+                if not isinstance(result,dict) or set(result)!= {'tool'}:
+                    return service.fail_local_turn(cap,'Controlled transport did not select the authorized local tool.')
+                try:
+                    service.execute_local_product(cap,result['tool'])
+                except DomainError as exc:
+                    if exc.code.value in ('version_conflict','unsupported_operation','budget_exhausted'):
+                        return service.fail_local_turn(cap,exc.code.value+'; inspect saved state and submit a fresh turn.')
+                    raise
+            else:
+                service.complete_conversation_turn(cap,result)
+            observed=service.get_run(p,ws,run_id)
+            if observed.state not in ('ready','partial'):
+                raise DomainError('action_unresolved')
+            return observed
+        except DomainError:
+            raise
+        except Exception:
+            # Only ordinary post-claim failures are isolated; process-control
+            # BaseExceptions (SystemExit/KeyboardInterrupt) retain crash semantics.
+            return self._recover_failure(p,ws,run_id,cap)
 
     def once(self, *, workspace=None):
         """One bounded batch from the existing durable outbox admission ledger."""
