@@ -332,6 +332,47 @@ try {
   await load();
   await page.evaluate(() => sessionStorage.clear());
 
+  for (const retryFirst of [false, true]) {
+    await load();
+    await page.evaluate(() => sessionStorage.clear());
+    await mount("reply");
+    await page.evaluate((ambiguous) => {
+      window.ambiguous = ambiguous;
+      const original = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key.startsWith("workagent:pending:"))
+          throw new DOMException("full", "QuotaExceededError");
+        return original.call(this, key, value);
+      };
+    }, retryFirst);
+    await page.getByLabel("Test reply").fill("Quota-limited reply");
+    await page.getByRole("button", { name: "Send reply", exact: true }).click();
+    if (retryFirst) {
+      await expect(
+        page.getByRole("button", { name: "Retry reply", exact: true }),
+      ).toBeEnabled();
+      const first = await page.evaluate(() => window.calls[0]);
+      await page.evaluate(() => {
+        window.ambiguous = false;
+      });
+      await page
+        .getByRole("button", { name: "Retry reply", exact: true })
+        .click();
+      assert.deepEqual(await page.evaluate(() => window.calls[1]), first);
+    }
+    await expect(page.getByLabel("Test reply")).toHaveValue("");
+    await expect(page.getByLabel("Test reply")).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Send reply", exact: true }),
+    ).toBeEnabled();
+    passed++;
+    console.log(
+      `PASS quota-failed journal write resolves ${retryFirst ? "exact in-memory replay" : "successful reply"} without permanent lock`,
+    );
+  }
+
+  await load();
+  await page.evaluate(() => sessionStorage.clear());
   const hash = "0".repeat(64);
   const body = {
     kind: "tool",

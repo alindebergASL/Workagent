@@ -17,11 +17,13 @@ Claude's explicit B2/B3 generated-contract ACK is now recorded at [PR9 comment60
 2. Invalid per-field tool text previously left last-valid values actionable and vanished on navigation. Raw labels/values now persist separately from contractual Body, mark the draft dirty and block Save/Run/Apply until valid/applied. Invalid data never enters typed payloads; Discard restores saved input.
 3. Retained calculated/check columns previously let an unchecked human-edited CSV claim a match. Result headlines now require the corresponding saved/proposal observation binding. Disclosure regressions explicitly open and inspect visible semantics.
 
+A final re-review also reproduced a storage-quota regression: when journal persistence failed but reads remained available, confirmed sends could remain retry-locked. Cleanup now distinguishes a failed persistence attempt from a genuinely newer journal entry. Successful sends and successful exact in-memory retries unlock while prior late-callback protections remain tested. Quota-limited in-memory recovery is not a claim of durability across reload when storage cannot accept writes.
+
 ## Personally rerun
 
 - **81 frontend tests**, typecheck/lint/format and production build passed after corrections.
 - **15 mock Playwright regressions** passed after corrections; real-mode build restored. Evidence `.local/parent-integration/37f1c10-mock`; owner evidence not overwritten.
-- **15 focused server-free DOM regressions** passed, including both late reply races, invalid value/label preservation, save/run/apply gates, immediate valid edits, unapplied restored raw input, disclosure visibility and stale headline binding. These are fixture-transport regressions, not live execution proof.
+- **17 focused server-free DOM regressions** passed, including both late reply races, invalid value/label preservation, save/run/apply gates, immediate valid edits, unapplied restored raw input, disclosure visibility and stale headline binding. These are fixture-transport regressions, not live execution proof.
 - **72 relevant PostgreSQL tests** personally rerun in this integration: conversations/products/worker failure isolation. Backend unchanged throughout these frontend corrections. Prior403 full backend pass is reused by verified byte identity, not claimed as a new full-suite run.
 - Generated-contract canonical JSON/OpenAPI/TypeScript drift/typecheck passed; backend/contracts/runtime diff against19e1478 is empty.
 - **Real clean application checkpoint37f1c10**, fresh PostgreSQL and production web/API/continuous controlled dispatcher: `scripts/verify_general_integration.py` passed CSV edit/save/export/reopen, per-field shipping change, reply beside work while retaining unsaved notes, malicious imports, actual lost response/reload/exact replay, consumer outage/unavailable and process restart/same-run recovery. No manual worker tick.

@@ -14,17 +14,20 @@ import { useCallback, useEffect, useRef, useState } from "react";
  */
 export function usePendingCommand<T>(key: string | null) {
   const ref = useRef<T | null>(null);
+  const persisted = useRef(false);
   const [, bump] = useState(0);
   const [restored, setRestored] = useState(false);
 
   useEffect(() => {
     ref.current = null;
+    persisted.current = false;
     setRestored(false);
     if (!key) return;
     try {
       const raw = sessionStorage.getItem(key);
       if (raw) {
         ref.current = JSON.parse(raw) as T;
+        persisted.current = true;
         setRestored(true);
       }
     } catch {
@@ -36,11 +39,15 @@ export function usePendingCommand<T>(key: string | null) {
   const set = useCallback(
     (value: T | null) => {
       ref.current = value;
+      persisted.current = false;
       if (value === null) setRestored(false);
       if (key)
         try {
           if (value === null) sessionStorage.removeItem(key);
-          else sessionStorage.setItem(key, JSON.stringify(value));
+          else {
+            sessionStorage.setItem(key, JSON.stringify(value));
+            persisted.current = true;
+          }
         } catch {
           /* storage unavailable: the in-memory command still holds */
         }
@@ -55,13 +62,17 @@ export function usePendingCommand<T>(key: string | null) {
       if (key)
         try {
           // A completion from an old mount must not erase a newer journal entry.
-          if (sessionStorage.getItem(key) !== JSON.stringify(expected))
-            return false;
-          sessionStorage.removeItem(key);
+          const stored = sessionStorage.getItem(key);
+          if (stored === JSON.stringify(expected))
+            sessionStorage.removeItem(key);
+          else if (stored !== null || persisted.current) return false;
+          // A quota-failed write has no stored entry. Resolve only its exact
+          // in-memory attempt; a different stored entry always wins.
         } catch {
           /* storage unavailable: still resolve this exact in-memory command */
         }
       ref.current = null;
+      persisted.current = false;
       setRestored(false);
       bump((n) => n + 1);
       return true;
