@@ -8,6 +8,10 @@ Read `../../AGENTS.md`, `../../docs/PRODUCT_CONTRACT.md`, `../../docs/WORK_CONTR
 
 ## Current integrated verification
 
+**Latest checkpoint:** [GENERAL_COMPANION_VERIFICATION.md](GENERAL_COMPANION_VERIFICATION.md) supersedes the experience/ACK gaps below. Claude43cfe3f is integrated with scoped retry/raw-input/headline corrections37f1c10. B2/B3 ACK is explicit in PR9 comment6000227871. Companion conversation/replies, phone switching and per-field inputs are implemented and personally exercised. New verification:81 frontend tests,15 mock browser,15 focused DOM,72 relevant PostgreSQL tests plus actual CSV/tool/mobile cross-surface replay/outage/restart. Backend/contracts/runtime unchanged. The prior full403 backend result is retained evidence, not a newly rerun total. Final correction review, CI and exact published head are pinned in PR9's latest handoff. Andrew's experience acceptance and model usefulness remain untested.
+
+### Preserved prior parent checkpoint
+
 Current merged evidence is [GENERAL_PARENT_VERIFICATION.md](GENERAL_PARENT_VERIFICATION.md). Parent reran **403 real PostgreSQL backend tests**, **75 frontend tests**, **15 mock browser regressions**, **8 focused DOM regressions**, actual CSV edit/save/export/reopen then shipping-tool execution/requirement change, B1 steering/CAS/lost-response/cancel, CLI and consumer outage/process restart. Runtime code4664e74 includes latest Claudee30ed03 plus preserved092c9c4 and isolated post-claim worker failure handling. PR #9's current-head handoff pins the final published integration SHA.
 
 Engineering passes the bounded controlled B1–B3/recovery scope. General-model usefulness remains NOT TESTED. Functional desktop/phone paths pass; integrated human/prototype experience acceptance and Claude's B2/B3 ACK remain pending. CSV/shipping are breadth tests, not product identity. Companion conversation layout and technical tool-authoring/copy remain explicit experience gaps.

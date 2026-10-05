@@ -1,5 +1,7 @@
 # Parent integration: controlled general work, not a CSV product reset
 
+> Historical19e1478 checkpoint. Latest companion/frontend verification and resolved ACK/experience gaps are in [GENERAL_COMPANION_VERIFICATION.md](GENERAL_COMPANION_VERIFICATION.md). Preserve the evidence below as recorded; do not treat its pending-ACK or missing-companion statements as current.
+
 ## Candidate lineage and authority
 
 This report accompanies the published non-default integration candidate on PR #9. The full current SHA is pinned in the PR handoff, not a self-referential SHA inside its own commit.

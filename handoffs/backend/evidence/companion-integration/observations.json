@@ -1,0 +1,99 @@
+{
+  "application_commit": "37f1c1098411839312f4e3ca40b50a17188c5490",
+  "frontend_delivery": "43cfe3f984382ff39e5b2c11b1e972c9a6468937",
+  "mode": "controlled_transport",
+  "runs": [
+    {
+      "conversation": "683233e3-8ef4-4a2b-8287-03017aea6da5",
+      "id": "f2b23a4e-b2ec-4798-b04d-ba6aea10a148",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "683233e3-8ef4-4a2b-8287-03017aea6da5",
+      "id": "43461433-2533-4ba3-8b0f-abbb432c343e",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "683233e3-8ef4-4a2b-8287-03017aea6da5",
+      "id": "aebd103a-e0c7-4e8c-9259-e56edf2e9757",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "1e2e264c-08cc-4400-b480-91e044a36aa1",
+      "id": "27433676-0e33-4ef7-a2f7-501a7ed1227d",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "1e2e264c-08cc-4400-b480-91e044a36aa1",
+      "id": "d6731553-5ddb-454f-8798-4655215d7d0b",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "1e2e264c-08cc-4400-b480-91e044a36aa1",
+      "id": "98b04521-5275-420e-b2e7-c2fd271f99fa",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "1e2e264c-08cc-4400-b480-91e044a36aa1",
+      "id": "4a01ac12-ea5f-45bd-a3c5-76e7a5f33798",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "8eb34130-4843-4aed-8f7d-561d633b90d4",
+      "id": "f397920a-3f8e-4b6f-9e2a-049acfa214a4",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "8eb34130-4843-4aed-8f7d-561d633b90d4",
+      "id": "4177f00a-ce66-4094-a659-aa9363a8f3bd",
+      "state": "partial",
+      "profile": "general-products-controlled-v1"
+    }
+  ],
+  "exact_i64_runs": [
+    {
+      "id": "e1b4756b-ceba-4678-8d1c-1c44d9875850",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "id": "90acd6cc-6d44-4290-806d-92bdad427109",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "id": "c8f47011-e221-4abb-be2c-0d2183ed013f",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    }
+  ],
+  "companion": {
+    "passed": true,
+    "conversation_id": "1e2e264c-08cc-4400-b480-91e044a36aa1",
+    "command_id": "ac0b209a-8e43-422c-b21c-187dbadb0251",
+    "mobile_pane_drafts_preserved": true,
+    "cross_surface_exact_command_replay": true,
+    "human_message_count": 1,
+    "page_errors": []
+  },
+  "restart": {
+    "passed": true,
+    "processes_restarted": [
+      "web",
+      "api",
+      "dispatcher"
+    ],
+    "same_recovered_run": "850dab3b-fec2-4a1b-b008-cfed4ef7edd8",
+    "shipping_return": "4250",
+    "exact_i64_return": "9007199254740993",
+    "human_notes_preserved": true
+  }
+}

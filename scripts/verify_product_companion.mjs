@@ -13,6 +13,18 @@ try{
  await page.goto(url);
  const notes=page.getByLabel('Your notes (one per line)');
  await expect(notes).toHaveValue('Human: all amounts are cents');
+ const quantity=page.getByLabel('Quantity',{exact:true});
+ await quantity.fill('3.5');
+ await notes.fill('Human: all amounts are cents\nUnsaved with invalid quantity');
+ await expect(page.getByRole('button',{name:'Save my edits',exact:true})).toBeDisabled();
+ await expect(page.getByRole('button',{name:'Run saved tool',exact:true,disabled:false})).toHaveCount(0);
+ await page.reload();
+ await expect(quantity).toHaveValue('3.5');
+ await expect(notes).toHaveValue('Human: all amounts are cents\nUnsaved with invalid quantity');
+ await expect(page.getByRole('button',{name:'Run saved tool',exact:true,disabled:false})).toHaveCount(0);
+ await page.getByRole('button',{name:'Discard my changes',exact:true}).click();
+ await expect(quantity).toHaveValue('3');
+ await expect(notes).toHaveValue('Human: all amounts are cents');
  await notes.fill('Human: all amounts are cents\nUnsaved mobile companion note');
  await page.getByRole('button',{name:'Conversation',exact:true}).click();
  const reply=page.getByLabel('Reply about this work');
