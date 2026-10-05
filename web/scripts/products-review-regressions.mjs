@@ -99,7 +99,13 @@ const bundle = await build({
 const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(
   (x) => x.type === "chunk",
 ).code;
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  // Optional preinstalled browser for hosts that cannot download Playwright's own.
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
+});
 let passed = 0;
 try {
   const page = await browser.newPage();

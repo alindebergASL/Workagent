@@ -23,6 +23,10 @@ async function get(p) {
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
+  // Optional preinstalled browser for hosts that cannot download Playwright's own.
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
 });
 const errors = [];
 const report = {
