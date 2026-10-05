@@ -1,7 +1,7 @@
 """Typed local product data. No editable body can assert observed execution."""
 import hashlib
 from typing import Annotated, Literal
-from pydantic import Field, model_validator
+from pydantic import Field, model_validator, field_serializer
 from .model_base import Model, Id, Text, Hash
 
 CSVText = Annotated[str, Field(min_length=1, max_length=200000)]
@@ -159,10 +159,48 @@ class ProductObservation(Model):
     evidence_origin: Literal['controlled_transport'] = 'controlled_transport'
     output: CSVObservation | WasmObservation
 
+class WasmObservationResponse(Model):
+    # Transport only. Stored observations and kernel results retain exact Python ints.
+    kind: Literal['run_wasm'] = 'run_wasm'
+    value: Annotated[str, Field(pattern=r'^-?(0|[1-9][0-9]*)$', description='Exact signed i64 return as a decimal string; never parse as a JSON number.')]
+    entrypoint: str
+    arguments: list[int]
+    code_sha256: Hash
+    input_sha256: Hash
+    engine: Literal['wasmtime-49.0.0']
+    execution_observed: Literal[True]
+    fuel_consumed: int
+    fuel_limit: Literal[50000]
+    memory_limit_bytes: Literal[1048576]
+    host_imports: Literal[0]
+
+class ProductObservationResponse(Model):
+    id: Id
+    workspace_id: Id
+    conversation_id: Id
+    run_id: Id
+    artifact_id: Id
+    revision_id: Id | None = None
+    proposal_id: Id | None = None
+    base_revision_id: Id | None = None
+    body_hash: Hash
+    operation_hash: Hash
+    access_generation: int
+    evidence_origin: Literal['controlled_transport'] = 'controlled_transport'
+    output: CSVObservation | WasmObservationResponse
+
 class ObservationReadback(Model):
     observation: ProductObservation
     binding_state: Literal['current_revision','pending_proposal','historical']
     current_scope: bool
+
+    @field_serializer('observation', when_used='json')
+    def transport_observation(self, observation: ProductObservation) -> ProductObservationResponse:
+        # Adapt at the readback boundary only, including pre-existing immutable rows.
+        data = observation.model_dump()
+        if isinstance(observation.output, WasmObservation):
+            data['output']['value'] = str(observation.output.value)
+        return ProductObservationResponse.model_validate(data)
 
 class TurnState(Model):
     run_id: Id

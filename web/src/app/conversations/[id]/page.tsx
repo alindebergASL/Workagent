@@ -12,6 +12,7 @@ import type {
   ConversationDetailView,
   TurnState,
 } from "@/lib/contract/types";
+import { OperationComposer } from "@/components/OperationComposer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
@@ -19,6 +20,10 @@ const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   responding: "Replying…",
   cancelled: "Stopped before a reply. Your message is kept.",
   no_reply: "No reply was recorded for this message.",
+  failed: "The local operation failed. Your message is kept.",
+  unavailable:
+    "The controlled local consumer is unavailable. No provider fallback ran.",
+  outcome_unknown: "The outcome could not be confirmed; inspect saved state.",
 };
 
 function readKept(key: string): string {
@@ -257,6 +262,16 @@ export default function ConversationPage() {
                     </span>
                     {m.text}
                   </p>
+                  {m.products?.map((product) => (
+                    <Link
+                      key={`${product.artifact_id}:${product.observation_id}`}
+                      className="btn btn-sm"
+                      href={`/conversations/${id}/artifacts/${product.artifact_id}`}
+                    >
+                      Open {product.kind}
+                      {product.proposal_id ? " proposed change" : " product"}
+                    </Link>
+                  ))}
                   {m.author === "agent" &&
                   m.origin === "controlled_transport" ? (
                     <span className="msg-tag">Test reply</span>
@@ -269,13 +284,22 @@ export default function ConversationPage() {
                   data-state={turn.state}
                   role={turn.state === "queued" ? "status" : undefined}
                 >
-                  {PENDING[turn.state]}
+                  {turn.reason || PENDING[turn.state]}
                 </p>
               ) : null}
             </li>
           );
         })}
       </ol>
+
+      {res.reconnecting ? (
+        <p role="status">
+          Connection lost. Displaying previously read state; refresh to confirm.
+        </p>
+      ) : null}
+      <button className="btn btn-sm" onClick={() => void res.refresh()}>
+        Refresh conversation
+      </button>
 
       {controlled ? (
         <details className="ids-details">
@@ -379,6 +403,15 @@ export default function ConversationPage() {
           This conversation has ended. Its history is kept.
         </p>
       )}
+
+      {open && wsId ? (
+        <OperationComposer
+          ws={wsId}
+          cid={id}
+          version={d.conversation.work_version}
+          refresh={res.refresh}
+        />
+      ) : null}
 
       {open && handoverOpen ? (
         <section

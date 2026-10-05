@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@/styles/globals.css";
 import "@/styles/agent-first.css";
 import "@/styles/foundations.css";
+import "@/styles/products.css";
 import { WorkspaceProvider } from "@/lib/client/workspace";
 import { Shell } from "@/components/Shell";
 

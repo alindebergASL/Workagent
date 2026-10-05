@@ -213,6 +213,47 @@ def test_http_download_and_normal_dispatcher_route(context):
         obs=client.get(prefix+'/observations/'+file['observation_id'],headers=headers)
         assert obs.status_code==200 and obs.json()['current_scope']
 
+@pytest.mark.parametrize('value', [1000000000000000001, -1000000000000000001, 9223372036854775807, -9223372036854775808])
+def test_i64_readback_transport_is_lossless_without_rewriting_storage(context, value):
+    import secrets
+    s,p,ws,_,_=context
+    code=f'(module (func (export "total") (result i64) i64.const {value}))'
+    detail,products=execute(context,RunWasm(kind='run_wasm',code=code,arguments=[],input_form=[]))
+    tool=products[0]
+    with s.db.transaction() as c:
+        before=c.execute('SELECT data::text bytes FROM product_observations WHERE workspace_id=%s AND id=%s', (ws,tool.observation_id)).fetchone()['bytes']
+    stored=json.loads(before)
+    assert stored['output']['value']==value and type(stored['output']['value']) is int
+    read=s.get_product_observation(p,ws,tool.observation_id)
+    assert read.observation.output.value==value and type(read.observation.output.value) is int
+    assert json.loads(read.model_dump_json())['observation']['output']['value']==str(value)
+    settings=Settings(s.db.dsn,True,secrets.token_urlsafe(32),p.id)
+    headers={'Authorization':'Bearer '+settings.local_bearer,'X-Schema-Version':'workagent/v1','X-Request-Id':'exact-i64'}
+    with TestClient(create_app(settings)) as client:
+        response=client.get(f'/v1/workspaces/{ws}/observations/{tool.observation_id}',headers=headers)
+        assert response.status_code==200
+        assert response.json()['observation']['output']['value']==str(value)
+        schema=client.get('/openapi.json').json()['components']['schemas']
+        assert schema['WasmObservationResponse']['properties']['value']['type']=='string'
+    with s.db.transaction() as c:
+        after=c.execute('SELECT data::text bytes FROM product_observations WHERE workspace_id=%s AND id=%s', (ws,tool.observation_id)).fetchone()['bytes']
+    assert before==after
+    assert s.get_artifact(p,ws,tool.artifact_id,tool.revision_id).requested_revision.body.code==code
+
+
+def test_pending_proposal_does_not_revoke_current_saved_observation(context):
+    s,p,ws,_,_=context
+    detail,products=execute(context,wasmop()); tool=products[0]
+    detail,proposed=execute(context,wasmop(artifact_id=tool.artifact_id,base_revision_id=tool.revision_id),detail.conversation)
+    assert s.get_product_observation(p,ws,tool.observation_id).binding_state=='current_revision'
+    assert s.get_product_observation(p,ws,proposed[0].observation_id).binding_state=='pending_proposal'
+    proposal=s.proposals(p,ws,tool.artifact_id).items[0]
+    saved=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=tool.revision_id))
+    detail,newer=execute(context,wasmop(artifact_id=tool.artifact_id,base_revision_id=saved.current_revision_id),detail.conversation)
+    assert s.get_product_observation(p,ws,proposed[0].observation_id).binding_state=='current_revision'
+    assert s.get_product_observation(p,ws,newer[0].observation_id).binding_state=='pending_proposal'
+
+
 def test_legacy_body_bytes_unchanged():
     body=Body(title='Legacy',blocks=[Block(block_id='x',kind='paragraph',text='Keep')])
     assert canonical(body)=='{"blocks":[{"block_id":"x","checked":null,"kind":"paragraph","text":"Keep"}],"title":"Legacy"}'
@@ -351,7 +392,7 @@ def test_real_http_and_controlled_dispatcher_processes(context):
             assert detail['turns'][0]['state']=='replied'
             result=detail['messages'][-1]['result']['results'][1]
             observation=client.get(f'/v1/workspaces/{ws}/observations/'+result['observation_id'])
-            assert observation.status_code==200 and observation.json()['observation']['output']['value']==3750
+            assert observation.status_code==200 and observation.json()['observation']['output']['value']=='3750'
             assert client.get(f'/v1/workspaces/{ws}/conversations').json()['items'][0]['last_message_preview']
     finally:
         for child in children:

@@ -11,17 +11,17 @@ import { commandPayloadCache } from "./command-cache";
 const stablePayload = commandPayloadCache();
 type S = components["schemas"];
 const rid = () => crypto.randomUUID();
-const meta = () => ({
+export const meta = () => ({
   "x-schema-version": "workagent/v1" as const,
   "x-request-id": rid(),
 });
-const command = (id: string) => ({
+export const command = (id: string) => ({
   schema_version: "workagent/v1" as const,
   request_id: rid(),
   command_id: id,
 });
 // The server-side loopback proxy injects its private local bearer. None reaches JS.
-const client = workagentClient("/api/domain", "", rid);
+export const client = workagentClient("/api/domain", "", rid);
 client.use({
   onRequest({ request }) {
     request.headers.set("X-Workagent-Client", "local-ui");
@@ -29,7 +29,7 @@ client.use({
   },
 });
 
-async function unwrap<T>(
+export async function unwrap<T>(
   promise: Promise<{
     data?: T;
     error?: S["ErrorEnvelope"];
@@ -61,7 +61,7 @@ async function unwrap<T>(
   }
   return result.data;
 }
-async function all<T>(
+export async function all<T>(
   fetchPage: (
     cursor?: string,
   ) => Promise<{ items: T[]; next_cursor?: string | null }>,
@@ -174,7 +174,14 @@ const toSource = (
   excerpt: "content" in s ? JSON.stringify(s.content, null, 2) : null,
   used_by_artifact_ids: used,
 });
-function toBlocks(body: S["Body"]): V.Block[] {
+function toBlocks(body: S["Revision"]["body"]): V.Block[] {
+  if (!("blocks" in body))
+    throw new ApiError({
+      code: "unsupported_operation",
+      status: 422,
+      message:
+        "Open this product from its conversation, not the document editor.",
+    });
   return body.blocks.map((b) => ({
     id: b.block_id,
     kind:
@@ -275,6 +282,12 @@ async function artifactView(
   raw: S["Artifact"],
   signal?: AbortSignal,
 ): Promise<V.Artifact> {
+  if (!raw.assignment_id)
+    throw new ApiError({
+      code: "unsupported_operation",
+      status: 422,
+      message: "This product belongs to a conversation.",
+    });
   const [assignment, history, proposals, sources] = await Promise.all([
     rawAssignment(raw.workspace_id, raw.assignment_id, signal),
     rawHistory(raw.workspace_id, raw.id, signal),
@@ -730,6 +743,12 @@ export const realApi = {
       c,
       async () => {
         const artifact = await rawArtifact(ws, id);
+        if (!artifact.assignment_id)
+          throw new ApiError({
+            code: "unsupported_operation",
+            status: 422,
+            message: "Use conversation product steering.",
+          });
         const assignment = await rawAssignment(ws, artifact.assignment_id);
         return {
           ...command(c.command_id),
@@ -825,6 +844,8 @@ function toConversation(c: S["Conversation"]): V.ConversationSummary {
     work_version: c.work_version,
     created_at: c.created_at ?? "",
     context_count: c.selected_source_refs?.length ?? 0,
+    updated_at: c.updated_at ?? c.created_at ?? "",
+    last_message_preview: c.last_message_preview ?? null,
   };
 }
 
@@ -865,10 +886,18 @@ export function conversationDetail(
       sequence: m.sequence,
       run_id: m.run_id,
       origin: m.evidence_origin,
+      products: (m.result?.results ?? []).filter(
+        (r): r is S["ProductResult"] => r.kind !== "text",
+      ),
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,
-      state: turnStateOf(r, messages),
+      state:
+        d.turns?.find((t) => t.run_id === r.id)?.state ??
+        turnStateOf(r, messages),
+      reason:
+        d.turns?.find((t) => t.run_id === r.id)?.reason ??
+        (r.unresolved ?? []).join("; "),
       message_id:
         messages.find((m) => m.run_id === r.id && m.author_kind === "human")
           ?.id ?? null,
@@ -960,7 +989,13 @@ export const conversationApi = {
   async send(
     ws: string,
     id: string,
-    c: { command_id: string; expected_work_version: number; text: string },
+    c: {
+      command_id: string;
+      request_id?: string;
+      expected_work_version: number;
+      text: string;
+      operation?: S["PostMessage"]["operation"];
+    },
   ) {
     const body = await stablePayload<S["PostMessage"]>(
       `${ws}:message:${id}`,
@@ -968,8 +1003,10 @@ export const conversationApi = {
       c,
       async () => ({
         ...command(c.command_id),
+        ...(c.request_id ? { request_id: c.request_id } : {}),
         expected_work_version: c.expected_work_version,
         text: c.text,
+        ...(c.operation ? { operation: c.operation } : {}),
       }),
     );
     const r = await unwrap(

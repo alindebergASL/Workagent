@@ -339,7 +339,14 @@ export interface ListResult<T> {
  * run and a recorded assistant message; nothing is inferred from `queued`.
  */
 export type TurnState =
-  "queued" | "responding" | "replied" | "cancelled" | "no_reply";
+  | "queued"
+  | "responding"
+  | "replied"
+  | "cancelled"
+  | "no_reply"
+  | "failed"
+  | "unavailable"
+  | "outcome_unknown";
 
 export interface ConversationSummary {
   id: string;
@@ -348,6 +355,8 @@ export interface ConversationSummary {
   work_version: number;
   created_at: string;
   context_count: number;
+  updated_at?: string;
+  last_message_preview?: string | null;
 }
 
 export interface ChatMessage {
@@ -359,11 +368,13 @@ export interface ChatMessage {
   run_id: string;
   /** Server-attested origin; a controlled reply is a wiring receipt, not model output. */
   origin: "human" | "controlled_transport";
+  products?: import("../../../../contracts/src/client").components["schemas"]["ProductResult"][];
 }
 
 export interface ChatTurn {
   run_id: string;
   state: TurnState;
+  reason?: string;
   /** The person's message that admitted this turn. */
   message_id: string | null;
 }

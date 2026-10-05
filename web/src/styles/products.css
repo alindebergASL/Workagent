@@ -1,0 +1,71 @@
+.product-page {
+  min-width: 0;
+}
+.product-page fieldset,
+.product-composer fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.product-scroll {
+  max-width: 100%;
+  overflow: auto;
+  border: 1px solid var(--line, #ddd);
+  border-radius: 8px;
+}
+.product-scroll table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.product-scroll th,
+.product-scroll td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid var(--line, #ddd);
+  white-space: nowrap;
+}
+.product-scroll input {
+  min-width: 110px;
+  max-width: 220px;
+  width: 100%;
+}
+.product-code {
+  max-width: 100%;
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font:
+    12px/1.6 ui-monospace,
+    monospace;
+  background: var(--surface, #f6f6f4);
+  padding: 12px;
+  border-radius: 8px;
+}
+.product-page .row {
+  flex-wrap: wrap;
+}
+.product-page .btn,
+.product-composer .btn {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.product-page .ids {
+  overflow-wrap: anywhere;
+}
+.product-composer summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.product-composer .btn {
+  margin-top: 12px;
+}
+.product-page input,
+.product-page textarea,
+.product-page select,
+.product-composer input,
+.product-composer select {
+  max-width: 100%;
+  box-sizing: border-box;
+}

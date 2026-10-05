@@ -1551,7 +1551,7 @@
             "type": "boolean"
           },
           "observation": {
-            "$ref": "#/components/schemas/ProductObservation"
+            "$ref": "#/components/schemas/ProductObservationResponse"
           }
         },
         "required": [
@@ -1828,6 +1828,132 @@
           "output"
         ],
         "title": "ProductObservation",
+        "type": "object"
+      },
+      "ProductObservationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "evidence_origin": {
+            "const": "controlled_transport",
+            "default": "controlled_transport",
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "operation_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Operation Hash",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservationResponse"
+              }
+            ],
+            "title": "Output"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "conversation_id",
+          "run_id",
+          "artifact_id",
+          "body_hash",
+          "operation_hash",
+          "access_generation",
+          "output"
+        ],
+        "title": "ProductObservationResponse",
         "type": "object"
       },
       "ProductResult": {
@@ -3620,6 +3746,88 @@
           "host_imports"
         ],
         "title": "WasmObservation",
+        "type": "object"
+      },
+      "WasmObservationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Code Sha256",
+            "type": "string"
+          },
+          "engine": {
+            "const": "wasmtime-49.0.0",
+            "title": "Engine",
+            "type": "string"
+          },
+          "entrypoint": {
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "execution_observed": {
+            "const": true,
+            "title": "Execution Observed",
+            "type": "boolean"
+          },
+          "fuel_consumed": {
+            "title": "Fuel Consumed",
+            "type": "integer"
+          },
+          "fuel_limit": {
+            "const": 50000,
+            "title": "Fuel Limit",
+            "type": "integer"
+          },
+          "host_imports": {
+            "const": 0,
+            "title": "Host Imports",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "default": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          },
+          "memory_limit_bytes": {
+            "const": 1048576,
+            "title": "Memory Limit Bytes",
+            "type": "integer"
+          },
+          "value": {
+            "description": "Exact signed i64 return as a decimal string; never parse as a JSON number.",
+            "pattern": "^-?(0|[1-9][0-9]*)$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "entrypoint",
+          "arguments",
+          "code_sha256",
+          "input_sha256",
+          "engine",
+          "execution_observed",
+          "fuel_consumed",
+          "fuel_limit",
+          "memory_limit_bytes",
+          "host_imports"
+        ],
+        "title": "WasmObservationResponse",
         "type": "object"
       },
       "Workspace": {

@@ -20,9 +20,16 @@ export function ConversationRow({
       >
         <span className="work-row-main">
           <span className="work-row-title clamp-2">{c.title}</span>
+          {c.last_message_preview ? (
+            <span className="work-row-note clamp-2">
+              {c.last_message_preview}
+            </span>
+          ) : null}
           <span className="work-row-note">
             {c.state === "open" ? "Open" : "Ended"}
-            {c.created_at ? ` · started ${formatTime(c.created_at, zone)}` : ""}
+            {c.updated_at || c.created_at
+              ? ` · updated ${formatTime(c.updated_at || c.created_at, zone)}`
+              : ""}
           </span>
         </span>
         <span className="work-row-go" aria-hidden="true">

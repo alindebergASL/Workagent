@@ -901,7 +901,7 @@ export interface components {
             binding_state: "current_revision" | "pending_proposal" | "historical";
             /** Current Scope */
             current_scope: boolean;
-            observation: components["schemas"]["ProductObservation"];
+            observation: components["schemas"]["ProductObservationResponse"];
         };
         /** OutcomeCheck */
         OutcomeCheck: {
@@ -969,6 +969,39 @@ export interface components {
             operation_hash: string;
             /** Output */
             output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservation"];
+            /** Proposal Id */
+            proposal_id?: string | null;
+            /** Revision Id */
+            revision_id?: string | null;
+            /** Run Id */
+            run_id: string;
+            /** Workspace Id */
+            workspace_id: string;
+        };
+        /** ProductObservationResponse */
+        ProductObservationResponse: {
+            /** Access Generation */
+            access_generation: number;
+            /** Artifact Id */
+            artifact_id: string;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /** Body Hash */
+            body_hash: string;
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Evidence Origin
+             * @default controlled_transport
+             * @constant
+             */
+            evidence_origin: "controlled_transport";
+            /** Id */
+            id: string;
+            /** Operation Hash */
+            operation_hash: string;
+            /** Output */
+            output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"];
             /** Proposal Id */
             proposal_id?: string | null;
             /** Revision Id */
@@ -1573,6 +1606,55 @@ export interface components {
             memory_limit_bytes: 1048576;
             /** Value */
             value: number;
+        };
+        /** WasmObservationResponse */
+        WasmObservationResponse: {
+            /** Arguments */
+            arguments: number[];
+            /** Code Sha256 */
+            code_sha256: string;
+            /**
+             * Engine
+             * @constant
+             */
+            engine: "wasmtime-49.0.0";
+            /** Entrypoint */
+            entrypoint: string;
+            /**
+             * Execution Observed
+             * @constant
+             */
+            execution_observed: true;
+            /** Fuel Consumed */
+            fuel_consumed: number;
+            /**
+             * Fuel Limit
+             * @constant
+             */
+            fuel_limit: 50000;
+            /**
+             * Host Imports
+             * @constant
+             */
+            host_imports: 0;
+            /** Input Sha256 */
+            input_sha256: string;
+            /**
+             * Kind
+             * @default run_wasm
+             * @constant
+             */
+            kind: "run_wasm";
+            /**
+             * Memory Limit Bytes
+             * @constant
+             */
+            memory_limit_bytes: 1048576;
+            /**
+             * Value
+             * @description Exact signed i64 return as a decimal string; never parse as a JSON number.
+             */
+            value: string;
         };
         /** Workspace */
         Workspace: {
