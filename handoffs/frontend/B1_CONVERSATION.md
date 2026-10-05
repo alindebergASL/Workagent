@@ -121,3 +121,44 @@ states are `ready, cancelled, ready`. Captures are in
 
 Evidence images in `evidence/b1-conversation/` and `evidence/reset-cp1/` were
 refreshed from these runs.
+
+## Review fixes at `d15b41d` (PR #9 findings on `f071ebd`)
+
+App code is at `c86f373`. `d15b41d` changes only a variable name in the
+journey script.
+
+1. **No false "Done".**
+   - Home groups settled work as "Approved and saved" and "Stopped".
+   - Approval saves a document revision and stopping ends work; neither is a
+     verified goal outcome.
+   - "Done" waits for an authoritative goal-completion record.
+2. **Commands survive a reload.**
+   - Covered: send, hand-over and end on the conversation page, plus Home's
+     create/send and intake hand-over.
+   - Each keeps its exact command for the tab. After a reload the text is
+     locked and the only action is an exact replay.
+   - The real journey drops the response to three committed commands:
+     message `202`, hand-over `201`, conversation create `201`. It then reloads
+     and replays each, and checks the database holds exactly one of each. The
+     IDs are in `evidence/b1-conversation/result.json` (`lost_responses`).
+3. **Honest Activity times.**
+   - Work shows "Updated"; conversations show "Started", because the API has
+     no last-activity time for conversations.
+   - A unit test covers the cross-day case: started yesterday, ended today.
+4. **Every phone destination visible.**
+   - The nav wraps instead of scrolling.
+   - At 320 px all four links are fully on screen and reachable in order by
+     keyboard; both are asserted.
+
+| Check | Commit | Result |
+| --- | --- | --- |
+| `pnpm check` | `c86f373` | PASS, 53 tests |
+| Mock browser suite | `c86f373` | PASS, 15/15 |
+| Canonical demo (fresh DB) | `d15b41d` | PASS |
+| Fault regressions | `d15b41d` | PASS, 9/9 |
+| Reset checkpoint (now also asserts no "Done" grouping) | `d15b41d` | PASS |
+| Conversation journey (fresh DB) | `d15b41d` | PASS |
+
+Not changed: a reply's own text is the backend's controlled-transport wording,
+so the UI shows it as written. It keeps the "Test reply" label, and the
+explanation stays in details.
