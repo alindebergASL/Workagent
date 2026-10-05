@@ -7,10 +7,10 @@ import {
 } from "./work-state";
 
 /**
- * Activity across work and conversations: each item's most recent recorded
- * change, newest first. There is no event-history route yet, so this never
- * invents intermediate steps; it shows where each thing stands and when it
- * last changed.
+ * Activity across work and conversations, newest first. Work is placed by its
+ * last recorded change; conversations by when they started (no last-activity
+ * time exists for them yet). Each line says which. There is no event-history
+ * route, so this never invents intermediate steps.
  */
 export interface ActivityItem {
   id: string;
@@ -19,6 +19,8 @@ export interface ActivityItem {
   status: string;
   tone: string;
   at: string;
+  /** What `at` is: work has a last-change time; conversations only a start time. */
+  timeLabel: "updated" | "started";
   href: string;
 }
 
@@ -37,6 +39,7 @@ export function activityFrom(
         status: s.label,
         tone: s.tone,
         at: a.updated_at || a.created_at,
+        timeLabel: "updated" as const,
         href:
           phaseOf(a) === "decision" && review
             ? `/assignments/${a.id}/artifacts/${review}`
@@ -47,10 +50,12 @@ export function activityFrom(
       id: `conversation:${c.id}`,
       kind: "conversation" as const,
       title: c.title,
-      status:
-        c.state === "open" ? "Conversation started" : "Conversation ended",
+      status: c.state === "open" ? "Conversation open" : "Conversation ended",
       tone: "",
+      // The API has no last-activity time for conversations yet, so an ended
+      // conversation is placed and labelled by when it started.
       at: c.created_at,
+      timeLabel: "started" as const,
       href: `/conversations/${c.id}`,
     })),
   ];

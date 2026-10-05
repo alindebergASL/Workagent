@@ -69,6 +69,7 @@ export default function ActivityPage() {
                         <span className="work-row-note">{i.status}</span>
                       )}
                       <span className="work-row-note">
+                        {i.timeLabel === "started" ? "Started" : "Updated"}{" "}
                         {formatTime(i.at, zone)}
                       </span>
                     </span>
@@ -83,8 +84,8 @@ export default function ActivityPage() {
         </section>
       ))}
       <p className="hint">
-        Each line shows the latest recorded change. A step-by-step history isn’t
-        available yet.
+        Work shows when it last changed; conversations show when they started. A
+        step-by-step history isn’t available yet.
       </p>
     </div>
   );

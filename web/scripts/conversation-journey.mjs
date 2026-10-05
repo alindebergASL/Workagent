@@ -81,6 +81,27 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   page.on("pageerror", (e) => errors.push(e.message));
+  // Lose the response to one chosen POST after the server has committed it.
+  // Installed once, before any navigation, so interception never changes mid-flight.
+  let loseNext = null;
+  record.lost_responses = [];
+  await page.route("**/api/domain/**", async (route) => {
+    const req = route.request();
+    if (loseNext && req.method() === "POST" && loseNext.test(req.url())) {
+      loseNext = null;
+      const real = await route.fetch();
+      record.lost_responses.push({
+        path: new URL(req.url()).pathname.replace(
+          /^.*\/v1\/workspaces\/[^/]+/,
+          "",
+        ),
+        committed_status: real.status(),
+        command_id: req.postDataJSON().command_id,
+      });
+      return route.abort("failed");
+    }
+    return route.continue();
+  });
 
   // ---- Home: start talking, no sources ----
   await page.goto(origin);
@@ -176,6 +197,33 @@ try {
   await expect(page.getByLabel("Continue the conversation")).toHaveValue("");
   record.worker_batches.push(worker());
 
+  // ---- a committed send whose response is lost survives a reload ----
+  const lostText = "Bring the agenda forward.";
+  const humanCount = async () =>
+    (await api(`/conversations/${cid}`)).body.messages.filter(
+      (m) => m.author_kind === "human" && m.text === lostText,
+    ).length;
+  loseNext = /\/conversations\/[^/]+\/messages$/;
+  await box.fill(lostText);
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
+  expect(await humanCount(), "the server committed it").toBe(1);
+  await page.reload();
+  await expect(page.getByLabel("Continue the conversation")).toHaveValue(
+    lostText,
+  );
+  await expect(page.getByLabel("Continue the conversation")).toBeDisabled();
+  await expect(
+    page.getByText(
+      "Your last send wasn’t confirmed. Sending again replays the same message.",
+    ),
+  ).toBeVisible();
+  await shot(page, "03b-send-unconfirmed-after-reload-desktop");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByLabel("Continue the conversation")).toHaveValue("");
+  expect(await humanCount(), "the replay did not add a second message").toBe(1);
+  record.worker_batches.push(worker());
+
   // ---- explicit hand-over: recorded, paused, linked; no Resume ----
   await page.getByRole("button", { name: "Take it from here" }).click();
   await expect(
@@ -183,7 +231,20 @@ try {
   ).toBeVisible();
   await page.getByLabel("Done when").fill("We’ve reviewed the plan together");
   await shot(page, "04-handover-desktop");
+  loseNext = /\/delegate$/;
   await page.getByRole("button", { name: "Record hand-over" }).click();
+  await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
+  expect((await api(`/conversations/${cid}`)).body.assignment_ids).toHaveLength(
+    1,
+  );
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Hand this over" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Done when")).toHaveValue(
+    "We’ve reviewed the plan together",
+  );
+  await page.getByRole("button", { name: "Retry the same hand-over" }).click();
   await expect(
     page.getByRole("heading", { name: "Handed over" }),
   ).toBeVisible();
@@ -232,7 +293,7 @@ try {
   );
   await expect(
     page.locator(`[data-activity="conversation:${cid}"]`),
-  ).toContainText("Conversation started");
+  ).toContainText("Conversation open");
   await shot(page, "06b-activity-desktop");
 
   // ---- the Space shows the same conversation and work ----
@@ -248,7 +309,16 @@ try {
   await page
     .getByLabel("Message your agent")
     .fill("Take the weekly review off my plate.");
+  const before = (await api("/conversations")).body.items.length;
+  loseNext = /\/conversations$/;
   await page.getByRole("button", { name: "Take it from here" }).click();
+  await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel("Message your agent")).toHaveValue(
+    "Take the weekly review off my plate.",
+  );
+  await expect(page.getByLabel("Message your agent")).toBeDisabled();
+  await page.getByRole("button", { name: "Retry same request" }).click();
   await page.waitForURL(/\/conversations\/[^/]+\?handover=1$/, {
     timeout: 15000,
   });
@@ -258,6 +328,10 @@ try {
   await expect(page.getByLabel("What to carry forward")).toHaveValue(
     "Take the weekly review off my plate.",
   );
+  expect(
+    (await api("/conversations")).body.items.length,
+    "the replayed create reused the committed conversation",
+  ).toBe(before + 1);
   await page.getByRole("button", { name: "Not now" }).click();
 
   // ---- end the conversation ----
@@ -320,6 +394,25 @@ try {
     phone.getByRole("heading", { name: "Good to see you." }),
   ).toBeVisible();
   await noScroll(phone);
+  for (const name of ["Agent", "Spaces", "Activity", "Conversations"]) {
+    const link = phone
+      .locator(".topbar-nav")
+      .getByRole("link", { name, exact: true });
+    await expect(link).toBeVisible();
+    const box = await link.boundingBox();
+    expect(
+      box.x >= 0 && box.x + box.width <= 320,
+      `${name} fully on screen`,
+    ).toBe(true);
+  }
+  // Keyboard reaches every destination in order.
+  await phone.locator(".topbar .brand").focus();
+  for (const name of ["Agent", "Spaces", "Activity", "Conversations"]) {
+    await phone.keyboard.press("Tab");
+    await expect(
+      phone.locator(".topbar-nav").getByRole("link", { name, exact: true }),
+    ).toBeFocused();
+  }
   await shot(phone, "13-home-narrow");
 
   expect(errors).toEqual([]);
