@@ -124,7 +124,9 @@ const openGroups = async (page) => {
 const showAgent = async (page) => {
   const toggle = page.locator(".working-switch");
   if (await toggle.isVisible())
-    await toggle.getByRole("button", { name: "Agent", exact: true }).click();
+    await toggle
+      .getByRole("button", { name: "Conversation", exact: true })
+      .click();
 };
 
 /** The same label on Agent (Home), Spaces and the assignment page. */

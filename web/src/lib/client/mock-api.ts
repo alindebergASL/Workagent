@@ -9,6 +9,8 @@ import type {
   ArtifactHistory,
   Assignment,
   AssignmentSummary,
+  ControlAssignmentCommand,
+  ControlAssignmentResult,
   CreateAssignmentCommand,
   CreateAssignmentResult,
   ErrorEnvelope,
@@ -128,6 +130,12 @@ export const api = {
     request<CreateAssignmentResult>(
       "POST",
       `/workspaces/${ws}/assignments`,
+      cmd,
+    ),
+  controlAssignment: (ws: string, id: string, cmd: ControlAssignmentCommand) =>
+    request<ControlAssignmentResult>(
+      "POST",
+      `/workspaces/${ws}/assignments/${id}/control`,
       cmd,
     ),
   getArtifact: (

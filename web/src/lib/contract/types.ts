@@ -159,7 +159,14 @@ export interface AssignmentSummary {
   selected_source_count: number;
   /** Present when the backend projects one; absent in mock mode and on old records. */
   responsibility?: Responsibility | null;
+  /** Steering state from the backend's own assignment state (pause/resume/cancel). */
+  lifecycle?: Lifecycle;
+  /** Set when the work was handed over from a conversation (B1: recorded, not executed). */
+  conversation_id?: string | null;
 }
+
+/** Steering state the person controls. Only what the backend actually records. */
+export type Lifecycle = "active" | "paused" | "cancelled";
 
 export interface Assignment extends AssignmentSummary {
   completion_criteria: string[];
@@ -265,6 +272,20 @@ export interface CreateAssignmentCommand {
   completion_criteria: string[];
 }
 
+export type ControlOperation = "pause" | "resume" | "cancel";
+
+/** Compare-and-swap on the work version the person was looking at. */
+export interface ControlAssignmentCommand {
+  command_id: string;
+  operation: ControlOperation;
+  expected_work_revision: number;
+}
+
+export interface ControlAssignmentResult {
+  work_revision: number;
+  lifecycle: Lifecycle;
+}
+
 export interface CreateAssignmentResult {
   assignment_id: string;
   work_revision: number;
@@ -309,4 +330,47 @@ export interface ListResult<T> {
   items: T[];
   next_cursor: string | null;
   observed_at: string;
+}
+
+// ---- conversation (B1, generated contract at 9a8944b) ----
+
+/**
+ * A turn's state, from the persisted run only. `replied` needs both a ready
+ * run and a recorded assistant message; nothing is inferred from `queued`.
+ */
+export type TurnState =
+  "queued" | "responding" | "replied" | "cancelled" | "no_reply";
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  state: "open" | "cancelled";
+  work_version: number;
+  created_at: string;
+  context_count: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  author: "person" | "agent";
+  text: string;
+  created_at: string;
+  sequence: number;
+  run_id: string;
+  /** Server-attested origin; a controlled reply is a wiring receipt, not model output. */
+  origin: "human" | "controlled_transport";
+}
+
+export interface ChatTurn {
+  run_id: string;
+  state: TurnState;
+  /** The person's message that admitted this turn. */
+  message_id: string | null;
+}
+
+export interface ConversationDetailView {
+  conversation: ConversationSummary;
+  messages: ChatMessage[];
+  turns: ChatTurn[];
+  assignment_ids: string[];
 }

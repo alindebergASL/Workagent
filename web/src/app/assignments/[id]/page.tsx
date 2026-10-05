@@ -19,6 +19,7 @@ import {
   statusOf,
   waitingSummary,
 } from "@/lib/work-state";
+import { Ownership } from "@/components/Ownership";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -157,6 +158,16 @@ export default function AssignmentPage() {
         };
       case "stopped":
         return { tone: "done", text: "Stopped. Saved results are kept." };
+      case "paused":
+        return a.conversation_id
+          ? {
+              tone: "done",
+              text: "You handed this over from a conversation. It’s recorded, but I can’t start work on my own yet, so it stays paused.",
+            }
+          : {
+              tone: "done",
+              text: "Paused. Nothing new is prepared until you resume. Saved results are kept.",
+            };
       case "approved":
         return {
           tone: "done",
@@ -195,6 +206,14 @@ export default function AssignmentPage() {
         <h1>{shortTitle(a.title)}</h1>
         <div className="row">
           <StatusBadge label={badge.label} tone={badge.tone} />
+          {a.conversation_id ? (
+            <Link
+              className="link-quiet small"
+              href={`/conversations/${a.conversation_id}`}
+            >
+              From a conversation ↗
+            </Link>
+          ) : null}
         </div>
         <p className="status-line" data-tone={statusLine.tone} role="status">
           <span className="dot" aria-hidden="true" />
@@ -278,6 +297,8 @@ export default function AssignmentPage() {
           ) : null}
         </section>
       ) : null}
+
+      <Ownership assignment={a} onChanged={res.refresh} />
 
       <section aria-labelledby="saved-title" className="stack">
         <h2 id="saved-title" className="section-title">

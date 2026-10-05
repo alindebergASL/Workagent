@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "mode": "actual_application_postgresql_controlled_transport",
+  "provider_inference_calls": 0,
+  "worker_batches": [
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    }
+  ],
+  "conversation_id": "3f378be4-5535-491e-8044-add6970e6274",
+  "run_states": [
+    "ready",
+    "cancelled",
+    "ready"
+  ],
+  "assignment_id": "b53f772e-0d03-43c7-8115-105f713bef93",
+  "errors": []
+}

@@ -165,7 +165,9 @@ try {
         await route.abort("failed");
       } else await route.continue();
     });
-    await p.getByRole("button", { name: "Start work", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Take it from here", exact: true })
+      .click();
     await expect(
       p.getByRole("button", { name: "Retry same request", exact: true }),
     ).toBeVisible();
@@ -225,14 +227,10 @@ try {
     ).toBeVisible();
     await p
       .locator(".working-switch")
-      .getByRole("button", { name: "Agent", exact: true })
+      .getByRole("button", { name: "Conversation", exact: true })
       .click();
     await expect(p.locator(".working-agent")).toBeVisible();
     await expect(p.locator(".working-document")).toBeHidden();
-    await p
-      .locator(".working-agent")
-      .getByRole("button", { name: "Ask for a revision", exact: true })
-      .click();
     await p
       .getByLabel("What should change?")
       .fill(

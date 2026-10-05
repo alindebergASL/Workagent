@@ -7,10 +7,7 @@ export default function SpacesPage() {
   const { workspaces, loading, error } = useWorkspace();
   if (error) return <ErrorNotice error={error} />;
   return (
-    <section
-      className="page-wide stack-lg stack"
-      aria-labelledby="spaces-title"
-    >
+    <section className="agent-col" aria-labelledby="spaces-title">
       <p className="context-line">
         <span className="dot" aria-hidden="true" />
         Spaces
@@ -19,7 +16,8 @@ export default function SpacesPage() {
         <div className="stack">
           <h1 id="spaces-title">Spaces</h1>
           <p className="lede">
-            A place for the work, and the records it needs.
+            Optional places to keep related work, conversations and records
+            together. You don’t need one to begin.
           </p>
         </div>
       </header>
