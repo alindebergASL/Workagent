@@ -6,7 +6,7 @@ const d=JSON.parse(await readFile(out+'/products/result.json','utf8'));
 const origin='http://127.0.0.1:3000', cid=d.tool_conversation;
 const url=origin+`/conversations/${cid}/artifacts/${d.tool_id}`;
 const endpoint=origin+`/api/domain/v1/workspaces/local-workspace/conversations/${cid}/messages`;
-const b=await chromium.launch({headless:true,args:['--no-sandbox']});
+const b=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH}:{})});
 try{
  const page=await b.newPage({viewport:{width:320,height:844}});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
