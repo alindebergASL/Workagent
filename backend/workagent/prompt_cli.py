@@ -20,6 +20,15 @@ def main(argv=None):
     sub=parser.add_subparsers(dest='operation',required=True)
     prompt=sub.add_parser('prompt'); prompt.add_argument('text')
     follow=sub.add_parser('continue'); follow.add_argument('conversation_id'); follow.add_argument('text')
+    for turn in (prompt,follow):
+        turn.add_argument('--operator',choices=['reconcile_csv','run_wasm'])
+        turn.add_argument('--attach',help='Explicit bounded UTF-8 local input; bytes go into the same admitted message')
+        turn.add_argument('--artifact-id')
+        turn.add_argument('--base-revision-id')
+        turn.add_argument('--rounding',choices=['ROUND_HALF_UP','ROUND_HALF_EVEN'],default='ROUND_HALF_UP')
+        turn.add_argument('--entrypoint',default='total')
+        turn.add_argument('--arg',action='append',type=int,default=[])
+        turn.add_argument('--field',action='append',default=[],help='Input form name:label, one per argument')
     inspect=sub.add_parser('inspect'); inspect.add_argument('conversation_id')
     cancel=sub.add_parser('cancel'); cancel.add_argument('conversation_id')
     delegate=sub.add_parser('delegate'); delegate.add_argument('conversation_id'); delegate.add_argument('goal')
@@ -64,7 +73,31 @@ def main(argv=None):
             conversation=service.get_conversation(principal,workspace,cid).conversation
         expected=args.expected_version if args.expected_version is not None else conversation.work_version
         if args.operation in ('prompt','continue'):
-            queued=service.post_message(principal,workspace,cid,command(PostMessage,expected_work_version=expected,text=args.text))
+            operation=None
+            if args.operator:
+                content=None
+                if args.attach:
+                    from pathlib import Path
+                    with Path(args.attach).open('rb') as attachment:
+                        raw=attachment.read(200001)
+                    bound=200000 if args.operator=='reconcile_csv' else 16000
+                    if len(raw)>bound:
+                        parser.error('Attachment exceeds explicit operator byte bound')
+                    content=raw.decode('utf-8')
+                operation={'kind':args.operator,'artifact_id':args.artifact_id,'base_revision_id':args.base_revision_id}
+                if args.operator=='reconcile_csv':
+                    operation.update(input_csv=content,rounding=args.rounding)
+                else:
+                    fields=[]
+                    for field in args.field:
+                        name,sep,label=field.partition(':')
+                        if not sep:
+                            parser.error('--field requires name:label')
+                        fields.append({'name':name,'label':label})
+                    operation.update(code=content,entrypoint=args.entrypoint,arguments=args.arg,input_form=fields)
+            elif args.attach or args.artifact_id or args.base_revision_id or args.arg or args.field:
+                parser.error('Attachments/inputs require explicit --operator')
+            queued=service.post_message(principal,workspace,cid,command(PostMessage,expected_work_version=expected,text=args.text,operation=operation))
             GeneralWorker(service,transport=ControlledTransport()).work(principal,workspace,queued.run.id)
             result=service.get_conversation(principal,workspace,cid).model_dump(mode='json')
             result['command_id']=command_id

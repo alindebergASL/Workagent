@@ -12,7 +12,9 @@ def main():
     parser=argparse.ArgumentParser(); parser.add_argument('--check',action='store_true'); args=parser.parse_args()
     from workagent.tool_registry import responses_registry
     from workagent.responses_schema import NextAction
-    outputs={'openapi.json':create_app().openapi(),'tool-registry.json':registry(),'examples.json':examples(),
+    from workagent.products import Products
+    outputs={'general-tool-registry.json':{'profile':'general-products-controlled-v1','tools':Products().local_tool_registry()},
+             'openapi.json':create_app().openapi(),'tool-registry.json':registry(),'examples.json':examples(),
              'responses-tool-registry.json':responses_registry(),'responses-output.schema.json':NextAction.model_json_schema()}
     for name,value in outputs.items():
         path=ROOT/'contracts'/name

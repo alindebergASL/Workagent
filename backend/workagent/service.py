@@ -17,6 +17,7 @@ from .errors import DomainError, deny
 from .models import *
 from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
 from .conversations import Conversations
+from .products import Products
 
 
 def canonical(value) -> str:
@@ -56,7 +57,7 @@ class WorkerCapability:
     secret: str
 
 
-class Service(Conversations, ProviderAttempts):
+class Service(Products, Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -95,7 +96,8 @@ class Service(Conversations, ProviderAttempts):
         row = c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s', (ws, artifact_id)).fetchone()
         if not row:
             deny()
-        a = self._assignment(c, p, ws, row['assignment_id'])
+        a = (self._conversation(c,p,ws,row['conversation_id']) if row.get('conversation_id') else
+             self._assignment(c, p, ws, row['assignment_id']))
         return row, a
 
     def _proposal(self, c, p, ws, proposal_id):
@@ -160,6 +162,8 @@ class Service(Conversations, ProviderAttempts):
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
+        if op=='post_message' and payload.get('operation') is None:
+            payload.pop('operation',None)  # Preserve legacy B1 command replay bytes.
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:
             self._scope(c, p, ws, write=True)
@@ -285,7 +289,7 @@ class Service(Conversations, ProviderAttempts):
             row,a=self._artifact(c,p,ws,artifact_id)
             rev=self._revision(c,p,ws,row,a)
             requested=self._revision(c,p,ws,row,a,revision_id) if revision_id else None
-            return Artifact(id=artifact_id,workspace_id=ws,assignment_id=a.id,current_revision_id=row['current_revision_id'],current_revision=rev,requested_revision=requested)
+            return Artifact(id=artifact_id,workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=row['current_revision_id'],current_revision=rev,requested_revision=requested)
 
     def history(self,p,ws,artifact_id,cursor=None,limit=25):
         with self.db.transaction() as c:
@@ -314,14 +318,20 @@ class Service(Conversations, ProviderAttempts):
                      body=body,body_hash=digest(body),source_dependencies=deps)
         c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data) VALUES (%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev)))
         c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
-        return Artifact(id=row['id'],workspace_id=ws,assignment_id=a.id,current_revision_id=rev.id,current_revision=rev)
+        return Artifact(id=row['id'],workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=rev.id,current_revision=rev)
 
     def human_save(self,p,ws,artifact_id,cmd):
         def mutate(c,state):
             row,a=state
             self._cas(row,cmd.expected_current_revision_id)
-            previous=self._revision(c,p,ws,row,a)
-            result=self._append_revision(c,p,ws,row,a,cmd.body,previous.source_dependencies,'human')
+            current=self._revision(c,p,ws,row,a)
+            if row.get('conversation_id'):
+                # Human edits are new unverified revisions, never new origin claims.
+                if type(cmd.body) is not type(current.body):
+                    raise DomainError('unsupported_operation')
+                if isinstance(current.body,TableBody) and cmd.body.source_csv!=current.body.source_csv:
+                    raise DomainError('unsupported_operation')
+            result=self._append_revision(c,p,ws,row,a,cmd.body,current.source_dependencies,'human')
             self._event(c,p,ws,'human_save',artifact_id)
             return result
         return self._command(p,ws,'human_save',{'artifact_id':artifact_id},cmd,Artifact,lambda c:self._artifact(c,p,ws,artifact_id),mutate)
@@ -329,6 +339,8 @@ class Service(Conversations, ProviderAttempts):
     def request_revision(self,p,ws,artifact_id,cmd):
         def mutate(c,state):
             row,a=state
+            if row.get('conversation_id'):
+                raise DomainError('unsupported_operation')  # Use conversation steering with typed operation.
             self._cas(row,cmd.base_revision_id)
             if a.work_version != cmd.expected_work_version:
                 raise DomainError('version_conflict',current_version=a.work_version)

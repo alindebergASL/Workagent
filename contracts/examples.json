@@ -19,10 +19,12 @@
       "response": {
         "created_at": "2026-10-02T00:00:00Z",
         "id": "conversation-example",
+        "last_message_preview": null,
         "owner_id": "local-human",
         "selected_source_refs": [],
         "state": "cancelled",
         "title": "Conversation",
+        "updated_at": null,
         "work_version": 3,
         "workspace_id": "workspace-example"
       }
@@ -102,7 +104,7 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+          "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -120,10 +122,12 @@
       "response": {
         "created_at": "2026-10-02T00:00:00Z",
         "id": "conversation-example",
+        "last_message_preview": null,
         "owner_id": "local-human",
         "selected_source_refs": [],
         "state": "open",
         "title": "Conversation",
+        "updated_at": null,
         "work_version": 1,
         "workspace_id": "workspace-example"
       }
@@ -189,6 +193,7 @@
     "get_artifact": {
       "response": {
         "assignment_id": "assignment-example",
+        "conversation_id": null,
         "current_revision": {
           "artifact_id": "artifact-example",
           "author_id": "local-human",
@@ -256,14 +261,17 @@
     },
     "get_conversation": {
       "response": {
+        "artifact_ids": [],
         "assignment_ids": [],
         "conversation": {
           "created_at": "2026-10-02T00:00:00Z",
           "id": "conversation-example",
+          "last_message_preview": null,
           "owner_id": "local-human",
           "selected_source_refs": [],
           "state": "open",
           "title": "Conversation",
+          "updated_at": null,
           "work_version": 2,
           "workspace_id": "workspace-example"
         },
@@ -275,6 +283,7 @@
             "created_at": "2026-10-02T00:00:00Z",
             "evidence_origin": "human",
             "id": "message-example",
+            "operation": null,
             "result": null,
             "run_id": "turn-example",
             "sequence": 1,
@@ -317,7 +326,8 @@
             "used_units": 0,
             "workspace_id": "workspace-example"
           }
-        ]
+        ],
+        "turns": []
       }
     },
     "get_run": {
@@ -343,7 +353,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+        "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -369,6 +379,7 @@
       },
       "response": {
         "assignment_id": "assignment-example",
+        "conversation_id": null,
         "current_revision": {
           "artifact_id": "artifact-example",
           "author_id": "local-human",
@@ -410,10 +421,12 @@
           {
             "created_at": "2026-10-02T00:00:00Z",
             "id": "conversation-example",
+            "last_message_preview": null,
             "owner_id": "local-human",
             "selected_source_refs": [],
             "state": "open",
             "title": "Conversation",
+            "updated_at": null,
             "work_version": 1,
             "workspace_id": "workspace-example"
           }
@@ -421,10 +434,27 @@
         "next_cursor": null
       }
     },
+    "post_csv_operation": {
+      "request": {
+        "command_id": "command-example",
+        "expected_work_version": 1,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "input_csv": "id,quantity,unit_price,reported_total,note\nA,2,19.95,39.90,Keep my wording\nB,3,12.50,38.50,Await credit\n",
+          "kind": "reconcile_csv",
+          "rounding": "ROUND_HALF_UP"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "text": "Reconcile these invoice rows"
+      }
+    },
     "post_message": {
       "request": {
         "command_id": "command-example",
         "expected_work_version": 1,
+        "operation": null,
         "request_id": "request-example",
         "schema_version": "workagent/v1",
         "text": "Help me think this through"
@@ -433,10 +463,12 @@
         "conversation": {
           "created_at": "2026-10-02T00:00:00Z",
           "id": "conversation-example",
+          "last_message_preview": null,
           "owner_id": "local-human",
           "selected_source_refs": [],
           "state": "open",
           "title": "Conversation",
+          "updated_at": null,
           "work_version": 2,
           "workspace_id": "workspace-example"
         },
@@ -447,6 +479,7 @@
           "created_at": "2026-10-02T00:00:00Z",
           "evidence_origin": "human",
           "id": "message-example",
+          "operation": null,
           "result": null,
           "run_id": "turn-example",
           "sequence": 1,
@@ -489,6 +522,58 @@
         }
       }
     },
+    "post_wasm_operation": {
+      "request": {
+        "command_id": "command-example",
+        "expected_work_version": 1,
+        "operation": {
+          "arguments": [
+            3,
+            1250
+          ],
+          "artifact_id": null,
+          "base_revision_id": null,
+          "code": "(module (func (export \"total\") (param i64 i64) (result i64) local.get 0 local.get 1 i64.mul))",
+          "entrypoint": "total",
+          "input_form": [
+            {
+              "label": "Quantity",
+              "maximum": 1000000000,
+              "minimum": -1000000000,
+              "name": "quantity",
+              "type": "integer"
+            },
+            {
+              "label": "Unit price cents",
+              "maximum": 1000000000,
+              "minimum": -1000000000,
+              "name": "unit_price_cents",
+              "type": "integer"
+            }
+          ],
+          "kind": "run_wasm"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "text": "Run this integer cents tool"
+      }
+    },
+    "recalculate_saved_table": {
+      "request": {
+        "command_id": "command-example",
+        "expected_work_version": 2,
+        "operation": {
+          "artifact_id": "artifact-example",
+          "base_revision_id": "revision-2",
+          "input_csv": null,
+          "kind": "reconcile_csv",
+          "rounding": "ROUND_HALF_EVEN"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "text": "Use half-even rounding and preserve my saved cells/notes"
+      }
+    },
     "request_revision": {
       "request": {
         "base_revision_id": "revision-1",
@@ -503,6 +588,7 @@
   "scenarios": {
     "artifact": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -598,7 +684,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+        "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -618,6 +704,7 @@
     },
     "human_save": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -674,7 +761,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+      "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -703,7 +790,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "25398eb8d3e1a90265ee8c525a728c3662c920585744ef54e3ff21f5ee687b14",
+      "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"
@@ -738,6 +825,7 @@
     },
     "reopen_saved_work": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -802,6 +890,7 @@
         "title": "Private working plan"
       },
       "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
+      "conversation_id": null,
       "created_at": "2026-10-02T00:00:00Z",
       "id": "proposal-example",
       "reason": "Make the next action concrete",

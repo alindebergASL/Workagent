@@ -191,8 +191,7 @@
                   "fixture-deterministic-v1",
                   "openai-agents-v1",
                   "openai-responses-v1",
-                  "general-controlled-v1",
-                  "general-products-controlled-v1"
+                  "general-controlled-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -943,97 +942,6 @@
             "title": "Body",
             "type": "object"
           },
-          "FileBody": {
-            "additionalProperties": false,
-            "properties": {
-              "content": {
-                "maxLength": 200000,
-                "minLength": 1,
-                "title": "Content",
-                "type": "string"
-              },
-              "content_sha256": {
-                "pattern": "^[0-9a-f]{64}$",
-                "title": "Content Sha256",
-                "type": "string"
-              },
-              "filename": {
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|wat|txt)$",
-                "title": "Filename",
-                "type": "string"
-              },
-              "kind": {
-                "const": "file",
-                "default": "file",
-                "title": "Kind",
-                "type": "string"
-              },
-              "mime_type": {
-                "enum": [
-                  "text/csv",
-                  "text/plain",
-                  "application/wasm-text"
-                ],
-                "title": "Mime Type",
-                "type": "string"
-              },
-              "title": {
-                "maxLength": 240,
-                "minLength": 1,
-                "title": "Title",
-                "type": "string"
-              }
-            },
-            "required": [
-              "title",
-              "filename",
-              "mime_type",
-              "content",
-              "content_sha256"
-            ],
-            "title": "FileBody",
-            "type": "object"
-          },
-          "InputField": {
-            "additionalProperties": false,
-            "properties": {
-              "label": {
-                "maxLength": 120,
-                "minLength": 1,
-                "title": "Label",
-                "type": "string"
-              },
-              "maximum": {
-                "const": 1000000000,
-                "default": 1000000000,
-                "title": "Maximum",
-                "type": "integer"
-              },
-              "minimum": {
-                "const": -1000000000,
-                "default": -1000000000,
-                "title": "Minimum",
-                "type": "integer"
-              },
-              "name": {
-                "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
-                "title": "Name",
-                "type": "string"
-              },
-              "type": {
-                "const": "integer",
-                "default": "integer",
-                "title": "Type",
-                "type": "string"
-              }
-            },
-            "required": [
-              "name",
-              "label"
-            ],
-            "title": "InputField",
-            "type": "object"
-          },
           "Revision": {
             "additionalProperties": false,
             "properties": {
@@ -1060,21 +968,7 @@
                 "type": "string"
               },
               "body": {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Body"
-                  },
-                  {
-                    "$ref": "#/$defs/TableBody"
-                  },
-                  {
-                    "$ref": "#/$defs/FileBody"
-                  },
-                  {
-                    "$ref": "#/$defs/ToolBody"
-                  }
-                ],
-                "title": "Body"
+                "$ref": "#/$defs/Body"
               },
               "body_hash": {
                 "pattern": "^[0-9a-f]{64}$",
@@ -1166,173 +1060,16 @@
             ],
             "title": "SourceRef",
             "type": "object"
-          },
-          "TableBody": {
-            "additionalProperties": false,
-            "properties": {
-              "columns": {
-                "items": {
-                  "type": "string"
-                },
-                "maxItems": 33,
-                "title": "Columns",
-                "type": "array"
-              },
-              "kind": {
-                "const": "table",
-                "default": "table",
-                "title": "Kind",
-                "type": "string"
-              },
-              "notes": {
-                "items": {
-                  "maxLength": 10000,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "maxItems": 30,
-                "title": "Notes",
-                "type": "array"
-              },
-              "rounding": {
-                "enum": [
-                  "ROUND_HALF_UP",
-                  "ROUND_HALF_EVEN"
-                ],
-                "title": "Rounding",
-                "type": "string"
-              },
-              "rows": {
-                "items": {
-                  "additionalProperties": {
-                    "type": "string"
-                  },
-                  "type": "object"
-                },
-                "maxItems": 500,
-                "title": "Rows",
-                "type": "array"
-              },
-              "source_csv": {
-                "maxLength": 200000,
-                "minLength": 1,
-                "title": "Source Csv",
-                "type": "string"
-              },
-              "title": {
-                "maxLength": 240,
-                "minLength": 1,
-                "title": "Title",
-                "type": "string"
-              }
-            },
-            "required": [
-              "title",
-              "source_csv",
-              "rounding",
-              "columns",
-              "rows"
-            ],
-            "title": "TableBody",
-            "type": "object"
-          },
-          "ToolBody": {
-            "additionalProperties": false,
-            "properties": {
-              "arguments": {
-                "items": {
-                  "maximum": 1000000000,
-                  "minimum": -1000000000,
-                  "type": "integer"
-                },
-                "maxItems": 8,
-                "title": "Arguments",
-                "type": "array"
-              },
-              "code": {
-                "maxLength": 16000,
-                "minLength": 1,
-                "title": "Code",
-                "type": "string"
-              },
-              "entrypoint": {
-                "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
-                "title": "Entrypoint",
-                "type": "string"
-              },
-              "input_form": {
-                "items": {
-                  "$ref": "#/$defs/InputField"
-                },
-                "maxItems": 8,
-                "title": "Input Form",
-                "type": "array"
-              },
-              "kind": {
-                "const": "tool",
-                "default": "tool",
-                "title": "Kind",
-                "type": "string"
-              },
-              "notes": {
-                "items": {
-                  "maxLength": 10000,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "maxItems": 30,
-                "title": "Notes",
-                "type": "array"
-              },
-              "title": {
-                "maxLength": 240,
-                "minLength": 1,
-                "title": "Title",
-                "type": "string"
-              }
-            },
-            "required": [
-              "title",
-              "code",
-              "entrypoint",
-              "arguments",
-              "input_form"
-            ],
-            "title": "ToolBody",
-            "type": "object"
           }
         },
         "additionalProperties": false,
         "properties": {
           "assignment_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Assignment Id"
-          },
-          "conversation_id": {
-            "anyOf": [
-              {
-                "maxLength": 128,
-                "minLength": 1,
-                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "default": null,
-            "title": "Conversation Id"
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Assignment Id",
+            "type": "string"
           },
           "current_revision": {
             "$ref": "#/$defs/Revision"
@@ -1378,6 +1115,7 @@
         "required": [
           "id",
           "workspace_id",
+          "assignment_id",
           "current_revision_id",
           "current_revision"
         ],
@@ -1859,8 +1597,7 @@
                   "fixture-deterministic-v1",
                   "openai-agents-v1",
                   "openai-responses-v1",
-                  "general-controlled-v1",
-                  "general-products-controlled-v1"
+                  "general-controlled-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -2047,8 +1784,7 @@
               "fixture-deterministic-v1",
               "openai-agents-v1",
               "openai-responses-v1",
-              "general-controlled-v1",
-              "general-products-controlled-v1"
+              "general-controlled-v1"
             ],
             "title": "Profile",
             "type": "string"

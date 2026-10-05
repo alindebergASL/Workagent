@@ -5,7 +5,7 @@ CLI or an inference implementation. No provider modules, keys or fallback.
 """
 from copy import deepcopy
 
-from .conversations import PROFILE
+from .conversations import PROFILE, PRODUCT_PROFILE
 from .errors import DomainError
 from .models import TextResult, TurnResult
 from .service import Principal
@@ -25,6 +25,10 @@ class ControlledTransport:
         if self.responses is not None:
             return next(self.responses)
         humans=[m for m in context['messages'] if m['author_kind']=='human']
+        operation=humans[-1].get('operation')
+        if operation is not None:
+            # Controlled selection from the explicit registry; broker resolves exact inputs.
+            return {'tool':operation['kind']}
         # Deliberately a wiring receipt rather than a canned useful answer.
         return TurnResult(results=[TextResult(text=(
             f'Controlled transport: retained {len(humans)} human message(s). '
@@ -42,9 +46,9 @@ class GeneralWorker:
     def work(self,p,ws,run_id):
         service=self.service
         run=service.get_run(p,ws,run_id)
-        if run.profile!=PROFILE:
+        if run.profile not in (PROFILE,PRODUCT_PROFILE):
             raise DomainError('unsupported_operation')
-        if run.state in ('ready','cancelled'):
+        if run.state in ('ready','partial','cancelled'):
             # Exact durable readback; duplicate delivery must not invoke transport.
             if run.state=='ready':
                 detail=service.get_conversation(p,ws,run.conversation_id)
@@ -54,9 +58,19 @@ class GeneralWorker:
         cap=service.claim_run(p,ws,run_id)
         context=service.conversation_worker_context(cap)
         result=self.transport.respond(context)
-        service.complete_conversation_turn(cap,result)
+        if run.profile==PRODUCT_PROFILE:
+            if not isinstance(result,dict) or set(result)!= {'tool'}:
+                return service.fail_local_turn(cap,'Controlled transport did not select the authorized local tool.')
+            try:
+                service.execute_local_product(cap,result['tool'])
+            except DomainError as exc:
+                if exc.code.value in ('version_conflict','unsupported_operation','budget_exhausted'):
+                    return service.fail_local_turn(cap,exc.code.value+'; inspect saved state and submit a fresh turn.')
+                raise
+        else:
+            service.complete_conversation_turn(cap,result)
         observed=service.get_run(p,ws,run_id)
-        if observed.state!='ready':
+        if observed.state not in ('ready','partial'):
             raise DomainError('action_unresolved')
         return observed
 
@@ -65,9 +79,9 @@ class GeneralWorker:
         with self.service.db.transaction() as c:
             rows=c.execute('''SELECT d.workspace_id,d.run_id,r.data FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
-                WHERE d.acknowledged_at IS NULL AND r.data->>'profile'=%s
+                WHERE d.acknowledged_at IS NULL AND r.data->>'profile' IN (%s,%s)
                 AND (%s::text IS NULL OR d.workspace_id=%s) ORDER BY d.cursor LIMIT 100''',
-                (PROFILE,workspace,workspace)).fetchall()
+                (PROFILE,PRODUCT_PROFILE,workspace,workspace)).fetchall()
         counts={'completed':0,'deferred':0,'denied':0}
         for row in rows:
             try:

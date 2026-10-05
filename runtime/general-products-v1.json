@@ -1,0 +1,12 @@
+{
+  "profile": "general-products-controlled-v1",
+  "version": "1",
+  "transport": "controlled-only",
+  "result_kinds": ["text", "table", "file", "tool"],
+  "tools": ["reconcile_csv", "run_wasm"],
+  "external_effects": false,
+  "provider_inference": false,
+  "max_turns_per_conversation": 100,
+  "max_context_bytes": 1000000,
+  "purpose": "Bounded local products; controlled engineering evidence only"
+}

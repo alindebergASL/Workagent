@@ -15,9 +15,18 @@ PROFILE_HASH = 'dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4
 PROFILE_PATH = Path(__file__).resolve().parents[2] / 'runtime/general-b1-v1.json'
 
 
-def profile():
-    raw = PROFILE_PATH.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != PROFILE_HASH:
+PRODUCT_PROFILE = 'general-products-controlled-v1'
+PRODUCT_HASH = '6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce'
+LEGACY_IMPLEMENTATION = 'a8119955657d5158c04b7b7cbae10faf896736e60bb0424715d9fd5a9831c0ee'
+
+
+def profile(name=PROFILE):
+    path = PROFILE_PATH if name==PROFILE else PROFILE_PATH.with_name('general-products-v1.json')
+    expected = PROFILE_HASH if name==PROFILE else PRODUCT_HASH
+    if name not in (PROFILE,PRODUCT_PROFILE):
+        raise DomainError('unsupported_operation')
+    raw = path.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != expected:
         raise DomainError('unsupported_operation')
     return json.loads(raw)
 
@@ -25,18 +34,23 @@ def profile():
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('conversations.py', 'general_worker.py'))).hexdigest()
+        for name in ('conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):
     from .service import digest
     data = c.execute('SELECT data,activation_id FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                      (run.workspace_id,run.id)).fetchone()
-    expected = profile()
-    if (not data or data['activation_id'] != PROFILE or
-        data['data'] != {'profile': PROFILE, 'bundle_hash': PROFILE_HASH,
-                         'implementation_hash': implementation_hash(), 'tools': expected['tools']} or
-        run.profile != PROFILE or run.bundle_hash != PROFILE_HASH or
+    expected = profile(run.profile)
+    expected_hash = PROFILE_HASH if run.profile==PROFILE else PRODUCT_HASH
+    impl = data['data'].get('implementation_hash') if data else None
+    accepted_impl = (implementation_hash(),LEGACY_IMPLEMENTATION) if run.profile==PROFILE else (implementation_hash(),)
+    if impl not in accepted_impl:
+        raise DomainError('unsupported_operation')
+    if (not data or data['activation_id'] != run.profile or
+        data['data'] != {'profile': run.profile, 'bundle_hash': expected_hash,
+                         'implementation_hash': impl, 'tools': expected['tools']} or
+        run.bundle_hash != expected_hash or
         run.tool_registry_hash != digest(expected['tools']) or run.budget_units != 1):
         raise DomainError('unsupported_operation')
 
@@ -49,6 +63,12 @@ class Conversations:
         cv=Conversation.model_validate(row['data'])
         for ref in sorted(cv.selected_source_refs,key=lambda r:r.source_id):
             self._source(c,p,ws,ref,versions)
+        return cv
+
+    def _conversation_preview(self,c,ws,cv):
+        messages=self._conversation_messages(c,ws,cv.id)
+        cv.updated_at=messages[-1].created_at if messages else cv.created_at
+        cv.last_message_preview=messages[-1].text[:240] if messages else None
         return cv
 
     def _store_conversation(self,c,cv):
@@ -98,7 +118,7 @@ class Conversations:
                   WHERE s.workspace_id=cv.workspace_id AND s.conversation_id=cv.id
                   AND (g.active IS DISTINCT FROM true OR (src.data->>'available')::boolean IS DISTINCT FROM true))
                 ORDER BY cv.id LIMIT %s''',(ws,cursor or '',p.id,limit+1)).fetchall()
-            items=[self._conversation(c,p,ws,r['id']) for r in rows[:limit]]
+            items=[self._conversation_preview(c,ws,self._conversation(c,p,ws,r['id'])) for r in rows[:limit]]
             return ConversationPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
     def get_conversation(self,p,ws,cid):
@@ -109,7 +129,10 @@ class Conversations:
             runs={r['id']:Run.model_validate(r['data']) for r in c.execute(
                 'SELECT id,data FROM runs WHERE workspace_id=%s AND conversation_id=%s',(ws,cid)).fetchall()}
             assignments=c.execute('SELECT id FROM assignments WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()
-            return ConversationDetail(conversation=cv,messages=messages,
+            from .products import turn_state
+            ordered=[runs[m.run_id] for m in messages if m.author_kind=='human']
+            artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
+            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind=='human'],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -126,21 +149,33 @@ class Conversations:
         def mutate(c,cv):
             self._conversation_cas(cv,cmd.expected_work_version)
             self._conversation(c,p,ws,cid,True)
-            config=profile()
+            selected=PRODUCT_PROFILE if cmd.operation else PROFILE
+            config=profile(selected)
+            selected_hash=PRODUCT_HASH if cmd.operation else PROFILE_HASH
+            if cmd.operation:
+                self._product_base(c,p,ws,cv,cmd.operation)
             messages=self._conversation_messages(c,ws,cid)
+            # Reject oversized history before admission rather than leaving queued work with no executable context.
+            from .service import canonical
+            prospective={'messages':[m.model_dump(mode='json') for m in messages],
+                         'next':cmd.model_dump(mode='json'),
+                         'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
+                         'tools':self.local_tool_registry() if cmd.operation else []}
+            if len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+                raise DomainError('budget_exhausted')
             if sum(m.author_kind=='human' for m in messages)>=config['max_turns_per_conversation']:
                 raise DomainError('budget_exhausted')
             self._cancel_conversation_runs(c,ws,cid)  # New steering supersedes unfinished responses, not messages.
             generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(ws,)).fetchone()['access_generation']
             run=Run(id=new_id(),workspace_id=ws,conversation_id=cid,principal_id=p.id,kind='conversation_turn',
-                access_generation=generation,profile=PROFILE,bundle_hash=PROFILE_HASH,tool_registry_hash=digest(config['tools']),
-                execution=ExecutionProvenance(mode='fixture',profile=PROFILE,evidence_origin='controlled_transport'))
+                access_generation=generation,profile=selected,bundle_hash=selected_hash,tool_registry_hash=digest(config['tools']),
+                execution=ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport'))
             c.execute('INSERT INTO runs(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,run.id,cid,encoded(run)))
             c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
-                (ws,run.id,PROFILE,encoded({'profile':PROFILE,'bundle_hash':PROFILE_HASH,
+                (ws,run.id,selected,encoded({'profile':selected,'bundle_hash':selected_hash,
                                           'implementation_hash':implementation_hash(),'tools':config['tools']})))
             message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
-                                        author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human')
+                                        author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human',operation=cmd.operation)
             self._append_message(c,ws,message)
             cv.work_version+=1
             self._store_conversation(c,cv)
@@ -181,14 +216,15 @@ class Conversations:
     def _general_context(self,c,cap):
         from .service import canonical, digest, encoded
         p,run,cv=self._check_capability(c,cap)
-        if run.profile!=PROFILE:
+        if run.profile not in (PROFILE,PRODUCT_PROFILE):
             raise DomainError('unsupported_operation')
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
         sources=[self._source(c,p,run.workspace_id,ref,True) for ref in cv.selected_source_refs]
-        context={'profile':PROFILE,'conversation_id':cv.id,'run_id':run.id,
-                 'messages':[m.model_dump(mode='json') for m in messages],
-                 'sources':[{'id':r['id'],'content':r['content']} for r in sources], 'tools':[]}
-        if len(canonical(context).encode())>profile()['max_context_bytes']:
+        context={'profile':run.profile,'conversation_id':cv.id,'run_id':run.id,
+                 'messages':[m.model_dump(mode='json',exclude={'operation'} if run.profile==PROFILE else set()) for m in messages],
+                 'sources':[{'id':r['id'],'content':r['content']} for r in sources],
+                 'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
+        if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             raise DomainError('budget_exhausted')
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
@@ -207,6 +243,8 @@ class Conversations:
         from .outcomes import acknowledge
         # Validate, not model_construct/model_copy: reject caller-supplied origin/authority.
         result=TurnResult.model_validate(result.model_dump() if isinstance(result,TurnResult) else result)
+        if len(result.results)!=1 or not isinstance(result.results[0],TextResult):
+            raise DomainError('unsupported_operation')
         with self.db.transaction() as c:
             p,run,cv=self._check_capability(c,cap,allow_completed=True)
             if run.profile!=PROFILE:

@@ -12,10 +12,11 @@ from .runtime_config import BundleDenied, require_fixture_mode
 
 
 class Dispatcher:
-    def __init__(self, service, *, mode='fixture', workspace=None):
+    def __init__(self, service, *, mode='fixture', workspace=None, general_controlled=False):
         require_fixture_mode(mode)
         self.service = service
         self.workspace = workspace
+        self.general_controlled = general_controlled
 
     def reconcile(self, workspace, run_id):
         """Post-commit terminal readback + ACK. No new run, turn or side effect."""
@@ -64,6 +65,14 @@ class Dispatcher:
             for row in rows:
                 cursor = row['cursor']
                 ws, rid = row['workspace_id'], row['run_id']
+                if self.general_controlled and row['data'].get('profile') in ('general-controlled-v1','general-products-controlled-v1'):
+                    from .general_worker import GeneralWorker, ControlledTransport
+                    try:
+                        GeneralWorker(service,transport=ControlledTransport()).work(Principal(row['data']['principal_id'],'worker'),ws,rid)
+                        result['completed']+=1
+                    except DomainError as exc:
+                        result['deferred' if exc.code.value=='action_unresolved' else 'denied']+=1
+                    continue
                 if row['data'].get('profile','fixture-deterministic-v1')!='fixture-deterministic-v1':
                     result['deferred'] += 1
                     continue
@@ -91,6 +100,7 @@ class Dispatcher:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--once',action='store_true')
+    parser.add_argument('--general-controlled',action='store_true',help='Advance explicit no-inference general turns with the same GeneralWorker')
     parser.add_argument('--mode',default='fixture')
     parser.add_argument('--workspace')
     parser.add_argument('--interval',type=float,default=1.0)
@@ -103,7 +113,7 @@ def main():
         parser.error('interval must be at least 0.05 seconds')
     db = Database()
     db.check_runtime_role()
-    dispatcher = Dispatcher(Service(db),workspace=args.workspace)
+    dispatcher = Dispatcher(Service(db),workspace=args.workspace,general_controlled=args.general_controlled)
     while True:
         print(json.dumps(dispatcher.once()),flush=True)
         if args.once:
