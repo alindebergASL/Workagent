@@ -19,7 +19,7 @@ const base=origin+'/api/domain/v1/workspaces/local-workspace';
 const headers={'X-Workagent-Client':'local-ui','Content-Type':'application/json'};
 const cmd=()=>({schema_version:'workagent/v1',request_id:crypto.randomUUID(),command_id:crypto.randomUUID()});
 async function api(p,body){const r=await fetch(base+p,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{})});expect(r.ok).toBe(true);return r.json();}
-const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH}:{})});
 try{
  const page=await browser.newPage();
  if(phase==='outage'){
