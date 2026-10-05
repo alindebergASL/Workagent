@@ -49,11 +49,32 @@ export function usePendingCommand<T>(key: string | null) {
     [key],
   );
 
+  const clear = useCallback(
+    (expected: T): boolean => {
+      if (ref.current !== expected) return false;
+      if (key)
+        try {
+          // A completion from an old mount must not erase a newer journal entry.
+          if (sessionStorage.getItem(key) !== JSON.stringify(expected))
+            return false;
+          sessionStorage.removeItem(key);
+        } catch {
+          /* storage unavailable: still resolve this exact in-memory command */
+        }
+      ref.current = null;
+      setRestored(false);
+      bump((n) => n + 1);
+      return true;
+    },
+    [key],
+  );
+
   return {
     get current(): T | null {
       return ref.current;
     },
     set,
+    clear,
     /** True when the command came back from a previous load of this tab. */
     restored,
   };

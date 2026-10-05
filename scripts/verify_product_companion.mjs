@@ -1,0 +1,58 @@
+// Real companion pane, mobile switching and cross-surface lost-ack replay.
+import {chromium,expect} from '../web/node_modules/@playwright/test/index.mjs';
+import {readFile,writeFile} from 'node:fs/promises';
+const out=process.argv[2];
+const d=JSON.parse(await readFile(out+'/products/result.json','utf8'));
+const origin='http://127.0.0.1:3000', cid=d.tool_conversation;
+const url=origin+`/conversations/${cid}/artifacts/${d.tool_id}`;
+const endpoint=origin+`/api/domain/v1/workspaces/local-workspace/conversations/${cid}/messages`;
+const b=await chromium.launch({headless:true,args:['--no-sandbox']});
+try{
+ const page=await b.newPage({viewport:{width:320,height:844}});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(url);
+ const notes=page.getByLabel('Your notes (one per line)');
+ await expect(notes).toHaveValue('Human: all amounts are cents');
+ await notes.fill('Human: all amounts are cents\nUnsaved mobile companion note');
+ await page.getByRole('button',{name:'Conversation',exact:true}).click();
+ const reply=page.getByLabel('Reply about this work');
+ await reply.fill('Mobile companion draft before pane switch');
+ await page.getByRole('button',{name:'Work',exact:true}).click();
+ await expect(notes).toHaveValue('Human: all amounts are cents\nUnsaved mobile companion note');
+ await page.getByRole('button',{name:'Conversation',exact:true}).click();
+ await expect(reply).toHaveValue('Mobile companion draft before pane switch');
+ const bodies=[];
+ await page.route(endpoint,async route=>{
+  if(route.request().method()!=='POST')return route.continue();
+  bodies.push(route.request().postDataJSON());
+  if(bodies.length===1){const r=await route.fetch();expect(r.ok()).toBe(true);return route.abort('failed');}
+  return route.continue();
+ });
+ await page.getByRole('button',{name:'Send',exact:true}).click();
+ await expect(page.getByText('Your last send wasn’t confirmed. Sending again replays the same message.',{exact:true})).toBeVisible();
+ await page.getByRole('link',{name:'Open the full conversation',exact:true}).click();
+ await page.waitForURL(origin+`/conversations/${cid}`);
+ const full=page.getByLabel('Continue the conversation');
+ await expect(full).toHaveValue('Mobile companion draft before pane switch');
+ await expect(full).toBeDisabled();
+ await page.getByRole('button',{name:'Send',exact:true}).click();
+ await expect(full).toHaveValue('');
+ expect(bodies).toHaveLength(2);
+ // HTTP request tracing IDs may differ; durable command/payload must not.
+ expect(bodies[1].command_id).toBe(bodies[0].command_id);
+ expect(bodies[1].expected_work_version).toBe(bodies[0].expected_work_version);
+ expect(bodies[1].text).toBe(bodies[0].text);
+ await page.goto(url);
+ await expect(notes).toHaveValue('Human: all amounts are cents\nUnsaved mobile companion note');
+ await page.getByRole('button',{name:'Conversation',exact:true}).click();
+ await expect(page.getByLabel('Reply about this work')).toHaveValue('');
+ await page.getByRole('button',{name:'Work',exact:true}).click();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:out+'/companion-mobile.png',fullPage:true});
+ const response=await fetch(origin+`/api/domain/v1/workspaces/local-workspace/conversations/${cid}`,{headers:{'X-Workagent-Client':'local-ui'}});
+ const cv=await response.json();
+ expect(cv.messages.filter(m=>m.author_kind==='human'&&m.text==='Mobile companion draft before pane switch')).toHaveLength(1);
+ expect(errors).toEqual([]);
+ await writeFile(out+'/companion.json',JSON.stringify({passed:true,conversation_id:cid,command_id:bodies[0].command_id,mobile_pane_drafts_preserved:true,cross_surface_exact_command_replay:true,human_message_count:1,page_errors:errors},null,2)+'\n');
+ console.log('PASS: mobile pane drafts, real lost ack, exact cross-surface replay, preserved unsaved notes');
+}finally{await b.close();}

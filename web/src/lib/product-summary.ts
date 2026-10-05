@@ -60,8 +60,10 @@ export interface TableSummary {
 /**
  * What the reconciliation found, read from the saved rows' own calculated
  * columns (never recomputed here, so the page can't disagree with the record).
+ * Calculated columns alone are not evidence: human edits retain old columns.
+ * Only callers with an observation bound to this body may claim checked results.
  */
-export function tableSummary(body: TableBody): TableSummary {
+export function tableSummary(body: TableBody, verified = false): TableSummary {
   const calculated = body.columns.includes("calculated_total");
   const mismatches = calculated
     ? body.rows
@@ -87,6 +89,7 @@ export function tableSummary(body: TableBody): TableSummary {
   const n = body.rows.length;
   let headline: string;
   if (!calculated) headline = "Not calculated yet.";
+  else if (!verified) headline = "These rows haven’t been checked yet.";
   else if (!mismatches.length)
     headline =
       n === 1

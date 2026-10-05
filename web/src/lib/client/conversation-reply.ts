@@ -65,21 +65,24 @@ export function useConversationReply({
     if (!cmd.current && !text.trim()) return;
     setSending(true);
     setError(null);
+    const sentText = text;
+    const attempt = cmd.current ?? {
+      command_id: newCommandId(),
+      expected_work_version: version,
+      text: text.trim(),
+    };
     try {
-      if (!cmd.current)
-        cmd.set({
-          command_id: newCommandId(),
-          expected_work_version: version,
-          text: text.trim(),
-        });
-      await conversationApi.send(wsId, cid, cmd.current!);
-      cmd.set(null);
-      setText("");
-      await refresh();
+      if (!cmd.current) cmd.set(attempt);
+      await conversationApi.send(wsId, cid, attempt);
+      if (cmd.clear(attempt)) {
+        setText((current) => (current === sentText ? "" : current));
+        await refresh();
+      }
     } catch (e) {
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
-        cmd.set(null);
-        if (e instanceof ApiError && e.isVersionConflict) await refresh();
+        const cleared = cmd.clear(attempt);
+        if (cleared && e instanceof ApiError && e.isVersionConflict)
+          await refresh();
       }
       setError(e);
     } finally {

@@ -42,7 +42,30 @@ type Pending =
   | { kind: "save"; id: string; base: string; body: ProductBody }
   | { kind: "accept"; id: string; base: string; pid: string }
   | { kind: "run"; id: string; version: number; operation: Operation };
-type Draft = { base: string; body: ProductBody; pending: Pending | null };
+type InputRows = Parameters<typeof fieldInputs>[0];
+type Draft = {
+  base: string;
+  body: ProductBody;
+  pending: Pending | null;
+  // UI-only raw edits: invalid values never enter the contractual Body.
+  toolInputs?: InputRows;
+};
+function inputError(draft: Draft): string {
+  if (draft.body.kind !== "tool" || !draft.toolInputs) return "";
+  try {
+    const parsed = fieldInputs(draft.toolInputs);
+    if (
+      JSON.stringify(parsed.arguments) !==
+        JSON.stringify(draft.body.arguments) ||
+      JSON.stringify(parsed.input_form) !==
+        JSON.stringify(draft.body.input_form)
+    )
+      return "Change or discard these unapplied inputs before continuing.";
+    return "";
+  } catch (e) {
+    return e instanceof Error ? e.message : "Check the inputs.";
+  }
+}
 function readDraft(key: string, artifact: S["Artifact"]): Draft {
   const body = artifact.current_revision.body;
   if (!isProduct(body)) throw new Error("Not a typed product.");
@@ -199,13 +222,15 @@ function ProductEditor({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const inputsError = inputError(draft);
   const dirty =
+    Boolean(inputsError) ||
     JSON.stringify(draft.body) !==
-    JSON.stringify(artifact.current_revision.body);
+      JSON.stringify(artifact.current_revision.body);
   const changed = draft.base !== artifact.current_revision_id;
   const verified =
     currentObservation(artifact, data.observations.current) && !stale;
-  const [inputReset, setInputReset] = useState(0);
+
   const observations = [
     data.observations.current,
     data.observations.latest,
@@ -227,7 +252,7 @@ function ProductEditor({
     }
   }
   async function submit(action: Pending) {
-    if (busy) return;
+    if (busy || (!draft.pending && inputsError)) return;
     const exact = draft.pending ?? action;
     keep({ ...draft, pending: exact });
     setBusy(true);
@@ -402,7 +427,25 @@ function ProductEditor({
             <>
               {p.body.kind === "table" ? (
                 <p className="decision-question">
-                  {tableSummary(p.body).headline}
+                  {
+                    tableSummary(
+                      p.body,
+                      !stale &&
+                        observations.some((read) => {
+                          const o = read.observation;
+                          return (
+                            read.current_scope &&
+                            read.binding_state === "pending_proposal" &&
+                            o.proposal_id === p.id &&
+                            o.workspace_id === ws &&
+                            o.conversation_id === cid &&
+                            o.artifact_id === artifact.id &&
+                            o.body_hash === p.body_hash &&
+                            o.output.kind === "reconcile_csv"
+                          );
+                        }),
+                    ).headline
+                  }
                 </p>
               ) : null}
               <details className="ids-details">
@@ -578,9 +621,29 @@ function ProductEditor({
             ) : (
               <>
                 <ToolInputs
-                  key={`${draft.base}:${inputReset}`}
-                  body={draft.body}
-                  update={(body) => keep({ ...draft, body })}
+                  rows={
+                    draft.toolInputs ??
+                    draft.body.input_form.map((f, i) => ({
+                      name: f.name,
+                      label: f.label,
+                      value: String(
+                        draft.body.kind === "tool"
+                          ? (draft.body.arguments[i] ?? "")
+                          : "",
+                      ),
+                    }))
+                  }
+                  error={inputsError}
+                  update={(rows) => {
+                    if (draft.body.kind !== "tool") return;
+                    let body = draft.body;
+                    try {
+                      body = { ...body, ...fieldInputs(rows) };
+                    } catch {
+                      // Keep invalid raw input, but never admit it into Body.
+                    }
+                    keep({ ...draft, body, toolInputs: rows });
+                  }}
                 />
                 <details className="disclosure tool-code" open>
                   <summary>Tool code</summary>
@@ -647,7 +710,7 @@ function ProductEditor({
             {dirty ? (
               <button
                 className="btn btn-primary"
-                disabled={locked}
+                disabled={locked || Boolean(inputsError)}
                 onClick={() =>
                   void submit({
                     kind: "save",
@@ -672,7 +735,6 @@ function ProductEditor({
               className="btn btn-quiet"
               disabled={locked}
               onClick={() => {
-                setInputReset((n) => n + 1);
                 if (isProduct(artifact.current_revision.body))
                   keep({
                     base: artifact.current_revision_id,
@@ -780,11 +842,16 @@ function ResultCard({
       </h2>
       {body.kind === "table" ? (
         (() => {
-          const t = tableSummary(body);
+          const checked =
+            current && read?.observation.output.kind === "reconcile_csv";
+          const t = tableSummary(body, checked);
           return (
             <>
               <p className="result-headline">{t.headline}</p>
-              {t.calculated && t.reportedTotal && t.calculatedTotal ? (
+              {checked &&
+              t.calculated &&
+              t.reportedTotal &&
+              t.calculatedTotal ? (
                 <dl className="result-figures">
                   <div>
                     <dt>Reported total</dt>
@@ -838,32 +905,18 @@ function ResultCard({
 /**
  * The tool's inputs, one field each: a name and a whole-number value. Valid
  * edits go straight into the draft (so Save and Discard cover them); an
- * invalid edit stays on screen with its reason and never reaches the draft.
+ * invalid edit is persisted separately from Body and blocks all new actions.
  */
 function ToolInputs({
-  body,
+  rows,
+  error,
   update,
 }: {
-  body: S["ToolBody"];
-  update: (b: S["ToolBody"]) => void;
+  rows: InputRows;
+  error: string;
+  update: (rows: InputRows) => void;
 }) {
-  const [rows, setRows] = useState(() =>
-    body.input_form.map((f, i) => ({
-      name: f.name,
-      label: f.label,
-      value: String(body.arguments[i] ?? ""),
-    })),
-  );
-  const [error, setError] = useState("");
-  function change(next: typeof rows) {
-    setRows(next);
-    try {
-      update({ ...body, ...fieldInputs(next) });
-      setError("");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Check the inputs.");
-    }
-  }
+  const change = update;
   return (
     <fieldset className="tool-inputs stack-sm">
       <legend className="field-label">Inputs</legend>

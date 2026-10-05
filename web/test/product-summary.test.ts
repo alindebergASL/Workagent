@@ -49,6 +49,7 @@ describe("table summary leads with what the reconciliation found", () => {
         row("B", "38.50", "37.50", "1.00"),
         row("C", "0.00", "0.00", "0.00"),
       ]),
+      true,
     );
     expect(s.headline).toBe(
       "Row B is reported at 38.50 but calculates to 37.50.",
@@ -62,7 +63,7 @@ describe("table summary leads with what the reconciliation found", () => {
 
   it("says plainly when everything matches, and counts several mismatches", () => {
     expect(
-      tableSummary(body([row("A", "1.00", "1.00", "0.00")])).headline,
+      tableSummary(body([row("A", "1.00", "1.00", "0.00")]), true).headline,
     ).toBe("The row matches its reported total.");
     expect(
       tableSummary(
@@ -71,6 +72,7 @@ describe("table summary leads with what the reconciliation found", () => {
           row("B", "3.00", "1.00", "2.00"),
           row("C", "1.00", "1.00", "0.00"),
         ]),
+        true,
       ).headline,
     ).toBe("2 of 3 rows don’t match their reported totals.");
   });
@@ -84,6 +86,17 @@ describe("table summary leads with what the reconciliation found", () => {
       calculatedTotal: null,
       headline: "Not calculated yet.",
     });
+  });
+
+  it("does not present retained calculated columns as checked current results", () => {
+    const edited = body([row("A", "2.00", "1.00", "0.00")]);
+    expect(tableSummary(edited).headline).toBe(
+      "These rows haven’t been checked yet.",
+    );
+    expect(tableSummary(edited, false).headline).not.toContain("matches");
+    expect(
+      tableSummary(body([row("A", "1.00", "1.00", "0.00")]), true).headline,
+    ).toBe("The row matches its reported total.");
   });
 
   it("labels columns plainly and keeps unknown ones readable", () => {

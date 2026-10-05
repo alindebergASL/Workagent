@@ -15,6 +15,12 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {OperationComposer} from '@/components/OperationComposer';
 import ProductPage from '@/app/conversations/[id]/artifacts/[artifactId]/page';
+import {useConversationReply} from '@/lib/client/conversation-reply';
+function Reply({ws,cid,version}) {
+  const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh});
+  return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
+    <button disabled={reply.sending} onClick={reply.send}>{reply.uncertain ? 'Retry reply' : 'Send reply'}</button></>;
+}
 window.calls = [];
 window.ambiguous = true;
 window.refresh = async () => null;
@@ -23,7 +29,7 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
   window.scope = {ws,cid};
   root.render(mode === 'operation'
     ? <OperationComposer ws={ws} cid={cid} version={version} refresh={window.refresh}/>
-    : mode === 'product' ? <ProductPage/> : <div>Navigation away</div>);
+    : mode === 'product' ? <ProductPage/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
 };
 window.reads = {};
 File.prototype.arrayBuffer = function() {
@@ -259,6 +265,73 @@ try {
     );
   }
 
+  for (const rejectLate of [false, true]) {
+    await load();
+    await page.evaluate(() => sessionStorage.clear());
+    await mount("reply");
+    await page.getByLabel("Test reply").fill("Held reply A");
+    await page.evaluate(() => {
+      window.holdNext = true;
+    });
+    await page.getByRole("button", { name: "Send reply", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
+    const held = await page.evaluate(() => window.calls[0]);
+    await mount("away");
+    await expect(page.getByText("Navigation away")).toBeVisible();
+    await page.evaluate(() => {
+      window.ambiguous = false;
+    });
+    await mount("reply", "w", "c", 8);
+    await page
+      .getByRole("button", { name: "Retry reply", exact: true })
+      .click();
+    await expect(page.getByLabel("Test reply")).toHaveValue("");
+    assert.deepEqual(await page.evaluate(() => window.calls[1]), held);
+    await page.getByLabel("Test reply").fill("Newer reply B");
+    await page.evaluate(() => {
+      window.ambiguous = true;
+    });
+    await page.getByRole("button", { name: "Send reply", exact: true }).click();
+    await expect(
+      page.getByRole("button", { name: "Retry reply", exact: true }),
+    ).toBeEnabled();
+    const newer = await page.evaluate(() => window.calls.at(-1));
+    assert.notEqual(newer.payload.command_id, held.payload.command_id);
+    await page.evaluate(async (reject) => {
+      window.finishHeld(reject);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }, rejectLate);
+    await expect(page.getByLabel("Test reply")).toHaveValue("Newer reply B");
+    assert.equal(
+      await page.evaluate(() =>
+        sessionStorage.getItem("workagent:conversation:c"),
+      ),
+      "Newer reply B",
+    );
+    assert.deepEqual(
+      JSON.parse(
+        await page.evaluate(() =>
+          sessionStorage.getItem("workagent:pending:w:conversation:c:send"),
+        ),
+      ),
+      newer.payload,
+    );
+    await load();
+    await mount("reply", "w", "c", 999);
+    await expect(page.getByLabel("Test reply")).toHaveValue("Newer reply B");
+    await expect(page.getByLabel("Test reply")).toBeDisabled();
+    await page
+      .getByRole("button", { name: "Retry reply", exact: true })
+      .click();
+    assert.deepEqual(await page.evaluate(() => window.calls[0]), newer);
+    passed++;
+    console.log(
+      `PASS late reply ${rejectLate ? "definitive rejection" : "success"} preserves newer draft and exact pending replay across reload`,
+    );
+  }
+  await load();
+  await page.evaluate(() => sessionStorage.clear());
+
   const hash = "0".repeat(64);
   const body = {
     kind: "tool",
@@ -376,13 +449,14 @@ try {
     "1000000000000000001",
     "-1000000000000000001",
   ]);
-  // Each observation states its own binding (inside "How this was checked").
+  // Open the disclosure: bindings must be visible, not just present in the DOM.
+  await page.getByText("How this was checked", { exact: true }).click();
   await expect(
     page.getByText("Checked against the proposed version, not your saved one."),
-  ).toHaveCount(1);
+  ).toBeVisible();
   await expect(
     page.getByText("Checked against the current saved version."),
-  ).toHaveCount(1);
+  ).toBeVisible();
   for (const value of ["9223372036854775807", "-9223372036854775808"]) {
     await page.evaluate((value) => {
       window.resource.data.observations.current.observation.output.value =
@@ -406,15 +480,152 @@ try {
     "Quantity",
   );
   await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
-  await page.getByLabel("Quantity", { exact: true }).fill("3.5");
+  for (const invalid of ["value", "label"]) {
+    if (invalid === "value")
+      await page.getByLabel("Quantity", { exact: true }).fill("3.5");
+    else await page.getByLabel("Input 1 name", { exact: true }).fill("");
+    const errorText =
+      invalid === "value" ? "whole numbers" : "Give every input a name";
+    await expect(
+      page.getByRole("alert").filter({ hasText: errorText }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toBeDisabled();
+    await expect(
+      page.getByRole("button", { name: "Run saved tool", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("button", { name: "Apply proposed version", exact: true }),
+    ).toBeDisabled();
+    await page
+      .getByRole("textbox", { name: "Your notes (one per line)", exact: true })
+      .fill("Keep my note");
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toBeDisabled();
+    for (const reload of [false, true]) {
+      if (reload) await load();
+      else {
+        await mount("away");
+        await expect(page.getByText("Navigation away")).toBeVisible();
+      }
+      await page.evaluate((data) => {
+        window.resource = {
+          data,
+          error: null,
+          reconnecting: false,
+          refresh: window.refresh,
+        };
+        window.mount("product");
+      }, data);
+      await expect(
+        page.getByRole("alert").filter({ hasText: errorText }),
+      ).toBeVisible();
+      await expect(
+        page.getByLabel(invalid === "value" ? "Quantity" : "Input 1 name", {
+          exact: true,
+        }),
+      ).toHaveValue(invalid === "value" ? "3.5" : "");
+      await expect(
+        page.getByRole("textbox", {
+          name: "Your notes (one per line)",
+          exact: true,
+        }),
+      ).toHaveValue("Keep my note");
+      await expect(
+        page.getByRole("button", { name: "Save my edits", exact: true }),
+      ).toBeDisabled();
+      await expect(
+        page.getByRole("button", {
+          name: "Apply proposed version",
+          exact: true,
+        }),
+      ).toBeDisabled();
+      const kept = await page.evaluate(() =>
+        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")),
+      );
+      assert.deepEqual(kept.body.arguments, [3]);
+      assert.equal(kept.body.input_form[0].label, "Quantity");
+    }
+    await page.getByRole("button", { name: "Discard my changes" }).click();
+    await expect(page.getByLabel("Input 1 name", { exact: true })).toHaveValue(
+      "Quantity",
+    );
+    await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
+    await expect(
+      page.getByRole("textbox", {
+        name: "Your notes (one per line)",
+        exact: true,
+      }),
+    ).toHaveValue("");
+    await expect(
+      page.getByRole("button", { name: "Run saved tool", exact: true }),
+    ).toBeEnabled();
+    await expect(
+      page.getByRole("button", { name: "Apply proposed version", exact: true }),
+    ).toBeEnabled();
+    passed++;
+    console.log(
+      `PASS invalid tool ${invalid} persists across navigation/reload and gates save/run/apply without admitting invalid Body`,
+    );
+  }
+  await page.getByLabel("Quantity", { exact: true }).fill("4");
   await expect(
-    page.getByRole("alert").filter({ hasText: "whole numbers" }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeEnabled();
+  assert.deepEqual(
+    await page.evaluate(
+      () =>
+        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
+          .arguments,
+    ),
+    [4],
+  );
   await page.getByRole("button", { name: "Discard my changes" }).click();
-  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
+  passed++;
+  console.log("PASS same-base discard and immediate valid tool input edits");
+
+  await mount("away");
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate(() => {
+    const key = "workagent:product:w:c:a";
+    const kept = JSON.parse(sessionStorage.getItem(key));
+    kept.toolInputs = [{ name: "quantity", label: "Quantity", value: "9" }];
+    sessionStorage.setItem(key, JSON.stringify(kept));
+    window.mount("product");
+  });
+  await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("9");
+  await expect(
+    page.getByRole("alert").filter({ hasText: "unapplied inputs" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Apply proposed version", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Run saved tool", exact: true }),
+  ).toHaveCount(0);
+  await page.getByLabel("Quantity", { exact: true }).fill("4");
+  await expect(
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeEnabled();
+  assert.deepEqual(
+    await page.evaluate(
+      () =>
+        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
+          .arguments,
+    ),
+    [4],
+  );
+  await page
+    .getByRole("button", { name: "Discard my changes", exact: true })
+    .click();
   passed++;
   console.log(
-    "PASS same-base discard resets per-field tool inputs; invalid input stays out of the draft",
+    "PASS restored unapplied raw inputs cannot silently use the last-valid Body; editing repairs them immediately",
   );
 
   // Replying beside the work: a lost acknowledgement keeps the exact command
@@ -447,6 +658,151 @@ try {
   passed++;
   console.log(
     "PASS reply beside the work keeps and replays the exact unconfirmed send",
+  );
+
+  const tableData = structuredClone(data);
+  tableData.artifact.current_revision.body = {
+    kind: "table",
+    title: "Edited invoices",
+    source_csv: "",
+    rounding: "ROUND_HALF_UP",
+    columns: [
+      "id",
+      "reported_total",
+      "calculated_total",
+      "difference",
+      "check",
+    ],
+    rows: [
+      {
+        id: "A",
+        reported_total: "2.00",
+        calculated_total: "1.00",
+        difference: "0.00",
+        check: "matched",
+      },
+    ],
+    notes: [],
+  };
+  tableData.artifact.current_revision.author_kind = "human";
+  tableData.proposals = [];
+  tableData.observations = { current: null, latest: null };
+  await mount("away");
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate((data) => {
+    sessionStorage.removeItem("workagent:product:w:c:a");
+    window.resource = {
+      data,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    window.mount("product");
+  }, tableData);
+  await expect(page.locator(".result-headline")).toHaveText(
+    "These rows haven’t been checked yet.",
+  );
+  await expect(page.getByTestId("product-verification")).toHaveText(
+    "This saved version hasn’t been checked yet.",
+  );
+  await expect(page.locator(".result-figures")).toHaveCount(0);
+  const tableObservation = structuredClone(observation);
+  tableObservation.observation.output = {
+    kind: "reconcile_csv",
+    reported_sum: "1.00",
+    expected_sum: "1.00",
+    discrepancies: [],
+    formula: "quantity × unit_price",
+    rounding: "ROUND_HALF_UP",
+  };
+  await page.evaluate((read) => {
+    window.resource.data.artifact.current_revision.body.rows[0].reported_total =
+      "1.00";
+    window.resource.data.observations = { current: read, latest: read };
+    window.mount("product");
+  }, tableObservation);
+  // Discard restores the newly read fixture body, eliminating the intentionally stale draft.
+  await page.getByRole("button", { name: "Discard my changes" }).click();
+  await expect(page.locator(".result-headline")).toHaveText(
+    "The row matches its reported total.",
+  );
+  await expect(
+    page.locator('.result-status[data-verified="true"]'),
+  ).toBeVisible();
+  await page.getByText("How this was checked", { exact: true }).click();
+  await expect(
+    page.getByText("Checked against the current saved version.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  for (const mutation of ["hash", "revision", "scope", "stale"]) {
+    await page.evaluate(
+      ({ read, mutation }) => {
+        window.resource.data.observations.current = structuredClone(read);
+        window.resource.reconnecting = mutation === "stale";
+        if (mutation === "hash")
+          window.resource.data.observations.current.observation.body_hash =
+            "1".repeat(64);
+        if (mutation === "revision")
+          window.resource.data.observations.current.observation.revision_id =
+            "old";
+        if (mutation === "scope")
+          window.resource.data.observations.current.current_scope = false;
+        window.mount("product");
+      },
+      { read: tableObservation, mutation },
+    );
+    await expect(page.locator(".result-headline")).toHaveText(
+      "These rows haven’t been checked yet.",
+    );
+    await expect(
+      page.locator('.result-status[data-verified="false"]'),
+    ).toBeVisible();
+  }
+  await page.evaluate((read) => {
+    const d = window.resource.data;
+    const proposal = {
+      id: "table-proposal",
+      status: "pending",
+      base_revision_id: "r",
+      body: structuredClone(d.artifact.current_revision.body),
+      body_hash: d.artifact.current_revision.body_hash,
+      reason: "Checked proposal fixture",
+    };
+    const pending = structuredClone(read);
+    pending.binding_state = "pending_proposal";
+    pending.observation.id = "table-pending";
+    pending.observation.revision_id = null;
+    pending.observation.proposal_id = proposal.id;
+    d.proposals = [proposal];
+    d.observations = { current: null, latest: pending };
+    window.resource.reconnecting = false;
+    window.mount("product");
+  }, tableObservation);
+  await expect(page.locator(".result-headline")).toHaveText(
+    "These rows haven’t been checked yet.",
+  );
+  await expect(
+    page.getByTestId("product-proposal").locator(".decision-question"),
+  ).toHaveText("The row matches its reported total.");
+  await expect(
+    page.getByText(
+      "Checked against the proposed version, not your saved one.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page.evaluate(() => {
+    window.resource.data.observations.latest.observation.body_hash = "1".repeat(
+      64,
+    );
+    window.mount("product");
+  });
+  await expect(
+    page.getByTestId("product-proposal").locator(".decision-question"),
+  ).toHaveText("These rows haven’t been checked yet.");
+  passed++;
+  console.log(
+    "PASS table headline requires saved/proposal observation binding; retained columns never claim current matches",
   );
 
   await page.evaluate(() => {
