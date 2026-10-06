@@ -62,6 +62,9 @@ export const unwrap = x => x; export const all = () => {throw new Error('Unexpec
   "@/lib/client/hooks":
     "export const useResource = (key) => key && key.startsWith('peek:') ? (window.peek ?? {data:null,error:null,reconnecting:false,refresh:async()=>null}) : window.resource;",
   "@/lib/client/api": "export const newCommandId = () => crypto.randomUUID();",
+  // Natural admission is a build switch; the fixture flips it per test.
+  "@/lib/client/capabilities":
+    "export const CAPABILITIES = { conversation: true, delegateWithoutContext: false, get naturalAdmission() { return Boolean(window.natural); } };",
   "@/lib/client/workspace":
     "export const useWorkspace = () => ({workspace:{id:window.scope.ws}});",
   "next/navigation":
@@ -965,6 +968,56 @@ try {
   passed++;
   console.log(
     "PASS pane beside the work refreshes once for a fast-settled turn and shows unknown/reconnecting",
+  );
+
+  // Natural admission: a reply beside the work names the exact saved
+  // version (never the unsaved working copy), and an unconfirmed reply
+  // replays the same frozen target after the saved version moves on.
+  await page.evaluate(() => {
+    window.natural = true;
+    window.calls.length = 0;
+    window.ambiguous = true;
+    sessionStorage.clear();
+    window.mount("away");
+    window.mount("product");
+  });
+  const saved = await page.evaluate(() => ({
+    artifact_id: window.resource.data.artifact.id,
+    revision_id: window.resource.data.artifact.current_revision_id,
+    body_hash: window.resource.data.artifact.current_revision.body_hash,
+  }));
+  await page
+    .getByLabel("Your notes (one per line)")
+    .fill("Unsaved working note");
+  await expect(
+    page.getByText(
+      "Your unsaved edits aren’t included. Replies work from your saved version.",
+    ),
+  ).toBeVisible();
+  const peekReply = page.getByLabel("Reply about this work", { exact: true });
+  await peekReply.fill("Use round-half-even on my saved table.");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(peekReply).toBeDisabled();
+  const sent = await page.evaluate(() => window.calls[0].payload);
+  assert.deepEqual(sent.target, saved);
+  assert.deepEqual(sent.attachments, []);
+  assert.equal(sent.operation, undefined);
+  await page.evaluate(() => {
+    window.ambiguous = false;
+    window.resource.data.artifact.current_revision_id = "a-newer-revision";
+    window.mount("product");
+  });
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(peekReply).toHaveValue("");
+  assert.deepEqual(await page.evaluate(() => window.calls[1].payload), sent);
+  await page.evaluate(() => {
+    window.natural = false;
+    window.resource.data.artifact.current_revision_id = "r";
+    sessionStorage.clear();
+  });
+  passed++;
+  console.log(
+    "PASS natural reply beside the work sends the exact saved target and replays it frozen",
   );
 
   await page.evaluate(() => {

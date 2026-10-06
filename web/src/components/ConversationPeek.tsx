@@ -6,6 +6,7 @@ import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
+import type { ExactTarget } from "@/lib/contract/natural";
 import { ErrorNotice } from "@/components/ui";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
@@ -36,11 +37,17 @@ export function ConversationPeek({
   artifactId,
   wsId,
   refreshWork,
+  target,
+  unsavedEdits = false,
 }: {
   conversation: ConversationDetailView;
   artifactId: string;
   wsId: string;
   refreshWork: () => Promise<unknown>;
+  /** The exact saved version a reply is about; undefined on older backends. */
+  target?: ExactTarget;
+  /** Edits in the working copy that a reply does not include. */
+  unsavedEdits?: boolean;
 }) {
   const cid = initial.conversation.id;
   const res = useResource<ConversationDetailView>(
@@ -54,6 +61,7 @@ export function ConversationPeek({
     cid,
     version: d.conversation.work_version,
     refresh: res.refresh,
+    target,
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -155,7 +163,9 @@ export function ConversationPeek({
             <span className="hint">
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : "Ask about this work or ask for a change."}
+                : target && unsavedEdits
+                  ? "Your unsaved edits aren’t included. Replies work from your saved version."
+                  : "Ask about this work or ask for a change."}
             </span>
             <button
               type="submit"

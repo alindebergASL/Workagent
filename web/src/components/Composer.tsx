@@ -12,6 +12,11 @@ import type {
 } from "@/lib/contract/types";
 import { conversationApi } from "@/lib/client/real-api";
 import { shortTitle } from "@/lib/work-state";
+import {
+  attachmentsProblem,
+  readAttachment,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
 import { ErrorNotice } from "./ui";
 
 const SAMPLE_REQUEST =
@@ -49,6 +54,27 @@ function writeDraft(scope: string, text: string): void {
   }
 }
 
+function readDraftFiles(scope: string): MessageAttachment[] {
+  try {
+    const raw = sessionStorage.getItem(`${DRAFT_KEY}:${scope}:files`);
+    return raw ? (JSON.parse(raw) as MessageAttachment[]) : [];
+  } catch {
+    return [];
+  }
+}
+function writeDraftFiles(scope: string, files: MessageAttachment[]): void {
+  try {
+    if (files.length)
+      sessionStorage.setItem(
+        `${DRAFT_KEY}:${scope}:files`,
+        JSON.stringify(files),
+      );
+    else sessionStorage.removeItem(`${DRAFT_KEY}:${scope}:files`);
+  } catch {
+    /* storage unavailable: the in-memory attachments still exist */
+  }
+}
+
 /**
  * Talk to the agent, or hand something over. Context is optional to write;
  * "Take it from here" is the explicit delegation. Creating work is a durable
@@ -72,6 +98,11 @@ export function Composer({
   );
   const draftScope = wsId ?? "none";
   const [request, setRequest] = useState("");
+  // Files to send with the message (natural admission only). Kept with the
+  // draft for this tab; the server assigns their reference and hash.
+  const [files, setFiles] = useState<MessageAttachment[]>([]);
+  const [fileError, setFileError] = useState("");
+  const natural = CAPABILITIES.naturalAdmission;
   const [selected, setSelected] = useState<string[]>([]);
   const [contextOpen, setContextOpen] = useState(false);
   const [needsContext, setNeedsContext] = useState(false);
@@ -97,6 +128,8 @@ export function Composer({
       command_id: string;
       expected_work_version: number;
       text: string;
+      attachments?: MessageAttachment[];
+      target?: null;
     } | null;
     handover: boolean;
     uncertain: boolean;
@@ -139,6 +172,7 @@ export function Composer({
       // Its outcome is unknown after a reload: only an exact replay is offered.
       chat.current = { ...c, uncertain: true };
       setRequest(c.text);
+      if (c.send?.attachments) setFiles(c.send.attachments);
     } else if (a) {
       pending.current = a;
       setRequest(a.command.goal);
@@ -155,10 +189,31 @@ export function Composer({
     if (!wsId) return;
     const saved = readDraft(wsId);
     if (saved) setRequest((current) => current || saved);
+    const savedFiles = readDraftFiles(wsId);
+    if (savedFiles.length)
+      setFiles((current) => (current.length ? current : savedFiles));
   }, [wsId]);
   useEffect(() => {
     if (wsId) writeDraft(draftScope, request);
   }, [wsId, draftScope, request]);
+  useEffect(() => {
+    if (wsId) writeDraftFiles(draftScope, files);
+  }, [wsId, draftScope, files]);
+  const addFiles = async (list: FileList | null) => {
+    if (!list?.length) return;
+    try {
+      const read = await Promise.all([...list].map(readAttachment));
+      const next = [...files, ...read];
+      const problem = attachmentsProblem(next);
+      if (problem) throw new Error(problem);
+      setFiles(next);
+      setFileError("");
+    } catch (e) {
+      setFileError(
+        e instanceof Error ? e.message : "That file can’t be attached.",
+      );
+    }
+  };
 
   // The request field grows with its text so a long request stays readable.
   useLayoutEffect(() => {
@@ -305,6 +360,7 @@ export function Composer({
           command_id: newCommandId(),
           expected_work_version: c.conversation.work_version,
           text: c.text,
+          ...(natural ? { attachments: files, target: null } : {}),
         };
       }
       saveCommands();
@@ -314,6 +370,8 @@ export function Composer({
       chat.current = null;
       saveCommands();
       writeDraft(draftScope, "");
+      writeDraftFiles(draftScope, []);
+      setFiles([]);
       router.push(`/conversations/${id}${goHandover ? "?handover=1" : ""}`);
     } catch (e) {
       setSubmitError(e);
@@ -420,7 +478,48 @@ export function Composer({
             }
           }}
         />
+        {natural && (files.length || fileError) ? (
+          <div className="composer-files">
+            {files.map((f, i) => (
+              <span className="file-chip" key={`${f.filename}:${i}`}>
+                <span>{f.filename}</span>
+                <button
+                  type="button"
+                  className="link-quiet small"
+                  aria-label={`Remove ${f.filename}`}
+                  disabled={locked}
+                  onClick={() =>
+                    setFiles((list) => list.filter((_, n) => n !== i))
+                  }
+                >
+                  Remove
+                </button>
+              </span>
+            ))}
+            {fileError ? (
+              <p role="alert" className="small">
+                {fileError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
         <div className="composer-bar">
+          {natural ? (
+            <label className="chip-toggle file-pick" data-disabled={locked}>
+              Attach a file
+              <input
+                type="file"
+                className="sr-only"
+                accept=".csv,.txt,text/csv,text/plain"
+                multiple
+                disabled={locked || files.length >= 2}
+                onChange={(e) => {
+                  void addFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          ) : null}
           <button
             type="button"
             className="chip-toggle"

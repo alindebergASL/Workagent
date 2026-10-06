@@ -309,3 +309,39 @@
     padding: 8px 10px;
   }
 }
+
+/* Files sent with a message (natural admission). */
+.composer-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 100%;
+  padding: 2px 4px 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+.file-chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.file-pick {
+  cursor: pointer;
+}
+.file-pick[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: default;
+}
+.file-pick:focus-within {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}

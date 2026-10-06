@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useResource } from "@/lib/client/hooks";
+import { CAPABILITIES } from "@/lib/client/capabilities";
 import { conversationApi } from "@/lib/client/real-api";
 import {
   currentObservation,
@@ -152,6 +153,7 @@ export default function ProductPage() {
   const { id, artifactId } = useParams<{ id: string; artifactId: string }>();
   const { workspace } = useWorkspace();
   const ws = workspace?.id;
+  const [unsaved, setUnsaved] = useState(false);
   const resource = useResource<Data>(
     ws ? `product:${ws}:${id}:${artifactId}` : null,
     async (signal) => {
@@ -216,6 +218,7 @@ export default function ProductPage() {
               data={resource.data}
               stale={resource.reconnecting}
               refresh={resource.refresh}
+              onDirtyChange={setUnsaved}
             />
           }
           agent={
@@ -224,6 +227,17 @@ export default function ProductPage() {
               artifactId={artifactId}
               wsId={ws!}
               refreshWork={resource.refresh}
+              target={
+                CAPABILITIES.naturalAdmission
+                  ? {
+                      artifact_id: resource.data.artifact.id,
+                      revision_id: resource.data.artifact.current_revision_id,
+                      body_hash:
+                        resource.data.artifact.current_revision.body_hash,
+                    }
+                  : undefined
+              }
+              unsavedEdits={unsaved}
             />
           }
         />
@@ -237,12 +251,14 @@ function ProductEditor({
   data,
   stale,
   refresh,
+  onDirtyChange,
 }: {
   ws: string;
   cid: string;
   data: Data;
   stale: boolean;
   refresh: () => Promise<unknown>;
+  onDirtyChange: (dirty: boolean) => void;
 }) {
   const router = useRouter();
   const artifact = data.artifact;
@@ -257,6 +273,7 @@ function ProductEditor({
     JSON.stringify(draft.body) !==
       JSON.stringify(artifact.current_revision.body);
   const changed = draft.base !== artifact.current_revision_id;
+  useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   const verified =
     currentObservation(artifact, data.observations.current) && !stale;
 
