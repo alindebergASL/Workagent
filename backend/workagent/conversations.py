@@ -21,6 +21,11 @@ LEGACY_IMPLEMENTATION = 'a8119955657d5158c04b7b7cbae10faf896736e60bb0424715d9fd5
 
 
 def profile(name=PROFILE):
+    from .general_responses import PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH
+    if name==GENERAL:
+        raw=PROFILE_PATH.with_name('general-responses-v1.json').read_bytes()
+        if hashlib.sha256(raw).hexdigest()!=GENERAL_HASH: raise DomainError('unsupported_operation')
+        return json.loads(raw)
     path = PROFILE_PATH if name==PROFILE else PROFILE_PATH.with_name('general-products-v1.json')
     expected = PROFILE_HASH if name==PROFILE else PRODUCT_HASH
     if name not in (PROFILE,PRODUCT_PROFILE):
@@ -38,6 +43,9 @@ def implementation_hash():
 
 
 def check_general_pins(c, run):
+    if run.profile=='general-responses-v1':
+        from .general_responses import check_pins
+        return check_pins(c,run)
     from .service import digest
     data = c.execute('SELECT data,activation_id FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                      (run.workspace_id,run.id)).fetchone()
@@ -69,6 +77,10 @@ class Conversations:
         messages=self._conversation_messages(c,ws,cv.id)
         cv.updated_at=messages[-1].created_at if messages else cv.created_at
         cv.last_message_preview=messages[-1].text[:240] if messages else None
+        activation=c.execute("SELECT active FROM provider_grants WHERE workspace_id=%s AND data->>'profile'='general-responses-v1' AND data->'responses'->'conversation_ids' ? %s",(ws,cv.id)).fetchone()
+        if activation:
+            cv.execution_profile='general-responses-v1'
+            cv.model_activation='active' if activation['active'] else 'revoked'
         return cv
 
     def _store_conversation(self,c,cv):
@@ -132,7 +144,7 @@ class Conversations:
             from .products import turn_state
             ordered=[runs[m.run_id] for m in messages if m.author_kind=='human']
             artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
-            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r) for r in ordered],
+            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind=='human'],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -149,9 +161,11 @@ class Conversations:
         def mutate(c,cv):
             self._conversation_cas(cv,cmd.expected_work_version)
             self._conversation(c,p,ws,cid,True)
-            selected=PRODUCT_PROFILE if cmd.operation else PROFILE
+            from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
+            grant=admission(self,c,p,ws,cv,cmd)
+            selected=GENERAL if grant else PRODUCT_PROFILE if cmd.operation else PROFILE
             config=profile(selected)
-            selected_hash=PRODUCT_HASH if cmd.operation else PROFILE_HASH
+            selected_hash=GENERAL_HASH if grant else PRODUCT_HASH if cmd.operation else PROFILE_HASH
             if cmd.operation:
                 self._product_base(c,p,ws,cv,cmd.operation)
             messages=self._conversation_messages(c,ws,cid)
@@ -169,17 +183,25 @@ class Conversations:
             generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(ws,)).fetchone()['access_generation']
             run=Run(id=new_id(),workspace_id=ws,conversation_id=cid,principal_id=p.id,kind='conversation_turn',
                 access_generation=generation,profile=selected,bundle_hash=selected_hash,tool_registry_hash=digest(config['tools']),
-                execution=ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport'))
+                execution=(ExecutionProvenance(mode='managed',profile=selected,model=grant.model,grant_id=grant.id) if grant else
+                           ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport')))
             c.execute('INSERT INTO runs(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,run.id,cid,encoded(run)))
+            pinned={'profile':selected,'bundle_hash':selected_hash,
+                    'implementation_hash':consumer_hash() if grant else implementation_hash(),'tools':config['tools']}
+            if grant:
+                pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
+                    max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
             c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
-                (ws,run.id,selected,encoded({'profile':selected,'bundle_hash':selected_hash,
-                                          'implementation_hash':implementation_hash(),'tools':config['tools']})))
+                (ws,run.id,selected,encoded(pinned)))
             message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
-                                        author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human',operation=cmd.operation)
+                                        author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human',operation=cmd.operation,
+                                        target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
+                                            sha256=hashlib.sha256(a.content.encode()).hexdigest(),byte_length=len(a.content.encode())) for a in cmd.attachments])
             self._append_message(c,ws,message)
             cv.work_version+=1
             self._store_conversation(c,cv)
             self._event(c,p,ws,'post_message',run.id)
+            if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
             return MessageQueued(conversation=cv,message=message,run=run)
         return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
                              lambda c:self._conversation(c,p,ws,cid),mutate)
@@ -216,7 +238,7 @@ class Conversations:
     def _general_context(self,c,cap):
         from .service import canonical, digest, encoded
         p,run,cv=self._check_capability(c,cap)
-        if run.profile not in (PROFILE,PRODUCT_PROFILE):
+        if run.profile not in (PROFILE,PRODUCT_PROFILE,'general-responses-v1'):
             raise DomainError('unsupported_operation')
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
         sources=[self._source(c,p,run.workspace_id,ref,True) for ref in cv.selected_source_refs]
@@ -224,6 +246,17 @@ class Conversations:
                  'messages':[m.model_dump(mode='json',exclude={'operation'} if run.profile==PROFILE else set()) for m in messages],
                  'sources':[{'id':r['id'],'content':r['content']} for r in sources],
                  'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
+        if run.profile=='general-responses-v1':
+            from .general_responses import exact_target, POLICY
+            latest=next(m for m in messages if m.run_id==run.id and m.author_kind=='human')
+            base=exact_target(self,c,p,run.workspace_id,cv,latest.target)
+            from .general_schema import GeneralDecision
+            context.update(instructions=POLICY,target_body=base.model_dump(mode='json') if base else None,
+                           tools=[{'name':'choose_general_action','inputSchema':GeneralDecision.model_json_schema()}])
+        else:
+            # Do not change the canonical historical controlled context shape.
+            for message in context['messages']:
+                for field in ('attachments','target','model_receipt'): message.pop(field,None)
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             raise DomainError('budget_exhausted')
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}

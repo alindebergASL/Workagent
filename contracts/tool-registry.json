@@ -192,7 +192,8 @@
                   "openai-agents-v1",
                   "openai-responses-v1",
                   "general-controlled-v1",
-                  "general-products-controlled-v1"
+                  "general-products-controlled-v1",
+                  "general-responses-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -1860,7 +1861,8 @@
                   "openai-agents-v1",
                   "openai-responses-v1",
                   "general-controlled-v1",
-                  "general-products-controlled-v1"
+                  "general-products-controlled-v1",
+                  "general-responses-v1"
                 ],
                 "title": "Profile",
                 "type": "string"
@@ -2048,7 +2050,8 @@
               "openai-agents-v1",
               "openai-responses-v1",
               "general-controlled-v1",
-              "general-products-controlled-v1"
+              "general-products-controlled-v1",
+              "general-responses-v1"
             ],
             "title": "Profile",
             "type": "string"

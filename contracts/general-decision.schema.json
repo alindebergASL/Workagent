@@ -1,0 +1,229 @@
+{
+  "$defs": {
+    "AttachmentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "sha256"
+      ],
+      "title": "AttachmentRef",
+      "type": "object"
+    },
+    "CSVDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttachmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "const": "reconcile_csv",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rounding": {
+          "enum": [
+            "ROUND_HALF_UP",
+            "ROUND_HALF_EVEN"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "target",
+        "rounding"
+      ],
+      "title": "CSVDecision",
+      "type": "object"
+    },
+    "DecisionTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "body_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Body Hash",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "revision_id",
+        "body_hash"
+      ],
+      "title": "DecisionTarget",
+      "type": "object"
+    },
+    "FormField": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Label",
+          "type": "string"
+        },
+        "name": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "label"
+      ],
+      "title": "FormField",
+      "type": "object"
+    },
+    "Reply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 12000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Reply",
+      "type": "object"
+    },
+    "WasmDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "maximum": 1000000000,
+            "minimum": -1000000000,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "code": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "entrypoint": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "input_form": {
+          "items": {
+            "$ref": "#/$defs/FormField"
+          },
+          "maxItems": 8,
+          "title": "Input Form",
+          "type": "array"
+        },
+        "kind": {
+          "const": "run_wasm",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "code",
+        "entrypoint",
+        "arguments",
+        "input_form"
+      ],
+      "title": "WasmDecision",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Reply"
+        },
+        {
+          "$ref": "#/$defs/CSVDecision"
+        },
+        {
+          "$ref": "#/$defs/WasmDecision"
+        }
+      ],
+      "title": "Decision"
+    }
+  },
+  "required": [
+    "decision"
+  ],
+  "title": "GeneralDecision",
+  "type": "object"
+}

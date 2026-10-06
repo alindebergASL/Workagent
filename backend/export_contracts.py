@@ -13,7 +13,13 @@ def main():
     from workagent.tool_registry import responses_registry
     from workagent.responses_schema import NextAction
     from workagent.products import Products
-    outputs={'general-tool-registry.json':{'profile':'general-products-controlled-v1','tools':Products().local_tool_registry()},
+    from workagent.general_schema import GeneralDecision,GeneralExplanation
+    from workagent.general_responses import PROFILE
+    from workagent.conversations import profile
+    outputs={'general-decision.schema.json':GeneralDecision.model_json_schema(),
+             'general-explanation.schema.json':GeneralExplanation.model_json_schema(),
+             'general-responses-profile.json':profile(PROFILE),
+             'general-tool-registry.json':{'profile':'general-products-controlled-v1','tools':Products().local_tool_registry()},
              'openapi.json':create_app().openapi(),'tool-registry.json':registry(),'examples.json':examples(),
              'responses-tool-registry.json':responses_registry(),'responses-output.schema.json':NextAction.model_json_schema()}
     for name,value in outputs.items():

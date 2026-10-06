@@ -144,6 +144,14 @@ class WasmObservation(Model):
     memory_limit_bytes: Literal[1048576]
     host_imports: Literal[0]
 
+class ModelSelectionBinding(Model):
+    attempt_id: Id
+    selection_request_sha256: Hash
+    selection_response_id: Id
+    decision_sha256: Hash
+    operation_hash: Hash | None
+    base_hash: Hash | None
+
 class ProductObservation(Model):
     id: Id
     workspace_id: Id
@@ -156,7 +164,8 @@ class ProductObservation(Model):
     body_hash: Hash
     operation_hash: Hash
     access_generation: int
-    evidence_origin: Literal['controlled_transport'] = 'controlled_transport'
+    evidence_origin: Literal['controlled_transport','local_tool'] = 'controlled_transport'
+    model_selection: ModelSelectionBinding | None = None
     output: CSVObservation | WasmObservation
 
 class WasmObservationResponse(Model):
@@ -186,7 +195,8 @@ class ProductObservationResponse(Model):
     body_hash: Hash
     operation_hash: Hash
     access_generation: int
-    evidence_origin: Literal['controlled_transport'] = 'controlled_transport'
+    evidence_origin: Literal['controlled_transport','local_tool'] = 'controlled_transport'
+    model_selection: ModelSelectionBinding | None = None
     output: CSVObservation | WasmObservationResponse
 
 class ObservationReadback(Model):
@@ -202,9 +212,33 @@ class ObservationReadback(Model):
             data['output']['value'] = str(observation.output.value)
         return ProductObservationResponse.model_validate(data)
 
+class ResponseStepObservation(Model):
+    phase: Literal['selection','final']
+    state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
+    response_id: str | None = None
+    reported_input_tokens: int | None = None
+    reported_output_tokens: int | None = None
+    reserved_cost_usd: str | None = None
+    conservatively_calculated_cost_usd: str | None = None
+    billed_cost_usd: str | None = None
+
+
+class RetainedLocalResult(Model):
+    """Read-only journal projection, not a published/accepted product."""
+    status: Literal['reply','observed','rejected']
+    published: bool
+    binding: ModelSelectionBinding
+    body: TableBody | ToolBody | None = None
+    output: CSVObservation | WasmObservationResponse | None = None
+    reason: str | None = None
+
+
 class TurnState(Model):
+    profile: Literal['general-controlled-v1','general-products-controlled-v1','general-responses-v1'] = 'general-controlled-v1'
     run_id: Id
     state: Literal['queued','responding','replied','failed','unavailable','outcome_unknown','cancelled']
     reason: str
-    evidence_origin: Literal['controlled_transport'] = 'controlled_transport'
-    provider_observation: Literal['not_observed'] = 'not_observed'
+    evidence_origin: Literal['controlled_transport','unverified','synthetic_provider_receipt','live_provider_receipt'] = 'controlled_transport'
+    provider_observation: Literal['not_observed','pending','received','outcome_unknown','invalid'] = 'not_observed'
+    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=2)
+    retained_local_result: RetainedLocalResult | None = None

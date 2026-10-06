@@ -37,8 +37,18 @@ class ControlledTransport:
 
 
 class GeneralWorker:
-    def __init__(self, service, *, transport):
-        if not isinstance(transport,ControlledTransport) or transport.mode!='controlled':
+    def __init__(self, service, *, transport, enable_responses=False, state=None, poll_limit=10, hook=None):
+        self.phases=None
+        if isinstance(transport,ControlledTransport) and transport.mode=='controlled':
+            if enable_responses: raise DomainError('unsupported_operation')
+        elif enable_responses is True and state is not None:
+            from .responses_transport import ResponsesTransport
+            if type(transport) is not ResponsesTransport: raise DomainError('unsupported_operation')
+            # Reuse only the existing durable one-phase HTTP driver, never its
+            # intake worker/run path. GeneralWorker owns this conversation loop.
+            from .responses_worker import ResponsesWorker
+            self.phases=ResponsesWorker(service,transport,state,poll_limit=poll_limit,hook=hook)
+        else:
             raise DomainError('unsupported_operation')
         self.service=service
         self.transport=transport
@@ -82,7 +92,11 @@ class GeneralWorker:
     def work(self,p,ws,run_id):
         service=self.service
         run=service.get_run(p,ws,run_id)
-        if run.profile not in (PROFILE,PRODUCT_PROFILE):
+        if run.profile=='general-responses-v1':
+            if self.phases is None: raise DomainError('unsupported_operation')
+            with self.phases.state.lock(ws,run_id):
+                return self._responses_work(p,ws,run)
+        if self.phases is not None or run.profile not in (PROFILE,PRODUCT_PROFILE):
             raise DomainError('unsupported_operation')
         if run.state in ('ready','partial','cancelled'):
             # Exact durable readback; duplicate delivery must not invoke transport.
@@ -113,19 +127,93 @@ class GeneralWorker:
             # BaseExceptions (SystemExit/KeyboardInterrupt) retain crash semantics.
             return self._recover_failure(p,ws,run_id,cap)
 
+    def _responses_work(self,p,ws,run):
+        from dataclasses import asdict
+        import time
+        from .provider_attempts import ReceiptCapability
+        from .service import WorkerCapability,canonical,digest
+        from .general_responses import check_pins,POLICY
+        from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
+        from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
+        from .responses_ledger import Ledger
+        s=self.service; phases=self.phases; rid=run.id
+        if run.state in ('ready','partial','cancelled'):
+            return self._terminal_readback(p,ws,run)
+        with s.db.transaction() as c:
+            config=check_pins(c,run)
+            phases._authorize_transport(config)
+        saved=phases.state.load(ws,rid)
+        receipt=ReceiptCapability(**saved['receipt']) if saved and saved.get('receipt') else None
+        cap=WorkerCapability(**saved['worker']) if saved else None
+        if cap:
+            try:
+                with s.db.transaction() as c: s._check_capability(c,cap)
+            except DomainError:
+                if receipt is None: raise
+                cap=s._claim_run(p,ws,rid,responses_receipt=receipt)
+                saved['worker']=asdict(cap); phases.state.save(ws,rid,saved)
+        else:
+            cap=s.claim_run(p,ws,rid)
+            saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
+        context=s.conversation_worker_context(cap)
+        if receipt is None:
+            attempt=s.prepare_provider_attempt(cap,request_hash=digest({'context':context,'schema':DECISION_SCHEMA.material.decode()}),
+                consumer_sha256=config['consumer_sha256'],transport=self.transport,
+                evidence_origin='live_provider_receipt' if self.transport.provenance.mode=='official_api' else 'synthetic_provider_receipt')
+            receipt=s.bind_provider_receipt(cap,attempt.id)
+            saved['receipt']=asdict(receipt); phases.state.save(ws,rid,saved)
+        ledger=Ledger(s,receipt); deadline=time.monotonic()+phases.deadline_seconds
+        selection,_=ledger.snapshot('selection',cap)
+        if selection is None:
+            selection=build_tool_selection(instructions=POLICY,source_context=canonical(context),
+                read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
+                policy='general-responses-v1')
+            ledger.prepare(selection,cap)
+        try:
+            selected=phases._step(ledger,selection,cap,deadline)
+            if selected is None or selected.state!='function_call':
+                return s.get_run(p,ws,rid)
+            staged=s.stage_general_product(cap,receipt)
+            phases._hook('after_tool_result')
+            final,_=ledger.snapshot('final',cap)
+            if final is None:
+                final=build_final(selection_request=selection,selection=selected,tool_output=canonical(staged),
+                    instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
+                    metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                ledger.prepare(final,cap)
+            generated=phases._step(ledger,final,cap,deadline)
+            if generated is None or generated.state!='completed':
+                return s.get_run(p,ws,rid)
+            phases._hook('before_publication')
+            s.complete_general_product(cap,receipt)
+            phases._hook('after_publication')
+            return self._terminal_readback(p,ws,s.get_run(p,ws,rid))
+        except TransportError:
+            # Ambiguous count/send is kept in the exact journal. No controlled
+            # failure message, new turn, repair, regenerated decision or refund.
+            return s.get_run(p,ws,rid)
+        except DomainError:
+            raise
+        except Exception:
+            # Read back a potentially committed result; never fail/retry generation.
+            observed=s.get_run(p,ws,rid)
+            if observed.state in ('ready','partial','cancelled'):
+                return self._terminal_readback(p,ws,observed)
+            raise
+
     def once(self, *, workspace=None):
         """One bounded batch from the existing durable outbox admission ledger."""
         with self.service.db.transaction() as c:
             rows=c.execute('''SELECT d.workspace_id,d.run_id,r.data FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
-                WHERE d.acknowledged_at IS NULL AND r.data->>'profile' IN (%s,%s)
+                WHERE d.acknowledged_at IS NULL AND r.data->>'profile' IN (%s,%s,%s)
                 AND (%s::text IS NULL OR d.workspace_id=%s) ORDER BY d.cursor LIMIT 100''',
-                (PROFILE,PRODUCT_PROFILE,workspace,workspace)).fetchall()
+                (PROFILE if self.phases is None else 'general-responses-v1',PRODUCT_PROFILE if self.phases is None else 'general-responses-v1','general-responses-v1' if self.phases else PROFILE,workspace,workspace)).fetchall()
         counts={'completed':0,'deferred':0,'denied':0}
         for row in rows:
             try:
-                self.work(Principal(row['data']['principal_id'],'worker'),row['workspace_id'],row['run_id'])
-                counts['completed']+=1
+                run=self.work(Principal(row['data']['principal_id'],'worker'),row['workspace_id'],row['run_id'])
+                counts['completed' if run.state in ('ready','partial','cancelled') else 'deferred']+=1
             except DomainError as exc:
                 counts['deferred' if exc.code.value=='action_unresolved' else 'denied']+=1
         return counts

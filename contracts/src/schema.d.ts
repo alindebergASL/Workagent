@@ -500,6 +500,18 @@ export interface components {
             /** Next Cursor */
             next_cursor?: string | null;
         };
+        /** AttachmentInput */
+        AttachmentInput: {
+            /** Content */
+            content: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Mime Type
+             * @enum {string}
+             */
+            mime_type: "text/csv" | "text/plain";
+        };
         /** Block */
         Block: {
             /** Block Id */
@@ -591,10 +603,22 @@ export interface components {
              * Format: date-time
              */
             created_at?: string;
+            /**
+             * Execution Profile
+             * @default general-controlled-v1
+             * @enum {string}
+             */
+            execution_profile: "general-controlled-v1" | "general-responses-v1";
             /** Id */
             id: string;
             /** Last Message Preview */
             last_message_preview?: string | null;
+            /**
+             * Model Activation
+             * @default disabled
+             * @enum {string}
+             */
+            model_activation: "disabled" | "active" | "revoked";
             /** Owner Id */
             owner_id: string;
             /** Selected Source Refs */
@@ -633,6 +657,8 @@ export interface components {
         };
         /** ConversationMessage */
         ConversationMessage: {
+            /** Attachments */
+            attachments?: components["schemas"]["MessageAttachment"][];
             /** Author Id */
             author_id: string;
             /**
@@ -651,9 +677,11 @@ export interface components {
              * Evidence Origin
              * @enum {string}
              */
-            evidence_origin: "human" | "controlled_transport";
+            evidence_origin: "human" | "controlled_transport" | "synthetic_provider_receipt" | "live_provider_receipt";
             /** Id */
             id: string;
+            /** Model Receipt */
+            model_receipt?: string | null;
             /** Operation */
             operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"]) | null;
             result?: components["schemas"]["TurnResult"] | null;
@@ -661,6 +689,7 @@ export interface components {
             run_id: string;
             /** Sequence */
             sequence: number;
+            target?: components["schemas"]["ExactTarget"] | null;
             /** Text */
             text: string;
         };
@@ -792,6 +821,15 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** ExactTarget */
+        ExactTarget: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Body Hash */
+            body_hash: string;
+            /** Revision Id */
+            revision_id: string;
+        };
         /** ExecutionProvenance */
         ExecutionProvenance: {
             /** Attempt Id */
@@ -815,7 +853,7 @@ export interface components {
              * Profile
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1" | "general-products-controlled-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1" | "general-products-controlled-v1" | "general-responses-v1";
             /**
              * Provider Observation
              * @default not_observed
@@ -886,11 +924,44 @@ export interface components {
              */
             type: "integer";
         };
+        /** MessageAttachment */
+        MessageAttachment: {
+            /** Byte Length */
+            byte_length: number;
+            /** Content */
+            content: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Mime Type
+             * @enum {string}
+             */
+            mime_type: "text/csv" | "text/plain";
+            /** Ref */
+            ref: string;
+            /** Sha256 */
+            sha256: string;
+        };
         /** MessageQueued */
         MessageQueued: {
             conversation: components["schemas"]["Conversation"];
             message: components["schemas"]["ConversationMessage"];
             run: components["schemas"]["Run"];
+        };
+        /** ModelSelectionBinding */
+        ModelSelectionBinding: {
+            /** Attempt Id */
+            attempt_id: string;
+            /** Base Hash */
+            base_hash: string | null;
+            /** Decision Sha256 */
+            decision_sha256: string;
+            /** Operation Hash */
+            operation_hash: string | null;
+            /** Selection Request Sha256 */
+            selection_request_sha256: string;
+            /** Selection Response Id */
+            selection_response_id: string;
         };
         /** ObservationReadback */
         ObservationReadback: {
@@ -929,6 +1000,8 @@ export interface components {
         };
         /** PostMessage */
         PostMessage: {
+            /** Attachments */
+            attachments?: components["schemas"]["AttachmentInput"][];
             /** Command Id */
             command_id: string;
             /** Expected Work Version */
@@ -942,6 +1015,7 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+            target?: components["schemas"]["ExactTarget"] | null;
             /** Text */
             text: string;
         };
@@ -960,11 +1034,12 @@ export interface components {
             /**
              * Evidence Origin
              * @default controlled_transport
-             * @constant
+             * @enum {string}
              */
-            evidence_origin: "controlled_transport";
+            evidence_origin: "controlled_transport" | "local_tool";
             /** Id */
             id: string;
+            model_selection?: components["schemas"]["ModelSelectionBinding"] | null;
             /** Operation Hash */
             operation_hash: string;
             /** Output */
@@ -993,11 +1068,12 @@ export interface components {
             /**
              * Evidence Origin
              * @default controlled_transport
-             * @constant
+             * @enum {string}
              */
-            evidence_origin: "controlled_transport";
+            evidence_origin: "controlled_transport" | "local_tool";
             /** Id */
             id: string;
+            model_selection?: components["schemas"]["ModelSelectionBinding"] | null;
             /** Operation Hash */
             operation_hash: string;
             /** Output */
@@ -1154,6 +1230,26 @@ export interface components {
              */
             underlying_action_performed: false;
         };
+        /**
+         * RetainedLocalResult
+         * @description Read-only journal projection, not a published/accepted product.
+         */
+        RetainedLocalResult: {
+            binding: components["schemas"]["ModelSelectionBinding"];
+            /** Body */
+            body?: components["schemas"]["TableBody"] | components["schemas"]["ToolBody"] | null;
+            /** Output */
+            output?: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"] | null;
+            /** Published */
+            published: boolean;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "reply" | "observed" | "rejected";
+        };
         /** Revision */
         Revision: {
             /** Artifact Id */
@@ -1247,7 +1343,7 @@ export interface components {
              * @default fixture-deterministic-v1
              * @enum {string}
              */
-            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1" | "general-products-controlled-v1";
+            profile: "fixture-deterministic-v1" | "openai-agents-v1" | "openai-responses-v1" | "general-controlled-v1" | "general-products-controlled-v1" | "general-responses-v1";
             /** Proposal Id */
             proposal_id?: string | null;
             /** Provider Session Id */
@@ -1542,17 +1638,26 @@ export interface components {
             /**
              * Evidence Origin
              * @default controlled_transport
-             * @constant
+             * @enum {string}
              */
-            evidence_origin: "controlled_transport";
+            evidence_origin: "controlled_transport" | "unverified" | "synthetic_provider_receipt" | "live_provider_receipt";
+            /**
+             * Profile
+             * @default general-controlled-v1
+             * @enum {string}
+             */
+            profile: "general-controlled-v1" | "general-products-controlled-v1" | "general-responses-v1";
             /**
              * Provider Observation
              * @default not_observed
-             * @constant
+             * @enum {string}
              */
-            provider_observation: "not_observed";
+            provider_observation: "not_observed" | "pending" | "received" | "outcome_unknown" | "invalid";
             /** Reason */
             reason: string;
+            /** Response Steps */
+            response_steps?: components["schemas"]["ResponseStepObservation"][];
+            retained_local_result?: components["schemas"]["RetainedLocalResult"] | null;
             /** Run Id */
             run_id: string;
             /**
@@ -2555,7 +2660,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
+                     *         "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -2951,8 +3056,10 @@ export interface operations {
                      *       "items": [
                      *         {
                      *           "created_at": "2026-10-02T00:00:00Z",
+                     *           "execution_profile": "general-controlled-v1",
                      *           "id": "conversation-example",
                      *           "last_message_preview": null,
+                     *           "model_activation": "disabled",
                      *           "owner_id": "local-human",
                      *           "selected_source_refs": [],
                      *           "state": "open",
@@ -3056,8 +3163,10 @@ export interface operations {
                 content: {
                     /** @example {
                      *       "created_at": "2026-10-02T00:00:00Z",
+                     *       "execution_profile": "general-controlled-v1",
                      *       "id": "conversation-example",
                      *       "last_message_preview": null,
+                     *       "model_activation": "disabled",
                      *       "owner_id": "local-human",
                      *       "selected_source_refs": [],
                      *       "state": "open",
@@ -3154,8 +3263,10 @@ export interface operations {
                      *       "assignment_ids": [],
                      *       "conversation": {
                      *         "created_at": "2026-10-02T00:00:00Z",
+                     *         "execution_profile": "general-controlled-v1",
                      *         "id": "conversation-example",
                      *         "last_message_preview": null,
+                     *         "model_activation": "disabled",
                      *         "owner_id": "local-human",
                      *         "selected_source_refs": [],
                      *         "state": "open",
@@ -3166,16 +3277,19 @@ export interface operations {
                      *       },
                      *       "messages": [
                      *         {
+                     *           "attachments": [],
                      *           "author_id": "local-human",
                      *           "author_kind": "human",
                      *           "conversation_id": "conversation-example",
                      *           "created_at": "2026-10-02T00:00:00Z",
                      *           "evidence_origin": "human",
                      *           "id": "message-example",
+                     *           "model_receipt": null,
                      *           "operation": null,
                      *           "result": null,
                      *           "run_id": "turn-example",
                      *           "sequence": 1,
+                     *           "target": null,
                      *           "text": "Help me think this through"
                      *         }
                      *       ],
@@ -3310,8 +3424,10 @@ export interface operations {
                 content: {
                     /** @example {
                      *       "created_at": "2026-10-02T00:00:00Z",
+                     *       "execution_profile": "general-controlled-v1",
                      *       "id": "conversation-example",
                      *       "last_message_preview": null,
+                     *       "model_activation": "disabled",
                      *       "owner_id": "local-human",
                      *       "selected_source_refs": [],
                      *       "state": "cancelled",
@@ -3509,11 +3625,13 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
+                 *       "attachments": [],
                  *       "command_id": "command-example",
                  *       "expected_work_version": 1,
                  *       "operation": null,
                  *       "request_id": "request-example",
                  *       "schema_version": "workagent/v1",
+                 *       "target": null,
                  *       "text": "Help me think this through"
                  *     } */
                 "application/json": components["schemas"]["PostMessage"];
@@ -3529,8 +3647,10 @@ export interface operations {
                     /** @example {
                      *       "conversation": {
                      *         "created_at": "2026-10-02T00:00:00Z",
+                     *         "execution_profile": "general-controlled-v1",
                      *         "id": "conversation-example",
                      *         "last_message_preview": null,
+                     *         "model_activation": "disabled",
                      *         "owner_id": "local-human",
                      *         "selected_source_refs": [],
                      *         "state": "open",
@@ -3540,16 +3660,19 @@ export interface operations {
                      *         "workspace_id": "workspace-example"
                      *       },
                      *       "message": {
+                     *         "attachments": [],
                      *         "author_id": "local-human",
                      *         "author_kind": "human",
                      *         "conversation_id": "conversation-example",
                      *         "created_at": "2026-10-02T00:00:00Z",
                      *         "evidence_origin": "human",
                      *         "id": "message-example",
+                     *         "model_receipt": null,
                      *         "operation": null,
                      *         "result": null,
                      *         "run_id": "turn-example",
                      *         "sequence": 1,
+                     *         "target": null,
                      *         "text": "Help me think this through"
                      *       },
                      *       "run": {
@@ -3957,7 +4080,7 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
+                     *       "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

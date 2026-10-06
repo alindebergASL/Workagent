@@ -1,0 +1,19 @@
+{
+  "activation": "explicit_scoped_grant_only",
+  "automatic_acceptance": false,
+  "external_tools": false,
+  "generation_retries": 0,
+  "max_context_bytes": 262144,
+  "max_turns_per_conversation": 8,
+  "model": "gpt-6.1-sol",
+  "profile": "general-responses-v1",
+  "reasoning": "medium",
+  "service_tier": "default",
+  "store": true,
+  "tools": [
+    "reply",
+    "reconcile_csv",
+    "run_wasm"
+  ],
+  "version": 1
+}

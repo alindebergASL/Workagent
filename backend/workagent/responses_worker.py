@@ -255,7 +255,9 @@ class ResponsesWorker:
         # Revocation cannot retract an already dispatched request, but prevents any
         # subsequent count, continuation, observation or publication.
         with self.service.db.transaction() as c:
-            self.service._check_capability(c,cap)
+            _,run,_=self.service._check_capability(c,cap)
+            if run.profile=='general-responses-v1':
+                self.service._general_context(c,cap)
 
     def _step(self,ledger,request,cap,deadline,*,reconcile_only=False):
         _,events=ledger.snapshot(request.phase,cap)

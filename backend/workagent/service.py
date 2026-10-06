@@ -162,8 +162,11 @@ class Service(Products, Conversations, ProviderAttempts):
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
-        if op=='post_message' and payload.get('operation') is None:
-            payload.pop('operation',None)  # Preserve legacy B1 command replay bytes.
+        if op=='post_message':
+            # Additive optional inputs must not change legacy command replay hashes.
+            if payload.get('operation') is None: payload.pop('operation',None)
+            if not payload.get('attachments'): payload.pop('attachments',None)
+            if payload.get('target') is None: payload.pop('target',None)
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:
             self._scope(c, p, ws, write=True)
@@ -478,7 +481,7 @@ class Service(Products, Conversations, ProviderAttempts):
             attempt=attempt_row(c,ws,run_id)
             if responses_receipt is not None:
                 bound,existing,_=self._receipt_binding(c,responses_receipt)
-                if bound.id!=r.id or r.profile!='openai-responses-v1' or existing.state=='failed':
+                if bound.id!=r.id or r.profile not in ('openai-responses-v1','general-responses-v1') or existing.state=='failed':
                     raise DomainError('action_unresolved')
             elif received_result:
                 if not attempt or attempt.state!='responded':

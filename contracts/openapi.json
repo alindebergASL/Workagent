@@ -375,6 +375,37 @@
         "title": "AssignmentPage",
         "type": "object"
       },
+      "AttachmentInput": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "mime_type",
+          "content"
+        ],
+        "title": "AttachmentInput",
+        "type": "object"
+      },
       "Block": {
         "additionalProperties": false,
         "properties": {
@@ -600,6 +631,15 @@
             "title": "Created At",
             "type": "string"
           },
+          "execution_profile": {
+            "default": "general-controlled-v1",
+            "enum": [
+              "general-controlled-v1",
+              "general-responses-v1"
+            ],
+            "title": "Execution Profile",
+            "type": "string"
+          },
           "id": {
             "maxLength": 128,
             "minLength": 1,
@@ -618,6 +658,16 @@
               }
             ],
             "title": "Last Message Preview"
+          },
+          "model_activation": {
+            "default": "disabled",
+            "enum": [
+              "disabled",
+              "active",
+              "revoked"
+            ],
+            "title": "Model Activation",
+            "type": "string"
           },
           "owner_id": {
             "maxLength": 128,
@@ -745,6 +795,14 @@
       "ConversationMessage": {
         "additionalProperties": false,
         "properties": {
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/MessageAttachment"
+            },
+            "maxItems": 2,
+            "title": "Attachments",
+            "type": "array"
+          },
           "author_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -775,7 +833,9 @@
           "evidence_origin": {
             "enum": [
               "human",
-              "controlled_transport"
+              "controlled_transport",
+              "synthetic_provider_receipt",
+              "live_provider_receipt"
             ],
             "title": "Evidence Origin",
             "type": "string"
@@ -786,6 +846,20 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Id",
             "type": "string"
+          },
+          "model_receipt": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Receipt"
           },
           "operation": {
             "anyOf": [
@@ -834,6 +908,16 @@
             "minimum": 1.0,
             "title": "Sequence",
             "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExactTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "text": {
             "maxLength": 10000,
@@ -1272,6 +1356,37 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "ExactTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "revision_id",
+          "body_hash"
+        ],
+        "title": "ExactTarget",
+        "type": "object"
+      },
       "ExecutionProvenance": {
         "additionalProperties": false,
         "properties": {
@@ -1343,7 +1458,8 @@
               "openai-agents-v1",
               "openai-responses-v1",
               "general-controlled-v1",
-              "general-products-controlled-v1"
+              "general-products-controlled-v1",
+              "general-responses-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -1513,6 +1629,58 @@
         "title": "InputField",
         "type": "object"
       },
+      "MessageAttachment": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_length": {
+            "maximum": 200000.0,
+            "minimum": 1.0,
+            "title": "Byte Length",
+            "type": "integer"
+          },
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "ref": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Ref",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "mime_type",
+          "content",
+          "ref",
+          "sha256",
+          "byte_length"
+        ],
+        "title": "MessageAttachment",
+        "type": "object"
+      },
       "MessageQueued": {
         "additionalProperties": false,
         "properties": {
@@ -1532,6 +1700,69 @@
           "run"
         ],
         "title": "MessageQueued",
+        "type": "object"
+      },
+      "ModelSelectionBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "base_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Hash"
+          },
+          "decision_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Sha256",
+            "type": "string"
+          },
+          "operation_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Hash"
+          },
+          "selection_request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Selection Request Sha256",
+            "type": "string"
+          },
+          "selection_response_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Selection Response Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "selection_request_sha256",
+          "selection_response_id",
+          "decision_sha256",
+          "operation_hash",
+          "base_hash"
+        ],
+        "title": "ModelSelectionBinding",
         "type": "object"
       },
       "ObservationReadback": {
@@ -1637,6 +1868,14 @@
       "PostMessage": {
         "additionalProperties": false,
         "properties": {
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentInput"
+            },
+            "maxItems": 2,
+            "title": "Attachments",
+            "type": "array"
+          },
           "command_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -1686,6 +1925,16 @@
             "const": "workagent/v1",
             "title": "Schema Version",
             "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExactTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "text": {
             "maxLength": 10000,
@@ -1745,8 +1994,11 @@
             "type": "string"
           },
           "evidence_origin": {
-            "const": "controlled_transport",
             "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "local_tool"
+            ],
             "title": "Evidence Origin",
             "type": "string"
           },
@@ -1756,6 +2008,16 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Id",
             "type": "string"
+          },
+          "model_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelectionBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "operation_hash": {
             "pattern": "^[0-9a-f]{64}$",
@@ -1871,8 +2133,11 @@
             "type": "string"
           },
           "evidence_origin": {
-            "const": "controlled_transport",
             "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "local_tool"
+            ],
             "title": "Evidence Origin",
             "type": "string"
           },
@@ -1882,6 +2147,16 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Id",
             "type": "string"
+          },
+          "model_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelectionBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "operation_hash": {
             "pattern": "^[0-9a-f]{64}$",
@@ -2452,6 +2727,74 @@
         "title": "ResponsibilityOutcome",
         "type": "object"
       },
+      "RetainedLocalResult": {
+        "additionalProperties": false,
+        "description": "Read-only journal projection, not a published/accepted product.",
+        "properties": {
+          "binding": {
+            "$ref": "#/components/schemas/ModelSelectionBinding"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "published": {
+            "title": "Published",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "reply",
+              "observed",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "published",
+          "binding"
+        ],
+        "title": "RetainedLocalResult",
+        "type": "object"
+      },
       "Revision": {
         "additionalProperties": false,
         "properties": {
@@ -2757,7 +3100,8 @@
               "openai-agents-v1",
               "openai-responses-v1",
               "general-controlled-v1",
-              "general-products-controlled-v1"
+              "general-products-controlled-v1",
+              "general-responses-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -3624,20 +3968,59 @@
         "additionalProperties": false,
         "properties": {
           "evidence_origin": {
-            "const": "controlled_transport",
             "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "unverified",
+              "synthetic_provider_receipt",
+              "live_provider_receipt"
+            ],
             "title": "Evidence Origin",
             "type": "string"
           },
+          "profile": {
+            "default": "general-controlled-v1",
+            "enum": [
+              "general-controlled-v1",
+              "general-products-controlled-v1",
+              "general-responses-v1"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
           "provider_observation": {
-            "const": "not_observed",
             "default": "not_observed",
+            "enum": [
+              "not_observed",
+              "pending",
+              "received",
+              "outcome_unknown",
+              "invalid"
+            ],
             "title": "Provider Observation",
             "type": "string"
           },
           "reason": {
             "title": "Reason",
             "type": "string"
+          },
+          "response_steps": {
+            "items": {
+              "$ref": "#/components/schemas/ResponseStepObservation"
+            },
+            "maxItems": 2,
+            "title": "Response Steps",
+            "type": "array"
+          },
+          "retained_local_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetainedLocalResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "run_id": {
             "maxLength": 128,
@@ -5521,7 +5904,7 @@
                     "provider_session_id": null,
                     "provider_turn_id": null,
                     "state": "queued",
-                    "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
+                    "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -6228,8 +6611,10 @@
                   "items": [
                     {
                       "created_at": "2026-10-02T00:00:00Z",
+                      "execution_profile": "general-controlled-v1",
                       "id": "conversation-example",
                       "last_message_preview": null,
+                      "model_activation": "disabled",
                       "owner_id": "local-human",
                       "selected_source_refs": [],
                       "state": "open",
@@ -6387,8 +6772,10 @@
               "application/json": {
                 "example": {
                   "created_at": "2026-10-02T00:00:00Z",
+                  "execution_profile": "general-controlled-v1",
                   "id": "conversation-example",
                   "last_message_preview": null,
+                  "model_activation": "disabled",
                   "owner_id": "local-human",
                   "selected_source_refs": [],
                   "state": "open",
@@ -6565,8 +6952,10 @@
                   "assignment_ids": [],
                   "conversation": {
                     "created_at": "2026-10-02T00:00:00Z",
+                    "execution_profile": "general-controlled-v1",
                     "id": "conversation-example",
                     "last_message_preview": null,
+                    "model_activation": "disabled",
                     "owner_id": "local-human",
                     "selected_source_refs": [],
                     "state": "open",
@@ -6577,16 +6966,19 @@
                   },
                   "messages": [
                     {
+                      "attachments": [],
                       "author_id": "local-human",
                       "author_kind": "human",
                       "conversation_id": "conversation-example",
                       "created_at": "2026-10-02T00:00:00Z",
                       "evidence_origin": "human",
                       "id": "message-example",
+                      "model_receipt": null,
                       "operation": null,
                       "result": null,
                       "run_id": "turn-example",
                       "sequence": 1,
+                      "target": null,
                       "text": "Help me think this through"
                     }
                   ],
@@ -6788,8 +7180,10 @@
               "application/json": {
                 "example": {
                   "created_at": "2026-10-02T00:00:00Z",
+                  "execution_profile": "general-controlled-v1",
                   "id": "conversation-example",
                   "last_message_preview": null,
+                  "model_activation": "disabled",
                   "owner_id": "local-human",
                   "selected_source_refs": [],
                   "state": "cancelled",
@@ -7120,11 +7514,13 @@
           "content": {
             "application/json": {
               "example": {
+                "attachments": [],
                 "command_id": "command-example",
                 "expected_work_version": 1,
                 "operation": null,
                 "request_id": "request-example",
                 "schema_version": "workagent/v1",
+                "target": null,
                 "text": "Help me think this through"
               },
               "schema": {
@@ -7141,8 +7537,10 @@
                 "example": {
                   "conversation": {
                     "created_at": "2026-10-02T00:00:00Z",
+                    "execution_profile": "general-controlled-v1",
                     "id": "conversation-example",
                     "last_message_preview": null,
+                    "model_activation": "disabled",
                     "owner_id": "local-human",
                     "selected_source_refs": [],
                     "state": "open",
@@ -7152,16 +7550,19 @@
                     "workspace_id": "workspace-example"
                   },
                   "message": {
+                    "attachments": [],
                     "author_id": "local-human",
                     "author_kind": "human",
                     "conversation_id": "conversation-example",
                     "created_at": "2026-10-02T00:00:00Z",
                     "evidence_origin": "human",
                     "id": "message-example",
+                    "model_receipt": null,
                     "operation": null,
                     "result": null,
                     "run_id": "turn-example",
                     "sequence": 1,
+                    "target": null,
                     "text": "Help me think this through"
                   },
                   "run": {
@@ -7863,7 +8264,7 @@
                   "provider_session_id": null,
                   "provider_turn_id": null,
                   "state": "running",
-                  "tool_registry_hash": "097ea8a8e49b1b46b354626c2141f5a9a582c884b8a97c464aed6cb1451699a9",
+                  "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

@@ -5,7 +5,7 @@ Only this seam creates observations, from local kernel returns, never caller bod
 """
 import hashlib
 from .models import *
-from .product_models import ReconcileCSV, RunWasm, CSVObservation, WasmObservation
+from .product_models import ReconcileCSV, RunWasm, CSVObservation, WasmObservation, RetainedLocalResult
 from .errors import DomainError, deny
 from .local_operations import reconcile_csv, OperationRejected
 from .wasm_tool import run_wasm_tool, ToolRejected
@@ -15,7 +15,37 @@ def byte_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
-def turn_state(run):
+def turn_state(run,c=None):
+    if run.profile=='general-responses-v1':
+        from .responses_ledger import observations
+        attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone() if c else None
+        steps=observations(c,attempt['id']) if attempt else []
+        observation='not_observed'
+        if steps: observation='pending'
+        if any(s.state in ('count_unknown','outcome_unknown') for s in steps): observation='outcome_unknown'
+        if any(s.state=='invalid' for s in steps): observation='invalid'
+        if run.state in ('ready','partial'): observation='received'
+        state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
+        reason={
+            'not_observed':'Explicit general profile queued; no provider receipt observed.',
+            'pending':'Provider phase pending; recover only the same durable response, never regenerate.',
+            'outcome_unknown':'Provider/count outcome unknown; reservations retained. Do not send a fresh turn to retry.',
+            'invalid':'Provider output invalid; no repair or generation retry; retained local result is not yet a published product.',
+            'received':'Receipt-backed explanation and local result read back; proposals require explicit human acceptance.'}[observation]
+        if observation in ('outcome_unknown','invalid'): state='unavailable'
+        if run.state=='cancelled': state='cancelled'; reason='Turn cancelled; any sent provider reservations remain retained.'
+        retained=None
+        if attempt:
+            stage=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND phase='selection' AND kind='tool_result'",(attempt['id'],)).fetchone()
+            if stage:
+                data=stage['data']; output=data['output']
+                if output and output['kind']=='run_wasm': output={**output,'value':str(output['value'])}
+                retained=RetainedLocalResult(status=data['status'],published=run.state=='ready' and data['status']=='observed',
+                    binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
+        return TurnState(run_id=run.id,state=state,reason=reason,profile=run.profile,
+            evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
+            retained_local_result=retained)
+
     state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
     reason={'ready':'Controlled result persisted; proposals still require explicit human acceptance.',
             'partial':'; '.join(run.unresolved) or 'Local operation failed; no result was fabricated.',
@@ -64,6 +94,34 @@ class Products:
         base=self._product_base(c,p,run.workspace_id,cv,message.operation)
         return p,run,cv,message.operation,base
 
+    def _calculate_product(self,operation,base):
+        # Same bounded kernels for controlled and model-selected operations.
+        notes=list(base.body.notes) if base else []
+        if isinstance(operation,ReconcileCSV):
+            source=operation.input_csv
+            if base:
+                import csv, io
+                buffer=io.StringIO(newline='')
+                columns=[x for x in base.body.columns if x not in ('calculated_total','difference','check')]
+                writer=csv.DictWriter(buffer,fieldnames=columns,lineterminator='\n')
+                writer.writeheader(); writer.writerows([{k:row[k] for k in columns} for row in base.body.rows])
+                source=buffer.getvalue()
+            output=reconcile_csv(source,rounding=operation.rounding)
+            body=TableBody(title=base.body.title if base else 'Reconciled invoices',source_csv=base.body.source_csv if base else source,
+                rounding=operation.rounding,columns=output['columns'],rows=output['rows'],notes=notes)
+            observed=CSVObservation(**{k:v for k,v in output.items() if k not in ('columns','rows','csv')})
+            file=FileBody(title='Calculated CSV export',filename='reconciled.csv',mime_type='text/csv',
+                          content=output['csv'],content_sha256=byte_hash(output['csv']))
+        else:
+            code=operation.code if operation.code is not None else base.body.code
+            output=run_wasm_tool(code,operation.entrypoint,operation.arguments)
+            body=ToolBody(title=base.body.title if base else 'Invoice total tool',code=code,
+                entrypoint=operation.entrypoint,arguments=operation.arguments,input_form=operation.input_form,notes=notes)
+            observed=WasmObservation(**output)
+            file=FileBody(title='Portable WebAssembly text',filename='invoice-tool.wat',mime_type='application/wasm-text',
+                          content=code,content_sha256=byte_hash(code))
+        return body,file,observed
+
     def execute_local_product(self,cap,tool_name):
         """Selection only; inputs are resolved from immutable authorized messages.
 
@@ -78,78 +136,152 @@ class Products:
                 raise DomainError('unsupported_operation')
             operation_hash=digest(operation)
             base_hash=base.body_hash if base else None
-        notes=list(base.body.notes) if base else []
         try:
-            if isinstance(operation,ReconcileCSV):
-                source=operation.input_csv
-                if base:
-                    import csv, io
-                    buffer=io.StringIO(newline='')
-                    columns=[x for x in base.body.columns if x not in ('calculated_total','difference','check')]
-                    writer=csv.DictWriter(buffer,fieldnames=columns,lineterminator='\n')
-                    writer.writeheader(); writer.writerows([{k:row[k] for k in columns} for row in base.body.rows])
-                    source=buffer.getvalue()
-                output=reconcile_csv(source,rounding=operation.rounding)
-                body=TableBody(title=base.body.title if base else 'Reconciled invoices',source_csv=base.body.source_csv if base else source,
-                    rounding=operation.rounding,columns=output['columns'],rows=output['rows'],notes=notes)
-                observed=CSVObservation(**{k:v for k,v in output.items() if k not in ('columns','rows','csv')})
-                file=FileBody(title='Calculated CSV export',filename='reconciled.csv',mime_type='text/csv',
-                              content=output['csv'],content_sha256=byte_hash(output['csv']))
-            else:
-                code=operation.code if operation.code is not None else base.body.code
-                output=run_wasm_tool(code,operation.entrypoint,operation.arguments)
-                body=ToolBody(title=base.body.title if base else 'Invoice total tool',code=code,
-                    entrypoint=operation.entrypoint,arguments=operation.arguments,input_form=operation.input_form,notes=notes)
-                observed=WasmObservation(**output)
-                file=FileBody(title='Portable WebAssembly text',filename='invoice-tool.wat',mime_type='application/wasm-text',
-                              content=code,content_sha256=byte_hash(code))
+            body,file,observed=self._calculate_product(operation,base)
         except (OperationRejected,ToolRejected,ValueError) as exc:
             return self.fail_local_turn(cap,str(exc))
         with self.db.transaction() as c:
             p,run,cv,current,current_base=self._local_input(c,cap)
             if digest(current)!=operation_hash or (current_base.body_hash if current_base else None)!=base_hash:
                 raise DomainError('source_changed')
-            results=[]
-            # Initial product creates a typed editable body plus exact download file.
-            # Revised product proposes only that body; download its accepted revision.
-            for material in ([body] if base else [body,file]):
-                aid=operation.artifact_id if base else new_id()
-                rid=pid=None
-                if base:
-                    proposal=Proposal(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,
-                        artifact_id=aid,base_revision_id=base.id,base_work_version=cv.work_version,
-                        body=material,body_hash=digest(material),source_dependencies=cv.selected_source_refs,
-                        reason='Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.')
-                    c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data) VALUES (%s,%s,%s,%s,%s)',
-                        (run.workspace_id,proposal.id,aid,base.id,encoded(proposal)))
-                    pid=proposal.id; run.proposal_id=pid; run.artifact_id=aid; run.base_revision_id=base.id
-                else:
-                    c.execute('INSERT INTO artifacts(workspace_id,id,conversation_id) VALUES (%s,%s,%s)',(run.workspace_id,aid,cv.id))
-                    row,owner=self._artifact(c,p,run.workspace_id,aid)
-                    artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker')
-                    rid=artifact.current_revision_id
-                observation=ProductObservation(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,run_id=run.id,
-                    artifact_id=aid,revision_id=rid,proposal_id=pid,base_revision_id=base.id if base else None,
-                    body_hash=digest(material),operation_hash=operation_hash,access_generation=run.access_generation,output=observed)
-                c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
-                    (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
-                results.append(ProductResult(kind=material.kind,artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
             text=('Controlled CSV calculation observed: reported '+observed.reported_sum+'; calculated '+observed.expected_sum+'.' if isinstance(observed,CSVObservation)
                   else f'Controlled import-free Wasm execution observed return: {observed.value}.')
             if base:
                 text+=' Change proposed, not accepted; saved human notes retained.'
-            result=TurnResult(results=[TextResult(text=text),*results])
-            messages=self._conversation_messages(c,run.workspace_id,cv.id)
-            self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
-                sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
-                evidence_origin='controlled_transport',result=result))
-            run.state='ready'; run.used_units+=1; run.lease_expires_at=None
-            self._store_run(c,run); self._event(c,p,run.workspace_id,'complete_run',run.id)
-            acknowledge(c,run.workspace_id,run.id)
+            results=self._publish_product(c,p,run,cv,operation,base,body,file,observed,text)
         # Exact authorized durable readback, not just a write receipt.
         for item in results:
             readback=self.get_product_observation(p,run.workspace_id,item.observation_id)
             if readback.observation.body_hash!=digest(body if item.kind!='file' else file):
+                raise DomainError('action_unresolved')
+        return self.get_run(p,run.workspace_id,run.id)
+
+    def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None):
+        from .service import digest,encoded
+        from .outcomes import acknowledge
+        operation_hash=digest(operation)
+        results=[]
+        # Initial product creates a typed editable body plus exact download file.
+        # Revised product proposes only that body; download its accepted revision.
+        for material in ([body] if base else [body,file]):
+            aid=operation.artifact_id if base else new_id()
+            rid=pid=None
+            if base:
+                proposal=Proposal(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,
+                    artifact_id=aid,base_revision_id=base.id,base_work_version=cv.work_version,
+                    body=material,body_hash=digest(material),source_dependencies=cv.selected_source_refs,
+                    reason=('Model-selected local result; saved human notes retained. Review before acceptance.' if binding else
+                            'Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.'))
+                c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data) VALUES (%s,%s,%s,%s,%s)',
+                    (run.workspace_id,proposal.id,aid,base.id,encoded(proposal)))
+                pid=proposal.id; run.proposal_id=pid; run.artifact_id=aid; run.base_revision_id=base.id
+            else:
+                c.execute('INSERT INTO artifacts(workspace_id,id,conversation_id) VALUES (%s,%s,%s)',(run.workspace_id,aid,cv.id))
+                row,owner=self._artifact(c,p,run.workspace_id,aid)
+                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker')
+                rid=artifact.current_revision_id
+            observation=ProductObservation(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,run_id=run.id,
+                artifact_id=aid,revision_id=rid,proposal_id=pid,base_revision_id=base.id if base else None,
+                body_hash=digest(material),operation_hash=operation_hash,access_generation=run.access_generation,output=observed,
+                evidence_origin='local_tool' if binding else 'controlled_transport',model_selection=binding)
+            c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
+                (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
+            results.append(ProductResult(kind=material.kind,artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
+        result=TurnResult(results=[TextResult(text=text),*results])
+        messages=self._conversation_messages(c,run.workspace_id,cv.id)
+        self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
+            sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
+            evidence_origin=origin,result=result,model_receipt=binding['attempt_id'] if binding else None))
+        run.state='ready'; run.used_units+=1; run.lease_expires_at=None
+        self._store_run(c,run); self._event(c,p,run.workspace_id,'complete_run',run.id)
+        acknowledge(c,run.workspace_id,run.id)
+        return results
+
+    def stage_general_product(self,cap,receipt):
+        """Resolve receipt-bound args, compute once, retain trusted local evidence.
+
+        Model output cannot submit a staged observation. Crash before retention may
+        repeat pure local computation; after retention restart never re-executes it.
+        """
+        from .general_responses import resolve_selection
+        from .responses_ledger import Ledger
+        from .service import digest
+        ledger=Ledger(self,receipt)
+        with self.db.transaction() as c:
+            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt)
+            prior=ledger._events(c,'selection').get('tool_result')
+            if prior:
+                if prior['binding']!=binding: raise DomainError('source_changed')
+                return prior
+        if operation is None:
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
+        else:
+            try:
+                body,file,output=self._calculate_product(operation,base)
+                staged={'status':'observed','body':body.model_dump(mode='json'),
+                        'file':file.model_dump(mode='json'),'output':output.model_dump(mode='json'),'binding':binding}
+            except (OperationRejected,ToolRejected,ValueError):
+                staged={'status':'rejected','body':None,'file':None,'output':None,'binding':binding,
+                        'reason':'Bounded local kernel rejected the selected input; no product or execution claim was fabricated.'}
+        with self.db.transaction() as c:
+            current=resolve_selection(self,c,cap,receipt)
+            if current[5]!=binding: raise DomainError('source_changed')
+            prior=ledger._events(c,'selection').get('tool_result')
+            if prior:
+                if prior!=staged: raise DomainError('command_conflict')
+            else:
+                ledger.event(c,'selection','tool_result',staged)
+        with self.db.transaction() as c:
+            resolve_selection(self,c,cap,receipt)
+            if ledger._events(c,'selection').get('tool_result')!=staged: raise DomainError('action_unresolved')
+        return staged
+
+    def complete_general_product(self,cap,receipt):
+        """Atomic explanation/products/proposal, strictly from retained receipts."""
+        from .general_responses import resolve_selection
+        from .general_schema import GeneralExplanation
+        from .responses_ledger import Ledger
+        from .service import digest
+        from .outcomes import acknowledge
+        ledger=Ledger(self,receipt)
+        results=[]
+        with self.db.transaction() as c:
+            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt)
+            staged=ledger._events(c,'selection').get('tool_result')
+            final=ledger._events(c,'final').get('result',{})
+            if not staged or staged['binding']!=binding or final.get('state')!='completed':
+                raise DomainError('action_unresolved')
+            text=GeneralExplanation.model_validate(final['value'],strict=True).text
+            if staged['status']=='observed':
+                body=(TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
+                file=FileBody.model_validate(staged['file'])
+                output=(CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
+                results=self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding)
+            else:
+                messages=self._conversation_messages(c,run.workspace_id,cv.id)
+                self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
+                    sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
+                    evidence_origin=origin,model_receipt=receipt.attempt_id,result=TurnResult(results=[TextResult(text=text)])))
+                run.state='partial' if staged['status']=='rejected' else 'ready'
+                run.used_units+=1; run.lease_expires_at=None
+                if staged['status']=='rejected': run.unresolved=[staged['reason']]
+                acknowledge(c,run.workspace_id,run.id)
+                self._event(c,p,run.workspace_id,'complete_run',run.id)
+            # Two immutable phase receipts are the model evidence. No domain Body is
+            # synthesized into the historical intake ProviderResult family.
+            bound,attempt,_=self._receipt_binding(c,receipt)
+            attempt.state='reconciled'
+            self._store_attempt(c,attempt)
+            run.execution.provider_observation='received'; run.execution.evidence_origin=origin
+            run.provider_session_id=final['response_id']; run.provider_turn_id=final['response_id']
+            self._store_run(c,run)
+        detail=self.get_conversation(p,run.workspace_id,cv.id)
+        message=next((m for m in detail.messages if m.run_id==run.id and m.author_kind=='assistant'),None)
+        if not message or message.text!=text or message.model_receipt!=receipt.attempt_id:
+            raise DomainError('action_unresolved')
+        for item in results:
+            observed=self.get_product_observation(p,run.workspace_id,item.observation_id)
+            if observed.observation.model_selection.model_dump()!=binding:
                 raise DomainError('action_unresolved')
         return self.get_run(p,run.workspace_id,run.id)
 
