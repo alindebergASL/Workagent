@@ -858,7 +858,15 @@ function toConversation(c: S["Conversation"]): V.ConversationSummary {
 export function turnStateOf(
   run: Pick<S["Run"], "id" | "state">,
   messages: Pick<S["ConversationMessage"], "run_id" | "author_kind">[],
+  reported?: S["TurnState"],
 ): V.TurnState {
+  // Cancellation remains authoritative even when an old receipt is unknown.
+  if (reported?.state === "cancelled") return "cancelled";
+  // A general receipt problem is not an absent local consumer.
+  if (reported?.provider_observation === "outcome_unknown")
+    return "outcome_unknown";
+  if (reported?.provider_observation === "invalid") return "failed";
+  if (reported) return reported.state;
   switch (run.state) {
     case "queued":
       return "queued";
@@ -897,9 +905,11 @@ export function conversationDetail(
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,
-      state:
-        d.turns?.find((t) => t.run_id === r.id)?.state ??
-        turnStateOf(r, messages),
+      state: turnStateOf(
+        r,
+        messages,
+        d.turns?.find((t) => t.run_id === r.id),
+      ),
       reason:
         d.turns?.find((t) => t.run_id === r.id)?.reason ??
         (r.unresolved ?? []).join("; "),

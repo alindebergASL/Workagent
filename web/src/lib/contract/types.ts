@@ -367,7 +367,7 @@ export interface ChatMessage {
   sequence: number;
   run_id: string;
   /** Server-attested origin; a controlled reply is a wiring receipt, not model output. */
-  origin: "human" | "controlled_transport";
+  origin: import("../../../../contracts/src/client").components["schemas"]["ConversationMessage"]["evidence_origin"];
   products?: import("../../../../contracts/src/client").components["schemas"]["ProductResult"][];
 }
 

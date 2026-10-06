@@ -48,7 +48,13 @@ export default function ConversationPage() {
       pollMs: 2000,
       shouldPoll: (d) =>
         !d ||
-        d.turns.some((t) => t.state === "queued" || t.state === "responding"),
+        d.turns.some(
+          (t) =>
+            t.state === "queued" ||
+            t.state === "responding" ||
+            t.state === "unavailable" ||
+            t.state === "outcome_unknown",
+        ),
     },
   );
   const d = res.data;

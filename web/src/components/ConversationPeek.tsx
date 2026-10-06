@@ -20,10 +20,15 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   no_reply: "No reply was recorded.",
 };
 
+// An admitted turn whose consumer has not claimed it can still progress.
+// Keep read-only polling; never resend or infer a successful result.
+const awaitingReply = (t: ConversationDetailView["turns"][number]) =>
+  t.state === "queued" ||
+  t.state === "responding" ||
+  t.state === "unavailable" ||
+  t.state === "outcome_unknown";
 const inFlight = (d: ConversationDetailView | null) =>
-  Boolean(
-    d?.turns.some((t) => t.state === "queued" || t.state === "responding"),
-  );
+  Boolean(d?.turns.some(awaitingReply));
 
 /**
  * The conversation this work came from, shown beside it: the latest

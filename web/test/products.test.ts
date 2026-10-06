@@ -245,6 +245,7 @@ describe("product integration boundaries", () => {
     d.turns = [
       {
         run_id: d.runs[0]!.id,
+        profile: "general-controlled-v1",
         state: "unavailable",
         reason: "Consumer has not claimed the turn",
         evidence_origin: "controlled_transport",
@@ -258,6 +259,40 @@ describe("product integration boundaries", () => {
     d.turns[0]!.state = "failed";
     expect(conversationDetail(d).turns[0]!.state).toBe("failed");
   });
+  it.each([
+    ["outcome_unknown", "outcome_unknown"],
+    ["invalid", "failed"],
+  ] as const)(
+    "shows provider %s without blaming an absent consumer",
+    (observation, state) => {
+      const d = structuredClone(
+        examples.operations.get_conversation.response,
+      ) as Parameters<typeof conversationDetail>[0];
+      d.turns = [
+        {
+          run_id: d.runs[0]!.id,
+          profile: "general-responses-v1",
+          state: "unavailable",
+          reason: "Provider receipt unresolved",
+          evidence_origin: "unverified",
+          provider_observation: observation,
+        },
+      ];
+      expect(conversationDetail(d).turns[0]!.state).toBe(state);
+      d.turns[0]!.state = "cancelled";
+      expect(conversationDetail(d).turns[0]!.state).toBe("cancelled");
+    },
+  );
+  it.each(["synthetic_provider_receipt", "live_provider_receipt"] as const)(
+    "preserves generated %s message provenance",
+    (origin) => {
+      const d = structuredClone(
+        examples.operations.get_conversation.response,
+      ) as Parameters<typeof conversationDetail>[0];
+      d.messages[0]!.evidence_origin = origin;
+      expect(conversationDetail(d).messages[0]!.origin).toBe(origin);
+    },
+  );
   it("exposes generated product references and list preview without turning them into document blocks", () => {
     const d = structuredClone(
       examples.operations.get_conversation.response,
