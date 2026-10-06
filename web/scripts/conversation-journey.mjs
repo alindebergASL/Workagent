@@ -84,9 +84,24 @@ try {
   // Lose the response to one chosen POST after the server has committed it.
   // Installed once, before any navigation, so interception never changes mid-flight.
   let loseNext = null;
+  // Definitely refuse one chosen POST without reaching the server.
+  let refuseNext = null;
   record.lost_responses = [];
   await page.route("**/api/domain/**", async (route) => {
     const req = route.request();
+    if (refuseNext && req.method() === "POST" && refuseNext.test(req.url())) {
+      refuseNext = null;
+      return route.fulfill({
+        status: 409,
+        contentType: "application/json",
+        body: JSON.stringify({
+          code: "version_conflict",
+          message: "Synthetic definite refusal before admission.",
+          next_action: "Read the conversation again and resend.",
+          request_id: "synthetic-refusal",
+        }),
+      });
+    }
     if (loseNext && req.method() === "POST" && loseNext.test(req.url())) {
       loseNext = null;
       const real = await route.fetch();
@@ -424,6 +439,34 @@ try {
     ).toBeFocused();
   }
   await shot(phone, "13-home-narrow");
+
+  // ---- Home: the first message is definitely refused after the
+  // conversation exists; the retry sends what the person sees now, once ----
+  await page.goto(origin);
+  const listBefore = (await api("/conversations")).body.items.length;
+  const homeBox = page.getByLabel("Message your agent");
+  await homeBox.fill("Draft the first version of the agenda.");
+  refuseNext = /\/conversations\/[^/]+\/messages$/;
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(homeBox).toBeEnabled({ timeout: 15000 });
+  await expect(
+    page.locator("[role=alert], .hint[role=status]").first(),
+  ).toBeVisible();
+  expect(refuseNext).toBe(null);
+  const editedText = "Draft the agenda with time for questions.";
+  await homeBox.fill(editedText);
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.waitForURL(/\/conversations\/[^/?]+$/, { timeout: 15000 });
+  const refusedCid = page.url().split("/").pop();
+  expect((await api("/conversations")).body.items.length).toBe(listBefore + 1);
+  const humanTexts = (await api(`/conversations/${refusedCid}`)).body.messages
+    .filter((m) => m.author_kind === "human")
+    .map((m) => m.text);
+  expect(humanTexts).toEqual([editedText]);
+  record.definite_refusal_retry = {
+    conversation_id: refusedCid,
+    sent: humanTexts,
+  };
 
   expect(errors).toEqual([]);
   await writeFile(

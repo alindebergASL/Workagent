@@ -297,12 +297,16 @@ export function Composer({
         const created = await conversationApi.create(c.workspace, c.create);
         c.conversation = { id: created.id, work_version: created.work_version };
       }
-      if (!c.send)
+      if (!c.send) {
+        // A fresh send (first, or after a definite refusal) carries what the
+        // person can see now; only an unconfirmed send replays frozen text.
+        c.text = request.trim() || c.text;
         c.send = {
           command_id: newCommandId(),
           expected_work_version: c.conversation.work_version,
           text: c.text,
         };
+      }
       saveCommands();
       await conversationApi.send(c.workspace, c.conversation.id, c.send);
       const id = c.conversation.id;
