@@ -1,6 +1,6 @@
 # Proposed bounded same-worker model slice
 
-**Status: proposal only. No adapter implementation or new live calls are claimed.** The current hands-on runtime remains frozen at f68efe5c81e4865f9e1547e03b4af7b62c4303a0. Permission alone cannot connect its model path. This proposal follows repository source inspection, not another harness investigation.
+**Status: bounded implementation in progress; Andrew approved the live-test ceiling at $20 with no calendar expiry. No adapter completion or new live calls are claimed.** See [verbatim authorization and remaining limits](GENERAL_MODEL_AUTHORIZATION.md). The current hands-on runtime remains frozen at f68efe5c81e4865f9e1547e03b4af7b62c4303a0. Permission alone cannot connect its model path. This proposal follows repository source inspection, not another harness investigation.
 
 ## Smallest useful implementation
 
@@ -67,12 +67,11 @@ A run passes usefulness only if action choice, generated work and changed requir
 - **Scope:** one explicitly bound principal/workspace, two conversations, the four turns above. Synthetic CSV, prompts, human test edits and generated artifacts only. No private sources, broad repository access or external business actions.
 - **Generations:** at most8 across the whole grant (selection+explanation per turn), at most8 token-count submissions and80 same-ID retrieval requests. Failed/unknown sends retain their reservation. No automatic generation retries/fallbacks/extra repair turns.
 - **Tokens:** at most20,000 input and8,192 output tokens per generation; aggregate160,000 input and65,536 output. Limits enforced before dispatch in application and DB. The tool-call/compute budget is separately bounded to at most one selected local execution per product turn.
-- **Spend:** maximum **$2** application reservation ceiling. Historical repository rates imply a worst-case reservation of$1.05536 for these token limits, **not current verified prices or confirmed billing**. Recompute with verified current prices before activation and reduce admissible calls/tokens or stop if the proposed cap cannot be guaranteed conservatively. No silent expansion of the cap.
-- **Duration:** expires30minutes after explicit activation; record exact UTC activation/expiry then. No automatic renewal and no reuse of the expired intake grant.
+- **Spend:** maximum **$20 cumulative** application reservation ceiling. Historical repository rates imply a worst-case reservation of$1.05536 for these token limits, **not current verified prices or confirmed billing**. Recompute with verified current prices before activation and reduce admissible calls/tokens or stop if the proposed cap cannot be guaranteed conservatively. No silent expansion of the cap.
+- **Duration:** no calendar expiry, as explicitly approved by Andrew. Remains revocable; execution leases/fences/timeouts still apply. Record activation and cumulative reservations under one durable grant; no counter reset or reuse of the expired intake grant.
 - **Retention:** current Responses transport uses `store:true`; provider-side response storage needs explicit acknowledgment. Exact requests/receipts remain private locally, with only sanitized synthetic outputs/IDs/usage/hashes/readback in published reports. No credentials, raw provider payloads or encrypted reasoning in source/chat/evidence.
 - **Effects:** only existing authorized CSV and import-free integer Wasm, no shell/network tools, sending messages, deployment/default merge or automatic proposal acceptance.
 
-## Decision requested—not inferred
+## Approval and activation boundary
 
-1. Approve **only this bounded implementation and deterministic proof**, with no live model calls or spending.
-2. Separately approve the above live execution grant and `store:true` handling **after** the implementation candidate is reviewed and the route/pricing/budget gates are verified. This document itself is not authorization, and experience-review approval is not model-test approval.
+Andrew explicitly approved $20 cumulative with no expiry and acknowledged the listed retention/synthetic-use restrictions; the [source statement](GENERAL_MODEL_AUTHORIZATION.md) governs. Continue this bounded implementation and deterministic proof. Activate the live test only after the implementation candidate is reviewed and route/pricing/budget gates are verified. No additional spending approval is required within these approved bounds. The remaining call/token/retrieval limits do not reset automatically, and this document is not evidence of an active runtime grant or spending. Default merge/deployment remain excluded.
