@@ -1,6 +1,6 @@
-# Proposed bounded same-worker model slice
+# Bounded same-worker model slice — implemented checkpoint
 
-**Status: bounded implementation in progress; Andrew approved the live-test ceiling at $20 with no calendar expiry. No adapter completion or new live calls are claimed.** See [verbatim authorization and remaining limits](GENERAL_MODEL_AUTHORIZATION.md). The preserved hands-on checkout remains at f68efe5c81e4865f9e1547e03b4af7b62c4303a0; running status must be checked separately. Permission alone cannot connect its model path. This proposal follows repository source inspection, not another harness investigation.
+**Status: implemented and four live turns demonstrated at application1b81a1d742829663faf12a0ca5fa03957daf252c.** See [checkpoint evidence](../handoffs/backend/GENERAL_MODEL_CHECKPOINT.md) and [actual review](GENERAL_MODEL_REVIEW.md). Four turns/eight generations/eight counts are exhausted; the $20 cumulative/no-expiry ceiling does not reset them. The remainder preserves the original design/proposed gates and baseline source diagnosis as historical rationale, not a claim that those implementation gaps still exist. [Verbatim authorization](GENERAL_MODEL_AUTHORIZATION.md) is unchanged.
 
 ## Checkpoint scope, not the product ceiling
 

@@ -1,4 +1,8 @@
-# Hands-on review: integrated general-work candidate
+# Historical hands-on review: controlled general-work candidate
+
+For the current model-backed application1b81a1d and retained live results, use
+[GENERAL_MODEL_REVIEW.md](GENERAL_MODEL_REVIEW.md). The walkthrough below describes
+the separate preserved f68efe5 candidate; do not start it on occupied review ports.
 
 ## Historical review session; check current availability
 

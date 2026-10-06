@@ -13,8 +13,21 @@ B1–B3 with Claude's companion UI and recovery corrections. Keep its checkout,
 saved review database, human edits and historical evidence. Claude subsequently
 acknowledged the fixes at `ece6290a57b22dada5b4db44f2ab1b98dbe0ce61`.
 Do not restart the reset or harness comparison, replace the frontend owner, or
-recreate accepted work. Recovered uncommitted model implementation is on
-`hermes/general-responses`, based on authorization commit `dc4360f`.
+recreate accepted work. The recovered model implementation is now committed at
+9ed2467 and integrated with Claude a3c06fb at application1b81a1d742829663faf12a0ca5fa03957daf252c.
+
+## Observed checkpoint — 2026-10-06
+
+M1 is implemented and its four authorized live turns demonstrated. M2’s bounded
+actual-service desktop/phone journey is demonstrated; full experience acceptance
+remains incomplete and Andrew’s usefulness review is NOT TESTED.
+[Evidence and explicit gaps](../handoffs/backend/GENERAL_MODEL_CHECKPOINT.md).
+The table below retains milestone acceptance requirements, not a claim that M1
+implementation is still missing. M3–M5 remain planned/NOT TESTED. Next: implement
+bounded goal/observation-driven continuation and prove a changed next action on
+a real deterministic obstacle, retaining edits/authority. Claude retains the
+frontend corrections. The original four-turn/eight-generation/eight-count grant
+is exhausted; deterministic development does not require additional paid tests.
 
 ## Milestones, owners and required evidence
 
@@ -33,7 +46,7 @@ aspirations or delivered behavior. Implement incrementally using existing author
 and runtime seams; reuse fitting components without a new orchestration stack.
 B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicable.
 
-## Current execution order
+## Completed checkpoint execution order (M1 / bounded M2)
 
 1. Incorporate both notes in active contracts, acceptance and this plan; publish
    committed SHA and next behavioral checkpoint. Correct stale grant language,
