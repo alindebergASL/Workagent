@@ -255,3 +255,41 @@ describe("responsibility outcome from the backend projection", () => {
     ).toBe("blocked");
   });
 });
+
+describe("paused work", () => {
+  const base = {
+    id: "a",
+    workspace_id: "w",
+    title: "t",
+    goal: "g",
+    state: "needs_input" as const,
+    work_revision: 2,
+    stage: null,
+    created_at: "",
+    updated_at: "",
+    observed_at: "",
+    latest_result: null,
+    next_step: null,
+    needs_review_artifact_ids: [] as string[],
+    selected_source_count: 1,
+  };
+  it("reads as paused, never blocked or done", () => {
+    const a = { ...base, lifecycle: "paused" as const };
+    expect(phaseOf(a)).toBe("paused");
+    expect(statusOf(a).label).toBe("Paused");
+  });
+  it("still surfaces a waiting decision", () => {
+    expect(
+      phaseOf({
+        ...base,
+        lifecycle: "paused" as const,
+        needs_review_artifact_ids: ["x"],
+      }),
+    ).toBe("decision");
+  });
+  it("cancelled is stopped", () => {
+    expect(phaseOf({ ...base, lifecycle: "cancelled" as const })).toBe(
+      "stopped",
+    );
+  });
+});

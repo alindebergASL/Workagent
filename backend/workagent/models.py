@@ -6,8 +6,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator
 
-Id = Annotated[str, Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9][A-Za-z0-9_.:-]*$')]
-Text = Annotated[str, Field(min_length=1, max_length=10000)]
+from .model_base import Model, Id, Text, Hash
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 
 
@@ -17,10 +16,6 @@ def now() -> datetime:
 
 def new_id() -> str:
     return str(uuid4())
-
-
-class Model(BaseModel):
-    model_config = ConfigDict(extra='forbid', validate_assignment=True)
 
 
 class ErrorCode(str, Enum):
@@ -121,8 +116,11 @@ class SourceDetail(Source):
     content: dict
 
 
-Hash = Annotated[str, Field(pattern=r'^[0-9a-f]{64}$')]
-ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1']
+from .product_models import (TableBody, FileBody, ToolBody, LocalOperation, ProductResult,
+    ProductObservation, ObservationReadback, TurnState)
+from .message_models import AttachmentInput, MessageAttachment, ExactTarget
+ProductBody = Body | TableBody | FileBody | ToolBody
+ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1', 'general-products-controlled-v1', 'general-responses-v1']
 
 
 class ExecutionProvenance(Model):
@@ -135,7 +133,7 @@ class ExecutionProvenance(Model):
     provider_observation: Literal['not_observed', 'received'] = 'not_observed'
     # Trusted origin, never inferred from model/profile/observation. Live is reserved
     # for a future reviewed attestation path; this checkpoint cannot write it.
-    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt'] = 'unverified'
+    evidence_origin: Literal['unverified', 'fixture', 'synthetic_provider_receipt', 'live_provider_receipt', 'controlled_transport'] = 'unverified'
 
 
 class ArtifactBinding(Model):
@@ -158,15 +156,7 @@ class OutcomeQuestion(Model):
     base_revision_id: Id
 
 
-class ResponseStepObservation(Model):
-    phase: Literal['selection','final']
-    state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
-    response_id: str | None = None
-    reported_input_tokens: int | None = None
-    reported_output_tokens: int | None = None
-    reserved_cost_usd: str | None = None
-    conservatively_calculated_cost_usd: str | None = None
-    billed_cost_usd: str | None = None
+from .product_models import ResponseStepObservation
 
 
 class RunOutcome(Model):
@@ -212,15 +202,36 @@ class ResponsesBinding(Model):
     cost_limit_usd: Literal['20.00'] = '20.00'
 
 
+class GeneralResponsesBinding(Model):
+    project_id: Annotated[str, Field(pattern=r'^proj_[A-Za-z0-9_-]{1,100}$')]
+    secret_reference: Annotated[str, Field(pattern=r'^file:/[A-Za-z0-9_./-]{1,400}$')]
+    transport_mode: Literal['synthetic', 'official_api']
+    instructions_sha256: Hash
+    schema_sha256: Hash
+    scope_tool_sha256: Hash
+    policy_version: Literal['general-responses-v1'] = 'general-responses-v1'
+    generation_limit: Literal[8] = 8
+    count_limit: Literal[8] = 8
+    read_limit: Literal[80] = 80
+    cancel_limit: Literal[0] = 0
+    input_limit: Literal[160000] = 160000
+    output_limit: Literal[65536] = 65536
+    cost_limit_usd: Literal['20.00'] = '20.00'
+    conversation_ids: list[Id] = Field(min_length=1,max_length=2)
+    authorization_sha256: Hash
+    synthetic_data_only: Literal[True] = True
+    store_acknowledged: Literal[True] = True
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
-    profile: Literal['openai-agents-v1', 'openai-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | None = None
+    profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
+    responses: ResponsesBinding | GeneralResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
-    expires_at: AwareDatetime
+    expires_at: AwareDatetime | None
     max_runs: int = Field(default=1, strict=True, ge=1, le=10)
     # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
     max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
@@ -228,12 +239,18 @@ class ProviderGrant(Model):
 
     @model_validator(mode='after')
     def exact_responses_binding(self):
-        if self.profile == 'openai-responses-v1':
-            if (self.responses is None or self.model != 'gpt-6.1-sol' or
+        if self.profile == 'general-responses-v1':
+            if (not isinstance(self.responses,GeneralResponsesBinding) or self.expires_at is not None or
+                self.model!='gpt-6.1-sol' or self.max_runs>4 or self.max_received_output_tokens!=16384):
+                raise ValueError('exact general cumulative no-expiry grant required')
+        elif self.profile == 'openai-responses-v1':
+            if (not isinstance(self.responses,ResponsesBinding) or self.model != 'gpt-6.1-sol' or
                     self.max_runs > 2 or self.max_received_output_tokens != 16384):
                 raise ValueError('exact bounded Responses grant required')
         elif self.responses is not None:
             raise ValueError('Responses binding requires Responses profile')
+        if self.profile!='general-responses-v1' and self.expires_at is None:
+            raise ValueError('historical grants require expiry')
         return self
 
 
@@ -257,7 +274,7 @@ class ProviderAttempt(Model):
     run_id: Id
     principal_id: Id
     grant_id: Id
-    profile: Literal['openai-agents-v1', 'openai-responses-v1']
+    profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1']
     model: Id
     request_hash: Hash
     consumer_sha256: Hash
@@ -273,6 +290,7 @@ class ProviderAttempt(Model):
 class Assignment(Model):
     id: Id
     workspace_id: Id
+    conversation_id: Id | None = None
     owner_id: Id
     goal: Text
     completion_criteria: list[Text] = Field(min_length=1, max_length=30)
@@ -301,9 +319,10 @@ class CreateAssignment(Command):
 class Run(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     principal_id: Id
-    kind: Literal['initial', 'revision']
+    kind: Literal['initial', 'revision', 'conversation_turn']
     state: Literal['queued', 'running', 'ready', 'partial', 'cancelled'] = 'queued'
     fence: int = Field(default=0, ge=0)
     access_generation: Version
@@ -324,6 +343,117 @@ class Run(Model):
     unresolved: list[Text] = Field(default_factory=list, max_length=100)
     observed_at: AwareDatetime = Field(default_factory=now)
 
+    @model_validator(mode='after')
+    def exactly_one_owner(self):
+        if (self.assignment_id is None) == (self.conversation_id is None):
+            raise ValueError('run requires exactly one assignment or conversation owner')
+        if (self.kind == 'conversation_turn') != (self.conversation_id is not None):
+            raise ValueError('conversation turns require a conversation owner')
+        if (self.profile in ('general-controlled-v1','general-products-controlled-v1','general-responses-v1')) != (self.conversation_id is not None):
+            raise ValueError('general controlled profile requires a conversation turn')
+        return self
+
+
+class CreateConversation(Command):
+    title: Annotated[str, Field(min_length=1, max_length=240)] = 'Conversation'
+    selected_source_refs: list[SourceRef] = Field(default_factory=list, max_length=50)
+
+    @model_validator(mode='after')
+    def unique_sources(self):
+        if len({s.source_id for s in self.selected_source_refs}) != len(self.selected_source_refs):
+            raise ValueError('source IDs must be unique')
+        return self
+
+
+class Conversation(Model):
+    # List/detail projections derived from the immutable message ledger.
+    updated_at: AwareDatetime | None = None
+    last_message_preview: Annotated[str, Field(max_length=240)] | None = None
+    execution_profile: Literal['general-controlled-v1','general-responses-v1'] = 'general-controlled-v1'
+    model_activation: Literal['disabled','active','revoked'] = 'disabled'
+    id: Id
+    workspace_id: Id
+    owner_id: Id
+    title: Annotated[str, Field(min_length=1, max_length=240)]
+    work_version: Version = 1
+    state: Literal['open', 'cancelled'] = 'open'
+    selected_source_refs: list[SourceRef] = Field(default_factory=list, max_length=50)
+    created_at: AwareDatetime = Field(default_factory=now)
+
+
+class PostMessage(Command):
+    expected_work_version: Version
+    text: Text
+    operation: LocalOperation | None = None
+    attachments: list[AttachmentInput] = Field(default_factory=list,max_length=2)
+    target: ExactTarget | None = None
+
+    @model_validator(mode='after')
+    def bounded_inputs(self):
+        if self.operation is not None and (self.attachments or self.target):
+            raise ValueError('controlled operation cannot mix with general inputs')
+        if sum(len(a.content.encode()) for a in self.attachments)>200000:
+            raise ValueError('aggregate attachment bound')
+        return self
+
+
+class CancelConversation(Command):
+    expected_work_version: Version
+
+
+class DelegateConversation(Command):
+    expected_work_version: Version
+    goal: Text
+    completion_criteria: list[Text] = Field(min_length=1, max_length=30)
+
+
+class TextResult(Model):
+    kind: Literal['text'] = 'text'
+    text: Text
+
+
+class TurnResult(Model):
+    # Extend this typed result family when a broker-backed operation is implemented.
+    # No opaque dicts, simulated files/tools, or authority/acceptance fields.
+    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
+
+
+class ConversationMessage(Model):
+    id: Id
+    conversation_id: Id
+    run_id: Id
+    sequence: Version
+    author_id: Id
+    author_kind: Literal['human', 'assistant']
+    text: Text
+    evidence_origin: Literal['human', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
+    result: TurnResult | None = None
+    operation: LocalOperation | None = None
+    attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
+    target: ExactTarget | None = None
+    model_receipt: Id | None = None
+    created_at: AwareDatetime = Field(default_factory=now)
+
+
+class MessageQueued(Model):
+    conversation: Conversation
+    message: ConversationMessage
+    run: Run
+
+
+class ConversationPage(Model):
+    items: list[Conversation]
+    next_cursor: Id | None = None
+
+
+class ConversationDetail(Model):
+    conversation: Conversation
+    messages: list[ConversationMessage]
+    runs: list[Run]
+    assignment_ids: list[Id]
+    artifact_ids: list[Id] = Field(default_factory=list)
+    turns: list[TurnState] = Field(default_factory=list)
+
 
 class Revision(Model):
     id: Id
@@ -332,7 +462,7 @@ class Revision(Model):
     parent_revision_id: Id | None
     author_id: Id
     author_kind: Literal['human', 'worker']
-    body: Body
+    body: ProductBody
     body_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     source_dependencies: list[SourceRef] = Field(max_length=50)
     created_at: AwareDatetime = Field(default_factory=now)
@@ -341,7 +471,8 @@ class Revision(Model):
 class Artifact(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     current_revision_id: Id
     current_revision: Revision
     requested_revision: Revision | None = None
@@ -351,11 +482,12 @@ class Artifact(Model):
 class Proposal(Model):
     id: Id
     workspace_id: Id
-    assignment_id: Id
+    assignment_id: Id | None = None
+    conversation_id: Id | None = None
     artifact_id: Id
     base_revision_id: Id
     base_work_version: Version
-    body: Body
+    body: ProductBody
     body_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     source_dependencies: list[SourceRef] = Field(max_length=50)
     reason: Text
@@ -366,7 +498,7 @@ class Proposal(Model):
 
 class HumanSave(Command):
     expected_current_revision_id: Id
-    body: Body
+    body: ProductBody
 
 
 class RequestRevision(Command):

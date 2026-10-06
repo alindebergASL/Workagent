@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 12000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "GeneralExplanation",
+  "type": "object"
+}

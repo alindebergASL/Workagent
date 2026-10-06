@@ -1,5 +1,11 @@
 # Shared frontend contract
 
+> **Current boundary:** this describes the deployed/generated intake API at the
+> reset base. It is still actual API authority. Broader product direction is in
+> `../docs/PRODUCT_CONTRACT.md`; target additive migration is in
+> `../docs/WORK_CONTRACT.md`. Do not hand-edit generated schemas or treat intake
+> types as permanent general-agent limits.
+
 Source of truth: `../backend/workagent/models.py` and the real FastAPI adapter.
 Generated files: `openapi.json` (OpenAPI 3.1), `src/schema.d.ts`,
 `tool-registry.json`, `examples.json`. Do not hand-edit them.

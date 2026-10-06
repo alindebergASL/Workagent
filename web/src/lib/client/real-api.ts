@@ -4,24 +4,29 @@ import {
   type components,
 } from "../../../../contracts/src/client";
 import { ApiError } from "@/lib/contract/errors";
-import { assignmentSummary } from "./assignment-summary";
+import {
+  turnProgress,
+  type ExactTarget,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
+import { assignmentSummary, lifecycleOf } from "./assignment-summary";
 import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
 const stablePayload = commandPayloadCache();
 type S = components["schemas"];
 const rid = () => crypto.randomUUID();
-const meta = () => ({
+export const meta = () => ({
   "x-schema-version": "workagent/v1" as const,
   "x-request-id": rid(),
 });
-const command = (id: string) => ({
+export const command = (id: string) => ({
   schema_version: "workagent/v1" as const,
   request_id: rid(),
   command_id: id,
 });
 // The server-side loopback proxy injects its private local bearer. None reaches JS.
-const client = workagentClient("/api/domain", "", rid);
+export const client = workagentClient("/api/domain", "", rid);
 client.use({
   onRequest({ request }) {
     request.headers.set("X-Workagent-Client", "local-ui");
@@ -29,7 +34,7 @@ client.use({
   },
 });
 
-async function unwrap<T>(
+export async function unwrap<T>(
   promise: Promise<{
     data?: T;
     error?: S["ErrorEnvelope"];
@@ -61,7 +66,7 @@ async function unwrap<T>(
   }
   return result.data;
 }
-async function all<T>(
+export async function all<T>(
   fetchPage: (
     cursor?: string,
   ) => Promise<{ items: T[]; next_cursor?: string | null }>,
@@ -174,7 +179,14 @@ const toSource = (
   excerpt: "content" in s ? JSON.stringify(s.content, null, 2) : null,
   used_by_artifact_ids: used,
 });
-function toBlocks(body: S["Body"]): V.Block[] {
+function toBlocks(body: S["Revision"]["body"]): V.Block[] {
+  if (!("blocks" in body))
+    throw new ApiError({
+      code: "unsupported_operation",
+      status: 422,
+      message:
+        "Open this product from its conversation, not the document editor.",
+    });
   return body.blocks.map((b) => ({
     id: b.block_id,
     kind:
@@ -275,6 +287,12 @@ async function artifactView(
   raw: S["Artifact"],
   signal?: AbortSignal,
 ): Promise<V.Artifact> {
+  if (!raw.assignment_id)
+    throw new ApiError({
+      code: "unsupported_operation",
+      status: 422,
+      message: "This product belongs to a conversation.",
+    });
   const [assignment, history, proposals, sources] = await Promise.all([
     rawAssignment(raw.workspace_id, raw.assignment_id, signal),
     rawHistory(raw.workspace_id, raw.id, signal),
@@ -615,6 +633,36 @@ export const realApi = {
       run_id: r.run.id,
     };
   },
+  async controlAssignment(
+    ws: string,
+    id: string,
+    c: V.ControlAssignmentCommand,
+  ): Promise<V.ControlAssignmentResult> {
+    const body = await stablePayload<S["ControlAssignment"]>(
+      `${ws}:control-assignment:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        // The version the person was looking at: a newer change is a conflict, never overridden.
+        expected_work_version: c.expected_work_revision,
+        operation: c.operation,
+      }),
+    );
+    const r = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/control",
+        {
+          params: { path: { workspace_id: ws, assignment_id: id } },
+          body,
+        },
+      ),
+    );
+    return {
+      work_revision: r.work_version ?? c.expected_work_revision + 1,
+      lifecycle: lifecycleOf(r.state),
+    };
+  },
   async getArtifact(
     ws: string,
     id: string,
@@ -700,6 +748,12 @@ export const realApi = {
       c,
       async () => {
         const artifact = await rawArtifact(ws, id);
+        if (!artifact.assignment_id)
+          throw new ApiError({
+            code: "unsupported_operation",
+            status: 422,
+            message: "Use conversation product steering.",
+          });
         const assignment = await rawAssignment(ws, artifact.assignment_id);
         return {
           ...command(c.command_id),
@@ -782,5 +836,276 @@ export const realApi = {
       ]);
       return { proposal: toProposal(p, r, h), artifact: await artifactView(r) };
     });
+  },
+};
+
+// ---- conversation (B1) ----
+
+function toConversation(c: S["Conversation"]): V.ConversationSummary {
+  return {
+    id: c.id,
+    title: c.title,
+    state: c.state,
+    work_version: c.work_version,
+    created_at: c.created_at ?? "",
+    context_count: c.selected_source_refs?.length ?? 0,
+    updated_at: c.updated_at ?? c.created_at ?? "",
+    last_message_preview: c.last_message_preview ?? null,
+  };
+}
+
+/** Run state → turn state. A ready run without a recorded reply is not shown as replied. */
+export function turnStateOf(
+  run: Pick<S["Run"], "id" | "state">,
+  messages: Pick<S["ConversationMessage"], "run_id" | "author_kind">[],
+  reported?: S["TurnState"],
+): V.TurnState {
+  // Cancellation remains authoritative even when an old receipt is unknown.
+  if (reported?.state === "cancelled") return "cancelled";
+  // A general receipt problem is not an absent local consumer.
+  if (reported?.provider_observation === "outcome_unknown")
+    return "outcome_unknown";
+  if (reported?.provider_observation === "invalid") return "failed";
+  if (reported) return reported.state;
+  switch (run.state) {
+    case "queued":
+      return "queued";
+    case "running":
+      return "responding";
+    case "cancelled":
+      return "cancelled";
+    case "ready":
+      return messages.some(
+        (m) => m.run_id === run.id && m.author_kind === "assistant",
+      )
+        ? "replied"
+        : "no_reply";
+    default:
+      return "no_reply";
+  }
+}
+
+export function conversationDetail(
+  d: S["ConversationDetail"],
+): V.ConversationDetailView {
+  const messages = [...d.messages].sort((a, b) => a.sequence - b.sequence);
+  return {
+    conversation: toConversation(d.conversation),
+    messages: messages.map((m) => ({
+      id: m.id,
+      author: m.author_kind === "assistant" ? "agent" : "person",
+      text: m.text,
+      created_at: m.created_at ?? "",
+      sequence: m.sequence,
+      run_id: m.run_id,
+      origin: m.evidence_origin,
+      products: (m.result?.results ?? []).filter(
+        (r): r is S["ProductResult"] => r.kind !== "text",
+      ),
+    })),
+    turns: d.runs.map((r) => ({
+      run_id: r.id,
+      state: turnStateOf(
+        r,
+        messages,
+        d.turns?.find((t) => t.run_id === r.id),
+      ),
+      reason:
+        d.turns?.find((t) => t.run_id === r.id)?.reason ??
+        (r.unresolved ?? []).join("; "),
+      message_id:
+        messages.find((m) => m.run_id === r.id && m.author_kind === "human")
+          ?.id ?? null,
+      progress: turnProgress(d.turns?.find((t) => t.run_id === r.id)),
+    })),
+    assignment_ids: d.assignment_ids,
+    artifact_ids: d.artifact_ids ?? [],
+  };
+}
+
+export const conversationApi = {
+  async list(ws: string, signal?: AbortSignal) {
+    const items = await all((cursor) =>
+      unwrap(
+        client.GET("/v1/workspaces/{workspace_id}/conversations", {
+          params: {
+            path: { workspace_id: ws },
+            header: meta(),
+            query: { limit: 100, cursor },
+          },
+          signal,
+        }),
+      ),
+    );
+    return items.map(toConversation);
+  },
+  async get(ws: string, id: string, signal?: AbortSignal) {
+    return conversationDetail(
+      await unwrap(
+        client.GET(
+          "/v1/workspaces/{workspace_id}/conversations/{conversation_id}",
+          {
+            params: {
+              path: { workspace_id: ws, conversation_id: id },
+              header: meta(),
+            },
+            signal,
+          },
+        ),
+      ),
+    );
+  },
+  /** Creating does not send text; the message is a second command. */
+  async create(
+    ws: string,
+    c: {
+      command_id: string;
+      title: string;
+      context_ids: { id: string; version: string }[];
+    },
+  ): Promise<V.ConversationSummary> {
+    const body = await stablePayload<S["CreateConversation"]>(
+      `${ws}:create-conversation`,
+      c.command_id,
+      c,
+      async () => {
+        const base: S["CreateConversation"] = {
+          ...command(c.command_id),
+          title: c.title,
+        };
+        if (!c.context_ids.length) return base;
+        const sources = await rawSources(ws);
+        return {
+          ...base,
+          selected_source_refs: c.context_ids.map((ref) => {
+            const s = sources.find((x) => x.id === ref.id);
+            if (!s || s.external_version !== ref.version)
+              throw new ApiError({
+                code: "source_changed",
+                status: 409,
+                message: "Selected source version changed; refresh sources.",
+              });
+            return {
+              source_id: s.id,
+              external_version: ref.version,
+              observed_at: s.observed_at,
+            };
+          }),
+        };
+      },
+    );
+    return toConversation(
+      await unwrap(
+        client.POST("/v1/workspaces/{workspace_id}/conversations", {
+          params: { path: { workspace_id: ws } },
+          body,
+        }),
+      ),
+    );
+  },
+  async send(
+    ws: string,
+    id: string,
+    c: {
+      command_id: string;
+      request_id?: string;
+      expected_work_version: number;
+      text: string;
+      operation?: S["PostMessage"]["operation"];
+      /** Natural admission only; never combined with an operation. */
+      attachments?: MessageAttachment[];
+      target?: ExactTarget | null;
+    },
+  ) {
+    const natural = c.attachments !== undefined || c.target !== undefined;
+    const body = await stablePayload<S["PostMessage"]>(
+      `${ws}:message:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        ...(c.request_id ? { request_id: c.request_id } : {}),
+        expected_work_version: c.expected_work_version,
+        text: c.text,
+        ...(c.operation ? { operation: c.operation } : {}),
+        // Mirrors the general-responses contract until it is generated.
+        ...(natural
+          ? { attachments: c.attachments ?? [], target: c.target ?? null }
+          : {}),
+      }),
+    );
+    const r = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages",
+        {
+          params: { path: { workspace_id: ws, conversation_id: id } },
+          body,
+        },
+      ),
+    );
+    return {
+      conversation: toConversation(r.conversation),
+      message_id: r.message.id,
+      run_id: r.run.id,
+    };
+  },
+  async cancel(
+    ws: string,
+    id: string,
+    c: { command_id: string; expected_work_version: number },
+  ) {
+    const body = await stablePayload<S["CancelConversation"]>(
+      `${ws}:cancel-conversation:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        expected_work_version: c.expected_work_version,
+      }),
+    );
+    return toConversation(
+      await unwrap(
+        client.POST(
+          "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel",
+          {
+            params: { path: { workspace_id: ws, conversation_id: id } },
+            body,
+          },
+        ),
+      ),
+    );
+  },
+  /** Records a paused, linked assignment. B1 does not execute it. */
+  async delegate(
+    ws: string,
+    id: string,
+    c: {
+      command_id: string;
+      expected_work_version: number;
+      goal: string;
+      completion_criteria: string[];
+    },
+  ) {
+    const body = await stablePayload<S["DelegateConversation"]>(
+      `${ws}:delegate:${id}`,
+      c.command_id,
+      c,
+      async () => ({
+        ...command(c.command_id),
+        expected_work_version: c.expected_work_version,
+        goal: c.goal,
+        completion_criteria: c.completion_criteria,
+      }),
+    );
+    const a = await unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/delegate",
+        {
+          params: { path: { workspace_id: ws, conversation_id: id } },
+          body,
+        },
+      ),
+    );
+    return { assignment_id: a.id };
   },
 };

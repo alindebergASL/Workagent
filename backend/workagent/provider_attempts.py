@@ -19,7 +19,7 @@ def _owner(c):
         raise BundleDenied('migration identity required')
 
 
-def configure_grant(db, grant):
+def configure_grant(db,grant,*,route_record=None):
     """Operator only; scoped to one principal/workspace, <=10 runs and <=1 hour.
 
     Does not approve task effects, override source grants, or install a consumer.
@@ -28,7 +28,13 @@ def configure_grant(db, grant):
     from .service import encoded
     from .runtime_config import BundleDenied
     grant=ProviderGrant.model_validate(grant)
-    if not now() < grant.expires_at <= now()+timedelta(hours=1):
+    if grant.profile=='general-responses-v1':
+        from .general_responses import validate_grant
+        validate_grant(grant)
+        if grant.responses.transport_mode=='official_api':
+            from .general_responses import verify_route_record
+            verify_route_record(route_record,grant)
+    elif not now() < grant.expires_at <= now()+timedelta(hours=1):
         raise BundleDenied('grant expiry must be within one hour')
     with db.transaction() as c:
         _owner(c)
@@ -58,6 +64,8 @@ def admission_grant(c, workspace_id, principal_id):
         return None
     grant=ProviderGrant.model_validate(row['data'])
     from .responses_recovery import effective_expiry
+    if grant.profile=='general-responses-v1':
+        return None  # Conversation grant must never activate intake.
     if effective_expiry(c,grant)<=now():
         raise DomainError('action_unresolved')
     count=c.execute("SELECT count(*) AS n FROM run_configurations WHERE workspace_id=%s AND data->>'grant_id'=%s",(workspace_id,grant.id)).fetchone()['n']
@@ -72,7 +80,7 @@ def check_grant(c, run, config):
         raise DomainError('action_unresolved')
     grant=ProviderGrant.model_validate(row['data'])
     from .responses_recovery import effective_expiry
-    if (effective_expiry(c,grant)<=now() or grant.workspace_id!=run.workspace_id or
+    if ((grant.profile!='general-responses-v1' and effective_expiry(c,grant)<=now()) or grant.workspace_id!=run.workspace_id or
         grant.principal_id!=run.principal_id or grant.profile!=run.profile or
         config['model']!=grant.model or config['consumer_sha256']!=grant.consumer_sha256 or
         config['max_received_output_tokens']!=grant.max_received_output_tokens or
@@ -120,7 +128,10 @@ class ProviderAttempts:
         run=Run.model_validate(row['data'])
         if run.principal_id!=p.id:
             deny()
-        self._assignment(c,p,ws,run.assignment_id)  # Recheck every selected source.
+        if run.conversation_id:
+            self._conversation(c,p,ws,run.conversation_id)
+        else:
+            self._assignment(c,p,ws,run.assignment_id)  # Recheck every selected source.
 
     def get_provider_attempt(self,p,ws,run_id):
         with self.db.transaction() as c:
@@ -146,10 +157,14 @@ class ProviderAttempts:
             raise DomainError('unsupported_operation')
         with self.db.transaction() as c:
             p,run,a=self._check_capability(c,cap)
-            if run.profile not in ('openai-agents-v1','openai-responses-v1'):
+            if run.profile not in ('openai-agents-v1','openai-responses-v1','general-responses-v1'):
                 raise DomainError('unsupported_operation')
-            config=check_pins(c,run)
-            if run.profile=='openai-responses-v1':
+            if run.profile=='general-responses-v1':
+                from .general_responses import check_pins as general_pins
+                config=general_pins(c,run)
+            else:
+                config=check_pins(c,run)
+            if run.profile in ('openai-responses-v1','general-responses-v1'):
                 binding=config['responses']
                 if (type(transport) is not ResponsesTransport or
                     not transport.matches_binding(binding['transport_mode'],binding['project_id'],binding['secret_reference']) or

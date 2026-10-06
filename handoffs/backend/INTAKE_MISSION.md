@@ -1,5 +1,13 @@
 # Private intake next-action responsibility — implementation mission
 
+> **Historical intake mission — superseded as active product direction.**
+> Its engineering slice is recorded in `INTAKE_ACCEPTANCE.md`.
+> Managed-first/no-provider-call/no-redesign statements below describe earlier
+> checkpoints; they are not current state or future product restrictions.
+> Follow `../../docs/PRODUCT_CONTRACT.md`, `../../docs/BUILD_PLAN.md` and
+> `../PRODUCT_RESET.md` for new work. Preserve historical evidence and actual
+> execution constraints; no new live grant is implied.
+
 Accepted baseline: `5f3de09a820de78e96d2d0b497080e50124d1b60`. Ref inspection found both shared development refs still there; unrelated untracked review evidence is preserved in its original worktree. New isolated implementation branch: `hermes/intake-next-action`.
 
 ## Authority and ownership

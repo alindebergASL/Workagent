@@ -1,5 +1,11 @@
 # Responses consumer/frontend additive handoff
 
+> **Current intake consumer profile, not general product UX.**
+> Preserve actual generated-contract compatibility and verified decisions.
+> For the next iteration use `../../docs/PRODUCT_CONTRACT.md` and the
+> coordinated migration in `../PRODUCT_RESET.md`; expose operational details
+> only where they help the user understand or act.
+
 Backend implementation/runbook: `../backend/RESPONSES_WORKER.md`.
 No `web/` files were edited by this backend integration.
 

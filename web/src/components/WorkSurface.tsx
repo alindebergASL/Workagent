@@ -2,7 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 
 /**
- * Document and agent side by side on wide screens. On phones one pane shows at
+ * Work and its conversation side by side on wide screens. On phones one pane shows at
  * a time and the document comes first. Both panes stay mounted, so switching
  * never discards an unsaved edit, a typed instruction or a pending command.
  */
@@ -47,10 +47,10 @@ export function WorkSurface({
           aria-pressed={pane === "agent"}
           onClick={() => setPane("agent")}
         >
-          Agent
+          Conversation
         </button>
       </div>
-      <aside className="working-agent" aria-label="Your agent">
+      <aside className="working-agent" aria-label="Conversation">
         {agent}
       </aside>
       <div className="working-document">{document}</div>

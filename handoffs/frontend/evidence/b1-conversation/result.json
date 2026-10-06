@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "mode": "actual_application_postgresql_controlled_transport",
+  "provider_inference_calls": 0,
+  "worker_batches": [
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    },
+    {
+      "completed": 1,
+      "deferred": 0,
+      "denied": 0
+    }
+  ],
+  "lost_responses": [
+    {
+      "path": "/conversations/92c1ad64-835b-4d06-91be-e7bc280d31c9/messages",
+      "committed_status": 202,
+      "command_id": "b2c0d085-8fb0-4ab1-8ae8-6ac19d051a2f"
+    },
+    {
+      "path": "/conversations/92c1ad64-835b-4d06-91be-e7bc280d31c9/delegate",
+      "committed_status": 201,
+      "command_id": "f401ce03-baa9-422e-bdc4-3af1133b9cf9"
+    },
+    {
+      "path": "/conversations",
+      "committed_status": 201,
+      "command_id": "b18d8d5e-daf6-4b2e-8c01-175b19567184"
+    }
+  ],
+  "conversation_id": "92c1ad64-835b-4d06-91be-e7bc280d31c9",
+  "run_states": [
+    "ready",
+    "cancelled",
+    "ready"
+  ],
+  "assignment_id": "049e1f50-87f1-4def-ae95-af1825ed73a1",
+  "errors": []
+}

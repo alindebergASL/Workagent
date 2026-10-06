@@ -1,0 +1,1 @@
+{"profile":"general-responses-v1","version":1,"model":"gpt-6.1-sol","reasoning":"medium","service_tier":"default","store":true,"tools":["reply","reconcile_csv","run_wasm"],"max_context_bytes":262144,"max_turns_per_conversation":8,"generation_retries":0,"external_tools":false,"automatic_acceptance":false,"activation":"explicit_scoped_grant_only"}

@@ -1,56 +1,32 @@
-# Backend / integration status
+# Backend / integration — current review candidate
 
-## Candidate and ownership
-- Coordinator/backend/integration owner: Hermes; branch `hermes/s0-s1-build`.
-- Tested application code: `d937957521e1acdcffcac5d3ba3e70609f6cff98`; subsequent evidence/docs commits do not imply new application behavior.
-- Draft integrated PR: https://github.com/alindebergASL/Workagent/pull/3
-- Existing Claude Code frontend branch `claude/workagent-frontend-kyg51x` at `26bac774a253115a4fc5f10b2e57d40ea46c58b1` is preserved and integrated. Frontend PR #2 remains open; no merge/closure authority inferred. No duplicate frontend implementation session launched.
-- Frontend acknowledged the shared layout through issue #1. Hermes subsequently owned integration adapter/proxy and targeted review fixes in the integrated branch; root scripts/lock coordination is explicit.
-- GitHub chose the first bootstrap branch `hermes/s0-s1-backend` as default in the previously empty repository. Default remains bootstrap `3f1b17b`; no default-branch merge or public application deployment performed.
-- Andrew explicitly permitted public repository visibility after kickoff. Full original packet, credentials, private envs and process logs remain outside published materials. Committed examples/evidence are synthetic only.
+Application **1b81a1d742829663faf12a0ca5fa03957daf252c**, tree
+`3feade0009cdd41e5f9b49f97a258004c82470c2`, is published on the compatible
+non-default integration branch and PR9. Backend9ed2467 and Claude a3c06fb are
+integrated, including reviewed type/progress-polling corrections.
 
-## Usable contract
-`workagent/v1`: canonical schemas/domain services in `backend/`, PostgreSQL migrations,
-OpenAPI 3.1 and generated TypeScript client/tool registry/examples in `contracts/`.
-Stateful fixture mode runs the same services/schemas against real PostgreSQL.
+[Full checkpoint](GENERAL_MODEL_CHECKPOINT.md) ·
+[Actual private review and saved links](../../docs/GENERAL_MODEL_REVIEW.md).
 
-- OpenAPI SHA-256: `4170548e5bd4b415342e799108d1014ed677d6cd06b437fffe9d1b103aa4845e`
-- Model registry SHA-256: `2adb7311d13fdc420278f48b35b8432a107046cfce9ed77c21c882fe5a559aa2`
-- Exact domain errors retained, including `not_found_or_not_authorized`, `version_conflict`, `command_conflict`.
-- Compatible additions since first checkpoint: authorized SourceDetail content and checklist-only `checked`. Client/mock schemas regenerated. Source-drift handling now distinguishes current access, new-mutation freshness and committed replay.
+Engineering PASS for this bounded checkpoint:487 backend tests,91 frontend
+tests, exact-head synthetic browser/restart, then four live model-backed turns.
+Actual CSV reconciliation and model-generated calculator/shipping changes are
+observed. Andrew's usefulness review is NOT TESTED. Full seamless experience is
+FAIL/incomplete with explicit surface gaps; adaptive execution, specialist
+coordination and persistent ownership remain required/planned/NOT TESTED.
 
-## Connected behavior
-Production-built existing UI -> real API -> PostgreSQL creates assignments, produces
-fixture-derived plan/checklist, shows sources/unknowns, saves human edits and checked
-state, preserves both bodies for stale proposals, resolves explicitly and reopens the
-same persisted revision after terminating/restarting API and web.
+The live grant has exhausted its four-turn/eight-generation/eight-count limits.
+No resets or extra calls. Monetary headroom is not authority for another test.
+Both live proposals are pending and saved human edits preserved. Private
+receipts stay local; published observations/screenshots are synthetic-only.
 
-Durable outbox/fenced dispatcher, scoped broker and pinned approved context are integrated.
-Bundle version 0.1.1 activation/rollback preserves existing 0.1.0 inputs and current access.
-The local `serve` command automatically advances work; demo controls stage release for
-conflict evaluation. No live model/runtime execution is implied.
+Hermes owns backend/runtime/integration; the existing Claude session retains
+frontend design/implementation. Next backend behavior is bounded goal/observation-
+driven continuation with an actual obstacle. Claude's next concrete surface gaps
+are literal Markdown/long explanations and proposed-result versus saved-input
+summaries; remaining generated-type cleanup must preserve exact-target journals.
 
-## Verification and review
-- 46 Python tests, no skips; 10 frontend tests; contract drift/types and production build passed.
-- Nine actual-browser/API/PostgreSQL fault cases passed. Main demo and API/web restart passed at clean exact code SHA above.
-- `handoffs/backend/evidence/MANIFEST.json` pins 22 selected synthetic evidence files, including desktop/mobile/source screenshots, saved bodies, task readback and run/context pins.
-- Initial independent review found two P1 and four P2 issues. All six have implemented fixes and targeted regression evidence (`REVIEW_FIXES.md`). Focused independent recheck **PASS** at `d937957`; all six findings closed with no material regression reproduced in that scope. See `review/recheck.json`. This is not live-runtime, owner-usefulness or merge approval.
-- `ACCEPTANCE.md` separates fixture/application evidence from missing live-runtime and owner-usefulness acceptance.
-
-## Start / generation
-- Full demonstration: `python3 scripts/workagent.py demo`
-- Local use: `python3 scripts/workagent.py serve` at `http://127.0.0.1:3000`
-- Generation: `npm --prefix contracts run generate && npm --prefix contracts run check`
-- Root README documents prerequisites, separate test DBs, exact operating mode and safe restart.
-
-## Runtime / spending boundary
-Selected executable local adapter: deterministic fixture v1. Live runtime selection
-remains managed-first and pending product project/API entitlement plus bounded grant.
-No fallback is justified by missing access alone. No metered product-provider calls
-were initiated. Recorded sample usage is two fixture-completion units; live tokens/cost
-are not observed, and development-agent cost is unmeasured rather than claimed zero.
-Coordinator session identifies `gpt-6-astra` / `openai-codex`; delegated completion metadata
-did not expose model identifiers. Installed Codex/Claude CLI access is not product entitlement.
-
-Next action: Andrew reviews the usable local milestone; live qualification needs scoped product API access and a bounded grant.
-S2–S5 remains outside this build.
+Prior f68efe5 review and historical evidence remain preserved. The harness
+comparison is complete; no replacement stack is commissioned. Routine development,
+testing, compatible non-default publication are authorized; private-data expansion,
+external business effects, default merge and deployment remain excluded.

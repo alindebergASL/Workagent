@@ -28,6 +28,7 @@ export type WorkPhase =
   | "prepared"
   | "approved"
   | "stopped"
+  | "paused"
   | "unknown"
   | "waiting"
   | "unverified";
@@ -40,7 +41,10 @@ export function currentRun(a: AssignmentSummary): RunOutcome | null {
 }
 
 export function phaseOf(a: AssignmentSummary): WorkPhase {
-  if (a.state === "stopped") return "stopped";
+  if (a.state === "stopped" || a.lifecycle === "cancelled") return "stopped";
+  // A pending decision still needs the person even while further work is paused.
+  if (a.lifecycle === "paused")
+    return a.needs_review_artifact_ids.length ? "decision" : "paused";
   const run = currentRun(a);
   if (run)
     switch (run.state) {
@@ -167,6 +171,10 @@ export function statusOf(a: AssignmentSummary): {
       break;
     case "stopped":
       return { label: "Stopped", tone: "" };
+    case "paused":
+      return a.conversation_id
+        ? { label: "Handed over · not started", tone: "" }
+        : { label: "Paused", tone: "" };
   }
   return legacyStatus(a);
 }
@@ -292,6 +300,10 @@ export function workAttention(items: AssignmentSummary[]): Attention | null {
     };
   return null;
 }
+
+/** A hand-over recorded from a conversation: paused, and B1 can't start it. */
+export const isRecordedHandover = (i: AssignmentSummary) =>
+  Boolean(i.conversation_id) && i.lifecycle === "paused";
 
 export const isWorking = (i: AssignmentSummary) => phaseOf(i) === "working";
 

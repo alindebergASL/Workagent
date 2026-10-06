@@ -16,6 +16,8 @@ from .db import Database
 from .errors import DomainError, deny
 from .models import *
 from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
+from .conversations import Conversations
+from .products import Products
 
 
 def canonical(value) -> str:
@@ -55,7 +57,7 @@ class WorkerCapability:
     secret: str
 
 
-class Service(ProviderAttempts):
+class Service(Products, Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -94,7 +96,8 @@ class Service(ProviderAttempts):
         row = c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s', (ws, artifact_id)).fetchone()
         if not row:
             deny()
-        a = self._assignment(c, p, ws, row['assignment_id'])
+        a = (self._conversation(c,p,ws,row['conversation_id']) if row.get('conversation_id') else
+             self._assignment(c, p, ws, row['assignment_id']))
         return row, a
 
     def _proposal(self, c, p, ws, proposal_id):
@@ -126,7 +129,7 @@ class Service(ProviderAttempts):
         event_id = new_id()
         c.execute('INSERT INTO audit(id,workspace_id,principal_id,operation,object_id) VALUES (%s,%s,%s,%s,%s)', (event_id,ws,p.id,operation,object_id))
         c.execute('INSERT INTO outbox(id,workspace_id,operation,object_id) VALUES (%s,%s,%s,%s)', (event_id,ws,operation,object_id))
-        if operation in ('create_assignment', 'request_revision', 'control_assignment'):
+        if operation in ('create_assignment', 'request_revision', 'control_assignment', 'post_message'):
             c.execute('''INSERT INTO run_dispatches(workspace_id,run_id,outbox_id)
                 SELECT workspace_id,id,%s FROM runs WHERE workspace_id=%s
                 AND (id=%s OR assignment_id=%s) AND data->>'state'='queued'
@@ -159,6 +162,11 @@ class Service(ProviderAttempts):
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
+        if op=='post_message':
+            # Additive optional inputs must not change legacy command replay hashes.
+            if payload.get('operation') is None: payload.pop('operation',None)
+            if not payload.get('attachments'): payload.pop('attachments',None)
+            if payload.get('target') is None: payload.pop('target',None)
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:
             self._scope(c, p, ws, write=True)
@@ -223,7 +231,10 @@ class Service(ProviderAttempts):
             if not row:
                 deny()
             r=Run.model_validate(row['data'])
-            self._assignment(c,p,ws,r.assignment_id)
+            if r.conversation_id:
+                self._conversation(c,p,ws,r.conversation_id)
+            else:
+                self._assignment(c,p,ws,r.assignment_id)
             return r
 
     def _new_run(self,c,p,a,kind='initial',**kwargs):
@@ -281,7 +292,7 @@ class Service(ProviderAttempts):
             row,a=self._artifact(c,p,ws,artifact_id)
             rev=self._revision(c,p,ws,row,a)
             requested=self._revision(c,p,ws,row,a,revision_id) if revision_id else None
-            return Artifact(id=artifact_id,workspace_id=ws,assignment_id=a.id,current_revision_id=row['current_revision_id'],current_revision=rev,requested_revision=requested)
+            return Artifact(id=artifact_id,workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=row['current_revision_id'],current_revision=rev,requested_revision=requested)
 
     def history(self,p,ws,artifact_id,cursor=None,limit=25):
         with self.db.transaction() as c:
@@ -310,14 +321,20 @@ class Service(ProviderAttempts):
                      body=body,body_hash=digest(body),source_dependencies=deps)
         c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data) VALUES (%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev)))
         c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
-        return Artifact(id=row['id'],workspace_id=ws,assignment_id=a.id,current_revision_id=rev.id,current_revision=rev)
+        return Artifact(id=row['id'],workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=rev.id,current_revision=rev)
 
     def human_save(self,p,ws,artifact_id,cmd):
         def mutate(c,state):
             row,a=state
             self._cas(row,cmd.expected_current_revision_id)
-            previous=self._revision(c,p,ws,row,a)
-            result=self._append_revision(c,p,ws,row,a,cmd.body,previous.source_dependencies,'human')
+            current=self._revision(c,p,ws,row,a)
+            if row.get('conversation_id'):
+                # Human edits are new unverified revisions, never new origin claims.
+                if type(cmd.body) is not type(current.body):
+                    raise DomainError('unsupported_operation')
+                if isinstance(current.body,TableBody) and cmd.body.source_csv!=current.body.source_csv:
+                    raise DomainError('unsupported_operation')
+            result=self._append_revision(c,p,ws,row,a,cmd.body,current.source_dependencies,'human')
             self._event(c,p,ws,'human_save',artifact_id)
             return result
         return self._command(p,ws,'human_save',{'artifact_id':artifact_id},cmd,Artifact,lambda c:self._artifact(c,p,ws,artifact_id),mutate)
@@ -325,6 +342,8 @@ class Service(ProviderAttempts):
     def request_revision(self,p,ws,artifact_id,cmd):
         def mutate(c,state):
             row,a=state
+            if row.get('conversation_id'):
+                raise DomainError('unsupported_operation')  # Use conversation steering with typed operation.
             self._cas(row,cmd.base_revision_id)
             if a.work_version != cmd.expected_work_version:
                 raise DomainError('version_conflict',current_version=a.work_version)
@@ -401,6 +420,9 @@ class Service(ProviderAttempts):
 
     def control_assignment(self,p,ws,assignment_id,cmd):
         def mutate(c,a):
+            if a.conversation_id and cmd.operation=='resume':
+                # A recorded B1 delegation is not an intake run or autonomy grant.
+                raise DomainError('unsupported_operation')
             if a.work_version != cmd.expected_work_version:
                 raise DomainError('version_conflict',current_version=a.work_version)
             if cmd.operation=='resume' and a.state!='paused':
@@ -427,6 +449,9 @@ class Service(ProviderAttempts):
         return self._command(p,ws,'control_assignment',{'assignment_id':assignment_id},cmd,Assignment,lambda c:self._assignment(c,p,ws,assignment_id),mutate)
 
     def _runtime_pins(self,c,r):
+        if r.conversation_id:
+            from .conversations import check_general_pins
+            return check_general_pins(c,r)
         from .runtime_config import check_pins, BundleDenied
         try:
             check_pins(c,r)
@@ -451,11 +476,12 @@ class Service(ProviderAttempts):
             r=Run.model_validate(row['data'])
             if r.principal_id!=p.id:
                 deny()
-            a=self._assignment(c,p,ws,r.assignment_id,True)
+            a=(self._conversation(c,p,ws,r.conversation_id,True) if r.conversation_id else
+               self._assignment(c,p,ws,r.assignment_id,True))
             attempt=attempt_row(c,ws,run_id)
             if responses_receipt is not None:
                 bound,existing,_=self._receipt_binding(c,responses_receipt)
-                if bound.id!=r.id or r.profile!='openai-responses-v1' or existing.state=='failed':
+                if bound.id!=r.id or r.profile not in ('openai-responses-v1','general-responses-v1') or existing.state=='failed':
                     raise DomainError('action_unresolved')
             elif received_result:
                 if not attempt or attempt.state!='responded':
@@ -472,7 +498,8 @@ class Service(ProviderAttempts):
                 raise DomainError('action_unresolved')
             if r.used_units>=r.budget_units:
                 raise DomainError('budget_exhausted')
-            others=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s AND id<>%s',(ws,a.id,r.id)).fetchall()
+            owner_column='conversation_id' if r.conversation_id else 'assignment_id'
+            others=c.execute(f'SELECT data FROM runs WHERE workspace_id=%s AND {owner_column}=%s AND id<>%s',(ws,a.id,r.id)).fetchall()
             for other in others:
                 active=Run.model_validate(other['data'])
                 if active.state=='running' and active.lease_expires_at and active.lease_expires_at>now():
@@ -481,12 +508,16 @@ class Service(ProviderAttempts):
             r.fence+=1; r.state='running'; r.lease_expires_at=now()+timedelta(seconds=120)
             self._store_run(c,r)
             c.execute('UPDATE runs SET lease_hash=%s WHERE workspace_id=%s AND id=%s',(digest(secret),ws,r.id))
-            self._refresh_progress(c,a)
-            a.work_version+=1; self._store_assignment(c,a)
+            if not r.conversation_id:
+                self._refresh_progress(c,a)
+                a.work_version+=1; self._store_assignment(c,a)
             self._event(c,p,ws,'claim_run',r.id)
             cap=WorkerCapability(ws,r.id,p.id,r.fence,secret)
-            from .runtime_config import assemble_context
-            assemble_context(self,c,cap)
+            if r.conversation_id:
+                self._general_context(c,cap)
+            else:
+                from .runtime_config import assemble_context
+                assemble_context(self,c,cap)
             return cap
 
     def _check_capability(self,c,cap,allow_completed=False):
@@ -503,7 +534,8 @@ class Service(ProviderAttempts):
         completed=allow_completed and r.state in ('ready','partial')
         if not completed and (r.state!='running' or not r.lease_expires_at or r.lease_expires_at<=now()):
             raise DomainError('action_unresolved')
-        a=self._assignment(c,p,cap.workspace_id,r.assignment_id,True)
+        a=(self._conversation(c,p,cap.workspace_id,r.conversation_id,True) if r.conversation_id else
+           self._assignment(c,p,cap.workspace_id,r.assignment_id,True))
         self._runtime_pins(c,r)
         if r.access_generation!=generation:
             raise DomainError('source_changed')
@@ -543,6 +575,8 @@ class Service(ProviderAttempts):
                              'command':command.model_dump(mode='json',exclude={'request_id','command_id'}) if command else None})
         with self.db.transaction() as c:
             p,r,a=self._check_capability(c,cap,allow_completed=command is not None)
+            if r.conversation_id:
+                raise DomainError('unsupported_operation')
             ws=a.workspace_id
             if command:
                 previous=c.execute('SELECT payload_hash,result FROM commands WHERE principal_id=%s AND workspace_id=%s AND command_id=%s',(p.id,ws,command.command_id)).fetchone()

@@ -34,11 +34,13 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
             ? "Couldn’t be verified, so it isn’t shown as done"
             : phase === "working"
               ? "Results appear as they’re saved"
-              : phase === "stopped"
-                ? "Saved results are kept"
-                : phase === "approved"
-                  ? (item.latest_result ?? "")
-                  : (item.next_step ?? item.latest_result ?? "");
+              : phase === "paused" && item.conversation_id
+                ? "I can’t carry work forward on my own yet"
+                : phase === "stopped" || phase === "paused"
+                  ? "Saved results are kept"
+                  : phase === "approved"
+                    ? (item.latest_result ?? "")
+                    : (item.next_step ?? item.latest_result ?? "");
   return (
     <li>
       <Link

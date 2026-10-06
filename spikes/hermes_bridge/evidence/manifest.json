@@ -1,0 +1,49 @@
+{
+  "invocation": "/usr/bin/python3 spikes/hermes_bridge/run.py",
+  "cwd": "/home/ubuntu/workagent-general-harness",
+  "run_directory": "/home/ubuntu/workagent-general-harness/spikes/hermes_bridge/.runs/2089694",
+  "exit_code": 0,
+  "provenance": "controlled in-memory provider fixtures; real pinned loop and real disposable DB broker",
+  "hermes_cases": 10,
+  "responses_comparisons": 3,
+  "regression_results": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "tests": "227",
+    "time": "231.199",
+    "timestamp": "2026-10-03T02:47:59.576720+00:00",
+    "hostname": "ip-10-0-3-214"
+  },
+  "deselected": [
+    "test_responses_worker.py::test_cross_process_predispatch_single_winner"
+  ],
+  "cluster_stopped_pid_file_absent": true,
+  "files": {
+    "hermes_results.json": {
+      "sha256": "ad4f6135a78d09ba03a1ffa35c5a1c2694a4dcad13a73d5ba202a543780d6c16",
+      "bytes": 212257
+    },
+    "responses_comparison.json": {
+      "sha256": "14ce55c9e7c2f004a0ebfd729dda4a0564b82fa81990045a4930ceb852c18992",
+      "bytes": 74739
+    },
+    "responses_tests.xml": {
+      "sha256": "ef061e184cd6718d6ee7f9e38d03b2d8096dc24010d7a8a23bc21c66fca9ab4d",
+      "bytes": 33318
+    },
+    "environment.json": {
+      "sha256": "6b085083d4be28f5fdf89ab6ae63ad025fcd878e0d662d0124803045dc9233e8",
+      "bytes": 2243
+    },
+    "stdout.txt": {
+      "sha256": "08fb858469ae30e934e86e8682aad47f364e9c650d6dee7573391e736a552998",
+      "bytes": 1616
+    },
+    "stderr.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

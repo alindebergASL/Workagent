@@ -150,6 +150,7 @@ class PreparedRequest:
     metadata: RequestMetadata
     phase: Literal['selection', 'final']
     schema: FrozenSchema = field(repr=False)
+    policy: Literal['intake-v1','general-responses-v1'] = 'intake-v1'
 
     @property
     def sha256(self) -> str:
@@ -161,35 +162,36 @@ class PreparedRequest:
         return _canonical({key: value for key, value in payload.items() if key in COUNT_FIELDS})
 
 
-def _tool(schema: FrozenSchema) -> dict:
-    return {'type': 'function', 'name': READ_TOOL,
-            'description': 'Read only the consumer-approved frozen source scope.',
+def _tool(schema: FrozenSchema, policy='intake-v1') -> dict:
+    return {'type': 'function', 'name': READ_TOOL if policy=='intake-v1' else 'choose_general_action',
+            'description': ('Read only the consumer-approved frozen source scope.' if policy=='intake-v1' else
+                            'Choose reply, exact attached CSV reconciliation, or bounded local Wasm; no effects or approvals.'),
             'strict': True, 'parameters': _json(schema.material)}
 
 
-def _build(*, instructions, history, schema, metadata, phase):
+def _build(*, instructions, history, schema, metadata, phase, policy='intake-v1'):
     if not isinstance(instructions, str) or not instructions:
         raise TransportError('missing_approved_instructions')
     payload = {**_FIXED, 'instructions': instructions, 'input': history,
                'metadata': metadata.model_dump()}
     if phase == 'selection':
-        payload.update(tools=[_tool(schema)], tool_choice={'type': 'function', 'name': READ_TOOL})
+        payload.update(tools=[_tool(schema,policy)], tool_choice={'type': 'function', 'name': _tool(schema,policy)['name']})
     else:
         payload.update(tools=[], tool_choice='none', text={'format': {
             'type': 'json_schema', 'name': 'workagent_artifact', 'strict': True,
             'schema': _json(schema.material)}})
-    request = PreparedRequest(_canonical(payload), metadata, phase, schema)
+    request = PreparedRequest(_canonical(payload), metadata, phase, schema, policy)
     _validate_request(request)
     return request
 
 
 def build_tool_selection(*, instructions: str, source_context: str,
-                         read_schema: FrozenSchema, metadata: RequestMetadata) -> PreparedRequest:
+                         read_schema: FrozenSchema, metadata: RequestMetadata, policy='intake-v1') -> PreparedRequest:
     """The sole named tool; the consumer/broker, NEVER the model, grants scope."""
     if not isinstance(source_context, str):
         raise TransportError('invalid_source_context')
     return _build(instructions=instructions, history=[{'role': 'user', 'content': source_context}],
-                  schema=read_schema, metadata=metadata, phase='selection')
+                  schema=read_schema, metadata=metadata, phase='selection', policy=policy)
 
 
 def build_final(*, selection_request: PreparedRequest, selection: ParsedResponse,
@@ -208,10 +210,17 @@ def build_final(*, selection_request: PreparedRequest, selection: ParsedResponse
     history = initial['input'] + _json(selection.output_items) + [
         {'type': 'function_call_output', 'call_id': selection.call_id, 'output': tool_output}]
     return _build(instructions=instructions, history=history, schema=artifact_schema,
-                  metadata=metadata, phase='final')
+                  metadata=metadata, phase='final', policy=selection_request.policy)
 
 
 def _validate_request(request: PreparedRequest) -> dict:
+    if request.policy not in ('intake-v1','general-responses-v1'):
+        raise TransportError('invalid_request_policy')
+    if request.policy=='general-responses-v1':
+        from .general_schema import DECISION_SCHEMA, EXPLANATION_SCHEMA
+        expected=DECISION_SCHEMA if request.phase=='selection' else EXPLANATION_SCHEMA
+        if request.schema!=expected:
+            raise TransportError('schema_validator_mismatch')
     payload = _json(request.body)
     allowed = set(_FIXED) | {'instructions', 'input', 'metadata', 'tools', 'tool_choice'}
     if request.phase == 'final':
@@ -225,8 +234,8 @@ def _validate_request(request: PreparedRequest) -> dict:
         raise TransportError('invalid_request_policy')
     FrozenSchema.freeze(_json(request.schema.material), request.schema.model)
     if request.phase == 'selection':
-        valid = (_canonical(payload['tools']) == _canonical([_tool(request.schema)]) and
-                 payload['tool_choice'] == {'type': 'function', 'name': READ_TOOL})
+        valid = (_canonical(payload['tools']) == _canonical([_tool(request.schema,request.policy)]) and
+                 payload['tool_choice'] == {'type': 'function', 'name': _tool(request.schema,request.policy)['name']})
     else:
         valid = (payload['tools'] == [] and payload['tool_choice'] == 'none' and
                  _canonical(payload['text']) == _canonical({'format': {'type': 'json_schema',
@@ -246,7 +255,7 @@ def _validate_request(request: PreparedRequest) -> dict:
     if request.phase == 'final':
         if len(history) < 3:
             raise TransportError('invalid_history')
-        calls = _output_shape(history[1:-1])
+        calls = _output_shape(history[1:-1],tool_name=_tool(request.schema,request.policy)['name'])
         last = history[-1]
         if (len(calls) != 1 or not isinstance(last, dict) or
                 set(last) != {'type', 'call_id', 'output'} or
@@ -339,7 +348,7 @@ def _usage(value) -> Usage | None:
     return result
 
 
-def _output_shape(output, *, continuation=True) -> list[dict]:
+def _output_shape(output, *, continuation=True, tool_name=READ_TOOL) -> list[dict]:
     """Closed supported output item types; preserve complete JSON for continuation."""
     if not isinstance(output, list):
         raise TransportError('invalid_output')
@@ -351,7 +360,7 @@ def _output_shape(output, *, continuation=True) -> list[dict]:
         if item.get('status', 'completed') != 'completed':
             raise TransportError('unfinished_output_item')
         if kind == 'function_call':
-            if (item.get('name') != READ_TOOL or not isinstance(item.get('arguments'), str) or
+            if (item.get('name') != tool_name or not isinstance(item.get('arguments'), str) or
                     not isinstance(item.get('call_id'), str) or
                     not re.fullmatch(r'[A-Za-z0-9_-]{1,128}', item['call_id']) or
                     item.get('namespace') is not None or
@@ -402,7 +411,7 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
             raise TransportError('invalid_output')
         # Final output is never replayed to a model. Retrieve need not include
         # encrypted_content; selection still requires complete continuation state.
-        calls = _output_shape(output, continuation=request.phase == 'selection')
+        calls = _output_shape(output, continuation=request.phase == 'selection',tool_name=_tool(request.schema,request.policy)['name'])
         parts = [part for item in output if item['type'] == 'message' for part in item['content']]
         if any(part['type'] == 'refusal' for part in parts):
             return ParsedResponse(**base, state='refused', usage=usage)

@@ -1,5 +1,11 @@
 # Agent-first product integration
 
+> **Historical integration handoff — superseded for new product work.**
+> Preserve its verified editing/persistence behavior. Intake flow, no-redesign
+> directions and no-live-observation claims do not govern the next iteration.
+> Follow `../../docs/PRODUCT_CONTRACT.md`, `../../docs/RUNTIME_STATUS.md` and
+> the Claude track in `../PRODUCT_RESET.md`.
+
 Base: `hermes/s0-s1-build` at `6f88a9d524d4ab7db1f800087d2f13f4ca1d130b`.
 Branch: `codex/agent-first-product`. This isolated change does not replace either owner's branch.
 

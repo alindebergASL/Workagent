@@ -3,6 +3,7 @@ import type {
   Artifact,
   AssignmentSummary,
   AssignmentState,
+  Lifecycle,
 } from "@/lib/contract/types";
 
 /** Read model only: ready computation is not human approval or an external effect. */
@@ -59,9 +60,9 @@ export function assignmentSummary(
     observed_at: a.observed_at ?? "",
     stage:
       state === "queued"
-        ? "Queued for local fixture work"
+        ? "Waiting to start"
         : state === "working"
-          ? "Preparing private artifacts"
+          ? "Preparing your work"
           : null,
     latest_result:
       state === "finished"
@@ -83,5 +84,17 @@ export function assignmentSummary(
     needs_review_artifact_ids: pending,
     selected_source_count: a.selected_source_refs.length,
     responsibility: a.responsibility ?? null,
+    lifecycle: lifecycleOf(a.state),
+    conversation_id: a.conversation_id ?? null,
   };
+}
+
+export function lifecycleOf(
+  state: components["schemas"]["Assignment"]["state"],
+): Lifecycle {
+  return state === "paused"
+    ? "paused"
+    : state === "cancelled"
+      ? "cancelled"
+      : "active";
 }

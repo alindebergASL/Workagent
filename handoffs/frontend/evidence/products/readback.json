@@ -1,0 +1,113 @@
+{
+  "passed": true,
+  "mode": "real-api-postgresql-continuous-controlled-worker",
+  "conversation_id": "418c26ff-5bd8-4462-bcbc-0d9a840755dc",
+  "artifact_url": "http://127.0.0.1:3000/conversations/418c26ff-5bd8-4462-bcbc-0d9a840755dc/artifacts/00579064-6de0-44f7-91c4-d725a1082249",
+  "exact_return": "9007199254740993",
+  "byte_identical_retry": true,
+  "admission": {
+    "conversation": {
+      "updated_at": null,
+      "last_message_preview": null,
+      "id": "418c26ff-5bd8-4462-bcbc-0d9a840755dc",
+      "workspace_id": "local-workspace",
+      "owner_id": "local-human",
+      "title": "Verify exact integer tool readback and replay after a lost acknowledgement",
+      "work_version": 3,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-05T16:54:11.185864Z"
+    },
+    "message": {
+      "id": "465ac019-cb15-4907-aef7-3f4fc890548a",
+      "conversation_id": "418c26ff-5bd8-4462-bcbc-0d9a840755dc",
+      "run_id": "986433be-0cc3-4643-8dd6-772e62e3091c",
+      "sequence": 3,
+      "author_id": "local-human",
+      "author_kind": "human",
+      "text": "Run the explicitly attached exact-i64.wat with the selected run_wasm operator.",
+      "evidence_origin": "human",
+      "result": null,
+      "operation": {
+        "artifact_id": null,
+        "base_revision_id": null,
+        "kind": "run_wasm",
+        "code": "(module (func (export \"total\") (param i64 i64) (result i64) i64.const 9007199254740993))",
+        "entrypoint": "total",
+        "arguments": [
+          3,
+          1250
+        ],
+        "input_form": [
+          {
+            "name": "input_1",
+            "label": "Quantity",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "input_2",
+            "label": "Unit price cents",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ]
+      },
+      "created_at": "2026-10-05T16:54:13.703955Z"
+    },
+    "run": {
+      "id": "986433be-0cc3-4643-8dd6-772e62e3091c",
+      "workspace_id": "local-workspace",
+      "assignment_id": null,
+      "conversation_id": "418c26ff-5bd8-4462-bcbc-0d9a840755dc",
+      "principal_id": "local-human",
+      "kind": "conversation_turn",
+      "state": "queued",
+      "fence": 0,
+      "access_generation": 1,
+      "lease_expires_at": null,
+      "profile": "general-products-controlled-v1",
+      "execution": {
+        "mode": "fixture",
+        "profile": "general-products-controlled-v1",
+        "model": null,
+        "grant_id": null,
+        "attempt_id": null,
+        "provider_observation": "not_observed",
+        "evidence_origin": "controlled_transport"
+      },
+      "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+      "tool_registry_hash": "09856f4e0524f1845e6baf0c914ec0eb1448d9b73aa216b384045aa126a71e82",
+      "provider_session_id": null,
+      "provider_turn_id": null,
+      "cursor": 0,
+      "budget_units": 1,
+      "used_units": 0,
+      "artifact_id": null,
+      "base_revision_id": null,
+      "instruction": null,
+      "proposal_id": null,
+      "unresolved": [],
+      "observed_at": "2026-10-05T16:54:13.702047Z"
+    }
+  },
+  "runs": [
+    {
+      "id": "3ccf2339-e523-454f-b678-1e221964fd78",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "id": "986433be-0cc3-4643-8dd6-772e62e3091c",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "id": "64618fc3-8b89-404b-bb9f-57f96ef1bdf0",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    }
+  ]
+}

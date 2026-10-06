@@ -103,11 +103,36 @@ async function route(
         signal: AbortSignal.timeout(15000),
       },
     );
+    const download = path.at(-1) === "download" && upstream.ok;
+    const mime = upstream.headers.get("content-type")?.split(";")[0];
+    const disposition = upstream.headers.get("content-disposition") ?? "";
+    const digest = upstream.headers.get("x-content-sha256") ?? "";
+    if (
+      download &&
+      (!mime ||
+        !["text/csv", "text/plain", "application/wasm-text"].includes(mime) ||
+        !/^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|wat|txt)"$/.test(
+          disposition,
+        ) ||
+        !/^[a-f0-9]{64}$/.test(digest))
+    )
+      return error(
+        502,
+        "action_unresolved",
+        "Download metadata was not safe or complete.",
+      );
     return new Response(upstream.body, {
       status: upstream.status,
       headers: {
         ...noStore,
-        "Content-Type": "application/json",
+        "Content-Type": download ? mime! : "application/json",
+        ...(download
+          ? {
+              "Content-Disposition": disposition,
+              "X-Content-SHA256": digest,
+              "X-Content-Type-Options": "nosniff",
+            }
+          : {}),
         "X-Request-Id": upstream.headers.get("x-request-id") ?? "local-proxy",
       },
     });

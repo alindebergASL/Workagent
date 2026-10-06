@@ -175,7 +175,9 @@ try {
     ])
       await page.getByLabel(title, { exact: false }).check();
     await shot("01-home-connected");
-    await page.getByRole("button", { name: "Start work", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Take it from here", exact: true })
+      .click();
     await page.waitForURL(/\/assignments\/[^/]+$/, { timeout: 20000 });
     const assignmentId = page.url().split("/").pop();
     let assignment = await api("/assignments/" + assignmentId);
@@ -387,9 +389,8 @@ try {
       page.locator(".doc-card").getByText(human, { exact: true }),
     ).toBeVisible();
     await expect(page.getByLabel("What should change?")).toBeHidden();
-    await page.getByRole("button", { name: "Agent", exact: true }).click();
     await page
-      .getByRole("button", { name: "Ask for a revision", exact: true })
+      .getByRole("button", { name: "Conversation", exact: true })
       .click();
     await page
       .getByLabel("What should change?")
@@ -399,7 +400,9 @@ try {
     await page
       .getByLabel("Paragraph recommendation", { exact: true })
       .fill("Unsaved phone edit kept across panes");
-    await page.getByRole("button", { name: "Agent", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Conversation", exact: true })
+      .click();
     await expect(page.getByLabel("What should change?")).toHaveValue(
       "Draft instruction kept across panes",
     );

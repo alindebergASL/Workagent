@@ -9,7 +9,7 @@ from typing import Annotated, Literal
 from fastapi import Depends, FastAPI, Header, Query, Request as HTTPRequest
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from .db import Database
 from .errors import DomainError, STATUS
@@ -133,6 +133,30 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def get_source(workspace_id:Id,source_id:Id,p:P,meta:Meta):
         return service.get_source(p,workspace_id,source_id)
 
+    @route('/v1/workspaces/{workspace_id}/conversations','GET','list_conversations',ConversationPage)
+    def list_conversations(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
+        return service.list_conversations(p,workspace_id,cursor,limit)
+
+    @route('/v1/workspaces/{workspace_id}/conversations','POST','create_conversation',Conversation,201)
+    def create_conversation(workspace_id:Id,body:CreateConversation,p:P):
+        return service.create_conversation(p,workspace_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}','GET','get_conversation',ConversationDetail)
+    def get_conversation(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
+        return service.get_conversation(p,workspace_id,conversation_id)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages','POST','post_message',MessageQueued,202)
+    def post_message(workspace_id:Id,conversation_id:Id,body:PostMessage,p:P):
+        return service.post_message(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel','POST','cancel_conversation',Conversation)
+    def cancel_conversation(workspace_id:Id,conversation_id:Id,body:CancelConversation,p:P):
+        return service.cancel_conversation(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/delegate','POST','delegate_conversation',Assignment,201)
+    def delegate_conversation(workspace_id:Id,conversation_id:Id,body:DelegateConversation,p:P):
+        return service.delegate_conversation(p,workspace_id,conversation_id,body)
+
     @route('/v1/workspaces/{workspace_id}/assignments','GET','list_assignments',AssignmentPage)
     def list_assignments(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_assignments(p,workspace_id,cursor,limit)
@@ -156,6 +180,17 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     @route('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}','GET','get_artifact',Artifact)
     def get_artifact(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,revision_id:Id | None=None):
         return service.get_artifact(p,workspace_id,artifact_id,revision_id)
+
+    @route('/v1/workspaces/{workspace_id}/observations/{observation_id}','GET','get_product_observation',ObservationReadback)
+    def observation(workspace_id:Id,observation_id:Id,p:P,meta:Meta):
+        return service.get_product_observation(p,workspace_id,observation_id)
+
+    @app.get('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download',operation_id='download_product',responses=errors)
+    def download(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,revision_id:Id | None=None):
+        file=service.download_product(p,workspace_id,artifact_id,revision_id)
+        return Response(content=file.content.encode('utf-8'),media_type=file.mime_type,headers={
+            'Content-Disposition':f'attachment; filename="{file.filename}"',
+            'X-Content-Type-Options':'nosniff','X-Content-SHA256':file.content_sha256})
 
     @route('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/history','GET','get_artifact_history',RevisionPage)
     def history(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):

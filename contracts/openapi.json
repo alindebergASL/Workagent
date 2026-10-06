@@ -44,11 +44,32 @@
         "additionalProperties": false,
         "properties": {
           "assignment_id": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Assignment Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignment Id"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "current_revision": {
             "$ref": "#/components/schemas/Revision"
@@ -93,7 +114,6 @@
         "required": [
           "id",
           "workspace_id",
-          "assignment_id",
           "current_revision_id",
           "current_revision"
         ],
@@ -189,6 +209,20 @@
             "minItems": 1,
             "title": "Completion Criteria",
             "type": "array"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "goal": {
             "maxLength": 10000,
@@ -341,6 +375,37 @@
         "title": "AssignmentPage",
         "type": "object"
       },
+      "AttachmentInput": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "mime_type",
+          "content"
+        ],
+        "title": "AttachmentInput",
+        "type": "object"
+      },
       "Block": {
         "additionalProperties": false,
         "properties": {
@@ -413,6 +478,103 @@
         "title": "Body",
         "type": "object"
       },
+      "CSVObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "discrepancies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Discrepancies",
+            "type": "array"
+          },
+          "expected_sum": {
+            "title": "Expected Sum",
+            "type": "string"
+          },
+          "formula": {
+            "title": "Formula",
+            "type": "string"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "reconcile_csv",
+            "default": "reconcile_csv",
+            "title": "Kind",
+            "type": "string"
+          },
+          "reported_sum": {
+            "title": "Reported Sum",
+            "type": "string"
+          },
+          "rounding": {
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          },
+          "source_values_preserved": {
+            "const": true,
+            "default": true,
+            "title": "Source Values Preserved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input_sha256",
+          "formula",
+          "rounding",
+          "reported_sum",
+          "expected_sum",
+          "discrepancies"
+        ],
+        "title": "CSVObservation",
+        "type": "object"
+      },
+      "CancelConversation": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version"
+        ],
+        "title": "CancelConversation",
+        "type": "object"
+      },
       "ControlAssignment": {
         "additionalProperties": false,
         "properties": {
@@ -459,6 +621,353 @@
           "operation"
         ],
         "title": "ControlAssignment",
+        "type": "object"
+      },
+      "Conversation": {
+        "additionalProperties": false,
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_profile": {
+            "default": "general-controlled-v1",
+            "enum": [
+              "general-controlled-v1",
+              "general-responses-v1"
+            ],
+            "title": "Execution Profile",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_message_preview": {
+            "anyOf": [
+              {
+                "maxLength": 240,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message Preview"
+          },
+          "model_activation": {
+            "default": "disabled",
+            "enum": [
+              "disabled",
+              "active",
+              "revoked"
+            ],
+            "title": "Model Activation",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "selected_source_refs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "maxItems": 50,
+            "title": "Selected Source Refs",
+            "type": "array"
+          },
+          "state": {
+            "default": "open",
+            "enum": [
+              "open",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "work_version": {
+            "default": 1,
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Work Version",
+            "type": "integer"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "owner_id",
+          "title"
+        ],
+        "title": "Conversation",
+        "type": "object"
+      },
+      "ConversationDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_ids": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "title": "Artifact Ids",
+            "type": "array"
+          },
+          "assignment_ids": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "title": "Assignment Ids",
+            "type": "array"
+          },
+          "conversation": {
+            "$ref": "#/components/schemas/Conversation"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessage"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/Run"
+            },
+            "title": "Runs",
+            "type": "array"
+          },
+          "turns": {
+            "items": {
+              "$ref": "#/components/schemas/TurnState"
+            },
+            "title": "Turns",
+            "type": "array"
+          }
+        },
+        "required": [
+          "conversation",
+          "messages",
+          "runs",
+          "assignment_ids"
+        ],
+        "title": "ConversationDetail",
+        "type": "object"
+      },
+      "ConversationMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/MessageAttachment"
+            },
+            "maxItems": 2,
+            "title": "Attachments",
+            "type": "array"
+          },
+          "author_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Author Id",
+            "type": "string"
+          },
+          "author_kind": {
+            "enum": [
+              "human",
+              "assistant"
+            ],
+            "title": "Author Kind",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "evidence_origin": {
+            "enum": [
+              "human",
+              "controlled_transport",
+              "synthetic_provider_receipt",
+              "live_provider_receipt"
+            ],
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "model_receipt": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Receipt"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "reconcile_csv": "#/components/schemas/ReconcileCSV",
+                    "run_wasm": "#/components/schemas/RunWasm"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ReconcileCSV"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RunWasm"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TurnResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "sequence": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExactTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "conversation_id",
+          "run_id",
+          "sequence",
+          "author_id",
+          "author_kind",
+          "text",
+          "evidence_origin"
+        ],
+        "title": "ConversationMessage",
+        "type": "object"
+      },
+      "ConversationPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Conversation"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ConversationPage",
         "type": "object"
       },
       "CreateAssignment": {
@@ -521,6 +1030,52 @@
         "title": "CreateAssignment",
         "type": "object"
       },
+      "CreateConversation": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "selected_source_refs": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "maxItems": 50,
+            "title": "Selected Source Refs",
+            "type": "array"
+          },
+          "title": {
+            "default": "Conversation",
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id"
+        ],
+        "title": "CreateConversation",
+        "type": "object"
+      },
       "CreateTask": {
         "additionalProperties": false,
         "properties": {
@@ -580,6 +1135,63 @@
           "desired_result"
         ],
         "title": "CreateTask",
+        "type": "object"
+      },
+      "DelegateConversation": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "completion_criteria": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Completion Criteria",
+            "type": "array"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "goal": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Goal",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version",
+          "goal",
+          "completion_criteria"
+        ],
+        "title": "DelegateConversation",
         "type": "object"
       },
       "DismissProposal": {
@@ -744,6 +1356,37 @@
         "title": "ErrorEnvelope",
         "type": "object"
       },
+      "ExactTarget": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "artifact_id",
+          "revision_id",
+          "body_hash"
+        ],
+        "title": "ExactTarget",
+        "type": "object"
+      },
       "ExecutionProvenance": {
         "additionalProperties": false,
         "properties": {
@@ -767,7 +1410,8 @@
               "unverified",
               "fixture",
               "synthetic_provider_receipt",
-              "live_provider_receipt"
+              "live_provider_receipt",
+              "controlled_transport"
             ],
             "title": "Evidence Origin",
             "type": "string"
@@ -812,7 +1456,10 @@
             "enum": [
               "fixture-deterministic-v1",
               "openai-agents-v1",
-              "openai-responses-v1"
+              "openai-responses-v1",
+              "general-controlled-v1",
+              "general-products-controlled-v1",
+              "general-responses-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -834,11 +1481,76 @@
         "title": "ExecutionProvenance",
         "type": "object"
       },
+      "FileBody": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "content_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Sha256",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|wat|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "kind": {
+            "const": "file",
+            "default": "file",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain",
+              "application/wasm-text"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "filename",
+          "mime_type",
+          "content",
+          "content_sha256"
+        ],
+        "title": "FileBody",
+        "type": "object"
+      },
       "HumanSave": {
         "additionalProperties": false,
         "properties": {
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "command_id": {
             "maxLength": 128,
@@ -875,6 +1587,210 @@
           "body"
         ],
         "title": "HumanSave",
+        "type": "object"
+      },
+      "InputField": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "maximum": {
+            "const": 1000000000,
+            "default": 1000000000,
+            "title": "Maximum",
+            "type": "integer"
+          },
+          "minimum": {
+            "const": -1000000000,
+            "default": -1000000000,
+            "title": "Minimum",
+            "type": "integer"
+          },
+          "name": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "type": {
+            "const": "integer",
+            "default": "integer",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "label"
+        ],
+        "title": "InputField",
+        "type": "object"
+      },
+      "MessageAttachment": {
+        "additionalProperties": false,
+        "properties": {
+          "byte_length": {
+            "maximum": 200000.0,
+            "minimum": 1.0,
+            "title": "Byte Length",
+            "type": "integer"
+          },
+          "content": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "filename": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "title": "Filename",
+            "type": "string"
+          },
+          "mime_type": {
+            "enum": [
+              "text/csv",
+              "text/plain"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "ref": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Ref",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "filename",
+          "mime_type",
+          "content",
+          "ref",
+          "sha256",
+          "byte_length"
+        ],
+        "title": "MessageAttachment",
+        "type": "object"
+      },
+      "MessageQueued": {
+        "additionalProperties": false,
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/Conversation"
+          },
+          "message": {
+            "$ref": "#/components/schemas/ConversationMessage"
+          },
+          "run": {
+            "$ref": "#/components/schemas/Run"
+          }
+        },
+        "required": [
+          "conversation",
+          "message",
+          "run"
+        ],
+        "title": "MessageQueued",
+        "type": "object"
+      },
+      "ModelSelectionBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "base_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Hash"
+          },
+          "decision_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Sha256",
+            "type": "string"
+          },
+          "operation_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Hash"
+          },
+          "selection_request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Selection Request Sha256",
+            "type": "string"
+          },
+          "selection_response_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Selection Response Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attempt_id",
+          "selection_request_sha256",
+          "selection_response_id",
+          "decision_sha256",
+          "operation_hash",
+          "base_hash"
+        ],
+        "title": "ModelSelectionBinding",
+        "type": "object"
+      },
+      "ObservationReadback": {
+        "additionalProperties": false,
+        "properties": {
+          "binding_state": {
+            "enum": [
+              "current_revision",
+              "pending_proposal",
+              "historical"
+            ],
+            "title": "Binding State",
+            "type": "string"
+          },
+          "current_scope": {
+            "title": "Current Scope",
+            "type": "boolean"
+          },
+          "observation": {
+            "$ref": "#/components/schemas/ProductObservationResponse"
+          }
+        },
+        "required": [
+          "observation",
+          "binding_state",
+          "current_scope"
+        ],
+        "title": "ObservationReadback",
         "type": "object"
       },
       "OutcomeCheck": {
@@ -949,6 +1865,435 @@
         "title": "OutcomeQuestion",
         "type": "object"
       },
+      "PostMessage": {
+        "additionalProperties": false,
+        "properties": {
+          "attachments": {
+            "items": {
+              "$ref": "#/components/schemas/AttachmentInput"
+            },
+            "maxItems": 2,
+            "title": "Attachments",
+            "type": "array"
+          },
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "operation": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "reconcile_csv": "#/components/schemas/ReconcileCSV",
+                    "run_wasm": "#/components/schemas/RunWasm"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/ReconcileCSV"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RunWasm"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExactTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version",
+          "text"
+        ],
+        "title": "PostMessage",
+        "type": "object"
+      },
+      "ProductObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "evidence_origin": {
+            "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "local_tool"
+            ],
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "model_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelectionBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operation_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Operation Hash",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservation"
+              }
+            ],
+            "title": "Output"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "conversation_id",
+          "run_id",
+          "artifact_id",
+          "body_hash",
+          "operation_hash",
+          "access_generation",
+          "output"
+        ],
+        "title": "ProductObservation",
+        "type": "object"
+      },
+      "ProductObservationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "evidence_origin": {
+            "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "local_tool"
+            ],
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Id",
+            "type": "string"
+          },
+          "model_selection": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelSelectionBinding"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operation_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Operation Hash",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservationResponse"
+              }
+            ],
+            "title": "Output"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_id",
+          "conversation_id",
+          "run_id",
+          "artifact_id",
+          "body_hash",
+          "operation_hash",
+          "access_generation",
+          "output"
+        ],
+        "title": "ProductObservationResponse",
+        "type": "object"
+      },
+      "ProductResult": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "table",
+              "file",
+              "tool"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "observation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposal Id"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          }
+        },
+        "required": [
+          "kind",
+          "artifact_id",
+          "observation_id"
+        ],
+        "title": "ProductResult",
+        "type": "object"
+      },
       "Proposal": {
         "additionalProperties": false,
         "properties": {
@@ -974,11 +2319,18 @@
             "type": "string"
           },
           "assignment_id": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Assignment Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignment Id"
           },
           "base_revision_id": {
             "maxLength": 128,
@@ -994,12 +2346,40 @@
             "type": "integer"
           },
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "body_hash": {
             "pattern": "^[0-9a-f]{64}$",
             "title": "Body Hash",
             "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "created_at": {
             "format": "date-time",
@@ -1048,7 +2428,6 @@
         "required": [
           "id",
           "workspace_id",
-          "assignment_id",
           "artifact_id",
           "base_revision_id",
           "base_work_version",
@@ -1089,6 +2468,71 @@
           "items"
         ],
         "title": "ProposalPage",
+        "type": "object"
+      },
+      "ReconcileCSV": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "input_csv": {
+            "anyOf": [
+              {
+                "maxLength": 200000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Csv"
+          },
+          "kind": {
+            "const": "reconcile_csv",
+            "title": "Kind",
+            "type": "string"
+          },
+          "rounding": {
+            "default": "ROUND_HALF_UP",
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ReconcileCSV",
         "type": "object"
       },
       "RequestRevision": {
@@ -1283,6 +2727,74 @@
         "title": "ResponsibilityOutcome",
         "type": "object"
       },
+      "RetainedLocalResult": {
+        "additionalProperties": false,
+        "description": "Read-only journal projection, not a published/accepted product.",
+        "properties": {
+          "binding": {
+            "$ref": "#/components/schemas/ModelSelectionBinding"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVObservation"
+              },
+              {
+                "$ref": "#/components/schemas/WasmObservationResponse"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "published": {
+            "title": "Published",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "reply",
+              "observed",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "published",
+          "binding"
+        ],
+        "title": "RetainedLocalResult",
+        "type": "object"
+      },
       "Revision": {
         "additionalProperties": false,
         "properties": {
@@ -1309,7 +2821,21 @@
             "type": "string"
           },
           "body": {
-            "$ref": "#/components/schemas/Body"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/TableBody"
+              },
+              {
+                "$ref": "#/components/schemas/FileBody"
+              },
+              {
+                "$ref": "#/components/schemas/ToolBody"
+              }
+            ],
+            "title": "Body"
           },
           "body_hash": {
             "pattern": "^[0-9a-f]{64}$",
@@ -1439,11 +2965,18 @@
             "title": "Artifact Id"
           },
           "assignment_id": {
-            "maxLength": 128,
-            "minLength": 1,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
-            "title": "Assignment Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assignment Id"
           },
           "base_revision_id": {
             "anyOf": [
@@ -1470,6 +3003,20 @@
             "pattern": "^[0-9a-f]{64}$",
             "title": "Bundle Hash",
             "type": "string"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           },
           "cursor": {
             "default": 0,
@@ -1516,7 +3063,8 @@
           "kind": {
             "enum": [
               "initial",
-              "revision"
+              "revision",
+              "conversation_turn"
             ],
             "title": "Kind",
             "type": "string"
@@ -1550,7 +3098,10 @@
             "enum": [
               "fixture-deterministic-v1",
               "openai-agents-v1",
-              "openai-responses-v1"
+              "openai-responses-v1",
+              "general-controlled-v1",
+              "general-products-controlled-v1",
+              "general-responses-v1"
             ],
             "title": "Profile",
             "type": "string"
@@ -1642,7 +3193,6 @@
         "required": [
           "id",
           "workspace_id",
-          "assignment_id",
           "principal_id",
           "kind",
           "access_generation",
@@ -1845,6 +3395,88 @@
         "title": "RunOutcome",
         "type": "object"
       },
+      "RunWasm": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "maxLength": 16000,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "entrypoint": {
+            "default": "total",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "input_form": {
+            "items": {
+              "$ref": "#/components/schemas/InputField"
+            },
+            "maxItems": 8,
+            "title": "Input Form",
+            "type": "array"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "arguments",
+          "input_form"
+        ],
+        "title": "RunWasm",
+        "type": "object"
+      },
       "Source": {
         "additionalProperties": false,
         "properties": {
@@ -2015,6 +3647,75 @@
         "title": "SourceRef",
         "type": "object"
       },
+      "TableBody": {
+        "additionalProperties": false,
+        "properties": {
+          "columns": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 33,
+            "title": "Columns",
+            "type": "array"
+          },
+          "kind": {
+            "const": "table",
+            "default": "table",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Notes",
+            "type": "array"
+          },
+          "rounding": {
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "maxItems": 500,
+            "title": "Rows",
+            "type": "array"
+          },
+          "source_csv": {
+            "maxLength": 200000,
+            "minLength": 1,
+            "title": "Source Csv",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "source_csv",
+          "rounding",
+          "columns",
+          "rows"
+        ],
+        "title": "TableBody",
+        "type": "object"
+      },
       "Task": {
         "additionalProperties": false,
         "properties": {
@@ -2148,6 +3849,368 @@
           "task"
         ],
         "title": "TaskReceipt",
+        "type": "object"
+      },
+      "TextResult": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "const": "text",
+            "default": "text",
+            "title": "Kind",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "TextResult",
+        "type": "object"
+      },
+      "ToolBody": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code": {
+            "maxLength": 16000,
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "entrypoint": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "input_form": {
+            "items": {
+              "$ref": "#/components/schemas/InputField"
+            },
+            "maxItems": 8,
+            "title": "Input Form",
+            "type": "array"
+          },
+          "kind": {
+            "const": "tool",
+            "default": "tool",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Notes",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "code",
+          "entrypoint",
+          "arguments",
+          "input_form"
+        ],
+        "title": "ToolBody",
+        "type": "object"
+      },
+      "TurnResult": {
+        "additionalProperties": false,
+        "properties": {
+          "results": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/TextResult"
+                },
+                {
+                  "$ref": "#/components/schemas/ProductResult"
+                }
+              ]
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Results",
+            "type": "array"
+          }
+        },
+        "required": [
+          "results"
+        ],
+        "title": "TurnResult",
+        "type": "object"
+      },
+      "TurnState": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence_origin": {
+            "default": "controlled_transport",
+            "enum": [
+              "controlled_transport",
+              "unverified",
+              "synthetic_provider_receipt",
+              "live_provider_receipt"
+            ],
+            "title": "Evidence Origin",
+            "type": "string"
+          },
+          "profile": {
+            "default": "general-controlled-v1",
+            "enum": [
+              "general-controlled-v1",
+              "general-products-controlled-v1",
+              "general-responses-v1"
+            ],
+            "title": "Profile",
+            "type": "string"
+          },
+          "provider_observation": {
+            "default": "not_observed",
+            "enum": [
+              "not_observed",
+              "pending",
+              "received",
+              "outcome_unknown",
+              "invalid"
+            ],
+            "title": "Provider Observation",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "response_steps": {
+            "items": {
+              "$ref": "#/components/schemas/ResponseStepObservation"
+            },
+            "maxItems": 2,
+            "title": "Response Steps",
+            "type": "array"
+          },
+          "retained_local_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RetainedLocalResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "run_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "queued",
+              "responding",
+              "replied",
+              "failed",
+              "unavailable",
+              "outcome_unknown",
+              "cancelled"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "state",
+          "reason"
+        ],
+        "title": "TurnState",
+        "type": "object"
+      },
+      "WasmObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Code Sha256",
+            "type": "string"
+          },
+          "engine": {
+            "const": "wasmtime-49.0.0",
+            "title": "Engine",
+            "type": "string"
+          },
+          "entrypoint": {
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "execution_observed": {
+            "const": true,
+            "title": "Execution Observed",
+            "type": "boolean"
+          },
+          "fuel_consumed": {
+            "title": "Fuel Consumed",
+            "type": "integer"
+          },
+          "fuel_limit": {
+            "const": 50000,
+            "title": "Fuel Limit",
+            "type": "integer"
+          },
+          "host_imports": {
+            "const": 0,
+            "title": "Host Imports",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "default": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          },
+          "memory_limit_bytes": {
+            "const": 1048576,
+            "title": "Memory Limit Bytes",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "value",
+          "entrypoint",
+          "arguments",
+          "code_sha256",
+          "input_sha256",
+          "engine",
+          "execution_observed",
+          "fuel_consumed",
+          "fuel_limit",
+          "memory_limit_bytes",
+          "host_imports"
+        ],
+        "title": "WasmObservation",
+        "type": "object"
+      },
+      "WasmObservationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Arguments",
+            "type": "array"
+          },
+          "code_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Code Sha256",
+            "type": "string"
+          },
+          "engine": {
+            "const": "wasmtime-49.0.0",
+            "title": "Engine",
+            "type": "string"
+          },
+          "entrypoint": {
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "execution_observed": {
+            "const": true,
+            "title": "Execution Observed",
+            "type": "boolean"
+          },
+          "fuel_consumed": {
+            "title": "Fuel Consumed",
+            "type": "integer"
+          },
+          "fuel_limit": {
+            "const": 50000,
+            "title": "Fuel Limit",
+            "type": "integer"
+          },
+          "host_imports": {
+            "const": 0,
+            "title": "Host Imports",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "kind": {
+            "const": "run_wasm",
+            "default": "run_wasm",
+            "title": "Kind",
+            "type": "string"
+          },
+          "memory_limit_bytes": {
+            "const": 1048576,
+            "title": "Memory Limit Bytes",
+            "type": "integer"
+          },
+          "value": {
+            "description": "Exact signed i64 return as a decimal string; never parse as a JSON number.",
+            "pattern": "^-?(0|[1-9][0-9]*)$",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "entrypoint",
+          "arguments",
+          "code_sha256",
+          "input_sha256",
+          "engine",
+          "execution_observed",
+          "fuel_consumed",
+          "fuel_limit",
+          "memory_limit_bytes",
+          "host_imports"
+        ],
+        "title": "WasmObservationResponse",
         "type": "object"
       },
       "Workspace": {
@@ -2490,6 +4553,7 @@
               "application/json": {
                 "example": {
                   "assignment_id": "assignment-example",
+                  "conversation_id": null,
                   "current_revision": {
                     "artifact_id": "artifact-example",
                     "author_id": "local-human",
@@ -2630,6 +4694,186 @@
           }
         ],
         "summary": "Get Artifact"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download": {
+      "get": {
+        "operationId": "download_product",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Download"
       }
     },
     "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/history": {
@@ -3241,6 +5485,7 @@
               "application/json": {
                 "example": {
                   "assignment_id": "assignment-example",
+                  "conversation_id": null,
                   "current_revision": {
                     "artifact_id": "artifact-example",
                     "author_id": "local-human",
@@ -3616,6 +5861,7 @@
                     "completion_criteria": [
                       "A reusable checklist"
                     ],
+                    "conversation_id": null,
                     "goal": "Improve private intake review",
                     "id": "assignment-example",
                     "observed_at": "2026-10-02T00:00:00Z",
@@ -3643,6 +5889,7 @@
                     "base_revision_id": null,
                     "budget_units": 1,
                     "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+                    "conversation_id": null,
                     "cursor": 0,
                     "execution": null,
                     "fence": 0,
@@ -3657,7 +5904,7 @@
                     "provider_session_id": null,
                     "provider_turn_id": null,
                     "state": "queued",
-                    "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+                    "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -3833,6 +6080,7 @@
                   "completion_criteria": [
                     "A reusable checklist"
                   ],
+                  "conversation_id": null,
                   "goal": "Improve private intake review",
                   "id": "assignment-example",
                   "observed_at": "2026-10-02T00:00:00Z",
@@ -4285,6 +6533,1345 @@
         "summary": "Create Task"
       }
     },
+    "/v1/workspaces/{workspace_id}/conversations": {
+      "get": {
+        "operationId": "list_conversations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "items": [
+                    {
+                      "created_at": "2026-10-02T00:00:00Z",
+                      "execution_profile": "general-controlled-v1",
+                      "id": "conversation-example",
+                      "last_message_preview": null,
+                      "model_activation": "disabled",
+                      "owner_id": "local-human",
+                      "selected_source_refs": [],
+                      "state": "open",
+                      "title": "Conversation",
+                      "updated_at": null,
+                      "work_version": 1,
+                      "workspace_id": "workspace-example"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Conversations"
+      },
+      "post": {
+        "operationId": "create_conversation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "command_id": "command-example",
+                "request_id": "request-example",
+                "schema_version": "workagent/v1",
+                "selected_source_refs": [],
+                "title": "Conversation"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "created_at": "2026-10-02T00:00:00Z",
+                  "execution_profile": "general-controlled-v1",
+                  "id": "conversation-example",
+                  "last_message_preview": null,
+                  "model_activation": "disabled",
+                  "owner_id": "local-human",
+                  "selected_source_refs": [],
+                  "state": "open",
+                  "title": "Conversation",
+                  "updated_at": null,
+                  "work_version": 1,
+                  "workspace_id": "workspace-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Conversation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Conversation"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}": {
+      "get": {
+        "operationId": "get_conversation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "artifact_ids": [],
+                  "assignment_ids": [],
+                  "conversation": {
+                    "created_at": "2026-10-02T00:00:00Z",
+                    "execution_profile": "general-controlled-v1",
+                    "id": "conversation-example",
+                    "last_message_preview": null,
+                    "model_activation": "disabled",
+                    "owner_id": "local-human",
+                    "selected_source_refs": [],
+                    "state": "open",
+                    "title": "Conversation",
+                    "updated_at": null,
+                    "work_version": 2,
+                    "workspace_id": "workspace-example"
+                  },
+                  "messages": [
+                    {
+                      "attachments": [],
+                      "author_id": "local-human",
+                      "author_kind": "human",
+                      "conversation_id": "conversation-example",
+                      "created_at": "2026-10-02T00:00:00Z",
+                      "evidence_origin": "human",
+                      "id": "message-example",
+                      "model_receipt": null,
+                      "operation": null,
+                      "result": null,
+                      "run_id": "turn-example",
+                      "sequence": 1,
+                      "target": null,
+                      "text": "Help me think this through"
+                    }
+                  ],
+                  "runs": [
+                    {
+                      "access_generation": 1,
+                      "artifact_id": null,
+                      "assignment_id": null,
+                      "base_revision_id": null,
+                      "budget_units": 1,
+                      "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+                      "conversation_id": "conversation-example",
+                      "cursor": 0,
+                      "execution": {
+                        "attempt_id": null,
+                        "evidence_origin": "controlled_transport",
+                        "grant_id": null,
+                        "mode": "fixture",
+                        "model": null,
+                        "profile": "general-controlled-v1",
+                        "provider_observation": "not_observed"
+                      },
+                      "fence": 0,
+                      "id": "turn-example",
+                      "instruction": null,
+                      "kind": "conversation_turn",
+                      "lease_expires_at": null,
+                      "observed_at": "2026-10-02T00:00:00Z",
+                      "principal_id": "local-human",
+                      "profile": "general-controlled-v1",
+                      "proposal_id": null,
+                      "provider_session_id": null,
+                      "provider_turn_id": null,
+                      "state": "queued",
+                      "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                      "unresolved": [],
+                      "used_units": 0,
+                      "workspace_id": "workspace-example"
+                    }
+                  ],
+                  "turns": []
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Conversation"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel": {
+      "post": {
+        "operationId": "cancel_conversation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "command_id": "command-example",
+                "expected_work_version": 2,
+                "request_id": "request-example",
+                "schema_version": "workagent/v1"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/CancelConversation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "created_at": "2026-10-02T00:00:00Z",
+                  "execution_profile": "general-controlled-v1",
+                  "id": "conversation-example",
+                  "last_message_preview": null,
+                  "model_activation": "disabled",
+                  "owner_id": "local-human",
+                  "selected_source_refs": [],
+                  "state": "cancelled",
+                  "title": "Conversation",
+                  "updated_at": null,
+                  "work_version": 3,
+                  "workspace_id": "workspace-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Conversation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Conversation"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/delegate": {
+      "post": {
+        "operationId": "delegate_conversation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "command_id": "command-example",
+                "completion_criteria": [
+                  "Review together"
+                ],
+                "expected_work_version": 2,
+                "goal": "Carry this forward",
+                "request_id": "request-example",
+                "schema_version": "workagent/v1"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/DelegateConversation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "artifact_ids": [],
+                  "completion_criteria": [
+                    "Review together"
+                  ],
+                  "conversation_id": "conversation-example",
+                  "goal": "Carry this forward",
+                  "id": "delegation-example",
+                  "observed_at": "2026-10-02T00:00:00Z",
+                  "owner_id": "local-human",
+                  "responsibility": null,
+                  "run_ids": [],
+                  "selected_source_refs": [],
+                  "state": "paused",
+                  "unresolved": [
+                    "Delegation recorded; autonomous execution is not supported by B1. Resume is disabled."
+                  ],
+                  "work_version": 1,
+                  "workspace_id": "workspace-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/Assignment"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delegate Conversation"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages": {
+      "post": {
+        "operationId": "post_message",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "example": {
+                "attachments": [],
+                "command_id": "command-example",
+                "expected_work_version": 1,
+                "operation": null,
+                "request_id": "request-example",
+                "schema_version": "workagent/v1",
+                "target": null,
+                "text": "Help me think this through"
+              },
+              "schema": {
+                "$ref": "#/components/schemas/PostMessage"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "conversation": {
+                    "created_at": "2026-10-02T00:00:00Z",
+                    "execution_profile": "general-controlled-v1",
+                    "id": "conversation-example",
+                    "last_message_preview": null,
+                    "model_activation": "disabled",
+                    "owner_id": "local-human",
+                    "selected_source_refs": [],
+                    "state": "open",
+                    "title": "Conversation",
+                    "updated_at": null,
+                    "work_version": 2,
+                    "workspace_id": "workspace-example"
+                  },
+                  "message": {
+                    "attachments": [],
+                    "author_id": "local-human",
+                    "author_kind": "human",
+                    "conversation_id": "conversation-example",
+                    "created_at": "2026-10-02T00:00:00Z",
+                    "evidence_origin": "human",
+                    "id": "message-example",
+                    "model_receipt": null,
+                    "operation": null,
+                    "result": null,
+                    "run_id": "turn-example",
+                    "sequence": 1,
+                    "target": null,
+                    "text": "Help me think this through"
+                  },
+                  "run": {
+                    "access_generation": 1,
+                    "artifact_id": null,
+                    "assignment_id": null,
+                    "base_revision_id": null,
+                    "budget_units": 1,
+                    "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+                    "conversation_id": "conversation-example",
+                    "cursor": 0,
+                    "execution": {
+                      "attempt_id": null,
+                      "evidence_origin": "controlled_transport",
+                      "grant_id": null,
+                      "mode": "fixture",
+                      "model": null,
+                      "profile": "general-controlled-v1",
+                      "provider_observation": "not_observed"
+                    },
+                    "fence": 0,
+                    "id": "turn-example",
+                    "instruction": null,
+                    "kind": "conversation_turn",
+                    "lease_expires_at": null,
+                    "observed_at": "2026-10-02T00:00:00Z",
+                    "principal_id": "local-human",
+                    "profile": "general-controlled-v1",
+                    "proposal_id": null,
+                    "provider_session_id": null,
+                    "provider_turn_id": null,
+                    "state": "queued",
+                    "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+                    "unresolved": [],
+                    "used_units": 0,
+                    "workspace_id": "workspace-example"
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MessageQueued"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Post Message"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/observations/{observation_id}": {
+      "get": {
+        "operationId": "get_product_observation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "observation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Observation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationReadback"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Observation"
+      }
+    },
     "/v1/workspaces/{workspace_id}/proposals/{proposal_id}/accept": {
       "post": {
         "operationId": "accept_revision",
@@ -4662,6 +8249,7 @@
                   "base_revision_id": null,
                   "budget_units": 1,
                   "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+                  "conversation_id": null,
                   "cursor": 0,
                   "execution": null,
                   "fence": 1,
@@ -4676,7 +8264,7 @@
                   "provider_session_id": null,
                   "provider_turn_id": null,
                   "state": "running",
-                  "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+                  "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

@@ -39,13 +39,18 @@ class Ledger:
 
     def snapshot(self,phase,cap):
         with self.service.db.transaction() as c:
-            self._auth(c,cap)
+            run,_,_=self._auth(c,cap)
             row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
                           (self.receipt.attempt_id,phase)).fetchone()
             if not row:
                 return None,{}
-            request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),
-                                    phase,READ_SCHEMA if phase=='selection' else FINAL_SCHEMA)
+            policy='general-responses-v1' if run.profile=='general-responses-v1' else 'intake-v1'
+            if policy=='general-responses-v1':
+                from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
+                schema=DECISION_SCHEMA if phase=='selection' else EXPLANATION_SCHEMA
+            else:
+                schema=READ_SCHEMA if phase=='selection' else FINAL_SCHEMA
+            request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),phase,schema,policy)
             if request.sha256!=row['request_sha256'] or request.count_body()!=row['count_bytes'].encode():
                 raise DomainError('command_conflict')
             return request,self._events(c,phase)
@@ -71,7 +76,9 @@ class Ledger:
         if kind not in ('count_send','dispatch','read','cancel'):
             raise ValueError('invalid operation')
         with self.service.db.transaction() as c:
-            _,attempt,_=self._auth(c,cap)
+            run,attempt,_=self._auth(c,cap)
+            if run.profile=='general-responses-v1':
+                self.service._general_context(c,cap)
             events=self._events(c,request.phase)
             stored=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
                              (attempt.id,request.phase)).fetchone()
@@ -85,14 +92,18 @@ class Ledger:
                 raise DomainError('action_unresolved')
             n=c.execute('''SELECT count(*) AS n FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
                            WHERE s.grant_id=%s AND e.kind=%s''',(attempt.grant_id,kind)).fetchone()['n']
-            if n >= (40 if kind=='read' else 4):
+            from .models import ProviderGrant
+            grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(attempt.grant_id,)).fetchone()['data'])
+            b=grant.responses
+            limit={'count_send':b.count_limit,'dispatch':b.generation_limit,'read':b.read_limit,'cancel':b.cancel_limit}[kind]
+            if n >= limit:
                 raise DomainError('budget_exhausted')
             data={}
             if kind=='dispatch':
                 totals=summary(c,attempt.grant_id)
-                if (totals['reserved_input_tokens']+RESERVED_INPUT>80000 or
-                    totals['reserved_output_tokens']+RESERVED_OUTPUT>32768 or
-                    Decimal(totals['reserved_cost_usd'])+RESERVED_COST>Decimal('20.00')):
+                if (totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
+                    totals['reserved_output_tokens']+RESERVED_OUTPUT>b.output_limit or
+                    Decimal(totals['reserved_cost_usd'])+RESERVED_COST>Decimal(b.cost_limit_usd)):
                     raise DomainError('budget_exhausted')
                 data={'reserved_input_tokens':RESERVED_INPUT,'reserved_output_tokens':RESERVED_OUTPUT,
                       'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None}
@@ -180,7 +191,8 @@ class Ledger:
 
     def tool_result(self,request,data,cap):
         with self.service.db.transaction() as c:
-            self._auth(c,cap)
+            run,_,_=self._auth(c,cap)
+            if run.profile=='general-responses-v1': raise DomainError('unsupported_operation')
             events=self._events(c,'selection')
             if events.get('result',{}).get('state')!='function_call':
                 raise DomainError('action_unresolved')
@@ -218,6 +230,7 @@ def observations(c,attempt_id):
         receipt=e.get('corrected_readback',e.get('result',{})); usage=receipt.get('usage'); identity=e.get('identity',{})
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
+        if e.get('problem',{}).get('received') and not receipt: state='invalid'
         cost=(Decimal(usage['input_tokens'])*Decimal('2.5')+Decimal(usage['output_tokens'])*Decimal('10'))/Decimal(1000000) if usage else None
         result.append(ResponseStepObservation(phase=step['phase'],state=state,response_id=identity.get('response_id'),
             reported_input_tokens=usage['input_tokens'] if usage else None,reported_output_tokens=usage['output_tokens'] if usage else None,

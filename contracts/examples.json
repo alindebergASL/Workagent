@@ -9,6 +9,28 @@
         "schema_version": "workagent/v1"
       }
     },
+    "cancel_conversation": {
+      "request": {
+        "command_id": "command-example",
+        "expected_work_version": 2,
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      },
+      "response": {
+        "created_at": "2026-10-02T00:00:00Z",
+        "execution_profile": "general-controlled-v1",
+        "id": "conversation-example",
+        "last_message_preview": null,
+        "model_activation": "disabled",
+        "owner_id": "local-human",
+        "selected_source_refs": [],
+        "state": "cancelled",
+        "title": "Conversation",
+        "updated_at": null,
+        "work_version": 3,
+        "workspace_id": "workspace-example"
+      }
+    },
     "control_assignment": {
       "request": {
         "command_id": "command-example",
@@ -41,6 +63,7 @@
           "completion_criteria": [
             "A reusable checklist"
           ],
+          "conversation_id": null,
           "goal": "Improve private intake review",
           "id": "assignment-example",
           "observed_at": "2026-10-02T00:00:00Z",
@@ -68,6 +91,7 @@
           "base_revision_id": null,
           "budget_units": 1,
           "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+          "conversation_id": null,
           "cursor": 0,
           "execution": null,
           "fence": 0,
@@ -82,11 +106,34 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+          "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
         }
+      }
+    },
+    "create_conversation": {
+      "request": {
+        "command_id": "command-example",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "selected_source_refs": [],
+        "title": "Conversation"
+      },
+      "response": {
+        "created_at": "2026-10-02T00:00:00Z",
+        "execution_profile": "general-controlled-v1",
+        "id": "conversation-example",
+        "last_message_preview": null,
+        "model_activation": "disabled",
+        "owner_id": "local-human",
+        "selected_source_refs": [],
+        "state": "open",
+        "title": "Conversation",
+        "updated_at": null,
+        "work_version": 1,
+        "workspace_id": "workspace-example"
       }
     },
     "create_task": {
@@ -106,6 +153,38 @@
         "schema_version": "workagent/v1"
       }
     },
+    "delegate_conversation": {
+      "request": {
+        "command_id": "command-example",
+        "completion_criteria": [
+          "Review together"
+        ],
+        "expected_work_version": 2,
+        "goal": "Carry this forward",
+        "request_id": "request-example",
+        "schema_version": "workagent/v1"
+      },
+      "response": {
+        "artifact_ids": [],
+        "completion_criteria": [
+          "Review together"
+        ],
+        "conversation_id": "conversation-example",
+        "goal": "Carry this forward",
+        "id": "delegation-example",
+        "observed_at": "2026-10-02T00:00:00Z",
+        "owner_id": "local-human",
+        "responsibility": null,
+        "run_ids": [],
+        "selected_source_refs": [],
+        "state": "paused",
+        "unresolved": [
+          "Delegation recorded; autonomous execution is not supported by B1. Resume is disabled."
+        ],
+        "work_version": 1,
+        "workspace_id": "workspace-example"
+      }
+    },
     "dismiss_proposal": {
       "request": {
         "command_id": "command-example",
@@ -118,6 +197,7 @@
     "get_artifact": {
       "response": {
         "assignment_id": "assignment-example",
+        "conversation_id": null,
         "current_revision": {
           "artifact_id": "artifact-example",
           "author_id": "local-human",
@@ -161,6 +241,7 @@
         "completion_criteria": [
           "A reusable checklist"
         ],
+        "conversation_id": null,
         "goal": "Improve private intake review",
         "id": "assignment-example",
         "observed_at": "2026-10-02T00:00:00Z",
@@ -182,6 +263,82 @@
         "workspace_id": "workspace-example"
       }
     },
+    "get_conversation": {
+      "response": {
+        "artifact_ids": [],
+        "assignment_ids": [],
+        "conversation": {
+          "created_at": "2026-10-02T00:00:00Z",
+          "execution_profile": "general-controlled-v1",
+          "id": "conversation-example",
+          "last_message_preview": null,
+          "model_activation": "disabled",
+          "owner_id": "local-human",
+          "selected_source_refs": [],
+          "state": "open",
+          "title": "Conversation",
+          "updated_at": null,
+          "work_version": 2,
+          "workspace_id": "workspace-example"
+        },
+        "messages": [
+          {
+            "attachments": [],
+            "author_id": "local-human",
+            "author_kind": "human",
+            "conversation_id": "conversation-example",
+            "created_at": "2026-10-02T00:00:00Z",
+            "evidence_origin": "human",
+            "id": "message-example",
+            "model_receipt": null,
+            "operation": null,
+            "result": null,
+            "run_id": "turn-example",
+            "sequence": 1,
+            "target": null,
+            "text": "Help me think this through"
+          }
+        ],
+        "runs": [
+          {
+            "access_generation": 1,
+            "artifact_id": null,
+            "assignment_id": null,
+            "base_revision_id": null,
+            "budget_units": 1,
+            "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+            "conversation_id": "conversation-example",
+            "cursor": 0,
+            "execution": {
+              "attempt_id": null,
+              "evidence_origin": "controlled_transport",
+              "grant_id": null,
+              "mode": "fixture",
+              "model": null,
+              "profile": "general-controlled-v1",
+              "provider_observation": "not_observed"
+            },
+            "fence": 0,
+            "id": "turn-example",
+            "instruction": null,
+            "kind": "conversation_turn",
+            "lease_expires_at": null,
+            "observed_at": "2026-10-02T00:00:00Z",
+            "principal_id": "local-human",
+            "profile": "general-controlled-v1",
+            "proposal_id": null,
+            "provider_session_id": null,
+            "provider_turn_id": null,
+            "state": "queued",
+            "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+            "unresolved": [],
+            "used_units": 0,
+            "workspace_id": "workspace-example"
+          }
+        ],
+        "turns": []
+      }
+    },
     "get_run": {
       "response": {
         "access_generation": 1,
@@ -190,6 +347,7 @@
         "base_revision_id": null,
         "budget_units": 1,
         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+        "conversation_id": null,
         "cursor": 0,
         "execution": null,
         "fence": 1,
@@ -204,7 +362,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+        "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -230,6 +388,7 @@
       },
       "response": {
         "assignment_id": "assignment-example",
+        "conversation_id": null,
         "current_revision": {
           "artifact_id": "artifact-example",
           "author_id": "local-human",
@@ -265,6 +424,180 @@
         "workspace_id": "workspace-example"
       }
     },
+    "list_conversations": {
+      "response": {
+        "items": [
+          {
+            "created_at": "2026-10-02T00:00:00Z",
+            "execution_profile": "general-controlled-v1",
+            "id": "conversation-example",
+            "last_message_preview": null,
+            "model_activation": "disabled",
+            "owner_id": "local-human",
+            "selected_source_refs": [],
+            "state": "open",
+            "title": "Conversation",
+            "updated_at": null,
+            "work_version": 1,
+            "workspace_id": "workspace-example"
+          }
+        ],
+        "next_cursor": null
+      }
+    },
+    "post_csv_operation": {
+      "request": {
+        "attachments": [],
+        "command_id": "command-example",
+        "expected_work_version": 1,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "input_csv": "id,quantity,unit_price,reported_total,note\nA,2,19.95,39.90,Keep my wording\nB,3,12.50,38.50,Await credit\n",
+          "kind": "reconcile_csv",
+          "rounding": "ROUND_HALF_UP"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "target": null,
+        "text": "Reconcile these invoice rows"
+      }
+    },
+    "post_message": {
+      "request": {
+        "attachments": [],
+        "command_id": "command-example",
+        "expected_work_version": 1,
+        "operation": null,
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "target": null,
+        "text": "Help me think this through"
+      },
+      "response": {
+        "conversation": {
+          "created_at": "2026-10-02T00:00:00Z",
+          "execution_profile": "general-controlled-v1",
+          "id": "conversation-example",
+          "last_message_preview": null,
+          "model_activation": "disabled",
+          "owner_id": "local-human",
+          "selected_source_refs": [],
+          "state": "open",
+          "title": "Conversation",
+          "updated_at": null,
+          "work_version": 2,
+          "workspace_id": "workspace-example"
+        },
+        "message": {
+          "attachments": [],
+          "author_id": "local-human",
+          "author_kind": "human",
+          "conversation_id": "conversation-example",
+          "created_at": "2026-10-02T00:00:00Z",
+          "evidence_origin": "human",
+          "id": "message-example",
+          "model_receipt": null,
+          "operation": null,
+          "result": null,
+          "run_id": "turn-example",
+          "sequence": 1,
+          "target": null,
+          "text": "Help me think this through"
+        },
+        "run": {
+          "access_generation": 1,
+          "artifact_id": null,
+          "assignment_id": null,
+          "base_revision_id": null,
+          "budget_units": 1,
+          "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+          "conversation_id": "conversation-example",
+          "cursor": 0,
+          "execution": {
+            "attempt_id": null,
+            "evidence_origin": "controlled_transport",
+            "grant_id": null,
+            "mode": "fixture",
+            "model": null,
+            "profile": "general-controlled-v1",
+            "provider_observation": "not_observed"
+          },
+          "fence": 0,
+          "id": "turn-example",
+          "instruction": null,
+          "kind": "conversation_turn",
+          "lease_expires_at": null,
+          "observed_at": "2026-10-02T00:00:00Z",
+          "principal_id": "local-human",
+          "profile": "general-controlled-v1",
+          "proposal_id": null,
+          "provider_session_id": null,
+          "provider_turn_id": null,
+          "state": "queued",
+          "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "unresolved": [],
+          "used_units": 0,
+          "workspace_id": "workspace-example"
+        }
+      }
+    },
+    "post_wasm_operation": {
+      "request": {
+        "attachments": [],
+        "command_id": "command-example",
+        "expected_work_version": 1,
+        "operation": {
+          "arguments": [
+            3,
+            1250
+          ],
+          "artifact_id": null,
+          "base_revision_id": null,
+          "code": "(module (func (export \"total\") (param i64 i64) (result i64) local.get 0 local.get 1 i64.mul))",
+          "entrypoint": "total",
+          "input_form": [
+            {
+              "label": "Quantity",
+              "maximum": 1000000000,
+              "minimum": -1000000000,
+              "name": "quantity",
+              "type": "integer"
+            },
+            {
+              "label": "Unit price cents",
+              "maximum": 1000000000,
+              "minimum": -1000000000,
+              "name": "unit_price_cents",
+              "type": "integer"
+            }
+          ],
+          "kind": "run_wasm"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "target": null,
+        "text": "Run this integer cents tool"
+      }
+    },
+    "recalculate_saved_table": {
+      "request": {
+        "attachments": [],
+        "command_id": "command-example",
+        "expected_work_version": 2,
+        "operation": {
+          "artifact_id": "artifact-example",
+          "base_revision_id": "revision-2",
+          "input_csv": null,
+          "kind": "reconcile_csv",
+          "rounding": "ROUND_HALF_EVEN"
+        },
+        "request_id": "request-example",
+        "schema_version": "workagent/v1",
+        "target": null,
+        "text": "Use half-even rounding and preserve my saved cells/notes"
+      }
+    },
     "request_revision": {
       "request": {
         "base_revision_id": "revision-1",
@@ -279,6 +612,7 @@
   "scenarios": {
     "artifact": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -331,6 +665,7 @@
         "completion_criteria": [
           "A reusable checklist"
         ],
+        "conversation_id": null,
         "goal": "Improve private intake review",
         "id": "assignment-example",
         "observed_at": "2026-10-02T00:00:00Z",
@@ -358,6 +693,7 @@
         "base_revision_id": null,
         "budget_units": 1,
         "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+        "conversation_id": null,
         "cursor": 0,
         "execution": null,
         "fence": 0,
@@ -372,7 +708,7 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+        "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -392,6 +728,7 @@
     },
     "human_save": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -433,6 +770,7 @@
       "base_revision_id": null,
       "budget_units": 1,
       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+      "conversation_id": null,
       "cursor": 0,
       "execution": null,
       "fence": 0,
@@ -447,7 +785,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+      "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -461,6 +799,7 @@
       "base_revision_id": null,
       "budget_units": 1,
       "bundle_hash": "0509e977d65949c5bf7e531f43086c090671fc23f8d61c7b201603ad43d7d5e3",
+      "conversation_id": null,
       "cursor": 0,
       "execution": null,
       "fence": 1,
@@ -475,7 +814,7 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "a6ea2514e19db3a54319397736691b55302b2a1d700938adec8e7ebf225ecf3b",
+      "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"
@@ -487,6 +826,7 @@
       "completion_criteria": [
         "A reusable checklist"
       ],
+      "conversation_id": null,
       "goal": "Improve private intake review",
       "id": "assignment-example",
       "observed_at": "2026-10-02T00:00:00Z",
@@ -509,6 +849,7 @@
     },
     "reopen_saved_work": {
       "assignment_id": "assignment-example",
+      "conversation_id": null,
       "current_revision": {
         "artifact_id": "artifact-example",
         "author_id": "local-human",
@@ -573,6 +914,7 @@
         "title": "Private working plan"
       },
       "body_hash": "23a7209c544757d28fb7399c967216e0ff3e078889d00583a8e94551b76b66d2",
+      "conversation_id": null,
       "created_at": "2026-10-02T00:00:00Z",
       "id": "proposal-example",
       "reason": "Make the next action concrete",

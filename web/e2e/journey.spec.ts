@@ -28,20 +28,30 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByRole("heading", { name: "Good to see you." }),
     ).toBeVisible();
     await expect(
-      page.getByText(/Hand over something you’d like finished/),
+      page.getByText(/hand over something you’d like finished/),
     ).toBeVisible();
     await expect(page.getByText(/I’m handling/)).toHaveCount(0);
     await expect(
-      page.getByRole("button", { name: "Start work" }),
+      page.getByRole("button", { name: "Take it from here" }),
     ).toBeDisabled();
     await noHorizontalScroll(page);
     await shot(page, info, "01-home-empty");
 
-    // Error path first: a request with no sources keeps the text and asks for context.
+    // Conversation isn't connected yet: sending says so, sends nothing and keeps the text.
     await page
       .getByLabel("Message your agent")
       .fill("Draft a plan from nothing");
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
+    await expect(
+      page.getByText(/I can’t reply in conversation yet/),
+    ).toBeVisible();
+    await expect(page.getByLabel("Message your agent")).toHaveValue(
+      "Draft a plan from nothing",
+    );
+    await shot(page, info, "01b-home-conversation-unavailable");
+
+    // Handing over without context asks for it (the deployed API requires a source).
+    await page.getByRole("button", { name: "Take it from here" }).click();
     await expect(page.getByText("Records this work may use")).toBeVisible();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByLabel("Message your agent")).toHaveValue(
@@ -56,7 +66,7 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByRole("button", { name: "Your context · 3 sources" }),
     ).toBeVisible();
     await shot(page, info, "02-home-filled");
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Take it from here" }).click();
 
     // ---- Assignment: queued/working → ready ----
     await page.waitForURL(/\/assignments\/asg_\d+$/);
@@ -465,7 +475,7 @@ test.describe("S1 journey (mock mode)", () => {
         return route.abort("connectionrefused");
       return route.continue();
     });
-    await page.getByRole("button", { name: "Start work" }).click();
+    await page.getByRole("button", { name: "Take it from here" }).click();
     await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
     await expect(page.getByLabel("Message your agent")).toHaveValue(
       /intake log/,
@@ -490,7 +500,9 @@ test.describe("S1 journey (mock mode)", () => {
       after - before,
       "exactly one assignment created across the failed attempt and its retry",
     ).toBe(1);
-    await page.unroute("**/api/mock/workspaces/*/assignments");
+    // The handler stays installed (it already passes everything through after
+    // the first POST): changing interception patterns while the next page's
+    // first read is in flight can leave that read unanswered.
 
     // Connection drops while working: the page keeps what it has, shows reconnecting, then resumes the same assignment.
     const assignmentId = page.url().split("/").pop()!;
@@ -499,8 +511,9 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /intake log/i,
     );
+    let offline = true;
     await page.route("**/api/mock/workspaces/*/assignments/*", (route) =>
-      route.abort("connectionrefused"),
+      offline ? route.abort("connectionrefused") : route.continue(),
     );
     // Returning to the tab re-reads the assignment, whether or not it was still polling.
     await page.evaluate(() => window.dispatchEvent(new Event("focus")));
@@ -511,7 +524,7 @@ test.describe("S1 journey (mock mode)", () => {
       /intake log/i,
     );
     await shot(page, info, "18-assignment-reconnecting");
-    await page.unroute("**/api/mock/workspaces/*/assignments/*");
+    offline = false;
     await expect(page.getByText("Reconnecting…")).toBeHidden({
       timeout: 30_000,
     });
