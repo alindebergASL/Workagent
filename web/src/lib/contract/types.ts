@@ -384,4 +384,6 @@ export interface ConversationDetailView {
   messages: ChatMessage[];
   turns: ChatTurn[];
   assignment_ids: string[];
+  /** Products this conversation owns (not inferred from messages). */
+  artifact_ids: string[];
 }

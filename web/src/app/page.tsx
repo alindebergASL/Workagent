@@ -2,6 +2,10 @@
 import Link from "next/link";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useWorkOverview } from "@/lib/client/overview";
+import {
+  useConversationWork,
+  type ConversationWork,
+} from "@/lib/client/conversation-work";
 import type { AssignmentSummary } from "@/lib/contract/types";
 import {
   isRecordedHandover,
@@ -14,11 +18,13 @@ import {
 import { Composer } from "@/components/Composer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
+import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 
-function lede(items: AssignmentSummary[]): string {
+function lede(items: AssignmentSummary[], made: ConversationWork[]): string {
   const phases = items.map(phaseOf);
   // The timely card below carries the exact action; the lede only orients.
   if (
+    made.some((w) => w.decision) ||
     phases.includes("decision") ||
     phases.includes("blocked") ||
     phases.includes("prepared")
@@ -34,6 +40,8 @@ function lede(items: AssignmentSummary[]): string {
     return "Some work is paused. Resume it whenever you’re ready, or start something new.";
   if (items.some(isRecordedHandover))
     return "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.";
+  if (made.length)
+    return "Your work is saved below. Pick it up, or start something new.";
   return "Ask, think something through, or hand over something you’d like finished.";
 }
 
@@ -47,11 +55,17 @@ const HANDLING = new Set(["working", "waiting", "unknown", "paused"]);
 const SETTLED = new Set(["approved", "stopped"]);
 
 export default function AgentHome() {
-  const { workspace, error: wsError } = useWorkspace();
+  const { workspace, error: wsError, zone } = useWorkspace();
   const wsId = workspace?.id ?? null;
   const overview = useWorkOverview(wsId);
   const items = overview.data ?? [];
   const attention = workAttention(items);
+  // Work conversations own, from their records; no assignment is invented.
+  const conversationWork = useConversationWork(wsId);
+  const made = conversationWork.data ?? [];
+  const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
+  const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
+  const madeSaved = made.filter((w) => !w.decision);
   const others = items.filter((i) => i !== attention?.item);
   // A recorded hand-over that can't start yet is never shown as being handled.
   const handling = others.filter(
@@ -64,22 +78,43 @@ export default function AgentHome() {
       (!HANDLING.has(phaseOf(i)) && !SETTLED.has(phaseOf(i))) ||
       isRecordedHandover(i),
   );
+  const rows = (list: AssignmentSummary[]) =>
+    list.map((item) => <WorkRow key={item.id} item={item} />);
+  const madeRows = (list: ConversationWork[]) =>
+    list.map((w) => (
+      <ConversationWorkRow
+        key={`${w.workspace_id}:${w.artifact_id}`}
+        w={w}
+        zone={zone}
+      />
+    ));
   const groups = [
     {
       key: "handling",
       label: "I’m handling",
       dot: "dot-live",
-      items: handling,
+      rows: rows(handling),
     },
-    { key: "ready", label: "Ready for you", dot: "dot-attn", items: ready },
+    {
+      key: "ready",
+      label: "Ready for you",
+      dot: "dot-attn",
+      rows: [...madeRows(madeDecisions), ...rows(ready)],
+    },
+    {
+      key: "made",
+      label: "Made in your conversations",
+      dot: "dot-done",
+      rows: madeRows(madeSaved),
+    },
     {
       key: "approved",
       label: "Approved and saved",
       dot: "dot-done",
-      items: approved,
+      rows: rows(approved),
     },
-    { key: "stopped", label: "Stopped", dot: "", items: stopped },
-  ].filter((g) => g.items.length);
+    { key: "stopped", label: "Stopped", dot: "", rows: rows(stopped) },
+  ].filter((g) => g.rows.length);
   // Open the most useful group first: what I'm carrying, else what's ready.
   const openKey = groups[0]?.key;
 
@@ -108,7 +143,7 @@ export default function AgentHome() {
         <p className="lede" aria-live="polite">
           {overview.loading && !overview.data
             ? "Checking on your work…"
-            : lede(items)}
+            : lede(items, made)}
         </p>
       </section>
 
@@ -128,6 +163,30 @@ export default function AgentHome() {
           <p className="small muted">{attention.body}</p>
           <Link className="btn btn-on-soft" href={attention.href}>
             {attention.action}
+          </Link>
+        </section>
+      ) : leadDecision ? (
+        <section
+          className="decision-card"
+          aria-labelledby="decision-title"
+          data-phase="decision"
+          data-artifact={leadDecision.artifact_id}
+        >
+          <div className="row row-between">
+            <p className="eyebrow-caps">Waiting for you</p>
+            <StatusBadge label="Decision needed" tone="status-attention" />
+          </div>
+          <h2 id="decision-title">A proposed version is ready</h2>
+          <p className="small clamp-2">{shortTitle(leadDecision.title)}</p>
+          <p className="small muted">
+            From “{leadDecision.conversation_title}”. Your saved version stays
+            until you apply it.
+          </p>
+          <Link
+            className="btn btn-on-soft"
+            href={`/conversations/${leadDecision.conversation_id}/artifacts/${leadDecision.artifact_id}`}
+          >
+            Review the proposal
           </Link>
         </section>
       ) : null}
@@ -163,13 +222,9 @@ export default function AgentHome() {
             >
               <summary>
                 <span className={`dot ${g.dot}`} aria-hidden="true" />
-                {g.label} · {g.items.length}
+                {g.label} · {g.rows.length}
               </summary>
-              <ul className="work-list">
-                {g.items.map((item) => (
-                  <WorkRow key={item.id} item={item} />
-                ))}
-              </ul>
+              <ul className="work-list">{g.rows}</ul>
             </details>
           ))}
         </div>

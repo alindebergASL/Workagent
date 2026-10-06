@@ -903,6 +903,7 @@ export function conversationDetail(
           ?.id ?? null,
     })),
     assignment_ids: d.assignment_ids,
+    artifact_ids: d.artifact_ids ?? [],
   };
 }
 
