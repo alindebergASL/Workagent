@@ -4,9 +4,9 @@ Workagent is a general, persistent work partner. Conversation and appropriate wo
 
 **Current integrated application:** `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` ([PR #9](https://github.com/alindebergASL/Workagent/pull/9)). Source-free controlled conversations, real editable CSV/table/file products and import-free integer Wasm tools are implemented through the same GeneralWorker/domain. Companion replies, phone panes, proposals, exact results, human edits, exports and restart/retry paths are exercised. All three exact-head CI workflows pass.
 
-**Start the hands-on review:** [working private access, saved examples and walkthrough](docs/EXPERIENCE_REVIEW.md). The existing EC2 review session is running, not merely saved test state. Access uses the existing SSH tunnel; no public deployment is implied.
+**Start the hands-on review:** [working private access, saved examples and walkthrough](docs/EXPERIENCE_REVIEW.md). The checkout/database are preserved; this continuation found no listeners on3000/8000. Verify or restart before using the links. Access uses the existing SSH tunnel; no public deployment is implied.
 
-**Important limit:** the general worker accepts only `ControlledTransport`. Ordinary replies are deterministic, and product operations are operator-selected. A real-model adapter, model-selected operation admission and bounded execution wiring still need implementation through this same worker. A model-test grant alone is insufficient. [Runtime status](docs/RUNTIME_STATUS.md) separates implemented paths from that gap.
+**Reviewed f68efe5 limit:** its general worker accepts only `ControlledTransport`. Ordinary replies are deterministic, and product operations are operator-selected. A real-model adapter, model-selected operation admission and bounded execution wiring still need implementation through this same worker. A model-test grant alone is insufficient. [Runtime status](docs/RUNTIME_STATUS.md) separates implemented paths from that gap.
 
 ## Reopen the preserved candidate on the existing review host
 
@@ -57,4 +57,6 @@ Use a separate disposable test database. `backend/dev_db.py` refuses to overwrit
 
 The old `scripts/workagent.py demo` journey and `hermes/intake-next-action` branch describe a preserved intake checkpoint. They are not the entrypoint for this integrated CSV/tool review. Historical [intake acceptance](handoffs/backend/INTAKE_ACCEPTANCE.md) includes a bounded live Responses test, whose four-call grant is exhausted/expired. That evidence does not connect a model to the current general worker.
 
-**Next:** Andrew's hands-on experience review, then a narrowly scoped same-worker live-adapter implementation and separately authorized bounded usefulness test. Engineering is verified; general-model usefulness and Andrew's experience acceptance remain NOT TESTED. No new inference/spend, private context, external business action, default merge or deployment is authorized by these documents.
+**Current continuation:** Andrew reviewed the bones positively but identified substantial work. Preserve the recovered same-worker model implementation on `hermes/general-responses`; integrate natural-language work and Home/Spaces continuity with the existing Claude owner. [Milestones M1–M5](docs/BUILD_PLAN.md) distinguish connection, seamless journey, adaptive execution, actual specialist coordination and persistent ownership. Only the controlled predecessor is demonstrated; new model-backed usefulness and the complete integrated journey remain NOT TESTED.
+
+The [existing model authorization](docs/GENERAL_MODEL_AUTHORIZATION.md) already permits the specified four synthetic turns under $20 cumulative, no calendar expiry, and unchanged call/token caps. No automatic resets or redundant reapproval. Private-context expansion, external business actions, default merge and deployment remain excluded.

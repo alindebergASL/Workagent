@@ -4,6 +4,44 @@ Status: active product direction after Andrew's approved course correction.
 This replaces narrow product defaults; it does not certify deployed capabilities
 or authorize new execution. See `RUNTIME_STATUS.md` for actual state.
 
+## Direction and evidence boundary
+
+Andrew's two product-direction notes are incorporated here and in
+`WORK_CONTRACT.md`, `PRODUCT_ACCEPTANCE.md` and `BUILD_PLAN.md`:
+- [Independent work and seamless experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683).
+- [Goal-directed agency and multi-agent coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
+
+These are required product capabilities, not optional aspirations or a release
+approval. Implemented capability and observed proof must be stated separately.
+The reviewed controlled application proves work surfaces and persistence, not
+independent intelligence. The initial one-operation model profile is a connection
+checkpoint, not a ceiling on the general runtime or a definition of the product.
+
+## Goal-directed agency
+
+The work partner derives goals, priorities, dependencies and observable success
+criteria from intent without a required workflow form. It pursues routine subgoals
+within standing authority; changing the intended outcome, material priorities or
+permissions requires the user's decision. It may notice gaps and propose useful
+new goals from permitted context, never infer permission from opportunity.
+
+It chooses a proportionate approach, uses tools, inspects actual results and
+adapts its next action to observations. It verifies completion or returns a
+specific decision, real blocker or reached limit. Emitting a plan or following a
+human-prescribed sequence is not this behavior. Initiative and practical
+creativity should produce better work, not unnecessary activity or hidden effects.
+
+When useful, it delegates scoped subgoals to actual specialist agents through the
+same runtime, supplies context and success criteria, manages dependencies,
+reconciles conflicting findings and checks the combined result. The coordinator
+retains outcome ownership; the user should not have to manage agent topology.
+Parallelism is optional. Child permissions and shared budgets cannot expand the
+parent's authority; cancellation and material human changes reach dependent work.
+
+Ownership persists across runs and interruptions with current context, human
+corrections, decisions, dependencies and useful wake/check-in conditions. A saved
+conversation, pending run or permanently paused handover is not that ownership.
+
 ## Product promise
 
 Workagent is a general, persistent work partner that helps a person and their
@@ -35,6 +73,24 @@ needs continuing work, not on every message.
 - Proactivity follows relevant events and commitments. Notify for useful changes
   or decisions, not each internal step. Routine work may use a standing permission;
   consequential decisions have specific approval.
+
+## Seamless default and continuity
+
+The default surface presents useful editable work, meaningful progress, what
+changed and a specific decision when needed. Approach, assumptions, sources,
+change history and upcoming steps are available on demand. Code, raw tool calls,
+traces, model usage, receipts and diagnostics sit in technical inspection.
+A visible plan panel is not mandatory. Important uncertainty, incomplete work and
+approval consequences remain visible in ordinary language, not hidden with logs.
+Stop, redirect and takeover remain accessible where supported; unsupported
+ownership must not be presented as running.
+
+Conversation-owned work and pending decisions must be discoverable through Home
+and the appropriate existing Space scope, not disappear into a chat. Read the
+canonical products/proposals; do not create an assignment per chat or duplicate
+business state to populate an overview. Required journey: ask naturally → useful
+work → revise from saved context → leave → find the result or decision → reopen
+and continue, retaining edits and drafts on desktop and phone.
 
 ## Design standard
 

@@ -10,11 +10,39 @@ candidate SHA. Evidence closes only the property it actually tested.
 | Usefulness | Andrew can use the result, understand the next step and see where his judgment matters | Passing checks or plausible text |
 | Experience | Actual responsive journey against prototype: hierarchy, copy, conversation/work, editing and continuity | Polished mockup or backend correctness |
 
+## Required behavior and current evidence
+
+Source direction: [product/experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
+and [goal-directed agency/coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
+Milestone owners and ordering are in `BUILD_PLAN.md`. All following capabilities
+are required; a planned row is not implemented merely because this table exists.
+
+| Milestone | Observable acceptance | Implementation / observed proof at this incorporation |
+| --- | --- | --- |
+| M1: Model connection | Four approved natural-language turns select real CSV work, use exact human-edited saved context, generate a runnable calculator without supplied WAT, then change code and form for shipping; preserve notes/history and unaccepted proposals | Recovered implementation in progress; controlled predecessor observed. New model-backed proof NOT TESTED |
+| M2: Seamless integrated journey | Ask → useful editable work → revise → leave → find current result/pending decision in Home or appropriate Space → reopen and continue, desktop and phone; drafts/edits survive; technical details remain closed | Existing work/edit/reply/reopen paths observed on controlled f68efe5; model entry and overview continuity not yet demonstrated together |
+| M3: Goal formation and adaptive execution | Broad goal yields sensible success criteria/subgoals; more than one plausible approach; an actual obstacle or changed condition changes the next useful action without prescribed steps; verify the result and stop within bounds | Required, planned; NOT TESTED. Human-turn revision in M1 is not autonomous within-task adaptation |
+| M4: Actual specialist coordination | Suitable work delegates through runtime with scoped context/success criteria/dependencies; coordinator reconciles and checks the combined result; inject one failed, stale or conflicting child and handle honestly | Required, planned; NOT TESTED. Specialist labels, subprocess count or an agent development team do not prove product delegation |
+| M5: Persistent ownership | Relevant event/restart resumes the same responsibility with current decisions, corrections and edits, dependency-aware next action/check-in and no duplicate effects; pause/resume/cancel/takeover behave truthfully | Required, planned; NOT TESTED. Saved conversations and the unsupported paused handover are not proof |
+
+M3–M5 must test parent/child authority, shared budget conservation, cancellation,
+revocation and material edits. Delegation cannot multiply budgets or widen data
+scope. Completion follows trusted result inspection, not child/model prose.
+For each milestone publish exact candidate, user outcome, independent behavior,
+default experience, breadth preserved, limitations and separate three verdicts.
+Label deterministic transport, live model observation and human review explicitly.
+
+No hard-coded prompt-to-answer routing, operator payload repair, hidden replacement
+calls or manual acceptance may masquerade as independent agent work. Expected
+answers remain outside model context. A useful necessary clarification or honest
+failure is evidence to report, not permission to consume replacement calls.
+
 ## First breadth proof
 
-These are target cases, not completed tests. Run B1–B3 through the same
-prompt-facing CLI/domain/worker, then supported web journeys. Use synthetic or
-explicitly permitted local context until a fresh grant exists.
+B1–B3 have controlled engineering evidence at f68efe5; that evidence is retained,
+not promoted to live intelligence. Repeat affected paths through the same
+prompt-facing CLI/domain/worker and actual integrated web for M1/M2. Synthetic
+context and live calls are bounded by `GENERAL_MODEL_AUTHORIZATION.md`.
 
 | Case | Work shape | Observable acceptance |
 | --- | --- | --- |
@@ -57,12 +85,16 @@ before those results and independent verdicts are concrete.
 
 ## Live gate and release
 
-Existing intake evidence stays valid for its scope. Its four-call allowance
-is exhausted and lease expired; no further inference is authorized. After
-deterministic adapter/interface proof, present exact route/model, permitted data,
-test count, expiry, call/token/spend caps and trace handling for a new grant.
-Begin real-context usefulness proof with a small permitted private responsibility.
-No external messages/calendar changes are implied.
+Historical intake evidence stays valid for its scope; its exhausted, expired
+four-call grant is not reusable. The separate general-model authorization already
+allows $20 cumulative with no calendar expiry, at most 8 generations, 8 counts,
+80 same-ID retrievals, 160,000 input / 65,536 output tokens across the specified
+four synthetic turns. No automatic reset, generation retries or autoacceptance.
+See `GENERAL_MODEL_AUTHORIZATION.md` for the exact route, retention and activation
+gates. Do not seek redundant approval within those bounds. Adaptive/coordination/
+ownership paid tests or private-context tests require an applicable explicit grant;
+continue deterministic development without inventing an approval gate. No external
+messages/calendar changes are implied.
 
 Default merge/deployment require Andrew's explicit approval. Development
 handoffs/local no-inference verification continue without inventing new gates.

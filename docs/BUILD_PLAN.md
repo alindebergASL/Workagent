@@ -1,19 +1,68 @@
-# Current build plan: review the integrated work partner
+# Build plan: independent work through a seamless experience
 
-## Completed engineering checkpoint
+Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
+and [goal-directed agency and coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
+Required capability, implementation and demonstrated evidence are distinct.
+Andrew's review found good basic bones with substantial work remaining; it was
+not complete product acceptance or release approval.
 
-Application `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` integrates reviewed controlled B1–B3 backend with Claude43cfe3f frontend and scoped regression corrections. Actual CSV/tool/edit/reply/restart paths and all exact-head CI workflows pass. Generated contracts and both owners' ACKs are established. The reset and harness-comparison work are complete; do not reconstruct or restart them.
+## Preserve the completed work
 
-## Current step: hands-on experience review
+Controlled application `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` integrates
+B1–B3 with Claude's companion UI and recovery corrections. Keep its checkout,
+saved review database, human edits and historical evidence. Claude subsequently
+acknowledged the fixes at `ece6290a57b22dada5b4db44f2ab1b98dbe0ce61`.
+Do not restart the reset or harness comparison, replace the frontend owner, or
+recreate accepted work. Recovered uncommitted model implementation is on
+`hermes/general-responses`, based on authorization commit `dc4360f`.
 
-Keep the exact candidate running using the existing local/private setup, retain its synthetic saved state, provide reachable SSH-tunnel links and open the CSV/tool examples. [Review access and walkthrough](EXPERIENCE_REVIEW.md) distinguishes real execution and persistence from operator-selected actions and controlled placeholder replies. Ask Andrew to judge conversation/work continuity, editing, changed requirements, export and reopen—not to certify fixtures as model intelligence.
+## Milestones, owners and required evidence
 
-## Next bounded proposal: same-worker model selection
+| Milestone | Owner | Implementation next / acceptance evidence |
+| --- | --- | --- |
+| M1: Same-runtime model connection | Hermes backend/runtime; Claude prompt/attachment/target UI | Finish recovered GeneralWorker/dispatcher/Products/Responses integration; immutable attachments/exact targets, strict model decisions, trusted staged local observations, result-aware explanation, cumulative guards/recovery. Deterministic PostgreSQL/HTTP/CLI proof before the four-turn live test in GENERAL_MODEL_SLICE.md. No operator choice or supplied WAT |
+| M2: Seamless work and continuity | Claude web; Hermes canonical read contract/integration | Agree exact generated contract for natural-language entry and conversation-owned products/decisions in Home/Spaces without fake assignments. Integrate preserved edits, collapsed code/details and useful result metadata. Demonstrate ask → useful work → revise → leave → find → reopen → continue on actual desktop/phone service |
+| M3: Goal formation and adaptive execution | Hermes same runtime/domain; Claude meaningful progress and steering | Implement bounded observation-driven continuation with derived goals/success criteria. Deterministic obstacle scenario must cause a justified next action and verification, not merely a fixed sequence or a plan. Then live test only under an applicable grant |
+| M4: Specialist coordination | Hermes same runtime/domain; Claude consolidated result/decision | Implement scoped delegation/dependencies/shared budgets, cancellation/material-edit propagation, reconciliation and verified combined output. Exercise actual delegated work plus failed/stale/conflicting child; do not surface topology as required user management |
+| M5: Persistent ownership | Hermes responsibility/event/recovery; Claude Home/Spaces/check-ins | Same responsibility resumes on relevant event/restart with current context, decisions, edits and dependencies; useful check-in, pause/resume/cancel/takeover and no duplicate effects. Saved chat or paused handover does not pass |
 
-The current GeneralWorker accepts only ControlledTransport. Connecting a real model requires implementation, not merely permission. [GENERAL_MODEL_SLICE.md](GENERAL_MODEL_SLICE.md) specifies the smallest adapter/admission/tool-result/recovery delta and a concrete synthetic usefulness test. Model decisions must originate from natural-language intent in the product and use existing authorized operations; no parallel provider script or manually selected operations dressed up as autonomy.
+M1's one-operation profile is checkpoint-specific, not the general architecture.
+M1 demonstrates adaptation across human turns; M3 must demonstrate autonomous
+continuation within a task. M3–M5 are core requirements still planned, not optional
+aspirations or delivered behavior. Implement incrementally using existing authority
+and runtime seams; reuse fitting components without a new orchestration stack.
+B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicable.
 
-Implement only after the bounded scope is agreed. Run deterministic authority/replay/malformed-selection tests without live calls first, coordinate the minimal natural-language attachment/readback frontend delta with Claude, then seek/use only the separately explicit live grant. Preserve the controlled startup and existing reviewed profiles.
+## Current execution order
 
-## Release boundary
+1. Incorporate both notes in active contracts, acceptance and this plan; publish
+   committed SHA and next behavioral checkpoint. Correct stale grant language,
+   preserving historical grant records.
+2. Finish/review the recovered backend and publish exact generated payloads/read
+   contracts promptly for the existing Claude owner. Keep controlled startup and
+   old profiles compatible; use isolated test state, not the saved review database.
+3. Integrate Claude's changes on a compatible non-default candidate. Inspect the
+   full M2 journey and fault/recovery behavior; fix actual failures rather than
+   add polish/framework scope. Both owners inspect the integrated experience.
+4. Verify exact route/account/current conservative pricing and activate only the
+   existing approved four-turn M1 grant. No hidden repairs/replacement calls or
+   expected answers in model context. Show independently chosen and performed work
+   versus operator interventions. If activation is blocked, state the precise
+   blocker while continuing deterministic implementation and experience checks.
+5. Publish the actual candidate and journey evidence with engineering, usefulness
+   and experience verdicts separately; identify the concrete M3–M5 gaps. Do not
+   call the product complete because the connection or backend tests pass.
 
-Report engineering, usefulness and experience independently. Fix observed review failures, not speculative polish or a broad rebuild. No new model spending, private context, external effects, default merge or deployment is approved. A future grant must name route/model, synthetic tasks/data, call/token/spend caps, expiry and trace handling. B4–B7 expansion is not this slice.
+## Execution boundary
+
+Routine development, tests, fixes, branch publication and compatible non-default
+integration are authorized. Live model testing is already authorized by
+GENERAL_MODEL_AUTHORIZATION.md: $20 cumulative, no calendar expiry, unchanged
+8 generation / 8 count / 80 same-ID retrieval and 160,000 input / 65,536 output
+limits, the specified four synthetic turns, acknowledged store:true. Caps do not
+reset per restart, batch or child. Do not request this same approval again.
+
+Default merge, deployment, new private-context access and external business
+actions remain excluded. Future different paid scenarios require an applicable
+explicit grant; implementation/deterministic testing need not wait for that grant.
+Ask only for a material product decision or genuinely missing authorization.

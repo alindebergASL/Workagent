@@ -1,6 +1,15 @@
 # Hands-on review: integrated general-work candidate
 
-## Exact runtime and access
+## Historical review session; check current availability
+
+These links and observations describe the preserved f68efe5 review. On the current
+continuation, the checkout/env still exist but no local web3000/API8000 listeners
+were found. Do not infer a running service from this historical walkthrough.
+Restart only this preserved candidate with the instructions below, or use the
+separately verified isolated new candidate when published. The reviewed examples
+and database must not be reset.
+
+## Exact runtime and access (at the earlier review)
 
 The application under review is **f68efe5c81e4865f9e1547e03b4af7b62c4303a0**, not a new build or a saved screenshot. PR #9's three exact-head workflows passed. Documentation updates are separate from this frozen application commit.
 

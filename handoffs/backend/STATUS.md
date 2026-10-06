@@ -4,9 +4,9 @@
 
 **Application `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` is published and all three CI workflows pass.** Claude43cfe3f is integrated with late-reply retry protection, persistent raw tool-input validation, truthful table-result headlines and quota-failed journal completion. Backend/contracts/runtime remain identical to19e1478. [Final handoff](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6001879175), [verification](GENERAL_COMPANION_VERIFICATION.md).
 
-**Hands-on review is running**, not merely preserved test state. Existing EC2 host16.148.68.248 (`ip-10-0-3-214`), checkout `/home/ubuntu/workagent-general-integration`, ignored env `.local/parent-quota-final.env`, loopback web3000/API8000 and continuous controlled dispatcher. Saved CSV/shipping examples are open in the host browser; API artifact/download responses are verified. Andrew confirmed SSH access; [tunnel, exact links, walkthrough and restart](../../docs/EXPERIENCE_REVIEW.md).
+**Review state is preserved; current running status is not claimed.** This continuation verified the existing checkout/env and found no listeners on3000/8000. Previous review used host16.148.68.248 (`ip-10-0-3-214`), `/home/ubuntu/workagent-general-integration`, ignored `.local/parent-quota-final.env`. Historical saved examples/API readbacks remain evidence, not proof of present availability. [Tunnel, links and restart](../../docs/EXPERIENCE_REVIEW.md).
 
-This documentation followup is separate from the frozen running application. No accepted code/bundle/profile/grant or preserved review data has been reset.
+This documentation followup is separate from the frozen application checkout. No accepted code/bundle/profile/grant or preserved review data has been reset.
 
 ## Verification and acknowledgments
 
@@ -18,9 +18,9 @@ This documentation followup is separate from the frozen running application. No 
 
 ## Honest remaining gap
 
-GeneralWorker explicitly accepts only ControlledTransport. Conversation replies are canned; local product actions are operator-selected. Live Responses transport/provider-attempt code exists for historical intake, but is not connected to general natural-language action selection. Permission alone does not close this implementation gap. [Current runtime](../../docs/RUNTIME_STATUS.md), [small same-worker model proposal](../../docs/GENERAL_MODEL_SLICE.md).
+At reviewed f68efe5, GeneralWorker explicitly accepts only ControlledTransport. Conversation replies are canned; local product actions are operator-selected. Live Responses transport/provider-attempt code exists for historical intake, but is not connected to general natural-language action selection. Permission alone does not close this implementation gap. [Current runtime](../../docs/RUNTIME_STATUS.md), [small same-worker model proposal](../../docs/GENERAL_MODEL_SLICE.md).
 
-Engineering PASS applies to controlled integrated paths. Andrew's hands-on experience acceptance and general-model usefulness are NOT TESTED. Explicit delegation remains paused, and broader B4–B7 ownership/coordination/memory capabilities are outside the verified slice. CSV/shipping remain breadth tests, not a product reset.
+Engineering PASS applies to the controlled predecessor. Andrew reviewed it positively as basic bones, with substantial work remaining; this is not full experience acceptance. The recovered general-model implementation is in progress on `hermes/general-responses`, not yet integrated/live-tested. M1 connection and M2 seamless Home/Spaces journey are the current checkpoint. Required M3 adaptive execution, M4 actual specialist coordination and M5 persistent ownership remain planned/NOT TESTED. Explicit delegation remains paused; CSV/shipping remain breadth tests, not product identity.
 
 ## Ownership and historical decisions
 
@@ -30,4 +30,4 @@ Historical lineage/evidence remains preserved: resetb76eef8; B1 candidate9a8944b
 
 ## Authority
 
-Current request authorizes the existing private review session and accurate startup/status documentation. Routine existing integration publication authority does not authorize default merge or deployment. No new Workagent model calls/spending, private-context access or external business effects. The future adapter and bounded live test are proposed separately, with explicit route, data, calls/tokens/spend, expiry and trace handling. Credentials never enter source, chat or evidence.
+Continue routine development/testing/fixes/publication and compatible non-default integration. The existing [authorization](../../docs/GENERAL_MODEL_AUTHORIZATION.md) permits $20 cumulative with no calendar expiry and unchanged 8 generation/8 count/80 retrieval, 160k input/65,536 output, four synthetic turns; no automatic reset or redundant reapproval. Activate only after its verification gates. Default merge/deployment, new private context and external business effects remain excluded. Credentials never enter source, chat or evidence.

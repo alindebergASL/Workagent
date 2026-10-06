@@ -41,21 +41,66 @@ identifiers; and offers continue, inspect and cancel through that path. It is
 not a new direct-provider script. Existing dispatcher/synthetic journey commands
 are engineering evidence, not this prompt interface or general-agent proof.
 
-## Adoption spike
+## Adaptive continuation and specialist coordination (required, not implemented)
 
-Use `handoffs/backend/upstream/REPORT.md` as the existing research input.
-First test a Hermes loop/tool/skill adapter against this contract; Python fit
-makes it the first candidate, not a selected dependency. Compare the current
-Responses adapter on the same scenarios. Borrow OpenClaw event, steering,
-scheduling and recovery patterns where they solve observed gaps. Do not import
-competing full stacks or upstream default tools/permissions around the broker.
+A capability profile bounds one checkpoint; it does not define the general loop.
+The current `general-responses-v1` selection → at most one local operation →
+explanation profile remains intentionally bounded. Required subsequent behavior:
 
-Deliver a running reproducible local adapter spike, exact pins/licenses and a
-keep/adopt/reject decision based on observed behavior. Reuse means less custom
-lifecycle code with the same authority and recoverability, not renamed classes.
-Verify actual interfaces before promising an SDK. No paid calls are authorized;
-controlled transports prove wiring only. A fixture cannot decide usefulness.
-Request a fresh bounded grant after the live route/test matrix are concrete.
+1. Persist a responsibility's goal, observable success criteria, routine subgoals,
+   priorities and dependencies; distinguish proposed outcome changes from routine
+   execution. Keep current context and human corrections authoritative.
+2. The same runtime selects a permitted next action, checks actual observations
+   against success criteria and either continues, replans, requests a material
+   decision, waits, stops at a limit or completes with evidence. A fixed sequence
+   or extra plan prose is not an adaptive implementation.
+3. Delegation binds parent responsibility, scoped context/resources, success
+   criteria, dependencies, current revision/fence and the shared grant. A child
+   receives no ambient tools or independent budget refill. The coordinator
+   inspects and reconciles results; a child summary cannot establish an effect.
+4. A failed, stale or conflicting child result cannot silently become completion.
+   Cancellation, revocation and material human edits invalidate affected pending
+   work. The parent chooses a bounded recovery or brings back the real blocker.
+5. Events and restart resume the same responsibility with current context and
+   idempotent effects. Useful check-ins name what changed or the decision needed.
+   Pause/resume/cancel/takeover are lifecycle behavior, not cosmetic buttons.
+
+Implement these using existing worker/domain/broker/attempt seams, additive
+schemas and suitable established components; no competing orchestration stack
+or restarted framework investigation. Future paid tests need an applicable grant;
+deterministic implementation can proceed within routine development authority.
+
+## Canonical overview and frontend agreement
+
+Home/Spaces must include conversation-owned current products and pending decisions
+through an authoritative read projection or documented joins of existing scoped
+records. Do not materialize duplicate business state or manufacture assignments.
+Expose stable conversation/artifact/proposal identity, exact current revision,
+meaningful status and a reopen route. Derive proposal freshness from its actual
+base versus current saved revision; stale work cannot appear ready to apply.
+Only associate a Space where domain scope actually establishes membership.
+
+Claude owns `web/`; Hermes owns runtime/domain/generated contracts/integration.
+Publish exact generated payloads and the read contract before client wiring.
+Natural-language admission uses bounded immutable attachments and exact saved
+revision targets; preserve command identity, retries, edits and recovery behavior.
+The default UI must not require operation names, supplied code or runtime setup.
+
+## Completed adoption spike (historical rationale)
+
+The completed spike used `handoffs/backend/upstream/REPORT.md` and compared a
+Hermes adapter with the current Responses path. The decision retains Workagent
+runtime/domain authority. Reuse upstream event/steering/recovery patterns only
+where they solve observed gaps; never import default tools or permissions around
+the broker.
+
+The spike is complete: `handoffs/backend/HARNESS_ADOPTION.md` records the
+keep/adopt/reject decision. Retain Workagent authority and the existing runtime;
+do not repeat the investigation. Controlled transport proved wiring only.
+The current separately approved model test is governed by
+`GENERAL_MODEL_AUTHORIZATION.md`: $20 cumulative, no calendar expiry, unchanged
+call/token/four-turn synthetic scope. Historical expired intake grants remain
+closed. Do not request this same approval again or infer a broader live grant.
 
 ## Migration hotspots at 93db754
 

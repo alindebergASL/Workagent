@@ -1,6 +1,17 @@
 # Proposed bounded same-worker model slice
 
-**Status: bounded implementation in progress; Andrew approved the live-test ceiling at $20 with no calendar expiry. No adapter completion or new live calls are claimed.** See [verbatim authorization and remaining limits](GENERAL_MODEL_AUTHORIZATION.md). The current hands-on runtime remains frozen at f68efe5c81e4865f9e1547e03b4af7b62c4303a0. Permission alone cannot connect its model path. This proposal follows repository source inspection, not another harness investigation.
+**Status: bounded implementation in progress; Andrew approved the live-test ceiling at $20 with no calendar expiry. No adapter completion or new live calls are claimed.** See [verbatim authorization and remaining limits](GENERAL_MODEL_AUTHORIZATION.md). The preserved hands-on checkout remains at f68efe5c81e4865f9e1547e03b4af7b62c4303a0; running status must be checked separately. Permission alone cannot connect its model path. This proposal follows repository source inspection, not another harness investigation.
+
+## Checkpoint scope, not the product ceiling
+
+This is M1 in `BUILD_PLAN.md`. The one-operation profile can prove model-selected
+work and changed requirements across human turns. It does **not** prove autonomous
+multistep continuation, observation-driven replanning, specialist delegation or
+persistent ownership. Those are required subsequent M3–M5 milestones, not forbidden
+architecture. M2 separately proves the integrated Home/Spaces continuity journey.
+Both [product direction](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
+and [agency/coordination direction](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121)
+govern the product while this profile and its existing grant remain bounded.
 
 ## Smallest useful implementation
 
