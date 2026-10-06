@@ -1,106 +1,60 @@
 # Workagent
 
-Workagent is a general, persistent work partner: think, make, handle, coordinate,
-own and learn from work. Agent conversation and appropriate work surfaces form
-one clean experience, with optional private/shared Spaces.
+Workagent is a general, persistent work partner. Conversation and appropriate work surfaces belong together; CSV and shipping tools are breadth tests, not its identity.
 
-**Start here:** [Product contract](docs/PRODUCT_CONTRACT.md),
-[current build plan](docs/BUILD_PLAN.md), [work contract](docs/WORK_CONTRACT.md)
-and [acceptance](docs/PRODUCT_ACCEPTANCE.md).
-Development ownership and instructions: [AGENTS.md](AGENTS.md).
-Current coordinated handoff: [product reset](handoffs/PRODUCT_RESET.md).
+**Current integrated application:** `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` ([PR #9](https://github.com/alindebergASL/Workagent/pull/9)). Source-free controlled conversations, real editable CSV/table/file products and import-free integer Wasm tools are implemented through the same GeneralWorker/domain. Companion replies, phone panes, proposals, exact results, human edits, exports and restart/retry paths are exercised. All three exact-head CI workflows pass.
 
-**Implemented baseline:** real Next.js + FastAPI + PostgreSQL private-work app
-with durable intake artifacts, human edits, exact proposal acceptance and recovery.
-A bounded live Responses intake journey on synthetic context was completed;
-[its report](handoffs/backend/INTAKE_ACCEPTANCE.md) is engineering evidence for
-that slice, not acceptance of a general agent. The prior grant is exhausted and
-expired. Default local demonstrations use labeled deterministic fixtures.
-Source-free conversation, broad work products and ongoing ownership are the next
-implementation work, not currently demonstrated capabilities.
+**Start the hands-on review:** [working private access, saved examples and walkthrough](docs/EXPERIENCE_REVIEW.md). The existing EC2 review session is running, not merely saved test state. Access uses the existing SSH tunnel; no public deployment is implied.
 
-The existing Claude Code session owns frontend; Hermes owns backend/runtime and
-integration. Historical S0/S1 and intake constraints do not define product scope.
+**Important limit:** the general worker accepts only `ControlledTransport`. Ordinary replies are deterministic, and product operations are operator-selected. A real-model adapter, model-selected operation admission and bounded execution wiring still need implementation through this same worker. A model-test grant alone is insufficient. [Runtime status](docs/RUNTIME_STATUS.md) separates implemented paths from that gap.
 
-## Run the preserved intake demonstration
-Tested on Ubuntu 24.04, Python 3.12, PostgreSQL 16, Node 22, npm, pnpm 11 and uv.
-PostgreSQL must already run locally; provisioning uses `sudo -n -u postgres` to
-create a **new** isolated database and separate owner/runtime roles. No existing DB
-is reset. Browser dependency installation may need the host's normal system packages.
+## Reopen the preserved candidate on the existing review host
 
 ```sh
-git clone https://github.com/alindebergASL/Workagent.git
-cd Workagent
-git checkout hermes/intake-next-action
-python3 scripts/workagent.py demo
+cd /home/ubuntu/workagent-general-integration
+git rev-parse HEAD  # f68efe5c81e4865f9e1547e03b4af7b62c4303a0
+python3 scripts/workagent.py serve --env .local/parent-quota-final.env --skip-setup
 ```
 
-That command installs locked dependencies, builds the actual app, provisions only
-when the ignored local env file does not exist, runs desktop/mobile browser checks,
-terminates and restarts API/web, and reads back the same PostgreSQL state. It then runs
-nine response-loss/conflict/source-drift regressions against a **separate** isolated
-database, leaving that saved assignment unchanged. It uses controlled worker release
-for the stale-proposal scenario and deliberate network interruption for loss tests;
-no fabricated success response or JSON mock persistence stands in for the API/database.
-Logs, screenshots, exact artifact
-bodies and identifiers are under `.local/evidence/` and `.local/logs/`.
+Do not start a second copy if the review is already running. The launcher refuses occupied ports3000/8000 rather than killing another app. `serve` starts real web/API and a continuous controlled dispatcher; Ctrl-C stops processes without deleting saved work. Reuse the same ignored env/database. Do not run tests, `demo` or reseeding commands against this review instance.
 
-## Use the current intake profile
+Web is loopback-only at `http://127.0.0.1:3000`; API is loopback-only at8000. For access from your own computer, use the [SSH tunnel instructions](docs/EXPERIENCE_REVIEW.md). There is no production login, shared/public endpoint or entitlement implied. The local bearer remains server-side in a mode0600 ignored env file, never browser code. Model keys are stripped from the controlled launcher environment and migration credentials are withheld from runtime services.
+
+## Reproduce controlled verification on a separate local instance
+
+The existing review installation has dependencies and a production build already. A fresh checkout needs Python3.12, PostgreSQL, Node/pnpm, locked backend/frontend dependencies, Playwright Chromium and `backend/requirements-local-tools.txt` (Wasmtime49). Verify paths in the backend documentation before provisioning. The old generic `setup` uses `/usr/bin/python3`; do not blindly replace an existing3.12 environment on a host whose default Python differs.
 
 ```sh
-# After the demo, or after `python3 scripts/workagent.py setup`:
-python3 scripts/workagent.py serve
+# Isolated env path: never the hands-on review database.
+python3 scripts/verify_general_integration.py \
+  --env .local/new-integration.env --output .local/new-integration
 ```
 
-Open **http://127.0.0.1:3000** on the same machine. The API and continuous fixture
-dispatcher start together. Select **Personal intake review log**, **Method notebook**
-and **Personal working plan**, describe your request, and start work. Review the
-plan/checklist, inspect Sources, edit/save, request a proposal and review History.
-Results are private to this local installation. There is no public URL or login flow.
-The UI clearly labels fixture mode; arbitrary professional requests do not become
-general-purpose model analysis in this build.
-
-Ctrl-C stops the processes without deleting PostgreSQL state. Run the same command
-with the same env file to reopen saved work. `--env PATH` selects another explicitly
-provisioned local instance; `demo --skip-setup` reuses an already-built candidate.
-Occupied ports 3000/8000 cause a safe refusal, not termination of another application.
-
-The local identity is `local-human` / `local-workspace`. Its random bearer stays in
-a mode-0600 ignored env file and is injected by a loopback-only server proxy, never
-by a browser bundle or public credential. The migration credential is removed from
-service/web process environments after provisioning. Do not bind this setup publicly.
+This exercises real CSV/tool UI, controlled continuous worker, lost response and process restart, then stops its test services while preserving the separate test DB. It proves engineering, not natural-language action selection or model usefulness. [Verification and explicit limits](handoffs/backend/GENERAL_COMPANION_VERIFICATION.md).
 
 ## Verify / regenerate
 
 ```sh
-# Separate disposable test DB; never run tests against your saved app instance.
 backend/.venv/bin/python backend/dev_db.py --env-file backend/.tests.env
 . backend/.tests.env
 PYTHONPATH=backend:. backend/.venv/bin/python -m pytest -q backend/tests runtime/tests
 npm --prefix contracts run generate
 npm --prefix contracts run check
 pnpm --dir web check
+node web/scripts/products-review-regressions.mjs
 ```
 
-`backend/dev_db.py` deliberately refuses to overwrite an env file. Source the existing
-file to rerun tests, or choose a new path. For an older schema, follow the explicit
-migration/grant instructions in `backend/README.md`; the launcher does not silently
-reset or repin old runs. The historical standalone frontend mock demo remains in
-`web/README.md`; it is separate evidence, not the milestone qualification command.
+Use a separate disposable test database. `backend/dev_db.py` refuses to overwrite an existing env file; source it to rerun tests, or explicitly choose another test file. Follow `backend/README.md` for migrations/grants rather than resetting or repinning old runs. The standalone frontend mock mode is separate from actual-domain verification.
 
-## Architecture and evidence
-- `backend/workagent/models.py` / `service.py`: canonical typed schemas and domain
-  authorization, transactions, independent immutable revisions, tasks and command replay.
-- `contracts/`: generated OpenAPI 3.1, TypeScript client, model-tool allowlist and examples.
-- `backend/migrations/`: PostgreSQL authority, immutable bodies, outbox, fenced runs,
-  pinned contexts/configuration and activation history.
-- `agent/` and `runtime/`: reviewed pinned product guidance, selective scoped loader,
-  versioned activation/rollback. These are not repository coding-agent instructions.
-- `handoffs/backend/`: contract/integration checkpoints and exact limitations.
-- `docs/RUNTIME_STATUS.md`: live-runtime selection/authorization boundary.
+## Product, ownership and evidence
 
-**Next qualification:** varied work through the same runtime and an integrated
-experience against the prototype. Report engineering, usefulness and experience
-independently. Controlled fixtures cannot establish general model capability.
-See the current acceptance contract; do not reinstate historical stage ceilings
-as global defaults. No new inference, default merge or deployment is implied.
+- [Product contract](docs/PRODUCT_CONTRACT.md), [current build plan](docs/BUILD_PLAN.md), [work contract](docs/WORK_CONTRACT.md), [acceptance](docs/PRODUCT_ACCEPTANCE.md), [developer ownership](AGENTS.md).
+- [Current runtime boundary](docs/RUNTIME_STATUS.md), [current integration status](handoffs/backend/STATUS.md), [experience review](docs/EXPERIENCE_REVIEW.md).
+- Canonical backend schemas/service and PostgreSQL retain authorization, immutable revisions, scope, command replay and fenced execution. `contracts/` is generated JSON/OpenAPI/TypeScript authority.
+- Claude owns frontend design; Hermes owns backend/runtime/integration. No competing frontend or model loop is commissioned.
+
+## Historical intake demonstration—not the current startup
+
+The old `scripts/workagent.py demo` journey and `hermes/intake-next-action` branch describe a preserved intake checkpoint. They are not the entrypoint for this integrated CSV/tool review. Historical [intake acceptance](handoffs/backend/INTAKE_ACCEPTANCE.md) includes a bounded live Responses test, whose four-call grant is exhausted/expired. That evidence does not connect a model to the current general worker.
+
+**Next:** Andrew's hands-on experience review, then a narrowly scoped same-worker live-adapter implementation and separately authorized bounded usefulness test. Engineering is verified; general-model usefulness and Andrew's experience acceptance remain NOT TESTED. No new inference/spend, private context, external business action, default merge or deployment is authorized by these documents.

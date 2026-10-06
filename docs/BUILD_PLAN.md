@@ -1,46 +1,19 @@
-# Current build plan: general work partner reset
+# Current build plan: review the integrated work partner
 
-This replaces active S0/S1 direction. Historical intake correctness is preserved;
-the next work changes common contracts and experience together.
+## Completed engineering checkpoint
 
-## 1. Install the reset and agree one migration
+Application `f68efe5c81e4865f9e1547e03b4af7b62c4303a0` integrates reviewed controlled B1–B3 backend with Claude43cfe3f frontend and scoped regression corrections. Actual CSV/tool/edit/reply/restart paths and all exact-head CI workflows pass. Generated contracts and both owners' ACKs are established. The reset and harness-comparison work are complete; do not reconstruct or restart them.
 
-Hermes applies `handoffs/PRODUCT_RESET.md` on an isolated development branch,
-reports its SHA, and updates active mission/status. Claude resumes the existing
-session from that shared base. Both acknowledge the product contract and agree
-the minimal API delta: source-free conversation, responsibilities and product
-shapes. Leave immutable runtime bundles/captured acceptance evidence intact.
+## Current step: hands-on experience review
 
-## 2. Implement two coordinated tracks
+Keep the exact candidate running using the existing local/private setup, retain its synthetic saved state, provide reachable SSH-tunnel links and open the CSV/tool examples. [Review access and walkthrough](EXPERIENCE_REVIEW.md) distinguishes real execution and persistence from operator-selected actions and controlled placeholder replies. Ask Andrew to judge conversation/work continuity, editing, changed requirements, export and reopen—not to certify fixtures as model intelligence.
 
-- Hermes: generalize runtime/domain defaults additively; build a thin prompt CLI
-  through the actual worker; demonstrate B1–B3 using controlled transport; run
-  the upstream adapter spike and publish an adoption decision/limits. Preserve
-  database, authority and recovery invariants.
-- Claude: coherent design system from the prototype; real conversation entry and
-  companion to work; Home/owned-work hierarchy; operational/maker surfaces.
-  Integrate actual contracts; preserve editing, review and reopen. Move machinery
-  into meaningful details.
+## Next bounded proposal: same-worker model selection
 
-Use generated clients, not speculative endpoints or copied mockup state.
-Early outputs: contract delta, working source-free entry screenshot, and one
-runnable CLI case. Do not spend the iteration rewriting plans.
+The current GeneralWorker accepts only ControlledTransport. Connecting a real model requires implementation, not merely permission. [GENERAL_MODEL_SLICE.md](GENERAL_MODEL_SLICE.md) specifies the smallest adapter/admission/tool-result/recovery delta and a concrete synthetic usefulness test. Model decisions must originate from natural-language intent in the product and use existing authorized operations; no parallel provider script or manually selected operations dressed up as autonomy.
 
-## 3. Review the integrated product
+Implement only after the bounded scope is agreed. Run deterministic authority/replay/malformed-selection tests without live calls first, coordinate the minimal natural-language attachment/readback frontend delta with Claude, then seek/use only the separately explicit live grant. Preserve the controlled startup and existing reviewed profiles.
 
-Run relevant checks, actual PostgreSQL recovery and desktop/phone browser journeys.
-Report the three verdicts using `PRODUCT_ACCEPTANCE.md`. Present B1–B3 evidence
-and a coherent interface to Andrew, with B4–B7 capability gaps explicit.
+## Release boundary
 
-Then request a concrete bounded grant for model-backed breadth/usefulness proof
-and a small real-context responsibility. Do not wait for connectors to prove
-conversation, local operations and making. Controlled transports/UI labels do
-not prove generality. Extend event-driven ownership, coordination and shared
-Spaces incrementally through the same contracts.
-
-## Execution boundary
-
-The approved course correction authorizes this development/handoff direction
-and relevant no-inference verification. It grants no paid calls, new context
-access, external effects, default merge or deployment. Routine changes continue
-within scope. Grants constrain runs, not the product's permanent capability.
+Report engineering, usefulness and experience independently. Fix observed review failures, not speculative polish or a broad rebuild. No new model spending, private context, external effects, default merge or deployment is approved. A future grant must name route/model, synthetic tasks/data, call/token/spend caps, expiry and trace handling. B4–B7 expansion is not this slice.

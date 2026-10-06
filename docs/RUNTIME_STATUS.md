@@ -1,52 +1,39 @@
-# Runtime status and execution boundary
+# Current runtime status and execution boundary
 
-Snapshot: intake evidence commit `93db754c28385401d62703116313cfd23e153855`.
-This corrects stale fixture-only/no-live-execution claims. It does not select
-a general harness or authorize calls.
+## Candidate actually available for review
 
-## Observed
+**Application SHA: `f68efe5c81e4865f9e1547e03b4af7b62c4303a0`.** All three exact-head GitHub workflows passed after infrastructure-only runner retries; no workflow bypass or source change was needed. See [PR9 final handoff](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6001879175).
 
-- Real Next.js/FastAPI/PostgreSQL app with immutable revisions, scoped broker,
-  replay, fences, human edits, exact proposal acceptance and persisted readback.
-- Actual `gpt-6.1-sol` Responses API initial/revision journey through the product
-  worker on synthetic intake context. Final app candidate: `ae52a61`.
-  `handoffs/backend/INTAKE_ACCEPTANCE.md` records evidence at `93db754`.
-- Four generation submissions used the full allowance. Reported usage: 5,798 input
-  and 1,814 output tokens; calculated cost $0.0326350, billing not independently
-  confirmed. Recovery reused the response without another generation; exact
-  document readback and surviving edits were observed.
-- The report records 248 backend tests, 37 frontend tests and passing CI for
-  that candidate. These are historical counts, not checks run by this reset.
+The existing private EC2 review stack is live on16.148.68.248, loopback web3000/API8000, with the retained `.local/parent-quota-final.env` database. Both preserved CSV and shipping examples are open in the host browser and have been read back through the actual API, including CSV/WAT downloads. [Working access, startup/restart and walkthrough](EXPERIENCE_REVIEW.md). A saved database alone is not the access claim: the processes and responses were checked.
 
-Saved intake is an engineering checkpoint. Document approval did not perform
-or authorize the underlying work. General product, usefulness and visual
-acceptance remain separate.
+## Implemented and verified
 
-## Current limits
+- Source-free durable conversation and general prompt/continue/inspect/cancel CLI through GeneralWorker and the normal dispatcher.
+- Typed CSV table/file products, safe export and exact local arithmetic; import-free integer Wasmtime tools with bounded execution and observed readbacks.
+- Broker/domain authorization at execution and commit, immutable revision/proposal binding, human edits, exact replay, fences, truthful unavailable/failure and same-run restart recovery.
+- Integrated real Next.js/FastAPI/PostgreSQL experience: CSV edit/save/recalculate/export/reopen; per-field shipping inputs; conversation beside work; phone panes; reply/draft/retry preservation.
+- Current personally rerun evidence:81 frontend tests,17 focused DOM cases,15 mock browser cases,72 relevant PostgreSQL cases and actual controlled product/recovery journeys. Prior full403 backend result is reused by unchanged backend/contracts/runtime bytes, not relabeled as a fresh full-suite run.
 
-The current consumer is intake-specific: fixed preparation workflow, restricted
-tools/shapes, source-required creation, and one initial plus one revision grant
-semantics. Fixture modes remain labeled engineering tools. Source-free
-conversation, broad work products, event-driven ownership and a general prompt
-CLI are not yet demonstrated.
+CSV and shipping are breadth tests of the same general work product path. They are not its identity or evidence for unrestricted/general autonomy. Explicit delegation remains paused/unsupported, not secretly handled in the background.
 
-The previous four-call grant is exhausted and expired despite low cost. No
-inference, new private-data access or paid experiment is authorized by this reset.
-A new grant binds concrete route, scope and limits. Development login is not
-product entitlement; never infer/expose secrets.
+## Missing real-model implementation—not just permission
 
-Managed-first research and historical Qwen observations remain historical inputs,
-not the current consumer selection or general managed-lifecycle proof. No claims
-here for live compaction, long-lived managed sessions, skill ablation, portable
-distributed recovery or general-model comparison.
+`backend/workagent/general_worker.py` explicitly rejects any transport that is not `ControlledTransport` with controlled mode. The ordinary response is deterministic text. The product path derives from an explicitly supplied typed operation; the controlled transport selects that already-chosen operation. User-authored natural-language requests do not currently cause model-selected tool execution or tool-code generation/revision.
 
-## Next decision
+The existing live `responses_transport.py` / `responses_worker.py` and provider-attempt authority belong to the historical intake profile. They are useful reusable components, not an already-connected general product runtime. Granting calls or setting a key would not remove the gap.
 
-`WORK_CONTRACT.md` defines the target. Hermes runs a local adapter spike using
-existing upstream research, compares the current adapter and records a concrete
-keep/adopt/reject decision. One harness owns the loop; domain/broker retain
-committed state and authority. Controlled proof precedes a fresh live-grant request.
+The next **proposed** implementation is a bounded live transport/tool-selection path inside the same GeneralWorker/dispatcher/domain. It must accept natural-language messages and authorized bounded context, expose only authorized tool schemas, validate model-selected arguments through the existing broker, feed back actual results, and preserve attempt/replay/fence/budget authority. No direct-provider demo script, operator-selected action masquerading as selection, parallel business state or new harness research. See [minimal implementation and bounded test proposal](GENERAL_MODEL_SLICE.md).
 
-Accepted bundles keep their pins/semantics. New profiles need reviewed versions;
-do not repin old runs or rewrite evidence. Default merge, production authentication,
-deployment and external actions remain unapproved. See `PRODUCT_ACCEPTANCE.md`.
+## Historical live evidence retained
+
+The synthetic intake Responses initial/revision experiment used `gpt-6.1-sol`; [INTAKE_ACCEPTANCE.md](../handoffs/backend/INTAKE_ACCEPTANCE.md) records its exact evidence and limitations. Four generation submissions exhausted that grant. It is expired and will not be reused. That historical success does not prove present model entitlement, general action selection, code generation or usefulness.
+
+The harness comparison is complete: [HARNESS_ADOPTION.md](../handoffs/backend/HARNESS_ADOPTION.md) retains Workagent authority and does not adopt a new production Hermes/OpenClaw stack. Do not restart that research to connect one bounded model route.
+
+## Verdicts and boundaries
+
+- **Engineering PASS:** controlled B1–B3 integrated paths and documented recovery boundaries.
+- **Experience:** actual desktop/phone interactions verified; Andrew's hands-on acceptance remains pending.
+- **Usefulness NOT TESTED:** no real model has selected/generalized these product actions through this worker.
+
+Default local startup stays controlled and strips model keys. Live implementation/testing has not occurred; the proposed implementation and a separately bounded live run need the agreed scope/authorization. No new Workagent inference/spend, private-context access, external business effects, default merge or deployment. Accepted bundles, old Body hashes, pins and expired grants remain unchanged. B4–B7 broader ongoing ownership/coordination/memory remain outside this slice.
