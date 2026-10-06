@@ -4,6 +4,7 @@ import { newCommandId } from "@/lib/client/api";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
+import type { ExactTarget, MessageAttachment } from "@/lib/contract/natural";
 
 function readKept(key: string): string {
   try {
@@ -33,9 +34,15 @@ export function useConversationReply({
   cid,
   version,
   refresh,
+  target,
 }: {
   wsId: string | null;
   cid: string;
+  /**
+   * The exact saved version this reply is about (natural admission only).
+   * Frozen into the attempt, so a replay names the same version.
+   */
+  target?: ExactTarget | null;
   /** The conversation's work version as last read; null until loaded. */
   version: number | null;
   refresh: () => Promise<unknown>;
@@ -48,6 +55,8 @@ export function useConversationReply({
     command_id: string;
     expected_work_version: number;
     text: string;
+    attachments?: MessageAttachment[];
+    target?: ExactTarget | null;
   }>(wsId ? `workagent:pending:${wsId}:conversation:${cid}:send` : null);
   useEffect(() => {
     const kept = readKept(draftKey);
@@ -70,6 +79,7 @@ export function useConversationReply({
       command_id: newCommandId(),
       expected_work_version: version,
       text: text.trim(),
+      ...(target !== undefined ? { attachments: [], target } : {}),
     };
     try {
       if (!cmd.current) cmd.set(attempt);

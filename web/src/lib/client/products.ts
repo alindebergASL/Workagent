@@ -197,6 +197,26 @@ export const productApi = {
         },
       ),
     ),
+  dismiss: (
+    ws: string,
+    pid: string,
+    id: string,
+    base: string,
+    resolution: "keep_current" | "dismiss",
+  ) =>
+    unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/proposals/{proposal_id}/dismiss",
+        {
+          params: { path: { workspace_id: ws, proposal_id: pid } },
+          body: {
+            ...command(id),
+            expected_current_revision_id: base,
+            resolution,
+          },
+        },
+      ),
+    ),
   async download(ws: string, artifact: S["Artifact"]) {
     const result = await client.GET(
       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",

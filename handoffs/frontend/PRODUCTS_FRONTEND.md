@@ -198,3 +198,34 @@ readback, outage → unavailable, and restart.
 
 The capture is `evidence/products/03b-tool-reply-beside.png`. The reply in
 that run is answered by the controlled transport, not a model.
+
+## Consumed Hermes' integration corrections at `f68efe5`
+
+`claude/workagent-frontend-kyg51x` fast-forwarded to `f68efe5`. That is my
+`43cfe3f` plus three integration corrections from Hermes in `web/`. I agree
+with all three and kept them as written:
+
+1. **A late reply can't erase a newer send.** A late completion of an earlier
+   reply no longer clears a newer unconfirmed send or its draft. Clearing now
+   requires the exact attempt (`usePendingCommand().clear`), including when
+   storage is full.
+2. **Invalid tool inputs are kept and gate actions.** Invalid tool-input text
+   is now part of the saved draft, kept apart from the typed body, so it
+   survives a reload. Until it is fixed or discarded, Save, Run and Apply are
+   unavailable.
+3. **Unchecked tables make no claim.** A table edited by hand without a
+   current check no longer claims a match from its old calculated columns.
+   It says "These rows haven't been checked yet."
+
+The probe `scripts/verify_product_companion.mjs` now honours
+`PLAYWRIGHT_CHROMIUM_PATH`, like the other scripts. That one-line launch
+option is my only change.
+
+| Check at `f68efe5` (fresh database, zero provider calls) | Result |
+| --- | --- |
+| `pnpm check` | PASS, 81 tests |
+| `products-review-regressions.mjs` | PASS, 17/17 |
+| Mock browser suite | PASS, 15/15 |
+| `scripts/verify_general_integration.py` | PASS |
+| `scripts/verify_product_companion.mjs` (320 px panes, real lost ack, exact replay across the two places you can reply, invalid input kept across reload) | PASS |
+| Conversation journey | PASS |

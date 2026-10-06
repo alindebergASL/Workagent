@@ -4,6 +4,11 @@ import {
   type components,
 } from "../../../../contracts/src/client";
 import { ApiError } from "@/lib/contract/errors";
+import {
+  turnProgress,
+  type ExactTarget,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
 import { assignmentSummary, lifecycleOf } from "./assignment-summary";
 import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
@@ -901,8 +906,10 @@ export function conversationDetail(
       message_id:
         messages.find((m) => m.run_id === r.id && m.author_kind === "human")
           ?.id ?? null,
+      progress: turnProgress(d.turns?.find((t) => t.run_id === r.id)),
     })),
     assignment_ids: d.assignment_ids,
+    artifact_ids: d.artifact_ids ?? [],
   };
 }
 
@@ -995,8 +1002,12 @@ export const conversationApi = {
       expected_work_version: number;
       text: string;
       operation?: S["PostMessage"]["operation"];
+      /** Natural admission only; never combined with an operation. */
+      attachments?: MessageAttachment[];
+      target?: ExactTarget | null;
     },
   ) {
+    const natural = c.attachments !== undefined || c.target !== undefined;
     const body = await stablePayload<S["PostMessage"]>(
       `${ws}:message:${id}`,
       c.command_id,
@@ -1007,6 +1018,10 @@ export const conversationApi = {
         expected_work_version: c.expected_work_version,
         text: c.text,
         ...(c.operation ? { operation: c.operation } : {}),
+        // Mirrors the general-responses contract until it is generated.
+        ...(natural
+          ? { attachments: c.attachments ?? [], target: c.target ?? null }
+          : {}),
       }),
     );
     const r = await unwrap(

@@ -6,6 +6,7 @@ import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
+import type { ExactTarget } from "@/lib/contract/natural";
 import { ErrorNotice } from "@/components/ui";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
@@ -14,6 +15,8 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   cancelled: "Stopped before a reply.",
   failed: "This didn’t complete.",
   unavailable: "Nothing has picked this up yet.",
+  outcome_unknown:
+    "Couldn’t confirm whether this finished. Check the work before asking again.",
   no_reply: "No reply was recorded.",
 };
 
@@ -34,11 +37,17 @@ export function ConversationPeek({
   artifactId,
   wsId,
   refreshWork,
+  target,
+  unsavedEdits = false,
 }: {
   conversation: ConversationDetailView;
   artifactId: string;
   wsId: string;
   refreshWork: () => Promise<unknown>;
+  /** The exact saved version a reply is about; undefined on older backends. */
+  target?: ExactTarget;
+  /** Edits in the working copy that a reply does not include. */
+  unsavedEdits?: boolean;
 }) {
   const cid = initial.conversation.id;
   const res = useResource<ConversationDetailView>(
@@ -52,15 +61,30 @@ export function ConversationPeek({
     cid,
     version: d.conversation.work_version,
     refresh: res.refresh,
+    target,
   });
 
-  // A turn that was running and has now settled may carry new work.
-  const waiting = inFlight(d);
-  const wasWaiting = useRef(waiting);
+  // Any turn that settles after this pane opened may carry new work, even
+  // one that finished before a waiting state was ever seen here.
+  const settledKey = (t: ConversationDetailView["turns"][number]) =>
+    `${t.run_id}:${t.state}`;
+  const seen = useRef<Set<string> | null>(null);
+  seen.current ??= new Set(
+    initial.turns
+      .filter((t) => t.state !== "queued" && t.state !== "responding")
+      .map(settledKey),
+  );
+  const settled = d.turns
+    .filter((t) => t.state !== "queued" && t.state !== "responding")
+    .map(settledKey)
+    .join("|");
   useEffect(() => {
-    if (wasWaiting.current && !waiting) void refreshWork();
-    wasWaiting.current = waiting;
-  }, [waiting, refreshWork]);
+    const known = seen.current!;
+    const fresh = settled.split("|").filter((k) => k && !known.has(k));
+    if (!fresh.length) return;
+    fresh.forEach((k) => known.add(k));
+    void refreshWork();
+  }, [settled, refreshWork]);
 
   const recent = d.messages.slice(-8);
   const last = d.turns.at(-1);
@@ -92,6 +116,11 @@ export function ConversationPeek({
           </li>
         ))}
       </ol>
+      {res.reconnecting || (res.error && !res.data) ? (
+        <p className="msg-pending" role="status" data-state="reconnecting">
+          Can’t reach the conversation right now. Showing what was last read.
+        </p>
+      ) : null}
       {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
         <p className="msg-pending" data-state={last.state}>
           {TURN_TEXT[last.state]}
@@ -134,7 +163,9 @@ export function ConversationPeek({
             <span className="hint">
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : "Ask about this work or ask for a change."}
+                : target && unsavedEdits
+                  ? "Your unsaved edits aren’t included. Replies work from your saved version."
+                  : "Ask about this work or ask for a change."}
             </span>
             <button
               type="submit"

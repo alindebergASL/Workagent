@@ -129,6 +129,26 @@ try {
   await expect(page.getByTestId("product-proposal")).toContainText(
     "Human review note retained",
   );
+  // Leave with the decision pending: it is on Home and in the Space, and
+  // reopening lands on the exact product. No assignment is manufactured.
+  const proposalURL = page.url();
+  await page.goto(origin);
+  const homeCard = page.locator(
+    `section.decision-card[data-artifact="${tableId}"]`,
+  );
+  await expect(homeCard).toContainText("A proposed version is ready", {
+    timeout: 20000,
+  });
+  await shot(page, "00-home-decision");
+  await page.goto(`${origin}/spaces/local-workspace`);
+  const spaceRow = page.locator(`a.work-row[data-artifact="${tableId}"]`);
+  await expect(spaceRow).toHaveAttribute("data-decision", "pending", {
+    timeout: 20000,
+  });
+  await spaceRow.click();
+  await page.waitForURL(proposalURL);
+  await expect(page.getByTestId("product-proposal")).toBeVisible();
+  expect((await get("/assignments")).items).toEqual([]);
   await page
     .getByRole("button", { name: "Apply proposed version", exact: true })
     .click();
@@ -146,6 +166,12 @@ try {
   expect(download.suggestedFilename()).toBe("reconciled.csv");
   await download.saveAs(path.join(out, "reconciled.csv"));
   const csv = await readFile(path.join(out, "reconciled.csv"), "utf8");
+  await page.goto(origin);
+  await page.getByText(/^Made in your conversations · \d+$/).click();
+  await expect(
+    page.locator(`a.work-row[data-artifact="${tableId}"]`),
+  ).toHaveAttribute("data-decision", "none", { timeout: 20000 });
+  await page.goto(tableURL);
   expect(csv).toContain("37.50");
   expect(csv).toContain("Human credit note retained");
   await shot(page, "02-table-recalculated");
@@ -193,6 +219,8 @@ try {
   await page
     .getByLabel("Your notes (one per line)")
     .fill("Human: all amounts are cents");
+  // Code is collapsed by default; open it to edit.
+  await page.getByText("Tool code", { exact: true }).click();
   await page
     .getByLabel("WebAssembly text (WAT)")
     .fill(

@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useResource } from "@/lib/client/hooks";
+import { CAPABILITIES } from "@/lib/client/capabilities";
 import { conversationApi } from "@/lib/client/real-api";
 import {
   currentObservation,
@@ -41,6 +42,13 @@ type Data = {
 type Pending =
   | { kind: "save"; id: string; base: string; body: ProductBody }
   | { kind: "accept"; id: string; base: string; pid: string }
+  | {
+      kind: "dismiss";
+      id: string;
+      base: string;
+      pid: string;
+      resolution: "keep_current" | "dismiss";
+    }
   | { kind: "run"; id: string; version: number; operation: Operation };
 type InputRows = Parameters<typeof fieldInputs>[0];
 type Draft = {
@@ -65,6 +73,28 @@ function inputError(draft: Draft): string {
   } catch (e) {
     return e instanceof Error ? e.message : "Check the inputs.";
   }
+}
+/**
+ * Where this work came from, from records only: who saved the current
+ * version, whether the message that produced it was a controlled test, and
+ * whether a local run was recorded. Never claims or denies a model by default.
+ */
+function originText(
+  conversation: ConversationDetailView,
+  artifact: S["Artifact"],
+  lead: S["ObservationReadback"] | null | undefined,
+): string {
+  const source = conversation.messages
+    .filter((m) => m.products?.some((x) => x.artifact_id === artifact.id))
+    .at(-1);
+  const parts: string[] = [];
+  if (artifact.current_revision.author_kind === "human")
+    parts.push("last saved by you");
+  else if (source?.origin === "controlled_transport")
+    parts.push("made in a controlled test run, no model");
+  else parts.push("made by Workagent");
+  if (lead) parts.push("results calculated locally");
+  return parts.join(" · ");
 }
 function readDraft(key: string, artifact: S["Artifact"]): Draft {
   const body = artifact.current_revision.body;
@@ -123,6 +153,7 @@ export default function ProductPage() {
   const { id, artifactId } = useParams<{ id: string; artifactId: string }>();
   const { workspace } = useWorkspace();
   const ws = workspace?.id;
+  const [unsaved, setUnsaved] = useState(false);
   const resource = useResource<Data>(
     ws ? `product:${ws}:${id}:${artifactId}` : null,
     async (signal) => {
@@ -187,6 +218,7 @@ export default function ProductPage() {
               data={resource.data}
               stale={resource.reconnecting}
               refresh={resource.refresh}
+              onDirtyChange={setUnsaved}
             />
           }
           agent={
@@ -195,6 +227,17 @@ export default function ProductPage() {
               artifactId={artifactId}
               wsId={ws!}
               refreshWork={resource.refresh}
+              target={
+                CAPABILITIES.naturalAdmission
+                  ? {
+                      artifact_id: resource.data.artifact.id,
+                      revision_id: resource.data.artifact.current_revision_id,
+                      body_hash:
+                        resource.data.artifact.current_revision.body_hash,
+                    }
+                  : undefined
+              }
+              unsavedEdits={unsaved}
             />
           }
         />
@@ -208,12 +251,14 @@ function ProductEditor({
   data,
   stale,
   refresh,
+  onDirtyChange,
 }: {
   ws: string;
   cid: string;
   data: Data;
   stale: boolean;
   refresh: () => Promise<unknown>;
+  onDirtyChange: (dirty: boolean) => void;
 }) {
   const router = useRouter();
   const artifact = data.artifact;
@@ -228,6 +273,7 @@ function ProductEditor({
     JSON.stringify(draft.body) !==
       JSON.stringify(artifact.current_revision.body);
   const changed = draft.base !== artifact.current_revision_id;
+  useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   const verified =
     currentObservation(artifact, data.observations.current) && !stale;
 
@@ -290,6 +336,20 @@ function ProductEditor({
           pending: null,
         });
         setNotice("The proposed version is now your saved version.");
+      } else if (exact.kind === "dismiss") {
+        await productApi.dismiss(
+          ws,
+          exact.pid,
+          exact.id,
+          exact.base,
+          exact.resolution,
+        );
+        keep({ ...draft, pending: null });
+        setNotice(
+          exact.resolution === "keep_current"
+            ? "Kept your saved version. The proposal is closed."
+            : "Proposal dismissed. Your saved version is unchanged.",
+        );
       } else {
         await conversationApi.send(ws, cid, {
           command_id: exact.id,
@@ -360,7 +420,7 @@ function ProductEditor({
         <h1>{saved.title}</h1>
         <div className="row product-meta">
           <span className="small muted">
-            {kindLabel} · calculated locally, no model involved
+            {kindLabel} · {originText(data.conversation, artifact, lead)}
           </span>
           <span className="composer-spacer" />
           <button
@@ -413,82 +473,105 @@ function ProductEditor({
         verified={Boolean(verified) && !dirty}
       />
 
-      {pendingProposals.map((p) => (
-        <section
-          key={p.id}
-          className="card decision-card product-proposal"
-          data-testid="product-proposal"
-          aria-labelledby={`proposal-${p.id}`}
-        >
-          <p className="eyebrow-caps">Waiting for you</p>
-          <h2 id={`proposal-${p.id}`}>A proposed version is ready</h2>
-          <p className="small">{p.reason}</p>
-          {isProduct(p.body) ? (
-            <>
-              {p.body.kind === "table" ? (
-                <p className="decision-question">
-                  {
-                    tableSummary(
-                      p.body,
-                      !stale &&
-                        observations.some((read) => {
-                          const o = read.observation;
-                          return (
-                            read.current_scope &&
-                            read.binding_state === "pending_proposal" &&
-                            o.proposal_id === p.id &&
-                            o.workspace_id === ws &&
-                            o.conversation_id === cid &&
-                            o.artifact_id === artifact.id &&
-                            o.body_hash === p.body_hash &&
-                            o.output.kind === "reconcile_csv"
-                          );
-                        }),
-                    ).headline
-                  }
-                </p>
-              ) : null}
-              <details className="ids-details">
-                <summary>See the proposed version</summary>
-                <ProductView body={p.body} />
-                {p.body.kind !== "file" ? (
-                  <p className="small">
-                    Your notes kept: {(p.body.notes ?? []).join("; ") || "none"}
+      {pendingProposals.map((p) => {
+        const outdated = p.base_revision_id !== artifact.current_revision_id;
+        return (
+          <section
+            key={p.id}
+            className="card decision-card product-proposal"
+            data-testid="product-proposal"
+            aria-labelledby={`proposal-${p.id}`}
+          >
+            <p className="eyebrow-caps">Waiting for you</p>
+            <h2 id={`proposal-${p.id}`}>
+              {outdated
+                ? "This proposal is out of date"
+                : "A proposed version is ready"}
+            </h2>
+            {outdated ? (
+              <p className="decision-question" role="status">
+                It was made from an earlier saved version, so it can’t replace
+                your current one. Dismiss it, or ask for a new one in the
+                conversation.
+              </p>
+            ) : null}
+            <p className="small">{p.reason}</p>
+            {isProduct(p.body) ? (
+              <>
+                {p.body.kind === "table" ? (
+                  <p className="decision-question">
+                    {
+                      tableSummary(
+                        p.body,
+                        !stale &&
+                          observations.some((read) => {
+                            const o = read.observation;
+                            return (
+                              read.current_scope &&
+                              read.binding_state === "pending_proposal" &&
+                              o.proposal_id === p.id &&
+                              o.workspace_id === ws &&
+                              o.conversation_id === cid &&
+                              o.artifact_id === artifact.id &&
+                              o.body_hash === p.body_hash &&
+                              o.output.kind === "reconcile_csv"
+                            );
+                          }),
+                      ).headline
+                    }
                   </p>
                 ) : null}
-              </details>
-            </>
-          ) : null}
-          <div className="row">
-            <button
-              className="btn btn-on-soft"
-              disabled={
-                locked ||
-                dirty ||
-                p.base_revision_id !== artifact.current_revision_id
-              }
-              onClick={() =>
-                void submit({
-                  kind: "accept",
-                  id: crypto.randomUUID(),
-                  pid: p.id,
-                  base: artifact.current_revision_id,
-                })
-              }
-            >
-              Apply proposed version
-            </button>
-          </div>
-          {p.base_revision_id !== artifact.current_revision_id ? (
-            <p role="status" className="small">
-              Your saved version changed since this was proposed, so it can’t
-              replace it.
-            </p>
-          ) : dirty ? (
-            <p className="small">Save or discard your changes first.</p>
-          ) : null}
-        </section>
-      ))}
+                <details className="ids-details">
+                  <summary>See the proposed version</summary>
+                  <ProductView body={p.body} />
+                  {p.body.kind !== "file" ? (
+                    <p className="small">
+                      Your notes kept:{" "}
+                      {(p.body.notes ?? []).join("; ") || "none"}
+                    </p>
+                  ) : null}
+                </details>
+              </>
+            ) : null}
+            <div className="row">
+              {outdated ? null : (
+                <button
+                  className="btn btn-on-soft"
+                  disabled={locked || dirty}
+                  onClick={() =>
+                    void submit({
+                      kind: "accept",
+                      id: crypto.randomUUID(),
+                      pid: p.id,
+                      base: artifact.current_revision_id,
+                    })
+                  }
+                >
+                  Apply proposed version
+                </button>
+              )}
+              <button
+                className="btn btn-quiet"
+                disabled={locked}
+                onClick={() =>
+                  void submit({
+                    kind: "dismiss",
+                    id: crypto.randomUUID(),
+                    pid: p.id,
+                    base: artifact.current_revision_id,
+                    resolution: outdated ? "dismiss" : "keep_current",
+                  })
+                }
+              >
+                {outdated ? "Dismiss proposal" : "Keep my current version"}
+              </button>
+            </div>
+            {!outdated && dirty ? (
+              <p className="small">Save or discard your changes first.</p>
+            ) : null}
+          </section>
+        );
+      })}
 
       {draft.body.kind === "file" ? (
         <ProductView body={draft.body} />
@@ -645,7 +728,7 @@ function ProductEditor({
                     keep({ ...draft, body, toolInputs: rows });
                   }}
                 />
-                <details className="disclosure tool-code" open>
+                <details className="disclosure tool-code">
                   <summary>Tool code</summary>
                   <div className="disclosure-body stack">
                     <label className="field">

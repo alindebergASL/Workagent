@@ -6,6 +6,7 @@ import { api } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkOverview } from "@/lib/client/overview";
+import { useConversationWork } from "@/lib/client/conversation-work";
 import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
@@ -15,6 +16,7 @@ import { Composer } from "@/components/Composer";
 import { ConversationRow } from "@/components/ConversationRow";
 import { ErrorNotice } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
+import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 
 type Tab = "work" | "conversations" | "context";
 
@@ -25,6 +27,8 @@ export default function SpacePage() {
   const space = workspaces.find((w) => w.id === id) ?? null;
   const [tab, setTab] = useState<Tab>("work");
   const overview = useWorkOverview(space ? space.id : null);
+  // A Space is exactly its workspace; conversation-owned work joins on that.
+  const made = useConversationWork(space ? space.id : null);
   const conversations = useResource<ConversationSummary[]>(
     space && CAPABILITIES.conversation && tab === "conversations"
       ? `space-conversations:${space.id}`
@@ -110,15 +114,34 @@ export default function SpacePage() {
         {overview.loading && !overview.data ? (
           <p role="status">Loading work…</p>
         ) : null}
-        {overview.data?.length === 0 ? (
+        {overview.data?.length === 0 && !made.data?.length ? (
           <p className="muted">
-            Nothing handed over yet. What you hand over appears here.
+            Nothing here yet. Work you hand over or make in a conversation
+            appears here.
           </p>
         ) : null}
         <ul className="work-list">
+          {made.data
+            ?.filter((w) => w.decision)
+            .map((w) => (
+              <ConversationWorkRow
+                key={`${w.workspace_id}:${w.artifact_id}`}
+                w={w}
+                zone={zone}
+              />
+            ))}
           {overview.data?.map((item) => (
             <WorkRow key={item.id} item={item} />
           ))}
+          {made.data
+            ?.filter((w) => !w.decision)
+            .map((w) => (
+              <ConversationWorkRow
+                key={`${w.workspace_id}:${w.artifact_id}`}
+                w={w}
+                zone={zone}
+              />
+            ))}
         </ul>
       </div>
 

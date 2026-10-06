@@ -16,6 +16,7 @@ import type {
 } from "@/lib/contract/types";
 import { OperationComposer } from "@/components/OperationComposer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
+import { TurnProgressDetails, replyTag } from "@/components/TurnProgress";
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   queued: "Waiting for a reply. Nothing has been answered yet.",
@@ -244,6 +245,22 @@ export default function ConversationPage() {
                   {m.author === "agent" &&
                   m.origin === "controlled_transport" ? (
                     <span className="msg-tag">Test reply</span>
+                  ) : m.author === "agent" &&
+                    replyTag(
+                      d.turns.find((t) => t.run_id === m.run_id)?.progress,
+                    ) ? (
+                    <span className="msg-tag">
+                      {replyTag(
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress,
+                      )}
+                    </span>
+                  ) : null}
+                  {m.author === "agent" ? (
+                    <TurnProgressDetails
+                      progress={
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress
+                      }
+                    />
                   ) : null}
                 </div>
               </div>
@@ -265,6 +282,7 @@ export default function ConversationPage() {
                       <p className="ids">{turn.reason}</p>
                     </details>
                   ) : null}
+                  <TurnProgressDetails progress={turn.progress} />
                 </div>
               ) : null}
             </li>
