@@ -13,7 +13,42 @@ Received from Andrew Lindeberg in the existing Telegram conversation:
 >
 > I approve $20 and no expiration. Keep this going until we use $20 and I can reapprove. Lets not slow the project down when this amount is not that much. This will help with testing
 
-## Effective authority and conservative interpretation
+## Current clarification — continue within the cumulative $20
+
+Andrew subsequently clarified in the same working conversation:
+
+> what blocked this, The next behavioral checkpoint is an obstacle causing Workagent to change its next action and verify the outcome.
+>
+> The original four-turn/eight-generation allowance is exhausted; no counters were reset. Estimated usage cost was $0.075265, not confirmed billing. No default merge or deployment.
+>
+> I authorized up to $20
+
+And then:
+
+> Hermes, you have more automony than this, you narrowly scoped yourself and this is holding up progression
+
+This clarification supersedes Hermes's restrictive interpretation below: the
+four-turn/eight-generation profile was the initial connection checkpoint, not a
+project-wide halt. Continue implementation, verification and reasonable synthetic
+model tests within **one cumulative $20 budget, without calendar expiry**. Select
+bounded per-run limits proportionate to the behavior being tested; do not ask for
+another routine checkpoint approval merely because the initial profile completed.
+
+Retain the original immutable grant and all charges/reservations. Subsequent
+profiles/grants must share remaining project budget, not each receive $20. Enforce
+worst-case reservations before provider I/O; reconcile known usage conservatively,
+retain unknown liabilities and never double-count or silently refund them. Until
+cross-grant budget enforcement is implemented and verified, do not bypass the
+existing exhausted grant. That is implementation work, not missing user authority.
+
+The synthetic-only scope, official provider/model route and acknowledged retention
+remain. No new private data, external business actions, automatic human approval,
+default-branch merge or deployment is authorized. Missing behavior calls for
+continued development, not a fabricated demonstration. Technical checkpoints are
+progress reports, not additional permission gates. The initial one-operation
+profile is not the architectural ceiling.
+
+## Historical initial-checkpoint interpretation (superseded above)
 
 - Proposed $2 monetary ceiling is replaced with **$20 cumulative maximum** for this Workagent model-testing authorization. This is a ceiling, not a spending target. Stop before additional reservations could exceed it and request reapproval; no automatic refill, batch reset or restart reset.
 - Proposed30-minute grant expiry is removed: **no calendar expiry**. The grant remains explicitly revocable. Worker leases/fences/timeouts still expire normally; no-expiry spend authority is not an infinite execution lease.
