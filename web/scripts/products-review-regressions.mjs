@@ -60,7 +60,7 @@ export const unwrap = x => x; export const all = () => {throw new Error('Unexpec
   // The product read is the fixture; the conversation pane beside it keeps
   // its initial record (no polling in the DOM fixture).
   "@/lib/client/hooks":
-    "export const useResource = (key) => key && key.startsWith('peek:') ? {data:null,error:null,reconnecting:false,refresh:async()=>null} : window.resource;",
+    "export const useResource = (key) => key && key.startsWith('peek:') ? (window.peek ?? {data:null,error:null,reconnecting:false,refresh:async()=>null}) : window.resource;",
   "@/lib/client/api": "export const newCommandId = () => crypto.randomUUID();",
   "@/lib/client/workspace":
     "export const useWorkspace = () => ({workspace:{id:window.scope.ws}});",
@@ -844,6 +844,127 @@ try {
   passed++;
   console.log(
     "PASS table headline requires saved/proposal observation binding; retained columns never claim current matches",
+  );
+
+  // A proposal made from an earlier saved version says so in its primary
+  // text, cannot be applied, and can be dismissed against the current one.
+  await page.evaluate(() => {
+    const d = window.resource.data;
+    d.proposals[0].base_revision_id = "an-earlier-revision";
+    window.mount("product");
+  });
+  const posts = [];
+  await page.route("**/proposals/*/dismiss", async (route) => {
+    posts.push({
+      url: route.request().url(),
+      body: route.request().postDataJSON(),
+    });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "{}",
+    });
+  });
+  const card = page.getByTestId("product-proposal");
+  await expect(card.getByRole("heading")).toHaveText(
+    "This proposal is out of date",
+  );
+  await expect(
+    card.getByRole("button", { name: "Apply proposed version" }),
+  ).toHaveCount(0);
+  await card.getByRole("button", { name: "Dismiss proposal" }).click();
+  await expect(
+    page.getByText("Proposal dismissed. Your saved version is unchanged."),
+  ).toBeVisible();
+  const current = await page.evaluate(
+    () => window.resource.data.artifact.current_revision_id,
+  );
+  let post = posts.at(-1);
+  assert.match(
+    post.url,
+    /\/v1\/workspaces\/w\/proposals\/table-proposal\/dismiss$/,
+  );
+  assert.equal(post.body.resolution, "dismiss");
+  assert.equal(post.body.expected_current_revision_id, current);
+  await page.evaluate(() => {
+    const d = window.resource.data;
+    d.proposals[0].base_revision_id = d.artifact.current_revision_id;
+    window.mount("product");
+  });
+  await expect(card.getByRole("heading")).toHaveText(
+    "A proposed version is ready",
+  );
+  await card.getByRole("button", { name: "Keep my current version" }).click();
+  await expect(
+    page.getByText("Kept your saved version. The proposal is closed."),
+  ).toBeVisible();
+  post = posts.at(-1);
+  assert.equal(post.body.resolution, "keep_current");
+  assert.equal(post.body.expected_current_revision_id, current);
+  await page.unroute("**/proposals/*/dismiss");
+  passed++;
+  console.log(
+    "PASS stale proposal is labelled, cannot be applied, and dismiss/keep-current send the current revision",
+  );
+
+  // The pane beside the work: a turn that settled before any waiting state
+  // was seen still re-reads the work, once; unknown and reconnecting show.
+  await page.evaluate(() => {
+    window.refreshCount = 0;
+    window.resource.refresh = async () => {
+      window.refreshCount++;
+      return null;
+    };
+    window.peek = undefined;
+    window.mount("away");
+    window.mount("product");
+  });
+  await page.evaluate(() => {
+    const conv = structuredClone(window.resource.data.conversation);
+    conv.turns.push({ run_id: "fast-run", state: "replied", reason: null });
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  });
+  await expect.poll(() => page.evaluate(() => window.refreshCount)).toBe(1);
+  await page.evaluate(() => window.mount("product"));
+  await page.waitForTimeout(200);
+  assert.equal(await page.evaluate(() => window.refreshCount), 1);
+  await page.evaluate(() => {
+    const conv = structuredClone(window.peek.data);
+    conv.turns.push({
+      run_id: "unknown-run",
+      state: "outcome_unknown",
+      reason: "Lost",
+    });
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: true,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  });
+  await expect(
+    page.locator('.agent-pane [data-state="outcome_unknown"]'),
+  ).toHaveText(
+    "Couldn’t confirm whether this finished. Check the work before asking again.",
+  );
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.refreshCount)).toBe(2);
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.resource.refresh = window.refresh;
+  });
+  passed++;
+  console.log(
+    "PASS pane beside the work refreshes once for a fast-settled turn and shows unknown/reconnecting",
   );
 
   await page.evaluate(() => {

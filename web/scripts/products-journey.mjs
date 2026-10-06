@@ -193,6 +193,8 @@ try {
   await page
     .getByLabel("Your notes (one per line)")
     .fill("Human: all amounts are cents");
+  // Code is collapsed by default; open it to edit.
+  await page.getByText("Tool code", { exact: true }).click();
   await page
     .getByLabel("WebAssembly text (WAT)")
     .fill(
