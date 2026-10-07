@@ -416,8 +416,8 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
         # their full original reasoning items/IDs for manual replay; never invent
         # ciphertext or replace them with arbitrary item references. Stateless
         # continuation still requires ciphertext. Store is pinned in request bytes.
-        request_payload = _json(request.body)
-        stored = isinstance(request_payload,dict) and request_payload.get('store') is True
+        request_payload = _validate_request(request)
+        stored = request_payload['store'] is True
         calls = _output_shape(output, continuation=request.phase != 'final',stored=stored,tool_name=_tool(request.schema,request.policy)['name'])
         parts = [part for item in output if item['type'] == 'message' for part in item['content']]
         if any(part['type'] == 'refusal' for part in parts):
