@@ -122,28 +122,60 @@ describe("natural admission payload (contract from PR #9)", () => {
 });
 
 describe("turn progress on the model path", () => {
-  it("keeps only the reported fields and treats a retained result as read-only data", () => {
-    expect(turnProgress({ run_id: "r", state: "queued" })).toBeUndefined();
+  const turn = {
+    run_id: "r",
+    profile: "general-responses-v1" as const,
+    state: "unavailable" as const,
+    reason: "Provider receipt unresolved",
+    evidence_origin: "unverified" as const,
+    provider_observation: "outcome_unknown" as const,
+  };
+  it("is read only for model-path turns", () => {
+    expect(turnProgress(undefined)).toBeUndefined();
     expect(
       turnProgress({
-        run_id: "r",
-        state: "unavailable",
-        provider_observation: "outcome_unknown",
-        evidence_origin: "unverified",
-        retained_local_result: {
-          status: "observed",
-          published: false,
-          output: { kind: "run_wasm", value: "9007199254740993" },
-        },
+        ...turn,
+        profile: "general-controlled-v1",
+        evidence_origin: "controlled_transport",
+        provider_observation: "not_observed",
       }),
-    ).toEqual({
+    ).toBeUndefined();
+    expect(turnProgress(turn)).toEqual({
       provider_observation: "outcome_unknown",
       evidence_origin: "unverified",
-      retained_local_result: {
-        status: "observed",
-        published: false,
-        output: { kind: "run_wasm", value: "9007199254740993" },
-      },
+      retained_local_result: null,
     });
+  });
+  it("keeps a retained local result as data, with its exact decimal", () => {
+    const retained = {
+      status: "observed" as const,
+      published: false,
+      binding: {
+        attempt_id: "a",
+        selection_request_sha256: "1".repeat(64),
+        selection_response_id: "resp",
+        decision_sha256: "2".repeat(64),
+        operation_hash: "3".repeat(64),
+        base_hash: "4".repeat(64),
+      },
+      output: {
+        kind: "run_wasm" as const,
+        value: "9007199254740993",
+        entrypoint: "total",
+        arguments: [3],
+        code_sha256: "5".repeat(64),
+        input_sha256: "6".repeat(64),
+        engine: "wasmtime-49.0.0" as const,
+        execution_observed: true as const,
+        fuel_consumed: 3,
+        fuel_limit: 50000 as const,
+        memory_limit_bytes: 1048576 as const,
+        host_imports: 0 as const,
+      },
+    };
+    expect(
+      turnProgress({ ...turn, retained_local_result: retained })
+        ?.retained_local_result,
+    ).toEqual(retained);
   });
 });

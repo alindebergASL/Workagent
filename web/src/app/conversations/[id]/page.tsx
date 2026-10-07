@@ -254,18 +254,8 @@ export default function ConversationPage() {
                       <span aria-hidden="true">↗</span>
                     </Link>
                   ))}
-                  {m.author === "agent" &&
-                  m.origin === "controlled_transport" ? (
-                    <span className="msg-tag">Test reply</span>
-                  ) : m.author === "agent" &&
-                    replyTag(
-                      d.turns.find((t) => t.run_id === m.run_id)?.progress,
-                    ) ? (
-                    <span className="msg-tag">
-                      {replyTag(
-                        d.turns.find((t) => t.run_id === m.run_id)?.progress,
-                      )}
-                    </span>
+                  {m.author === "agent" && replyTag(m.origin) ? (
+                    <span className="msg-tag">{replyTag(m.origin)}</span>
                   ) : null}
                   {m.author === "agent" ? (
                     <TurnProgressDetails
