@@ -17,7 +17,9 @@ MEMORY_BYTES = 1_048_576
 
 
 class ToolRejected(ValueError):
-    pass
+    def __init__(self, message, code='wasm_rejected'):
+        super().__init__(message)
+        self.code=code
 
 
 def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
@@ -56,8 +58,14 @@ def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
                         raise ToolRejected('bounded i64 parameters and one i64 result required')
                     value = function(store, *arguments)
                     fuel_consumed = FUEL - store.get_fuel()
-    except (wasmtime.WasmtimeError, wasmtime.Trap) as exc:
-        raise ToolRejected('WebAssembly compilation, resource or execution check failed') from exc
+    except wasmtime.Trap as exc:
+        # Only the engine's enum classification; never echo source/backtrace text.
+        code={'UNREACHABLE':'wasm_unreachable','OUT_OF_FUEL':'wasm_fuel_exhausted',
+              'INTEGER_DIVISION_BY_ZERO':'wasm_division_by_zero'}.get(
+                  getattr(exc.trap_code,'name',None),'wasm_trap')
+        raise ToolRejected('WebAssembly execution trapped',code) from exc
+    except wasmtime.WasmtimeError as exc:
+        raise ToolRejected('WebAssembly compilation or resource check failed','wasm_compile_or_resource') from exc
     material = json.dumps({'entrypoint':entrypoint,'arguments':arguments},sort_keys=True,separators=(',',':'))
     return {'value':value, 'entrypoint':entrypoint, 'arguments':list(arguments),
             'code_sha256':hashlib.sha256(code.encode('utf-8')).hexdigest(),

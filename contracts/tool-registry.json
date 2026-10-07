@@ -317,6 +317,9 @@
               "phase": {
                 "enum": [
                   "selection",
+                  "selection_2",
+                  "selection_3",
+                  "selection_4",
                   "final"
                 ],
                 "title": "Phase",
@@ -2112,6 +2115,19 @@
             ],
             "title": "State",
             "type": "string"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "const": "budget_limit",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Stop Reason"
           },
           "tool_registry_hash": {
             "pattern": "^[0-9a-f]{64}$",

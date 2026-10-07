@@ -106,7 +106,8 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
-          "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+          "stop_reason": null,
+          "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -330,6 +331,7 @@
             "provider_session_id": null,
             "provider_turn_id": null,
             "state": "queued",
+            "stop_reason": null,
             "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
             "unresolved": [],
             "used_units": 0,
@@ -362,7 +364,8 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "running",
-        "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+        "stop_reason": null,
+        "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -535,6 +538,7 @@
           "provider_session_id": null,
           "provider_turn_id": null,
           "state": "queued",
+          "stop_reason": null,
           "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
           "unresolved": [],
           "used_units": 0,
@@ -708,7 +712,8 @@
         "provider_session_id": null,
         "provider_turn_id": null,
         "state": "queued",
-        "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+        "stop_reason": null,
+        "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -785,7 +790,8 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "partial",
-      "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+      "stop_reason": null,
+      "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -814,7 +820,8 @@
       "provider_session_id": null,
       "provider_turn_id": null,
       "state": "running",
-      "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+      "stop_reason": null,
+      "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"

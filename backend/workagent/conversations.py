@@ -187,7 +187,7 @@ class Conversations:
                            ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport')))
             c.execute('INSERT INTO runs(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,run.id,cid,encoded(run)))
             pinned={'profile':selected,'bundle_hash':selected_hash,
-                    'implementation_hash':consumer_hash() if grant else implementation_hash(),'tools':config['tools']}
+                    'implementation_hash':grant.consumer_sha256 if grant else implementation_hash(),'tools':config['tools']}
             if grant:
                 pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
                     max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
@@ -247,12 +247,16 @@ class Conversations:
                  'sources':[{'id':r['id'],'content':r['content']} for r in sources],
                  'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
         if run.profile=='general-responses-v1':
-            from .general_responses import exact_target, POLICY
+            from .general_responses import exact_target
+            from .adaptive import contract
+            from .models import ProviderGrant
             latest=next(m for m in messages if m.run_id==run.id and m.author_kind=='human')
             base=exact_target(self,c,p,run.workspace_id,cv,latest.target)
-            from .general_schema import GeneralDecision
-            context.update(instructions=POLICY,target_body=base.model_dump(mode='json') if base else None,
-                           tools=[{'name':'choose_general_action','inputSchema':GeneralDecision.model_json_schema()}])
+            config=check_general_pins(c,run)
+            grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
+            policy,schema=contract(grant.responses)
+            context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
+                           tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
         else:
             # Do not change the canonical historical controlled context shape.
             for message in context['messages']:

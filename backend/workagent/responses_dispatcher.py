@@ -138,9 +138,10 @@ def main():
             b.secret_reference!=record['runtime']['secure_secret_reference']):
             raise TransportError('grant_binding_mismatch')
         if args.general_responses:
-            if args.install_successor or args.reconcile_run: raise TransportError('general_use_same_worker_once_for_recovery')
+            if args.reconcile_run: raise TransportError('general_use_same_worker_once_for_recovery')
             from .general_responses import validate_grant
-            validate_grant(grant)
+            if not args.install_successor:
+                with db.transaction() as c: validate_grant(grant,c)
         else:
             with db.transaction() as c:
                 _,config=active_configuration(c)
@@ -154,7 +155,8 @@ def main():
                 actual=c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchone()
                 if not actual or SuccessorApproval.model_validate(actual['data'])!=installed:
                     raise TransportError('successor_install_readback_failed')
-                validate_pins(grant,config,c)
+                if args.general_responses: validate_grant(grant,c)
+                else: validate_pins(grant,config,c)
             print(json.dumps({'status':'operator_successor_installed','approval':installed.model_dump(mode='json')}))
             return
         if args.install_grant:

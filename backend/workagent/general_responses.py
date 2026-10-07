@@ -16,7 +16,7 @@ def consumer_hash():
     from .service import digest
     names=('general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'adaptive.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -49,15 +49,20 @@ def verify_route_record(record,grant=None):
     if not valid: raise TransportError('fresh_verified_general_route_and_pricing_required')
 
 
-def validate_grant(grant):
+def validate_grant(grant,c=None):
     from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
     from .service import digest
     b=grant.responses
-    if (grant.profile!=PROFILE or grant.consumer_sha256!=consumer_hash() or
+    from .adaptive import contract
+    policy,decision_schema=contract(b)
+    from .responses_recovery import approved_successor
+    consumer_ok=(grant.consumer_sha256==consumer_hash() or
+                 (c is not None and approved_successor(c,grant) is not None))
+    if (grant.profile!=PROFILE or not consumer_ok or
         b.authorization_sha256!=AUTHORIZATION_HASH or
-        b.instructions_sha256!=sha256(POLICY.encode()).hexdigest() or
+        b.instructions_sha256!=sha256(policy.encode()).hexdigest() or
         b.schema_sha256!=sha256(EXPLANATION_SCHEMA.material).hexdigest() or
-        b.scope_tool_sha256!=sha256(DECISION_SCHEMA.material).hexdigest() or
+        b.scope_tool_sha256!=sha256(decision_schema.material).hexdigest() or
         len(set(b.conversation_ids))!=len(b.conversation_ids)):
         raise DomainError('unsupported_operation')
 
@@ -70,13 +75,13 @@ def check_pins(c,run):
                   (run.workspace_id,run.id)).fetchone()
     if not row or row['activation_id']!=PROFILE:
         raise DomainError('unsupported_operation')
-    config=row['data']; grant=check_grant(c,run,config); validate_grant(grant)
+    config=row['data']; grant=check_grant(c,run,config); validate_grant(grant,c)
     if not c.execute("""SELECT 1 FROM conversation_messages WHERE workspace_id=%s
         AND conversation_id=%s AND run_id=%s AND author_kind='human'""",
         (run.workspace_id,run.conversation_id,run.id)).fetchone():
         raise DomainError('action_unresolved')
     if (run.bundle_hash!=PROFILE_HASH or config.get('bundle_hash')!=PROFILE_HASH or
-        config.get('implementation_hash')!=consumer_hash() or run.budget_units!=1 or
+        config.get('implementation_hash')!=grant.consumer_sha256 or run.budget_units!=1 or
         run.tool_registry_hash!=digest(profile(PROFILE)['tools']) or
         run.conversation_id not in grant.responses.conversation_ids):
         raise DomainError('unsupported_operation')
@@ -93,7 +98,7 @@ def admission(service,c,p,ws,cv,cmd):
         return None
     if cmd.operation: raise DomainError('unsupported_operation')
     if len(scoped)!=1 or not scoped[0]['active']: raise DomainError('action_unresolved')
-    grant=ProviderGrant.model_validate(scoped[0]['data']); validate_grant(grant)
+    grant=ProviderGrant.model_validate(scoped[0]['data']); validate_grant(grant,c)
     if cv.selected_source_refs: raise DomainError('unsupported_operation')
     # A new user turn must not bypass an unresolved send; cancellation is explicit.
     if c.execute("""SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id
@@ -117,7 +122,7 @@ def exact_target(service,c,p,ws,cv,target):
     return revision
 
 
-def resolve_selection(service,c,cap,receipt):
+def resolve_selection(service,c,cap,receipt,phase='selection'):
     """Read exact trusted selection receipt, not a caller/model operation payload."""
     from .general_schema import GeneralDecision,Reply,CSVDecision
     from .responses_ledger import Ledger
@@ -128,13 +133,17 @@ def resolve_selection(service,c,cap,receipt):
     bound,attempt,origin=service._receipt_binding(c,receipt)
     if bound.id!=run.id: raise DomainError('not_found_or_not_authorized')
     service._general_context(c,cap)
-    events=Ledger(service,receipt)._events(c,'selection')
+    ledger=Ledger(service,receipt)
+    events=ledger._events(c,phase)
     result=events.get('result',{})
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
-    decision=GeneralDecision.model_validate(result['value'],strict=True).decision
+    from .adaptive import enabled,decision as adaptive_decision,Stop
+    config=check_pins(c,run)
+    decision=(adaptive_decision(c,ledger,phase).decision if enabled(config) else
+              GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind=='human')
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
-    if isinstance(decision,Reply):
+    if isinstance(decision,(Reply,Stop)):
         operation=None
     else:
         if (decision.target.model_dump() if decision.target else None)!=(message.target.model_dump() if message.target else None):

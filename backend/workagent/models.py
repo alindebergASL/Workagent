@@ -223,12 +223,35 @@ class GeneralResponsesBinding(Model):
     store_acknowledged: Literal[True] = True
 
 
+class AdaptiveResponsesBinding(Model):
+    """Opt-in capability, not a mutation of the historical eight-generation grant."""
+    project_id: Annotated[str, Field(pattern=r'^proj_[A-Za-z0-9_-]{1,100}$')]
+    secret_reference: Annotated[str, Field(pattern=r'^file:/[A-Za-z0-9_./-]{1,400}$')]
+    transport_mode: Literal['synthetic', 'official_api']
+    instructions_sha256: Hash
+    schema_sha256: Hash
+    scope_tool_sha256: Hash
+    policy_version: Literal['adaptive-local-v1'] = 'adaptive-local-v1'
+    max_steps: int = Field(default=4, strict=True, ge=1, le=4)
+    generation_limit: Literal[50] = 50
+    count_limit: Literal[50] = 50
+    read_limit: Literal[500] = 500
+    cancel_limit: Literal[0] = 0
+    input_limit: Literal[1000000] = 1000000
+    output_limit: Literal[409600] = 409600
+    cost_limit_usd: Literal['20.00'] = '20.00'
+    conversation_ids: list[Id] = Field(min_length=1,max_length=2)
+    authorization_sha256: Hash
+    synthetic_data_only: Literal[True] = True
+    store_acknowledged: Literal[True] = True
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
     profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | GeneralResponsesBinding | None = None
+    responses: ResponsesBinding | GeneralResponsesBinding | AdaptiveResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime | None
@@ -240,8 +263,8 @@ class ProviderGrant(Model):
     @model_validator(mode='after')
     def exact_responses_binding(self):
         if self.profile == 'general-responses-v1':
-            if (not isinstance(self.responses,GeneralResponsesBinding) or self.expires_at is not None or
-                self.model!='gpt-6.1-sol' or self.max_runs>4 or self.max_received_output_tokens!=16384):
+            if (not isinstance(self.responses,(GeneralResponsesBinding,AdaptiveResponsesBinding)) or self.expires_at is not None or
+                self.model!='gpt-6.1-sol' or (self.max_runs>4 and not isinstance(self.responses,AdaptiveResponsesBinding)) or self.max_received_output_tokens!=16384):
                 raise ValueError('exact general cumulative no-expiry grant required')
         elif self.profile == 'openai-responses-v1':
             if (not isinstance(self.responses,ResponsesBinding) or self.model != 'gpt-6.1-sol' or
@@ -333,6 +356,7 @@ class Run(Model):
     tool_registry_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     provider_session_id: Id | None = None
     provider_turn_id: Id | None = None
+    stop_reason: Literal['budget_limit'] | None = None
     cursor: int = Field(default=0, ge=0)
     budget_units: int = Field(default=1, ge=0, le=100)
     used_units: int = Field(default=0, ge=0, le=100)

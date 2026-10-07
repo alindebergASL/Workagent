@@ -19,21 +19,31 @@ class SuccessorApproval(Model):
     reason: str = Field(min_length=10,max_length=500)
 
 
+def current_consumer_hash(profile):
+    if profile=='general-responses-v1':
+        from .general_responses import consumer_hash
+    elif profile=='openai-responses-v1':
+        from .responses_worker import consumer_hash
+    else:
+        raise DomainError('unsupported_operation')
+    return consumer_hash()
+
+
 def approved_successor(c,grant):
-    from .responses_worker import consumer_hash
-    if grant.profile!='openai-responses-v1':return None
+    if grant.profile not in ('openai-responses-v1','general-responses-v1'):return None
     row=c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchone()
     if not row:return None
     approval=SuccessorApproval.model_validate(row['data'])
     if (approval.grant_id!=grant.id or approval.original_grant_sha256!=digest(grant) or
         approval.original_consumer_sha256!=grant.consumer_sha256 or
-        approval.successor_consumer_sha256!=consumer_hash() or approval.expires_at<=now()):
+        approval.successor_consumer_sha256!=current_consumer_hash(grant.profile) or approval.expires_at<=now()):
         return None
     return approval
 
 
 def effective_expiry(c,grant):
     approval=approved_successor(c,grant)
+    if grant.expires_at is None: return None
     return max(grant.expires_at,approval.expires_at) if approval else grant.expires_at
 
 
@@ -51,13 +61,18 @@ def install_successor(db,approval):
         if not row or not row['active']:raise BundleDenied('active original grant required')
         grant=ProviderGrant.model_validate(row['data'])
         c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(grant.workspace_id,))
-        if (grant.profile!='openai-responses-v1' or approval.original_consumer_sha256!=grant.consumer_sha256 or
-            approval.original_grant_sha256!=digest(grant) or approval.successor_consumer_sha256!=consumer_hash() or
+        if (grant.profile not in ('openai-responses-v1','general-responses-v1') or approval.original_consumer_sha256!=grant.consumer_sha256 or
+            approval.original_grant_sha256!=digest(grant) or approval.successor_consumer_sha256!=current_consumer_hash(grant.profile) or
             approval.successor_consumer_sha256==approval.original_consumer_sha256):
             raise BundleDenied('exact original grant and reviewed successor required')
-        _,config=active_configuration(c)
-        # Check every non-consumer pin unchanged, not a waiver for a new prompt/schema.
-        validate_pins(grant.model_copy(update={'consumer_sha256':approval.successor_consumer_sha256}),config)
+        # Only a transient validation copy; immutable stored grant is NEVER updated.
+        compatible=grant.model_copy(update={'consumer_sha256':approval.successor_consumer_sha256})
+        if grant.profile=='general-responses-v1':
+            from .general_responses import validate_grant
+            validate_grant(compatible)
+        else:
+            _,config=active_configuration(c)
+            validate_pins(compatible,config)
         existing=c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchone()
         if existing:
             if existing['data']!=approval.model_dump(mode='json'):raise BundleDenied('successor already fixed')
@@ -71,14 +86,13 @@ def install_successor(db,approval):
 
 def record_successor_use(service,receipt,cap):
     """Audit the actual binary without changing original run/request/receipt pins."""
-    from .responses_worker import consumer_hash
-    actual=consumer_hash()
-    if actual==receipt.consumer_sha256:return
     with service.db.transaction() as c:
         run,attempt,_=service._receipt_binding(c,receipt)
         _,current,_=service._check_capability(c,cap)
         if current.id!=run.id:raise DomainError('not_found_or_not_authorized')
         grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(attempt.grant_id,)).fetchone()['data'])
+        actual=current_consumer_hash(grant.profile)
+        if actual==receipt.consumer_sha256:return
         if not approved_successor(c,grant):raise DomainError('action_unresolved')
         values=(attempt.id,grant.id,receipt.consumer_sha256,actual)
         c.execute('''INSERT INTO responses_consumer_uses(attempt_id,grant_id,original_consumer_sha256,actual_consumer_sha256)
