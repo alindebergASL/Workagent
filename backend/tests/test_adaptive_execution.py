@@ -28,8 +28,9 @@ def activate(ctx, cv, **kw):
 
 
 class AdaptiveProvider(Provider):
-    def __init__(self, *, always_bad=False, wait=False, lie=False):
+    def __init__(self, *, always_bad=False, wait=False, lie=False, wrong_first=False, invented=False, first_good=False, lose_phase=None):
         super().__init__(); self.contexts=[]; self.always_bad=always_bad; self.wait=wait; self.lie=lie
+        self.wrong_first=wrong_first; self.invented=invented; self.first_good=first_good; self.lose_phase=lose_phase
 
     def handle(self, request):
         if request.method=='GET' or request.url.path.endswith('input_tokens'):
@@ -37,25 +38,30 @@ class AdaptiveProvider(Provider):
         self.calls.append((request.method,request.url.path))
         data=json.loads(request.content); ctx=json.loads(data['input'][0]['content']); self.contexts.append(ctx)
         if data['metadata']['step_id']=='final':
-            output=[{'type':'message','role':'assistant','content':[{'type':'output_text','text':json.dumps({'text':'Retained local verification; no external action.'})}]}]
+            text='Completed and independently verified.' if self.invented or self.lie else 'Retained local verification; no external action.'
+            output=[{'type':'message','role':'assistant','content':[{'type':'output_text','text':json.dumps({'text':text})}]}]
         else:
             observations=ctx.get('adaptive',{}).get('observations',[])
-            repaired=bool(observations) and not self.always_bad
-            if repaired:
+            repaired=(bool(observations) or self.first_good) and not self.always_bad
+            if observations:
                 assert observations[-1]['status'] in ('rejected','observed')
                 assert observations[-1]['verification']['satisfied'] is False
-            decision={'kind':'run_wasm','target':None,'code':CODE if repaired else '(module (func (export "total") (param i64 i64) (result i64) unreachable))',
+            initial='(module (func (export "total") (param i64 i64) (result i64) i64.const 7))' if self.wrong_first or self.invented else '(module (func (export "total") (param i64 i64) (result i64) unreachable))'
+            message=next(m for m in ctx['messages'] if m['run_id']==ctx['run_id'] and m['author_kind']=='human')
+            decision={'kind':'run_wasm','target':message.get('target'),'code':CODE if repaired else initial,
                 'entrypoint':'total','arguments':[3,1250],
                 'input_form':[{'name':'quantity','label':'Quantity'},{'name':'price','label':'Price cents'}]}
             if self.wait: decision={'kind':'stop','outcome':'waiting_for_user','text':'Need a price.'}
             if self.lie: decision={'kind':'stop','outcome':'complete','text':'I succeeded.'}
-            value={'goal':'Build and verify integer invoice total','success_criteria':[{'kind':'wasm_return','arguments':[3,1250],'expected':'3750'}], 'decision':decision}
+            value={'goal':'Build and verify integer invoice total','success_criteria':[{'kind':'wasm_return','arguments':[3,1250],'expected':'7' if self.invented else '3750'}], 'decision':decision}
             output=[{'type':'function_call','name':'choose_general_action','call_id':'call_'+data['metadata']['step_id'],'arguments':json.dumps(value)}]
         rid='resp_adaptive_'+str(len(self.responses))
         result={'id':rid,'object':'response','model':'gpt-6.1-sol','service_tier':'default','metadata':data['metadata'],
             'status':'completed','error':None,'output':output,'usage':{'input_tokens':700,'output_tokens':200,'total_tokens':900,
                 'input_tokens_details':{'cached_tokens':0},'output_tokens_details':{'reasoning_tokens':50}}}
         self.responses[rid]=result
+        if self.lose_phase==data['metadata']['step_id']:
+            raise OSError('lost provider response after send')
         return httpx.Response(200,json=result)
 
 

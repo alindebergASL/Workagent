@@ -1,7 +1,7 @@
 """Pure regressions: no database fixtures, services, provider or network calls."""
 from types import SimpleNamespace
 import pytest
-from workagent.adaptive import AdaptiveDecision, verify, decision
+from workagent.adaptive import AdaptiveDecision, WasmCheck, verify, decision
 from workagent.errors import DomainError
 from workagent.local_operations import reconcile_csv
 
@@ -64,7 +64,7 @@ def test_empty_criteria_cannot_pass():
 
 def test_verification_runs_other_arguments_not_selected_demo():
     v=value(MULTIPLY,'3750')
-    v.success_criteria.append(type(v.success_criteria[0])(kind='wasm_return',arguments=[2,1500],expected='3000'))
+    v.success_criteria.append(WasmCheck(kind='wasm_return',arguments=[2,1500],expected='3000'))
     result=verify(v,v.decision,{'status':'observed','body':{'code':MULTIPLY}})
     assert [x['actual'] for x in result['checks']]==['3750','3000']
     assert result['model_tests_passed'] and not result['satisfied']

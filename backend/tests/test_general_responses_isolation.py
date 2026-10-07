@@ -71,7 +71,7 @@ def test_snapshot_provider_reservation_denied(context,tmp_path,monkeypatch,isola
     with pytest.raises(RuntimeError,match='stop before reservation'): w.work(p,ws,q.run.id)
     before=events(s,q.run.id); calls=len(fake.calls)
     data={'reserved_input_tokens':20000,'reserved_output_tokens':8192,'reserved_cost_usd':'0.131920'} if kind=='dispatch' else {}
-    with pytest.raises(psycopg.Error,match='general authority requires read committed isolation'):
+    with pytest.raises(psycopg.Error,match='shared budget authority requires read committed isolation'):
         with s.db.transaction() as c:
             c.execute('SET TRANSACTION ISOLATION LEVEL '+isolation)
             c.execute("INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,'final',%s,%s)",

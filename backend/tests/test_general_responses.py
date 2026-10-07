@@ -28,7 +28,7 @@ def activate(ctx,cvs,*,max_runs=4):
     return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
         profile=PROFILE,model='gpt-6.1-sol',consumer_sha256=consumer_hash(),expires_at=None,
         max_runs=max_runs,max_received_output_tokens=16384,responses=GeneralResponsesBinding(
-            project_id='proj_SYNTHETIC',secret_reference='file:/synthetic/not-a-key',transport_mode='synthetic',
+            project_id='proj_'+ws,secret_reference='file:/synthetic/not-a-key',transport_mode='synthetic',
             instructions_sha256=sha256(POLICY.encode()).hexdigest(),schema_sha256=sha256(EXPLANATION_SCHEMA.material).hexdigest(),
             scope_tool_sha256=sha256(DECISION_SCHEMA.material).hexdigest(),authorization_sha256=AUTHORIZATION_HASH,
             conversation_ids=[cv.id for cv in cvs])))

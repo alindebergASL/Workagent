@@ -353,13 +353,11 @@ class Products:
             # Includes current human target, scope and original context pins.
             self._general_context(c,cap)
             steps=observations(c,attempt.id)
-            uncertain=any(x.state in ('outcome_unknown','accepted') for x in steps)
             received=any(x.state in ('received','invalid') for x in steps)
-            if not uncertain:
-                # This is a bounded execution failure, not receipt-backed final
-                # model publication (which alone permits 'reconciled').
-                attempt.state='failed'
-                self._store_attempt(c,attempt)
+            # Budget exhaustion is not evidence of an unsent/abandoned attempt.
+            # Preserve its state and every receipt, including known completed
+            # phases; only exact final publication may reconcile the attempt.
+            # This also keeps count-only ambiguity from opening a replacement.
             run.state='partial'; run.stop_reason='budget_limit'
             run.unresolved=[BUDGET_STOP_REASON]
             run.used_units+=1; run.lease_expires_at=None
