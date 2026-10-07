@@ -60,6 +60,10 @@ Removed invoice-specific defaults from the general Wasm tool path. New titles de
 
 Four name regressions failed before the correction. Verification: **64 focused backend tests**, **608 full backend tests** on fresh `workagent_test_2d42f29082e7`, **112 web tests**, typecheck/lint/format, production build and contract check passed. Direct Z.AI `glm-5.3` review returned PASS without findings; reviewed file hashes matched the candidate. A new controlled fixture—not live model evidence—verified the real title, actual suggested download filename and exact code bytes at1440px/320px. Private receipts: `.local/tool-labels-{focused,full}.xml`, `.local/tool-labels-review.json`, `.local/tool-labels-browser/`. Earlier live evidence above is preserved unchanged.
 
+## Ordinary-use follow-up
+
+See [ORDINARY_REUSE_CHECKPOINT.md](ORDINARY_REUSE_CHECKPOINT.md) for the subsequent ordinary prompt → changed inputs → explicit local reuse → model follow-up → human approval → restart proof, its scoped admission correction,613-test regression and cumulative$2.638400 reservation accounting. The earlier bounded adaptation evidence above remains unchanged.
+
 ## Reproduce the no-provider browser checkpoint
 
 ```sh
