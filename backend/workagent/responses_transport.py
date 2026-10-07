@@ -613,6 +613,10 @@ class ResponsesTransport:
         if not _response_id(response_id):
             raise TransportError('invalid_response_id')
         path = 'responses/' + response_id + ('/cancel' if cancel else '')
+        # GET include is not inherited from the earlier background POST.
+        # Selection output is replayed in full; keep strict ciphertext validation.
+        if not cancel and request.phase != 'final':
+            path += '?include%5B%5D=reasoning.encrypted_content'
         data = self._send(method, path, None, mutating=cancel)
         if not isinstance(data, dict) or data.get('id') != response_id:
             raise TransportError('response_identity_mismatch', outcome_unknown=cancel, response_id=response_id)

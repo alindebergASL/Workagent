@@ -419,7 +419,8 @@ def test_retrieve_is_one_readonly_get_cancel_is_explicit(harness):
     assert result.provenance == Provenance('synthetic', 'http://127.0.0.1:8123')
     assert len(calls) == 1 and calls[0].method == 'GET'
     assert calls[0].url.path == '/v1/responses/resp_SYNTHETIC'
-    assert calls[0].content == b'' and calls[0].url.query == b''
+    assert calls[0].content == b''
+    assert list(calls[0].url.params.multi_items()) == [('include[]', 'reasoning.encrypted_content')]
     transport.cancel('resp_SYNTHETIC', request=request)
     assert len(calls) == 2 and calls[1].method == 'POST'
     assert calls[1].url.path == '/v1/responses/resp_SYNTHETIC/cancel'
