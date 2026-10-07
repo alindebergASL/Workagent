@@ -514,6 +514,74 @@ try {
     "PASS signed i64 decimal rendering and saved verification plus pending output",
   );
 
+  // A proposed tool version's result is shown with that version's inputs,
+  // never the saved inputs; the saved card does not claim it.
+  const proposedBody = structuredClone(body);
+  proposedBody.arguments = [3, 1250, 500];
+  proposedBody.input_form = [
+    "Quantity",
+    "Unit price cents",
+    "Shipping cents",
+  ].map((label, i) => ({
+    ...body.input_form[0],
+    name: `input_${i + 1}`,
+    label,
+  }));
+  await page.evaluate(
+    ({ data, proposedBody }) => {
+      const d = structuredClone(data);
+      d.proposals[0].body = proposedBody;
+      d.proposals[0].body_hash = "b".repeat(64);
+      d.observations.latest.observation.body_hash = "b".repeat(64);
+      d.observations.latest.observation.output.value = "4250";
+      d.observations.latest.observation.output.arguments = [3, 1250, 500];
+      d.observations.current = null;
+      window.resource = {
+        data: d,
+        error: null,
+        reconnecting: false,
+        refresh: window.refresh,
+      };
+      sessionStorage.clear();
+      window.mount("away");
+      window.mount("product");
+    },
+    { data, proposedBody },
+  );
+  await expect(page.locator(".result-headline")).toHaveText(
+    "Not run on this saved version yet.",
+  );
+  await expect(page.locator(".result-card")).not.toContainText("4250");
+  await expect(page.getByTestId("proposal-result")).toHaveText("Returns 4250");
+  await expect(page.getByTestId("proposal-inputs")).toHaveText(
+    "Quantity 3 · Unit price cents 1250 · Shipping cents 500",
+  );
+  await page.evaluate(() => {
+    window.resource.data.observations.latest.observation.body_hash = "c".repeat(
+      64,
+    );
+    window.mount("product");
+  });
+  await expect(page.getByTestId("product-proposal")).toContainText(
+    "Not run yet.",
+  );
+  await expect(page.getByTestId("proposal-result")).toHaveCount(0);
+  await page.evaluate((data) => {
+    window.resource = {
+      data,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    sessionStorage.clear();
+    window.mount("away");
+    window.mount("product");
+  }, data);
+  passed++;
+  console.log(
+    "PASS proposed tool result is shown with its own inputs; the saved card never claims it",
+  );
+
   await page.getByLabel("Quantity", { exact: true }).fill("99");
   await page.getByLabel("Input 1 name", { exact: true }).fill("Discard me");
   await expect(
