@@ -96,7 +96,6 @@ def admission(service,c,p,ws,cv,cmd):
     if not scoped:
         if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
         return None
-    if cmd.operation: raise DomainError('unsupported_operation')
     if len(scoped)!=1 or not scoped[0]['active']: raise DomainError('action_unresolved')
     grant=ProviderGrant.model_validate(scoped[0]['data']); validate_grant(grant,c)
     if cmd.acceptance_checks is not None and getattr(grant.responses,'policy_version',None)!='adaptive-local-v1':
@@ -106,6 +105,16 @@ def admission(service,c,p,ws,cv,cmd):
     if c.execute("""SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id
         WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed') LIMIT 1""",(ws,cv.id)).fetchone():
         raise DomainError('action_unresolved')
+    if cmd.operation:
+        from .product_models import RunWasm
+        op=cmd.operation
+        # An explicit saved-code run is local execution, not model fallback.
+        # Preserve scoped-grant/unresolved checks above and exact artifact/CAS
+        # validation in post_message; never admit replacement code here.
+        if (not isinstance(op,RunWasm) or not op.artifact_id or not op.base_revision_id
+            or op.code is not None or cmd.attachments or cmd.target or cmd.acceptance_checks):
+            raise DomainError('unsupported_operation')
+        return None
     n=c.execute("SELECT count(*) n FROM run_configurations WHERE data->>'grant_id'=%s",(grant.id,)).fetchone()['n']
     if n>=grant.max_runs: raise DomainError('budget_exhausted')
     exact_target(service,c,p,ws,cv,cmd.target)
