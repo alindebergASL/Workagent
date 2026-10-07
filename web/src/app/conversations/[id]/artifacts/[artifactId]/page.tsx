@@ -475,6 +475,21 @@ function ProductEditor({
 
       {pendingProposals.map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
+        // The run bound to exactly this proposed version, if any.
+        const proposedRun = stale
+          ? undefined
+          : observations.find((read) => {
+              const o = read.observation;
+              return (
+                read.current_scope &&
+                read.binding_state === "pending_proposal" &&
+                o.proposal_id === p.id &&
+                o.workspace_id === ws &&
+                o.conversation_id === cid &&
+                o.artifact_id === artifact.id &&
+                o.body_hash === p.body_hash
+              );
+            });
         return (
           <section
             key={p.id}
@@ -503,23 +518,13 @@ function ProductEditor({
                     {
                       tableSummary(
                         p.body,
-                        !stale &&
-                          observations.some((read) => {
-                            const o = read.observation;
-                            return (
-                              read.current_scope &&
-                              read.binding_state === "pending_proposal" &&
-                              o.proposal_id === p.id &&
-                              o.workspace_id === ws &&
-                              o.conversation_id === cid &&
-                              o.artifact_id === artifact.id &&
-                              o.body_hash === p.body_hash &&
-                              o.output.kind === "reconcile_csv"
-                            );
-                          }),
+                        proposedRun?.observation.output.kind ===
+                          "reconcile_csv",
                       ).headline
                     }
                   </p>
+                ) : p.body.kind === "tool" ? (
+                  <ProposedToolResult body={p.body} read={proposedRun} />
                 ) : null}
                 <details className="ids-details">
                   <summary>See the proposed version</summary>
@@ -898,6 +903,35 @@ function ProductEditor({
 }
 
 /** The result first: what was found, then whether it applies to this saved version. */
+/**
+ * What a proposed tool version returned, with the inputs it was run with,
+ * labelled by that same proposed version. Never the saved inputs.
+ */
+function ProposedToolResult({
+  body,
+  read,
+}: {
+  body: S["ToolBody"];
+  read: S["ObservationReadback"] | undefined;
+}) {
+  const output = read?.observation.output;
+  if (output?.kind !== "run_wasm")
+    return <p className="decision-question">Not run yet.</p>;
+  const inputs = output.arguments.map((value, i) => ({
+    label: body.input_form[i]?.label ?? `Input ${i + 1}`,
+    value,
+  }));
+  return (
+    <>
+      <p className="decision-question" data-testid="proposal-result">
+        Returns <strong>{output.value}</strong>
+      </p>
+      <p className="small muted" data-testid="proposal-inputs">
+        {inputs.map((x) => `${x.label} ${x.value}`).join(" · ")}
+      </p>
+    </>
+  );
+}
 function ResultCard({
   body,
   read,
@@ -911,13 +945,19 @@ function ResultCard({
   status: string;
   verified: boolean;
 }) {
-  const output = read?.observation.output;
+  // Only a run of this saved version leads here; a proposal's own result
+  // is shown on its card, with its own inputs.
+  const output = current ? read?.observation.output : undefined;
+  const earlier =
+    read && !current && read.binding_state === "historical"
+      ? read.observation.output
+      : undefined;
   const where =
-    !read || current
-      ? null
-      : read.binding_state === "pending_proposal"
-        ? "This result is for the proposed version below."
-        : "This result is from an earlier version.";
+    earlier?.kind === "run_wasm"
+      ? `An earlier version returned ${earlier.value}.`
+      : earlier
+        ? "The last check was on an earlier version."
+        : null;
   return (
     <section className="card result-card" aria-labelledby="result-title">
       <h2 id="result-title" className="sr-only">
@@ -963,7 +1003,7 @@ function ResultCard({
                 Returns <strong>{output.value}</strong>
               </>
             ) : (
-              "Not run yet."
+              "Not run on this saved version yet."
             )}
           </p>
           <p className="small muted">
