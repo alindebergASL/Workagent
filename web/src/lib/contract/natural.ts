@@ -1,22 +1,15 @@
-/**
- * Natural-language admission, mirrored from the backend contract posted on
- * PR #9 (comment 6022411897) until the generated client carries it. Shapes
- * and limits here are copied, not designed: replace with the generated types
- * when they land and flag any difference rather than adapting silently.
- */
-export interface MessageAttachment {
-  filename: string;
-  mime_type: "text/csv" | "text/plain";
-  /** Inline UTF-8 text. The server assigns ref, length and hash. */
-  content: string;
-}
+import type { components } from "../../../../contracts/src/client";
 
+type S = components["schemas"];
+
+/**
+ * Natural-language admission (docs/GENERAL_RESPONSES_CONTRACT.md). Shapes
+ * come from the generated client; this module only adds the client-side
+ * checks for the stated limits.
+ */
+export type MessageAttachment = S["AttachmentInput"];
 /** The exact saved version a reply is about, from the current readback. */
-export interface ExactTarget {
-  artifact_id: string;
-  revision_id: string;
-  body_hash: string;
-}
+export type ExactTarget = S["ExactTarget"];
 
 export const ATTACHMENT_LIMITS = {
   count: 2,
@@ -62,42 +55,28 @@ export function attachmentsProblem(list: MessageAttachment[]): string | null {
 }
 
 /**
- * Per-turn progress on the model path (same contract). Read-only: none of
- * it is work, and a retained local result is never a saved product.
+ * Per-turn progress on the model path. Read-only: none of it is work, and a
+ * retained local result is never a saved product.
  */
-export interface TurnProgress {
-  provider_observation?:
-    "not_observed" | "pending" | "received" | "outcome_unknown" | "invalid";
-  evidence_origin?:
-    | "unverified"
-    | "synthetic_provider_receipt"
-    | "live_provider_receipt"
-    | "controlled_transport";
-  retained_local_result?: {
-    status: "reply" | "observed" | "rejected";
-    published: boolean;
-    reason?: string | null;
-    output?: { kind?: string; value?: string } | null;
-  } | null;
-}
+export type TurnProgress = Partial<
+  Pick<
+    S["TurnState"],
+    "provider_observation" | "evidence_origin" | "retained_local_result"
+  >
+>;
 
-/** Pick the progress fields from a turn record, if the backend sent any. */
-export function turnProgress(raw: unknown): TurnProgress | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
-  const t = raw as Record<string, unknown>;
-  const p: TurnProgress = {};
-  if (typeof t["provider_observation"] === "string")
-    p.provider_observation = t[
-      "provider_observation"
-    ] as TurnProgress["provider_observation"];
-  if (typeof t["evidence_origin"] === "string")
-    p.evidence_origin = t["evidence_origin"] as TurnProgress["evidence_origin"];
-  if (
-    t["retained_local_result"] &&
-    typeof t["retained_local_result"] === "object"
-  )
-    p.retained_local_result = t[
-      "retained_local_result"
-    ] as TurnProgress["retained_local_result"];
-  return Object.keys(p).length ? p : undefined;
+/**
+ * The progress fields of a model-path turn. Controlled test turns carry the
+ * same fields but say nothing a person needs; they keep their "Test reply"
+ * label instead.
+ */
+export function turnProgress(
+  turn: S["TurnState"] | undefined,
+): TurnProgress | undefined {
+  if (!turn || turn.profile !== "general-responses-v1") return undefined;
+  return {
+    provider_observation: turn.provider_observation,
+    evidence_origin: turn.evidence_origin,
+    retained_local_result: turn.retained_local_result ?? null,
+  };
 }

@@ -38,7 +38,9 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
             {local.status === "rejected"
               ? "A local calculation was rejected."
               : "A local result was calculated but isn’t saved as work yet."}
-            {local.output?.value ? ` Value: ${local.output.value}.` : ""}
+            {local.output?.kind === "run_wasm"
+              ? ` Value: ${local.output.value}.`
+              : ""}
             {local.reason ? ` ${local.reason}` : ""}
           </li>
         ) : null}
@@ -48,8 +50,8 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
 }
 
 /** A short tag for replies that aren't a live model's answer. */
-export function replyTag(progress?: TurnProgress): string | null {
-  if (progress?.evidence_origin === "synthetic_provider_receipt")
-    return "Synthetic test reply";
+export function replyTag(origin: string): string | null {
+  if (origin === "controlled_transport") return "Test reply";
+  if (origin === "synthetic_provider_receipt") return "Synthetic test reply";
   return null;
 }
