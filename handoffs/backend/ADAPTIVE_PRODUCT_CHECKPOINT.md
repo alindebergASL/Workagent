@@ -54,6 +54,12 @@ Cumulative worst-case reservations are **$2.110720 of the shared$20 ceiling**, i
 
 Private local evidence (not checked into the repository): `.local/adaptive-live-02/stored-recovery/` contains successor approval, before/after status, immutable response bindings, full case-by-case oracle output, artifact readbacks, exact WAT downloads, screenshots, browser request reports and traces. `.local/stored-reasoning-glm53-followup.json` binds the reviewed file hashes. `.local/source-budget-post-recovery.json` records read-only historical source verification. The existing3000/8000 demo is unchanged; no merge, push, or deployment is claimed.
 
+## Tool-label follow-up
+
+Removed invoice-specific defaults from the general Wasm tool path. New titles derive from the validated entrypoint (`choose tool`); generated-file and tool downloads use matching `tool-choose.wat` names, including the browser's actual download action. Existing saved titles and immutable file bodies are not rewritten; revisions retain the saved title. No schema change, migration or product-model generation was needed.
+
+Four name regressions failed before the correction. Verification: **64 focused backend tests**, **608 full backend tests** on fresh `workagent_test_2d42f29082e7`, **112 web tests**, typecheck/lint/format, production build and contract check passed. Direct Z.AI `glm-5.3` review returned PASS without findings; reviewed file hashes matched the candidate. A new controlled fixture—not live model evidence—verified the real title, actual suggested download filename and exact code bytes at1440px/320px. Private receipts: `.local/tool-labels-{focused,full}.xml`, `.local/tool-labels-review.json`, `.local/tool-labels-browser/`. Earlier live evidence above is preserved unchanged.
+
 ## Reproduce the no-provider browser checkpoint
 
 ```sh

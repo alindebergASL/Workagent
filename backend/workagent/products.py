@@ -136,10 +136,10 @@ class Products:
         else:
             code=operation.code if operation.code is not None else base.body.code
             output=run_wasm_tool(code,operation.entrypoint,operation.arguments)
-            body=ToolBody(title=base.body.title if base else 'Invoice total tool',code=code,
+            body=ToolBody(title=base.body.title if base else f'{operation.entrypoint} tool',code=code,
                 entrypoint=operation.entrypoint,arguments=operation.arguments,input_form=operation.input_form,notes=notes)
             observed=WasmObservation(**output)
-            file=FileBody(title='Portable WebAssembly text',filename='invoice-tool.wat',mime_type='application/wasm-text',
+            file=FileBody(title='Portable WebAssembly text',filename=f'tool-{operation.entrypoint}.wat',mime_type='application/wasm-text',
                           content=code,content_sha256=byte_hash(code))
         return body,file,observed
 
@@ -419,7 +419,7 @@ class Products:
         if isinstance(body,FileBody):
             return body
         if isinstance(body,ToolBody):
-            return FileBody(title=body.title,filename='invoice-tool.wat',mime_type='application/wasm-text',content=body.code,content_sha256=byte_hash(body.code))
+            return FileBody(title=body.title,filename=f'tool-{body.entrypoint}.wat',mime_type='application/wasm-text',content=body.code,content_sha256=byte_hash(body.code))
         if isinstance(body,TableBody):
             # Export SAVED cells, not a hidden recalculation or an execution claim.
             import csv, io

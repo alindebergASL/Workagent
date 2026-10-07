@@ -254,7 +254,7 @@ export const productApi = {
         ? body.filename
         : body.kind === "table"
           ? "reconciled.csv"
-          : "invoice-tool.wat";
+          : `tool-${body.entrypoint}.wat`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
