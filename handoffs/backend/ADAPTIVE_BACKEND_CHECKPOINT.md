@@ -1,6 +1,6 @@
 # Adaptive backend checkpoint
 
-This candidate preserves the interrupted backend work and corrects publication truthfulness. No provider calls, web edits, accepted bundle edits, old migration edits, or writes to protected databases were performed by the backend owner.
+This candidate preserves the interrupted backend work and corrects publication truthfulness. Initial backend correction used no provider calls, web edits, accepted bundle edits, old migration edits, or writes to protected databases. The subsequently authorized direct-GLM review is recorded separately below; it is not a Workagent model-generation checkpoint.
 
 ## Contract and behavior
 
@@ -39,6 +39,18 @@ All commands below ran from the repository root after sourcing `.local/adaptive-
 7. Canonical contract regeneration/check, generated TypeScript drift check, `tsc --noEmit`, offline13-test socket/DB-forbidden run, and `git diff --check` passed. The only pytest warning is the existing Starlette/AnyIO deprecation.
 
 Runtime consumer hashing changes with the budget-stop correction; bind any new adaptive grant to the **final commit's** `consumer_hash()`, not the earlier checkpoint. Live provider behavior, held-out goal correctness, UI experience and independent parent review remain separate/unverified here.
+
+## Resumed verification — clean full suite and direct GLM review
+
+Runtime candidate: `84717547f7429517ba774a78b9542fc4e59f4ff3`.
+
+- Created a new disposable DB through unchanged `backend/dev_db.py`: `workagent_test_f341f708e86b`, environment `.local/adaptive-resume-clean.env`. Readback confirmed all12 migration checksums match and the runtime is nonowner. Earlier databases were not reset or adopted.
+- `. .local/adaptive-resume-clean.env && PYTHONPATH=backend .venv/bin/python -m pytest -q backend/tests --junitxml=.local/adaptive-resume-clean.xml`: **508 passed, zero failures/errors/skips in one clean invocation**. The sole warning is the existing Starlette/AnyIO deprecation. This supersedes the earlier caveat about coverage being assembled across reruns.
+- Canonical Python export check, generated TypeScript drift check, TypeScript typecheck, and diff hygiene passed again. No runtime or contract code changed during this resumed verification.
+- Per Andrew's explicit model-routing instruction, the independent review used the direct Z.AI endpoint `https://api.z.ai/api/anthropic/v1/messages`, with requested and returned model `glm-5.3`, HTTP200, and no OpenRouter fallback. The first bounded response was truncated and was **not** approval. A focused follow-up completed with `stop_reason=end_turn`, verdict `pass`, and no concrete findings. Scope was adaptive verification/publication, receipt preservation, and shared-budget SQL; omitted modules and unexecuted checks were explicitly limitations. Deterministic tests, not the reviewer verdict, establish execution evidence.
+- Private receipts: `.local/adaptive-glm53-review.json` (incomplete), `.local/adaptive-glm53-review-followup.json` (completed). These are Hermes development-review calls, not Workagent turns or charges against its separate retained authorization ledger. No live Workagent generation, frontend edit, default merge, or deployment was performed.
+
+The user-level Hermes configuration now routes GLM fallback, review-panel, compression and title-generation slots through direct `zai-coding-plan`/`glm-5.3`. The obsolete GLM5.2/OpenRouter route was removed; the main `openai-codex` model was left unchanged. Those profile changes are outside this repository.
 
 ## Minimal independent-verification path (not implemented)
 
