@@ -246,8 +246,9 @@ def _validate_request(request: PreparedRequest) -> dict:
     history = payload['input']
     if not valid or not isinstance(history, list) or not history:
         raise TransportError('invalid_request_policy')
-    # Do not accept implicit item references, hosted tools, files, images or hidden
-    # server-side expansion. This candidate has exactly one initial source message.
+    # Do not accept bare item references, hosted tools, files, images or arbitrary
+    # server-side expansion. Final history preserves full reasoning items from the
+    # exact correlated stored response, including their provider-assigned IDs.
     first = history[0]
     if (not isinstance(first, dict) or set(first) != {'role', 'content'} or
             first['role'] != 'user' or not isinstance(first['content'], str)):
@@ -257,7 +258,7 @@ def _validate_request(request: PreparedRequest) -> dict:
     if request.phase == 'final':
         if len(history) < 3:
             raise TransportError('invalid_history')
-        calls = _output_shape(history[1:-1],tool_name=_tool(request.schema,request.policy)['name'])
+        calls = _output_shape(history[1:-1],stored=payload['store'] is True,tool_name=_tool(request.schema,request.policy)['name'])
         last = history[-1]
         if (len(calls) != 1 or not isinstance(last, dict) or
                 set(last) != {'type', 'call_id', 'output'} or
@@ -350,7 +351,7 @@ def _usage(value) -> Usage | None:
     return result
 
 
-def _output_shape(output, *, continuation=True, tool_name=READ_TOOL) -> list[dict]:
+def _output_shape(output, *, continuation=True, stored=False, tool_name=READ_TOOL) -> list[dict]:
     """Closed supported output item types; preserve complete JSON for continuation."""
     if not isinstance(output, list):
         raise TransportError('invalid_output')
@@ -371,8 +372,8 @@ def _output_shape(output, *, continuation=True, tool_name=READ_TOOL) -> list[dic
             calls.append(item)
         elif kind == 'reasoning':
             encrypted = item.get('encrypted_content')
-            if (not isinstance(item.get('id'), str) or not isinstance(item.get('summary'), list) or
-                    (continuation and (not isinstance(encrypted, str) or not encrypted)) or
+            if (not isinstance(item.get('id'), str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,128}',item['id']) or not isinstance(item.get('summary'), list) or
+                    (continuation and not stored and (not isinstance(encrypted, str) or not encrypted)) or
                     (encrypted is not None and (not isinstance(encrypted, str) or not encrypted))):
                 raise TransportError('invalid_reasoning_item')
         elif kind == 'message':
@@ -411,9 +412,13 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
         output = document.get('output')
         if not isinstance(output, list):
             raise TransportError('invalid_output')
-        # Final output is never replayed to a model. Retrieve need not include
-        # encrypted_content; selection still requires complete continuation state.
-        calls = _output_shape(output, continuation=request.phase != 'final',tool_name=_tool(request.schema,request.policy)['name'])
+        # Persisted responses reject encrypted-content GET inclusion. Preserve
+        # their full original reasoning items/IDs for manual replay; never invent
+        # ciphertext or replace them with arbitrary item references. Stateless
+        # continuation still requires ciphertext. Store is pinned in request bytes.
+        request_payload = _json(request.body)
+        stored = isinstance(request_payload,dict) and request_payload.get('store') is True
+        calls = _output_shape(output, continuation=request.phase != 'final',stored=stored,tool_name=_tool(request.schema,request.policy)['name'])
         parts = [part for item in output if item['type'] == 'message' for part in item['content']]
         if any(part['type'] == 'refusal' for part in parts):
             return ParsedResponse(**base, state='refused', usage=usage)
@@ -613,10 +618,6 @@ class ResponsesTransport:
         if not _response_id(response_id):
             raise TransportError('invalid_response_id')
         path = 'responses/' + response_id + ('/cancel' if cancel else '')
-        # GET include is not inherited from the earlier background POST.
-        # Selection output is replayed in full; keep strict ciphertext validation.
-        if not cancel and request.phase != 'final':
-            path += '?include%5B%5D=reasoning.encrypted_content'
         data = self._send(method, path, None, mutating=cancel)
         if not isinstance(data, dict) or data.get('id') != response_id:
             raise TransportError('response_identity_mismatch', outcome_unknown=cancel, response_id=response_id)

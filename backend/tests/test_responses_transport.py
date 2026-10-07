@@ -419,8 +419,7 @@ def test_retrieve_is_one_readonly_get_cancel_is_explicit(harness):
     assert result.provenance == Provenance('synthetic', 'http://127.0.0.1:8123')
     assert len(calls) == 1 and calls[0].method == 'GET'
     assert calls[0].url.path == '/v1/responses/resp_SYNTHETIC'
-    assert calls[0].content == b''
-    assert list(calls[0].url.params.multi_items()) == [('include[]', 'reasoning.encrypted_content')]
+    assert calls[0].content == b'' and calls[0].url.query == b''
     transport.cancel('resp_SYNTHETIC', request=request)
     assert len(calls) == 2 and calls[1].method == 'POST'
     assert calls[1].url.path == '/v1/responses/resp_SYNTHETIC/cancel'
@@ -507,10 +506,15 @@ def test_nonobject_or_missing_response_is_malformed(doc):
     assert parsed.state == 'malformed' and parsed.response_id is None
 
 
-def test_reasoning_without_explicit_content_cannot_expand_history():
+def test_stored_reasoning_preserves_id_but_stateless_needs_ciphertext():
     doc = response()
     del doc['output'][0]['encrypted_content']
-    parsed = parse_response(doc, selection(), SYNTHETIC)
+    request=selection()
+    parsed = parse_response(doc, request, SYNTHETIC)
+    assert parsed.state=='function_call'
+    assert json.loads(parsed.output_items)==doc['output']
+    payload=json.loads(request.body);payload['store']=False
+    parsed=parse_response(doc,replace(request,body=json.dumps(payload).encode()),SYNTHETIC)
     assert parsed.state == 'malformed' and parsed.issue == 'invalid_reasoning_item'
 
 
