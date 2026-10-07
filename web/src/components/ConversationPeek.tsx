@@ -7,6 +7,7 @@ import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
+import { RichText } from "@/components/RichText";
 import { ErrorNotice } from "@/components/ui";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
@@ -108,12 +109,17 @@ export function ConversationPeek({
               />
             ) : null}
             <div className="stack-sm">
-              <p>
-                <span className="sr-only">
-                  {m.author === "person" ? "You: " : "Agent: "}
-                </span>
-                {m.text}
-              </p>
+              {m.author === "agent" ? (
+                <div className="msg-body">
+                  <span className="sr-only">Agent: </span>
+                  <RichText text={m.text} budget={280} />
+                </div>
+              ) : (
+                <p>
+                  <span className="sr-only">You: </span>
+                  {m.text}
+                </p>
+              )}
               {m.products?.some((p) => p.artifact_id === artifactId) ? (
                 <span className="msg-tag">This work</span>
               ) : null}

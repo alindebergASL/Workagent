@@ -345,3 +345,63 @@
   outline: 2px solid var(--focus, currentColor);
   outline-offset: 2px;
 }
+
+/* Model replies read as text: lists, emphasis, code and tables. */
+.rich-text > * + * {
+  margin-top: var(--sp-2);
+}
+.rich-text ul,
+.rich-text ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+.rich-text li + li {
+  margin-top: 2px;
+}
+.rich-text code {
+  font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.9em;
+  background: var(--surface-3);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+.rich-text .rich-code {
+  margin: 0;
+  padding: var(--sp-2);
+  background: var(--surface-3);
+  border-radius: 8px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.rich-text .rich-code code {
+  background: none;
+  padding: 0;
+}
+.rich-text blockquote {
+  margin: 0;
+  padding-left: var(--sp-2);
+  border-left: 3px solid var(--line-strong);
+}
+.rich-text .rich-heading {
+  margin-top: var(--sp-3);
+}
+.rich-text .rich-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.rich-text table {
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+.rich-text th,
+.rich-text td {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 8px;
+  text-align: left;
+}
+.rich-text .rich-more {
+  display: inline-block;
+}
+.msg-body {
+  min-width: 0;
+}

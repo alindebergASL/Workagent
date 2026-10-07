@@ -1088,6 +1088,71 @@ try {
     "PASS natural reply beside the work sends the exact saved target and replays it frozen",
   );
 
+  // A model reply reads as text: emphasis and lists render, syntax and any
+  // HTML stay inert, and a long reply opens with its first part.
+  const markdownReply = [
+    "**Result:** the calculator returned 4250 for 3*1250 + 500.",
+    "",
+    "- Quantity 3",
+    "- Unit price `1250` cents",
+    "",
+    "<img src=x onerror=window.pwned=1>",
+    "",
+    ...Array.from(
+      { length: 8 },
+      (_, i) =>
+        `Detail paragraph ${i + 1} with enough words to take up some room in the pane.`,
+    ),
+  ].join("\n");
+  await page.evaluate((reply) => {
+    window.pwned = 0;
+    const conv = structuredClone(window.resource.data.conversation);
+    conv.messages = [
+      {
+        id: "m1",
+        author: "agent",
+        text: reply,
+        created_at: "",
+        sequence: 1,
+        run_id: "run",
+        origin: "live_provider_receipt",
+        products: [],
+      },
+    ];
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  }, markdownReply);
+  const agentMsg = page.locator(".agent-pane li.msg-agent");
+  await expect(agentMsg.locator("strong").first()).toHaveText("Result:");
+  await expect(agentMsg.locator("ul > li")).toHaveText([
+    "Quantity 3",
+    "Unit price 1250 cents",
+  ]);
+  await expect(agentMsg).toContainText("3*1250 + 500");
+  await expect(agentMsg).not.toContainText("**");
+  await expect(agentMsg.locator("img")).toHaveCount(0);
+  await expect(agentMsg).toContainText("<img src=x onerror=window.pwned=1>");
+  assert.equal(await page.evaluate(() => window.pwned), 0);
+  await expect(agentMsg).not.toContainText("Detail paragraph 8");
+  await agentMsg.getByRole("button", { name: "Show more" }).click();
+  await expect(agentMsg).toContainText("Detail paragraph 8");
+  await expect(
+    agentMsg.getByRole("button", { name: "Show less" }),
+  ).toHaveAttribute("aria-expanded", "true");
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS model replies render as text (lists, emphasis, inert HTML) and long ones fold",
+  );
+
   await page.evaluate(() => {
     window.resource = {
       data: null,
