@@ -17,7 +17,11 @@ import type {
 import { OperationComposer } from "@/components/OperationComposer";
 import { RichText } from "@/components/RichText";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
-import { TurnProgressDetails, replyTag } from "@/components/TurnProgress";
+import {
+  TurnProgressDetails,
+  TurnSummary,
+  replyTag,
+} from "@/components/TurnProgress";
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   queued: "Waiting for a reply. Nothing has been answered yet.",
@@ -272,7 +276,11 @@ export default function ConversationPage() {
                   data-state={turn.state}
                   role={turn.state === "queued" ? "status" : undefined}
                 >
-                  <span>{PENDING[turn.state]}</span>
+                  <TurnSummary
+                    state={turn.state}
+                    progress={turn.progress}
+                    fallback={PENDING[turn.state]}
+                  />
                   {/* The service's exact reason explains a failure or what to
                       do next; it stays one click away, not in primary copy. */}
                   {turn.reason &&
@@ -284,7 +292,13 @@ export default function ConversationPage() {
                       <p className="ids">{turn.reason}</p>
                     </details>
                   ) : null}
-                  <TurnProgressDetails progress={turn.progress} />
+                  {!d.messages.some(
+                    (message) =>
+                      message.author === "agent" &&
+                      message.run_id === turn.run_id,
+                  ) ? (
+                    <TurnProgressDetails progress={turn.progress} />
+                  ) : null}
                 </div>
               ) : null}
             </li>

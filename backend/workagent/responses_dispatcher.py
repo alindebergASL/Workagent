@@ -11,6 +11,26 @@ from .runtime_config import BundleDenied,active_configuration
 from .responses_worker import ResponsesWorker,load_credential,validate_pins
 from .responses_transport import ResponsesTransport,TransportError
 
+def general_dispatch_status(run, observation):
+    """A terminal retained product isn't a verified goal or a retry request.
+
+    Keep watching only for a separate, newly admitted human command after a
+    receipt-backed publication. Unknown/invalid/cancelled work still stops.
+    """
+    if run.state=='cancelled': return 'cancelled'
+    if observation.provider_observation=='outcome_unknown': return 'outcome_unknown'
+    if observation.provider_observation=='invalid': return 'invalid_response'
+    if run.state=='ready': return 'completed'
+    if run.state=='partial':
+        local=observation.retained_local_result
+        if (observation.adaptive and observation.adaptive.outcome=='needs_validation'
+            and local and local.published and local.status=='observed'
+            and observation.response_steps and all(s.state=='received' for s in observation.response_steps)):
+            return 'result_needs_review'
+        return 'local_tool_rejected'
+    return 'provider_pending' if run.state=='running' else run.state
+
+
 class ResponsesDispatcher:
     def __init__(self,worker,*,workspace,grant_id):
         self.worker=worker; self.workspace=workspace; self.grant_id=grant_id
@@ -33,10 +53,7 @@ class ResponsesDispatcher:
                     run=self.worker.work(Principal(row['data']['principal_id'],'worker'),self.workspace,row['run_id'])
                     detail=service.get_conversation(Principal(row['data']['principal_id']),self.workspace,run.conversation_id)
                     observation=next(t for t in detail.turns if t.run_id==run.id)
-                    status=('completed' if run.state=='ready' else 'local_tool_rejected' if run.state=='partial' else
-                            'outcome_unknown' if observation.provider_observation=='outcome_unknown' else
-                            'invalid_response' if observation.provider_observation=='invalid' else
-                            'provider_pending' if run.state=='running' else run.state)
+                    status=general_dispatch_status(run,observation)
                 else: status=self.worker.run(self.workspace,row['run_id'])
             except (DomainError,BundleDenied,TransportError,BlockingIOError): status='denied_or_deferred'
             except Exception:
@@ -46,7 +63,7 @@ class ResponsesDispatcher:
             result={'run_id':row['run_id'],'status':status}
             if observation:result['observation']=observation.model_dump(mode='json')
             results.append(result)
-            if status not in ('completed','reconciled'):break
+            if status not in ('completed','reconciled','result_needs_review'):break
         return {'mode':self.worker.transport.provenance.mode,'results':results}
 
 
@@ -78,6 +95,7 @@ def general_status(db,workspace,grant_id):
         return {'grant_id':grant.id,'workspace_id':workspace,'active':row['active'],
             'profile':grant.profile,'mode':grant.responses.transport_mode,'expires_at':None,
             'conversation_ids':grant.responses.conversation_ids,'budget':summary(c,grant.id),
+            'shared_budget':summary(c,grant.id,shared=True),
             'turns':[turn_state(Run.model_validate(r['data']),c).model_dump(mode='json',exclude={'retained_local_result'}) for r in runs]}
 
 
@@ -89,7 +107,7 @@ def serve(dispatcher,verify,interval):
         result=dispatcher.once()
         if result['results']:
             print(json.dumps(result),flush=True)
-            if any(r['status'] not in ('completed','reconciled') for r in result['results']):
+            if any(r['status'] not in ('completed','reconciled','result_needs_review') for r in result['results']):
                 return
         time.sleep(interval)
 

@@ -260,9 +260,19 @@ def summary(c,grant_id,*,shared=False):
     usages=[r['usage'] for r in receipts if r.get('usage')]
     unknown=len(reservations)-len(usages)
     calculated=sum((Decimal(u['input_tokens'])*Decimal('2.5')+Decimal(u['output_tokens'])*Decimal('10'))/Decimal(1000000) for u in usages)
-    return {'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
+    carried = Decimal(0)
+    carry_fields = {}
+    if shared:
+        carry = c.execute('''SELECT count(*) AS n, coalesce(sum(b.reserved_cost_usd),0) AS cost
+            FROM responses_budget_carry b JOIN provider_grants g ON g.id=%s
+            WHERE b.project_id=g.data->'responses'->>'project_id'
+              AND b.transport_mode=g.data->'responses'->>'transport_mode' ''',(grant_id,)).fetchone()
+        carried = carry['cost']
+        if carry['n']:
+            carry_fields = {'carried_reserved_cost_usd':str(carried)}
+    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
             'reserved_output_tokens':sum(r['reserved_output_tokens'] for r in reservations),
-            'reserved_cost_usd':str(sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
+            'reserved_cost_usd':str(carried+sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
             'reported_usage':{'input_tokens':sum(u['input_tokens'] for u in usages),'output_tokens':sum(u['output_tokens'] for u in usages)},
             'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

@@ -1,4 +1,35 @@
 import type { TurnProgress } from "@/lib/contract/natural";
+import type { TurnState } from "@/lib/contract/types";
+import { adaptivePresentation } from "@/lib/adaptive-presentation";
+
+export function TurnSummary({
+  state,
+  progress,
+  fallback,
+}: {
+  state: TurnState;
+  progress?: TurnProgress;
+  fallback?: string;
+}) {
+  const view = adaptivePresentation(state, progress);
+  if (!view) return <span>{fallback}</span>;
+  return (
+    <div className="stack-sm" data-testid="adaptive-summary">
+      <span>{view.title}</span>
+      <span className="hint">{view.note}</span>
+      {view.checks ? <span className="hint">{view.checks}</span> : null}
+      {view.changedAttempts > 0 ? (
+        <span className="hint">
+          Changed approach after a failed check{" "}
+          {view.changedAttempts === 1
+            ? "once"
+            : `${view.changedAttempts} times`}
+          .
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 const RESPONSE: Record<
   NonNullable<TurnProgress["provider_observation"]>,
@@ -45,6 +76,49 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
           </li>
         ) : null}
       </ul>
+      {progress.adaptive?.steps?.length ? (
+        <ol>
+          {progress.adaptive.steps.map((step, index) => (
+            <li key={step.phase}>
+              <p>
+                Attempt {index + 1}:{" "}
+                {step.status === "rejected"
+                  ? "local execution rejected"
+                  : step.status === "observed"
+                    ? "local result observed"
+                    : "response recorded"}
+                .
+              </p>
+              {step.reason ? <p>{step.reason}</p> : null}
+              <p>
+                {step.verification.model_tests_passed
+                  ? "Model examples passed."
+                  : "Model examples did not pass."}{" "}
+                These are not independent checks.
+              </p>
+              {step.verification.acceptance ? (
+                <div>
+                  <p>
+                    Supplied checks{" "}
+                    {step.verification.acceptance.passed
+                      ? "passed"
+                      : "did not pass"}
+                    ; supplied cases only, not the whole request.
+                  </p>
+                  <ul>
+                    {step.verification.acceptance.checks.map((check, i) => (
+                      <li key={i}>
+                        Check {i + 1}: {check.passed ? "passed" : "failed"}.
+                        Observed: {JSON.stringify(check.actual ?? null)}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      ) : null}
     </details>
   );
 }

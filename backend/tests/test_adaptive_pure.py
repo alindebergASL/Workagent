@@ -109,6 +109,8 @@ def test_budget_summary_keeps_unknown_and_known_worst_case_reservations():
     from workagent.responses_ledger import summary
     class Connection:
         def execute(self,sql,args):
+            if 'responses_budget_carry' in sql:
+                return SimpleNamespace(fetchone=lambda:{'n':0,'cost':0})
             assert 'responses_budget_grants' in sql
             return SimpleNamespace(fetchall=lambda:[
                 {'kind':'dispatch','data':{'reserved_input_tokens':20000,'reserved_output_tokens':8192,'reserved_cost_usd':'0.131920'}},
