@@ -15,6 +15,7 @@ import type {
   TurnState,
 } from "@/lib/contract/types";
 import { OperationComposer } from "@/components/OperationComposer";
+import { RichText } from "@/components/RichText";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { TurnProgressDetails, replyTag } from "@/components/TurnProgress";
 
@@ -228,12 +229,17 @@ export default function ConversationPage() {
                   />
                 ) : null}
                 <div className="stack-sm">
-                  <p>
-                    <span className="sr-only">
-                      {m.author === "person" ? "You: " : "Agent: "}
-                    </span>
-                    {m.text}
-                  </p>
+                  {m.author === "agent" ? (
+                    <div className="msg-body">
+                      <span className="sr-only">Agent: </span>
+                      <RichText text={m.text} />
+                    </div>
+                  ) : (
+                    <p>
+                      <span className="sr-only">You: </span>
+                      {m.text}
+                    </p>
+                  )}
                   {m.products?.map((product) => (
                     <Link
                       key={`${product.artifact_id}:${product.observation_id}`}
