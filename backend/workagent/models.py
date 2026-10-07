@@ -4,9 +4,10 @@ from enum import Enum
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator, model_serializer
 
 from .model_base import Model, Id, Text, Hash
+from .acceptance_checks import AcceptanceSpec
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 
 
@@ -411,10 +412,18 @@ class PostMessage(Command):
     operation: LocalOperation | None = None
     attachments: list[AttachmentInput] = Field(default_factory=list,max_length=2)
     target: ExactTarget | None = None
+    acceptance_checks: AcceptanceSpec | None = None
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_payload(self, handler):
+        data=handler(self)
+        if self.acceptance_checks is None:
+            data.pop('acceptance_checks',None)
+        return data
 
     @model_validator(mode='after')
     def bounded_inputs(self):
-        if self.operation is not None and (self.attachments or self.target):
+        if self.operation is not None and (self.attachments or self.target or self.acceptance_checks):
             raise ValueError('controlled operation cannot mix with general inputs')
         if sum(len(a.content.encode()) for a in self.attachments)>200000:
             raise ValueError('aggregate attachment bound')
@@ -456,7 +465,21 @@ class ConversationMessage(Model):
     attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
     target: ExactTarget | None = None
     model_receipt: Id | None = None
+    acceptance_checks: AcceptanceSpec | None = None
     created_at: AwareDatetime = Field(default_factory=now)
+
+    @model_validator(mode='after')
+    def human_checks_only(self):
+        if self.acceptance_checks is not None and self.author_kind!='human':
+            raise ValueError('only a human message can supply acceptance checks')
+        return self
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_payload(self, handler):
+        data=handler(self)
+        if self.acceptance_checks is None:
+            data.pop('acceptance_checks',None)
+        return data
 
 
 class MessageQueued(Model):

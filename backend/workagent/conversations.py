@@ -195,6 +195,7 @@ class Conversations:
                 (ws,run.id,selected,encoded(pinned)))
             message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
                                         author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human',operation=cmd.operation,
+                                        acceptance_checks=cmd.acceptance_checks,
                                         target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
                                             sha256=hashlib.sha256(a.content.encode()).hexdigest(),byte_length=len(a.content.encode())) for a in cmd.attachments])
             self._append_message(c,ws,message)
@@ -243,7 +244,7 @@ class Conversations:
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
         sources=[self._source(c,p,run.workspace_id,ref,True) for ref in cv.selected_source_refs]
         context={'profile':run.profile,'conversation_id':cv.id,'run_id':run.id,
-                 'messages':[m.model_dump(mode='json',exclude={'operation'} if run.profile==PROFILE else set()) for m in messages],
+                 'messages':[m.model_dump(mode='json',exclude={'acceptance_checks','operation'} if run.profile==PROFILE else {'acceptance_checks'}) for m in messages],
                  'sources':[{'id':r['id'],'content':r['content']} for r in sources],
                  'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
         if run.profile=='general-responses-v1':

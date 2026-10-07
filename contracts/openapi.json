@@ -40,6 +40,154 @@
         "title": "AcceptProposal",
         "type": "object"
       },
+      "AcceptanceCase": {
+        "additionalProperties": false,
+        "properties": {
+          "arguments": {
+            "items": {
+              "maximum": 1000000000.0,
+              "minimum": -1000000000.0,
+              "type": "integer"
+            },
+            "maxItems": 8,
+            "title": "Arguments",
+            "type": "array"
+          },
+          "expected": {
+            "pattern": "^(0|-?[1-9][0-9]{0,18})$",
+            "title": "Expected",
+            "type": "string"
+          }
+        },
+        "required": [
+          "arguments",
+          "expected"
+        ],
+        "title": "AcceptanceCase",
+        "type": "object"
+      },
+      "AcceptanceCheck": {
+        "additionalProperties": false,
+        "properties": {
+          "actual": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual"
+          },
+          "criterion": {
+            "additionalProperties": true,
+            "title": "Criterion",
+            "type": "object"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "criterion",
+          "passed"
+        ],
+        "title": "AcceptanceCheck",
+        "type": "object"
+      },
+      "AcceptanceVerification": {
+        "additionalProperties": false,
+        "properties": {
+          "body_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Sha256"
+          },
+          "checker_version": {
+            "const": "human-checks-v1",
+            "default": "human-checks-v1",
+            "title": "Checker Version",
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/AcceptanceCheck"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Checks",
+            "type": "array"
+          },
+          "operation_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Hash"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "scope": {
+            "const": "supplied_checks_only",
+            "default": "supplied_checks_only",
+            "title": "Scope",
+            "type": "string"
+          },
+          "spec": {
+            "discriminator": {
+              "mapping": {
+                "csv_totals": "#/components/schemas/CSVAcceptance",
+                "wasm_cases": "#/components/schemas/WasmAcceptance"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WasmAcceptance"
+              },
+              {
+                "$ref": "#/components/schemas/CSVAcceptance"
+              }
+            ],
+            "title": "Spec"
+          },
+          "spec_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Spec Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "spec",
+          "spec_sha256",
+          "body_sha256",
+          "operation_hash",
+          "passed",
+          "checks"
+        ],
+        "title": "AcceptanceVerification",
+        "type": "object"
+      },
       "AdaptiveExecution": {
         "additionalProperties": false,
         "properties": {
@@ -197,6 +345,16 @@
       "AdaptiveVerification": {
         "additionalProperties": false,
         "properties": {
+          "acceptance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AcceptanceVerification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "basis": {
             "const": "model_proposed",
             "default": "model_proposed",
@@ -718,6 +876,34 @@
         "title": "Body",
         "type": "object"
       },
+      "CSVAcceptance": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_sum": {
+            "pattern": "^(0|[1-9][0-9]{0,20})\\.[0-9]{2}$",
+            "title": "Expected Sum",
+            "type": "string"
+          },
+          "kind": {
+            "const": "csv_totals",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mismatch_count": {
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Mismatch Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kind",
+          "expected_sum",
+          "mismatch_count"
+        ],
+        "title": "CSVAcceptance",
+        "type": "object"
+      },
       "CSVObservation": {
         "additionalProperties": false,
         "properties": {
@@ -1035,6 +1221,31 @@
       "ConversationMessage": {
         "additionalProperties": false,
         "properties": {
+          "acceptance_checks": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "csv_totals": "#/components/schemas/CSVAcceptance",
+                    "wasm_cases": "#/components/schemas/WasmAcceptance"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WasmAcceptance"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CSVAcceptance"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acceptance Checks"
+          },
           "attachments": {
             "items": {
               "$ref": "#/components/schemas/MessageAttachment"
@@ -2108,6 +2319,31 @@
       "PostMessage": {
         "additionalProperties": false,
         "properties": {
+          "acceptance_checks": {
+            "anyOf": [
+              {
+                "discriminator": {
+                  "mapping": {
+                    "csv_totals": "#/components/schemas/CSVAcceptance",
+                    "wasm_cases": "#/components/schemas/WasmAcceptance"
+                  },
+                  "propertyName": "kind"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/WasmAcceptance"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CSVAcceptance"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acceptance Checks"
+          },
           "attachments": {
             "items": {
               "$ref": "#/components/schemas/AttachmentInput"
@@ -4314,6 +4550,37 @@
           "reason"
         ],
         "title": "TurnState",
+        "type": "object"
+      },
+      "WasmAcceptance": {
+        "additionalProperties": false,
+        "properties": {
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/AcceptanceCase"
+            },
+            "maxItems": 8,
+            "minItems": 1,
+            "title": "Cases",
+            "type": "array"
+          },
+          "entrypoint": {
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+            "title": "Entrypoint",
+            "type": "string"
+          },
+          "kind": {
+            "const": "wasm_cases",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "entrypoint",
+          "cases"
+        ],
+        "title": "WasmAcceptance",
         "type": "object"
       },
       "WasmObservation": {

@@ -100,7 +100,10 @@ def verify(value,operation,staged,request=None):
 def request_provenance(message):
     from .service import digest
     # Immutable human record, including exact attachments/target, not model text.
-    return {'message_id':message.id, 'message_sha256':digest(message)}
+    material=message.model_dump(mode='json')
+    if message.acceptance_checks is None:
+        material.pop('acceptance_checks',None)  # Preserve historical request hashes.
+    return {'message_id':message.id, 'message_sha256':digest(material)}
 
 
 def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message):
@@ -111,6 +114,11 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message):
     observation={'goal':value.goal,'success_criteria':[x.model_dump(mode='json') for x in value.success_criteria],
                  'decision':value.decision.model_dump(mode='json'),
                  'verification':verify(value,operation,staged,request)}
+    acceptance=None
+    if getattr(message,'acceptance_checks',None) is not None:
+        from .acceptance_checks import evaluate
+        acceptance=evaluate(message.acceptance_checks,operation,staged)
+        observation['verification']['acceptance']=acceptance
     if isinstance(value.decision,(Stop,Reply)):
         outcome=value.decision.outcome if isinstance(value.decision,Stop) else 'waiting_for_user'
         # No empty action / success assertion can publish a product.
@@ -120,7 +128,10 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message):
                           f'Execution stopped ({outcome}); the requested goal is not verified. '+unresolved_summary(value.decision.text))
     elif observation['verification']['satisfied']:
         outcome='completed'
-    elif observation['verification']['model_tests_passed']:
+    elif acceptance is not None and acceptance['passed']:
+        outcome='needs_validation'
+        staged['reason']='Your supplied acceptance checks passed for the retained local work. Correctness beyond those checks is not established; the requested goal is not marked complete.'
+    elif acceptance is None and observation['verification']['model_tests_passed']:
         outcome='needs_validation'
         staged['reason']='Model-proposed tests passed; the requested goal still needs independent validation. Local work is retained.'
     elif len(previous)+1>=max_steps:
@@ -179,5 +190,6 @@ BUDGET_STOP_REASON=('Execution stopped at the cumulative budget limit. No furthe
 
 
 def continuation_context(context,observations,max_steps):
-    # The model sees all retained failures and machine verification, not just a plan.
-    return {**context,'adaptive':{'max_steps':max_steps,'observations':observations}}
+    # Model-generated tests remain visible; independent expected answers do not.
+    from .acceptance_checks import for_model
+    return {**context,'adaptive':{'max_steps':max_steps,'observations':[for_model(o) for o in observations]}}

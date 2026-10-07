@@ -16,7 +16,7 @@ def consumer_hash():
     from .service import digest
     names=('general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'adaptive.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'adaptive.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -94,11 +94,13 @@ def admission(service,c,p,ws,cv,cmd):
     rows=c.execute("SELECT data,active FROM provider_grants WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'=%s",(ws,p.id,PROFILE)).fetchall()
     scoped=[r for r in rows if cv.id in r['data']['responses']['conversation_ids']]
     if not scoped:
-        if cmd.attachments or cmd.target: raise DomainError('unsupported_operation')
+        if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
         return None
     if cmd.operation: raise DomainError('unsupported_operation')
     if len(scoped)!=1 or not scoped[0]['active']: raise DomainError('action_unresolved')
     grant=ProviderGrant.model_validate(scoped[0]['data']); validate_grant(grant,c)
+    if cmd.acceptance_checks is not None and getattr(grant.responses,'policy_version',None)!='adaptive-local-v1':
+        raise DomainError('unsupported_operation')
     if cv.selected_source_refs: raise DomainError('unsupported_operation')
     # A new user turn must not bypass an unresolved send; cancellation is explicit.
     if c.execute("""SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id

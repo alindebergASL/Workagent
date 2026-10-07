@@ -211,6 +211,7 @@ class GeneralWorker:
             raise
 
     def _adaptive_work(self,p,ws,run,cap,receipt,ledger,context,config,deadline):
+        from .acceptance_checks import for_model
         from .adaptive import POLICY,DECISION_SCHEMA,CAPABILITY,phase_name,retained,continuation_context
         from .general_schema import EXPLANATION_SCHEMA
         from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
@@ -238,7 +239,7 @@ class GeneralWorker:
                 if staged['terminal_outcome']=='continue': continue
                 final,_=ledger.snapshot('final',cap)
                 if final is None:
-                    final=build_final(selection_request=selection,selection=selected,tool_output=canonical(staged),
+                    final=build_final(selection_request=selection,selection=selected,tool_output=canonical(for_model(staged)),
                         instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
                     ledger.prepare(final,cap)

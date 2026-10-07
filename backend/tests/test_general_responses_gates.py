@@ -157,7 +157,7 @@ def test_exact_010_upgrade_preserves_records_hashes_and_minimal_acl(tmp_path):
     with Database(runtime).transaction() as c:
         assert c.execute('SELECT data FROM provider_grants WHERE id=%s',(historical.id,)).fetchone()['data']==before
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations
-        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='012_adaptive_execution.sql'
+        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='013_acceptance_checks.sql'
         for table in ('conversation_messages','product_observations','responses_events'):
             assert c.execute("SELECT has_table_privilege(current_user,%s,'INSERT') i,has_table_privilege(current_user,%s,'UPDATE') u,has_table_privilege(current_user,%s,'DELETE') d",(table,table,table)).fetchone()=={'i':True,'u':False,'d':False}
     after=s.get_artifact(p,ws,artifact.id)

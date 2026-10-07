@@ -3,6 +3,7 @@ import hashlib
 from typing import Annotated, Literal
 from pydantic import Field, model_validator, field_serializer
 from .model_base import Model, Id, Text, Hash
+from .acceptance_checks import AcceptanceVerification
 
 CSVText = Annotated[str, Field(min_length=1, max_length=200000)]
 Code = Annotated[str, Field(min_length=1, max_length=16000)]
@@ -245,6 +246,7 @@ class AdaptiveVerification(Model):
     requested_goal_status: Literal['needs_validation'] = 'needs_validation'
     request: dict | None = None
     checks: list[AdaptiveVerificationCheck] = Field(default_factory=list,max_length=8)
+    acceptance: AcceptanceVerification | None = None
 
 class AdaptiveStep(Model):
     phase: Literal['selection','selection_2','selection_3','selection_4']

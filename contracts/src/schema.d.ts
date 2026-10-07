@@ -415,6 +415,53 @@ export interface components {
              */
             schema_version: "workagent/v1";
         };
+        /** AcceptanceCase */
+        AcceptanceCase: {
+            /** Arguments */
+            arguments: number[];
+            /** Expected */
+            expected: string;
+        };
+        /** AcceptanceCheck */
+        AcceptanceCheck: {
+            /** Actual */
+            actual?: string | {
+                [key: string]: unknown;
+            } | null;
+            /** Criterion */
+            criterion: {
+                [key: string]: unknown;
+            };
+            /** Passed */
+            passed: boolean;
+        };
+        /** AcceptanceVerification */
+        AcceptanceVerification: {
+            /** Body Sha256 */
+            body_sha256: string | null;
+            /**
+             * Checker Version
+             * @default human-checks-v1
+             * @constant
+             */
+            checker_version: "human-checks-v1";
+            /** Checks */
+            checks: components["schemas"]["AcceptanceCheck"][];
+            /** Operation Hash */
+            operation_hash: string | null;
+            /** Passed */
+            passed: boolean;
+            /**
+             * Scope
+             * @default supplied_checks_only
+             * @constant
+             */
+            scope: "supplied_checks_only";
+            /** Spec */
+            spec: components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"];
+            /** Spec Sha256 */
+            spec_sha256: string;
+        };
         /** AdaptiveExecution */
         AdaptiveExecution: {
             /**
@@ -478,6 +525,7 @@ export interface components {
         };
         /** AdaptiveVerification */
         AdaptiveVerification: {
+            acceptance?: components["schemas"]["AcceptanceVerification"] | null;
             /**
              * Basis
              * @default model_proposed
@@ -635,6 +683,18 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** CSVAcceptance */
+        CSVAcceptance: {
+            /** Expected Sum */
+            expected_sum: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "csv_totals";
+            /** Mismatch Count */
+            mismatch_count: number;
+        };
         /** CSVObservation */
         CSVObservation: {
             /** Discrepancies */
@@ -759,6 +819,8 @@ export interface components {
         };
         /** ConversationMessage */
         ConversationMessage: {
+            /** Acceptance Checks */
+            acceptance_checks?: (components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"]) | null;
             /** Attachments */
             attachments?: components["schemas"]["MessageAttachment"][];
             /** Author Id */
@@ -1102,6 +1164,8 @@ export interface components {
         };
         /** PostMessage */
         PostMessage: {
+            /** Acceptance Checks */
+            acceptance_checks?: (components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"]) | null;
             /** Attachments */
             attachments?: components["schemas"]["AttachmentInput"][];
             /** Command Id */
@@ -1770,6 +1834,18 @@ export interface components {
              * @enum {string}
              */
             state: "queued" | "responding" | "replied" | "failed" | "unavailable" | "outcome_unknown" | "cancelled";
+        };
+        /** WasmAcceptance */
+        WasmAcceptance: {
+            /** Cases */
+            cases: components["schemas"]["AcceptanceCase"][];
+            /** Entrypoint */
+            entrypoint: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "wasm_cases";
         };
         /** WasmObservation */
         WasmObservation: {
