@@ -35,6 +35,21 @@ function cells(line: string): string[] {
     .map((c) => c.trim());
 }
 
+function isWebLink(href: string): boolean {
+  // Reject raw backslashes and controls before URL parsing can normalize them.
+  if (!/^https?:\/\//i.test(href) || /[\\\p{Cc}]/u.test(href)) return false;
+  try {
+    const url = new URL(href);
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      !url.username &&
+      !url.password
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function parseInline(src: string): Inline[] {
   const out: Inline[] = [];
   let text = "";
@@ -68,8 +83,7 @@ export function parseInline(src: string): Inline[] {
       flush();
       const href = m[2]!;
       // Only ordinary web links become links; anything else stays text.
-      if (/^https?:\/\//i.test(href))
-        out.push({ t: "link", href, c: parseInline(m[1]!) });
+      if (isWebLink(href)) out.push({ t: "link", href, c: parseInline(m[1]!) });
       else out.push(...parseInline(m[1]!));
     } else {
       text += src[i];
