@@ -3,8 +3,13 @@ import type { components } from "../../../contracts/src/client";
 type TableBody = components["schemas"]["TableBody"];
 type ToolBody = components["schemas"]["ToolBody"];
 
-/** Plain column names; the raw names stay as accessible labels and in exports. */
-const COLUMN_LABEL: Record<string, string> = {
+/**
+ * The reconciliation operation's own columns: what it needs as input, what
+ * it writes, and short names for them. Only a table that has those inputs is
+ * treated as a reconciliation; any other table renders and edits generically.
+ */
+const RECONCILE_INPUTS = ["id", "quantity", "unit_price", "reported_total"];
+const RECONCILE_LABEL: Record<string, string> = {
   id: "ID",
   quantity: "Qty",
   unit_price: "Unit price",
@@ -15,14 +20,52 @@ const COLUMN_LABEL: Record<string, string> = {
   note: "Note",
 };
 
+/** Columns the reconciliation calculation owns; people edit the raw ones. */
+const RECONCILE_DERIVED = ["calculated_total", "difference", "check"];
+
+/** Whether the reconciliation operation can recalculate this table. */
+export function isReconciliation(body: TableBody): boolean {
+  return RECONCILE_INPUTS.every((c) => body.columns.includes(c));
+}
+
+/** A readable name for any column key; the raw key stays in exports. */
 export function columnLabel(column: string): string {
-  if (COLUMN_LABEL[column]) return COLUMN_LABEL[column];
+  if (column.toLowerCase() === "id") return "ID";
   const words = column.replace(/[_-]+/g, " ").trim();
   return words ? words[0]!.toUpperCase() + words.slice(1) : column;
 }
 
-/** Columns the calculation owns; people edit the raw ones. */
-export const DERIVED_COLUMNS = ["calculated_total", "difference", "check"];
+export interface ColumnView {
+  key: string;
+  label: string;
+  /** Written by an operation; read-only here and stale once edited. */
+  derived: boolean;
+}
+
+/**
+ * How each column of this table is shown and edited. Every column of an
+ * ordinary table is editable; only a reconciliation table locks the columns
+ * its calculation writes.
+ */
+export function tableColumns(body: TableBody): ColumnView[] {
+  const reconciles = isReconciliation(body);
+  return body.columns.map((key) => ({
+    key,
+    label: (reconciles && RECONCILE_LABEL[key]) || columnLabel(key),
+    derived: reconciles && RECONCILE_DERIVED.includes(key),
+  }));
+}
+
+/** A download name for a table: the reconciliation's own, else its title. */
+export function tableFilename(body: TableBody): string {
+  if (isReconciliation(body)) return "reconciled.csv";
+  const slug = body.title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return `${slug || "table"}.csv`;
+}
 
 export const ROUNDING_LABEL: Record<TableBody["rounding"], string> = {
   ROUND_HALF_UP: "Round halves up",
@@ -64,6 +107,16 @@ export interface TableSummary {
  * Only callers with an observation bound to this body may claim checked results.
  */
 export function tableSummary(body: TableBody, verified = false): TableSummary {
+  const n0 = body.rows.length;
+  if (!isReconciliation(body))
+    return {
+      calculated: false,
+      rowCount: n0,
+      mismatches: [],
+      reportedTotal: null,
+      calculatedTotal: null,
+      headline: `${n0} row${n0 === 1 ? "" : "s"} · ${body.columns.length} column${body.columns.length === 1 ? "" : "s"}`,
+    };
   const calculated = body.columns.includes("calculated_total");
   const mismatches = calculated
     ? body.rows

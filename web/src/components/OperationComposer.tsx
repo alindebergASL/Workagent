@@ -143,7 +143,9 @@ function ScopedOperationComposer({ ws, cid, version, refresh }: Props) {
               setFilename("");
             }}
           >
-            <option value="reconcile_csv">Reconcile invoice CSV</option>
+            <option value="reconcile_csv">
+              Reconcile a CSV of line totals
+            </option>
             <option value="run_wasm">Run a WebAssembly tool</option>
           </select>
         </label>

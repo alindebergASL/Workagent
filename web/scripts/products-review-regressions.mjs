@@ -780,6 +780,8 @@ try {
     rounding: "ROUND_HALF_UP",
     columns: [
       "id",
+      "quantity",
+      "unit_price",
       "reported_total",
       "calculated_total",
       "difference",
@@ -788,6 +790,8 @@ try {
     rows: [
       {
         id: "A",
+        quantity: "1",
+        unit_price: "1.00",
         reported_total: "2.00",
         calculated_total: "1.00",
         difference: "0.00",
@@ -915,6 +919,86 @@ try {
   passed++;
   console.log(
     "PASS table headline requires saved/proposal observation binding; retained columns never claim current matches",
+  );
+
+  // A table that isn't a reconciliation renders and edits generically: no
+  // locked columns, no rounding or recalculation, and no check it can't do.
+  await page.evaluate((base) => {
+    window.stashedResource = window.resource;
+    const d = structuredClone(base);
+    d.artifact.current_revision.body = {
+      kind: "table",
+      title: "Workshop schedule",
+      source_csv: "",
+      rounding: "ROUND_HALF_UP",
+      columns: ["day", "session", "owner", "check"],
+      rows: [
+        { day: "Mon", session: "Intro", owner: "Ana", check: "done" },
+        { day: "Tue", session: "Lab", owner: "Ben", check: "" },
+      ],
+      notes: [],
+    };
+    d.proposals = [];
+    d.observations = { current: null, latest: null };
+    window.resource = {
+      data: d,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    window.mount("away");
+  }, tableData);
+  // Unmount first so the editor reads the new record, not its old draft.
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.mount("product");
+  });
+  await expect(page.locator(".result-headline")).toHaveText(
+    "2 rows · 4 columns",
+  );
+  await expect(page.getByTestId("product-verification")).toHaveText(
+    "Saved. Nothing checks this table automatically.",
+  );
+  await expect(
+    page.getByRole("region", { name: "Editable table" }),
+  ).toBeVisible();
+  const editable = page.getByRole("region", { name: "Editable table" });
+  await expect(editable.locator("th")).toHaveText([
+    "Day",
+    "Session",
+    "Owner",
+    "Check",
+  ]);
+  await expect(editable.locator('td[data-derived="true"]')).toHaveCount(0);
+  await expect(page.getByLabel("Row 1 check", { exact: true })).toHaveValue(
+    "done",
+  );
+  await expect(page.getByLabel("Rounding")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Recalculate/ })).toHaveCount(
+    0,
+  );
+  await page.getByLabel("Row 2 owner", { exact: true }).fill("Cleo");
+  await expect(
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Save to keep your changes.")).toBeVisible();
+  await page.getByRole("button", { name: "Discard my changes" }).click();
+  await expect(page.getByLabel("Row 2 owner", { exact: true })).toHaveValue(
+    "Ben",
+  );
+  await page.evaluate(() => {
+    window.resource = window.stashedResource;
+    window.mount("away");
+  });
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS a non-reconciliation table is fully editable with no recalculation or check claims",
   );
 
   // A proposal made from an earlier saved version says so in its primary
