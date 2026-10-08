@@ -405,3 +405,18 @@
 .msg-body {
   min-width: 0;
 }
+
+/* Agent-created views: bounded, clearly inside the app's own frame. */
+.sandboxed-view {
+  margin: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+.sandboxed-view iframe {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fff;
+  color-scheme: light;
+  display: block;
+}
