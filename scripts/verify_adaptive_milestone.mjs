@@ -184,6 +184,8 @@ try{
  await save('browser-evidence.json',report);
  console.log(JSON.stringify({passed:true,adaptation:report.adaptation,resume:report.resume,review_url:toolUrl,worker_pid:worker.pid}));
  // Keep the bounded isolated consumer available for review, not production.
+ // spawn duplicated this descriptor into the child; closing the parent's copy
+ // does not close the continuously running child's stdout/stderr descriptors.
  worker.unref();await log.close();log=null;
 }catch(e){
  report.passed=false;report.failure=String(e);await save('browser-evidence.json',report);

@@ -1,10 +1,11 @@
 # Claude frontend handoff — bounded completion and continuous work
 
-Owner remains the existing Claude frontend lane. Its integrated changes are
-preserved. `claude auth status` reported `loggedIn:false` on October 8; the minimum
-restoration is **`claude auth login`** on this host. No password/API key in chat;
-no substitute paid Claude route. Hermes continues runtime/backend and compatibility
-work rather than wait for that access.
+Owner remains the existing Claude frontend lane. Claude resumed and published
+`ea4e29d`, now integrated at `65e84c6` alongside Hermes's bounded verification.
+The earlier local CLI logout observation is historical, not a blocker on that
+owner session; no login action is needed from Andrew. Preserve both deliveries.
+See [executed checkpoint](ADAPTIVE_COMPLETION_CHECKPOINT.md) and
+[#13 owner contract](FLEXIBLE_WORK_OWNER_CONTRACT.md) for the current handoff.
 
 ## Exact source of truth
 
@@ -42,7 +43,7 @@ number of phases, or provider receipt success.
 - Existing code folding, rich text/link restrictions, proposed input binding,
   editable saved values, mobile pane drafts and general work breadth stay intact.
 
-## Experience acceptance for Claude when authenticated
+## Experience acceptance and remaining owner work
 
 1. Ask an ordinary supported bounded task without test specs or operation payloads.
    Continuous workers should advance it while the page polls canonical state.

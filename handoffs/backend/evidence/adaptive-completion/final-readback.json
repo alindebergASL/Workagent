@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "scope": "read-only completion of original interrupted/resumed live journey; not a new interruption",
+  "application_sha": "0e8112795e09f83a8c393571bfc994c4d603b7c4",
+  "ui_sha": "65e84c673aedd6e4154471f4062349d7b3e014cf",
+  "sha_provenance": {
+    "runtime": "retained original admission record",
+    "ui": "explicit operator-supplied build SHA; validated separately against served build, not discovered by this script"
+  },
+  "failure_classification": "harness requested nonexistent proposal GET; canonical artifact-scoped readback works",
+  "original_interruption": {
+    "checkpoint": "durable_final_identity_before_result",
+    "request_sha256": "d62d17ade9f2c6858ca691e46b4448d28e5f7a74849deeab58bd8dbd9df17708",
+    "signal": "SIGKILL",
+    "interrupted_before_completion": true
+  },
+  "same_run": true,
+  "one_assistant_result": true,
+  "proposal_pending": true,
+  "saved_human_note_preserved": true,
+  "saved_revision_unchanged": true,
+  "downtime_draft": {
+    "observed_in_original_harness": "phone Work/Conversation switch plus reload while worker stopped",
+    "after_worker_resume": "not asserted: original browser closed after run06 failure; no recreated draft presented as original"
+  },
+  "model_changed_code": true,
+  "wrong_observed_value": "0",
+  "repaired_observed_value": "118264581564861424",
+  "verification": {
+    "basis": "independent_bounded",
+    "scope": "bounded_team_goal_only",
+    "case_count": 1891,
+    "row_count": 6
+  },
+  "continuity": {
+    "before_counts": {
+      "count_send": 6,
+      "dispatch": 6,
+      "read": 34,
+      "result": 5,
+      "tool_result": 3
+    },
+    "after_counts": {
+      "count_send": 6,
+      "dispatch": 6,
+      "read": 35,
+      "result": 6,
+      "tool_result": 3
+    },
+    "same_dispatches": true,
+    "same_response_id_hashes": true,
+    "reserved_before": "3.42992",
+    "reserved_after": "3.42992",
+    "unknown_usage_steps_before": 1,
+    "unknown_usage_steps_after": 0
+  },
+  "proposal_download_sha256": "54eee8b387c61f8534e541486e841781ee25c7907331a31cc64d2f05def35f19",
+  "csv_download_sha256": "0c31e4524f21a11604ed82d1f51972e95c1d5e184564731168decd6ba5f1afaf",
+  "download_did_not_accept": true,
+  "console_errors": [],
+  "mutating_browser_requests": [],
+  "review_url": "http://127.0.0.1:3140/conversations/8fed7a79-0751-4cb3-87e0-46d5806c309e/artifacts/c03d4cc6-aeb2-4589-aeeb-1154a82b1770"
+}

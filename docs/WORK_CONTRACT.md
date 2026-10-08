@@ -1,5 +1,26 @@
 # General work contract and migration boundary
 
+## Current bounded checkpoint and next boundary — 2026-10-08
+
+The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
+with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
+[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+separate engineering, usefulness and experience. Continuous workers recovered the
+original interrupted run, preserving its response identities, saved human note,
+pending approval and cumulative reservations. Run 06 failed in the evidence
+harness after recovery, not in application publication; its failed evidence is retained.
+
+[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
+This checkpoint is not flexible work creation or sandboxed HTML delivery.
+The next slice is a general structured surface plus an isolated generated
+HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
+The earlier blanket "never generated HTML or script" restriction is superseded;
+generated views still receive no ambient credentials, approval authority or
+unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+records the agreed direction, responsibilities, and still-undelivered wire contract.
+Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+
+
 Status: target design contract, not a claim that these routes/states exist.
 Implement additive migrations and regenerate shared contracts from Python.
 `contracts/README.md` remains the guide for actual API generation.

@@ -1,5 +1,26 @@
 # Build plan: independent work through a seamless experience
 
+## Current bounded checkpoint and next boundary — 2026-10-08
+
+The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
+with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
+[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+separate engineering, usefulness and experience. Continuous workers recovered the
+original interrupted run, preserving its response identities, saved human note,
+pending approval and cumulative reservations. Run 06 failed in the evidence
+harness after recovery, not in application publication; its failed evidence is retained.
+
+[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
+This checkpoint is not flexible work creation or sandboxed HTML delivery.
+The next slice is a general structured surface plus an isolated generated
+HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
+The earlier blanket "never generated HTML or script" restriction is superseded;
+generated views still receive no ambient credentials, approval authority or
+unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+records the agreed direction, responsibilities, and still-undelivered wire contract.
+Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+
+
 Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
 and [goal-directed agency and coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
 Required capability, implementation and demonstrated evidence are distinct.
@@ -16,29 +37,26 @@ Do not restart the reset or harness comparison, replace the frontend owner, or
 recreate accepted work. The recovered model implementation is now committed at
 9ed2467 and integrated with Claude a3c06fb at application1b81a1d742829663faf12a0ca5fa03957daf252c.
 
-## Active adaptive delivery — 2026-10-08
+## Completed bounded adaptive delivery — 2026-10-08
 
-Current work continues PR #12 from published/reviewed
-`3568fbcada2ab564bbf3d7dbd49f0d41d8700013`, preserving its newer corrections
-and every older worktree. PR #9 remains the frontend coordination/history pointer.
+Implementation `0e81127` closes the finite verification and continuous-worker
+slice; integration `65e84c6` preserves Claude's generic-table correction. The
+published candidate remains PR #12; PR #9 is owner coordination/history.
 
-1. Close the completion gap with independent verification for a clearly bounded
-   ordinary task; record exact scope/bindings, retain needs-validation elsewhere,
-   and keep verified proposal evidence separate from human acceptance.
-2. Run existing local/model workers continuously on durable state in a separate
-   isolated environment; no production deployment or new orchestration platform.
-3. Prove ordinary goal, meaningful obstacle, model-chosen changed action, checked
-   result, mid-execution interruption and continuation preserving human edits and
-   effect identities. Retain fault coverage and distinguish live from fixtures.
-4. Preserve integrated Claude fixes; publish generated contracts and precise
-   frontend handoff. Claude CLI currently needs `claude auth login`; backend work
-   continues. Normal screens show useful work/results/decisions, details optional.
-5. Publish coherent non-default commits, reconcile these contracts and PR #9,
-   provide a working review path and exact engineering/usefulness/experience
-   evidence. Memory #10 and portability #11 follow; their backlogs are not gates.
+1. Independent checks cover every supplied CSV row and every supported
+   team-selection input. Unsupported goals remain partial/needs-validation.
+2. Existing durable model/local consumers ran continuously; no manual worker ticks.
+3. The actual product observed an incorrect result, the model changed its code,
+   and the independently checked proposal recovered from SIGKILL using the same
+   retained provider identity. Human-saved notes and current revision stayed intact.
+4. Human acceptance remains separate; the repaired version is pending, downloadable
+   and not installed over saved work. A downtime draft survived mobile switching
+   and reload; its survival after the original browser process closed is not claimed.
+5. #13 is the next implementation slice, not complete. #10/#11 stay sequenced after
+   the current adaptive/flexible-work direction rather than becoming broad prerequisites.
 
-RUNTIME_STATUS holds actual executed results; this list does not itself claim
-completion. M4 specialist coordination and full M5 ownership remain undelivered.
+See the linked checkpoint for failed attempts, exact tested bytes, commands,
+review path, budget conservation and the precise bounded claim.
 
 ## Historical observed checkpoint — 2026-10-06
 

@@ -9,8 +9,12 @@ const prior=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);
 await mkdir(out,{recursive:true,mode:0o700});
 const read=async n=>JSON.parse(await readFile(path.join(prior,n),'utf8'));
 const config=await read('manifest.json'),failed=await read('browser-evidence.json');
+const authority=await read('authority.json');
+const uiSha=process.env.WORKAGENT_REVIEW_SHA;
+expect(uiSha,'Explicit tested UI build SHA is required; never guess provenance').toMatch(/^[0-9a-f]{40}$/);
+expect(authority.candidate_sha,'Original runtime SHA comes from retained admission record').toMatch(/^[0-9a-f]{40}$/);
 const ids=await read('conversation-ids.json');
-const origin=config.origin,base=origin+'/api/domain/v1/workspaces/local-workspace';
+const origin=process.env.WORKAGENT_REVIEW_ORIGIN || config.origin,base=origin+'/api/domain/v1/workspaces/local-workspace';
 const headers={'X-Workagent-Client':'local-ui'};
 const get=async p=>{const r=await fetch(base+p,{headers});expect(r.ok,`${p}: HTTP ${r.status}`).toBe(true);return r.json();};
 const hash=x=>createHash('sha256').update(x).digest('hex');
@@ -68,7 +72,7 @@ try{
  expect(errors).toEqual([]);expect(writes).toEqual([]);
  expect(await get('/conversations/'+ids.tool)).toEqual(d);
  const evidence={passed:true,scope:'read-only completion of original interrupted/resumed live journey; not a new interruption',
- application_sha:'0e8112795e09f83a8c393571bfc994c4d603b7c4',failure_classification:'harness requested nonexistent proposal GET; canonical artifact-scoped readback works',
+ application_sha:authority.candidate_sha,ui_sha:uiSha,sha_provenance:{runtime:'retained original admission record',ui:'explicit operator-supplied build SHA; validated separately against served build, not discovered by this script'},failure_classification:'harness requested nonexistent proposal GET; canonical artifact-scoped readback works',
  original_interruption:failed.interruption,same_run:true,one_assistant_result:true,proposal_pending:true,saved_human_note_preserved:true,saved_revision_unchanged:true,
  downtime_draft:{observed_in_original_harness:'phone Work/Conversation switch plus reload while worker stopped',after_worker_resume:'not asserted: original browser closed after run06 failure; no recreated draft presented as original'},
  model_changed_code:true,wrong_observed_value:failed.introduced_obstacle.actual,repaired_observed_value:obs.observation.output.value,
