@@ -506,11 +506,35 @@ def test_nonobject_or_missing_response_is_malformed(doc):
     assert parsed.state == 'malformed' and parsed.response_id is None
 
 
-def test_reasoning_without_explicit_content_cannot_expand_history():
+def test_stored_reasoning_preserves_id_but_stateless_needs_ciphertext():
     doc = response()
     del doc['output'][0]['encrypted_content']
-    parsed = parse_response(doc, selection(), SYNTHETIC)
-    assert parsed.state == 'malformed' and parsed.issue == 'invalid_reasoning_item'
+    request=selection()
+    parsed = parse_response(doc, request, SYNTHETIC)
+    assert parsed.state=='function_call'
+    assert json.loads(parsed.output_items)==doc['output']
+    payload=json.loads(request.body);payload['store']=False
+    parsed=parse_response(doc,replace(request,body=json.dumps(payload).encode()),SYNTHETIC)
+    assert parsed.state == 'malformed' and parsed.issue == 'invalid_request_policy'
+    from workagent.responses_transport import _output_shape
+    with pytest.raises(TransportError, match='invalid_reasoning_item'):
+        _output_shape(doc['output'], stored=False)
+
+
+@pytest.mark.parametrize('changes', [
+    {'model': 'wrong-model'}, {'background': False}, {'parallel_tool_calls': True},
+    {'metadata': {}}, {'previous_response_id': 'resp_OTHER'},
+])
+def test_stored_reasoning_parser_validates_entire_originating_request(changes):
+    doc = response()
+    del doc['output'][0]['encrypted_content']
+    request = selection()
+    payload = {**json.loads(request.body), **changes}
+    assert payload['store'] is True
+    parsed = parse_response(doc, replace(request, body=json.dumps(payload).encode()), SYNTHETIC)
+    assert parsed.state == 'malformed'
+    assert parsed.issue == 'invalid_request_policy'
+    assert parsed.value is None and parsed.output_items == b'[]'
 
 
 @pytest.mark.parametrize('change', ['wrong_request', 'incomplete', 'refused'])

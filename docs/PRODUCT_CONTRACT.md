@@ -112,6 +112,30 @@ keyboard use, focus, loading, errors and recovery are part of the product.
 “Better than prototype” means less effort and more reliable work; it does not
 justify delaying functional proof indefinitely.
 
+## Current delivery sequence
+
+The active candidate is PR #12 on `hermes/adaptive-product-integration`; PR #9
+is the coordination/history entrypoint, not the latest application head. Preserve
+Claude's integrated frontend and existing review environments.
+
+The next complete M3 slice must turn an ordinary goal into useful work, encounter
+an observed obstacle, change approach, verify a bounded requested result, and
+resume interrupted execution with human edits and effect identities preserved.
+Completion evidence is distinct from approval: a verified proposed revision still
+needs the person's explicit decision before replacing saved work. Unsupported or
+unverified obligations remain partial/needs-validation. No required user-authored
+test specification and no model-generated examples promoted into proof.
+
+Run existing local/model workers continuously in isolated review state; manual
+operator ticks are not the demonstrated user journey. General conversation,
+tables and runnable tools remain supported; a narrow verified task is an honest
+first completion capability, not the product's identity.
+
+Memory/learning [#10](https://github.com/alindebergASL/Workagent/issues/10) and
+portability [#11](https://github.com/alindebergASL/Workagent/issues/11) follow this
+slice. Workagent owns durable work; provider persistence is optional capability,
+not canonical memory. Their full backlogs are not prerequisites for M3.
+
 ## Scope discipline
 
 The next implementation slice is small, but common contracts must admit varied

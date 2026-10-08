@@ -56,12 +56,16 @@ export function attachmentsProblem(list: MessageAttachment[]): string | null {
 
 /**
  * Per-turn progress on the model path. Read-only: none of it is work, and a
- * retained local result is never a saved product.
+ * retained local result is only saved when its publication is confirmed.
  */
 export type TurnProgress = Partial<
   Pick<
     S["TurnState"],
-    "provider_observation" | "evidence_origin" | "retained_local_result"
+    | "provider_observation"
+    | "evidence_origin"
+    | "retained_local_result"
+    | "adaptive"
+    | "response_steps"
   >
 >;
 
@@ -78,5 +82,8 @@ export function turnProgress(
     provider_observation: turn.provider_observation,
     evidence_origin: turn.evidence_origin,
     retained_local_result: turn.retained_local_result ?? null,
+    ...(turn.adaptive
+      ? { adaptive: turn.adaptive, response_steps: turn.response_steps }
+      : {}),
   };
 }

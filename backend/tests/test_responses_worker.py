@@ -28,7 +28,7 @@ def grant(context):
     return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
         profile='openai-responses-v1',model='gpt-6.1-sol',consumer_sha256=consumer_hash(),
         expires_at=now()+timedelta(minutes=45),max_runs=2,max_received_output_tokens=16384,
-        responses=ResponsesBinding(project_id='proj_SYNTHETIC',secret_reference='file:/synthetic/not-a-key',
+        responses=ResponsesBinding(project_id='proj_'+ws,secret_reference='file:/synthetic/not-a-key',
             transport_mode='synthetic',instructions_sha256=instruction_hash(config),
             schema_sha256=sha256(FINAL_SCHEMA.material).hexdigest(),scope_tool_sha256=digest(scope_registry()))))
 

@@ -15,7 +15,24 @@ def byte_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+def adaptive_readback(c,run,attempt):
+    from .adaptive import enabled,retained
+    from .product_models import AdaptiveExecution,AdaptiveStep
+    from .responses_ledger import summary
+    config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
+    if not config or not enabled(config['data']): return None
+    data=config['data']; observations=retained(c,attempt['id']) if attempt else []
+    first=c.execute("SELECT data->'value' AS value FROM responses_events WHERE attempt_id=%s AND phase='selection' AND kind='result'",(attempt['id'],)).fetchone() if attempt else None
+    value=(first['value'] if first else None) or {}
+    return AdaptiveExecution(goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
+        max_steps=data['responses']['max_steps'],outcome='cancelled' if run.state=='cancelled' else (run.stop_reason or (observations[-1]['terminal_outcome'] if observations else 'pending')),
+        shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
+        steps=[AdaptiveStep(phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
+            reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
+
+
 def turn_state(run,c=None):
+    from .service import encoded
     if run.profile=='general-responses-v1':
         from .responses_ledger import observations
         attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone() if c else None
@@ -24,7 +41,7 @@ def turn_state(run,c=None):
         if steps: observation='pending'
         if any(s.state in ('count_unknown','outcome_unknown') for s in steps): observation='outcome_unknown'
         if any(s.state=='invalid' for s in steps): observation='invalid'
-        if run.state in ('ready','partial'): observation='received'
+        if run.state in ('ready','partial') and run.stop_reason is None: observation='received'
         state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
         reason={
             'not_observed':'Explicit general profile queued; no provider receipt observed.',
@@ -34,17 +51,21 @@ def turn_state(run,c=None):
             'received':'Receipt-backed explanation and local result read back; proposals require explicit human acceptance.'}[observation]
         if observation in ('outcome_unknown','invalid'): state='unavailable'
         if run.state=='cancelled': state='cancelled'; reason='Turn cancelled; any sent provider reservations remain retained.'
+        if run.state=='partial' and run.unresolved:
+            state='failed'; reason=' '.join(run.unresolved)
         retained=None
         if attempt:
-            stage=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND phase='selection' AND kind='tool_result'",(attempt['id'],)).fetchone()
+            stage=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND kind='tool_result' ORDER BY phase DESC LIMIT 1",(attempt['id'],)).fetchone()
             if stage:
                 data=stage['data']; output=data['output']
                 if output and output['kind']=='run_wasm': output={**output,'value':str(output['value'])}
-                retained=RetainedLocalResult(status=data['status'],published=run.state=='ready' and data['status']=='observed',
+                published=bool(c.execute("SELECT 1 FROM product_observations WHERE workspace_id=%s AND run_id=%s AND data->'model_selection'=%s LIMIT 1",
+                    (run.workspace_id,run.id,encoded(data['binding']))).fetchone())
+                retained=RetainedLocalResult(status=data['status'],published=published,
                     binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
         return TurnState(run_id=run.id,state=state,reason=reason,profile=run.profile,
             evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
-            retained_local_result=retained)
+            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt))
 
     state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
     reason={'ready':'Controlled result persisted; proposals still require explicit human acceptance.',
@@ -115,10 +136,10 @@ class Products:
         else:
             code=operation.code if operation.code is not None else base.body.code
             output=run_wasm_tool(code,operation.entrypoint,operation.arguments)
-            body=ToolBody(title=base.body.title if base else 'Invoice total tool',code=code,
+            body=ToolBody(title=base.body.title if base else f'{operation.entrypoint} tool',code=code,
                 entrypoint=operation.entrypoint,arguments=operation.arguments,input_form=operation.input_form,notes=notes)
             observed=WasmObservation(**output)
-            file=FileBody(title='Portable WebAssembly text',filename='invoice-tool.wat',mime_type='application/wasm-text',
+            file=FileBody(title='Portable WebAssembly text',filename=f'tool-{operation.entrypoint}.wat',mime_type='application/wasm-text',
                           content=code,content_sha256=byte_hash(code))
         return body,file,observed
 
@@ -156,7 +177,7 @@ class Products:
                 raise DomainError('action_unresolved')
         return self.get_run(p,run.workspace_id,run.id)
 
-    def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None):
+    def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None,*,unresolved=None):
         from .service import digest,encoded
         from .outcomes import acknowledge
         operation_hash=digest(operation)
@@ -192,12 +213,15 @@ class Products:
         self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
             sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
             evidence_origin=origin,result=result,model_receipt=binding['attempt_id'] if binding else None))
-        run.state='ready'; run.used_units+=1; run.lease_expires_at=None
+        # Saving an executable artifact is not proof of the requested goal.
+        run.state='partial' if unresolved else 'ready'
+        if unresolved: run.unresolved=[unresolved]
+        run.used_units+=1; run.lease_expires_at=None
         self._store_run(c,run); self._event(c,p,run.workspace_id,'complete_run',run.id)
         acknowledge(c,run.workspace_id,run.id)
         return results
 
-    def stage_general_product(self,cap,receipt):
+    def stage_general_product(self,cap,receipt,phase='selection'):
         """Resolve receipt-bound args, compute once, retain trusted local evidence.
 
         Model output cannot submit a staged observation. Crash before retention may
@@ -208,8 +232,8 @@ class Products:
         from .service import digest
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
-            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt)
-            prior=ledger._events(c,'selection').get('tool_result')
+            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
                 return prior
@@ -220,23 +244,32 @@ class Products:
                 body,file,output=self._calculate_product(operation,base)
                 staged={'status':'observed','body':body.model_dump(mode='json'),
                         'file':file.model_dump(mode='json'),'output':output.model_dump(mode='json'),'binding':binding}
-            except (OperationRejected,ToolRejected,ValueError):
+            except (OperationRejected,ToolRejected,ValueError) as exc:
+                from .adaptive import rejection_diagnostic
+                diagnostic=rejection_diagnostic(exc)
                 staged={'status':'rejected','body':None,'file':None,'output':None,'binding':binding,
-                        'reason':'Bounded local kernel rejected the selected input; no product or execution claim was fabricated.'}
+                        'diagnostic':diagnostic,'reason':diagnostic['detail']}
         with self.db.transaction() as c:
-            current=resolve_selection(self,c,cap,receipt)
+            current=resolve_selection(self,c,cap,receipt,phase)
             if current[5]!=binding: raise DomainError('source_changed')
-            prior=ledger._events(c,'selection').get('tool_result')
+            from .general_responses import check_pins
+            from .adaptive import enabled,decision,stage_metadata
+            config=check_pins(c,current[1])
+            if enabled(config):
+                message=next(m for m in self._conversation_messages(c,current[1].workspace_id,current[2].id)
+                             if m.run_id==current[1].id and m.author_kind=='human')
+                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase),operation,staged,config['responses']['max_steps'],message))
+            prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior!=staged: raise DomainError('command_conflict')
             else:
-                ledger.event(c,'selection','tool_result',staged)
+                ledger.event(c,phase,'tool_result',staged)
         with self.db.transaction() as c:
-            resolve_selection(self,c,cap,receipt)
-            if ledger._events(c,'selection').get('tool_result')!=staged: raise DomainError('action_unresolved')
+            resolve_selection(self,c,cap,receipt,phase)
+            if ledger._events(c,phase).get('tool_result')!=staged: raise DomainError('action_unresolved')
         return staged
 
-    def complete_general_product(self,cap,receipt):
+    def complete_general_product(self,cap,receipt,phase='selection'):
         """Atomic explanation/products/proposal, strictly from retained receipts."""
         from .general_responses import resolve_selection
         from .general_schema import GeneralExplanation
@@ -246,25 +279,40 @@ class Products:
         ledger=Ledger(self,receipt)
         results=[]
         with self.db.transaction() as c:
-            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt)
-            staged=ledger._events(c,'selection').get('tool_result')
+            p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            staged=ledger._events(c,phase).get('tool_result')
             final=ledger._events(c,'final').get('result',{})
             if not staged or staged['binding']!=binding or final.get('state')!='completed':
                 raise DomainError('action_unresolved')
             text=GeneralExplanation.model_validate(final['value'],strict=True).text
-            if staged['status']=='observed':
+            adaptive_outcome=staged.get('terminal_outcome')
+            if adaptive_outcome and adaptive_outcome=='continue': raise DomainError('action_unresolved')
+            if adaptive_outcome and adaptive_outcome!='completed':
+                # Trusted status, not unchecked final provider success prose.
+                # Full model explanation remains immutable in its receipt.
+                text=staged['reason']
+            unresolved=None
+            if adaptive_outcome=='needs_validation':
+                from .adaptive import unresolved_summary
+                unresolved=unresolved_summary(staged['reason'])
+                # Ordinary conversation, not only technical details, must expose
+                # the trusted limitation. Keep provider prose in its receipt.
+                text=staged['reason']
+            if staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
                 file=FileBody.model_validate(staged['file'])
                 output=(CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
-                results=self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding)
+                results=self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,unresolved=unresolved)
             else:
                 messages=self._conversation_messages(c,run.workspace_id,cv.id)
                 self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
                     sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
                     evidence_origin=origin,model_receipt=receipt.attempt_id,result=TurnResult(results=[TextResult(text=text)])))
-                run.state='partial' if staged['status']=='rejected' else 'ready'
+                run.state='partial' if staged['status']=='rejected' or adaptive_outcome not in (None,'completed') else 'ready'
                 run.used_units+=1; run.lease_expires_at=None
-                if staged['status']=='rejected': run.unresolved=[staged['reason']]
+                if run.state=='partial':
+                    from .adaptive import unresolved_summary
+                    run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome or 'Local verification failed.') ]
                 acknowledge(c,run.workspace_id,run.id)
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
             # Two immutable phase receipts are the model evidence. No domain Body is
@@ -284,6 +332,45 @@ class Products:
             if observed.observation.model_selection.model_dump()!=binding:
                 raise DomainError('action_unresolved')
         return self.get_run(p,run.workspace_id,run.id)
+
+    def stop_general_budget(self,cap,receipt):
+        """Durable no-provider terminal path; not a synthesized model message.
+
+        Current authority is still required. Existing request bytes, events and
+        local output are untouched. Unknown sends stay unresolved for admission;
+        write-only late receipt retention remains possible after this stop.
+        """
+        from .responses_ledger import Ledger, observations
+        from .general_responses import check_pins
+        from .outcomes import acknowledge
+        from .adaptive import enabled, BUDGET_STOP_REASON
+        ledger=Ledger(self,receipt)
+        with self.db.transaction() as c:
+            p,run,cv=self._check_capability(c,cap)
+            bound,attempt,origin=ledger._auth(c,cap)
+            if bound.id!=run.id or not enabled(check_pins(c,run)):
+                raise DomainError('unsupported_operation')
+            # Includes current human target, scope and original context pins.
+            self._general_context(c,cap)
+            steps=observations(c,attempt.id)
+            received=any(x.state in ('received','invalid') for x in steps)
+            # Budget exhaustion is not evidence of an unsent/abandoned attempt.
+            # Preserve its state and every receipt, including known completed
+            # phases; only exact final publication may reconcile the attempt.
+            # This also keeps count-only ambiguity from opening a replacement.
+            run.state='partial'; run.stop_reason='budget_limit'
+            run.unresolved=[BUDGET_STOP_REASON]
+            run.used_units+=1; run.lease_expires_at=None
+            if received:
+                run.execution.provider_observation='received'
+                run.execution.evidence_origin=origin
+            self._store_run(c,run)
+            self._event(c,p,run.workspace_id,'general_budget_stop',run.id)
+            acknowledge(c,run.workspace_id,run.id)
+        observed=self.get_run(p,run.workspace_id,run.id)
+        if observed.state!='partial' or observed.stop_reason!='budget_limit':
+            raise DomainError('action_unresolved')
+        return observed
 
     def fail_local_turn(self,cap,reason):
         from .outcomes import acknowledge
@@ -332,7 +419,7 @@ class Products:
         if isinstance(body,FileBody):
             return body
         if isinstance(body,ToolBody):
-            return FileBody(title=body.title,filename='invoice-tool.wat',mime_type='application/wasm-text',content=body.code,content_sha256=byte_hash(body.code))
+            return FileBody(title=body.title,filename=f'tool-{body.entrypoint}.wat',mime_type='application/wasm-text',content=body.code,content_sha256=byte_hash(body.code))
         if isinstance(body,TableBody):
             # Export SAVED cells, not a hidden recalculation or an execution claim.
             import csv, io

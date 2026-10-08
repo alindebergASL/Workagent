@@ -13,8 +13,45 @@ B1–B3 with Claude's companion UI and recovery corrections. Keep its checkout,
 saved review database, human edits and historical evidence. Claude subsequently
 acknowledged the fixes at `ece6290a57b22dada5b4db44f2ab1b98dbe0ce61`.
 Do not restart the reset or harness comparison, replace the frontend owner, or
-recreate accepted work. Recovered uncommitted model implementation is on
-`hermes/general-responses`, based on authorization commit `dc4360f`.
+recreate accepted work. The recovered model implementation is now committed at
+9ed2467 and integrated with Claude a3c06fb at application1b81a1d742829663faf12a0ca5fa03957daf252c.
+
+## Active adaptive delivery — 2026-10-08
+
+Current work continues PR #12 from published/reviewed
+`3568fbcada2ab564bbf3d7dbd49f0d41d8700013`, preserving its newer corrections
+and every older worktree. PR #9 remains the frontend coordination/history pointer.
+
+1. Close the completion gap with independent verification for a clearly bounded
+   ordinary task; record exact scope/bindings, retain needs-validation elsewhere,
+   and keep verified proposal evidence separate from human acceptance.
+2. Run existing local/model workers continuously on durable state in a separate
+   isolated environment; no production deployment or new orchestration platform.
+3. Prove ordinary goal, meaningful obstacle, model-chosen changed action, checked
+   result, mid-execution interruption and continuation preserving human edits and
+   effect identities. Retain fault coverage and distinguish live from fixtures.
+4. Preserve integrated Claude fixes; publish generated contracts and precise
+   frontend handoff. Claude CLI currently needs `claude auth login`; backend work
+   continues. Normal screens show useful work/results/decisions, details optional.
+5. Publish coherent non-default commits, reconcile these contracts and PR #9,
+   provide a working review path and exact engineering/usefulness/experience
+   evidence. Memory #10 and portability #11 follow; their backlogs are not gates.
+
+RUNTIME_STATUS holds actual executed results; this list does not itself claim
+completion. M4 specialist coordination and full M5 ownership remain undelivered.
+
+## Historical observed checkpoint — 2026-10-06
+
+M1 is implemented and its four authorized live turns demonstrated. M2’s bounded
+actual-service desktop/phone journey is demonstrated; full experience acceptance
+remains incomplete and Andrew’s usefulness review is NOT TESTED.
+[Evidence and explicit gaps](../handoffs/backend/GENERAL_MODEL_CHECKPOINT.md).
+The table below retains milestone acceptance requirements, not a claim that M1
+implementation is still missing. M3–M5 remain planned/NOT TESTED. Next: implement
+bounded goal/observation-driven continuation and prove a changed next action on
+a real deterministic obstacle, retaining edits/authority. Claude retains the
+frontend corrections. The original four-turn/eight-generation/eight-count grant
+is exhausted; deterministic development does not require additional paid tests.
 
 ## Milestones, owners and required evidence
 
@@ -33,7 +70,7 @@ aspirations or delivered behavior. Implement incrementally using existing author
 and runtime seams; reuse fitting components without a new orchestration stack.
 B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicable.
 
-## Current execution order
+## Completed checkpoint execution order (M1 / bounded M2)
 
 1. Incorporate both notes in active contracts, acceptance and this plan; publish
    committed SHA and next behavioral checkpoint. Correct stale grant language,
@@ -56,13 +93,14 @@ B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicabl
 ## Execution boundary
 
 Routine development, tests, fixes, branch publication and compatible non-default
-integration are authorized. Live model testing is already authorized by
-GENERAL_MODEL_AUTHORIZATION.md: $20 cumulative, no calendar expiry, unchanged
-8 generation / 8 count / 80 same-ID retrieval and 160,000 input / 65,536 output
-limits, the specified four synthetic turns, acknowledged store:true. Caps do not
-reset per restart, batch or child. Do not request this same approval again.
+integration are authorized. GENERAL_MODEL_AUTHORIZATION.md permits reasonable
+bounded synthetic tests on the recorded official route within one cumulative $20
+budget, without calendar expiry and with acknowledged store:true. The original
+four-turn/eight-generation checkpoint is not a project-wide stop. Runtime profiles
+remain bounded; historical counters, reservations and unknown liabilities never
+reset per restart, batch or child. Shared-budget enforcement is implemented.
 
-Default merge, deployment, new private-context access and external business
-actions remain excluded. Future different paid scenarios require an applicable
-explicit grant; implementation/deterministic testing need not wait for that grant.
-Ask only for a material product decision or genuinely missing authorization.
+Default merge, deployment, new paid routes, broader private-context access and
+external business actions remain excluded. Continue routine findings without
+another checkpoint approval; escalate only a concrete missing decision, permission
+or access requirement.

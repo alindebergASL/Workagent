@@ -1,65 +1,68 @@
 # Current runtime status and execution boundary
 
-## Candidate actually available for review
+## Candidate and preserved review state
 
-**Application SHA: `f68efe5c81e4865f9e1547e03b4af7b62c4303a0`.** All three exact-head GitHub workflows passed after infrastructure-only runner retries; no workflow bypass or source change was needed. See [PR9 final handoff](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6001879175).
+Current published baseline: **3568fbcada2ab564bbf3d7dbd49f0d41d8700013**,
+PR #12, `hermes/adaptive-product-integration`. This preserves implementation
+8ed405e, checkpoint 898c64e and the independently reviewed rich-text URL fix.
+PR #9 is a coordination/history entrypoint, not the latest application head.
 
-The previous private review session used loopback web3000/API8000 and the
-retained `.local/parent-quota-final.env` database. CSV/shipping records and their
-downloads were read back in that session. At this continuation, local port
-inspection found no listeners on3000/8000; do not present historical reachability
-as a current live service. Preserve the checkout/database. See
-[historical access and restart instructions](EXPERIENCE_REVIEW.md); a new candidate
-must use isolated state and be verified reachable before a fresh experience claim.
+Historical application 1b81a1d and its saved 3000/8000 review environment remain
+preserved. The prior adaptive 3120/8120 environment is also retained. Do not reset
+those databases or overwrite human edits. New milestone proof uses isolated state.
 
-## Implemented and verified
+## Implemented baseline
 
-- Source-free durable conversation and general prompt/continue/inspect/cancel CLI through GeneralWorker and the normal dispatcher.
-- Typed CSV table/file products, safe export and exact local arithmetic; import-free integer Wasmtime tools with bounded execution and observed readbacks.
-- Broker/domain authorization at execution and commit, immutable revision/proposal binding, human edits, exact replay, fences, truthful unavailable/failure and same-run restart recovery.
-- Integrated real Next.js/FastAPI/PostgreSQL experience: CSV edit/save/recalculate/export/reopen; per-field shipping inputs; conversation beside work; phone panes; reply/draft/retry preservation.
-- Current personally rerun evidence:81 frontend tests,17 focused DOM cases,15 mock browser cases,72 relevant PostgreSQL cases and actual controlled product/recovery journeys. Prior full403 backend result is reused by unchanged backend/contracts/runtime bytes, not relabeled as a fresh full-suite run.
+- Same GeneralWorker/domain/broker, durable outbox and immutable Responses ledger.
+- Bounded adaptive goals, observations and changed local actions; real CSV and
+  import-free Wasmtime execution, not model prose standing in for execution.
+- Model-generated checks and optional human cases are honestly limited evidence;
+  passing them alone leaves `partial` / `needs_validation`.
+- Exact saved targets, human edits, proposals and separate explicit acceptance.
+- Explicit saved-tool reruns perform local execution with no provider dispatch.
+- Cross-grant shared project reservations with immutable historical carryforward;
+  uncertain attempts retain liabilities. Original provider reasoning/IDs survive
+  stored response recovery; no silent replacement generation.
+- Claude's integrated rich-text/long-reply/proposed-input fixes and reviewed URL
+  safety correction, desktop/phone work/conversation and result-first surfaces.
 
-CSV and shipping are breadth tests of the same general work product path. They are not its identity or evidence for unrestricted/general autonomy. Explicit delegation remains paused/unsupported, not secretly handled in the background.
+Prior evidence: [adaptive integration](../handoffs/backend/ADAPTIVE_PRODUCT_CHECKPOINT.md)
+and [ordinary reuse](../handoffs/backend/ORDINARY_REUSE_CHECKPOINT.md).
+613 backend tests apply to unchanged baseline backend bytes; 138 frontend tests
+apply to the final URL correction. These are historical executed results, not a
+claim that the next milestone has already passed its new gates.
 
-## Model implementation in progress, not yet demonstrated
+## Next complete adaptive milestone — in progress
 
-The following describes the reviewed f68efe5 baseline, not the new working tree.
-The `hermes/general-responses` continuation recovered uncommitted same-worker
-model implementation based on `dc4360f`; review and deterministic verification
-are in progress. It is neither an activated grant nor observed live-model proof.
-The existing Claude frontend owner remains responsible for natural-language
-entry/work surfaces and Home/Spaces continuity against generated contracts.
+Add independent completion verification for a bounded ordinary request, with
+explicit scope and exact evidence bindings. Run existing model/local consumers
+continuously in isolated state. Prove a meaningful obstacle and changed action,
+then interrupt before completion and continue with human edits/no duplicate
+effects. Do not substitute reopening a completed artifact. Unknown goals remain
+needs-validation; verifying a proposed result never applies it.
 
-## Baseline model gap (f68efe5)
+Engineering, usefulness and experience verdicts for this new candidate remain
+NOT TESTED until linked execution evidence is recorded. Broader M4 specialist
+coordination and M5 persistent event-driven ownership remain undelivered.
+Memory/learning #10 and portability #11 follow this slice, not prerequisites.
 
-`backend/workagent/general_worker.py` explicitly rejects any transport that is not `ControlledTransport` with controlled mode. The ordinary response is deterministic text. The product path derives from an explicitly supplied typed operation; the controlled transport selects that already-chosen operation. User-authored natural-language requests do not currently cause model-selected tool execution or tool-code generation/revision.
+## Authority and cumulative budget
 
-The existing live `responses_transport.py` / `responses_worker.py` and provider-attempt authority belong to the historical intake profile. They are useful reusable components, not an already-connected general product runtime. Granting calls or setting a key would not remove the gap.
+Routine development, fixes, tests, publication and compatible non-default
+integration are authorized. Reasonable bounded synthetic model tests may continue
+on official `gpt-6.1-sol` within **one cumulative $20**, no calendar expiry. The
+initial four-turn/eight-generation checkpoint is not a project-wide stop. New
+bounded runtime grants share the same budget; historical grant bytes, counters,
+reservations, carried usage and unknown liabilities must remain intact.
 
-The current **in-progress** implementation is a bounded live transport/tool-selection path inside the same GeneralWorker/dispatcher/domain. It must accept natural-language messages and authorized bounded context, expose only authorized tool schemas, validate model-selected arguments through the existing broker, feed back actual results, and preserve attempt/replay/fence/budget authority. No direct-provider demo script, operator-selected action masquerading as selection, parallel business state or new harness research. See [minimal implementation and bounded test proposal](GENERAL_MODEL_SLICE.md).
+Last published aggregate reservation: **$2.638400 / $20**, including historical
+carried liabilities. This is not confirmed billing and is not a fresh $20 grant.
+Read the durable ledger before further activation; account/model/pricing evidence
+must be current. No automatic resends of uncertain sends or hidden refunds.
 
-## Historical live evidence retained
-
-The synthetic intake Responses initial/revision experiment used `gpt-6.1-sol`; [INTAKE_ACCEPTANCE.md](../handoffs/backend/INTAKE_ACCEPTANCE.md) records its exact evidence and limitations. Four generation submissions exhausted that grant. It is expired and will not be reused. That historical success does not prove present model entitlement, general action selection, code generation or usefulness.
-
-The harness comparison is complete: [HARNESS_ADOPTION.md](../handoffs/backend/HARNESS_ADOPTION.md) retains Workagent authority and does not adopt a new production Hermes/OpenClaw stack. Do not restart that research to connect one bounded model route.
-
-## Verdicts and boundaries
-
-- **Engineering PASS:** controlled B1–B3 integrated paths and documented recovery boundaries.
-- **Experience:** controlled desktop/phone interactions verified historically; Andrew reviewed the basic bones positively but identified substantial work. That is not complete acceptance; M2 remains to be demonstrated.
-- **Usefulness NOT TESTED:** no real model has selected/generalized these product actions through this worker.
-
-Default local startup stays controlled and strips model keys. General live-model
-proof has not occurred. Implementation and the bounded test already have authority
-under `GENERAL_MODEL_AUTHORIZATION.md`: $20 cumulative, no calendar expiry,
-unchanged call/token/four-turn synthetic scope; activate only after its verification
-gates, without requesting the same approval again. No caps reset. Accepted bundles,
-old Body hashes, pins and expired intake grants remain unchanged.
-
-M3 adaptive goal execution, M4 actual specialist coordination and M5 persistent
-ownership are required capabilities, still planned and NOT TESTED. B4–B7 broader
-scope/memory/failure acceptance remains. No private-context expansion, external
-business effects, default merge or deployment is authorized. See `BUILD_PLAN.md`
-and `PRODUCT_ACCEPTANCE.md` for owners and evidence gates.
+Default startup remains controlled and strips model keys. New paid routes, broader
+private-data access, external business actions, default merge and deployment are
+outside authority. [Authorization](GENERAL_MODEL_AUTHORIZATION.md) records the
+clarification. Claude CLI is logged out; restoring its frontend-owner lane needs
+`claude auth login`, not an API key pasted into chat. Backend work continues and
+exact generated contracts/handoff will be published.

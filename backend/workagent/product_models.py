@@ -3,6 +3,7 @@ import hashlib
 from typing import Annotated, Literal
 from pydantic import Field, model_validator, field_serializer
 from .model_base import Model, Id, Text, Hash
+from .acceptance_checks import AcceptanceVerification
 
 CSVText = Annotated[str, Field(min_length=1, max_length=200000)]
 Code = Annotated[str, Field(min_length=1, max_length=16000)]
@@ -213,7 +214,7 @@ class ObservationReadback(Model):
         return ProductObservationResponse.model_validate(data)
 
 class ResponseStepObservation(Model):
-    phase: Literal['selection','final']
+    phase: Literal['selection','selection_2','selection_3','selection_4','final']
     state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
     response_id: str | None = None
     reported_input_tokens: int | None = None
@@ -233,6 +234,39 @@ class RetainedLocalResult(Model):
     reason: str | None = None
 
 
+class AdaptiveVerificationCheck(Model):
+    criterion: dict
+    actual: str | dict | None = None
+    passed: bool
+
+class AdaptiveVerification(Model):
+    satisfied: bool
+    model_tests_passed: bool = False
+    basis: Literal['model_proposed'] = 'model_proposed'
+    requested_goal_status: Literal['needs_validation'] = 'needs_validation'
+    request: dict | None = None
+    checks: list[AdaptiveVerificationCheck] = Field(default_factory=list,max_length=8)
+    acceptance: AcceptanceVerification | None = None
+
+class AdaptiveStep(Model):
+    phase: Literal['selection','selection_2','selection_3','selection_4']
+    status: Literal['reply','observed','rejected']
+    operation_hash: Hash | None = None
+    reason: str | None = None
+    verification: AdaptiveVerification
+    outcome: Literal['continue','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation']
+
+class AdaptiveExecution(Model):
+    capability: Literal['adaptive-local-v1'] = 'adaptive-local-v1'
+    goal: str | None = None
+    success_criteria: list[dict] = Field(default_factory=list,max_length=8)
+    max_steps: int = Field(ge=1,le=4)
+    outcome: Literal['pending','continue','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation','cancelled']
+    steps: list[AdaptiveStep] = Field(default_factory=list,max_length=4)
+    shared_reserved_cost_usd: str
+    shared_cost_limit_usd: Literal['20.00'] = '20.00'
+    cost_basis: Literal['worst_case_reservations_not_billing'] = 'worst_case_reservations_not_billing'
+
 class TurnState(Model):
     profile: Literal['general-controlled-v1','general-products-controlled-v1','general-responses-v1'] = 'general-controlled-v1'
     run_id: Id
@@ -240,5 +274,6 @@ class TurnState(Model):
     reason: str
     evidence_origin: Literal['controlled_transport','unverified','synthetic_provider_receipt','live_provider_receipt'] = 'controlled_transport'
     provider_observation: Literal['not_observed','pending','received','outcome_unknown','invalid'] = 'not_observed'
-    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=2)
+    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=5)
+    adaptive: AdaptiveExecution | None = None
     retained_local_result: RetainedLocalResult | None = None

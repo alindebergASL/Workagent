@@ -334,6 +334,61 @@ describe("product integration boundaries", () => {
   });
 });
 
+describe("tool download filenames", () => {
+  it.each(["choose", "_choose", "a".repeat(64)])(
+    "uses the entrypoint %s rather than an invoice label",
+    async (entrypoint) => {
+      const content = "(module)";
+      const digest = Array.from(
+        new Uint8Array(
+          await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(content),
+          ),
+        ),
+      )
+        .map((x) => x.toString(16).padStart(2, "0"))
+        .join("");
+      transport.mockResolvedValueOnce(
+        new Response(content, { headers: { "x-content-sha256": digest } }),
+      );
+      const anchor = { href: "", download: "", click: vi.fn() };
+      vi.stubGlobal("document", { createElement: () => anchor });
+      const timer = vi
+        .spyOn(globalThis, "setTimeout")
+        .mockImplementation(
+          () => 0 as unknown as ReturnType<typeof setTimeout>,
+        );
+      const createUrl = vi
+        .spyOn(URL, "createObjectURL")
+        .mockReturnValue("blob:test");
+      try {
+        const tool: S["Artifact"] = {
+          ...artifact,
+          current_revision: {
+            ...artifact.current_revision,
+            body: {
+              kind: "tool",
+              title: "Saved human title",
+              code: content,
+              entrypoint,
+              arguments: [],
+              input_form: [],
+              notes: [],
+            },
+          },
+        };
+        await productApi.download("w", tool);
+        expect(anchor.download).toBe(`tool-${entrypoint}.wat`);
+        expect(anchor.click).toHaveBeenCalledOnce();
+      } finally {
+        timer.mockRestore();
+        createUrl.mockRestore();
+      }
+    },
+  );
+});
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
