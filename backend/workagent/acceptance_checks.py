@@ -85,6 +85,12 @@ def for_model(staged):
     """Keep feedback useful without disclosing cases/expected values or their hashes."""
     result=deepcopy(staged)
     verification=result.get('verification',{})
+    automatic=verification.get('automatic')
+    if automatic is not None:
+        keys=('recognized','passed','failures','scope')
+        if automatic['checker_version']=='team-selection-v1':
+            keys+=('checker_version','case_count')
+        verification['automatic']={key:automatic[key] for key in keys}
     acceptance=verification.get('acceptance')
     if acceptance is not None:
         # Hashing the immutable message includes the held-out expected answers.

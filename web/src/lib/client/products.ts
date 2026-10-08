@@ -217,14 +217,22 @@ export const productApi = {
         },
       ),
     ),
-  async download(ws: string, artifact: S["Artifact"]) {
+  async download(
+    ws: string,
+    artifact: S["Artifact"],
+    proposal?: S["Proposal"],
+  ) {
+    if (proposal && proposal.artifact_id !== artifact.id)
+      throw new Error("Proposed version does not belong to this work.");
     const result = await client.GET(
       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
       {
         params: {
           path: { workspace_id: ws, artifact_id: artifact.id },
           header: meta(),
-          query: { revision_id: artifact.current_revision_id },
+          query: proposal
+            ? { proposal_id: proposal.id }
+            : { revision_id: artifact.current_revision_id },
         },
         parseAs: "blob",
       },
@@ -247,7 +255,7 @@ export const productApi = {
       throw new Error(
         "Downloaded content digest did not match. No file was saved.",
       );
-    const body = artifact.current_revision.body;
+    const body = proposal?.body ?? artifact.current_revision.body;
     if (!isProduct(body)) throw new Error("Not a downloadable product.");
     const filename =
       body.kind === "file"

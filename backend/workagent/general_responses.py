@@ -16,7 +16,7 @@ def consumer_hash():
     from .service import digest
     names=('general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'adaptive.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 

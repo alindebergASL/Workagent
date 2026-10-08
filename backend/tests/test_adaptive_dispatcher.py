@@ -35,7 +35,7 @@ def test_two_human_turns_after_needs_review(context,tmp_path,monkeypatch):
     ({'provider_observation':'outcome_unknown'},'outcome_unknown'),
     ({'provider_observation':'invalid'},'invalid_response'),
     ({'state':'cancelled'},'cancelled'),
-    ({'outcome':'budget_limit'},'local_tool_rejected'),
+    ({'outcome':'budget_limit'},'budget_limit'),
     ({'published':False},'local_tool_rejected'),
     ({'local_status':'rejected'},'local_tool_rejected'),
     ({'receipt_state':'accepted'},'local_tool_rejected'),

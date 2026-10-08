@@ -526,12 +526,13 @@ export interface components {
         /** AdaptiveVerification */
         AdaptiveVerification: {
             acceptance?: components["schemas"]["AcceptanceVerification"] | null;
+            automatic?: components["schemas"]["AutomaticVerification"] | null;
             /**
              * Basis
              * @default model_proposed
-             * @constant
+             * @enum {string}
              */
-            basis: "model_proposed";
+            basis: "model_proposed" | "independent_bounded";
             /** Checks */
             checks?: components["schemas"]["AdaptiveVerificationCheck"][];
             /**
@@ -546,9 +547,9 @@ export interface components {
             /**
              * Requested Goal Status
              * @default needs_validation
-             * @constant
+             * @enum {string}
              */
-            requested_goal_status: "needs_validation";
+            requested_goal_status: "needs_validation" | "satisfied";
             /** Satisfied */
             satisfied: boolean;
         };
@@ -662,6 +663,55 @@ export interface components {
              */
             mime_type: "text/csv" | "text/plain";
         };
+        /** AutomaticVerification */
+        AutomaticVerification: {
+            /** Base Hash */
+            base_hash?: string | null;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /**
+             * Case Count
+             * @default 0
+             */
+            case_count: number;
+            /**
+             * Checker Version
+             * @default csv-reconciliation-v1
+             * @enum {string}
+             */
+            checker_version: "csv-reconciliation-v1" | "team-selection-v1";
+            /** Failures */
+            failures: ("unsupported_goal" | "input_binding" | "unsupported_source" | "tool_not_observed" | "operation_binding" | "requested_rounding" | "table_rows" | "source_or_notes" | "metadata" | "download" | "numerical_disagreement" | "bounded_execution")[];
+            /** Limitations */
+            limitations: string[];
+            /** Operation Hash */
+            operation_hash?: string | null;
+            /** Passed */
+            passed: boolean;
+            /** Recognized */
+            recognized: boolean;
+            /** Request */
+            request?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Row Count
+             * @default 0
+             */
+            row_count: number;
+            /**
+             * Scope
+             * @default bounded_csv_goal_only
+             * @enum {string}
+             */
+            scope: "bounded_csv_goal_only" | "bounded_team_goal_only";
+            /** Source Sha256 */
+            source_sha256?: string | null;
+            /** Spec */
+            spec?: components["schemas"]["CSVGoalSpec"] | components["schemas"]["TeamGoalSpec"] | null;
+            /** Staged Sha256 */
+            staged_sha256: string;
+        };
         /** Block */
         Block: {
             /** Block Id */
@@ -694,6 +744,43 @@ export interface components {
             kind: "csv_totals";
             /** Mismatch Count */
             mismatch_count: number;
+        };
+        /** CSVGoalSpec */
+        CSVGoalSpec: {
+            /**
+             * Decimal Places
+             * @default 2
+             * @constant
+             */
+            decimal_places: 2;
+            /**
+             * Deliverable
+             * @default table_discrepancies_csv
+             * @constant
+             */
+            deliverable: "table_discrepancies_csv";
+            /**
+             * Kind
+             * @default all_rows_quantity_price
+             * @constant
+             */
+            kind: "all_rows_quantity_price";
+            /**
+             * Preserve
+             * @default original_columns_rows_source_and_notes
+             * @constant
+             */
+            preserve: "original_columns_rows_source_and_notes";
+            /**
+             * Rounding
+             * @enum {string}
+             */
+            rounding: "ROUND_HALF_UP" | "ROUND_HALF_EVEN";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "attachment" | "saved_table";
         };
         /** CSVObservation */
         CSVObservation: {
@@ -1764,6 +1851,38 @@ export interface components {
              */
             verification: "unresolved";
         };
+        /** TeamGoalSpec */
+        TeamGoalSpec: {
+            /**
+             * Default Arguments
+             * @default [
+             *       60,
+             *       30
+             *     ]
+             */
+            default_arguments: [
+                60,
+                30
+            ];
+            /**
+             * Kind
+             * @default team_selection
+             * @constant
+             */
+            kind: "team_selection";
+            /**
+             * Max N
+             * @default 60
+             * @constant
+             */
+            max_n: 60;
+            /**
+             * Preserve
+             * @default saved_title_and_notes
+             * @constant
+             */
+            preserve: "saved_title_and_notes";
+        };
         /** TextResult */
         TextResult: {
             /**
@@ -2187,6 +2306,7 @@ export interface operations {
         parameters: {
             query?: {
                 revision_id?: string | null;
+                proposal_id?: string | null;
             };
             header: {
                 "x-schema-version": "workagent/v1";

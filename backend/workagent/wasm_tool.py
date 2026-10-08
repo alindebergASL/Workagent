@@ -22,7 +22,7 @@ class ToolRejected(ValueError):
         self.code=code
 
 
-def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
+def run_wasm_tool(code: str, entrypoint: str, arguments: list[int], *, _cases=None) -> dict | list[int]:
     if (not isinstance(code, str) or not code or len(code.encode('utf-8')) > MAX_CODE_BYTES
             or not isinstance(entrypoint, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,63}', entrypoint)
             or not isinstance(arguments, list) or len(arguments) > MAX_ARGUMENTS
@@ -45,19 +45,24 @@ def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
             with wasmtime.Module(engine, code) as module:
                 if module.imports:
                     raise ToolRejected('host/WASI imports forbidden')
-                with wasmtime.Store(engine) as store:
-                    store.set_limits(memory_size=MEMORY_BYTES, table_elements=64, instances=1, tables=1, memories=1)
-                    store.set_fuel(FUEL)
-                    instance = wasmtime.Instance(store, module, [])
-                    function = instance.exports(store).get(entrypoint)
-                    if not isinstance(function, wasmtime.Func):
-                        raise ToolRejected('function entrypoint missing')
-                    signature = function.type(store)
-                    if ([str(x) for x in signature.params] != ['i64'] * len(arguments)
-                            or [str(x) for x in signature.results] != ['i64']):
-                        raise ToolRejected('bounded i64 parameters and one i64 result required')
-                    value = function(store, *arguments)
-                    fuel_consumed = FUEL - store.get_fuel()
+                values = []
+                for arguments in (_cases if _cases is not None else [arguments]):
+                    with wasmtime.Store(engine) as store:
+                        store.set_limits(memory_size=MEMORY_BYTES, table_elements=64, instances=1, tables=1, memories=1)
+                        store.set_fuel(FUEL)
+                        instance = wasmtime.Instance(store, module, [])
+                        function = instance.exports(store).get(entrypoint)
+                        if not isinstance(function, wasmtime.Func):
+                            raise ToolRejected('function entrypoint missing')
+                        signature = function.type(store)
+                        if ([str(x) for x in signature.params] != ['i64'] * len(arguments)
+                                or [str(x) for x in signature.results] != ['i64']):
+                            raise ToolRejected('bounded i64 parameters and one i64 result required')
+                        value = function(store, *arguments)
+                        fuel_consumed = FUEL - store.get_fuel()
+                    values.append(value)
+                if _cases is not None:
+                    return values
     except wasmtime.Trap as exc:
         # Only the engine's enum classification; never echo source/backtrace text.
         code={'UNREACHABLE':'wasm_unreachable','OUT_OF_FUEL':'wasm_fuel_exhausted',

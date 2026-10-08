@@ -355,9 +355,22 @@
               }
             ]
           },
+          "automatic": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AutomaticVerification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "basis": {
-            "const": "model_proposed",
             "default": "model_proposed",
+            "enum": [
+              "model_proposed",
+              "independent_bounded"
+            ],
             "title": "Basis",
             "type": "string"
           },
@@ -387,8 +400,11 @@
             "title": "Request"
           },
           "requested_goal_status": {
-            "const": "needs_validation",
             "default": "needs_validation",
+            "enum": [
+              "needs_validation",
+              "satisfied"
+            ],
             "title": "Requested Goal Status",
             "type": "string"
           },
@@ -804,6 +820,166 @@
         "title": "AttachmentInput",
         "type": "object"
       },
+      "AutomaticVerification": {
+        "additionalProperties": false,
+        "properties": {
+          "base_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Hash"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "case_count": {
+            "default": 0,
+            "maximum": 1891.0,
+            "minimum": 0.0,
+            "title": "Case Count",
+            "type": "integer"
+          },
+          "checker_version": {
+            "default": "csv-reconciliation-v1",
+            "enum": [
+              "csv-reconciliation-v1",
+              "team-selection-v1"
+            ],
+            "title": "Checker Version",
+            "type": "string"
+          },
+          "failures": {
+            "items": {
+              "enum": [
+                "unsupported_goal",
+                "input_binding",
+                "unsupported_source",
+                "tool_not_observed",
+                "operation_binding",
+                "requested_rounding",
+                "table_rows",
+                "source_or_notes",
+                "metadata",
+                "download",
+                "numerical_disagreement",
+                "bounded_execution"
+              ],
+              "type": "string"
+            },
+            "title": "Failures",
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "operation_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Hash"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "recognized": {
+            "title": "Recognized",
+            "type": "boolean"
+          },
+          "request": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request"
+          },
+          "row_count": {
+            "default": 0,
+            "maximum": 500.0,
+            "minimum": 0.0,
+            "title": "Row Count",
+            "type": "integer"
+          },
+          "scope": {
+            "default": "bounded_csv_goal_only",
+            "enum": [
+              "bounded_csv_goal_only",
+              "bounded_team_goal_only"
+            ],
+            "title": "Scope",
+            "type": "string"
+          },
+          "source_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Sha256"
+          },
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CSVGoalSpec"
+              },
+              {
+                "$ref": "#/components/schemas/TeamGoalSpec"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spec"
+          },
+          "staged_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Staged Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "limitations",
+          "recognized",
+          "passed",
+          "staged_sha256",
+          "failures"
+        ],
+        "title": "AutomaticVerification",
+        "type": "object"
+      },
       "Block": {
         "additionalProperties": false,
         "properties": {
@@ -902,6 +1078,57 @@
           "mismatch_count"
         ],
         "title": "CSVAcceptance",
+        "type": "object"
+      },
+      "CSVGoalSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "decimal_places": {
+            "const": 2,
+            "default": 2,
+            "title": "Decimal Places",
+            "type": "integer"
+          },
+          "deliverable": {
+            "const": "table_discrepancies_csv",
+            "default": "table_discrepancies_csv",
+            "title": "Deliverable",
+            "type": "string"
+          },
+          "kind": {
+            "const": "all_rows_quantity_price",
+            "default": "all_rows_quantity_price",
+            "title": "Kind",
+            "type": "string"
+          },
+          "preserve": {
+            "const": "original_columns_rows_source_and_notes",
+            "default": "original_columns_rows_source_and_notes",
+            "title": "Preserve",
+            "type": "string"
+          },
+          "rounding": {
+            "enum": [
+              "ROUND_HALF_UP",
+              "ROUND_HALF_EVEN"
+            ],
+            "title": "Rounding",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "attachment",
+              "saved_table"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "rounding"
+        ],
+        "title": "CSVGoalSpec",
         "type": "object"
       },
       "CSVObservation": {
@@ -4342,6 +4569,51 @@
         "title": "TaskReceipt",
         "type": "object"
       },
+      "TeamGoalSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "default_arguments": {
+            "default": [
+              60,
+              30
+            ],
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "const": 60,
+                "type": "integer"
+              },
+              {
+                "const": 30,
+                "type": "integer"
+              }
+            ],
+            "title": "Default Arguments",
+            "type": "array"
+          },
+          "kind": {
+            "const": "team_selection",
+            "default": "team_selection",
+            "title": "Kind",
+            "type": "string"
+          },
+          "max_n": {
+            "const": 60,
+            "default": 60,
+            "title": "Max N",
+            "type": "integer"
+          },
+          "preserve": {
+            "const": "saved_title_and_notes",
+            "default": "saved_title_and_notes",
+            "title": "Preserve",
+            "type": "string"
+          }
+        },
+        "title": "TeamGoalSpec",
+        "type": "object"
+      },
       "TextResult": {
         "additionalProperties": false,
         "properties": {
@@ -5273,6 +5545,25 @@
                 }
               ],
               "title": "Revision Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "proposal_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal Id"
             }
           },
           {

@@ -539,6 +539,23 @@ function ProductEditor({
               </>
             ) : null}
             <div className="row">
+              {isProduct(p.body) ? (
+                <button
+                  className="btn btn-quiet"
+                  disabled={busy || stale}
+                  onClick={() =>
+                    void productApi
+                      .download(ws, artifact, p)
+                      .catch((e) =>
+                        setError(
+                          e instanceof Error ? e.message : "Download failed",
+                        ),
+                      )
+                  }
+                >
+                  Download proposed file
+                </button>
+              ) : null}
               {outdated ? null : (
                 <button
                   className="btn btn-on-soft"

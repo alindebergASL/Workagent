@@ -24,8 +24,12 @@ def adaptive_readback(c,run,attempt):
     data=config['data']; observations=retained(c,attempt['id']) if attempt else []
     first=c.execute("SELECT data->'value' AS value FROM responses_events WHERE attempt_id=%s AND phase='selection' AND kind='result'",(attempt['id'],)).fetchone() if attempt else None
     value=(first['value'] if first else None) or {}
+    outcome='cancelled' if run.state=='cancelled' else (run.stop_reason or (observations[-1]['terminal_outcome'] if observations else 'pending'))
+    # Passing staged evidence is not delivered work: an ambiguous final send or
+    # interruption must not advertise completion before durable publication.
+    if outcome=='completed' and run.state!='ready': outcome='pending'
     return AdaptiveExecution(goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
-        max_steps=data['responses']['max_steps'],outcome='cancelled' if run.state=='cancelled' else (run.stop_reason or (observations[-1]['terminal_outcome'] if observations else 'pending')),
+        max_steps=data['responses']['max_steps'],outcome=outcome,
         shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
         steps=[AdaptiveStep(phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
             reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
@@ -258,7 +262,7 @@ class Products:
             if enabled(config):
                 message=next(m for m in self._conversation_messages(c,current[1].workspace_id,current[2].id)
                              if m.run_id==current[1].id and m.author_kind=='human')
-                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase),operation,staged,config['responses']['max_steps'],message))
+                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase),operation,staged,config['responses']['max_steps'],message,base))
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior!=staged: raise DomainError('command_conflict')
@@ -287,6 +291,12 @@ class Products:
             text=GeneralExplanation.model_validate(final['value'],strict=True).text
             adaptive_outcome=staged.get('terminal_outcome')
             if adaptive_outcome and adaptive_outcome=='continue': raise DomainError('action_unresolved')
+            if adaptive_outcome=='completed':
+                from .bounded_verifier import recheck_completion
+                message=next(m for m in self._conversation_messages(c,run.workspace_id,cv.id)
+                             if m.run_id==run.id and m.author_kind=='human')
+                recheck_completion(message,operation,staged,base=base)
+                text=staged['reason']
             if adaptive_outcome and adaptive_outcome!='completed':
                 # Trusted status, not unchecked final provider success prose.
                 # Full model explanation remains immutable in its receipt.
@@ -413,9 +423,17 @@ class Products:
                 scope_current=False
             return ObservationReadback(observation=observation,binding_state=state,current_scope=scope_current)
 
-    def download_product(self,p,ws,aid,revision_id=None):
-        artifact=self.get_artifact(p,ws,aid,revision_id)
-        body=(artifact.requested_revision or artifact.current_revision).body
+    def download_product(self,p,ws,aid,revision_id=None,proposal_id=None):
+        if proposal_id is not None:
+            if revision_id is not None: raise DomainError('validation_error')
+            with self.db.transaction() as c:
+                self._scope(c,p,ws)
+                proposal,_,_=self._proposal(c,p,ws,proposal_id)
+                if proposal.artifact_id!=aid: deny()
+                body=proposal.body
+        else:
+            artifact=self.get_artifact(p,ws,aid,revision_id)
+            body=(artifact.requested_revision or artifact.current_revision).body
         if isinstance(body,FileBody):
             return body
         if isinstance(body,ToolBody):

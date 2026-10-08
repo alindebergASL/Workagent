@@ -43,7 +43,81 @@ function progress(): TurnProgress {
   };
 }
 
+function verified(): TurnProgress {
+  const p = progress();
+  p.adaptive!.outcome = "completed";
+  const step = p.adaptive!.steps![0]!;
+  step.outcome = "completed";
+  step.verification = {
+    satisfied: true,
+    model_tests_passed: false,
+    basis: "independent_bounded",
+    requested_goal_status: "satisfied",
+    automatic: {
+      checker_version: "csv-reconciliation-v1",
+      scope: "bounded_csv_goal_only",
+      limitations: ["Exact supplied rows only; no external truth."],
+      recognized: true,
+      passed: true,
+      operation_hash: hash,
+      staged_sha256: hash,
+      row_count: 3,
+      case_count: 0,
+      failures: [],
+    },
+  };
+  return p;
+}
+
 describe("honest adaptive presentation", () => {
+  it("reports trusted complete bounded verification without implying approval", () => {
+    const view = adaptivePresentation("replied", verified());
+    expect(view?.title).toBe("Requested result verified");
+    expect(view?.checks).toBe("Checked every supplied row (3).");
+    expect(view?.note).toContain("still need your approval");
+    expect(view?.note).toContain("later edits are not covered");
+  });
+  for (const field of ["passed", "recognized"] as const)
+    it(`does not complete when automatic ${field} is false`, () => {
+      const p = verified();
+      p.adaptive!.steps![0]!.verification.automatic![field] = false;
+      expect(adaptivePresentation("replied", p)?.title).not.toBe(
+        "Requested result verified",
+      );
+    });
+  it("does not complete unbound, unpublished, or uncertain output", () => {
+    const p = verified();
+    p.adaptive!.steps![0]!.verification.automatic!.operation_hash = "b".repeat(
+      64,
+    );
+    expect(adaptivePresentation("replied", p)?.title).not.toBe(
+      "Requested result verified",
+    );
+    const unpublished = verified();
+    unpublished.retained_local_result!.published = false;
+    expect(adaptivePresentation("replied", unpublished)?.title).not.toBe(
+      "Requested result verified",
+    );
+    expect(
+      adaptivePresentation("replied", {
+        ...verified(),
+        provider_observation: "outcome_unknown",
+      })?.title,
+    ).not.toBe("Requested result verified");
+  });
+  it("treats failed independent checks as obstacles even when model cases passed", () => {
+    const p = verified();
+    const first = p.adaptive!.steps![0]!;
+    first.verification.automatic!.passed = false;
+    first.verification.model_tests_passed = true;
+    p.adaptive!.steps!.push({
+      ...first,
+      phase: "selection_2",
+      operation_hash: "b".repeat(64),
+    });
+    p.adaptive!.outcome = "needs_validation";
+    expect(adaptivePresentation("failed", p)?.changedAttempts).toBe(1);
+  });
   it("leaves legacy and missing progress unchanged", () => {
     expect(adaptivePresentation("failed")).toBeNull();
     expect(

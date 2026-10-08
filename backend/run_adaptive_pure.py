@@ -1,6 +1,6 @@
 """Offline adaptive regression runner: never collect the DB-backed suite.
 
-Run from repository root: .venv/bin/python backend/run_adaptive_pure.py
+Run from repository root: backend/.venv/bin/python backend/run_adaptive_pure.py
 Optional --contracts exports/checks canonical contracts without app startup.
 """
 import os
@@ -39,4 +39,6 @@ if sys.argv[1:]==['--contracts']:
     export_contracts.main()
 else:
     import pytest
-    raise SystemExit(pytest.main(['-q','--noconftest',str(root/'tests/test_adaptive_pure.py')]))
+    raise SystemExit(pytest.main(['-q','--noconftest',*[str(root/'tests'/name) for name in (
+        'test_adaptive_pure.py','test_acceptance_checks.py','test_bounded_verifier_pure.py',
+        'test_team_verifier_pure.py','test_continuous_workers_pure.py')]]))

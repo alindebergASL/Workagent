@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 from pydantic import Field, model_validator, field_serializer
 from .model_base import Model, Id, Text, Hash
 from .acceptance_checks import AcceptanceVerification
+from .bounded_verifier import AutomaticVerification
 
 CSVText = Annotated[str, Field(min_length=1, max_length=200000)]
 Code = Annotated[str, Field(min_length=1, max_length=16000)]
@@ -242,11 +243,12 @@ class AdaptiveVerificationCheck(Model):
 class AdaptiveVerification(Model):
     satisfied: bool
     model_tests_passed: bool = False
-    basis: Literal['model_proposed'] = 'model_proposed'
-    requested_goal_status: Literal['needs_validation'] = 'needs_validation'
+    basis: Literal['model_proposed','independent_bounded'] = 'model_proposed'
+    requested_goal_status: Literal['needs_validation','satisfied'] = 'needs_validation'
     request: dict | None = None
     checks: list[AdaptiveVerificationCheck] = Field(default_factory=list,max_length=8)
     acceptance: AcceptanceVerification | None = None
+    automatic: AutomaticVerification | None = None
 
 class AdaptiveStep(Model):
     phase: Literal['selection','selection_2','selection_3','selection_4']

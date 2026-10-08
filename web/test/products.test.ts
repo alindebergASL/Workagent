@@ -381,6 +381,31 @@ describe("tool download filenames", () => {
         await productApi.download("w", tool);
         expect(anchor.download).toBe(`tool-${entrypoint}.wat`);
         expect(anchor.click).toHaveBeenCalledOnce();
+        const proposal: S["Proposal"] = {
+          id: "exact-proposed-version",
+          workspace_id: "w",
+          artifact_id: tool.id,
+          base_revision_id: tool.current_revision_id,
+          base_work_version: 1,
+          body: { ...tool.current_revision.body, title: "Proposed tool" },
+          body_hash: hash,
+          source_dependencies: [],
+          reason: "Independent verification is not approval",
+          status: "pending",
+        };
+        transport.mockResolvedValueOnce(
+          new Response(content, { headers: { "x-content-sha256": digest } }),
+        );
+        await productApi.download("w", tool, proposal);
+        const request = transport.mock.calls.at(-1)![0] as Request;
+        const url = new URL(request.url);
+        expect(url.searchParams.get("proposal_id")).toBe(proposal.id);
+        expect(url.searchParams.has("revision_id")).toBe(false);
+        expect(anchor.click).toHaveBeenCalledTimes(2);
+        expect(tool.current_revision_id).toBe("r");
+        await expect(
+          productApi.download("w", tool, { ...proposal, artifact_id: "other" }),
+        ).rejects.toThrow("does not belong");
       } finally {
         timer.mockRestore();
         createUrl.mockRestore();

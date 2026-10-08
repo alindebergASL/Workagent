@@ -157,7 +157,7 @@ def test_exact_010_upgrade_preserves_records_hashes_and_minimal_acl(tmp_path):
     with Database(runtime).transaction() as c:
         assert c.execute('SELECT data FROM provider_grants WHERE id=%s',(historical.id,)).fetchone()['data']==before
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations
-        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='014_budget_carryforward.sql'
+        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='015_bounded_csv_verification.sql'
         assert c.execute("SELECT has_table_privilege(current_user,'responses_budget_carry','SELECT') s,has_table_privilege(current_user,'responses_budget_carry','INSERT') i,has_table_privilege(current_user,'responses_budget_carry','UPDATE') u,has_table_privilege(current_user,'responses_budget_carry','DELETE') d").fetchone()=={'s':True,'i':False,'u':False,'d':False}
         for table in ('conversation_messages','product_observations','responses_events'):
             assert c.execute("SELECT has_table_privilege(current_user,%s,'INSERT') i,has_table_privilege(current_user,%s,'UPDATE') u,has_table_privilege(current_user,%s,'DELETE') d",(table,table,table)).fetchone()=={'i':True,'u':False,'d':False}

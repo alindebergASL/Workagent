@@ -30,6 +30,8 @@ export function adaptivePresentation(
   const steps = adaptive.steps ?? [];
   const failed = (s: (typeof steps)[number]) =>
     s.status === "rejected" ||
+    (s.verification.automatic?.recognized === true &&
+      s.verification.automatic.passed === false) ||
     s.verification.acceptance?.passed === false ||
     s.verification.model_tests_passed === false;
   const changedAttempts = steps.slice(1).filter((s, i) => {
@@ -76,6 +78,30 @@ export function adaptivePresentation(
         }
       : null;
   }
+  const automatic = last?.verification.automatic;
+  if (
+    state === "replied" &&
+    adaptive.outcome === "completed" &&
+    progress.provider_observation === "received" &&
+    local?.published &&
+    local.status === "observed" &&
+    bound &&
+    last?.verification.basis === "independent_bounded" &&
+    last.verification.satisfied &&
+    last.verification.requested_goal_status === "satisfied" &&
+    automatic?.recognized &&
+    automatic.passed &&
+    automatic.failures.length === 0 &&
+    automatic.operation_hash === last.operation_hash
+  )
+    return {
+      title: "Requested result verified",
+      note: "The recorded result passed an independent check within the stated scope. Proposed changes still need your approval; later edits are not covered.",
+      checks: automatic.row_count
+        ? `Checked every supplied row (${automatic.row_count}).`
+        : `Checked the complete supported input range (${automatic.case_count ?? 0} combinations).`,
+      changedAttempts,
+    };
   if (
     adaptive.outcome === "needs_validation" &&
     local?.published &&

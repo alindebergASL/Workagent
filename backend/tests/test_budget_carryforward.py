@@ -150,7 +150,7 @@ def test_import_after_count_send_and_repeatable_read_rejected(context,tmp_path):
 def test_migration_repeat_and_pins(context):
     migrate(context[4])
     with context[0].db.transaction() as c:
-        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='014_budget_carryforward.sql'
+        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='015_bounded_csv_verification.sql'
 
 
 def test_concurrent_workspaces_share_carry_and_dispatch_cap(context,tmp_path):

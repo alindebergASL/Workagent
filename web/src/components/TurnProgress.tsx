@@ -96,6 +96,24 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
                   : "Model examples did not pass."}{" "}
                 These are not independent checks.
               </p>
+              {step.verification.automatic?.recognized ? (
+                <div>
+                  <p>
+                    Independent bounded check:{" "}
+                    {step.verification.automatic.passed
+                      ? "passed"
+                      : "not passed"}
+                    . This is verification, not your approval.
+                  </p>
+                  <ul>
+                    {step.verification.automatic.limitations.map(
+                      (limitation, i) => (
+                        <li key={i}>{limitation}</li>
+                      ),
+                    )}
+                  </ul>
+                </div>
+              ) : null}
               {step.verification.acceptance ? (
                 <div>
                   <p>
