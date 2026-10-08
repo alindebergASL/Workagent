@@ -1,5 +1,26 @@
 # Product acceptance
 
+## Current bounded checkpoint and next boundary — 2026-10-08
+
+The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
+with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
+[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+separate engineering, usefulness and experience. Continuous workers recovered the
+original interrupted run, preserving its response identities, saved human note,
+pending approval and cumulative reservations. Run 06 failed in the evidence
+harness after recovery, not in application publication; its failed evidence is retained.
+
+[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
+This checkpoint is not flexible work creation or sandboxed HTML delivery.
+The next slice is a general structured surface plus an isolated generated
+HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
+The earlier blanket "never generated HTML or script" restriction is superseded;
+generated views still receive no ambient credentials, approval authority or
+unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+records the agreed direction, responsibilities, and still-undelivered wire contract.
+Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+
+
 Three independent verdicts apply to integrated milestones: engineering,
 usefulness and experience. Use PASS / FAIL / NOT TESTED, evidence and exact
 candidate SHA. Evidence closes only the property it actually tested.
@@ -9,6 +30,23 @@ candidate SHA. Evidence closes only the property it actually tested.
 | Engineering | Saved outputs, edits, permissions, replay/recovery and failures through actual domain/worker; observed effect where relevant | Model prose or scripted screenshot |
 | Usefulness | Andrew can use the result, understand the next step and see where his judgment matters | Passing checks or plausible text |
 | Experience | Actual responsive journey against prototype: hierarchy, copy, conversation/work, editing and continuity | Polished mockup or backend correctness |
+
+## Current candidate and evidence precedence
+
+PR #12 (`hermes/adaptive-product-integration`) supersedes PR #9's old application
+checkpoint. Runtime `0e81127` and integration `65e84c6` preserve the reviewed
+`3568fbc` baseline and Claude's `ea4e29d` generic-table correction. Historical
+evidence remains scoped to exact bytes; the linked checkpoint distinguishes live
+execution, read-only closeout, fixture tests and untested human acceptance.
+
+Completed bounded M3 exit (not full general-agency acceptance): ordinary request → useful work → meaningful observed obstacle →
+changed action → independently verified bounded result → interruption before
+completion → accurate continuation preserving human edits and no duplicate effects.
+Both model and local consumers run continuously. A synthetic transport proves
+mechanics only; a live model must independently select the repair. No supplied
+repair instructions or evaluator answers. Verification is not proposal acceptance.
+Keep wrong-but-executable, rejected-operation, stale-input and uncertain-provider
+regressions. Unknown request semantics stay partial/needs-validation.
 
 ## Required behavior and current evidence
 
@@ -20,8 +58,8 @@ are required; a planned row is not implemented merely because this table exists.
 | Milestone | Observable acceptance | Implementation / observed proof at current checkpoint |
 | --- | --- | --- |
 | M1: Model connection | Four approved natural-language turns select real CSV work, use exact human-edited saved context, generate a runnable calculator without supplied WAT, then change code and form for shipping; preserve notes/history and unaccepted proposals | Implemented at1b81a1d; four authorized live turns observed with exact saved bases, generated WAT and retained pending proposals. Andrew’s usefulness acceptance NOT TESTED |
-| M2: Seamless integrated journey | Ask → useful editable work → revise → leave → find current result/pending decision in Home or appropriate Space → reopen and continue, desktop and phone; drafts/edits survive; technical details remain closed | Bounded actual-browser synthetic and live journeys demonstrated at1b81a1d, including Home/Spaces and phone panes. Full experience acceptance FAIL/incomplete: literal Markdown, mixed proposed-result/saved-input summary and operator-only narrow-grant setup remain; see GENERAL_MODEL_REVIEW |
-| M3: Goal formation and adaptive execution | Broad goal yields sensible success criteria/subgoals; more than one plausible approach; an actual obstacle or changed condition changes the next useful action without prescribed steps; verify the result and stop within bounds | Required, planned; NOT TESTED. Human-turn revision in M1 is not autonomous within-task adaptation |
+| M2: Seamless integrated journey | Ask → useful editable work → revise → leave → find current result/pending decision in Home or appropriate Space → reopen and continue, desktop and phone; drafts/edits survive; technical details remain closed | Historical journeys at1b81a1d are retained. Current candidate preserves Claude's rich-text/proposed-input corrections and adds generic-table handling; actual bounded browser closeout passed. Full experience acceptance remains incomplete/NOT TESTED by Andrew; historical GENERAL_MODEL_REVIEW failures are not all current defects |
+| M3: Goal formation and adaptive execution | Broad goal yields sensible success criteria/subgoals; more than one plausible approach; an actual obstacle or changed condition changes the next useful action without prescribed steps; verify the result and stop within bounds | Bounded live obstacle/change/finite-verification/unfinished-run recovery proved at0e81127; broader goal formation, flexible creation and HTML remain undelivered (#13). The repair was selected from observed saved work, not supplied by the operator |
 | M4: Actual specialist coordination | Suitable work delegates through runtime with scoped context/success criteria/dependencies; coordinator reconciles and checks the combined result; inject one failed, stale or conflicting child and handle honestly | Required, planned; NOT TESTED. Specialist labels, subprocess count or an agent development team do not prove product delegation |
 | M5: Persistent ownership | Relevant event/restart resumes the same responsibility with current decisions, corrections and edits, dependency-aware next action/check-in and no duplicate effects; pause/resume/cancel/takeover behave truthfully | Required, planned; NOT TESTED. Saved conversations and the unsupported paused handover are not proof |
 
@@ -85,18 +123,18 @@ before those results and independent verdicts are concrete.
 
 ## Live gate and release
 
-Historical intake evidence stays valid for its scope; its exhausted, expired
-four-call grant is not reusable. The separate general-model authorization already
-allows $20 cumulative with no calendar expiry, at most 8 generations, 8 counts,
-80 same-ID retrievals, 160,000 input / 65,536 output tokens across the specified
-four synthetic turns. No automatic reset, generation retries or autoacceptance.
-The four-turn/eight-generation/eight-count limits are now exhausted; no further
-paid tests are permitted by monetary headroom alone. See
-`GENERAL_MODEL_AUTHORIZATION.md` for the exact route, retention and activation
-gates. Do not seek redundant approval within those bounds. Adaptive/coordination/
-ownership paid tests or private-context tests require an applicable explicit grant;
-continue deterministic development without inventing an approval gate. No external
-messages/calendar changes are implied.
+Historical intake grants and initial-checkpoint counters remain closed/unchanged.
+The standing clarification in `GENERAL_MODEL_AUTHORIZATION.md` authorizes routine
+development, publication, compatible non-default integration and reasonable bounded
+synthetic tests on the recorded route within ONE cumulative $20, no calendar
+expiry. The initial four turns/eight generations are not a project-wide stop.
+Choose bounded run profiles; retain historical usage, reservations and unknown
+liabilities, reserve before I/O and never silently refund/reset or resend uncertain
+attempts. Provider billing is not the same as conservative reservations.
+
+No new paid route, broader private-context access, external business effects or
+automatic human approval is implied. Memory/learning #10 and portability #11 follow
+this adaptive slice rather than gate it with their entire backlogs.
 
 Default merge/deployment require Andrew's explicit approval. Development
 handoffs/local no-inference verification continue without inventing new gates.

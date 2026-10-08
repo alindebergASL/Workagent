@@ -17,10 +17,12 @@ MEMORY_BYTES = 1_048_576
 
 
 class ToolRejected(ValueError):
-    pass
+    def __init__(self, message, code='wasm_rejected'):
+        super().__init__(message)
+        self.code=code
 
 
-def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
+def run_wasm_tool(code: str, entrypoint: str, arguments: list[int], *, _cases=None) -> dict | list[int]:
     if (not isinstance(code, str) or not code or len(code.encode('utf-8')) > MAX_CODE_BYTES
             or not isinstance(entrypoint, str) or not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,63}', entrypoint)
             or not isinstance(arguments, list) or len(arguments) > MAX_ARGUMENTS
@@ -43,21 +45,32 @@ def run_wasm_tool(code: str, entrypoint: str, arguments: list[int]) -> dict:
             with wasmtime.Module(engine, code) as module:
                 if module.imports:
                     raise ToolRejected('host/WASI imports forbidden')
-                with wasmtime.Store(engine) as store:
-                    store.set_limits(memory_size=MEMORY_BYTES, table_elements=64, instances=1, tables=1, memories=1)
-                    store.set_fuel(FUEL)
-                    instance = wasmtime.Instance(store, module, [])
-                    function = instance.exports(store).get(entrypoint)
-                    if not isinstance(function, wasmtime.Func):
-                        raise ToolRejected('function entrypoint missing')
-                    signature = function.type(store)
-                    if ([str(x) for x in signature.params] != ['i64'] * len(arguments)
-                            or [str(x) for x in signature.results] != ['i64']):
-                        raise ToolRejected('bounded i64 parameters and one i64 result required')
-                    value = function(store, *arguments)
-                    fuel_consumed = FUEL - store.get_fuel()
-    except (wasmtime.WasmtimeError, wasmtime.Trap) as exc:
-        raise ToolRejected('WebAssembly compilation, resource or execution check failed') from exc
+                values = []
+                for arguments in (_cases if _cases is not None else [arguments]):
+                    with wasmtime.Store(engine) as store:
+                        store.set_limits(memory_size=MEMORY_BYTES, table_elements=64, instances=1, tables=1, memories=1)
+                        store.set_fuel(FUEL)
+                        instance = wasmtime.Instance(store, module, [])
+                        function = instance.exports(store).get(entrypoint)
+                        if not isinstance(function, wasmtime.Func):
+                            raise ToolRejected('function entrypoint missing')
+                        signature = function.type(store)
+                        if ([str(x) for x in signature.params] != ['i64'] * len(arguments)
+                                or [str(x) for x in signature.results] != ['i64']):
+                            raise ToolRejected('bounded i64 parameters and one i64 result required')
+                        value = function(store, *arguments)
+                        fuel_consumed = FUEL - store.get_fuel()
+                    values.append(value)
+                if _cases is not None:
+                    return values
+    except wasmtime.Trap as exc:
+        # Only the engine's enum classification; never echo source/backtrace text.
+        code={'UNREACHABLE':'wasm_unreachable','OUT_OF_FUEL':'wasm_fuel_exhausted',
+              'INTEGER_DIVISION_BY_ZERO':'wasm_division_by_zero'}.get(
+                  getattr(exc.trap_code,'name',None),'wasm_trap')
+        raise ToolRejected('WebAssembly execution trapped',code) from exc
+    except wasmtime.WasmtimeError as exc:
+        raise ToolRejected('WebAssembly compilation or resource check failed','wasm_compile_or_resource') from exc
     material = json.dumps({'entrypoint':entrypoint,'arguments':arguments},sort_keys=True,separators=(',',':'))
     return {'value':value, 'entrypoint':entrypoint, 'arguments':list(arguments),
             'code_sha256':hashlib.sha256(code.encode('utf-8')).hexdigest(),

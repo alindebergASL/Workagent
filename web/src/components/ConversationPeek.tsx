@@ -7,7 +7,13 @@ import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
+import { RichText } from "@/components/RichText";
 import { ErrorNotice } from "@/components/ui";
+import {
+  TurnSummary,
+  TurnProgressDetails,
+  replyTag,
+} from "@/components/TurnProgress";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
   queued: "Waiting for a reply.",
@@ -108,14 +114,31 @@ export function ConversationPeek({
               />
             ) : null}
             <div className="stack-sm">
-              <p>
-                <span className="sr-only">
-                  {m.author === "person" ? "You: " : "Agent: "}
-                </span>
-                {m.text}
-              </p>
+              {m.author === "agent" ? (
+                <div className="msg-body">
+                  <span className="sr-only">Agent: </span>
+                  <RichText text={m.text} budget={280} />
+                </div>
+              ) : (
+                <p>
+                  <span className="sr-only">You: </span>
+                  {m.text}
+                </p>
+              )}
               {m.products?.some((p) => p.artifact_id === artifactId) ? (
                 <span className="msg-tag">This work</span>
+              ) : null}
+              {m.author === "agent" ? (
+                <>
+                  {replyTag(m.origin) ? (
+                    <span className="msg-tag">{replyTag(m.origin)}</span>
+                  ) : null}
+                  <TurnProgressDetails
+                    progress={
+                      d.turns.find((t) => t.run_id === m.run_id)?.progress
+                    }
+                  />
+                </>
               ) : null}
             </div>
           </li>
@@ -127,9 +150,13 @@ export function ConversationPeek({
         </p>
       ) : null}
       {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
-        <p className="msg-pending" data-state={last.state}>
-          {TURN_TEXT[last.state]}
-        </p>
+        <div className="msg-pending" data-state={last.state}>
+          <TurnSummary
+            state={last.state}
+            progress={last.progress}
+            fallback={TURN_TEXT[last.state]}
+          />
+        </div>
       ) : null}
       {open ? (
         <form

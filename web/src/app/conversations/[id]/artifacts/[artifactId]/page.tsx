@@ -23,9 +23,9 @@ import { ObservedOutput } from "@/components/ObservedOutput";
 import { WorkSurface } from "@/components/WorkSurface";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import {
-  columnLabel,
-  DERIVED_COLUMNS,
+  isReconciliation,
   ROUNDING_LABEL,
+  tableColumns,
   tableSummary,
   toolInputs,
 } from "@/lib/product-summary";
@@ -320,7 +320,11 @@ function ProductEditor({
           body: saved.current_revision.body,
           pending: null,
         });
-        setNotice("Your edits are saved. Recalculate or run it to check them.");
+        setNotice(
+          exact.body.kind === "table" && !isReconciliation(exact.body)
+            ? "Your edits are saved."
+            : "Your edits are saved. Recalculate or run it to check them.",
+        );
       } else if (exact.kind === "accept") {
         const saved = await productApi.accept(
           ws,
@@ -401,11 +405,19 @@ function ProductEditor({
   // its own binding said plainly. Nothing is promoted to "checked".
   const lead = data.observations.current ?? data.observations.latest;
   const leadIsCurrent = Boolean(verified);
-  const statusText = verified
+  // Only a tool or a reconciliation table has an operation that can check it.
+  const reconciles =
+    draft.body.kind === "table" && isReconciliation(draft.body);
+  const checkable = draft.body.kind === "tool" || reconciles;
+  const statusText = !checkable
     ? dirty
-      ? "Your unsaved changes haven’t been checked yet."
-      : "Checked against this saved version."
-    : "This saved version hasn’t been checked yet.";
+      ? "Your changes aren’t saved yet."
+      : "Saved. Nothing checks this table automatically."
+    : verified
+      ? dirty
+        ? "Your unsaved changes haven’t been checked yet."
+        : "Checked against this saved version."
+      : "This saved version hasn’t been checked yet.";
   const runLabel =
     draft.body.kind === "table" ? "Recalculate saved rows" : "Run saved tool";
   const kindLabel =
@@ -475,6 +487,21 @@ function ProductEditor({
 
       {pendingProposals.map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
+        // The run bound to exactly this proposed version, if any.
+        const proposedRun = stale
+          ? undefined
+          : observations.find((read) => {
+              const o = read.observation;
+              return (
+                read.current_scope &&
+                read.binding_state === "pending_proposal" &&
+                o.proposal_id === p.id &&
+                o.workspace_id === ws &&
+                o.conversation_id === cid &&
+                o.artifact_id === artifact.id &&
+                o.body_hash === p.body_hash
+              );
+            });
         return (
           <section
             key={p.id}
@@ -503,23 +530,13 @@ function ProductEditor({
                     {
                       tableSummary(
                         p.body,
-                        !stale &&
-                          observations.some((read) => {
-                            const o = read.observation;
-                            return (
-                              read.current_scope &&
-                              read.binding_state === "pending_proposal" &&
-                              o.proposal_id === p.id &&
-                              o.workspace_id === ws &&
-                              o.conversation_id === cid &&
-                              o.artifact_id === artifact.id &&
-                              o.body_hash === p.body_hash &&
-                              o.output.kind === "reconcile_csv"
-                            );
-                          }),
+                        proposedRun?.observation.output.kind ===
+                          "reconcile_csv",
                       ).headline
                     }
                   </p>
+                ) : p.body.kind === "tool" ? (
+                  <ProposedToolResult body={p.body} read={proposedRun} />
                 ) : null}
                 <details className="ids-details">
                   <summary>See the proposed version</summary>
@@ -534,6 +551,23 @@ function ProductEditor({
               </>
             ) : null}
             <div className="row">
+              {isProduct(p.body) ? (
+                <button
+                  className="btn btn-quiet"
+                  disabled={busy || stale}
+                  onClick={() =>
+                    void productApi
+                      .download(ws, artifact, p)
+                      .catch((e) =>
+                        setError(
+                          e instanceof Error ? e.message : "Download failed",
+                        ),
+                      )
+                  }
+                >
+                  Download proposed file
+                </button>
+              ) : null}
               {outdated ? null : (
                 <button
                   className="btn btn-on-soft"
@@ -581,8 +615,9 @@ function ProductEditor({
             {draft.body.kind === "table" ? (
               <>
                 <p className="hint table-hint">
-                  Edit the raw values or notes. Calculated columns update when
-                  you recalculate.
+                  {reconciles
+                    ? "Edit the raw values or notes. Calculated columns update when you recalculate."
+                    : "Edit any cell, then save."}
                   <span className="scroll-cue" aria-hidden="true">
                     {" "}
                     Scroll sideways for more columns →
@@ -592,20 +627,18 @@ function ProductEditor({
                   className="product-scroll"
                   tabIndex={0}
                   role="region"
-                  aria-label="Editable invoice table"
+                  aria-label="Editable table"
                 >
                   <table>
                     <thead>
                       <tr>
-                        {draft.body.columns.map((c) => (
+                        {tableColumns(draft.body).map((c) => (
                           <th
-                            key={c}
+                            key={c.key}
                             scope="col"
-                            data-derived={
-                              DERIVED_COLUMNS.includes(c) ? "true" : undefined
-                            }
+                            data-derived={c.derived ? "true" : undefined}
                           >
-                            {columnLabel(c)}
+                            {c.label}
                           </th>
                         ))}
                       </tr>
@@ -615,91 +648,93 @@ function ProductEditor({
                         <tr
                           key={i}
                           data-discrepancy={
-                            row["check"] === "discrepancy" ? "true" : undefined
+                            reconciles && row["check"] === "discrepancy"
+                              ? "true"
+                              : undefined
                           }
                         >
                           {draft.body.kind === "table" &&
-                            draft.body.columns.map((c) => (
-                              <td
-                                key={c}
-                                data-derived={
-                                  DERIVED_COLUMNS.includes(c)
-                                    ? "true"
-                                    : undefined
-                                }
-                              >
-                                {DERIVED_COLUMNS.includes(c) ? (
-                                  <span
-                                    className={
-                                      dirty
-                                        ? "derived derived-stale"
-                                        : "derived"
-                                    }
-                                    title={
-                                      dirty
-                                        ? "Not recalculated since your changes"
-                                        : undefined
-                                    }
-                                  >
-                                    {c === "check"
-                                      ? row[c] === "discrepancy"
-                                        ? "Doesn’t match"
-                                        : row[c] === "matched"
-                                          ? "Matches"
-                                          : row[c]
-                                      : row[c]}
-                                  </span>
-                                ) : (
-                                  <input
-                                    aria-label={`Row ${i + 1} ${c}`}
-                                    value={row[c]}
-                                    onChange={(e) => {
-                                      if (draft.body.kind !== "table") return;
-                                      const rows = draft.body.rows.map(
-                                        (r, n) =>
-                                          n === i
-                                            ? { ...r, [c]: e.target.value }
-                                            : r,
-                                      );
-                                      keep({
-                                        ...draft,
-                                        body: { ...draft.body, rows },
-                                      });
-                                    }}
-                                  />
-                                )}
-                              </td>
-                            ))}
+                            tableColumns(draft.body).map(
+                              ({ key: c, derived }) => (
+                                <td
+                                  key={c}
+                                  data-derived={derived ? "true" : undefined}
+                                >
+                                  {derived ? (
+                                    <span
+                                      className={
+                                        dirty
+                                          ? "derived derived-stale"
+                                          : "derived"
+                                      }
+                                      title={
+                                        dirty
+                                          ? "Not recalculated since your changes"
+                                          : undefined
+                                      }
+                                    >
+                                      {c === "check"
+                                        ? row[c] === "discrepancy"
+                                          ? "Doesn’t match"
+                                          : row[c] === "matched"
+                                            ? "Matches"
+                                            : row[c]
+                                        : row[c]}
+                                    </span>
+                                  ) : (
+                                    <input
+                                      aria-label={`Row ${i + 1} ${c}`}
+                                      value={row[c] ?? ""}
+                                      onChange={(e) => {
+                                        if (draft.body.kind !== "table") return;
+                                        const rows = draft.body.rows.map(
+                                          (r, n) =>
+                                            n === i
+                                              ? { ...r, [c]: e.target.value }
+                                              : r,
+                                        );
+                                        keep({
+                                          ...draft,
+                                          body: { ...draft.body, rows },
+                                        });
+                                      }}
+                                    />
+                                  )}
+                                </td>
+                              ),
+                            )}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <label className="field">
-                  <span className="field-label">Rounding</span>
-                  <select
-                    aria-label="Rounding"
-                    value={draft.body.rounding}
-                    onChange={(e) => {
-                      if (draft.body.kind === "table")
-                        keep({
-                          ...draft,
-                          body: {
-                            ...draft.body,
-                            rounding: e.target
-                              .value as S["TableBody"]["rounding"],
-                          },
-                        });
-                    }}
-                  >
-                    <option value="ROUND_HALF_UP">
-                      {ROUNDING_LABEL.ROUND_HALF_UP}
-                    </option>
-                    <option value="ROUND_HALF_EVEN">
-                      {ROUNDING_LABEL.ROUND_HALF_EVEN}
-                    </option>
-                  </select>
-                </label>
+                {reconciles ? (
+                  <label className="field">
+                    <span className="field-label">Rounding</span>
+                    <select
+                      aria-label="Rounding"
+                      value={draft.body.rounding}
+                      onChange={(e) => {
+                        if (draft.body.kind === "table")
+                          keep({
+                            ...draft,
+                            body: {
+                              ...draft.body,
+                              rounding: e.target
+                                .value as S["TableBody"]["rounding"],
+                            },
+                          });
+                      }}
+                    >
+                      <option value="ROUND_HALF_UP">
+                        {ROUNDING_LABEL.ROUND_HALF_UP}
+                      </option>
+                      <option value="ROUND_HALF_EVEN">
+                        {ROUNDING_LABEL.ROUND_HALF_EVEN}
+                      </option>
+                    </select>
+                  </label>
+                ) : null}
               </>
             ) : (
               <>
@@ -805,7 +840,7 @@ function ProductEditor({
               >
                 Save my edits
               </button>
-            ) : (
+            ) : checkable ? (
               <button
                 className="btn btn-primary"
                 disabled={locked || changed || !data.open}
@@ -813,7 +848,7 @@ function ProductEditor({
               >
                 {runLabel}
               </button>
-            )}
+            ) : null}
             <button
               className="btn btn-quiet"
               disabled={locked}
@@ -830,13 +865,17 @@ function ProductEditor({
             </button>
           </div>
           <p className="hint">
-            {dirty
-              ? `Save first, then ${draft.body.kind === "table" ? "recalculate" : "run it"} to check your changes.`
-              : !data.open
-                ? "This conversation has ended, so nothing new can run."
-                : draft.body.kind === "table"
-                  ? "Recalculating proposes a new version for you to apply; your notes are kept."
-                  : "Running proposes a new version with the result for you to apply; your notes are kept."}
+            {!checkable
+              ? dirty
+                ? "Save to keep your changes."
+                : "Ask in the conversation to change or extend this table."
+              : dirty
+                ? `Save first, then ${draft.body.kind === "table" ? "recalculate" : "run it"} to check your changes.`
+                : !data.open
+                  ? "This conversation has ended, so nothing new can run."
+                  : draft.body.kind === "table"
+                    ? "Recalculating proposes a new version for you to apply; your notes are kept."
+                    : "Running proposes a new version with the result for you to apply; your notes are kept."}
           </p>
         </section>
       )}
@@ -898,6 +937,35 @@ function ProductEditor({
 }
 
 /** The result first: what was found, then whether it applies to this saved version. */
+/**
+ * What a proposed tool version returned, with the inputs it was run with,
+ * labelled by that same proposed version. Never the saved inputs.
+ */
+function ProposedToolResult({
+  body,
+  read,
+}: {
+  body: S["ToolBody"];
+  read: S["ObservationReadback"] | undefined;
+}) {
+  const output = read?.observation.output;
+  if (output?.kind !== "run_wasm")
+    return <p className="decision-question">Not run yet.</p>;
+  const inputs = output.arguments.map((value, i) => ({
+    label: body.input_form[i]?.label ?? `Input ${i + 1}`,
+    value,
+  }));
+  return (
+    <>
+      <p className="decision-question" data-testid="proposal-result">
+        Returns <strong>{output.value}</strong>
+      </p>
+      <p className="small muted" data-testid="proposal-inputs">
+        {inputs.map((x) => `${x.label} ${x.value}`).join(" · ")}
+      </p>
+    </>
+  );
+}
 function ResultCard({
   body,
   read,
@@ -911,13 +979,19 @@ function ResultCard({
   status: string;
   verified: boolean;
 }) {
-  const output = read?.observation.output;
+  // Only a run of this saved version leads here; a proposal's own result
+  // is shown on its card, with its own inputs.
+  const output = current ? read?.observation.output : undefined;
+  const earlier =
+    read && !current && read.binding_state === "historical"
+      ? read.observation.output
+      : undefined;
   const where =
-    !read || current
-      ? null
-      : read.binding_state === "pending_proposal"
-        ? "This result is for the proposed version below."
-        : "This result is from an earlier version.";
+    earlier?.kind === "run_wasm"
+      ? `An earlier version returned ${earlier.value}.`
+      : earlier
+        ? "The last check was on an earlier version."
+        : null;
   return (
     <section className="card result-card" aria-labelledby="result-title">
       <h2 id="result-title" className="sr-only">
@@ -963,7 +1037,7 @@ function ResultCard({
                 Returns <strong>{output.value}</strong>
               </>
             ) : (
-              "Not run yet."
+              "Not run on this saved version yet."
             )}
           </p>
           <p className="small muted">

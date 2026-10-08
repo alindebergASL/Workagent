@@ -1,56 +1,81 @@
 # Current runtime status and execution boundary
 
-## Exact demonstrated application
+## Verified bounded checkpoint
 
-**1b81a1d742829663faf12a0ca5fa03957daf252c** integrates verified backend9ed2467,
-Claude frontend a3c06fb and reviewed integration fixes. PR9 and the non-default
-`hermes/general-model-integration` branch contain it. The retained review runs
-this exact application; subsequent evidence-only commits do not change it.
+Runtime implementation **0e8112795e09f83a8c393571bfc994c4d603b7c4** is published
+on PR #12, `hermes/adaptive-product-integration`. Integrated application
+**65e84c673aedd6e4154471f4062349d7b3e014cf** adds Claude's **ea4e29d** generic-table
+correction while preserving Hermes's verified-proposal/download changes.
+Backend, runtime and generated contracts are unchanged between those SHAs.
+PR #9 remains the owner coordination/history entrypoint, not the candidate branch.
 
-[Actual experience/access](GENERAL_MODEL_REVIEW.md) ·
-[Full checkpoint evidence](../handoffs/backend/GENERAL_MODEL_CHECKPOINT.md).
+[Executed checkpoint](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+and its sanitized evidence distinguish original runtime execution from later
+read-only closeout and integrated frontend checks. Full backend: **752 passed**.
+Combined frontend: **145 tests** plus type/lint/format; **23 fixture DOM cases**;
+**3 scoped-proposal-readback regressions**; contracts and production build passed.
 
-## Implemented and observed
+Two actual browser/model goals produced independently checked six-row CSV work
+and a tool checked over all 1,891 supported integer pairs. A deliberately broken
+saved tool returned 0; the model changed the code and proposed the correct result.
+The unfinished run was interrupted with SIGKILL and recovered through the same
+retained response identity. One result/proposal, no additional send/dispatch,
+saved human note/current revision unchanged, explicit approval still pending.
 
-- Natural-language/attachment/exact-saved-target admission through the existing
-  GeneralWorker, dispatcher, broker/domain and Responses ledger; no parallel model runtime.
-- Strict model-selected CSV/Wasmtime operation, actual local result inspection
-  and result-aware explanation. Model-generated calculator code and changed form.
-- Immutable saved work/proposals, human edits, cumulative authorization, pre-I/O
-  target checks, READ COMMITTED admission guards, fences/replay and truthful recovery.
-- Claude's Home/Spaces conversation-owned result and pending-decision discovery,
-  companion conversation, saved edits and phone panes; read-only progress polling.
-- Exact-head synthetic actual-browser/API/PostgreSQL four-turn journey and restart;
-  four authorized live turns with no client-supplied operation or WAT. Both live
-  revisions remain pending against preserved human-saved bases.
+Run 06's post-recovery HTTP 404 was a **harness endpoint defect**, not a failed
+application resume. The failed evidence remains retained. Correct artifact-scoped
+readback and actual downloads passed. The downtime unsaved draft survived phone
+switching/reload before worker restart; persistence after the original browser
+closed is **not** claimed. Saved-note preservation is verified after recovery.
 
-## Separate verdicts
+## Review environments and workers
 
-- **Engineering PASS for this checkpoint:** full487 backend tests on identical
-  backend bytes,91 frontend tests, exact-head synthetic and live journeys.
-  Exact application frontend CI passed; this is not a claim of all repository
-  workflows freshly running on this SHA.
-- **Usefulness:** narrow live work demonstrated; Andrew's acceptance NOT TESTED.
-- **Experience:** scoped journey demonstrated, full seamless-product acceptance
-  FAIL/incomplete. Literal Markdown/long replies, a proposed-result/saved-input
-  subtitle mismatch and operator-only narrow-grant setup remain explicit gaps.
+- Integrated UI/API: **http://127.0.0.1:3140**, API 8140, same isolated milestone state.
+- Original `0e81127`: http://127.0.0.1:3130, API 8130, preserved.
+- Existing continuous consumer uses the original hash-pinned backend/grant and
+  durable state. It was restored after full ledger/terminal-state reconciliation;
+  subsequent read-only checks did not create provider or product effects.
+- Historical 3000/8000 and 3120/8120 environments/databases are preserved.
 
-M1's one-operation profile is specific to this checkpoint. **M3 adaptive goal
-execution, M4 actual specialist coordination and M5 persistent ownership are
-planned/NOT TESTED.** Four human turns are not autonomous replanning; persisted
-chat/restart is not ongoing responsibility; development workers are not product
-specialists. B4–B7 broader gates remain. See BUILD_PLAN and PRODUCT_ACCEPTANCE.
+These are host-local development review processes, not production deployment.
+Do not reset the saved review database, accept the proposal or replace its human
+revision merely to rerun proof. Process readiness is checked independently of
+these durable documentation claims.
 
-## Authority and historical state
+## Limits and next work
 
-The existing grant consumed all four turns/eight generations/eight counts, with
-16 retrievals and no unknown usage. Usage-based conservative estimate$0.0752650;
-reserved$1.05536; provider billing unknown. The $20 ceiling is unchanged and does
-not override exhausted call limits. No more live calls without applicable new
-call/scenario authority; deterministic development remains authorized.
+Completion is deliberately narrow: full recognized request, exact input/result
+bindings, independent finite oracle. Unsupported phrases/obligations retain
+partial/needs-validation. Verification never equals human approval. Finite tool
+reverification may hold publication locks for up to 15 seconds; it is not an
+unbounded scheduler or general autonomous worker platform.
 
-Default startup remains controlled and strips model keys. No customer/private
-context, external business action, default merge or deployment was added. The
-historical controlled f68efe5 checkout/database and old intake grants remain
-untouched. See EXPERIENCE_REVIEW for the historical controlled walkthrough;
-GENERAL_MODEL_REVIEW is the current retained model-results walkthrough.
+**Issue #13 remains OPEN.** Generic frontend tables are integrated, but backend
+flexible creation and sandboxed generated HTML/CSS/scoped JavaScript are not
+implemented by this checkpoint. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+accept Claude's structured-work direction with Andrew's generated-HTML addition.
+Hermes owns durable contracts/runtime/actions/evidence; the existing Claude owner
+owns rendering/interaction/isolation. Exact new generated DTOs and Claude's wire
+ACK are next, not claimed delivered. Memory/learning #10 and portability #11 stay
+sequenced work, not prerequisites for this proof. Broader M4/M5 remain undelivered.
+
+Claude resumed and published ea4e29d; the old local-CLI-authentication blocker is
+superseded. No login action is requested from Andrew for this owner coordination.
+
+## Authority and one cumulative budget
+
+Routine development, fixes, tests, publication and compatible non-default
+integration remain authorized. Reasonable bounded synthetic testing uses the
+recorded official `gpt-6.1-sol` route within **one cumulative $20**, no calendar
+expiry. The initial four-turn/eight-generation checkpoint is not a project-wide stop.
+
+Readback before/after recovery: **$3.42992 reserved**, including **$2.63840** retained
+historical carry. Six provider sends/dispatches remained six. One stored-response
+read completed the retained final result; reported current-slice usage became
+known without refunding reservations. Historical unknown liabilities remain.
+Reservations are not confirmed billing; read the ledger before further execution.
+
+Default controlled startup strips model keys. Uncertain sends must never be
+regenerated automatically. New paid routes, broader private data, external business
+actions, default merge and deployment remain outside authority. See
+[authorization](GENERAL_MODEL_AUTHORIZATION.md); no new routine permission gate.

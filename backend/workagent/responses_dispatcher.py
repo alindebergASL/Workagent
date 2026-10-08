@@ -11,32 +11,65 @@ from .runtime_config import BundleDenied,active_configuration
 from .responses_worker import ResponsesWorker,load_credential,validate_pins
 from .responses_transport import ResponsesTransport,TransportError
 
+def general_dispatch_status(run, observation):
+    """A terminal retained product isn't a verified goal or a retry request.
+
+    Receipt-backed publication permits watching for newly admitted work.
+    Unknown/invalid work remains isolated from unrelated admitted commands.
+    """
+    if run.state=='cancelled': return 'cancelled'
+    if observation.provider_observation=='outcome_unknown': return 'outcome_unknown'
+    if observation.provider_observation=='invalid': return 'invalid_response'
+    if run.state=='ready': return 'completed'
+    if run.state=='partial':
+        local=observation.retained_local_result
+        if (observation.adaptive and observation.adaptive.outcome=='needs_validation'
+            and local and local.published and local.status=='observed'
+            and observation.response_steps and all(s.state=='received' for s in observation.response_steps)):
+            return 'result_needs_review'
+        if observation.adaptive and observation.adaptive.outcome in ('blocked','waiting_for_user','step_limit','budget_limit'):
+            return observation.adaptive.outcome
+        return 'local_tool_rejected'
+    return 'provider_pending' if run.state=='running' else run.state
+
+
 class ResponsesDispatcher:
     def __init__(self,worker,*,workspace,grant_id):
         self.worker=worker; self.workspace=workspace; self.grant_id=grant_id
+        # Same durable outbox and existing local worker. This cursor is only a
+        # fairness hint; restart safely scans again, never a second work ledger.
+        self.cursor=0
+        from .dispatcher import Dispatcher
+        self.local_dispatcher=Dispatcher(worker.service,workspace=workspace,general_controlled=True)
 
-    def once(self):
+    def once(self,*,model_authorized=True):
         service=self.worker.service
+        local=self.local_dispatcher.once()
+        if not model_authorized:
+            return {'mode':self.worker.transport.provenance.mode,'local':local,
+                    'results':[],'model_status':'authority_unavailable'}
         with service.db.transaction() as c:
-            rows=c.execute('''SELECT d.run_id,r.data FROM run_dispatches d
+            rows=c.execute('''SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
                 JOIN run_configurations rc ON rc.workspace_id=r.workspace_id AND rc.run_id=r.id
-                WHERE d.workspace_id=%s AND d.acknowledged_at IS NULL
+                JOIN provider_grants g ON g.id=rc.data->>'grant_id'
+                WHERE d.workspace_id=%s AND d.acknowledged_at IS NULL AND d.cursor>%s
                   AND r.data->>'profile'=%s AND rc.data->>'grant_id'=%s
-                ORDER BY d.cursor LIMIT 2''',(self.workspace,'general-responses-v1' if hasattr(self.worker,'phases') else 'openai-responses-v1',self.grant_id)).fetchall()
+                ORDER BY d.cursor LIMIT 100''',(self.workspace,self.cursor,'general-responses-v1' if hasattr(self.worker,'phases') else 'openai-responses-v1',self.grant_id)).fetchall()
+        self.cursor=rows[-1]['cursor'] if len(rows)==100 else 0
         results=[]
         for row in rows:
             observation=None
             try:
-                if hasattr(self.worker,'phases'):
+                status=self._blocked_status(row)
+                if status is not None:
+                    pass
+                elif hasattr(self.worker,'phases'):
                     from .service import Principal
                     run=self.worker.work(Principal(row['data']['principal_id'],'worker'),self.workspace,row['run_id'])
                     detail=service.get_conversation(Principal(row['data']['principal_id']),self.workspace,run.conversation_id)
                     observation=next(t for t in detail.turns if t.run_id==run.id)
-                    status=('completed' if run.state=='ready' else 'local_tool_rejected' if run.state=='partial' else
-                            'outcome_unknown' if observation.provider_observation=='outcome_unknown' else
-                            'invalid_response' if observation.provider_observation=='invalid' else
-                            'provider_pending' if run.state=='running' else run.state)
+                    status=general_dispatch_status(run,observation)
                 else: status=self.worker.run(self.workspace,row['run_id'])
             except (DomainError,BundleDenied,TransportError,BlockingIOError): status='denied_or_deferred'
             except Exception:
@@ -44,10 +77,26 @@ class ResponsesDispatcher:
                 # Direct worker tests still expose programmer failures to the test runner.
                 status='internal_error'
             result={'run_id':row['run_id'],'status':status}
-            if observation:result['observation']=observation.model_dump(mode='json')
+            # Detailed evidence belongs in authenticated canonical readback,
+            # never stdout of a continuous operator process.
             results.append(result)
-            if status not in ('completed','reconciled'):break
-        return {'mode':self.worker.transport.provenance.mode,'results':results}
+        return {'mode':self.worker.transport.provenance.mode,'local':local,'results':results}
+
+    def _blocked_status(self,row):
+        if not row['active']:
+            return 'authority_unavailable'
+        from .responses_ledger import observations
+        with self.worker.service.db.transaction() as c:
+            attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',
+                (self.workspace,row['run_id'])).fetchone()
+            steps=observations(c,attempt['id']) if attempt else []
+        # An accepted known ID can be retrieved. Unknown count/send and invalid
+        # output require a separate explicit resolution, never repeated work().
+        if any(s.state in ('count_unknown','outcome_unknown') for s in steps):
+            return 'outcome_unknown'
+        if any(s.state=='invalid' for s in steps):
+            return 'invalid_response'
+        return None
 
 
 def authority(path,*,general=False):
@@ -78,19 +127,26 @@ def general_status(db,workspace,grant_id):
         return {'grant_id':grant.id,'workspace_id':workspace,'active':row['active'],
             'profile':grant.profile,'mode':grant.responses.transport_mode,'expires_at':None,
             'conversation_ids':grant.responses.conversation_ids,'budget':summary(c,grant.id),
+            'shared_budget':summary(c,grant.id,shared=True),
             'turns':[turn_state(Run.model_validate(r['data']),c).model_dump(mode='json',exclude={'retained_local_result'}) for r in runs]}
 
 
 def serve(dispatcher,verify,interval):
-    """Watch the existing outbox; stop rather than retry an unresolved result."""
+    """Continue independent admitted work; journal gates unknown provider actions."""
     import time
+    if not 0.1<=interval<=60:
+        raise ValueError('interval must be between 0.1 and 60 seconds')
+    previous=None
     while True:
-        verify()
-        result=dispatcher.once()
-        if result['results']:
+        authorized=True
+        try:
+            verify()
+        except (TransportError,DomainError,BundleDenied):
+            authorized=False
+        result=dispatcher.once() if authorized else dispatcher.once(model_authorized=False)
+        if result!=previous and (result['results'] or result.get('model_status') or any(result.get('local',{}).values())):
             print(json.dumps(result),flush=True)
-            if any(r['status'] not in ('completed','reconciled') for r in result['results']):
-                return
+        previous=result
         time.sleep(interval)
 
 
@@ -105,7 +161,7 @@ def main():
     action=parser.add_mutually_exclusive_group(required=True)
     action.add_argument('--once',action='store_true')
     action.add_argument('--status',action='store_true',help='Read cumulative general status; no key access or provider I/O')
-    action.add_argument('--serve',action='store_true',help='Watch existing outbox; stop on incomplete/denied work, never regenerate')
+    action.add_argument('--serve',action='store_true',help='Advance admitted model/local work; recover known IDs, never regenerate unknown sends')
     action.add_argument('--install-grant',metavar='OPERATOR_JSON')
     action.add_argument('--install-successor',metavar='OPERATOR_JSON')
     action.add_argument('--reconcile-run',metavar='RUN_ID',help='Known-ID readback/publication only; never count or generate')
@@ -138,9 +194,10 @@ def main():
             b.secret_reference!=record['runtime']['secure_secret_reference']):
             raise TransportError('grant_binding_mismatch')
         if args.general_responses:
-            if args.install_successor or args.reconcile_run: raise TransportError('general_use_same_worker_once_for_recovery')
+            if args.reconcile_run: raise TransportError('general_use_same_worker_once_for_recovery')
             from .general_responses import validate_grant
-            validate_grant(grant)
+            if not args.install_successor:
+                with db.transaction() as c: validate_grant(grant,c)
         else:
             with db.transaction() as c:
                 _,config=active_configuration(c)
@@ -154,7 +211,8 @@ def main():
                 actual=c.execute('SELECT data FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchone()
                 if not actual or SuccessorApproval.model_validate(actual['data'])!=installed:
                     raise TransportError('successor_install_readback_failed')
-                validate_pins(grant,config,c)
+                if args.general_responses: validate_grant(grant,c)
+                else: validate_pins(grant,config,c)
             print(json.dumps({'status':'operator_successor_installed','approval':installed.model_dump(mode='json')}))
             return
         if args.install_grant:
@@ -180,7 +238,8 @@ def main():
         try:
             if args.general_responses:
                 from .general_worker import GeneralWorker
-                worker=GeneralWorker(Service(db),transport=transport,state=args.state_dir,enable_responses=True)
+                worker=GeneralWorker(Service(db),transport=transport,state=args.state_dir,enable_responses=True,
+                                     poll_limit=1 if args.serve else 10)
             else:
                 worker=ResponsesWorker(Service(db),transport,args.state_dir,poll_limit=1 if args.reconcile_run else 10)
             if args.reconcile_run:

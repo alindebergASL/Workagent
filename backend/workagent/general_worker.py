@@ -156,13 +156,22 @@ class GeneralWorker:
             cap=s.claim_run(p,ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
         context=s.conversation_worker_context(cap)
+        from .adaptive import enabled,contract
+        from .models import ProviderGrant
+        with s.db.transaction() as c:
+            grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
+        POLICY,DECISION_SCHEMA=contract(grant.responses)
         if receipt is None:
             attempt=s.prepare_provider_attempt(cap,request_hash=digest({'context':context,'schema':DECISION_SCHEMA.material.decode()}),
                 consumer_sha256=config['consumer_sha256'],transport=self.transport,
                 evidence_origin='live_provider_receipt' if self.transport.provenance.mode=='official_api' else 'synthetic_provider_receipt')
             receipt=s.bind_provider_receipt(cap,attempt.id)
             saved['receipt']=asdict(receipt); phases.state.save(ws,rid,saved)
+        from .responses_recovery import record_successor_use
+        record_successor_use(s,receipt,cap)
         ledger=Ledger(s,receipt); deadline=time.monotonic()+phases.deadline_seconds
+        if enabled(config):
+            return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
         selection,_=ledger.snapshot('selection',cap)
         if selection is None:
             selection=build_tool_selection(instructions=POLICY,source_context=canonical(context),
@@ -196,6 +205,58 @@ class GeneralWorker:
             raise
         except Exception:
             # Read back a potentially committed result; never fail/retry generation.
+            observed=s.get_run(p,ws,rid)
+            if observed.state in ('ready','partial','cancelled'):
+                return self._terminal_readback(p,ws,observed)
+            raise
+
+    def _adaptive_work(self,p,ws,run,cap,receipt,ledger,context,config,deadline):
+        from .acceptance_checks import for_model
+        from .adaptive import POLICY,DECISION_SCHEMA,CAPABILITY,phase_name,retained,continuation_context
+        from .general_schema import EXPLANATION_SCHEMA
+        from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
+        from .service import canonical
+        s=self.service; phases=self.phases; rid=run.id
+        bound=config['responses']['max_steps']
+        try:
+            for index in range(1,bound+1):
+                phase=phase_name(index)
+                selection,_=ledger.snapshot(phase,cap)
+                if selection is None:
+                    with s.db.transaction() as c:
+                        ledger._auth(c,cap)
+                        observations=retained(c,receipt.attempt_id)
+                    selection=build_tool_selection(instructions=POLICY,
+                        source_context=canonical(continuation_context(context,observations,bound)),
+                        read_schema=DECISION_SCHEMA,
+                        metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id=phase),
+                        policy=CAPABILITY,phase=phase)
+                    ledger.prepare(selection,cap)
+                selected=phases._step(ledger,selection,cap,deadline)
+                if selected is None or selected.state!='function_call': return s.get_run(p,ws,rid)
+                staged=s.stage_general_product(cap,receipt,phase)
+                phases._hook('after_tool_result')
+                if staged['terminal_outcome']=='continue': continue
+                final,_=ledger.snapshot('final',cap)
+                if final is None:
+                    final=build_final(selection_request=selection,selection=selected,tool_output=canonical(for_model(staged)),
+                        instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
+                        metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                    ledger.prepare(final,cap)
+                generated=phases._step(ledger,final,cap,deadline)
+                if generated is None or generated.state!='completed': return s.get_run(p,ws,rid)
+                phases._hook('before_publication')
+                s.complete_general_product(cap,receipt,phase)
+                phases._hook('after_publication')
+                return self._terminal_readback(p,ws,s.get_run(p,ws,rid))
+            raise DomainError('action_unresolved')
+        except TransportError:
+            return s.get_run(p,ws,rid)
+        except DomainError as exc:
+            if exc.code.value!='budget_exhausted': raise
+            s.stop_general_budget(cap,receipt)
+            return self._terminal_readback(p,ws,s.get_run(p,ws,rid))
+        except Exception:
             observed=s.get_run(p,ws,rid)
             if observed.state in ('ready','partial','cancelled'):
                 return self._terminal_readback(p,ws,observed)

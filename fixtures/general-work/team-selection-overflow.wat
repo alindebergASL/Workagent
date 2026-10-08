@@ -1,0 +1,11 @@
+;; Synthetic broken implementation: builds the numerator before division.
+(module (func (export "choose") (param $n i64) (param $k i64) (result i64)
+ (local $r i64) (local $i i64) (local.set $r (i64.const 1))
+ (local.set $i (i64.const 1))
+ (block $end (loop $mul (br_if $end (i64.gt_s (local.get $i) (local.get $k)))
+  (local.set $r (i64.mul (local.get $r) (i64.add (i64.sub (local.get $n) (local.get $k)) (local.get $i))))
+  (local.set $i (i64.add (local.get $i) (i64.const 1))) (br $mul)))
+ (local.set $i (i64.const 1))
+ (block $end (loop $div (br_if $end (i64.gt_s (local.get $i) (local.get $k)))
+  (local.set $r (i64.div_s (local.get $r) (local.get $i)))
+  (local.set $i (i64.add (local.get $i) (i64.const 1))) (br $div))) (local.get $r)))

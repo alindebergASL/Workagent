@@ -1,5 +1,26 @@
 # Build plan: independent work through a seamless experience
 
+## Current bounded checkpoint and next boundary — 2026-10-08
+
+The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
+with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
+[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+separate engineering, usefulness and experience. Continuous workers recovered the
+original interrupted run, preserving its response identities, saved human note,
+pending approval and cumulative reservations. Run 06 failed in the evidence
+harness after recovery, not in application publication; its failed evidence is retained.
+
+[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
+This checkpoint is not flexible work creation or sandboxed HTML delivery.
+The next slice is a general structured surface plus an isolated generated
+HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
+The earlier blanket "never generated HTML or script" restriction is superseded;
+generated views still receive no ambient credentials, approval authority or
+unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+records the agreed direction, responsibilities, and still-undelivered wire contract.
+Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+
+
 Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
 and [goal-directed agency and coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
 Required capability, implementation and demonstrated evidence are distinct.
@@ -16,7 +37,28 @@ Do not restart the reset or harness comparison, replace the frontend owner, or
 recreate accepted work. The recovered model implementation is now committed at
 9ed2467 and integrated with Claude a3c06fb at application1b81a1d742829663faf12a0ca5fa03957daf252c.
 
-## Observed checkpoint — 2026-10-06
+## Completed bounded adaptive delivery — 2026-10-08
+
+Implementation `0e81127` closes the finite verification and continuous-worker
+slice; integration `65e84c6` preserves Claude's generic-table correction. The
+published candidate remains PR #12; PR #9 is owner coordination/history.
+
+1. Independent checks cover every supplied CSV row and every supported
+   team-selection input. Unsupported goals remain partial/needs-validation.
+2. Existing durable model/local consumers ran continuously; no manual worker ticks.
+3. The actual product observed an incorrect result, the model changed its code,
+   and the independently checked proposal recovered from SIGKILL using the same
+   retained provider identity. Human-saved notes and current revision stayed intact.
+4. Human acceptance remains separate; the repaired version is pending, downloadable
+   and not installed over saved work. A downtime draft survived mobile switching
+   and reload; its survival after the original browser process closed is not claimed.
+5. #13 is the next implementation slice, not complete. #10/#11 stay sequenced after
+   the current adaptive/flexible-work direction rather than becoming broad prerequisites.
+
+See the linked checkpoint for failed attempts, exact tested bytes, commands,
+review path, budget conservation and the precise bounded claim.
+
+## Historical observed checkpoint — 2026-10-06
 
 M1 is implemented and its four authorized live turns demonstrated. M2’s bounded
 actual-service desktop/phone journey is demonstrated; full experience acceptance
@@ -69,13 +111,14 @@ B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicabl
 ## Execution boundary
 
 Routine development, tests, fixes, branch publication and compatible non-default
-integration are authorized. Live model testing is already authorized by
-GENERAL_MODEL_AUTHORIZATION.md: $20 cumulative, no calendar expiry, unchanged
-8 generation / 8 count / 80 same-ID retrieval and 160,000 input / 65,536 output
-limits, the specified four synthetic turns, acknowledged store:true. Caps do not
-reset per restart, batch or child. Do not request this same approval again.
+integration are authorized. GENERAL_MODEL_AUTHORIZATION.md permits reasonable
+bounded synthetic tests on the recorded official route within one cumulative $20
+budget, without calendar expiry and with acknowledged store:true. The original
+four-turn/eight-generation checkpoint is not a project-wide stop. Runtime profiles
+remain bounded; historical counters, reservations and unknown liabilities never
+reset per restart, batch or child. Shared-budget enforcement is implemented.
 
-Default merge, deployment, new private-context access and external business
-actions remain excluded. Future different paid scenarios require an applicable
-explicit grant; implementation/deterministic testing need not wait for that grant.
-Ask only for a material product decision or genuinely missing authorization.
+Default merge, deployment, new paid routes, broader private-context access and
+external business actions remain excluded. Continue routine findings without
+another checkpoint approval; escalate only a concrete missing decision, permission
+or access requirement.

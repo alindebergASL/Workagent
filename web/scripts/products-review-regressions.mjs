@@ -514,6 +514,74 @@ try {
     "PASS signed i64 decimal rendering and saved verification plus pending output",
   );
 
+  // A proposed tool version's result is shown with that version's inputs,
+  // never the saved inputs; the saved card does not claim it.
+  const proposedBody = structuredClone(body);
+  proposedBody.arguments = [3, 1250, 500];
+  proposedBody.input_form = [
+    "Quantity",
+    "Unit price cents",
+    "Shipping cents",
+  ].map((label, i) => ({
+    ...body.input_form[0],
+    name: `input_${i + 1}`,
+    label,
+  }));
+  await page.evaluate(
+    ({ data, proposedBody }) => {
+      const d = structuredClone(data);
+      d.proposals[0].body = proposedBody;
+      d.proposals[0].body_hash = "b".repeat(64);
+      d.observations.latest.observation.body_hash = "b".repeat(64);
+      d.observations.latest.observation.output.value = "4250";
+      d.observations.latest.observation.output.arguments = [3, 1250, 500];
+      d.observations.current = null;
+      window.resource = {
+        data: d,
+        error: null,
+        reconnecting: false,
+        refresh: window.refresh,
+      };
+      sessionStorage.clear();
+      window.mount("away");
+      window.mount("product");
+    },
+    { data, proposedBody },
+  );
+  await expect(page.locator(".result-headline")).toHaveText(
+    "Not run on this saved version yet.",
+  );
+  await expect(page.locator(".result-card")).not.toContainText("4250");
+  await expect(page.getByTestId("proposal-result")).toHaveText("Returns 4250");
+  await expect(page.getByTestId("proposal-inputs")).toHaveText(
+    "Quantity 3 · Unit price cents 1250 · Shipping cents 500",
+  );
+  await page.evaluate(() => {
+    window.resource.data.observations.latest.observation.body_hash = "c".repeat(
+      64,
+    );
+    window.mount("product");
+  });
+  await expect(page.getByTestId("product-proposal")).toContainText(
+    "Not run yet.",
+  );
+  await expect(page.getByTestId("proposal-result")).toHaveCount(0);
+  await page.evaluate((data) => {
+    window.resource = {
+      data,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    sessionStorage.clear();
+    window.mount("away");
+    window.mount("product");
+  }, data);
+  passed++;
+  console.log(
+    "PASS proposed tool result is shown with its own inputs; the saved card never claims it",
+  );
+
   await page.getByLabel("Quantity", { exact: true }).fill("99");
   await page.getByLabel("Input 1 name", { exact: true }).fill("Discard me");
   await expect(
@@ -712,6 +780,8 @@ try {
     rounding: "ROUND_HALF_UP",
     columns: [
       "id",
+      "quantity",
+      "unit_price",
       "reported_total",
       "calculated_total",
       "difference",
@@ -720,6 +790,8 @@ try {
     rows: [
       {
         id: "A",
+        quantity: "1",
+        unit_price: "1.00",
         reported_total: "2.00",
         calculated_total: "1.00",
         difference: "0.00",
@@ -847,6 +919,86 @@ try {
   passed++;
   console.log(
     "PASS table headline requires saved/proposal observation binding; retained columns never claim current matches",
+  );
+
+  // A table that isn't a reconciliation renders and edits generically: no
+  // locked columns, no rounding or recalculation, and no check it can't do.
+  await page.evaluate((base) => {
+    window.stashedResource = window.resource;
+    const d = structuredClone(base);
+    d.artifact.current_revision.body = {
+      kind: "table",
+      title: "Workshop schedule",
+      source_csv: "",
+      rounding: "ROUND_HALF_UP",
+      columns: ["day", "session", "owner", "check"],
+      rows: [
+        { day: "Mon", session: "Intro", owner: "Ana", check: "done" },
+        { day: "Tue", session: "Lab", owner: "Ben", check: "" },
+      ],
+      notes: [],
+    };
+    d.proposals = [];
+    d.observations = { current: null, latest: null };
+    window.resource = {
+      data: d,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    window.mount("away");
+  }, tableData);
+  // Unmount first so the editor reads the new record, not its old draft.
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.mount("product");
+  });
+  await expect(page.locator(".result-headline")).toHaveText(
+    "2 rows · 4 columns",
+  );
+  await expect(page.getByTestId("product-verification")).toHaveText(
+    "Saved. Nothing checks this table automatically.",
+  );
+  await expect(
+    page.getByRole("region", { name: "Editable table" }),
+  ).toBeVisible();
+  const editable = page.getByRole("region", { name: "Editable table" });
+  await expect(editable.locator("th")).toHaveText([
+    "Day",
+    "Session",
+    "Owner",
+    "Check",
+  ]);
+  await expect(editable.locator('td[data-derived="true"]')).toHaveCount(0);
+  await expect(page.getByLabel("Row 1 check", { exact: true })).toHaveValue(
+    "done",
+  );
+  await expect(page.getByLabel("Rounding")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Recalculate/ })).toHaveCount(
+    0,
+  );
+  await page.getByLabel("Row 2 owner", { exact: true }).fill("Cleo");
+  await expect(
+    page.getByRole("button", { name: "Save my edits", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Save to keep your changes.")).toBeVisible();
+  await page.getByRole("button", { name: "Discard my changes" }).click();
+  await expect(page.getByLabel("Row 2 owner", { exact: true })).toHaveValue(
+    "Ben",
+  );
+  await page.evaluate(() => {
+    window.resource = window.stashedResource;
+    window.mount("away");
+  });
+  await expect(page.getByText("Navigation away")).toBeVisible();
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS a non-reconciliation table is fully editable with no recalculation or check claims",
   );
 
   // A proposal made from an earlier saved version says so in its primary
@@ -1018,6 +1170,71 @@ try {
   passed++;
   console.log(
     "PASS natural reply beside the work sends the exact saved target and replays it frozen",
+  );
+
+  // A model reply reads as text: emphasis and lists render, syntax and any
+  // HTML stay inert, and a long reply opens with its first part.
+  const markdownReply = [
+    "**Result:** the calculator returned 4250 for 3*1250 + 500.",
+    "",
+    "- Quantity 3",
+    "- Unit price `1250` cents",
+    "",
+    "<img src=x onerror=window.pwned=1>",
+    "",
+    ...Array.from(
+      { length: 8 },
+      (_, i) =>
+        `Detail paragraph ${i + 1} with enough words to take up some room in the pane.`,
+    ),
+  ].join("\n");
+  await page.evaluate((reply) => {
+    window.pwned = 0;
+    const conv = structuredClone(window.resource.data.conversation);
+    conv.messages = [
+      {
+        id: "m1",
+        author: "agent",
+        text: reply,
+        created_at: "",
+        sequence: 1,
+        run_id: "run",
+        origin: "live_provider_receipt",
+        products: [],
+      },
+    ];
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  }, markdownReply);
+  const agentMsg = page.locator(".agent-pane li.msg-agent");
+  await expect(agentMsg.locator("strong").first()).toHaveText("Result:");
+  await expect(agentMsg.locator("ul > li")).toHaveText([
+    "Quantity 3",
+    "Unit price 1250 cents",
+  ]);
+  await expect(agentMsg).toContainText("3*1250 + 500");
+  await expect(agentMsg).not.toContainText("**");
+  await expect(agentMsg.locator("img")).toHaveCount(0);
+  await expect(agentMsg).toContainText("<img src=x onerror=window.pwned=1>");
+  assert.equal(await page.evaluate(() => window.pwned), 0);
+  await expect(agentMsg).not.toContainText("Detail paragraph 8");
+  await agentMsg.getByRole("button", { name: "Show more" }).click();
+  await expect(agentMsg).toContainText("Detail paragraph 8");
+  await expect(
+    agentMsg.getByRole("button", { name: "Show less" }),
+  ).toHaveAttribute("aria-expanded", "true");
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS model replies render as text (lists, emphasis, inert HTML) and long ones fold",
   );
 
   await page.evaluate(() => {

@@ -1,5 +1,26 @@
 # Workagent product contract
 
+## Current bounded checkpoint and next boundary — 2026-10-08
+
+The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
+with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
+[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
+separate engineering, usefulness and experience. Continuous workers recovered the
+original interrupted run, preserving its response identities, saved human note,
+pending approval and cumulative reservations. Run 06 failed in the evidence
+harness after recovery, not in application publication; its failed evidence is retained.
+
+[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
+This checkpoint is not flexible work creation or sandboxed HTML delivery.
+The next slice is a general structured surface plus an isolated generated
+HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
+The earlier blanket "never generated HTML or script" restriction is superseded;
+generated views still receive no ambient credentials, approval authority or
+unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
+records the agreed direction, responsibilities, and still-undelivered wire contract.
+Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+
+
 Status: active product direction after Andrew's approved course correction.
 This replaces narrow product defaults; it does not certify deployed capabilities
 or authorize new execution. See `RUNTIME_STATUS.md` for actual state.
@@ -111,6 +132,30 @@ On a phone, preserve work/conversation drafts across pane changes. Editing,
 keyboard use, focus, loading, errors and recovery are part of the product.
 “Better than prototype” means less effort and more reliable work; it does not
 justify delaying functional proof indefinitely.
+
+## Current delivery sequence
+
+The active candidate is PR #12 on `hermes/adaptive-product-integration`; PR #9
+is the coordination/history entrypoint, not the latest application head. Preserve
+Claude's integrated frontend and existing review environments.
+
+The verified bounded M3 checkpoint turns an ordinary goal into useful work, encounters
+an observed obstacle, changes approach, verifies a bounded requested result, and
+resumes interrupted execution with human edits and effect identities preserved.
+Completion evidence is distinct from approval: a verified proposed revision still
+needs the person's explicit decision before replacing saved work. Unsupported or
+unverified obligations remain partial/needs-validation. No required user-authored
+test specification and no model-generated examples promoted into proof.
+
+Run existing local/model workers continuously in isolated review state; manual
+operator ticks are not the demonstrated user journey. General conversation,
+tables and runnable tools remain supported; a narrow verified task is an honest
+first completion capability, not the product's identity.
+
+Memory/learning [#10](https://github.com/alindebergASL/Workagent/issues/10) and
+portability [#11](https://github.com/alindebergASL/Workagent/issues/11) follow this
+slice. Workagent owns durable work; provider persistence is optional capability,
+not canonical memory. Their full backlogs are not prerequisites for M3.
 
 ## Scope discipline
 

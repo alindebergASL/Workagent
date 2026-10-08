@@ -119,8 +119,8 @@ def main():
     require_fixture_mode(args.mode)
     if os.environ.get('LOCAL_TEST_MODE') != 'true':
         parser.error('LOCAL_TEST_MODE=true required')
-    if args.interval < 0.05:
-        parser.error('interval must be at least 0.05 seconds')
+    if not 0.1<=args.interval<=60:
+        parser.error('interval must be between 0.1 and 60 seconds')
     db = Database()
     db.check_runtime_role()
     dispatcher = Dispatcher(Service(db),workspace=args.workspace,general_controlled=args.general_controlled)

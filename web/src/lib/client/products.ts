@@ -1,6 +1,7 @@
 import type { components } from "../../../../contracts/src/client";
 import { all, client, command, meta, unwrap } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
+import { tableFilename } from "@/lib/product-summary";
 export type S = components["schemas"];
 export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
 export type Operation = NonNullable<S["PostMessage"]["operation"]>;
@@ -217,14 +218,22 @@ export const productApi = {
         },
       ),
     ),
-  async download(ws: string, artifact: S["Artifact"]) {
+  async download(
+    ws: string,
+    artifact: S["Artifact"],
+    proposal?: S["Proposal"],
+  ) {
+    if (proposal && proposal.artifact_id !== artifact.id)
+      throw new Error("Proposed version does not belong to this work.");
     const result = await client.GET(
       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
       {
         params: {
           path: { workspace_id: ws, artifact_id: artifact.id },
           header: meta(),
-          query: { revision_id: artifact.current_revision_id },
+          query: proposal
+            ? { proposal_id: proposal.id }
+            : { revision_id: artifact.current_revision_id },
         },
         parseAs: "blob",
       },
@@ -247,14 +256,14 @@ export const productApi = {
       throw new Error(
         "Downloaded content digest did not match. No file was saved.",
       );
-    const body = artifact.current_revision.body;
+    const body = proposal?.body ?? artifact.current_revision.body;
     if (!isProduct(body)) throw new Error("Not a downloadable product.");
     const filename =
       body.kind === "file"
         ? body.filename
         : body.kind === "table"
-          ? "reconciled.csv"
-          : "invoice-tool.wat";
+          ? tableFilename(body)
+          : `tool-${body.entrypoint}.wat`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

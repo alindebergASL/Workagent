@@ -1,0 +1,7 @@
+id,quantity,unit_price,reported_total,note,calculated_total,difference,check
+A001,3,4.335,13.00,credit pending,13.01,-0.01,discrepancy
+A002,2,8.125,16.25,approved,16.25,0.00,matched
+A003,0,99.9999,0.01,zero quantity,0.00,0.01,discrepancy
+A004,1,0.005,0.00,half-cent,0.01,-0.01,discrepancy
+A005,1000000,0.0001,100.00,bulk,100.00,0.00,matched
+A006,7,12.34,86.38,"café, keep wording",86.38,0.00,matched

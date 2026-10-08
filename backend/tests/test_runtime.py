@@ -270,7 +270,7 @@ def test_source_detail_checked_roundtrip_and_revocation(context):
 def test_loop_admits_future_queue_and_revision_after_restart(context):
     import time
     s,p,ws,_,_=context
-    process=subprocess.Popen([sys.executable,'-m','workagent.dispatcher','--workspace',ws,'--interval','0.05'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+    process=subprocess.Popen([sys.executable,'-m','workagent.dispatcher','--workspace',ws,'--interval','0.1'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
     try:
         assert json.loads(process.stdout.readline())['completed']==0
         q=create(context)

@@ -186,8 +186,8 @@ def create_app(settings: Settings | None=None) -> FastAPI:
         return service.get_product_observation(p,workspace_id,observation_id)
 
     @app.get('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download',operation_id='download_product',responses=errors)
-    def download(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,revision_id:Id | None=None):
-        file=service.download_product(p,workspace_id,artifact_id,revision_id)
+    def download(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,revision_id:Id | None=None,proposal_id:Id | None=None):
+        file=service.download_product(p,workspace_id,artifact_id,revision_id,proposal_id)
         return Response(content=file.content.encode('utf-8'),media_type=file.mime_type,headers={
             'Content-Disposition':f'attachment; filename="{file.filename}"',
             'X-Content-Type-Options':'nosniff','X-Content-SHA256':file.content_sha256})

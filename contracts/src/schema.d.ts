@@ -415,6 +415,157 @@ export interface components {
              */
             schema_version: "workagent/v1";
         };
+        /** AcceptanceCase */
+        AcceptanceCase: {
+            /** Arguments */
+            arguments: number[];
+            /** Expected */
+            expected: string;
+        };
+        /** AcceptanceCheck */
+        AcceptanceCheck: {
+            /** Actual */
+            actual?: string | {
+                [key: string]: unknown;
+            } | null;
+            /** Criterion */
+            criterion: {
+                [key: string]: unknown;
+            };
+            /** Passed */
+            passed: boolean;
+        };
+        /** AcceptanceVerification */
+        AcceptanceVerification: {
+            /** Body Sha256 */
+            body_sha256: string | null;
+            /**
+             * Checker Version
+             * @default human-checks-v1
+             * @constant
+             */
+            checker_version: "human-checks-v1";
+            /** Checks */
+            checks: components["schemas"]["AcceptanceCheck"][];
+            /** Operation Hash */
+            operation_hash: string | null;
+            /** Passed */
+            passed: boolean;
+            /**
+             * Scope
+             * @default supplied_checks_only
+             * @constant
+             */
+            scope: "supplied_checks_only";
+            /** Spec */
+            spec: components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"];
+            /** Spec Sha256 */
+            spec_sha256: string;
+        };
+        /** AdaptiveExecution */
+        AdaptiveExecution: {
+            /**
+             * Capability
+             * @default adaptive-local-v1
+             * @constant
+             */
+            capability: "adaptive-local-v1";
+            /**
+             * Cost Basis
+             * @default worst_case_reservations_not_billing
+             * @constant
+             */
+            cost_basis: "worst_case_reservations_not_billing";
+            /** Goal */
+            goal?: string | null;
+            /** Max Steps */
+            max_steps: number;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "pending" | "continue" | "completed" | "waiting_for_user" | "blocked" | "step_limit" | "budget_limit" | "needs_validation" | "cancelled";
+            /**
+             * Shared Cost Limit Usd
+             * @default 20.00
+             * @constant
+             */
+            shared_cost_limit_usd: "20.00";
+            /** Shared Reserved Cost Usd */
+            shared_reserved_cost_usd: string;
+            /** Steps */
+            steps?: components["schemas"]["AdaptiveStep"][];
+            /** Success Criteria */
+            success_criteria?: {
+                [key: string]: unknown;
+            }[];
+        };
+        /** AdaptiveStep */
+        AdaptiveStep: {
+            /** Operation Hash */
+            operation_hash?: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "continue" | "completed" | "waiting_for_user" | "blocked" | "step_limit" | "budget_limit" | "needs_validation";
+            /**
+             * Phase
+             * @enum {string}
+             */
+            phase: "selection" | "selection_2" | "selection_3" | "selection_4";
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "reply" | "observed" | "rejected";
+            verification: components["schemas"]["AdaptiveVerification"];
+        };
+        /** AdaptiveVerification */
+        AdaptiveVerification: {
+            acceptance?: components["schemas"]["AcceptanceVerification"] | null;
+            automatic?: components["schemas"]["AutomaticVerification"] | null;
+            /**
+             * Basis
+             * @default model_proposed
+             * @enum {string}
+             */
+            basis: "model_proposed" | "independent_bounded";
+            /** Checks */
+            checks?: components["schemas"]["AdaptiveVerificationCheck"][];
+            /**
+             * Model Tests Passed
+             * @default false
+             */
+            model_tests_passed: boolean;
+            /** Request */
+            request?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Requested Goal Status
+             * @default needs_validation
+             * @enum {string}
+             */
+            requested_goal_status: "needs_validation" | "satisfied";
+            /** Satisfied */
+            satisfied: boolean;
+        };
+        /** AdaptiveVerificationCheck */
+        AdaptiveVerificationCheck: {
+            /** Actual */
+            actual?: string | {
+                [key: string]: unknown;
+            } | null;
+            /** Criterion */
+            criterion: {
+                [key: string]: unknown;
+            };
+            /** Passed */
+            passed: boolean;
+        };
         /** Artifact */
         Artifact: {
             /** Assignment Id */
@@ -512,6 +663,55 @@ export interface components {
              */
             mime_type: "text/csv" | "text/plain";
         };
+        /** AutomaticVerification */
+        AutomaticVerification: {
+            /** Base Hash */
+            base_hash?: string | null;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /**
+             * Case Count
+             * @default 0
+             */
+            case_count: number;
+            /**
+             * Checker Version
+             * @default csv-reconciliation-v1
+             * @enum {string}
+             */
+            checker_version: "csv-reconciliation-v1" | "team-selection-v1";
+            /** Failures */
+            failures: ("unsupported_goal" | "input_binding" | "unsupported_source" | "tool_not_observed" | "operation_binding" | "requested_rounding" | "table_rows" | "source_or_notes" | "metadata" | "download" | "numerical_disagreement" | "bounded_execution")[];
+            /** Limitations */
+            limitations: string[];
+            /** Operation Hash */
+            operation_hash?: string | null;
+            /** Passed */
+            passed: boolean;
+            /** Recognized */
+            recognized: boolean;
+            /** Request */
+            request?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Row Count
+             * @default 0
+             */
+            row_count: number;
+            /**
+             * Scope
+             * @default bounded_csv_goal_only
+             * @enum {string}
+             */
+            scope: "bounded_csv_goal_only" | "bounded_team_goal_only";
+            /** Source Sha256 */
+            source_sha256?: string | null;
+            /** Spec */
+            spec?: components["schemas"]["CSVGoalSpec"] | components["schemas"]["TeamGoalSpec"] | null;
+            /** Staged Sha256 */
+            staged_sha256: string;
+        };
         /** Block */
         Block: {
             /** Block Id */
@@ -532,6 +732,55 @@ export interface components {
             blocks: components["schemas"]["Block"][];
             /** Title */
             title: string;
+        };
+        /** CSVAcceptance */
+        CSVAcceptance: {
+            /** Expected Sum */
+            expected_sum: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "csv_totals";
+            /** Mismatch Count */
+            mismatch_count: number;
+        };
+        /** CSVGoalSpec */
+        CSVGoalSpec: {
+            /**
+             * Decimal Places
+             * @default 2
+             * @constant
+             */
+            decimal_places: 2;
+            /**
+             * Deliverable
+             * @default table_discrepancies_csv
+             * @constant
+             */
+            deliverable: "table_discrepancies_csv";
+            /**
+             * Kind
+             * @default all_rows_quantity_price
+             * @constant
+             */
+            kind: "all_rows_quantity_price";
+            /**
+             * Preserve
+             * @default original_columns_rows_source_and_notes
+             * @constant
+             */
+            preserve: "original_columns_rows_source_and_notes";
+            /**
+             * Rounding
+             * @enum {string}
+             */
+            rounding: "ROUND_HALF_UP" | "ROUND_HALF_EVEN";
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "attachment" | "saved_table";
         };
         /** CSVObservation */
         CSVObservation: {
@@ -657,6 +906,8 @@ export interface components {
         };
         /** ConversationMessage */
         ConversationMessage: {
+            /** Acceptance Checks */
+            acceptance_checks?: (components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"]) | null;
             /** Attachments */
             attachments?: components["schemas"]["MessageAttachment"][];
             /** Author Id */
@@ -1000,6 +1251,8 @@ export interface components {
         };
         /** PostMessage */
         PostMessage: {
+            /** Acceptance Checks */
+            acceptance_checks?: (components["schemas"]["WasmAcceptance"] | components["schemas"]["CSVAcceptance"]) | null;
             /** Attachments */
             attachments?: components["schemas"]["AttachmentInput"][];
             /** Command Id */
@@ -1196,7 +1449,7 @@ export interface components {
              * Phase
              * @enum {string}
              */
-            phase: "selection" | "final";
+            phase: "selection" | "selection_2" | "selection_3" | "selection_4" | "final";
             /** Reported Input Tokens */
             reported_input_tokens?: number | null;
             /** Reported Output Tokens */
@@ -1356,6 +1609,8 @@ export interface components {
              * @enum {string}
              */
             state: "queued" | "running" | "ready" | "partial" | "cancelled";
+            /** Stop Reason */
+            stop_reason?: "budget_limit" | null;
             /** Tool Registry Hash */
             tool_registry_hash: string;
             /** Unresolved */
@@ -1596,6 +1851,38 @@ export interface components {
              */
             verification: "unresolved";
         };
+        /** TeamGoalSpec */
+        TeamGoalSpec: {
+            /**
+             * Default Arguments
+             * @default [
+             *       60,
+             *       30
+             *     ]
+             */
+            default_arguments: [
+                60,
+                30
+            ];
+            /**
+             * Kind
+             * @default team_selection
+             * @constant
+             */
+            kind: "team_selection";
+            /**
+             * Max N
+             * @default 60
+             * @constant
+             */
+            max_n: 60;
+            /**
+             * Preserve
+             * @default saved_title_and_notes
+             * @constant
+             */
+            preserve: "saved_title_and_notes";
+        };
         /** TextResult */
         TextResult: {
             /**
@@ -1635,6 +1922,7 @@ export interface components {
         };
         /** TurnState */
         TurnState: {
+            adaptive?: components["schemas"]["AdaptiveExecution"] | null;
             /**
              * Evidence Origin
              * @default controlled_transport
@@ -1665,6 +1953,18 @@ export interface components {
              * @enum {string}
              */
             state: "queued" | "responding" | "replied" | "failed" | "unavailable" | "outcome_unknown" | "cancelled";
+        };
+        /** WasmAcceptance */
+        WasmAcceptance: {
+            /** Cases */
+            cases: components["schemas"]["AcceptanceCase"][];
+            /** Entrypoint */
+            entrypoint: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "wasm_cases";
         };
         /** WasmObservation */
         WasmObservation: {
@@ -2006,6 +2306,7 @@ export interface operations {
         parameters: {
             query?: {
                 revision_id?: string | null;
+                proposal_id?: string | null;
             };
             header: {
                 "x-schema-version": "workagent/v1";
@@ -2660,7 +2961,8 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
-                     *         "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+                     *         "stop_reason": null,
+                     *         "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -3324,6 +3626,7 @@ export interface operations {
                      *           "provider_session_id": null,
                      *           "provider_turn_id": null,
                      *           "state": "queued",
+                     *           "stop_reason": null,
                      *           "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
                      *           "unresolved": [],
                      *           "used_units": 0,
@@ -3705,6 +4008,7 @@ export interface operations {
                      *         "provider_session_id": null,
                      *         "provider_turn_id": null,
                      *         "state": "queued",
+                     *         "stop_reason": null,
                      *         "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
                      *         "unresolved": [],
                      *         "used_units": 0,
@@ -4080,7 +4384,8 @@ export interface operations {
                      *       "provider_session_id": null,
                      *       "provider_turn_id": null,
                      *       "state": "running",
-                     *       "tool_registry_hash": "e103bf235f673e717be2de2a15160cdf8af1438ef5e3537de8854270cb7a5fe0",
+                     *       "stop_reason": null,
+                     *       "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

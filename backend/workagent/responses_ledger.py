@@ -47,7 +47,12 @@ class Ledger:
             policy='general-responses-v1' if run.profile=='general-responses-v1' else 'intake-v1'
             if policy=='general-responses-v1':
                 from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
-                schema=DECISION_SCHEMA if phase=='selection' else EXPLANATION_SCHEMA
+                from .general_responses import check_pins
+                from .adaptive import enabled,CAPABILITY
+                if enabled(check_pins(c,run)):
+                    from .adaptive import DECISION_SCHEMA
+                    policy=CAPABILITY
+                schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
             else:
                 schema=READ_SCHEMA if phase=='selection' else FINAL_SCHEMA
             request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),phase,schema,policy)
@@ -100,10 +105,17 @@ class Ledger:
                 raise DomainError('budget_exhausted')
             data={}
             if kind=='dispatch':
+                # Same lock/order and isolation as the DB guard. Check after the
+                # lock so a racing workspace yields a typed budget stop, not SQL
+                # exception/retry. Never change the caller's isolation implicitly.
+                if c.execute('SHOW transaction_isolation').fetchone()['transaction_isolation']!='read committed':
+                    raise DomainError('unsupported_operation')
+                c.execute('SELECT pg_advisory_xact_lock(721004120)')
                 totals=summary(c,attempt.grant_id)
+                shared=summary(c,attempt.grant_id,shared=True)
                 if (totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
                     totals['reserved_output_tokens']+RESERVED_OUTPUT>b.output_limit or
-                    Decimal(totals['reserved_cost_usd'])+RESERVED_COST>Decimal(b.cost_limit_usd)):
+                    Decimal(shared['reserved_cost_usd'])+RESERVED_COST>Decimal(b.cost_limit_usd)):
                     raise DomainError('budget_exhausted')
                 data={'reserved_input_tokens':RESERVED_INPUT,'reserved_output_tokens':RESERVED_OUTPUT,
                       'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None}
@@ -222,7 +234,7 @@ def restore_result(data,request):
 
 def observations(c,attempt_id):
     from .models import ResponseStepObservation
-    steps=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY CASE phase WHEN \'selection\' THEN 0 ELSE 1 END',(attempt_id,)).fetchall()
+    steps=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY CASE phase WHEN \'final\' THEN 1 ELSE 0 END,phase',(attempt_id,)).fetchall()
     result=[]
     for step in steps:
         rows=c.execute('SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind NOT IN (\'read\',\'cancel\')',(attempt_id,step['phase'])).fetchall()
@@ -239,18 +251,28 @@ def observations(c,attempt_id):
     return result
 
 
-def summary(c,grant_id):
-    rows=c.execute('''SELECT e.kind,e.data FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
-                      WHERE s.grant_id=%s''',(grant_id,)).fetchall()
+def summary(c,grant_id,*,shared=False):
+    predicate='s.grant_id IN (SELECT responses_budget_grants(%s))' if shared else 's.grant_id=%s'
+    rows=c.execute('SELECT e.kind,e.data FROM responses_events e JOIN responses_steps s USING(attempt_id,phase) WHERE '+predicate,(grant_id,)).fetchall()
     counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
     reservations=[r['data'] for r in rows if r['kind']=='dispatch']
     receipts=[r['data'] for r in rows if r['kind']=='result']
     usages=[r['usage'] for r in receipts if r.get('usage')]
     unknown=len(reservations)-len(usages)
     calculated=sum((Decimal(u['input_tokens'])*Decimal('2.5')+Decimal(u['output_tokens'])*Decimal('10'))/Decimal(1000000) for u in usages)
-    return {'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
+    carried = Decimal(0)
+    carry_fields = {}
+    if shared:
+        carry = c.execute('''SELECT count(*) AS n, coalesce(sum(b.reserved_cost_usd),0) AS cost
+            FROM responses_budget_carry b JOIN provider_grants g ON g.id=%s
+            WHERE b.project_id=g.data->'responses'->>'project_id'
+              AND b.transport_mode=g.data->'responses'->>'transport_mode' ''',(grant_id,)).fetchone()
+        carried = carry['cost']
+        if carry['n']:
+            carry_fields = {'carried_reserved_cost_usd':str(carried)}
+    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
             'reserved_output_tokens':sum(r['reserved_output_tokens'] for r in reservations),
-            'reserved_cost_usd':str(sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
+            'reserved_cost_usd':str(carried+sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
             'reported_usage':{'input_tokens':sum(u['input_tokens'] for u in usages),'output_tokens':sum(u['output_tokens'] for u in usages)},
             'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

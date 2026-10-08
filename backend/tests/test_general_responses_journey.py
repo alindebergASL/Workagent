@@ -169,15 +169,19 @@ def test_home_reads_recheck_source_scope(context,tmp_path):
             assert client.get(base+path).status_code==404
 
 
-def test_serve_stops_on_uncertainty_without_retry():
+def test_serve_continues_polling_at_bounded_intervals(monkeypatch):
     class Dispatcher:
         calls=0
         def once(self):
             self.calls+=1
             return {'results':[{'status':'incomplete'}]}
     dispatcher=Dispatcher(); checked=[]
-    serve(dispatcher,lambda:checked.append(True),.1)
-    assert dispatcher.calls==1 and checked==[True]
+    def pause(interval):
+        assert interval==.1
+        if dispatcher.calls==2: raise KeyboardInterrupt
+    monkeypatch.setattr('time.sleep',pause)
+    with pytest.raises(KeyboardInterrupt): serve(dispatcher,lambda:checked.append(True),.1)
+    assert dispatcher.calls==2 and checked==[True,True]
 
 
 def test_status_cli_no_provider_key_or_network(context,tmp_path):
