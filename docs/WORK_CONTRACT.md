@@ -41,11 +41,19 @@ identifiers; and offers continue, inspect and cancel through that path. It is
 not a new direct-provider script. Existing dispatcher/synthetic journey commands
 are engineering evidence, not this prompt interface or general-agent proof.
 
-## Adaptive continuation and specialist coordination (required, not implemented)
+## Adaptive continuation and remaining ownership/coordination
 
 A capability profile bounds one checkpoint; it does not define the general loop.
-The current `general-responses-v1` selection → at most one local operation →
-explanation profile remains intentionally bounded. Required subsequent behavior:
+The historical one-operation profile remains readable. The integrated
+`adaptive-local-v1` capability already retains goals, model-proposed checks,
+observations and bounded changed actions through GeneralWorker. Passing model
+examples or human-supplied examples does not establish arbitrary goal completion.
+The current slice adds independently computed, versioned verification only where
+the complete bounded request can be checked, and continuous consumers of the
+existing durable outbox. See RUNTIME_STATUS for executed evidence, not this target
+contract alone.
+
+Required behavior, including still-undelivered specialist/ownership scope:
 
 1. Persist a responsibility's goal, observable success criteria, routine subgoals,
    priorities and dependencies; distinguish proposed outcome changes from routine
@@ -67,8 +75,13 @@ explanation profile remains intentionally bounded. Required subsequent behavior:
 
 Implement these using existing worker/domain/broker/attempt seams, additive
 schemas and suitable established components; no competing orchestration stack
-or restarted framework investigation. Future paid tests need an applicable grant;
-deterministic implementation can proceed within routine development authority.
+or restarted framework investigation. Reasonable bounded synthetic model tests
+on the recorded route are authorized within one cumulative $20 project ceiling;
+activate scoped runtime grants without resetting past counters or liabilities.
+Verification records request/source/base/operation/result bindings and scope;
+unsupported clauses stay needs-validation. Verification never records human
+acceptance. Changes after admission invalidate stale pending work; restart cannot
+overwrite them or regenerate an uncertain provider attempt.
 
 ## Canonical overview and frontend agreement
 
@@ -98,9 +111,17 @@ The spike is complete: `handoffs/backend/HARNESS_ADOPTION.md` records the
 keep/adopt/reject decision. Retain Workagent authority and the existing runtime;
 do not repeat the investigation. Controlled transport proved wiring only.
 The current separately approved model test is governed by
-`GENERAL_MODEL_AUTHORIZATION.md`: $20 cumulative, no calendar expiry, unchanged
-call/token/four-turn synthetic scope. Historical expired intake grants remain
-closed. Do not request this same approval again or infer a broader live grant.
+`GENERAL_MODEL_AUTHORIZATION.md`: one cumulative $20, no calendar expiry,
+reasonable bounded synthetic tests on the recorded route. The original four-turn /
+eight-generation cap belongs to its immutable checkpoint, not the whole project.
+Shared project reservations, carried historical usage and unknown liabilities
+remain enforced. Historical expired intake grants remain closed. New paid routes,
+private data, default merge and deployment remain excluded.
+
+Memory/learning #10 and provider portability #11 are sequenced after the adaptive
+slice. Durable work belongs to Workagent; adapters may use provider persistence
+without making it canonical memory. Known-ID retrieval and ambiguous-send
+liabilities remain distinct; portability cannot imply safe automatic regeneration.
 
 ## Migration hotspots at 93db754
 

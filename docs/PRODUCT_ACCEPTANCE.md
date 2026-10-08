@@ -10,6 +10,24 @@ candidate SHA. Evidence closes only the property it actually tested.
 | Usefulness | Andrew can use the result, understand the next step and see where his judgment matters | Passing checks or plausible text |
 | Experience | Actual responsive journey against prototype: hierarchy, copy, conversation/work, editing and continuity | Polished mockup or backend correctness |
 
+## Current candidate and evidence precedence
+
+PR #12 (`hermes/adaptive-product-integration`) supersedes PR #9's old application
+checkpoint. Reviewed baseline `3568fbcada2ab564bbf3d7dbd49f0d41d8700013`
+includes adaptive continuation, retained budget accounting, Claude's presentation
+fixes and explicit saved-tool reuse. Historical evidence remains scoped to its
+exact bytes. RUNTIME_STATUS and the newest linked checkpoint contain the current
+candidate's tests and remaining gaps.
+
+Next M3 exit: ordinary request → useful work → meaningful observed obstacle →
+changed action → independently verified bounded result → interruption before
+completion → accurate continuation preserving human edits and no duplicate effects.
+Both model and local consumers run continuously. A synthetic transport proves
+mechanics only; a live model must independently select the repair. No supplied
+repair instructions or evaluator answers. Verification is not proposal acceptance.
+Keep wrong-but-executable, rejected-operation, stale-input and uncertain-provider
+regressions. Unknown request semantics stay partial/needs-validation.
+
 ## Required behavior and current evidence
 
 Source direction: [product/experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
@@ -85,18 +103,18 @@ before those results and independent verdicts are concrete.
 
 ## Live gate and release
 
-Historical intake evidence stays valid for its scope; its exhausted, expired
-four-call grant is not reusable. The separate general-model authorization already
-allows $20 cumulative with no calendar expiry, at most 8 generations, 8 counts,
-80 same-ID retrievals, 160,000 input / 65,536 output tokens across the specified
-four synthetic turns. No automatic reset, generation retries or autoacceptance.
-The four-turn/eight-generation/eight-count limits are now exhausted; no further
-paid tests are permitted by monetary headroom alone. See
-`GENERAL_MODEL_AUTHORIZATION.md` for the exact route, retention and activation
-gates. Do not seek redundant approval within those bounds. Adaptive/coordination/
-ownership paid tests or private-context tests require an applicable explicit grant;
-continue deterministic development without inventing an approval gate. No external
-messages/calendar changes are implied.
+Historical intake grants and initial-checkpoint counters remain closed/unchanged.
+The standing clarification in `GENERAL_MODEL_AUTHORIZATION.md` authorizes routine
+development, publication, compatible non-default integration and reasonable bounded
+synthetic tests on the recorded route within ONE cumulative $20, no calendar
+expiry. The initial four turns/eight generations are not a project-wide stop.
+Choose bounded run profiles; retain historical usage, reservations and unknown
+liabilities, reserve before I/O and never silently refund/reset or resend uncertain
+attempts. Provider billing is not the same as conservative reservations.
+
+No new paid route, broader private-context access, external business effects or
+automatic human approval is implied. Memory/learning #10 and portability #11 follow
+this adaptive slice rather than gate it with their entire backlogs.
 
 Default merge/deployment require Andrew's explicit approval. Development
 handoffs/local no-inference verification continue without inventing new gates.

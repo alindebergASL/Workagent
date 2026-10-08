@@ -1,56 +1,68 @@
 # Current runtime status and execution boundary
 
-## Exact demonstrated application
+## Candidate and preserved review state
 
-**1b81a1d742829663faf12a0ca5fa03957daf252c** integrates verified backend9ed2467,
-Claude frontend a3c06fb and reviewed integration fixes. PR9 and the non-default
-`hermes/general-model-integration` branch contain it. The retained review runs
-this exact application; subsequent evidence-only commits do not change it.
+Current published baseline: **3568fbcada2ab564bbf3d7dbd49f0d41d8700013**,
+PR #12, `hermes/adaptive-product-integration`. This preserves implementation
+8ed405e, checkpoint 898c64e and the independently reviewed rich-text URL fix.
+PR #9 is a coordination/history entrypoint, not the latest application head.
 
-[Actual experience/access](GENERAL_MODEL_REVIEW.md) ·
-[Full checkpoint evidence](../handoffs/backend/GENERAL_MODEL_CHECKPOINT.md).
+Historical application 1b81a1d and its saved 3000/8000 review environment remain
+preserved. The prior adaptive 3120/8120 environment is also retained. Do not reset
+those databases or overwrite human edits. New milestone proof uses isolated state.
 
-## Implemented and observed
+## Implemented baseline
 
-- Natural-language/attachment/exact-saved-target admission through the existing
-  GeneralWorker, dispatcher, broker/domain and Responses ledger; no parallel model runtime.
-- Strict model-selected CSV/Wasmtime operation, actual local result inspection
-  and result-aware explanation. Model-generated calculator code and changed form.
-- Immutable saved work/proposals, human edits, cumulative authorization, pre-I/O
-  target checks, READ COMMITTED admission guards, fences/replay and truthful recovery.
-- Claude's Home/Spaces conversation-owned result and pending-decision discovery,
-  companion conversation, saved edits and phone panes; read-only progress polling.
-- Exact-head synthetic actual-browser/API/PostgreSQL four-turn journey and restart;
-  four authorized live turns with no client-supplied operation or WAT. Both live
-  revisions remain pending against preserved human-saved bases.
+- Same GeneralWorker/domain/broker, durable outbox and immutable Responses ledger.
+- Bounded adaptive goals, observations and changed local actions; real CSV and
+  import-free Wasmtime execution, not model prose standing in for execution.
+- Model-generated checks and optional human cases are honestly limited evidence;
+  passing them alone leaves `partial` / `needs_validation`.
+- Exact saved targets, human edits, proposals and separate explicit acceptance.
+- Explicit saved-tool reruns perform local execution with no provider dispatch.
+- Cross-grant shared project reservations with immutable historical carryforward;
+  uncertain attempts retain liabilities. Original provider reasoning/IDs survive
+  stored response recovery; no silent replacement generation.
+- Claude's integrated rich-text/long-reply/proposed-input fixes and reviewed URL
+  safety correction, desktop/phone work/conversation and result-first surfaces.
 
-## Separate verdicts
+Prior evidence: [adaptive integration](../handoffs/backend/ADAPTIVE_PRODUCT_CHECKPOINT.md)
+and [ordinary reuse](../handoffs/backend/ORDINARY_REUSE_CHECKPOINT.md).
+613 backend tests apply to unchanged baseline backend bytes; 138 frontend tests
+apply to the final URL correction. These are historical executed results, not a
+claim that the next milestone has already passed its new gates.
 
-- **Engineering PASS for this checkpoint:** full487 backend tests on identical
-  backend bytes,91 frontend tests, exact-head synthetic and live journeys.
-  Exact application frontend CI passed; this is not a claim of all repository
-  workflows freshly running on this SHA.
-- **Usefulness:** narrow live work demonstrated; Andrew's acceptance NOT TESTED.
-- **Experience:** scoped journey demonstrated, full seamless-product acceptance
-  FAIL/incomplete. Literal Markdown/long replies, a proposed-result/saved-input
-  subtitle mismatch and operator-only narrow-grant setup remain explicit gaps.
+## Next complete adaptive milestone — in progress
 
-M1's one-operation profile is specific to this checkpoint. **M3 adaptive goal
-execution, M4 actual specialist coordination and M5 persistent ownership are
-planned/NOT TESTED.** Four human turns are not autonomous replanning; persisted
-chat/restart is not ongoing responsibility; development workers are not product
-specialists. B4–B7 broader gates remain. See BUILD_PLAN and PRODUCT_ACCEPTANCE.
+Add independent completion verification for a bounded ordinary request, with
+explicit scope and exact evidence bindings. Run existing model/local consumers
+continuously in isolated state. Prove a meaningful obstacle and changed action,
+then interrupt before completion and continue with human edits/no duplicate
+effects. Do not substitute reopening a completed artifact. Unknown goals remain
+needs-validation; verifying a proposed result never applies it.
 
-## Authority and historical state
+Engineering, usefulness and experience verdicts for this new candidate remain
+NOT TESTED until linked execution evidence is recorded. Broader M4 specialist
+coordination and M5 persistent event-driven ownership remain undelivered.
+Memory/learning #10 and portability #11 follow this slice, not prerequisites.
 
-The existing grant consumed all four turns/eight generations/eight counts, with
-16 retrievals and no unknown usage. Usage-based conservative estimate$0.0752650;
-reserved$1.05536; provider billing unknown. The $20 ceiling is unchanged and does
-not override exhausted call limits. No more live calls without applicable new
-call/scenario authority; deterministic development remains authorized.
+## Authority and cumulative budget
 
-Default startup remains controlled and strips model keys. No customer/private
-context, external business action, default merge or deployment was added. The
-historical controlled f68efe5 checkout/database and old intake grants remain
-untouched. See EXPERIENCE_REVIEW for the historical controlled walkthrough;
-GENERAL_MODEL_REVIEW is the current retained model-results walkthrough.
+Routine development, fixes, tests, publication and compatible non-default
+integration are authorized. Reasonable bounded synthetic model tests may continue
+on official `gpt-6.1-sol` within **one cumulative $20**, no calendar expiry. The
+initial four-turn/eight-generation checkpoint is not a project-wide stop. New
+bounded runtime grants share the same budget; historical grant bytes, counters,
+reservations, carried usage and unknown liabilities must remain intact.
+
+Last published aggregate reservation: **$2.638400 / $20**, including historical
+carried liabilities. This is not confirmed billing and is not a fresh $20 grant.
+Read the durable ledger before further activation; account/model/pricing evidence
+must be current. No automatic resends of uncertain sends or hidden refunds.
+
+Default startup remains controlled and strips model keys. New paid routes, broader
+private-data access, external business actions, default merge and deployment are
+outside authority. [Authorization](GENERAL_MODEL_AUTHORIZATION.md) records the
+clarification. Claude CLI is logged out; restoring its frontend-owner lane needs
+`claude auth login`, not an API key pasted into chat. Backend work continues and
+exact generated contracts/handoff will be published.

@@ -37,9 +37,10 @@ another routine checkpoint approval merely because the initial profile completed
 Retain the original immutable grant and all charges/reservations. Subsequent
 profiles/grants must share remaining project budget, not each receive $20. Enforce
 worst-case reservations before provider I/O; reconcile known usage conservatively,
-retain unknown liabilities and never double-count or silently refund them. Until
-cross-grant budget enforcement is implemented and verified, do not bypass the
-existing exhausted grant. That is implementation work, not missing user authority.
+retain unknown liabilities and never double-count or silently refund them.
+Cross-grant budget enforcement and immutable historical carryforward are now
+implemented in the PR #12 baseline. The initial exhausted grant is not reused;
+subsequent bounded grants share the retained project ledger and one $20 ceiling.
 
 The synthetic-only scope, official provider/model route and acknowledged retention
 remain. No new private data, external business actions, automatic human approval,
@@ -47,6 +48,18 @@ default-branch merge or deployment is authorized. Missing behavior calls for
 continued development, not a fabricated demonstration. Technical checkpoints are
 progress reports, not additional permission gates. The initial one-operation
 profile is not the architectural ceiling.
+
+## Current continuation instruction — October 8
+
+Andrew's direct continuation explicitly states:
+
+> You already have authority for routine development, fixes, testing, publication and compatible non-default integration. Reasonable bounded synthetic model tests remain authorized on the recorded route within ONE cumulative $20 budget. Preserve historical usage, reservations and unknown liabilities; the initial four-turn/eight-generation checkpoint is not a project-wide stop. Preserve protected databases and the saved review environment. Default-branch merge, deployment, new paid routes and broader private-data access remain outside this instruction.
+
+This is continued authority, not another $20 allocation. Per-run profiles remain
+bounded; operator admission/setup is distinct from a demonstrated journey that
+progresses with continuous workers and no per-turn intervention. Routine findings
+do not require a new checkpoint approval. Unknown provider sends are not safe
+retries merely because budget remains.
 
 ## Historical initial-checkpoint interpretation (superseded above)
 
