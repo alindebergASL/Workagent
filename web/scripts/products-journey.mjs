@@ -91,7 +91,7 @@ try {
   );
   await expect(page.getByLabel("Row 2 reported_total")).toHaveValue("38.50");
   await expect(
-    page.getByRole("region", { name: "Editable invoice table" }),
+    page.getByRole("region", { name: "Editable table" }),
   ).toContainText("37.50");
   await page
     .getByLabel("Row 2 note", { exact: true })

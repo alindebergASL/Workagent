@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   columnLabel,
+  isReconciliation,
+  tableColumns,
+  tableFilename,
   tableSummary,
   toolInputs,
 } from "../src/lib/product-summary";
@@ -80,12 +83,19 @@ describe("table summary leads with what the reconciliation found", () => {
   it("never invents totals from unreadable values or uncalculated rows", () => {
     const b = body([row("A", "x", "1.00", "0.00")]);
     expect(tableSummary(b).reportedTotal).toBeNull();
-    const raw = { ...b, columns: ["id", "reported_total"] };
+    const raw = {
+      ...b,
+      columns: ["id", "quantity", "unit_price", "reported_total"],
+    };
     expect(tableSummary(raw)).toMatchObject({
       calculated: false,
       calculatedTotal: null,
       headline: "Not calculated yet.",
     });
+    // Without the reconciliation's inputs it is an ordinary table.
+    expect(
+      tableSummary({ ...b, columns: ["id", "reported_total"] }).headline,
+    ).toBe("1 row · 2 columns");
   });
 
   it("does not present retained calculated columns as checked current results", () => {
@@ -100,8 +110,12 @@ describe("table summary leads with what the reconciliation found", () => {
   });
 
   it("labels columns plainly and keeps unknown ones readable", () => {
-    expect(columnLabel("reported_total")).toBe("Reported");
+    expect(columnLabel("reported_total")).toBe("Reported total");
     expect(columnLabel("customer_ref")).toBe("Customer ref");
+    // The reconciliation's own columns keep their short names there only.
+    expect(
+      tableColumns(body([])).find((c) => c.key === "reported_total")?.label,
+    ).toBe("Reported");
   });
 
   it("pairs tool inputs with their labels", () => {
@@ -142,5 +156,57 @@ describe("table summary leads with what the reconciliation found", () => {
       { label: "Unit price cents", value: "1250" },
       { label: "Shipping cents", value: "500" },
     ]);
+  });
+});
+
+describe("tables that aren't reconciliations", () => {
+  const schedule = {
+    kind: "table" as const,
+    title: "Workshop schedule",
+    source_csv: "",
+    rounding: "ROUND_HALF_UP" as const,
+    columns: ["day", "session", "owner", "check"],
+    rows: [
+      { day: "Mon", session: "Intro", owner: "Ana", check: "done" },
+      { day: "Tue", session: "Lab", owner: "Ben", check: "" },
+    ],
+    notes: [],
+  };
+  it("is generic: every column editable, readable labels, no reconciliation claims", () => {
+    expect(isReconciliation(schedule)).toBe(false);
+    expect(tableColumns(schedule)).toEqual([
+      { key: "day", label: "Day", derived: false },
+      { key: "session", label: "Session", derived: false },
+      { key: "owner", label: "Owner", derived: false },
+      { key: "check", label: "Check", derived: false },
+    ]);
+    expect(tableSummary(schedule, true)).toMatchObject({
+      calculated: false,
+      mismatches: [],
+      headline: "2 rows · 4 columns",
+    });
+    expect(tableFilename(schedule)).toBe("workshop-schedule.csv");
+  });
+  it("keeps the reconciliation behaviour when its inputs are present", () => {
+    const rec = {
+      ...schedule,
+      columns: [
+        "id",
+        "quantity",
+        "unit_price",
+        "reported_total",
+        "calculated_total",
+        "check",
+      ],
+      rows: [],
+    };
+    expect(isReconciliation(rec)).toBe(true);
+    expect(
+      tableColumns(rec)
+        .filter((c) => c.derived)
+        .map((c) => c.key),
+    ).toEqual(["calculated_total", "check"]);
+    expect(tableColumns(rec)[1]!.label).toBe("Qty");
+    expect(tableFilename(rec)).toBe("reconciled.csv");
   });
 });

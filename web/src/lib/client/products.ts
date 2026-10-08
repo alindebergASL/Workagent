@@ -1,6 +1,7 @@
 import type { components } from "../../../../contracts/src/client";
 import { all, client, command, meta, unwrap } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
+import { tableFilename } from "@/lib/product-summary";
 export type S = components["schemas"];
 export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
 export type Operation = NonNullable<S["PostMessage"]["operation"]>;
@@ -253,7 +254,7 @@ export const productApi = {
       body.kind === "file"
         ? body.filename
         : body.kind === "table"
-          ? "reconciled.csv"
+          ? tableFilename(body)
           : `tool-${body.entrypoint}.wat`;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
