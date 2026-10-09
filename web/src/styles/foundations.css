@@ -420,3 +420,51 @@
   color-scheme: light;
   display: block;
 }
+
+/* Secondary destinations (Activity & details): out of the main nav. */
+.rail-secondary {
+  margin: 0 -10px;
+}
+.topbar-more {
+  display: none;
+}
+@media (max-width: 860px) {
+  .topbar {
+    position: relative;
+  }
+  .topbar-more {
+    display: block;
+    position: absolute;
+    top: 12px;
+    right: var(--gutter);
+  }
+  .topbar-more > summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+  .topbar-more > summary::-webkit-details-marker {
+    display: none;
+  }
+  .topbar-more[open] > summary {
+    background: var(--surface-3);
+  }
+  .topbar-more-panel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 200px;
+    padding: 6px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.12);
+    z-index: 10;
+  }
+  .topbar-more-panel .nav-link {
+    display: block;
+  }
+}
