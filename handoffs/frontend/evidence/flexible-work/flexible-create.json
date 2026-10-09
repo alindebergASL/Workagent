@@ -1,0 +1,21 @@
+{
+  "mode": "actual-ui-api-postgresql-continuous-controlled-worker",
+  "provider_calls": "not_performed",
+  "phase": "create",
+  "screenshots": [
+    "01-table-saved.png",
+    "02-table-phone.png",
+    "03-view-reading.png",
+    "04-view-stale.png",
+    "05-home.png"
+  ],
+  "page_errors": [],
+  "ids": {
+    "cid": "b6757f4b-39f7-4a35-8824-eb4f66ac51cc",
+    "table": "a986e577-87a6-42cf-9fd5-bb88ab6a2738",
+    "doc": "6eb7e14a-ca1e-4a12-8127-3cf7e8e74799",
+    "view": "306c54bf-9a7b-4c43-b2d3-6250423d6939",
+    "rota_revision_for_view": "bf1099c9-506c-433f-b57c-9fda63ef7b2c",
+    "view_revision": "2b4e24b1-673b-4625-82dd-f7775959b3c5"
+  }
+}

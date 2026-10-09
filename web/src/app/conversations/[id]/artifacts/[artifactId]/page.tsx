@@ -21,6 +21,8 @@ import { ErrorNotice } from "@/components/ui";
 import { ConversationPeek } from "@/components/ConversationPeek";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { WorkSurface } from "@/components/WorkSurface";
+import { FlexibleEditor, type Bound } from "@/components/FlexibleWork";
+import { flexibleKind, isFlexible, type CustomView } from "@/lib/flexible";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import {
   isReconciliation,
@@ -38,6 +40,8 @@ type Data = {
   observations: Awaited<ReturnType<typeof resolveObservations>>;
   version: number;
   open: boolean;
+  /** For an agent-made view: where each piece of work it reads is now. */
+  bound: Bound;
 };
 type Pending =
   | { kind: "save"; id: string; base: string; body: ProductBody }
@@ -163,9 +167,10 @@ export default function ProductPage() {
         productApi.proposals(ws!, artifactId, signal),
         productApi.history(ws!, artifactId, signal),
       ]);
+      const body = artifact.current_revision.body;
       if (
         artifact.conversation_id !== id ||
-        !isProduct(artifact.current_revision.body)
+        !(isProduct(body) || isFlexible(body))
       )
         throw new ApiError({
           code: "not_found_or_not_authorized",
@@ -177,6 +182,28 @@ export default function ProductPage() {
         conversation.messages.flatMap((m) => m.products ?? []),
         (oid) => productApi.observe(ws!, oid, signal),
       );
+      // A view's bindings are checked against what each bound piece of
+      // work is now; anything unreadable counts as unavailable.
+      const bound: Bound = {};
+      if (flexibleKind(body) === "custom_view")
+        await Promise.all(
+          ((body as CustomView).bindings ?? []).map(async (b) => {
+            try {
+              const a = await productApi.get(ws!, b.artifact_id, signal);
+              bound[b.artifact_id] =
+                a.conversation_id === id
+                  ? {
+                      revision_id: a.current_revision_id,
+                      body_hash: a.current_revision.body_hash,
+                      title: a.current_revision.body.title,
+                    }
+                  : null;
+            } catch (e) {
+              if (signal.aborted) throw e;
+              bound[b.artifact_id] = null;
+            }
+          }),
+        );
       return {
         artifact,
         conversation,
@@ -185,6 +212,7 @@ export default function ProductPage() {
         observations,
         version: conversation.conversation.work_version,
         open: conversation.conversation.state === "open",
+        bound,
       };
     },
   );
@@ -211,15 +239,46 @@ export default function ProductPage() {
         <WorkSurface
           focusAgent={0}
           document={
-            <ProductEditor
-              key={`${ws}:${id}:${artifactId}`}
-              ws={ws!}
-              cid={id}
-              data={resource.data}
-              stale={resource.reconnecting}
-              refresh={resource.refresh}
-              onDirtyChange={setUnsaved}
-            />
+            isProduct(resource.data.artifact.current_revision.body) ? (
+              <ProductEditor
+                key={`${ws}:${id}:${artifactId}`}
+                ws={ws!}
+                cid={id}
+                data={resource.data}
+                stale={resource.reconnecting}
+                refresh={resource.refresh}
+                onDirtyChange={setUnsaved}
+              />
+            ) : (
+              <FlexibleEditor
+                key={`${ws}:${id}:${artifactId}`}
+                ws={ws!}
+                cid={id}
+                artifact={resource.data.artifact}
+                proposals={resource.data.proposals}
+                history={resource.data.history}
+                observations={[
+                  resource.data.observations.current,
+                  resource.data.observations.latest,
+                ].filter(
+                  (r, i, all): r is S["ObservationReadback"] =>
+                    Boolean(r) &&
+                    all.findIndex(
+                      (o) => o?.observation.id === r?.observation.id,
+                    ) === i,
+                )}
+                bound={resource.data.bound ?? {}}
+                open={resource.data.open}
+                origin={originText(
+                  resource.data.conversation,
+                  resource.data.artifact,
+                  null,
+                )}
+                stale={resource.reconnecting}
+                refresh={resource.refresh}
+                onDirtyChange={setUnsaved}
+              />
+            )
           }
           agent={
             <ConversationPeek

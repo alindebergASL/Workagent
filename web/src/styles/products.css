@@ -253,3 +253,125 @@
     padding-top: var(--sp-2);
   }
 }
+
+/* Self-describing tables: typed cells, read-only shading, invalid values. */
+.flex-table td[data-type="integer"],
+.flex-table td[data-type="decimal"],
+.flex-table th[data-type="integer"],
+.flex-table th[data-type="decimal"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.flex-table td[data-type="integer"] input,
+.flex-table td[data-type="decimal"] input {
+  text-align: right;
+}
+.flex-table td[data-type="text"] {
+  white-space: normal;
+  min-width: 140px;
+  max-width: 320px;
+}
+.flex-table td[data-type="text"] input {
+  max-width: none;
+  min-width: 160px;
+}
+.flex-table select {
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.flex-table input[aria-invalid="true"] {
+  border-color: var(--attn);
+  box-shadow: 0 0 0 1px var(--attn);
+}
+.cell-errors {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--ink);
+}
+.table-notes {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) 1.8em;
+}
+.view-fallback {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.view-bindings {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.view-bindings li[data-state="changed"],
+.view-bindings li[data-state="unavailable"] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* On a phone each row reads as a card: label, then value. */
+@media (max-width: 640px) {
+  .flex-table {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .flex-table table,
+  .flex-table tbody,
+  .flex-table tr,
+  .flex-table td {
+    display: block;
+    width: 100%;
+  }
+  .flex-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .flex-table tr {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    margin-bottom: var(--sp-2);
+    padding: var(--sp-1) 0;
+  }
+  .flex-table td,
+  .flex-table td[data-type] {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--sp-2);
+    align-items: center;
+    text-align: left;
+    white-space: normal;
+    border-bottom: 0;
+    padding: 4px var(--sp-3);
+    max-width: none;
+    min-width: 0;
+  }
+  .flex-table td::before {
+    content: attr(data-label);
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+  .flex-table td[data-label=""] {
+    display: block;
+  }
+  .flex-table td[data-label=""]::before {
+    content: none;
+  }
+  .flex-table td input,
+  .flex-table td select,
+  .flex-table td[data-type] input {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    text-align: left;
+  }
+  .flex-table + .scroll-cue,
+  .product[data-kind="structured_table"] .scroll-cue {
+    display: none;
+  }
+}

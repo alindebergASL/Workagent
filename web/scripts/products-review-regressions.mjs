@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Focused DOM regressions with explicit fixture transport; no server or provider. */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -1236,6 +1237,375 @@ try {
   console.log(
     "PASS model replies render as text (lists, emphasis, inert HTML) and long ones fold",
   );
+
+  // Self-describing work (#13), using real model-created synthetic records
+  // retained by the backend owner. Nothing here is specific to venues: the
+  // assertions follow whatever fields and actions the records declare.
+  const evidenceBody = (name) =>
+    JSON.parse(
+      readFileSync(
+        path.join(web, "..", "evidence", "flexible-work-13", name),
+        "utf8",
+      ),
+    ).revision;
+  const tableRev = evidenceBody("venues-current.json");
+  const viewRev = evidenceBody("custom-view.json");
+  const flexData = (revision, extra = {}) => ({
+    artifact: {
+      id: "a",
+      workspace_id: "w",
+      conversation_id: "c",
+      assignment_id: null,
+      current_revision_id: revision.id,
+      current_revision: { ...revision, artifact_id: "a" },
+    },
+    proposals: [],
+    history: [{ ...revision, artifact_id: "a" }],
+    observations: { current: null, latest: null },
+    conversation: {
+      conversation: {
+        id: "c",
+        title: "Fixture conversation",
+        state: "open",
+        work_version: 1,
+        created_at: "",
+        context_count: 0,
+      },
+      messages: [],
+      turns: [],
+      assignment_ids: [],
+    },
+    version: 1,
+    open: true,
+    bound: {},
+    ...extra,
+  });
+  // Writes go through the real client; the network answers per test.
+  let flexPosts = [];
+  let flexReply = () => ({ status: 500, json: {} });
+  await page.route("**/v1/workspaces/**", async (route) => {
+    const request = route.request();
+    if (request.method() !== "POST") return route.fallback();
+    const body = request.postDataJSON();
+    flexPosts.push({ url: request.url(), body });
+    const { status, json } = await flexReply(request.url(), body);
+    await route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify(json),
+    });
+  });
+  const artifactAfterSave = async (id, body, hash) => {
+    const next = await page.evaluate(() =>
+      structuredClone(window.resource.data.artifact),
+    );
+    next.current_revision_id = id;
+    next.current_revision = {
+      ...next.current_revision,
+      id,
+      body,
+      body_hash: hash,
+      author_kind: "human",
+    };
+    return { status: 200, json: next };
+  };
+  async function showFlex(data) {
+    flexPosts = [];
+    await page.evaluate((data) => {
+      sessionStorage.clear();
+      window.resource = {
+        data,
+        error: null,
+        reconnecting: false,
+        refresh: window.refresh,
+      };
+      window.mount("away");
+    }, data);
+    // Separate steps, so React really unmounts the previous work.
+    await page.evaluate(() => window.mount("product"));
+  }
+
+  {
+    const table = tableRev.body;
+    await showFlex(flexData(tableRev));
+    // Headings come from each field's own label and unit.
+    for (const f of table.fields)
+      await expect(
+        page
+          .getByRole("region", { name: "Editable table" })
+          .getByRole("columnheader", {
+            name: f.unit ? `${f.label} (${f.unit})` : f.label,
+            exact: true,
+          }),
+      ).toBeVisible();
+    await expect(page.getByTestId("product-verification")).toHaveText(
+      "Saved by you. Nothing checks this automatically.",
+    );
+    const dec = table.fields.find((f) => f.type === "decimal");
+    const bool = table.fields.find((f) => f.type === "boolean");
+    const textField = table.fields.find((f) => f.type === "text");
+    const row = table.rows[1];
+    const name = row.cells.find((c) => c.field_key === textField.key).value;
+    const decInput = page.getByLabel(`${name} ${dec.label}`, { exact: true });
+    // A value the service would refuse stays as typed, is marked, and
+    // blocks saving; nothing invalid enters the saved body.
+    await decInput.fill("12.3456789");
+    await expect(decInput).toHaveAttribute("aria-invalid", "true");
+    await expect(
+      page.getByRole("alert").filter({ hasText: dec.label }),
+    ).toContainText("decimal place");
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toBeDisabled();
+    await decInput.fill("199");
+    await expect(decInput).not.toHaveAttribute("aria-invalid", "true");
+    await page
+      .getByLabel(`${name} ${bool.label}`, { exact: true })
+      .selectOption("no");
+    await page.getByRole("button", { name: "Add a row", exact: true }).click();
+    await page
+      .getByLabel(`Row ${table.rows.length + 1} ${textField.label}`, {
+        exact: true,
+      })
+      .fill("Added by a person");
+    // Survives leaving and coming back before saving.
+    await page.evaluate(() => {
+      window.mount("away");
+    });
+    await page.evaluate(() => window.mount("product"));
+    // What the person typed is kept as typed; the body holds the normalized value.
+    await expect(decInput).toHaveValue("199");
+    flexReply = (url, body) =>
+      artifactAfterSave("saved-2", body.body, "e".repeat(64));
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect(page.getByText("Your edits are saved.")).toBeVisible();
+    const save = flexPosts[0];
+    assert.match(save.url, /\/v1\/workspaces\/w\/artifacts\/a\/save$/);
+    assert.equal(save.body.expected_current_revision_id, tableRev.id);
+    const sent = save.body.body;
+    assert.deepEqual(
+      sent.fields.map((f) => f.key),
+      table.fields.map((f) => f.key),
+    );
+    assert.deepEqual(
+      sent.rows.slice(0, table.rows.length).map((r) => r.row_id),
+      table.rows.map((r) => r.row_id),
+    );
+    const sentRow = sent.rows.find((r) => r.row_id === row.row_id);
+    const cell = (r, k) => r.cells.find((c) => c.field_key === k).value;
+    assert.equal(cell(sentRow, dec.key), `199.${"0".repeat(dec.scale)}`);
+    assert.equal(cell(sentRow, bool.key), false);
+    assert.equal(cell(sent.rows.at(-1), textField.key), "Added by a person");
+    // Every other saved value is untouched.
+    for (const r of table.rows)
+      for (const c of r.cells)
+        if (!(
+          r.row_id === row.row_id && [dec.key, bool.key].includes(c.field_key)
+        ))
+          assert.deepEqual(
+            cell(
+              sent.rows.find((x) => x.row_id === r.row_id),
+              c.field_key,
+            ),
+            c.value,
+          );
+    // On a phone each row reads as a labelled card, without sideways scroll.
+    await page.addStyleTag({
+      path: path.join(web, "src", "styles", "products.css"),
+    });
+    await page.setViewportSize({ width: 360, height: 800 });
+    const td = page
+      .getByLabel(`${name} ${dec.label}`, { exact: true })
+      .locator("xpath=..");
+    assert.equal(
+      await td.evaluate((el) => getComputedStyle(el).display),
+      "grid",
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    );
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  passed++;
+  console.log(
+    "PASS structured table edits by declared field type, refuses invalid values and saves exact identities",
+  );
+
+  {
+    const view = viewRev.body;
+    const binding = view.bindings[0];
+    const action = view.actions[0];
+    const tableArtifact = (rev) => ({
+      view_revision_id: viewRev.id,
+      access_generation: view.access_generation,
+      binding: binding.name,
+      artifact_id: binding.artifact_id,
+      revision_id: rev.id,
+      body_hash: rev.body_hash,
+      body: rev.body,
+    });
+    const reply = tableArtifact({
+      ...tableRev,
+      id: binding.revision_id,
+      body_hash: binding.body_hash,
+    });
+    flexReply = () => ({ status: 200, json: reply });
+    await showFlex(
+      flexData(viewRev, {
+        bound: {
+          [binding.artifact_id]: {
+            revision_id: binding.revision_id,
+            body_hash: binding.body_hash,
+            title: tableRev.body.title,
+          },
+        },
+      }),
+    );
+    await expect(page.getByText("· current saved version")).toBeVisible();
+    const frame = page.frameLocator(`iframe[title="${view.title}"]`);
+    await frame
+      .getByRole("button", { name: /refresh/i })
+      .first()
+      .click();
+    await expect.poll(() => flexPosts.length).toBeGreaterThan(0);
+    const posts = [...flexPosts];
+    for (const p of posts) {
+      assert.match(p.url, /\/v1\/workspaces\/w\/artifacts\/a\/view-actions$/);
+      const { request_id, ...rest } = p.body;
+      assert.ok(request_id);
+      assert.deepEqual(rest, {
+        schema_version: "workagent/v1",
+        view_revision_id: viewRev.id,
+        view_body_hash: viewRev.body_hash,
+        access_generation: view.access_generation,
+        action: action.name,
+        payload: {},
+      });
+    }
+    await expect(page.getByTestId("view-problem")).toHaveCount(0);
+    // The generated view itself got the saved rows (this record's own
+    // status element; the app knows nothing about it).
+    await expect(frame.locator("#status")).not.toContainText(
+      "Waiting to read saved data",
+    );
+    // The generated view's own request bridge: undeclared actions and
+    // payloads that try to name a target are refused before any call.
+    const sandbox = page.frames().find((f) => f !== page.mainFrame());
+    const refused = await sandbox.evaluate(async (name) => {
+      const out = [];
+      for (const [a, p] of [
+        ["approve", {}],
+        [name, { artifact_id: "other" }],
+      ])
+        out.push(
+          await window.workagent.request(a, p).then(
+            () => "ok",
+            (e) => e.message,
+          ),
+        );
+      return out;
+    }, action.name);
+    assert.deepEqual(refused, [
+      "This view can’t do that.",
+      "That didn’t work.",
+    ]);
+    // Nothing but the declared action with an empty payload ever left.
+    for (const p of flexPosts) {
+      assert.equal(p.body.action, action.name);
+      assert.deepEqual(p.body.payload, {});
+    }
+    await expect(page.getByTestId("view-refusal")).toHaveText(
+      "The view asked for something it isn’t allowed to.",
+    );
+    // A stale view: the service refuses, and the trusted shell says so
+    // whatever the generated view itself shows.
+    flexReply = () => ({
+      status: 404,
+      json: {
+        code: "not_found_or_not_authorized",
+        message: "Resource unavailable.",
+        next_action: "Check your workspace and current access.",
+        request_id: "r",
+        details: {
+          current_revision_id: null,
+          current_version: null,
+          fields: [],
+          proposal_id: null,
+        },
+      },
+    });
+    await frame
+      .getByRole("button", { name: /refresh/i })
+      .first()
+      .click();
+    await expect(page.getByTestId("view-problem")).toContainText(
+      "couldn’t read your saved work",
+    );
+    // The readable version is always one click away, as plain text.
+    await page.getByText("Readable version", { exact: true }).first().click();
+    await expect(page.locator(".view-fallback").first()).toHaveText(
+      view.fallback,
+    );
+  }
+  passed++;
+  console.log(
+    "PASS agent-made view reads only through declared actions bound to the saved revision; refusals come from the shell",
+  );
+
+  {
+    const view = viewRev.body;
+    const binding = view.bindings[0];
+    // The bound table moved on, so the service refuses the old view's reads.
+    flexReply = (url, body) =>
+      /\/save$/.test(url)
+        ? artifactAfterSave("view-2", body.body, "c".repeat(64))
+        : { status: 404, json: { code: "not_found_or_not_authorized" } };
+    await showFlex(
+      flexData(viewRev, {
+        bound: {
+          [binding.artifact_id]: {
+            revision_id: "newer-table",
+            body_hash: "d".repeat(64),
+            title: tableRev.body.title,
+          },
+        },
+      }),
+    );
+    await expect(
+      page.getByText("· changed since this view was made"),
+    ).toBeVisible();
+    // The view's own first read is refused; wait for that to settle.
+    await expect
+      .poll(() => flexPosts.some((p) => /view-actions$/.test(p.url)))
+      .toBe(true);
+    await expect(page.getByTestId("view-problem")).toHaveCount(0);
+    await page
+      .getByRole("button", { name: "Use the latest saved versions" })
+      .click();
+    await expect(
+      page.getByText("The view now reads the latest saved versions."),
+    ).toBeVisible();
+    const saves = flexPosts.filter((p) => /\/save$/.test(p.url));
+    assert.equal(saves.length, 1);
+    const [save] = saves;
+    assert.match(save.url, /\/v1\/workspaces\/w\/artifacts\/a\/save$/);
+    assert.equal(save.body.expected_current_revision_id, viewRev.id);
+    assert.deepEqual(save.body.body, {
+      ...view,
+      bindings: [
+        { ...binding, revision_id: "newer-table", body_hash: "d".repeat(64) },
+      ],
+    });
+  }
+  passed++;
+  console.log(
+    "PASS a view whose bound work changed says so and rebinds only on an explicit human save",
+  );
+  await page.unroute("**/v1/workspaces/**");
 
   await page.evaluate(() => {
     window.resource = {

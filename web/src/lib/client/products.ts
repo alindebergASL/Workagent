@@ -6,8 +6,14 @@ export type S = components["schemas"];
 export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
 export type Operation = NonNullable<S["PostMessage"]["operation"]>;
 
-export function isProduct(body: S["Revision"]["body"]): body is ProductBody {
-  return "kind" in body;
+/** The older typed products: reconciliation tables, tools and files. */
+export function isProduct(
+  body: S["Revision"]["body"] | S["Proposal"]["body"],
+): body is ProductBody {
+  return (
+    "kind" in body &&
+    (body.kind === "table" || body.kind === "tool" || body.kind === "file")
+  );
 }
 /** Never promote a stale, unrelated or proposed observation to current output. */
 export function currentObservation(
@@ -177,7 +183,7 @@ export const productApi = {
     aid: string,
     id: string,
     base: string,
-    body: ProductBody,
+    body: S["HumanSave"]["body"],
   ) =>
     unwrap(
       client.POST(
@@ -215,6 +221,20 @@ export const productApi = {
             expected_current_revision_id: base,
             resolution,
           },
+        },
+      ),
+    ),
+  /**
+   * A view's declared action, sent by the trusted shell. The route names the
+   * view; the request carries only the view revision on screen.
+   */
+  viewAction: (ws: string, aid: string, body: S["ViewActionRequest"]) =>
+    unwrap(
+      client.POST(
+        "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/view-actions",
+        {
+          params: { path: { workspace_id: ws, artifact_id: aid } },
+          body,
         },
       ),
     ),

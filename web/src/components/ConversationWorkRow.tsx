@@ -8,6 +8,9 @@ const KIND: Record<ConversationWork["kind"], string> = {
   table: "Table",
   tool: "Tool",
   file: "File",
+  document: "Document",
+  structured_table: "Table",
+  custom_view: "Interactive view",
 };
 
 /** One product a conversation owns; opens the exact work, not a summary. */
