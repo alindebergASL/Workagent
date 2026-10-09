@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/view-actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** View Action */
+        post: operations["invoke_view_action"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/assignments": {
         parameters: {
             query?: never;
@@ -934,7 +951,7 @@ export interface components {
             /** Model Receipt */
             model_receipt?: string | null;
             /** Operation */
-            operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"]) | null;
+            operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"] | components["schemas"]["PublishArtifact-Output"]) | null;
             result?: components["schemas"]["TurnResult"] | null;
             /** Run Id */
             run_id: string;
@@ -1008,6 +1025,58 @@ export interface components {
              */
             schema_version: "workagent/v1";
         };
+        /** CustomViewBody */
+        "CustomViewBody-Input": {
+            /** Access Generation */
+            access_generation: number;
+            /** Actions */
+            actions?: components["schemas"]["ReadBindingAction-Input"][];
+            /** Bindings */
+            bindings?: components["schemas"]["ViewBinding"][];
+            /** Fallback */
+            fallback: string;
+            /**
+             * Kind
+             * @default custom_view
+             * @constant
+             */
+            kind: "custom_view";
+            source: components["schemas"]["ViewSource"];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default custom-view/v1
+             * @constant
+             */
+            version: "custom-view/v1";
+        };
+        /** CustomViewBody */
+        "CustomViewBody-Output": {
+            /** Access Generation */
+            access_generation: number;
+            /** Actions */
+            actions?: components["schemas"]["ReadBindingAction-Output"][];
+            /** Bindings */
+            bindings?: components["schemas"]["ViewBinding"][];
+            /** Fallback */
+            fallback: string;
+            /**
+             * Kind
+             * @default custom_view
+             * @constant
+             */
+            kind: "custom_view";
+            source: components["schemas"]["ViewSource"];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default custom-view/v1
+             * @constant
+             */
+            version: "custom-view/v1";
+        };
         /** DelegateConversation */
         DelegateConversation: {
             /** Command Id */
@@ -1044,6 +1113,51 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** DraftObservation */
+        DraftObservation: {
+            /**
+             * Generated Code Executed
+             * @default false
+             * @constant
+             */
+            generated_code_executed: false;
+            /**
+             * Goal Status
+             * @default needs_validation
+             * @constant
+             */
+            goal_status: "needs_validation";
+            /**
+             * Kind
+             * @default artifact_draft
+             * @constant
+             */
+            kind: "artifact_draft";
+            /**
+             * Validation
+             * @default shape_only
+             * @constant
+             */
+            validation: "shape_only";
+        };
+        /** EmptyPayload */
+        EmptyPayload: Record<string, never>;
+        /** EmptyPayloadSchema */
+        EmptyPayloadSchema: {
+            /**
+             * Additionalproperties
+             * @default false
+             * @constant
+             */
+            additionalProperties: false;
+            properties?: components["schemas"]["EmptyPayload"];
+            /**
+             * Type
+             * @default object
+             * @constant
+             */
+            type: "object";
         };
         /**
          * ErrorCode
@@ -1137,7 +1251,7 @@ export interface components {
         /** HumanSave */
         HumanSave: {
             /** Body */
-            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"];
+            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"] | components["schemas"]["StructuredTableBody-Input"] | components["schemas"]["CustomViewBody-Input"];
             /** Command Id */
             command_id: string;
             /** Expected Current Revision Id */
@@ -1260,7 +1374,7 @@ export interface components {
             /** Expected Work Version */
             expected_work_version: number;
             /** Operation */
-            operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"]) | null;
+            operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"] | components["schemas"]["PublishArtifact-Input"]) | null;
             /** Request Id */
             request_id: string;
             /**
@@ -1296,7 +1410,7 @@ export interface components {
             /** Operation Hash */
             operation_hash: string;
             /** Output */
-            output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservation"];
+            output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservation"] | components["schemas"]["DraftObservation"];
             /** Proposal Id */
             proposal_id?: string | null;
             /** Revision Id */
@@ -1330,7 +1444,7 @@ export interface components {
             /** Operation Hash */
             operation_hash: string;
             /** Output */
-            output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"];
+            output: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"] | components["schemas"]["DraftObservation"];
             /** Proposal Id */
             proposal_id?: string | null;
             /** Revision Id */
@@ -1348,7 +1462,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "table" | "file" | "tool";
+            kind: "table" | "file" | "tool" | "document" | "structured_table" | "custom_view";
             /** Observation Id */
             observation_id: string;
             /** Proposal Id */
@@ -1369,7 +1483,7 @@ export interface components {
             /** Base Work Version */
             base_work_version: number;
             /** Body */
-            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"];
+            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"] | components["schemas"]["StructuredTableBody-Output"] | components["schemas"]["CustomViewBody-Output"];
             /** Body Hash */
             body_hash: string;
             /** Conversation Id */
@@ -1400,6 +1514,62 @@ export interface components {
             items: components["schemas"]["Proposal"][];
             /** Next Cursor */
             next_cursor?: string | null;
+        };
+        /** PublishArtifact */
+        "PublishArtifact-Input": {
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /** Body */
+            body: components["schemas"]["Body"] | components["schemas"]["StructuredTableBody-Input"] | components["schemas"]["CustomViewBody-Input"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "publish_artifact";
+        };
+        /** PublishArtifact */
+        "PublishArtifact-Output": {
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Base Revision Id */
+            base_revision_id?: string | null;
+            /** Body */
+            body: components["schemas"]["Body"] | components["schemas"]["StructuredTableBody-Output"] | components["schemas"]["CustomViewBody-Output"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "publish_artifact";
+        };
+        /** ReadBindingAction */
+        "ReadBindingAction-Input": {
+            /** Binding */
+            binding: string;
+            /**
+             * Kind
+             * @default read_binding
+             * @constant
+             */
+            kind: "read_binding";
+            /** Name */
+            name: string;
+            payload_schema?: components["schemas"]["EmptyPayloadSchema"];
+        };
+        /** ReadBindingAction */
+        "ReadBindingAction-Output": {
+            /** Binding */
+            binding: string;
+            /**
+             * Kind
+             * @default read_binding
+             * @constant
+             */
+            kind: "read_binding";
+            /** Name */
+            name: string;
+            payload_schema?: components["schemas"]["EmptyPayloadSchema"];
         };
         /** ReconcileCSV */
         ReconcileCSV: {
@@ -1490,9 +1660,9 @@ export interface components {
         RetainedLocalResult: {
             binding: components["schemas"]["ModelSelectionBinding"];
             /** Body */
-            body?: components["schemas"]["TableBody"] | components["schemas"]["ToolBody"] | null;
+            body?: components["schemas"]["TableBody"] | components["schemas"]["ToolBody"] | components["schemas"]["Body"] | components["schemas"]["StructuredTableBody-Output"] | components["schemas"]["CustomViewBody-Output"] | null;
             /** Output */
-            output?: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"] | null;
+            output?: components["schemas"]["CSVObservation"] | components["schemas"]["WasmObservationResponse"] | components["schemas"]["DraftObservation"] | null;
             /** Published */
             published: boolean;
             /** Reason */
@@ -1515,7 +1685,7 @@ export interface components {
              */
             author_kind: "human" | "worker";
             /** Body */
-            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"];
+            body: components["schemas"]["Body"] | components["schemas"]["TableBody"] | components["schemas"]["FileBody"] | components["schemas"]["ToolBody"] | components["schemas"]["StructuredTableBody-Output"] | components["schemas"]["CustomViewBody-Output"];
             /** Body Hash */
             body_hash: string;
             /**
@@ -1762,6 +1932,52 @@ export interface components {
             /** Source Id */
             source_id: string;
         };
+        /** StructuredTableBody */
+        "StructuredTableBody-Input": {
+            /** Fields */
+            fields: components["schemas"]["TableField"][];
+            /**
+             * Kind
+             * @default structured_table
+             * @constant
+             */
+            kind: "structured_table";
+            /** Notes */
+            notes?: string[];
+            /** Rows */
+            rows: components["schemas"]["TableRow"][];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default structured-table/v1
+             * @constant
+             */
+            version: "structured-table/v1";
+        };
+        /** StructuredTableBody */
+        "StructuredTableBody-Output": {
+            /** Fields */
+            fields: components["schemas"]["TableField"][];
+            /**
+             * Kind
+             * @default structured_table
+             * @constant
+             */
+            kind: "structured_table";
+            /** Notes */
+            notes?: string[];
+            /** Rows */
+            rows: components["schemas"]["TableRow"][];
+            /** Title */
+            title: string;
+            /**
+             * Version
+             * @default structured-table/v1
+             * @constant
+             */
+            version: "structured-table/v1";
+        };
         /** TableBody */
         TableBody: {
             /** Columns */
@@ -1787,6 +2003,40 @@ export interface components {
             source_csv: string;
             /** Title */
             title: string;
+        };
+        /** TableCell */
+        TableCell: {
+            /** Field Key */
+            field_key: string;
+            /** Value */
+            value: string | number | boolean | null;
+        };
+        /** TableField */
+        TableField: {
+            /** Editable */
+            editable: boolean;
+            /** Enum */
+            enum?: string[] | null;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Scale */
+            scale?: number | null;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "text" | "integer" | "decimal" | "boolean" | "enum";
+            /** Unit */
+            unit?: string | null;
+        };
+        /** TableRow */
+        TableRow: {
+            /** Cells */
+            cells: components["schemas"]["TableCell"][];
+            /** Row Id */
+            row_id: string;
         };
         /** Task */
         Task: {
@@ -1953,6 +2203,68 @@ export interface components {
              * @enum {string}
              */
             state: "queued" | "responding" | "replied" | "failed" | "unavailable" | "outcome_unknown" | "cancelled";
+        };
+        /** ViewActionRequest */
+        ViewActionRequest: {
+            /** Access Generation */
+            access_generation: number;
+            /** Action */
+            action: string;
+            payload: components["schemas"]["EmptyPayload"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+            /** View Body Hash */
+            view_body_hash: string;
+            /** View Revision Id */
+            view_revision_id: string;
+        };
+        /** ViewActionResponse */
+        ViewActionResponse: {
+            /** Access Generation */
+            access_generation: number;
+            /** Artifact Id */
+            artifact_id: string;
+            /** Binding */
+            binding: string;
+            /** Body */
+            body: components["schemas"]["Body"] | components["schemas"]["StructuredTableBody-Output"];
+            /** Body Hash */
+            body_hash: string;
+            /** Revision Id */
+            revision_id: string;
+            /** View Revision Id */
+            view_revision_id: string;
+        };
+        /** ViewBinding */
+        ViewBinding: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Body Hash */
+            body_hash: string;
+            /** Name */
+            name: string;
+            /** Revision Id */
+            revision_id: string;
+        };
+        /** ViewSource */
+        ViewSource: {
+            /**
+             * Css
+             * @default
+             */
+            css: string;
+            /** Html */
+            html: string;
+            /**
+             * Js
+             * @default
+             */
+            js: string;
         };
         /** WasmAcceptance */
         WasmAcceptance: {
@@ -2790,6 +3102,90 @@ export interface operations {
             };
         };
     };
+    invoke_view_action: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ViewActionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ViewActionResponse"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     list_assignments: {
         parameters: {
             query?: {
@@ -2962,7 +3358,7 @@ export interface operations {
                      *         "provider_turn_id": null,
                      *         "state": "queued",
                      *         "stop_reason": null,
-                     *         "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
+                     *         "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -4385,7 +4781,7 @@ export interface operations {
                      *       "provider_turn_id": null,
                      *       "state": "running",
                      *       "stop_reason": null,
-                     *       "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
+                     *       "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

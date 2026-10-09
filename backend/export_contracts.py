@@ -16,7 +16,9 @@ def main():
     from workagent.general_schema import GeneralDecision,GeneralExplanation
     from workagent.general_responses import PROFILE
     from workagent.conversations import profile
-    outputs={'general-decision.schema.json':GeneralDecision.model_json_schema(),
+    from workagent.adaptive import AdaptiveDecision
+    outputs={'adaptive-decision.schema.json':AdaptiveDecision.model_json_schema(),
+             'general-decision.schema.json':GeneralDecision.model_json_schema(),
              'general-explanation.schema.json':GeneralExplanation.model_json_schema(),
              'general-responses-profile.json':profile(PROFILE),
              'general-tool-registry.json':{'profile':'general-products-controlled-v1','tools':Products().local_tool_registry()},

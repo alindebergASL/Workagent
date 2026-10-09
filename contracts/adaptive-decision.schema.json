@@ -23,6 +23,34 @@
       "title": "AttachmentRef",
       "type": "object"
     },
+    "CSVCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "expected_sum": {
+          "pattern": "^-?[0-9]{1,15}\\.[0-9]{2}$",
+          "title": "Expected Sum",
+          "type": "string"
+        },
+        "kind": {
+          "const": "csv_totals",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mismatch_count": {
+          "maximum": 500,
+          "minimum": 0,
+          "title": "Mismatch Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "expected_sum",
+        "mismatch_count"
+      ],
+      "title": "CSVCheck",
+      "type": "object"
+    },
     "CSVDecision": {
       "additionalProperties": false,
       "properties": {
@@ -555,6 +583,38 @@
       "title": "Reply",
       "type": "object"
     },
+    "Stop": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "stop",
+          "title": "Kind",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "complete",
+            "waiting_for_user",
+            "blocked"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 12000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "outcome",
+        "text"
+      ],
+      "title": "Stop",
+      "type": "object"
+    },
     "TableCell": {
       "additionalProperties": false,
       "properties": {
@@ -651,6 +711,38 @@
       "title": "ViewBinding",
       "type": "object"
     },
+    "WasmCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "maximum": 1000000000,
+            "minimum": -1000000000,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "expected": {
+          "pattern": "^(0|-?[1-9][0-9]{0,18})$",
+          "title": "Expected",
+          "type": "string"
+        },
+        "kind": {
+          "const": "wasm_return",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "arguments",
+        "expected"
+      ],
+      "title": "WasmCheck",
+      "type": "object"
+    },
     "WasmDecision": {
       "additionalProperties": false,
       "properties": {
@@ -726,14 +818,40 @@
         },
         {
           "$ref": "#/$defs/PublishDecision"
+        },
+        {
+          "$ref": "#/$defs/Stop"
         }
       ],
       "title": "Decision"
+    },
+    "goal": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "title": "Goal",
+      "type": "string"
+    },
+    "success_criteria": {
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/WasmCheck"
+          },
+          {
+            "$ref": "#/$defs/CSVCheck"
+          }
+        ]
+      },
+      "maxItems": 8,
+      "title": "Success Criteria",
+      "type": "array"
     }
   },
   "required": [
+    "goal",
+    "success_criteria",
     "decision"
   ],
-  "title": "GeneralDecision",
+  "title": "AdaptiveDecision",
   "type": "object"
 }
