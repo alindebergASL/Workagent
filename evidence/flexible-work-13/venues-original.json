@@ -1,0 +1,225 @@
+{
+  "artifact_id": "167c057f-3ff9-432a-930c-0bdc46841664",
+  "revision": {
+    "id": "cf5da634-2937-43ae-9b27-2a466e8fe226",
+    "artifact_id": "167c057f-3ff9-432a-930c-0bdc46841664",
+    "revision_number": 1,
+    "parent_revision_id": null,
+    "author_id": "local-human",
+    "author_kind": "worker",
+    "body": {
+      "kind": "structured_table",
+      "version": "structured-table/v1",
+      "title": "Draft fictional venue comparison",
+      "fields": [
+        {
+          "key": "venue",
+          "label": "Venue (supplied fact)",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "capacity",
+          "label": "Capacity (supplied fact)",
+          "type": "integer",
+          "editable": true,
+          "unit": "people",
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "hire_cost",
+          "label": "Hire cost (supplied fact)",
+          "type": "decimal",
+          "editable": true,
+          "unit": "GBP",
+          "scale": 2,
+          "enum": null
+        },
+        {
+          "key": "step_free",
+          "label": "Step-free access (supplied fact)",
+          "type": "boolean",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "travel_time",
+          "label": "Travel time (supplied fact)",
+          "type": "integer",
+          "editable": true,
+          "unit": "minutes",
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "assessment",
+          "label": "Draft assessment (derived, not supplied)",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "venue_notes",
+          "label": "Your notes",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "venue-willow-hall",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Willow Hall"
+            },
+            {
+              "field_key": "capacity",
+              "value": 80
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "250.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 15
+            },
+            {
+              "field_key": "assessment",
+              "value": "Draft recommendation: meets all three requirements based on the supplied fictional facts."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        },
+        {
+          "row_id": "venue-station-loft",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Station Loft"
+            },
+            {
+              "field_key": "capacity",
+              "value": 100
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "200.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": false
+            },
+            {
+              "field_key": "travel_time",
+              "value": 8
+            },
+            {
+              "field_key": "assessment",
+              "value": "Does not meet the step-free access requirement; capacity and hire cost meet the stated limits."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        },
+        {
+          "row_id": "venue-river-centre",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "River Centre"
+            },
+            {
+              "field_key": "capacity",
+              "value": 70
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "320.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 12
+            },
+            {
+              "field_key": "assessment",
+              "value": "Hire cost exceeds the \u00a3300 limit by \u00a320.00; capacity and step-free access meet requirements."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        },
+        {
+          "row_id": "venue-garden-room",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Garden Room"
+            },
+            {
+              "field_key": "capacity",
+              "value": 60
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "180.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 5
+            },
+            {
+              "field_key": "assessment",
+              "value": "Capacity falls short of the 70-person minimum by 10 people; hire cost and step-free access meet requirements."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "Draft synthetic planning data only: all venue facts were supplied by the human and have not been externally verified.",
+        "Requirements: capacity at least 70 people, step-free access, and hire cost at most \u00a3300.00 GBP. Travel time is supplied for comparison, not a stated eligibility requirement.",
+        "The draft assessment column is an interpretation, not a supplied venue fact. Willow Hall is the only venue meeting all three requirements on the supplied facts; this is not a booking or approval.",
+        "Stable row IDs preserve individual venue identities across revisions. All fields are editable; null notes mean no notes supplied. Preserve human notes on later revisions.",
+        "Assessments are static draft text, not automatically recalculated when facts change; review them after editing. No interactive comparison view has been created at this stage."
+      ]
+    },
+    "body_hash": "dcd7474c16c41989b52a4d601cb86f1d8dbaab5a0850015484dc462317b62d89",
+    "source_dependencies": [],
+    "created_at": "2026-10-09T22:25:12.328118Z"
+  }
+}

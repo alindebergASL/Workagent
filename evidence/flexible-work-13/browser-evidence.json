@@ -1,0 +1,49 @@
+{
+  "scope": "Real saved live-model source through unchanged SandboxedView host plus real authenticated backend broker; isolated integration harness, not full product UI",
+  "artifact_id": "597739cf-363b-49ea-becb-decf484c452c",
+  "view_revision_id": "78f1f0b2-f51c-4f0e-bb5a-194a6bc4002d",
+  "view_body_hash": "11f53a0022eee5abc621d0b7c6ca826da07c7b7ce522bc140047aec6d7ca153b",
+  "checks": [
+    "Initial saved constraints honestly show no qualifying venue",
+    "Budget control reveals Willow Hall and River Centre with preserved human note",
+    "Accessibility control changes eligible result to Station Loft",
+    "Refresh performs an actual authenticated exact-bound broker read",
+    "Undeclared approval is refused by host without any broker call",
+    "Extra target payload is rejected by real broker and cannot write",
+    "Actual generated frame cannot access parent DOM or storage",
+    "Generated view fits phone viewport",
+    "Real human save makes the open frame stale; refresh is refused and retained results visibly say previously loaded, not freshly loaded",
+    "Reopen retains exact generated source and human fallback edit; new revision broker succeeds"
+  ],
+  "broker_calls": [
+    {
+      "action": "refresh_venues",
+      "status": 200,
+      "revision_id": "3067f3b4-8877-49cf-9778-ce6817dade1c"
+    },
+    {
+      "action": "refresh_venues",
+      "status": 200,
+      "revision_id": "3067f3b4-8877-49cf-9778-ce6817dade1c"
+    },
+    {
+      "action": "refresh_venues",
+      "status": 422,
+      "revision_id": null
+    },
+    {
+      "action": "refresh_venues",
+      "status": 404,
+      "revision_id": null
+    },
+    {
+      "action": "refresh_venues",
+      "status": 200,
+      "revision_id": "3067f3b4-8877-49cf-9778-ce6817dade1c"
+    }
+  ],
+  "network": [
+    "https://app.test/work"
+  ],
+  "errors": []
+}

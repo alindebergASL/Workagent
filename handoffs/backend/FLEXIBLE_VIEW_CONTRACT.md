@@ -139,7 +139,7 @@ JSON-size checks use compact JSON, UTF-8, unescaped Unicode. These bounds fit th
 - Controlled path: normal `PostMessage` on a controlled product conversation with `operation: {"kind":"publish_artifact","body":<one body>,"artifact_id":null,"base_revision_id":null}`. Existing controlled worker persists one draft artifact (no redundant download-file artifact).
 - General model path: ordinary message (no operation); closed `publish_artifact` decision admitted by existing general or adaptive response consumer. Existing final receipt remains required. Synthetic transport tests exercise the actual admission/selection/staging/publication path, not live inference.
 - Read/reopen: existing `GET /artifacts/{id}` and requested-revision query/history.
-- Human edit: existing `POST /artifacts/{id}/human-revisions` with `expected_current_revision_id` and full `body`; one CAS winner, immutable history.
+- Human edit: existing `POST /artifacts/{id}/save` with `expected_current_revision_id` and full `body`; one CAS winner, immutable history.
 - Model revision: ordinary general message carrying `target:{artifact_id,revision_id,body_hash}`; selection target must match exactly. Controlled operation uses `artifact_id`/`base_revision_id`. Result is a pending proposal, never a silent save or acceptance. Existing `/proposals/{id}/accept` checks the exact current base again.
 - View creation/saving/proposal/acceptance rechecks current scope/generation/bindings. Stale bindings require explicit refresh/review, not automatic substitution.
 
