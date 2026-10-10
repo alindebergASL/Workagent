@@ -1,0 +1,20 @@
+{
+  "carried_reserved_cost_usd": "3.42992",
+  "request_counts": {
+    "count_send": 8,
+    "dispatch": 8,
+    "read": 70,
+    "cancel": 0
+  },
+  "reserved_input_tokens": 160000,
+  "reserved_output_tokens": 65536,
+  "reserved_cost_usd": "4.48528",
+  "reported_usage": {
+    "input_tokens": 69703,
+    "output_tokens": 6266
+  },
+  "unknown_usage_steps": 0,
+  "conservatively_calculated_cost_usd": "0.2369175",
+  "billed_cost_usd": null,
+  "cost_basis": "undiscounted reservation rates; not provider billing"
+}

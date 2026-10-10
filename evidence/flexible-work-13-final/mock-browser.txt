@@ -1,0 +1,22 @@
+$ playwright test
+[WebServer] $ next start --hostname 127.0.0.1 --port 3000 --hostname 127.0.0.1 --port 3162
+
+Running 15 tests using 1 worker
+
+  ✓   1 [desktop] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (25.5s)
+  ✓   2 [desktop] › e2e/journey.spec.ts:399:7 › S1 journey (mock mode) › protected lookups and command replay @journey (1.4s)
+  ✓   3 [desktop] › e2e/journey.spec.ts:455:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (6.8s)
+  ✓   4 [desktop] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (6.0s)
+  ✓   5 [desktop] › e2e/revision-draft.spec.ts:26:5 › An unsent request survives pane switches and a reload @journey (11.0s)
+  ✓   6 [mobile] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (31.0s)
+  ✓   7 [mobile] › e2e/journey.spec.ts:399:7 › S1 journey (mock mode) › protected lookups and command replay @journey (1.1s)
+  ✓   8 [mobile] › e2e/journey.spec.ts:455:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (5.9s)
+  ✓   9 [mobile] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (4.0s)
+  ✓  10 [mobile] › e2e/revision-draft.spec.ts:26:5 › An unsent request survives pane switches and a reload @journey (10.1s)
+  ✓  11 [narrow] › e2e/journey.spec.ts:18:7 › S1 journey (mock mode) › start → inspect → edit → save → stale proposal → resolve @journey (26.9s)
+  ✓  12 [narrow] › e2e/journey.spec.ts:399:7 › S1 journey (mock mode) › protected lookups and command replay @journey (1.2s)
+  ✓  13 [narrow] › e2e/journey.spec.ts:455:7 › S1 journey (mock mode) › start error keeps the request; retry replays the same command; reconnect resumes @journey (7.2s)
+  ✓  14 [narrow] › e2e/reopen.spec.ts:9:5 › reopen the same assignment and artifact after restart @reopen (3.5s)
+  ✓  15 [narrow] › e2e/revision-draft.spec.ts:26:5 › An unsent request survives pane switches and a reload @journey (9.9s)
+
+  15 passed (2.7m)

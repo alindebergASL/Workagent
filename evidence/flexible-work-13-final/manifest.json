@@ -1,0 +1,32 @@
+{
+  "candidate_sha": "d6de6b728a5641f2d7f31c68250b8695c3edbfbf",
+  "candidate_tree": "6db590334f0b6fbaa726d4c3e6574b9c7881a76e",
+  "scope": "exact-candidate final gates; synthetic data only; prior live generation provenance remains in candidate evidence/flexible-work-13",
+  "files": {
+    "backend.txt": "f3c567786599cf5e9e667b34e58865515a5799cd4dd9d91a53e9471709973759",
+    "budget.json": "904385dc289dac69a1fdc157e11455ce541d45eae8c2906a2af8135657c6f1dc",
+    "contracts.txt": "f724b6ae3e148f84844bd1e3263c2914b88c98f3e176985df965d754e2c18827",
+    "dom.txt": "201d3eec2520fb5b310bb3a31fef0a78aad3126a23675167226783e03e760958",
+    "frontend.txt": "1c021f36ee696443ed5c98237a977b12ab8c8e6322d5422bd3e4e346b89020c7",
+    "lifecycle-01-table-saved.png": "17ebea47653653becb8eb3d95bfa254c1f543b3e85d1c2730c4135590b469a51",
+    "lifecycle-02-table-phone.png": "8c8337678e33636dbae3170156721667312b25aaa1d08683a43919ff10932cba",
+    "lifecycle-03-view-reading.png": "b601c685a15bd7cf4746d1e3657142103ad6786f0ea8d4cf20aa7c90bba1449a",
+    "lifecycle-04-view-stale.png": "6b7636a0e196e22033fe2987eb886121811c03d2c5277f03d1dd11727b307d6e",
+    "lifecycle-05-home.png": "956e980cf0bb3adac20f6da234e38f421e9da77c1e02ec256d8f6dd1a2fbe7e4",
+    "lifecycle-06-view-phone-after-restart.png": "be393bac8d6a874bf8a2ac3d8664efd9d7251eecccd5445b6e7a0879b395b318",
+    "lifecycle.json": "6f2a0bafc07bfde1596eda6c6c2e93739bccf52bf05d395d119a7413fd2f4632",
+    "live-01-live-table-desktop.png": "a7dfca90d7912ef054c474b7bfcf2cc2dc226d996f163fb734e2590b8db95923",
+    "live-02-live-view-desktop.png": "fcf761d3661041732a432189d38dc0907f232ba1f63e8175cf060feb7e28d259",
+    "live-03-live-view-phone.png": "64483ac52d2358b847293850fde612e50ace79f1003e410841faa43c3d6d55a5",
+    "live-04-live-calculator-phone.png": "f3af86c04743f052bc0a301db1f283113c7672d95b68569421a51fbe4833e33d",
+    "live-product.json": "c7e1a89602410e1f3f9548f16160638b2fc5888011ec0faddd7dc75ba0796de0",
+    "mock-browser.txt": "c03175f8d7dd84da0c63d0ac6a4b3be001da6739663dfd1eb2909031ace568cf",
+    "mock-build.txt": "53e54d06d4d617075a8f32e69348812e0f2f0f283239345293acd134f1388a5f",
+    "production-build.txt": "c0a4d0cee0f18eb885173526b2e99b9f6e48590edb73c071648e13afa34535fe",
+    "review.json": "42c07594000aac6d0900ec20d1ac6c61f7fb64a74fd44cd612276b024f93ee5b",
+    "sandbox.txt": "033a16f23ab0c9996f243e8f3d88b60022b291b32e631bf6c41ee53f5b7c21ea",
+    "saved-venues.csv": "65d9b8528a42d0677eb5202242625382c6f274e0c47b15f6810a170b058c2598",
+    "typing.json": "6dd28ac8a4a72d39f5fe6b41687b30b1185a0b9a19ed9c7ddded45da8992af09"
+  },
+  "text_log_transform": "Trailing whitespace/terminal carriage returns and EOF blank lines normalized for repository hygiene; original raw logs retained privately. No result lines removed."
+}

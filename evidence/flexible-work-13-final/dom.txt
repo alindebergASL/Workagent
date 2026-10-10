@@ -1,0 +1,27 @@
+PASS attachment A/B race and pending-read admission guard
+PASS reload/navigation scope and exact command/request/work-version replay
+PASS operator switch invalidates pending attachment
+PASS late success cannot erase a newer ambiguous operation after navigation
+PASS late definitive rejection cannot erase a newer ambiguous operation after navigation
+PASS late reply success preserves newer draft and exact pending replay across reload
+PASS late reply definitive rejection preserves newer draft and exact pending replay across reload
+PASS quota-failed journal write resolves successful reply without permanent lock
+PASS quota-failed journal write resolves exact in-memory replay without permanent lock
+PASS signed i64 decimal rendering and saved verification plus pending output
+PASS proposed tool result is shown with its own inputs; the saved card never claims it
+PASS invalid tool value persists across navigation/reload and gates save/run/apply without admitting invalid Body
+PASS invalid tool label persists across navigation/reload and gates save/run/apply without admitting invalid Body
+PASS same-base discard and immediate valid tool input edits
+PASS restored unapplied raw inputs cannot silently use the last-valid Body; editing repairs them immediately
+PASS reply beside the work keeps and replays the exact unconfirmed send
+PASS table headline requires saved/proposal observation binding; retained columns never claim current matches
+PASS a non-reconciliation table is fully editable with no recalculation or check claims
+PASS stale proposal is labelled, cannot be applied, and dismiss/keep-current send the current revision
+PASS pane beside the work refreshes once for a fast-settled turn and shows unknown/reconnecting
+PASS natural reply beside the work sends the exact saved target and replays it frozen
+PASS model replies render as text (lists, emphasis, inert HTML) and long ones fold
+PASS structured table edits by declared field type, refuses invalid values and saves exact identities
+PASS agent-made view reads only through declared actions bound to the saved revision; refusals come from the shell
+PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version
+PASS initial read failure is unavailable with explicit retry
+26 focused DOM regressions passed (fixture transport; no server/provider).

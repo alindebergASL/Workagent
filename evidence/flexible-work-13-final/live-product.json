@@ -1,0 +1,46 @@
+{
+  "mode": "production_ui_real_api_retained_live_model_artifacts",
+  "provider_calls": 0,
+  "saved_mutations": 0,
+  "checks": [
+    "Live-model structured table opens in normal editor with accepted human price/note and truthful verification status",
+    "Actual CSV download contains the saved human edits",
+    "Actual model-authored source filters exact bound saved data and refreshes through production UI adapter",
+    "Malformed target action is refused by trusted shell before HTTP",
+    "Phone custom view has no horizontal overflow and readable fallback is available",
+    "Other live-model goal reopens as a runnable tool in the same product, not a task-specific page",
+    "Home exposes all three retained model-created work products"
+  ],
+  "actions": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:3161/api/domain/v1/workspaces/flexible-proof/artifacts/597739cf-363b-49ea-becb-decf484c452c/view-actions"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:3161/api/domain/v1/workspaces/flexible-proof/artifacts/597739cf-363b-49ea-becb-decf484c452c/view-actions"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:3161/api/domain/v1/workspaces/flexible-proof/artifacts/597739cf-363b-49ea-becb-decf484c452c/view-actions"
+    }
+  ],
+  "errors": [],
+  "artifacts": {
+    "rainwater": {
+      "id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+      "revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+      "body_hash": "7ab5985c92b1be4975ba26e75cf98db23730be4aa69ea28c2b4e17f08a60cdb4"
+    },
+    "venues-current": {
+      "id": "167c057f-3ff9-432a-930c-0bdc46841664",
+      "revision_id": "3067f3b4-8877-49cf-9778-ce6817dade1c",
+      "body_hash": "7c73a116f9d5c153f7937b01a18ef14b6f9483979ed0056fc5485245561154de"
+    },
+    "custom-view": {
+      "id": "597739cf-363b-49ea-becb-decf484c452c",
+      "revision_id": "78f1f0b2-f51c-4f0e-bb5a-194a6bc4002d",
+      "body_hash": "11f53a0022eee5abc621d0b7c6ca826da07c7b7ce522bc140047aec6d7ca153b"
+    }
+  }
+}

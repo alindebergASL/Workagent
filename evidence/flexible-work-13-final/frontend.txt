@@ -1,0 +1,18 @@
+$ pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
+$ tsc --noEmit
+$ eslint . --max-warnings 0
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+$ vitest run
+
+ RUN  v5.0.3 /home/ubuntu/workagent-flexible-work/web
+
+
+ Test Files  19 passed (19)
+      Tests  164 passed (164)
+   Start at  05:35:23
+   Duration  9.37s (import 39%, transform 34%, tests 21%, worker 5%)
+
+    Isolate  19 workers spawned · ~295ms startup each (spawn + environment, per file)
+             at least ~5.32s faster with isolate: false — reuses workers across files instead of one per file
