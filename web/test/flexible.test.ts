@@ -10,6 +10,7 @@ import {
   flexibleKind,
   formatCell,
   isEmptyPayload,
+  pinsVersions,
   notesFrom,
   parseCell,
   rebind,
@@ -314,5 +315,24 @@ describe("draft turns", () => {
         unit: "hours",
       }),
     ).toBe("Hours");
+  });
+});
+
+describe("version-pinned views", () => {
+  it("knows when a view's own code names the version it reads", () => {
+    expect(pinsVersions(view)).toBe(true);
+    const b = view.bindings![0]!;
+    const loose = {
+      ...view,
+      source: {
+        ...view.source,
+        js: view.source.js
+          .split(b.revision_id)
+          .join("")
+          .split(b.body_hash)
+          .join(""),
+      },
+    };
+    expect(pinsVersions(loose)).toBe(false);
   });
 });

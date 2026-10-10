@@ -1367,7 +1367,18 @@ try {
       .getByLabel(`Row ${table.rows.length + 1} ${textField.label}`, {
         exact: true,
       })
-      .fill("Added by a person");
+      .pressSequentially("Added by a person");
+    // Typed key by key, notes keep their spaces and line breaks exactly.
+    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    await notes.focus();
+    await page.keyboard.press("Control+End");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Hello world");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Second note ");
+    const typedNotes =
+      (table.notes ?? []).join("\n") + "\nHello world\nSecond note ";
+    await expect(notes).toHaveValue(typedNotes);
     // Survives leaving and coming back before saving.
     await page.evaluate(() => {
       window.mount("away");
@@ -1375,6 +1386,7 @@ try {
     await page.evaluate(() => window.mount("product"));
     // What the person typed is kept as typed; the body holds the normalized value.
     await expect(decInput).toHaveValue("199");
+    await expect(notes).toHaveValue(typedNotes);
     flexReply = (url, body) =>
       artifactAfterSave("saved-2", body.body, "e".repeat(64));
     await page
@@ -1398,6 +1410,12 @@ try {
     assert.equal(cell(sentRow, dec.key), `199.${"0".repeat(dec.scale)}`);
     assert.equal(cell(sentRow, bool.key), false);
     assert.equal(cell(sent.rows.at(-1), textField.key), "Added by a person");
+    // Only the saved list is tidied: blank lines and outer spaces dropped.
+    assert.deepEqual(sent.notes, [
+      ...(table.notes ?? []),
+      "Hello world",
+      "Second note",
+    ]);
     // Every other saved value is untouched.
     for (const r of table.rows)
       for (const c of r.cells)
@@ -1557,7 +1575,43 @@ try {
   );
 
   {
-    const view = viewRev.body;
+    // The real model-made view names its exact bound version in its own
+    // code, so the shell won't offer to repoint it; it asks for a new view.
+    const binding = viewRev.body.bindings[0];
+    flexReply = () => ({
+      status: 404,
+      json: { code: "not_found_or_not_authorized" },
+    });
+    await showFlex(
+      flexData(viewRev, {
+        bound: {
+          [binding.artifact_id]: {
+            revision_id: "newer-table",
+            body_hash: "d".repeat(64),
+            title: tableRev.body.title,
+          },
+        },
+      }),
+    );
+    await expect(page.getByTestId("view-pinned")).toContainText(
+      "Ask in the conversation for an updated view.",
+    );
+    await expect(
+      page.getByRole("button", { name: "Use the latest saved versions" }),
+    ).toHaveCount(0);
+  }
+  {
+    // A view whose code reads by binding name can be repointed.
+    const viewRevLoose = structuredClone(viewRev);
+    viewRevLoose.body.source.js = viewRevLoose.body.source.js
+      .split(viewRev.body.bindings[0].artifact_id)
+      .join("")
+      .split(viewRev.body.bindings[0].revision_id)
+      .join("")
+      .split(viewRev.body.bindings[0].body_hash)
+      .join("");
+    const viewRev2 = viewRevLoose;
+    const view = viewRev2.body;
     const binding = view.bindings[0];
     // The bound table moved on, so the service refuses the old view's reads.
     flexReply = (url, body) =>
@@ -1565,7 +1619,7 @@ try {
         ? artifactAfterSave("view-2", body.body, "c".repeat(64))
         : { status: 404, json: { code: "not_found_or_not_authorized" } };
     await showFlex(
-      flexData(viewRev, {
+      flexData(viewRev2, {
         bound: {
           [binding.artifact_id]: {
             revision_id: "newer-table",
@@ -1593,7 +1647,7 @@ try {
     assert.equal(saves.length, 1);
     const [save] = saves;
     assert.match(save.url, /\/v1\/workspaces\/w\/artifacts\/a\/save$/);
-    assert.equal(save.body.expected_current_revision_id, viewRev.id);
+    assert.equal(save.body.expected_current_revision_id, viewRev2.id);
     assert.deepEqual(save.body.body, {
       ...view,
       bindings: [
@@ -1603,7 +1657,7 @@ try {
   }
   passed++;
   console.log(
-    "PASS a view whose bound work changed says so and rebinds only on an explicit human save",
+    "PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version",
   );
   await page.unroute("**/v1/workspaces/**");
 

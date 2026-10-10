@@ -303,6 +303,18 @@ export function bindingStates(
   });
 }
 
+/**
+ * Whether the view's own code names the exact versions it was made for. Such
+ * a view checks what it reads against them, so pointing it at a newer version
+ * would only make it refuse its own data: it needs regenerating instead.
+ */
+export function pinsVersions(view: CustomView): boolean {
+  const code = [view.source.html, view.source.css, view.source.js].join("\n");
+  return (view.bindings ?? []).some(
+    (b) => code.includes(b.revision_id) || code.includes(b.body_hash),
+  );
+}
+
 /** The same view, pointed at the current saved versions of what it reads. */
 export function rebind(
   view: CustomView,

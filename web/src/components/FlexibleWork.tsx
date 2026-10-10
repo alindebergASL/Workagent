@@ -20,6 +20,7 @@ import {
   isEmptyPayload,
   isFlexible,
   KIND_LABEL,
+  pinsVersions,
   notesFrom,
   parseCell,
   rebind,
@@ -59,6 +60,11 @@ type Draft = {
   body: FlexibleBody;
   pending: Pending | null;
   raw?: Record<string, RawCell>;
+  /**
+   * Notes exactly as typed. The body gets the tidied list (blank lines and
+   * outer spaces dropped, as the service requires); the box keeps the text.
+   */
+  notesText?: string;
 };
 const cellKey = (rowId: string, key: string) => `${rowId}\u001f${key}`;
 
@@ -425,6 +431,17 @@ export function FlexibleEditor({
               body={draft.body as StructuredTable}
               raw={draft.raw ?? {}}
               update={(body, raw) => keep({ ...draft, body, raw })}
+              notesText={draft.notesText}
+              updateNotes={(notesText) =>
+                keep({
+                  ...draft,
+                  notesText,
+                  body: {
+                    ...(draft.body as StructuredTable),
+                    notes: notesFrom(notesText),
+                  },
+                })
+              }
             />
           ) : kind === "document" ? (
             <DocEdit
@@ -441,6 +458,7 @@ export function FlexibleEditor({
             <label className="field">
               <span className="field-label">Readable version</span>
               <textarea
+                aria-label="Readable version"
                 rows={5}
                 value={(draft.body as CustomView).fallback}
                 onChange={(e) =>
@@ -632,11 +650,15 @@ function TableEditor({
   body,
   raw,
   update,
+  notesText,
+  updateNotes,
 }: {
   saved: StructuredTable;
   body: StructuredTable;
   raw: Record<string, RawCell>;
   update: (body: StructuredTable, raw: Record<string, RawCell>) => void;
+  notesText: string | undefined;
+  updateNotes: (text: string) => void;
 }) {
   const savedRows = new Set(saved.rows.map((r) => r.row_id));
   const readOnly = body.fields.some((f) => !f.editable);
@@ -801,10 +823,9 @@ function TableEditor({
       <label className="field">
         <span className="field-label">Notes (one per line)</span>
         <textarea
-          value={(body.notes ?? []).join("\n")}
-          onChange={(e) =>
-            update({ ...body, notes: notesFrom(e.target.value) }, raw)
-          }
+          aria-label="Notes (one per line)"
+          value={notesText ?? (body.notes ?? []).join("\n")}
+          onChange={(e) => updateNotes(e.target.value)}
         />
       </label>
     </>
@@ -846,6 +867,7 @@ function ViewSurface({
   const states = bindingStates(view, bound);
   const behind = states.some((s) => s.state === "changed");
   const missing = states.some((s) => s.state === "unavailable");
+  const pinned = pinsVersions(view);
   const revision = artifact.current_revision;
   const actions: ViewActions = {};
   for (const a of view.actions ?? [])
@@ -915,7 +937,13 @@ function ViewSurface({
               What this view reads has been saved since it was made, so it can’t
               read it any more.
             </p>
-            {!missing ? (
+            {pinned ? (
+              <p data-testid="view-pinned">
+                This view was written for that earlier version, so it can’t
+                simply be pointed at the new one. Ask in the conversation for an
+                updated view.
+              </p>
+            ) : !missing ? (
               <div className="row">
                 <button
                   type="button"

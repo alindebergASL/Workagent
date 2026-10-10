@@ -85,3 +85,53 @@ These checks run against synthetic data published through the controlled
 path. They aren't model usefulness evidence. Hermes's live model-made records
 are covered only through the DOM fixture, and Andrew's experience review is
 still untested.
+
+## Update: the live model-made records in the real app
+
+`web/scripts/flexible-live-records.mjs` takes the backend owner's retained
+model-made venue table and view (`evidence/flexible-work-13`) and republishes
+them unchanged through the controlled path into a fresh stack: real API,
+PostgreSQL, the controlled consumer and the production web app, with zero
+provider calls. The view's script hard-codes its original
+artifact/revision/hash, so only those three strings are swapped for the
+fresh records' ids.
+
+- The table renders by its declared fields, edits and fits on a phone.
+- The view reads the saved table through the broker and filters live:
+  - at £300, 70 people and step-free: no venue;
+  - at £350: Willow Hall and River Centre;
+  - at £300 without step-free: Station Loft.
+  - It fits on a phone with no sideways scroll.
+- **Finding (backend/model policy).** The generated view checks every read
+  against the exact ids it was written with. So after a person edits the
+  table, re-pointing the view ("Use the latest saved versions") would make it
+  refuse its own, correct, data.
+  - **Frontend mitigation.** When a view's own code names the exact version it
+    reads (`pinsVersions`), the shell doesn't offer the rebind. It says the view
+    was written for the earlier version and to ask for an updated view.
+  - **Suggested policy fix.** Generated code should trust the host-validated
+    read (by `binding` name) rather than embed ids. Then a human edit can be
+    followed by a simple rebind.
+
+Screenshots and the run record are in `evidence/flexible-live/`. This is a
+replay of retained model output, not a new model run, and it isn't usefulness
+acceptance.
+
+## Fix: notes keep exactly what is typed (review P2)
+
+Hermes's final review found that typing in a structured table's notes box
+lost spaces and line breaks ("Hello world" became "Helloworld"). The box
+tidied the text on every keystroke.
+
+- **Fix.** The draft now keeps the notes text exactly as typed, through
+  typing, navigation and reload. Only the saved list is tidied (outer spaces
+  and blank lines dropped), as the service requires.
+- **Accessibility.** The box also gets an explicit accessible name. It sits
+  inside its label, so its own text was leaking into that name.
+- **Other fields.** Table cells, documents and a view's readable version
+  already kept typed text as-is.
+- **Coverage.**
+  - The DOM regression and the real-stack rota journey now type notes key by
+    key, including Enter and a trailing space, then check the box after a
+    remount or reload and the exact saved list.
+  - Restoring the old behaviour makes the DOM regression fail.
