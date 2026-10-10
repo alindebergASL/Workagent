@@ -121,6 +121,13 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
     previous=retained(c,ledger.receipt.attempt_id)
     if previous and previous[0]['verification'].get('request')!=request:
         raise DomainError('source_changed')
+    if (operation is not None and operation.kind=='publish_artifact'
+            and message.acceptance_checks is not None and staged['status']=='observed'):
+        # Shape-only drafts cannot execute the human's CSV/Wasm checks. Reject
+        # this selection before verification so ordinary continuation/step-limit
+        # handling applies and no draft bypasses the retained SQL evidence gates.
+        staged.update(status='rejected',body=None,file=None,output=None,
+            reason='Draft publication cannot execute supplied acceptance checks. Select an operation that can run them.')
     observation={'goal':value.goal,'success_criteria':[x.model_dump(mode='json') for x in value.success_criteria],
                  'decision':value.decision.model_dump(mode='json'),
                  'verification':verify(value,operation,staged,request,message=message,base=base)}

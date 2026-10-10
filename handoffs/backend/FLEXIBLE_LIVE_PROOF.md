@@ -1,5 +1,30 @@
 # Flexible work #13 — live proof checkpoint (not integrated acceptance)
 
+## Integration update (supersedes the frontend blocker below)
+
+Claude's `878b6b867c3173e428d3744d8c53da92506b9152` is now integrated, preserving
+his sole frontend ownership. Initial combined `pnpm check` (163 tests) and
+production build pass. The new `scripts/verify_flexible_integration.py` has
+exercised the real production UI/API/fresh PostgreSQL/continuous controlled
+consumer through create/save/propose/accept and all-process restart/reopen.
+`scripts/verify_flexible_product.mjs` exercises the actual retained live-model
+calculator/table/custom-view in the production application, including scoped
+refresh, trusted malformed-action refusal, CSV export, Home and phone rendering.
+These pre-commit smoke results are not substituted for exact-candidate gates;
+final exact-SHA results are reported on PR #9 with the published candidate.
+
+Independent review found an acceptance-check conflict. Real-DB red regressions
+confirmed failure at `guard_acceptance_evidence` before publication (earlier than
+the reviewer's inferred publication gate). The runtime now explicitly rejects a
+shape-only draft selected for supplied human CSV/Wasm checks before verification,
+then continues or reaches the existing step limit. SQL and migrations are
+unchanged. Tests cover both check types, no draft publication, idempotent replay,
+and correction to executable work that passes the supplied checks without
+claiming universal goal completion.
+
+The paragraphs below retain the original checkpoint's exact evidence/history;
+the earlier frontend blocker is resolved, not an outstanding request to Claude.
+
 ## Exact scope and review path
 
 - Backend published on `hermes/flexible-work-13`: initial contract implementation `f2b747a11c68eec03ea3632dfffa55fb543ac028`; live-generation runtime `fffb69b3c3227d53a7137507b207face9d9b25d7` adds bridge instructions only.

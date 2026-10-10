@@ -1,5 +1,43 @@
 # Current runtime status and execution boundary
 
+## Flexible-work candidate (#13) — supersedes the next-slice status below
+
+The current integration branch is `hermes/flexible-work-13`. It combines the
+additive backend/contracts (`f2b747a`, bridge follow-up `fffb69b`), retained
+live-model proof (`a48c6d5`) and Claude’s structured renderer/custom-view adapter
+(`878b6b867c3173e428d3744d8c53da92506b9152`). Historical checkpoint sections below
+retain their original evidence scope; they no longer describe #13 as unimplemented.
+
+Delivered candidate capabilities: `structured-table/v1` with stable typed fields,
+units and edit rules; `custom-view/v1` with durable HTML/CSS/JS, readable fallback,
+exact same-conversation bindings and named read-only actions. Historical invoice
+`table` bodies are not reinterpreted. The existing save/propose/accept/history
+lifecycle remains canonical. Generated source runs only in the opaque no-network
+sandbox; the trusted shell owns unverified status and permission/action failures.
+Shape-only drafts cannot satisfy human CSV/Wasm acceptance checks: incompatible
+selections are rejected and follow the existing continuation/step-limit path.
+No SQL acceptance gate or historical migration is weakened.
+
+[Contract](../handoffs/backend/FLEXIBLE_VIEW_CONTRACT.md),
+[live evidence and limits](../handoffs/backend/FLEXIBLE_LIVE_PROOF.md), and
+[frontend handoff](../handoffs/frontend/FLEXIBLE_WORK_FRONTEND.md) distinguish live
+model output, independent bounded checks and controlled engineering fixtures.
+Actual rainwater and venue goals, human-price-obstacle adaptation, restart and
+scoped-view proof are retained. They are not universal verification or Andrew’s
+usefulness/experience acceptance. Static derived assessments can diverge from
+changed local filter criteria; those claims remain draft data.
+
+Exact combined gates/review are required before #13 can close. Until their
+published verdict, this is an integrated candidate, not accepted delivery.
+Backend full-suite evidence at `a48c6d5` is 768 passed; never relabel it as the
+post-fix/combined gate. Run `scripts/verify_flexible_integration.py` on a new env
+for the real controlled-consumer production-UI lifecycle and process restart.
+One cumulative $20 budget remains: latest retained reserve $4.48528 includes
+$3.42992 historical carry; reservations are not billing. No additional provider
+calls are needed to integrate/replay these saved outputs. Preserve saved review
+state. Default merge/deployment remain unauthorized; #10/#11 and broader M4/M5
+remain sequenced, undelivered work.
+
 ## Verified bounded checkpoint
 
 Runtime implementation **0e8112795e09f83a8c393571bfc994c4d603b7c4** is published

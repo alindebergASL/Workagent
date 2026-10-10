@@ -210,6 +210,70 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
     if kind=='custom_view': assert s.invoke_view_action(p,ws,art.id,action(accepted)).body==bound.current_revision.body
 
 
+@pytest.mark.parametrize('checks',[
+    {'kind':'csv_totals','expected_sum':'3.00','mismatch_count':1},
+    {'kind':'wasm_cases','entrypoint':'total','cases':[{'arguments':[3,1250],'expected':'3750'}]},
+])
+def test_draft_cannot_bypass_human_checks_or_break_publication(context,tmp_path,checks):
+    from test_adaptive_execution import activate
+    from test_general_responses import worker,totals
+    from workagent.service import Service
+    s,p,ws,_,_=context
+    cv=conversation(context); grant=activate(context,cv)
+    q=post(context,cv,'Create work and satisfy my supplied checks.',acceptance_checks=checks)
+    fake=DraftProvider(table(),True)
+    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    detail=s.get_conversation(p,ws,cv.id)
+    assert detail.turns[-1].adaptive.outcome=='step_limit'
+    steps=detail.turns[-1].adaptive.steps
+    assert len(steps)==4 and all(step.status=='rejected' for step in steps)
+    assert all(not step.verification.acceptance.passed for step in steps)
+    assert not detail.artifact_ids and len(detail.messages)==2
+    assert 'supplied acceptance checks' in detail.messages[-1].text
+    before=totals(s,grant)['request_counts']['dispatch']
+    assert before==5
+    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert totals(s,grant)['request_counts']['dispatch']==before
+    assert Service(s.db).get_conversation(p,ws,cv.id)==detail
+
+
+def test_rejected_draft_can_continue_to_checked_executable_work(context,tmp_path):
+    import json
+    from test_adaptive_execution import activate,AdaptiveProvider
+    from test_general_responses import worker,totals
+    s,p,ws,_,_=context
+    cv=conversation(context); grant=activate(context,cv)
+    q=post(context,cv,'Build a calculator and run my supplied checks.',acceptance_checks={
+        'kind':'wasm_cases','entrypoint':'total','cases':[{'arguments':[3,1250],'expected':'3750'}]})
+    fake=DraftProvider(table(),True); tool=AdaptiveProvider(first_good=True)
+    tool.responses=fake.base.responses
+    draft_handle=fake.handle
+    def handle(request):
+        if request.method=='POST' and not request.url.path.endswith('input_tokens'):
+            data=json.loads(request.content); ctx=json.loads(data['input'][0]['content'])
+            if data['metadata']['step_id']!='final' and ctx.get('adaptive',{}).get('observations'):
+                assert ctx['adaptive']['observations'][-1]['status']=='rejected'
+                response=tool.handle(request)
+                payload=response.json(); call=payload['output'][0]
+                value=json.loads(call['arguments'])
+                value.update(goal='Organize useful general work',success_criteria=[])
+                call['arguments']=json.dumps(value)
+                tool.responses[payload['id']]=payload
+                import httpx
+                return httpx.Response(200,json=payload)
+        return draft_handle(request)
+    fake.handle=handle
+    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    detail=s.get_conversation(p,ws,cv.id); steps=detail.turns[-1].adaptive.steps
+    assert detail.turns[-1].adaptive.outcome=='needs_validation' and len(steps)==2
+    assert steps[0].status=='rejected' and not steps[0].verification.acceptance.passed
+    assert steps[1].status=='observed' and steps[1].verification.acceptance.passed
+    assert not steps[1].verification.satisfied
+    assert len(detail.artifact_ids)==2  # Executable tool and its downloadable file, no draft table.
+    assert {s.get_artifact(p,ws,aid).current_revision.body.kind for aid in detail.artifact_ids}=={'tool','file'}
+    assert totals(s,grant)['request_counts']['dispatch']==3
+
+
 def test_read_only_field_and_identity_rules(context):
     s,p,ws,_,_=context
     source=table(); source['fields'][1]['editable']=False
