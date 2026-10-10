@@ -20,6 +20,7 @@ import {
   isEmptyPayload,
   isFlexible,
   KIND_LABEL,
+  pinsVersions,
   notesFrom,
   parseCell,
   rebind,
@@ -846,6 +847,7 @@ function ViewSurface({
   const states = bindingStates(view, bound);
   const behind = states.some((s) => s.state === "changed");
   const missing = states.some((s) => s.state === "unavailable");
+  const pinned = pinsVersions(view);
   const revision = artifact.current_revision;
   const actions: ViewActions = {};
   for (const a of view.actions ?? [])
@@ -915,7 +917,13 @@ function ViewSurface({
               What this view reads has been saved since it was made, so it can’t
               read it any more.
             </p>
-            {!missing ? (
+            {pinned ? (
+              <p data-testid="view-pinned">
+                This view was written for that earlier version, so it can’t
+                simply be pointed at the new one. Ask in the conversation for an
+                updated view.
+              </p>
+            ) : !missing ? (
               <div className="row">
                 <button
                   type="button"

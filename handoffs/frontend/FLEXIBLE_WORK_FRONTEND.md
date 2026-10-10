@@ -85,3 +85,34 @@ These checks run against synthetic data published through the controlled
 path. They aren't model usefulness evidence. Hermes's live model-made records
 are covered only through the DOM fixture, and Andrew's experience review is
 still untested.
+
+## Update: the live model-made records in the real app
+
+`web/scripts/flexible-live-records.mjs` takes the backend owner's retained
+model-made venue table and view (`evidence/flexible-work-13`) and republishes
+them unchanged through the controlled path into a fresh stack: real API,
+PostgreSQL, the controlled consumer and the production web app, with zero
+provider calls. The view's script hard-codes its original
+artifact/revision/hash, so only those three strings are swapped for the
+fresh records' ids.
+
+- The table renders by its declared fields, edits and fits on a phone.
+- The view reads the saved table through the broker and filters live:
+  - at £300, 70 people and step-free: no venue;
+  - at £350: Willow Hall and River Centre;
+  - at £300 without step-free: Station Loft.
+  - It fits on a phone with no sideways scroll.
+- **Finding (backend/model policy).** The generated view checks every read
+  against the exact ids it was written with. So after a person edits the
+  table, re-pointing the view ("Use the latest saved versions") would make it
+  refuse its own, correct, data.
+  - **Frontend mitigation.** When a view's own code names the exact version it
+    reads (`pinsVersions`), the shell doesn't offer the rebind. It says the view
+    was written for the earlier version and to ask for an updated view.
+  - **Suggested policy fix.** Generated code should trust the host-validated
+    read (by `binding` name) rather than embed ids. Then a human edit can be
+    followed by a simple rebind.
+
+Screenshots and the run record are in `evidence/flexible-live/`. This is a
+replay of retained model output, not a new model run, and it isn't usefulness
+acceptance.

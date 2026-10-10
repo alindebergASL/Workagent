@@ -1,0 +1,12 @@
+{
+  "provider_calls": "not_performed",
+  "source": "evidence/flexible-work-13",
+  "findings": [
+    "Generated view hard-codes its original artifact/revision/hash, so it cannot follow a human edit by rebinding; it needs a regenerated view."
+  ],
+  "ids": {
+    "cid": "a345e865-62ff-477d-8cef-4d9bc1954e70",
+    "table": "a0142c93-3b95-4c86-90e9-48e2dee79b63",
+    "view": "a418d17c-6607-4f1a-8099-5a47ad42c188"
+  }
+}

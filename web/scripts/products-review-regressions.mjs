@@ -1557,7 +1557,43 @@ try {
   );
 
   {
-    const view = viewRev.body;
+    // The real model-made view names its exact bound version in its own
+    // code, so the shell won't offer to repoint it; it asks for a new view.
+    const binding = viewRev.body.bindings[0];
+    flexReply = () => ({
+      status: 404,
+      json: { code: "not_found_or_not_authorized" },
+    });
+    await showFlex(
+      flexData(viewRev, {
+        bound: {
+          [binding.artifact_id]: {
+            revision_id: "newer-table",
+            body_hash: "d".repeat(64),
+            title: tableRev.body.title,
+          },
+        },
+      }),
+    );
+    await expect(page.getByTestId("view-pinned")).toContainText(
+      "Ask in the conversation for an updated view.",
+    );
+    await expect(
+      page.getByRole("button", { name: "Use the latest saved versions" }),
+    ).toHaveCount(0);
+  }
+  {
+    // A view whose code reads by binding name can be repointed.
+    const viewRevLoose = structuredClone(viewRev);
+    viewRevLoose.body.source.js = viewRevLoose.body.source.js
+      .split(viewRev.body.bindings[0].artifact_id)
+      .join("")
+      .split(viewRev.body.bindings[0].revision_id)
+      .join("")
+      .split(viewRev.body.bindings[0].body_hash)
+      .join("");
+    const viewRev2 = viewRevLoose;
+    const view = viewRev2.body;
     const binding = view.bindings[0];
     // The bound table moved on, so the service refuses the old view's reads.
     flexReply = (url, body) =>
@@ -1565,7 +1601,7 @@ try {
         ? artifactAfterSave("view-2", body.body, "c".repeat(64))
         : { status: 404, json: { code: "not_found_or_not_authorized" } };
     await showFlex(
-      flexData(viewRev, {
+      flexData(viewRev2, {
         bound: {
           [binding.artifact_id]: {
             revision_id: "newer-table",
@@ -1593,7 +1629,7 @@ try {
     assert.equal(saves.length, 1);
     const [save] = saves;
     assert.match(save.url, /\/v1\/workspaces\/w\/artifacts\/a\/save$/);
-    assert.equal(save.body.expected_current_revision_id, viewRev.id);
+    assert.equal(save.body.expected_current_revision_id, viewRev2.id);
     assert.deepEqual(save.body.body, {
       ...view,
       bindings: [
@@ -1603,7 +1639,7 @@ try {
   }
   passed++;
   console.log(
-    "PASS a view whose bound work changed says so and rebinds only on an explicit human save",
+    "PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version",
   );
   await page.unroute("**/v1/workspaces/**");
 
