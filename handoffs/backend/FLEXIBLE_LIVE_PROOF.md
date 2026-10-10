@@ -1,5 +1,22 @@
 # Flexible work #13 — live proof checkpoint (not integrated acceptance)
 
+## Final correction candidate
+
+Claude's `cd49ec02c54ef666de3a82c46d74e384aef9dabe` is integrated, including
+`13551ce`'s source-pin mitigation and the independently reproduced notes-typing
+fix. Raw notes retain spaces/newlines across typing/navigation/reload; canonical
+saved notes remain bounded. Sequential-keyboard regressions supplement `.fill()`.
+The shell no longer offers rebinding when generated source visibly embeds the
+bound revision/hash; it explains that an updated view is needed. This source
+inspection is a usability heuristic, never an authorization boundary.
+
+The provider-independent policy now directs future generated source to consume
+`response.binding` and `response.body`, leaving exact IDs/hashes in declarative
+bindings enforced by the host/broker. Existing live artifacts are not rewritten.
+No new model call was made to validate this prompt improvement, so new-output
+compliance is not claimed. The retained view still has pinned source, with the
+truthful shell limitation. Exact-candidate gates and review are reported on PR #9.
+
 ## Integration update (supersedes the frontend blocker below)
 
 Claude's `878b6b867c3173e428d3744d8c53da92506b9152` is now integrated, preserving
