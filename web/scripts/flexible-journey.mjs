@@ -265,8 +265,20 @@ try {
     await page
       .getByLabel("Chidi Shift", { exact: true })
       .selectOption("Morning");
+    // Notes typed key by key keep their spaces and line breaks.
+    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    await notes.focus();
+    await page.keyboard.press("Control+End");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Bring hi-vis vests");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Keys from Asha ");
+    const typedNotes =
+      "Synthetic rota for testing.\nBring hi-vis vests\nKeys from Asha ";
+    await expect(notes).toHaveValue(typedNotes);
     // An unsaved draft survives a reload.
     await page.reload();
+    await expect(notes).toHaveValue(typedNotes);
     await expect(page.getByLabel("Ben Hours", { exact: true })).toHaveValue(
       "6",
     );
@@ -286,6 +298,11 @@ try {
     expect(cellOf(saved.body, "v2", "confirmed")).toBe(true);
     expect(cellOf(saved.body, "v3", "shift")).toBe("Morning");
     expect(cellOf(saved.body, "v1", "ref")).toBe("v1");
+    expect(saved.body.notes).toEqual([
+      "Synthetic rota for testing.",
+      "Bring hi-vis vests",
+      "Keys from Asha",
+    ]);
     expect(saved.body.rows.map((r) => r.row_id)).toEqual(["v1", "v2", "v3"]);
     await shot(page, "01-table-saved");
     await page.setViewportSize({ width: 390, height: 900 });

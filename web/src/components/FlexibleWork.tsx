@@ -60,6 +60,11 @@ type Draft = {
   body: FlexibleBody;
   pending: Pending | null;
   raw?: Record<string, RawCell>;
+  /**
+   * Notes exactly as typed. The body gets the tidied list (blank lines and
+   * outer spaces dropped, as the service requires); the box keeps the text.
+   */
+  notesText?: string;
 };
 const cellKey = (rowId: string, key: string) => `${rowId}\u001f${key}`;
 
@@ -426,6 +431,17 @@ export function FlexibleEditor({
               body={draft.body as StructuredTable}
               raw={draft.raw ?? {}}
               update={(body, raw) => keep({ ...draft, body, raw })}
+              notesText={draft.notesText}
+              updateNotes={(notesText) =>
+                keep({
+                  ...draft,
+                  notesText,
+                  body: {
+                    ...(draft.body as StructuredTable),
+                    notes: notesFrom(notesText),
+                  },
+                })
+              }
             />
           ) : kind === "document" ? (
             <DocEdit
@@ -442,6 +458,7 @@ export function FlexibleEditor({
             <label className="field">
               <span className="field-label">Readable version</span>
               <textarea
+                aria-label="Readable version"
                 rows={5}
                 value={(draft.body as CustomView).fallback}
                 onChange={(e) =>
@@ -633,11 +650,15 @@ function TableEditor({
   body,
   raw,
   update,
+  notesText,
+  updateNotes,
 }: {
   saved: StructuredTable;
   body: StructuredTable;
   raw: Record<string, RawCell>;
   update: (body: StructuredTable, raw: Record<string, RawCell>) => void;
+  notesText: string | undefined;
+  updateNotes: (text: string) => void;
 }) {
   const savedRows = new Set(saved.rows.map((r) => r.row_id));
   const readOnly = body.fields.some((f) => !f.editable);
@@ -802,10 +823,9 @@ function TableEditor({
       <label className="field">
         <span className="field-label">Notes (one per line)</span>
         <textarea
-          value={(body.notes ?? []).join("\n")}
-          onChange={(e) =>
-            update({ ...body, notes: notesFrom(e.target.value) }, raw)
-          }
+          aria-label="Notes (one per line)"
+          value={notesText ?? (body.notes ?? []).join("\n")}
+          onChange={(e) => updateNotes(e.target.value)}
         />
       </label>
     </>

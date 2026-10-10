@@ -1367,7 +1367,18 @@ try {
       .getByLabel(`Row ${table.rows.length + 1} ${textField.label}`, {
         exact: true,
       })
-      .fill("Added by a person");
+      .pressSequentially("Added by a person");
+    // Typed key by key, notes keep their spaces and line breaks exactly.
+    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    await notes.focus();
+    await page.keyboard.press("Control+End");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Hello world");
+    await page.keyboard.press("Enter");
+    await notes.pressSequentially("Second note ");
+    const typedNotes =
+      (table.notes ?? []).join("\n") + "\nHello world\nSecond note ";
+    await expect(notes).toHaveValue(typedNotes);
     // Survives leaving and coming back before saving.
     await page.evaluate(() => {
       window.mount("away");
@@ -1375,6 +1386,7 @@ try {
     await page.evaluate(() => window.mount("product"));
     // What the person typed is kept as typed; the body holds the normalized value.
     await expect(decInput).toHaveValue("199");
+    await expect(notes).toHaveValue(typedNotes);
     flexReply = (url, body) =>
       artifactAfterSave("saved-2", body.body, "e".repeat(64));
     await page
@@ -1398,6 +1410,12 @@ try {
     assert.equal(cell(sentRow, dec.key), `199.${"0".repeat(dec.scale)}`);
     assert.equal(cell(sentRow, bool.key), false);
     assert.equal(cell(sent.rows.at(-1), textField.key), "Added by a person");
+    // Only the saved list is tidied: blank lines and outer spaces dropped.
+    assert.deepEqual(sent.notes, [
+      ...(table.notes ?? []),
+      "Hello world",
+      "Second note",
+    ]);
     // Every other saved value is untouched.
     for (const r of table.rows)
       for (const c of r.cells)

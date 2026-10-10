@@ -116,3 +116,22 @@ fresh records' ids.
 Screenshots and the run record are in `evidence/flexible-live/`. This is a
 replay of retained model output, not a new model run, and it isn't usefulness
 acceptance.
+
+## Fix: notes keep exactly what is typed (review P2)
+
+Hermes's final review found that typing in a structured table's notes box
+lost spaces and line breaks ("Hello world" became "Helloworld"). The box
+tidied the text on every keystroke.
+
+- **Fix.** The draft now keeps the notes text exactly as typed, through
+  typing, navigation and reload. Only the saved list is tidied (outer spaces
+  and blank lines dropped), as the service requires.
+- **Accessibility.** The box also gets an explicit accessible name. It sits
+  inside its label, so its own text was leaking into that name.
+- **Other fields.** Table cells, documents and a view's readable version
+  already kept typed text as-is.
+- **Coverage.**
+  - The DOM regression and the real-stack rota journey now type notes key by
+    key, including Enter and a trailing space, then check the box after a
+    remount or reload and the exact saved list.
+  - Restoring the old behaviour makes the DOM regression fail.
