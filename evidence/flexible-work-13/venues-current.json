@@ -1,0 +1,228 @@
+{
+  "artifact_id": "167c057f-3ff9-432a-930c-0bdc46841664",
+  "revision": {
+    "id": "3067f3b4-8877-49cf-9778-ce6817dade1c",
+    "artifact_id": "167c057f-3ff9-432a-930c-0bdc46841664",
+    "revision_number": 3,
+    "parent_revision_id": "35441746-82ff-4632-bdfb-ece42a9cc9c8",
+    "author_id": "local-human",
+    "author_kind": "human",
+    "body": {
+      "kind": "structured_table",
+      "version": "structured-table/v1",
+      "title": "Draft fictional venue comparison",
+      "fields": [
+        {
+          "key": "venue",
+          "label": "Venue (supplied fact)",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "capacity",
+          "label": "Capacity (supplied fact)",
+          "type": "integer",
+          "editable": true,
+          "unit": "people",
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "hire_cost",
+          "label": "Hire cost (supplied fact)",
+          "type": "decimal",
+          "editable": true,
+          "unit": "GBP",
+          "scale": 2,
+          "enum": null
+        },
+        {
+          "key": "step_free",
+          "label": "Step-free access (supplied fact)",
+          "type": "boolean",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "travel_time",
+          "label": "Travel time (supplied fact)",
+          "type": "integer",
+          "editable": true,
+          "unit": "minutes",
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "assessment",
+          "label": "Draft assessment (derived, not supplied)",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "venue_notes",
+          "label": "Your notes",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "venue-willow-hall",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Willow Hall"
+            },
+            {
+              "field_key": "capacity",
+              "value": 80
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "350.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 15
+            },
+            {
+              "field_key": "assessment",
+              "value": "Does not qualify: hire cost exceeds the \u00a3300 limit by \u00a350.00; capacity and step-free access meet requirements. The previous recommendation is stale."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": "Human: ask Marta about a discount before any booking. Keep this note."
+            }
+          ]
+        },
+        {
+          "row_id": "venue-station-loft",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Station Loft"
+            },
+            {
+              "field_key": "capacity",
+              "value": 100
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "200.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": false
+            },
+            {
+              "field_key": "travel_time",
+              "value": 8
+            },
+            {
+              "field_key": "assessment",
+              "value": "Does not qualify: step-free access requirement is not met; capacity and hire cost meet the stated limits."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        },
+        {
+          "row_id": "venue-river-centre",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "River Centre"
+            },
+            {
+              "field_key": "capacity",
+              "value": 70
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "320.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 12
+            },
+            {
+              "field_key": "assessment",
+              "value": "Does not qualify: hire cost exceeds the \u00a3300 limit by \u00a320.00; capacity and step-free access meet requirements."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        },
+        {
+          "row_id": "venue-garden-room",
+          "cells": [
+            {
+              "field_key": "venue",
+              "value": "Garden Room"
+            },
+            {
+              "field_key": "capacity",
+              "value": 60
+            },
+            {
+              "field_key": "hire_cost",
+              "value": "180.00"
+            },
+            {
+              "field_key": "step_free",
+              "value": true
+            },
+            {
+              "field_key": "travel_time",
+              "value": 5
+            },
+            {
+              "field_key": "assessment",
+              "value": "Does not qualify: capacity falls short of the 70-person minimum by 10 people; hire cost and step-free access meet requirements."
+            },
+            {
+              "field_key": "venue_notes",
+              "value": null
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "Draft synthetic planning data only: all venue facts were supplied by the human and have not been externally verified.",
+        "Requirements: capacity at least 70 people, step-free access, and hire cost at most \u00a3300.00 GBP. Travel time is supplied for comparison, not a stated eligibility requirement.",
+        "Proposed corrected summary (derived, not supplied): no venue currently meets all three requirements. Willow Hall's saved \u00a3350.00 hire cost makes the previous recommendation stale. No venue is recommended as qualifying, and this is not a booking or approval.",
+        "Suggested next steps, not changed facts: ask Marta whether Willow Hall can offer a confirmed hire cost of \u00a3300.00 or less (a reduction of at least \u00a350.00); ask River Centre whether it can offer \u00a3300.00 or less (a reduction of at least \u00a320.00). Neither discount is assumed or confirmed. Seek additional venues with capacity at least 70, step-free access and hire cost at most \u00a3300.00 if neither quote can meet the limit.",
+        "Station Loft remains unsuitable on the saved step-free fact, and Garden Room remains unsuitable on its saved capacity. Do not treat either as qualifying without new confirmed facts and a fresh assessment; keep the requirements unchanged.",
+        "Stable row IDs preserve individual venue identities across revisions. All field identities and supplied facts are unchanged in this proposal. The exact human note is retained; null notes mean no notes supplied.",
+        "Assessments are static draft text, not automatically recalculated when facts change; review them after editing. No interactive comparison view has been created at this stage.",
+        "This is a pending proposal for human review, not an automatically applied or accepted revision."
+      ]
+    },
+    "body_hash": "7c73a116f9d5c153f7937b01a18ef14b6f9483979ed0056fc5485245561154de",
+    "source_dependencies": [],
+    "created_at": "2026-10-09T22:31:53.453975Z"
+  }
+}

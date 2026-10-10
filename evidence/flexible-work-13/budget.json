@@ -1,0 +1,96 @@
+{
+  "scope": "one cumulative $20 cap; historical reservations retained, not reset or replaced with actual-cost estimates",
+  "cap_usd": "20",
+  "grant_id": "workagent-flexible-live-20261009-05",
+  "model": "gpt-6.1-sol",
+  "live_generation_budget": {
+    "request_counts": {
+      "count_send": 8,
+      "dispatch": 8,
+      "read": 70,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 160000,
+    "reserved_output_tokens": 65536,
+    "reserved_cost_usd": "1.05536",
+    "reported_usage": {
+      "input_tokens": 69703,
+      "output_tokens": 6266
+    },
+    "unknown_usage_steps": 0,
+    "conservatively_calculated_cost_usd": "0.2369175",
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  },
+  "cumulative_budget": {
+    "carried_reserved_cost_usd": "3.42992",
+    "request_counts": {
+      "count_send": 8,
+      "dispatch": 8,
+      "read": 70,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 160000,
+    "reserved_output_tokens": 65536,
+    "reserved_cost_usd": "4.48528",
+    "reported_usage": {
+      "input_tokens": 69703,
+      "output_tokens": 6266
+    },
+    "unknown_usage_steps": 0,
+    "conservatively_calculated_cost_usd": "0.2369175",
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  },
+  "carry": [
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_11099bc3e971",
+      "source_grant_id": "intake-live-01",
+      "source_manifest_sha256": "8bb77a5fe50eae46f792b70a228f1b1d45d0c8c960adb5e27d02e4ccd459c534",
+      "reserved_cost_usd": "0.52768"
+    },
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_0ab5c9fa4f58",
+      "source_grant_id": "workagent-adaptive-completion-20261008-04",
+      "source_manifest_sha256": "b58f9f9897982fef982d382d591025d97b2eb789ef5bf8db7c532131ee01c3b7",
+      "reserved_cost_usd": "0.79152"
+    },
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_44e8064d22d2",
+      "source_grant_id": "workagent-adaptive-live-20261007-01",
+      "source_manifest_sha256": "677ee59740338eb0a1eb8c1954a4af7523f71033e134648b584559f46be5357b",
+      "reserved_cost_usd": "0.13192"
+    },
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_44e8064d22d2",
+      "source_grant_id": "workagent-adaptive-live-20261007-02",
+      "source_manifest_sha256": "677ee59740338eb0a1eb8c1954a4af7523f71033e134648b584559f46be5357b",
+      "reserved_cost_usd": "0.39576"
+    },
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_a62bd9ed0df9",
+      "source_grant_id": "workagent-general-model-20261006-01",
+      "source_manifest_sha256": "8bb77a5fe50eae46f792b70a228f1b1d45d0c8c960adb5e27d02e4ccd459c534",
+      "reserved_cost_usd": "1.05536"
+    },
+    {
+      "project_id": "proj_lBEuNsSvgxoMYSyb7td0jIxp",
+      "transport_mode": "official_api",
+      "source_database": "workagent_test_44e8064d22d2",
+      "source_grant_id": "workagent-ordinary-live-20261007-03",
+      "source_manifest_sha256": "677ee59740338eb0a1eb8c1954a4af7523f71033e134648b584559f46be5357b",
+      "reserved_cost_usd": "0.52768"
+    }
+  ],
+  "source_grants_frozen_before_new_calls": true
+}

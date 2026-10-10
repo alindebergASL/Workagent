@@ -25,7 +25,11 @@ def profile(name=PROFILE):
     if name==GENERAL:
         raw=PROFILE_PATH.with_name('general-responses-v1.json').read_bytes()
         if hashlib.sha256(raw).hexdigest()!=GENERAL_HASH: raise DomainError('unsupported_operation')
-        return json.loads(raw)
+        # Baseline manifests remain immutable historical receipts. The pinned
+        # consumer implementation admits this explicit additive capability.
+        effective=json.loads(raw)
+        effective['tools']=[*effective['tools'],'publish_artifact']
+        return effective
     path = PROFILE_PATH if name==PROFILE else PROFILE_PATH.with_name('general-products-v1.json')
     expected = PROFILE_HASH if name==PROFILE else PRODUCT_HASH
     if name not in (PROFILE,PRODUCT_PROFILE):
@@ -33,13 +37,17 @@ def profile(name=PROFILE):
     raw = path.read_bytes()
     if hashlib.sha256(raw).hexdigest() != expected:
         raise DomainError('unsupported_operation')
-    return json.loads(raw)
+    effective=json.loads(raw)
+    if name==PRODUCT_PROFILE:
+        effective['tools']=[*effective['tools'],'publish_artifact']
+        effective['result_kinds']=[*effective['result_kinds'],'document','structured_table','custom_view']
+    return effective
 
 
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
+        for name in ('conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):
@@ -258,6 +266,14 @@ class Conversations:
             policy,schema=contract(grant.responses)
             context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
                            tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
+            context['access_generation']=run.access_generation
+            context['bindable_artifacts']=[{'artifact_id':r['artifact_id'],'revision_id':r['id'],
+                'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
+                for r in c.execute('''SELECT rev.* FROM artifacts art JOIN revisions rev
+                    ON rev.workspace_id=art.workspace_id AND rev.artifact_id=art.id AND rev.id=art.current_revision_id
+                    WHERE art.workspace_id=%s AND art.conversation_id=%s
+                    AND (rev.data->'body'->>'kind'='structured_table' OR rev.data->'body' ? 'blocks')
+                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id)).fetchall()]
         else:
             # Do not change the canonical historical controlled context shape.
             for message in context['messages']:

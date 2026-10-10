@@ -5,6 +5,7 @@ from pydantic import Field, model_validator, field_serializer
 from .model_base import Model, Id, Text, Hash
 from .acceptance_checks import AcceptanceVerification
 from .bounded_verifier import AutomaticVerification
+from .flexible_models import DraftBody, DraftObservation, Body, StructuredTableBody, CustomViewBody, json_bytes
 
 CSVText = Annotated[str, Field(min_length=1, max_length=200000)]
 Code = Annotated[str, Field(min_length=1, max_length=16000)]
@@ -52,7 +53,18 @@ class RunWasm(ProductTarget):
             raise ValueError('one unique form field per argument required')
         return self
 
-LocalOperation = Annotated[ReconcileCSV | RunWasm, Field(discriminator='kind')]
+class PublishArtifact(ProductTarget):
+    kind: Literal['publish_artifact']
+    body: DraftBody
+
+    @model_validator(mode='after')
+    def bound(self):
+        if json_bytes(self.body.model_dump())>96000:
+            raise ValueError('draft body exceeds 96000 JSON bytes')
+        return self
+
+
+LocalOperation = Annotated[ReconcileCSV | RunWasm | PublishArtifact, Field(discriminator='kind')]
 
 class TableBody(Model):
     kind: Literal['table'] = 'table'
@@ -116,7 +128,7 @@ class ToolBody(Model):
         return self
 
 class ProductResult(Model):
-    kind: Literal['table','file','tool']
+    kind: Literal['table','file','tool','document','structured_table','custom_view']
     artifact_id: Id
     revision_id: Id | None = None
     proposal_id: Id | None = None
@@ -168,7 +180,7 @@ class ProductObservation(Model):
     access_generation: int
     evidence_origin: Literal['controlled_transport','local_tool'] = 'controlled_transport'
     model_selection: ModelSelectionBinding | None = None
-    output: CSVObservation | WasmObservation
+    output: CSVObservation | WasmObservation | DraftObservation
 
 class WasmObservationResponse(Model):
     # Transport only. Stored observations and kernel results retain exact Python ints.
@@ -199,7 +211,7 @@ class ProductObservationResponse(Model):
     access_generation: int
     evidence_origin: Literal['controlled_transport','local_tool'] = 'controlled_transport'
     model_selection: ModelSelectionBinding | None = None
-    output: CSVObservation | WasmObservationResponse
+    output: CSVObservation | WasmObservationResponse | DraftObservation
 
 class ObservationReadback(Model):
     observation: ProductObservation
@@ -230,8 +242,8 @@ class RetainedLocalResult(Model):
     status: Literal['reply','observed','rejected']
     published: bool
     binding: ModelSelectionBinding
-    body: TableBody | ToolBody | None = None
-    output: CSVObservation | WasmObservationResponse | None = None
+    body: TableBody | ToolBody | Body | StructuredTableBody | CustomViewBody | None = None
+    output: CSVObservation | WasmObservationResponse | DraftObservation | None = None
     reason: str | None = None
 
 

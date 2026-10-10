@@ -5,7 +5,8 @@ Only this seam creates observations, from local kernel returns, never caller bod
 """
 import hashlib
 from .models import *
-from .product_models import ReconcileCSV, RunWasm, CSVObservation, WasmObservation, RetainedLocalResult
+from .product_models import ReconcileCSV, RunWasm, PublishArtifact, CSVObservation, WasmObservation, RetainedLocalResult
+from .flexible_models import DraftObservation
 from .errors import DomainError, deny
 from .local_operations import reconcile_csv, OperationRejected
 from .wasm_tool import run_wasm_tool, ToolRejected
@@ -91,9 +92,11 @@ class Products:
         return [{'name':name,'inputSchema':model.model_json_schema(),
                  'description':'Only the exact human-authorized current-turn input; no external effects.',
                  'annotations':{'openWorldHint':False,'destructiveHint':False}}
-                for name,model in [('reconcile_csv',ReconcileCSV),('run_wasm',RunWasm)]]
+                for name,model in [('reconcile_csv',ReconcileCSV),('run_wasm',RunWasm),('publish_artifact',PublishArtifact)]]
 
     def _product_base(self,c,p,ws,cv,operation):
+        if isinstance(operation,PublishArtifact):
+            self._validate_flexible_body(c,p,ws,cv,operation.body)
         if operation.artifact_id is None:
             return None
         row,owner=self._artifact(c,p,ws,operation.artifact_id)
@@ -101,9 +104,11 @@ class Products:
             deny()
         self._cas(row,operation.base_revision_id)
         base=self._revision(c,p,ws,row,owner,operation.base_revision_id)
-        expected=TableBody if operation.kind=='reconcile_csv' else ToolBody
+        expected=type(operation.body) if isinstance(operation,PublishArtifact) else (TableBody if operation.kind=='reconcile_csv' else ToolBody)
         if not isinstance(base.body,expected):
             raise DomainError('unsupported_operation')
+        if isinstance(operation,PublishArtifact):
+            self._validate_flexible_edit(base.body,operation.body)
         return base
 
     def _local_input(self,c,cap):
@@ -121,6 +126,9 @@ class Products:
 
     def _calculate_product(self,operation,base):
         # Same bounded kernels for controlled and model-selected operations.
+        if isinstance(operation,PublishArtifact):
+            # Only validate/retain inert data; NEVER evaluate generated source.
+            return operation.body,None,DraftObservation()
         notes=list(base.body.notes) if base else []
         if isinstance(operation,ReconcileCSV):
             source=operation.input_csv
@@ -169,11 +177,13 @@ class Products:
             p,run,cv,current,current_base=self._local_input(c,cap)
             if digest(current)!=operation_hash or (current_base.body_hash if current_base else None)!=base_hash:
                 raise DomainError('source_changed')
-            text=('Controlled CSV calculation observed: reported '+observed.reported_sum+'; calculated '+observed.expected_sum+'.' if isinstance(observed,CSVObservation)
+            text=('Draft retained; data shape only was checked. The requested goal needs validation.' if isinstance(observed,DraftObservation) else
+                  'Controlled CSV calculation observed: reported '+observed.reported_sum+'; calculated '+observed.expected_sum+'.' if isinstance(observed,CSVObservation)
                   else f'Controlled import-free Wasm execution observed return: {observed.value}.')
             if base:
                 text+=' Change proposed, not accepted; saved human notes retained.'
-            results=self._publish_product(c,p,run,cv,operation,base,body,file,observed,text)
+            results=self._publish_product(c,p,run,cv,operation,base,body,file,observed,text,
+                                          unresolved=text if isinstance(observed,DraftObservation) else None)
         # Exact authorized durable readback, not just a write receipt.
         for item in results:
             readback=self.get_product_observation(p,run.workspace_id,item.observation_id)
@@ -188,7 +198,7 @@ class Products:
         results=[]
         # Initial product creates a typed editable body plus exact download file.
         # Revised product proposes only that body; download its accepted revision.
-        for material in ([body] if base else [body,file]):
+        for material in ([body] if base or file is None else [body,file]):
             aid=operation.artifact_id if base else new_id()
             rid=pid=None
             if base:
@@ -211,7 +221,7 @@ class Products:
                 evidence_origin='local_tool' if binding else 'controlled_transport',model_selection=binding)
             c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
                 (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
-            results.append(ProductResult(kind=material.kind,artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
+            results.append(ProductResult(kind=getattr(material,'kind','document'),artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
         result=TurnResult(results=[TextResult(text=text),*results])
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
         self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
@@ -247,7 +257,9 @@ class Products:
             try:
                 body,file,output=self._calculate_product(operation,base)
                 staged={'status':'observed','body':body.model_dump(mode='json'),
-                        'file':file.model_dump(mode='json'),'output':output.model_dump(mode='json'),'binding':binding}
+                        'file':file.model_dump(mode='json') if file else None,'output':output.model_dump(mode='json'),'binding':binding}
+                if isinstance(operation,PublishArtifact):
+                    staged['reason']='Draft retained; data shape only was checked. The requested goal needs validation.'
             except (OperationRejected,ToolRejected,ValueError) as exc:
                 from .adaptive import rejection_diagnostic
                 diagnostic=rejection_diagnostic(exc)
@@ -309,9 +321,12 @@ class Products:
                 # the trusted limitation. Keep provider prose in its receipt.
                 text=staged['reason']
             if staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
-                body=(TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
-                file=FileBody.model_validate(staged['file'])
-                output=(CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
+                body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
+                file=FileBody.model_validate(staged['file']) if staged['file'] else None
+                output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
+                if isinstance(operation,PublishArtifact):
+                    unresolved=unresolved or 'Draft retained; data shape only was checked. The requested goal needs validation.'
+                    text=staged['reason']  # Provider prose never becomes trusted draft status.
                 results=self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,unresolved=unresolved)
             else:
                 messages=self._conversation_messages(c,run.workspace_id,cv.id)

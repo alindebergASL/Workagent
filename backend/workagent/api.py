@@ -196,6 +196,10 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def history(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.history(p,workspace_id,artifact_id,cursor,limit)
 
+    @route('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/view-actions','POST','invoke_view_action',ViewActionResponse)
+    def view_action(workspace_id:Id,artifact_id:Id,body:ViewActionRequest,p:P):
+        return service.invoke_view_action(p,workspace_id,artifact_id,body)
+
     @route('/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/proposals','GET','list_proposals',ProposalPage)
     def proposals(workspace_id:Id,artifact_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.proposals(p,workspace_id,artifact_id,cursor,limit)

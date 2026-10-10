@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { EXECUTION } from "@/lib/execution";
@@ -33,6 +33,20 @@ export function Shell({ children }: { children: ReactNode }) {
   const onConversations = pathname.startsWith("/conversations");
   const onActivity = pathname.startsWith("/activity");
 
+  // Activity & details is a secondary destination: ordinary work never
+  // needs it, so it lives in the sidebar foot and the phone "More" menu.
+  const more = useRef<HTMLDetailsElement>(null);
+  const activityLink = (className: string, onClick?: () => void) => (
+    <Link
+      className={className}
+      href="/activity"
+      aria-current={onActivity ? "page" : undefined}
+      onClick={onClick}
+    >
+      Activity &amp; details
+    </Link>
+  );
+
   const nav = (
     <>
       <li>
@@ -51,15 +65,6 @@ export function Shell({ children }: { children: ReactNode }) {
           aria-current={onSpaces ? "page" : undefined}
         >
           Spaces
-        </Link>
-      </li>
-      <li>
-        <Link
-          className="nav-link"
-          href="/activity"
-          aria-current={onActivity ? "page" : undefined}
-        >
-          Activity
         </Link>
       </li>
       {CAPABILITIES.conversation ? (
@@ -106,6 +111,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </div>
         ) : null}
         <div className="rail-foot">
+          {activityLink("nav-link nav-link-sm rail-secondary")}
           <span>
             {workspace
               ? `${workspace.kind === "personal" ? "Personal" : "Shared"} · Private`
@@ -131,6 +137,14 @@ export function Shell({ children }: { children: ReactNode }) {
             <span>workagent</span>
           </Link>
           <ul className="topbar-nav">{nav}</ul>
+          <details className="topbar-more" ref={more}>
+            <summary>More</summary>
+            <div className="topbar-more-panel">
+              {activityLink("nav-link", () => {
+                if (more.current) more.current.open = false;
+              })}
+            </div>
+          </details>
         </header>
         <main className="main" id="main">
           <div className="content">{children}</div>

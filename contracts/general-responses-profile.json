@@ -13,7 +13,8 @@
   "tools": [
     "reply",
     "reconcile_csv",
-    "run_wasm"
+    "run_wasm",
+    "publish_artifact"
   ],
   "version": 1
 }
