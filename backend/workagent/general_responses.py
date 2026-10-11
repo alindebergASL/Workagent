@@ -175,7 +175,11 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
         else:
             operation=RunWasm(kind='run_wasm',code=decision.code,entrypoint=decision.entrypoint,
                               arguments=decision.arguments,input_form=[f.model_dump() for f in decision.input_form],**target)
-        base=service._product_base(c,p,run.workspace_id,cv,operation)
+        # Defer only pure editability/field-identity validation to local staging.
+        # All scope, current-target, capability and view-binding checks still run
+        # here and at retention/publication; their denials are never recoverable.
+        # Historical non-adaptive profiles keep their strict admission semantics.
+        base=service._product_base(c,p,run.workspace_id,cv,operation,validate_edit=not enabled(config))
     binding={'attempt_id':attempt.id,'selection_request_sha256':result['request_sha256'],
              'selection_response_id':result['response_id'],'decision_sha256':digest(result['value']),
              'operation_hash':digest(operation) if operation else None,'base_hash':base.body_hash if base else None}

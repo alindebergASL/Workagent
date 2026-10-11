@@ -12,6 +12,8 @@ import {
   isEmptyPayload,
   pinsVersions,
   notesFrom,
+  viewChanges,
+  viewChangeSummary,
   parseCell,
   rebind,
   removeRow,
@@ -334,5 +336,37 @@ describe("version-pinned views", () => {
       },
     };
     expect(pinsVersions(loose)).toBe(false);
+  });
+});
+
+describe("nothing typed is silently dropped", () => {
+  it("keeps every note line; the limit is enforced visibly elsewhere", () => {
+    const lines = Array.from({ length: 11 }, (_, i) => `Human note ${i + 1}`);
+    expect(notesFrom(lines.join("\n"))).toEqual(lines);
+  });
+});
+
+describe("proposed views", () => {
+  it("names changed code and data sources even when the readable text is the same", () => {
+    const b = view.bindings![0]!;
+    const proposed = {
+      ...view,
+      source: { ...view.source, js: view.source.js + "\n// changed" },
+      bindings: [{ ...b, revision_id: "other-revision" }],
+    };
+    const c = viewChanges(view, proposed);
+    expect(c).toEqual({
+      title: false,
+      fallback: false,
+      code: ["js"],
+      bindings: true,
+      actions: false,
+    });
+    expect(viewChangeSummary(c)).toBe(
+      "This changes its code (JS) and what it reads.",
+    );
+    expect(viewChangeSummary(viewChanges(view, view))).toBe(
+      "Nothing in the view changes.",
+    );
   });
 });

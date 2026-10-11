@@ -207,6 +207,12 @@ _SAFE_KERNEL_DETAILS=frozenset({
 def rejection_diagnostic(exc):
     from .wasm_tool import ToolRejected
     from .local_operations import OperationRejected
+    if isinstance(exc,ValueError) and str(exc) in {
+        'existing field type/unit/scale/enum/editability is immutable; use a new key',
+        'read-only field cannot be deleted',
+        'read-only cells and their row identities cannot be changed',
+    }:
+        return {'code':'artifact_edit_rejected','detail':str(exc)+'. Preserve the saved read-only values and field identities; propose only permitted edits.'}
     code=getattr(exc,'code',None)
     if isinstance(exc,ToolRejected) and code in _DIAGNOSTICS:
         return {'code':code,'detail':_DIAGNOSTICS[code]}
