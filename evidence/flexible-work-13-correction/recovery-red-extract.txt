@@ -1,0 +1,11 @@
+Original pre-fix PostgreSQL regression excerpts; context/fixtures omitted.
+E   ValueError: read-only cells and their row identities cannot be changed
+E   workagent.errors.DomainError: unsupported_operation
+E   ValueError: read-only cells and their row identities cannot be changed
+E   workagent.errors.DomainError: unsupported_operation
+E   ValueError: read-only cells and their row identities cannot be changed
+E   workagent.errors.DomainError: unsupported_operation
+FAILED tests/test_flexible_edit_recovery.py::test_readonly_model_edit_is_retained_rejection_then_recovery_or_terminal[True-True]
+FAILED tests/test_flexible_edit_recovery.py::test_readonly_model_edit_is_retained_rejection_then_recovery_or_terminal[True-False]
+FAILED tests/test_flexible_edit_recovery.py::test_readonly_model_edit_is_retained_rejection_then_recovery_or_terminal[False-False]
+3 failed, 3 deselected, 1 warning in 8.91s

@@ -1,4 +1,92 @@
-# Workagent #13 — verified integrated candidate
+# Workagent #13 — contained correction verified; acceptance remains open
+
+## Current correction verdict — supersedes the historical report below
+
+**Contained correction PASS**, not blanket engineering-complete or full feature
+acceptance. Exact application: **`a73f7f50cdc15538b5940aa2bba1203724da307d`**,
+[PR #14](https://github.com/alindebergASL/Workagent/pull/14). This includes Hermes
+recovery fix `e6759e8` and Claude `f88a2e5df2668e9fe6a09bf27f151062c93d5bc3`.
+The final suite records the same clean SHA before and after execution.
+
+**#13 stays OPEN.** Andrew's acceptance, any PR merge and any deployment remain
+unperformed. The £300/£350 assessment contradiction remains an experience issue.
+
+### What changed and was verified
+
+Real restricted PostgreSQL reproduced the recovery defect: an in-scope read-only
+model edit threw `unsupported_operation` before retaining a rejection, so delivery
+could repeat the same failure. The fix defers only pure table-edit validation for
+adaptive selections, records `artifact_edit_rejected` without body/output, and
+permits an allowed correction or bounded step-limit result. Historical nonadaptive
+rejection stays strict. Capability/scope, exact target, membership/grant, stale
+revision and view-binding failures remain fail-closed; no broad DomainError catch.
+Publication rechecks editability. Migrations and SQL guards are unchanged.
+
+Seven new PostgreSQL tests cover correction, repeat-invalid termination,
+interruption/replay, repeated delivery, stale/revoked retention boundaries,
+historical behavior and forged observed-stage publication refusal.
+
+Claude's `f88a2e5` preserves an eleventh note visibly and blocks Save until valid,
+and compares proposed source/bindings/actions with saved values even when fallback
+text is unchanged. Comparison stays inert: proposed source is not executed.
+
+### Current exact-candidate results
+
+- **778 backend tests passed** on fresh PostgreSQL; one dependency deprecation warning.
+- **166 frontend tests**, typecheck/lint/format; production and mock builds passed.
+- Canonical/generated contracts and contract typecheck passed.
+- **28 DOM**, **9 Chromium sandbox**, **15 mock-browser** tests passed.
+- Fresh-DB production UI/API/continuous consumer create/edit/save/propose/accept and
+  full API/web/consumer restart/reopen passed.
+- Seven read-only production-UI checks over retained live artifacts passed: human
+  edits, actual CSV, filtering/scoped refresh, malformed-action refusal, phone/fallback,
+  calculator reopen and Home. Sequential notes typing remains intact.
+- Independent saved-output replay passed 107 arithmetic cases/four invalid inputs.
+- [GitHub CI 38115554370](https://github.com/alindebergASL/Workagent/actions/runs/38115554370)
+  succeeded at this exact SHA.
+- Independent contained review **PASS**: reviewer-reported 57 backend tests on its
+  own restricted PostgreSQL DB, including all seven new tests; six additional probes
+  for foreign target/binding, stale target/revoked grant after retained rejection,
+  read-only field deletion and field-identity change; 17 frontend unit tests and
+  28 DOM regressions. Typecheck/touched lint/format/whitespace also passed.
+
+[New correction evidence](../../evidence/flexible-work-13-correction/manifest.json)
+contains hashed logs, restricted red-test excerpts, review scope, CI identity,
+readbacks, budget, CSV and screenshots. The evidence branch has no runtime code,
+contract or migration delta from `a73f7f5`; it is not relabeled as the tested SHA.
+Old evidence below remains historical. Credentials/DSNs/private provider payloads
+are excluded; terminal whitespace is normalized without removing result lines.
+
+### Corrected evidence limits and remaining steps
+
+The original route was `gpt-6.1-sol` at `fffb69b3`; **no new model calls** occurred.
+The venue assessment correction was **human-instructed model-created revision**:
+the prompt explicitly identified the stale recommendation and directed the change.
+It is not hidden-answer autonomous recovery proof. New deterministic PostgreSQL
+recovery tests must not be relabeled as live-model discovery of an unseen error.
+
+At £350 filtering is correct, but saved prose still uses the original £300
+requirement. **A draft/unverified badge does not resolve this contradictory-criteria
+experience.** Original-assessment versus current-filter scope needs to be made
+clear, or assessments recomputed under an explicit scope. This correction did not
+implement that product change. The source-pin heuristic, unproven future prompt
+compliance, Chromium-only coverage and verbose phone presentation remain limits.
+
+Budget readback is unchanged: eight dispatches, **$4.48528 reserved / $20**, including
+$3.42992 carry, zero unknown current-slice steps. Reservations are not billing.
+Saved-review state is preserved. Reviewer cleanup was approval-blocked and not
+retried: disposable `workagent_test_69d51185d412`, its roles and private scratch/env
+files remain; cleanup is not claimed.
+
+Next: Andrew reviews this contained correction; resolve the budget-assessment
+experience separately. If autonomous unseen-error recovery is required for
+acceptance, demonstrate it separately rather than relabel these fixtures. Keep #13
+open. Any merge/deployment needs separate authorization; no new feature work or
+release occurred. Broader #10/#11 and ownership/coordination remain future scope.
+
+---
+
+## Historical d6de6b7 report — superseded, not current sign-off
 
 ## Verdict and exact identity
 

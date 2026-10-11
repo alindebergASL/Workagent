@@ -1,0 +1,31 @@
+{
+  "candidate_sha": "a73f7f50cdc15538b5940aa2bba1203724da307d",
+  "base_sha": "d6de6b728a5641f2d7f31c68250b8695c3edbfbf",
+  "verdict": "PASS",
+  "scope": "Contained recovery and frontend correction review, not full feature acceptance",
+  "provenance": "Independent reviewer self-report, deleg_5237900c",
+  "blockers_in_correction_scope": [],
+  "checks": {
+    "backend_tests_own_restricted_postgresql": 57,
+    "included_new_recovery_regressions": 7,
+    "additional_independent_probes": 6,
+    "frontend_unit_tests": 17,
+    "fixture_dom_regressions": 28,
+    "typecheck_touched_lint_format_diff": "PASS"
+  },
+  "probe_scope": [
+    "foreign target and foreign view binding fail closed",
+    "stale target after retained rejection and revoked grant deny repeated delivery without further dispatch",
+    "read-only field deletion and field-identity-change recovery",
+    "forged observed-stage read-only edits cannot publish proposals or observations",
+    "eleven notes retained visibly through remount; save blocked; exact ten-note save after removing one",
+    "changed proposed JS/bindings shown as inert saved/proposed comparison despite identical fallback"
+  ],
+  "limits": [
+    "Not live-model autonomous recovery evidence or feature acceptance",
+    "Budget-assessment contradiction remains unresolved",
+    "One dependency deprecation warning",
+    "Cleanup was approval-blocked and not retried; disposable workagent_test_69d51185d412 database, roles and review scratch/env files remain",
+    "No source changes, live provider calls, or saved-review database/port changes by reviewer"
+  ]
+}

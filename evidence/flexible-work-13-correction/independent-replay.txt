@@ -1,0 +1,1 @@
+{"manifest_files_verified": 16, "arithmetic_cases": 107, "invalid_domain_rejections": 4, "venue_rows": 4, "human_edit_preserved": true, "eligible_after_obstacle": [], "provider_calls": 0}

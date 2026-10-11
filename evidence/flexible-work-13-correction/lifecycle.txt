@@ -1,0 +1,5 @@
+Created isolated database workagent_test_9d11d3b1e338; environment: /home/ubuntu/workagent-flexible-work/.local/flexible-a73f7f5-ui.env. No credentials printed.
+{"id":"local-workspace","name":"Private fixture workspace","kind":"personal","owner_id":"local-human","access_generation":1}
+PASS flexible create: real UI/API/PostgreSQL, zero provider calls
+PASS flexible reopen: real UI/API/PostgreSQL, zero provider calls
+PASS: fresh-DB flexible product lifecycle and all-process restart

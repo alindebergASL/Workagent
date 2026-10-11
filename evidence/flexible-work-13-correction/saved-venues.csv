@@ -1,0 +1,5 @@
+Venue (supplied fact),Capacity (supplied fact) (people),Hire cost (supplied fact) (GBP),Step-free access (supplied fact),Travel time (supplied fact) (minutes),"Draft assessment (derived, not supplied)",Your notes
+Willow Hall,80,350.00,true,15,Does not qualify: hire cost exceeds the £300 limit by £50.00; capacity and step-free access meet requirements. The previous recommendation is stale.,Human: ask Marta about a discount before any booking. Keep this note.
+Station Loft,100,200.00,false,8,Does not qualify: step-free access requirement is not met; capacity and hire cost meet the stated limits.,
+River Centre,70,320.00,true,12,Does not qualify: hire cost exceeds the £300 limit by £20.00; capacity and step-free access meet requirements.,
+Garden Room,60,180.00,true,5,Does not qualify: capacity falls short of the 70-person minimum by 10 people; hire cost and step-free access meet requirements.,

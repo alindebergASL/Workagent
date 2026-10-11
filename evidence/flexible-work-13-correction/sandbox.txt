@@ -1,0 +1,10 @@
+PASS renders generated HTML/CSS/JS with its data and sizes to content
+PASS data updates after connection reach the view
+PASS only granted actions run; others and prototype names are refused; failures stay generic
+PASS oversized messages never reach handlers; floods are rate-limited
+PASS no network: every fetch, load, socket, beacon, worker, frame and import is blocked
+PASS no storage, cookies, parent DOM, top navigation, popups, dialogs, form posts or downloads
+PASS generated markup can't break out of its element or touch the trusted page
+PASS self-navigation is blocked by the app's frame policy and the view is stopped
+PASS oversized source is refused with readable fallback
+9 sandbox regressions passed (real browser; no server/provider).

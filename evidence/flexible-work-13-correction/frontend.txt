@@ -1,0 +1,19 @@
+$ pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
+$ tsc --noEmit
+$ eslint . --max-warnings 0
+$ prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+$ vitest run
+
+ RUN  v5.0.3 /home/ubuntu/workagent-flexible-work/web
+
+
+ Test Files  19 passed (19)
+      Tests  166 passed (166)
+   Start at  05:42:52
+   Duration  13.04s (transform 40%, import 36%, tests 18%, worker 6%)
+
+  Transform  transforming modules took 2.09s · 40% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns

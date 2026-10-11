@@ -1,0 +1,4 @@
+npm notice run @workagent/contracts@0.1.0 check
+npm notice run ../backend/.venv/bin/python ../backend/export_contracts.py --check && node check-drift.mjs && tsc --noEmit
+Contracts match canonical Python models.
+Generated TypeScript matches OpenAPI.

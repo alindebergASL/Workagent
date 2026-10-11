@@ -1,0 +1,14 @@
+{
+  "git_commit": "a73f7f50cdc15538b5940aa2bba1203724da307d",
+  "passed": true,
+  "origin": "http://127.0.0.1:3160",
+  "mode": "fresh_postgresql_production_ui_continuous_controlled_consumer",
+  "processes_restarted": [
+    "api",
+    "web",
+    "consumer"
+  ],
+  "provider_calls": 0,
+  "database_reset": false,
+  "human_experience_acceptance": "not_tested"
+}
