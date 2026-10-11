@@ -94,7 +94,7 @@ class Products:
                  'annotations':{'openWorldHint':False,'destructiveHint':False}}
                 for name,model in [('reconcile_csv',ReconcileCSV),('run_wasm',RunWasm),('publish_artifact',PublishArtifact)]]
 
-    def _product_base(self,c,p,ws,cv,operation):
+    def _product_base(self,c,p,ws,cv,operation,*,validate_edit=True):
         if isinstance(operation,PublishArtifact):
             self._validate_flexible_body(c,p,ws,cv,operation.body)
         if operation.artifact_id is None:
@@ -107,7 +107,7 @@ class Products:
         expected=type(operation.body) if isinstance(operation,PublishArtifact) else (TableBody if operation.kind=='reconcile_csv' else ToolBody)
         if not isinstance(base.body,expected):
             raise DomainError('unsupported_operation')
-        if isinstance(operation,PublishArtifact):
+        if isinstance(operation,PublishArtifact) and validate_edit:
             self._validate_flexible_edit(base.body,operation.body)
         return base
 
@@ -128,6 +128,11 @@ class Products:
         # Same bounded kernels for controlled and model-selected operations.
         if isinstance(operation,PublishArtifact):
             # Only validate/retain inert data; NEVER evaluate generated source.
+            from .flexible_models import StructuredTableBody,check_table_edit
+            if base and isinstance(base.body,StructuredTableBody) and isinstance(operation.body,StructuredTableBody):
+                # In-scope invalid edits are local input rejections, not lost
+                # authority. Keep their observation in the ordinary recovery loop.
+                check_table_edit(base.body,operation.body)
             return operation.body,None,DraftObservation()
         notes=list(base.body.notes) if base else []
         if isinstance(operation,ReconcileCSV):
@@ -194,6 +199,9 @@ class Products:
     def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None,*,unresolved=None):
         from .service import digest,encoded
         from .outcomes import acknowledge
+        if isinstance(operation,PublishArtifact) and base:
+            # Publication remains strict even if a staged body were forged.
+            self._validate_flexible_edit(base.body,body)
         operation_hash=digest(operation)
         results=[]
         # Initial product creates a typed editable body plus exact download file.
