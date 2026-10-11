@@ -1454,6 +1454,102 @@ try {
   );
 
   {
+    // Notes over the service's limit are refused visibly, never cut short.
+    const table = tableRev.body;
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(flexData(tableRev));
+    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    const extra = Array.from(
+      { length: 11 - table.notes.length },
+      (_, i) => `Human note ${table.notes.length + i + 1}`,
+    );
+    await notes.focus();
+    await page.keyboard.press("Control+End");
+    for (const line of extra) {
+      await page.keyboard.press("Enter");
+      await notes.pressSequentially(line);
+    }
+    const eleven = [...table.notes, ...extra].join("\n");
+    await expect(notes).toHaveValue(eleven);
+    await expect(page.getByTestId("draft-problem")).toHaveText(
+      "Keep notes to 10 lines. There are 11; nothing has been removed.",
+    );
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toBeDisabled();
+    await page.evaluate(() => window.mount("away"));
+    await page.evaluate(() => window.mount("product"));
+    await expect(notes).toHaveValue(eleven);
+    await expect(page.getByTestId("draft-problem")).toBeVisible();
+    // Removing one line makes it savable, with all ten kept.
+    await notes.fill([...table.notes, ...extra].slice(0, 10).join("\n"));
+    flexPosts = [];
+    flexReply = (url, body) =>
+      artifactAfterSave("saved-3", body.body, "f".repeat(64));
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect(page.getByText("Your edits are saved.")).toBeVisible();
+    assert.deepEqual(
+      flexPosts[0].body.body.notes,
+      [...table.notes, ...extra].slice(0, 10),
+    );
+  }
+  passed++;
+  console.log(
+    "PASS notes over the limit are refused visibly and kept through reload, never truncated on save",
+  );
+
+  {
+    // A proposed view whose readable text is unchanged but whose code and
+    // data source differ: the card says so and shows both, as text.
+    const binding = viewRev.body.bindings[0];
+    const proposedView = structuredClone(viewRev.body);
+    proposedView.source.js += "\n// changed by proposal";
+    proposedView.bindings = [{ ...binding, revision_id: "proposed-rev" }];
+    const data = flexData(viewRev, {
+      bound: {
+        [binding.artifact_id]: {
+          revision_id: binding.revision_id,
+          body_hash: binding.body_hash,
+          title: tableRev.body.title,
+        },
+      },
+      proposals: [
+        {
+          id: "vp",
+          status: "pending",
+          base_revision_id: viewRev.id,
+          body: proposedView,
+          body_hash: "a".repeat(64),
+          reason: "Synthetic proposal with the same readable text",
+        },
+      ],
+    });
+    flexReply = () => ({
+      status: 404,
+      json: { code: "not_found_or_not_authorized" },
+    });
+    await showFlex(data);
+    const card = page.getByTestId("product-proposal");
+    await expect(card.getByTestId("proposal-changes")).toHaveText(
+      "This changes its code (JS) and what it reads.",
+    );
+    await card.getByText("Compare with your saved view").click();
+    const compare = card.getByTestId("view-compare");
+    await expect(compare).toContainText("// changed by proposal");
+    await expect(compare).toContainText("version proposed-rev");
+    await expect(compare).toContainText(`version ${binding.revision_id}`);
+    await expect(compare).not.toContainText("Readable version");
+    // Nothing from the proposal runs before it is applied.
+    assert.equal(await page.locator("iframe").count(), 1);
+  }
+  passed++;
+  console.log(
+    "PASS a proposed view shows changed code and data sources even when its readable text is unchanged",
+  );
+
+  {
     const view = viewRev.body;
     const binding = view.bindings[0];
     const action = view.actions[0];

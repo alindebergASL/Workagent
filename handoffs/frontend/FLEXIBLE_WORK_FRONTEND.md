@@ -135,3 +135,32 @@ tidied the text on every keystroke.
     key, including Enter and a trailing space, then check the box after a
     remount or reload and the exact saved list.
   - Restoring the old behaviour makes the DOM regression fail.
+
+## Fix: deep-review findings on `d6de6b7` (frontend P2s)
+
+The independent deep review found two more problems in the frontend. Both
+are fixed.
+
+- **Notes over the limit were silently dropped.** `notesFrom` cut the list
+  to ten lines, so an eleventh note vanished on save. Nothing is shortened
+  now: a list over ten lines keeps every line as typed and blocks Save, with
+  "Keep notes to 10 lines. There are 11; nothing has been removed." The same
+  visible check now covers the other text limits (each note, each document
+  part and a view's readable version). Before, those were left for the
+  service to reject.
+- **A proposed view only showed its readable text.** Its source, bindings
+  or actions could change unseen. The proposal card now says what changes
+  (for example "This changes its code (JS) and what it reads.") and offers
+  "Compare with your saved view". That shows each changed part as text,
+  saved beside proposed. Nothing from the proposal runs before it is applied.
+- **Coverage.** There are two new DOM regressions:
+  - eleven note lines typed key by key, refused, kept through a remount, then
+    saved as ten once a line is removed;
+  - a proposal with an identical readable version but changed JS and binding.
+
+  Unit tests cover the same cases. Restoring the old ten-line cut makes the
+  first regression fail.
+
+Not frontend, left to the backend owner: a rejected model edit to a
+read-only cell bypassing adaptive recovery. The saved per-row assessment
+prose describing the original criteria is model content, already disclosed.

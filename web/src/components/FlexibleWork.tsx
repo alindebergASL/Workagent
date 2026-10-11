@@ -20,6 +20,9 @@ import {
   isEmptyPayload,
   isFlexible,
   KIND_LABEL,
+  LIMITS,
+  viewChanges,
+  viewChangeSummary,
   pinsVersions,
   notesFrom,
   parseCell,
@@ -101,13 +104,26 @@ function draftProblem(draft: Draft): string {
   if (bad.length)
     return `Fix ${bad.length === 1 ? "the highlighted value" : `the ${bad.length} highlighted values`} before saving.`;
   const b = draft.body;
+  if (flexibleKind(b) === "structured_table") {
+    const notes = (b as StructuredTable).notes ?? [];
+    if (notes.length > LIMITS.notes)
+      return `Keep notes to ${LIMITS.notes} lines. There are ${notes.length}; nothing has been removed.`;
+    if (notes.some((n) => n.length > LIMITS.noteChars))
+      return `Keep each note under ${LIMITS.noteChars.toLocaleString("en")} characters.`;
+  }
   if (flexibleKind(b) === "document") {
     const doc = b as DocumentBody;
     if (doc.blocks.some((x) => !x.text.trim()))
       return "Every part of the document needs some text.";
+    if (doc.blocks.some((x) => x.text.length > LIMITS.blockChars))
+      return `Keep each part under ${LIMITS.blockChars.toLocaleString("en")} characters.`;
   }
-  if (flexibleKind(b) === "custom_view" && !(b as CustomView).fallback.trim())
-    return "The readable version can’t be empty.";
+  if (flexibleKind(b) === "custom_view") {
+    const fallback = (b as CustomView).fallback;
+    if (!fallback.trim()) return "The readable version can’t be empty.";
+    if (fallback.length > LIMITS.fallbackChars)
+      return `Keep the readable version under ${LIMITS.fallbackChars.toLocaleString("en")} characters.`;
+  }
   return "";
 }
 
@@ -352,7 +368,15 @@ export function FlexibleEditor({
                 )}
               </p>
             ) : null}
-            {proposed ? (
+            {proposed &&
+            flexibleKind(proposed) === "custom_view" &&
+            kind === "custom_view" ? (
+              <ViewProposal
+                saved={saved as CustomView}
+                proposed={proposed as CustomView}
+                bound={bound}
+              />
+            ) : proposed ? (
               <details className="ids-details">
                 <summary>See the proposed version</summary>
                 <ReadOnly body={proposed} />
@@ -586,6 +610,86 @@ function WorkingCopy({
       <summary>Edit the readable version</summary>
       <div className="disclosure-body">{body}</div>
     </details>
+  );
+}
+
+/**
+ * A proposed view, part by part against the saved one. Code and data
+ * sources are shown as text, never run, so what would change is visible
+ * before anyone applies it.
+ */
+function ViewProposal({
+  saved,
+  proposed,
+  bound,
+}: {
+  saved: CustomView;
+  proposed: CustomView;
+  bound: Bound;
+}) {
+  const c = viewChanges(saved, proposed);
+  const reads = (v: CustomView) =>
+    (v.bindings ?? []).map(
+      (b) =>
+        `${b.name}: ${bound[b.artifact_id]?.title ?? `saved work ${b.artifact_id}`} · version ${b.revision_id}`,
+    );
+  const asks = (v: CustomView) =>
+    (v.actions ?? []).map((a) => `${a.name}: reads ${a.binding}`);
+  const pair = (label: string, before: string[], after: string[]) => (
+    <div className="stack-sm view-compare" key={label}>
+      <h3 className="small">{label}</h3>
+      <div className="view-compare-cols">
+        <div>
+          <p className="small muted">Saved</p>
+          <pre className="product-code">{before.join("\n") || "—"}</pre>
+        </div>
+        <div>
+          <p className="small muted">Proposed</p>
+          <pre className="product-code">{after.join("\n") || "—"}</pre>
+        </div>
+      </div>
+    </div>
+  );
+  return (
+    <>
+      <p className="decision-question" data-testid="proposal-changes">
+        {viewChangeSummary(c)}
+      </p>
+      <details className="ids-details" data-testid="view-compare">
+        <summary>Compare with your saved view</summary>
+        <div className="stack">
+          {c.bindings
+            ? pair("What it reads", reads(saved), reads(proposed))
+            : null}
+          {c.actions
+            ? pair("What it can ask for", asks(saved), asks(proposed))
+            : null}
+          {c.code.map((k) =>
+            pair(
+              `Code (${k.toUpperCase()})`,
+              [saved.source[k] ?? ""],
+              [proposed.source[k] ?? ""],
+            ),
+          )}
+          {c.fallback
+            ? pair("Readable version", [saved.fallback], [proposed.fallback])
+            : null}
+          {c.title ? pair("Title", [saved.title], [proposed.title]) : null}
+          {!c.bindings &&
+          !c.actions &&
+          !c.code.length &&
+          !c.fallback &&
+          !c.title ? (
+            <p className="small">
+              The proposed view is the same as your saved one.
+            </p>
+          ) : null}
+          <p className="hint">
+            Shown as text only. The proposed view runs only after you apply it.
+          </p>
+        </div>
+      </details>
+    </>
   );
 }
 

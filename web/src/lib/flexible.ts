@@ -245,11 +245,53 @@ export function slug(title: string, fallback: string): string {
 
 /** Notes as people edit them: one per line, blank lines dropped. */
 export function notesFrom(text: string): string[] {
+  // Never shortened here: a list over the limit is refused visibly instead.
   return text
     .split("\n")
     .map((x) => x.trim())
-    .filter(Boolean)
-    .slice(0, 10);
+    .filter(Boolean);
+}
+
+/** The service's limits on what people type (structured-table/v1, custom-view/v1). */
+export const LIMITS = {
+  notes: 10,
+  noteChars: 10000,
+  blockChars: 10000,
+  fallbackChars: 12000,
+} as const;
+
+/**
+ * What a proposed view changes, part by part, so a person can see changed
+ * code or data sources even when its readable version is identical.
+ */
+export function viewChanges(saved: CustomView, proposed: CustomView) {
+  const same = (a: unknown, b: unknown) =>
+    JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  const code = (["html", "css", "js"] as const).filter(
+    (k) => (saved.source[k] ?? "") !== (proposed.source[k] ?? ""),
+  );
+  return {
+    title: saved.title !== proposed.title,
+    fallback: saved.fallback !== proposed.fallback,
+    code,
+    bindings: !same(saved.bindings, proposed.bindings),
+    actions: !same(saved.actions, proposed.actions),
+  };
+}
+
+export function viewChangeSummary(c: ReturnType<typeof viewChanges>): string {
+  const parts = [
+    c.code.length
+      ? `its code (${c.code.map((k) => k.toUpperCase()).join(", ")})`
+      : "",
+    c.bindings ? "what it reads" : "",
+    c.actions ? "what it can ask for" : "",
+    c.fallback ? "its readable version" : "",
+    c.title ? "its title" : "",
+  ].filter(Boolean);
+  return parts.length
+    ? `This changes ${parts.join(", ").replace(/, ([^,]*)$/, " and $1")}.`
+    : "Nothing in the view changes.";
 }
 
 /**
