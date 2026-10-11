@@ -1,5 +1,35 @@
 # Flexible work #13 — live proof checkpoint (not integrated acceptance)
 
+## Superseding correction pass — sign-off remains held
+
+The earlier `d6de6b7` engineering-complete report is superseded by the deep review
+at PR #9 comment `6094590496`. Its passed tests remain historical evidence, not
+proof that the newly identified recovery/data-loss/proposal-review defects were
+covered. #13 stays open; the contradictory budget-assessment wording is still an
+experience issue. An unverified badge does not explain the conflicting criteria.
+
+Backend correction `e6759e8` reproduces the read-only-cell failure in PostgreSQL
+and defers only pure editability/field-identity checking into adaptive local
+staging. Invalid in-scope edits become safe retained `artifact_edit_rejected`
+observations; correction, step-limit termination, restart and repeated delivery
+are tested. Capability/scope/exact-target/view-binding denials remain fail-closed,
+and publication independently rechecks edit rules. No SQL/migration weakening.
+Historical non-adaptive profiles keep strict admission behavior. Read-only cells
+are immutable even to approved model proposals, not calculated columns.
+
+Claude's `f88a2e5df2668e9fe6a09bf27f151062c93d5bc3` is integrated: excess notes are
+preserved with visible over-limit save rejection, and custom-view proposals expose
+saved-versus-proposed source/bindings/actions without executing proposed code.
+The resulting exact candidate must pass the affected PostgreSQL/browser tests,
+combined gates and independent correction review before the report is updated.
+
+Evidence scope is also narrower than autonomous end-to-end recovery: the retained
+venue prompts explicitly requested a table, revised assessments, then a view,
+including the initial no-match outcome. This demonstrates useful model-created
+work and instructed revision, not a fresh hidden-answer autonomous recovery test.
+Keep the earlier bounded adaptive proof separate. Original generated evidence is
+preserved rather than rewritten to erase the budget-assessment contradiction.
+
 ## Final correction candidate
 
 Claude's `cd49ec02c54ef666de3a82c46d74e384aef9dabe` is integrated, including
