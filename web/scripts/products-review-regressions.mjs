@@ -554,9 +554,11 @@ try {
   );
   await expect(page.locator(".result-card")).not.toContainText("4250");
   await expect(page.getByTestId("proposal-result")).toHaveText("Returns 4250");
-  await expect(page.getByTestId("proposal-inputs")).toHaveText(
-    "Quantity 3 · Unit price cents 1250 · Shipping cents 500",
-  );
+  await expect(page.getByTestId("proposal-inputs").locator("li")).toHaveText([
+    "Quantity: 3",
+    "Unit price cents: 1250",
+    "Shipping cents: 500",
+  ]);
   await page.evaluate(() => {
     window.resource.data.observations.latest.observation.body_hash = "c".repeat(
       64,
@@ -584,6 +586,7 @@ try {
   );
 
   await page.getByLabel("Quantity", { exact: true }).fill("99");
+  await page.getByText("Change the inputs", { exact: true }).click();
   await page.getByLabel("Input 1 name", { exact: true }).fill("Discard me");
   await expect(
     page.getByRole("button", { name: "Save my edits", exact: true }),

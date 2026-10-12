@@ -43,6 +43,25 @@ export function fieldHeading(field: TableField): string {
     : field.label;
 }
 
+/**
+ * Text columns whose values are long enough that a one-line box would hide
+ * most of them; these are edited in a box that wraps.
+ */
+export function longTextFields(body: StructuredTable, over = 40): Set<string> {
+  return new Set(
+    body.fields
+      .filter(
+        (f) =>
+          f.type === "text" &&
+          body.rows.some((r) => {
+            const v = cellValue(r, f.key);
+            return typeof v === "string" && v.length > over;
+          }),
+      )
+      .map((f) => f.key),
+  );
+}
+
 export function cellValue(
   row: S["TableRow"],
   key: string,
