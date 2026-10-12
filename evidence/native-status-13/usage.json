@@ -1,0 +1,28 @@
+{
+  "verification_kind": "read-only frontend correction; no new inference",
+  "budget": {
+    "billed_cost_usd": null,
+    "carried_reserved_cost_usd": "3.42992",
+    "conservatively_calculated_cost_usd": "0.6853875",
+    "cost_basis": "undiscounted reservation rates; not provider billing",
+    "reported_usage": {
+      "input_tokens": 189651,
+      "output_tokens": 21126
+    },
+    "request_counts": {
+      "cancel": 0,
+      "count_send": 20,
+      "dispatch": 19,
+      "read": 167
+    },
+    "reserved_cost_usd": "5.93640",
+    "reserved_input_tokens": 380000,
+    "reserved_output_tokens": 155648,
+    "unknown_usage_steps": 0
+  },
+  "usage_identical_to_original_restart": true,
+  "original_count_unknown_still_open": true,
+  "new_unresolved": [],
+  "new_provider_calls": 0,
+  "live_run_allowance_remaining": 0
+}

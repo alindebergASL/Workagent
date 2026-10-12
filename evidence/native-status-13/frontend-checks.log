@@ -1,0 +1,51 @@
+5acc6e521766f3b830dea3f47b3c611056370be4
+Checking formatting...
+All matched files use Prettier code style!
+
+ RUN  v5.0.3 /home/ubuntu/workagent-native-status-review/web
+
+
+ Test Files  20 passed (20)
+      Tests  173 passed (173)
+   Start at  19:16:39
+   Duration  5.30s (transform 38%, import 38%, tests 19%, worker 5%)
+
+    Isolate  20 workers spawned · ~147ms startup each (spawn + environment, per file)
+             at least ~2.80s faster with isolate: false — reuses workers across files instead of one per file
+
+▲ Next.js 16.3.4 (webpack)
+✓ Running next.config.ts took 38ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 17.5s
+  Running TypeScript ...
+  Finished TypeScript in 13.9s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/7) ...
+  Generating static pages using 1 worker (1/7) 
+  Generating static pages using 1 worker (3/7) 
+  Generating static pages using 1 worker (5/7) 
+✓ Generating static pages using 1 worker (7/7) in 1742ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /activity
+├ ƒ /api/domain/[...path]
+├ ƒ /api/mock/[...path]
+├ ƒ /assignments/[id]
+├ ƒ /assignments/[id]/artifacts/[artifactId]
+├ ○ /conversations
+├ ƒ /conversations/[id]
+├ ƒ /conversations/[id]/artifacts/[artifactId]
+├ ○ /icon.svg
+├ ○ /spaces
+└ ƒ /spaces/[spaceId]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+5acc6e521766f3b830dea3f47b3c611056370be4

@@ -1,0 +1,48 @@
+{
+  "application_sha": "5acc6e521766f3b830dea3f47b3c611056370be4",
+  "owner_commit": "edb09db466d3f636818b439c4e2102f9bb3d33f7",
+  "origin": "http://127.0.0.1:3166",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "correct_none_wording_for_both_actual_turns": true,
+      "no_false_failure_or_completion": true,
+      "accepted_history_and_exact_current_human_note": true,
+      "newer_human_edits_preserved": true,
+      "no_apply_button": true,
+      "home_reopen": true,
+      "reply_visible": true,
+      "overflow": 0
+    },
+    {
+      "viewport": "phone",
+      "correct_none_wording_for_both_actual_turns": true,
+      "no_false_failure_or_completion": true,
+      "accepted_history_and_exact_current_human_note": true,
+      "newer_human_edits_preserved": true,
+      "no_apply_button": true,
+      "home_reopen": true,
+      "reply_visible": true,
+      "overflow": 0
+    },
+    {
+      "viewport": "narrow-phone",
+      "correct_none_wording_for_both_actual_turns": true,
+      "no_false_failure_or_completion": true,
+      "accepted_history_and_exact_current_human_note": true,
+      "newer_human_edits_preserved": true,
+      "no_apply_button": true,
+      "home_reopen": true,
+      "reply_visible": true,
+      "overflow": 0
+    }
+  ],
+  "errors": [],
+  "writes": [],
+  "provider_calls": 0,
+  "saved_state_unchanged": true,
+  "current_revision": "6029f895-07ca-421c-96a6-9c77a69ddb32",
+  "current_hash": "d7f96469d17809cde87a470682f1e560fd40aa2d742cadd7c174d8307bd6487a",
+  "accepted_revision": "cd06942f-1a32-409a-b186-13900632970c",
+  "accepted_hash": "aae632c58fe85550e12acb53419254dece7c841d5d1fb4026792a2775f71a41a"
+}

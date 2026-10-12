@@ -1,0 +1,66 @@
+{
+  "files": [
+    {
+      "path": "evidence/native-status-13/browser/desktop-corrected-details.png",
+      "bytes": 335432,
+      "sha256": "7766fd8b4c49039a89cd47a98abdeb2ab979573caf43377359c4ae7392b1f31a"
+    },
+    {
+      "path": "evidence/native-status-13/browser/narrow-phone-corrected-details.png",
+      "bytes": 76676,
+      "sha256": "e25cde592779e52eaca88ae54da5759dd1193fa57f914824f9ee8319a4569021"
+    },
+    {
+      "path": "evidence/native-status-13/browser/phone-corrected-details.png",
+      "bytes": 94811,
+      "sha256": "68f4eef905f60dbe888e87fd436347997d755db413d922bc2568ab2a1ed9276f"
+    },
+    {
+      "path": "evidence/native-status-13/browser/verification.json",
+      "bytes": 1645,
+      "sha256": "80474e6c028bb31e27f0c1a56f904d7f901968bd980500c3336b068c91a88420"
+    },
+    {
+      "path": "evidence/native-status-13/frontend-checks.log",
+      "bytes": 1572,
+      "sha256": "a7227427b000822ebe8028b28073d7137921a463dc57be53607b182139cb2796"
+    },
+    {
+      "path": "evidence/native-status-13/identity.json",
+      "bytes": 923,
+      "sha256": "d11d1eff015bb634a44049a6d874b57f3a861250814f88fd2a73d6184f6fb9e5"
+    },
+    {
+      "path": "evidence/native-status-13/independent-review.md",
+      "bytes": 1827,
+      "sha256": "f933efc5563ee4091aa4040acca456206a5c3ea5031eabf6433a537d265478ee"
+    },
+    {
+      "path": "evidence/native-status-13/native-target-check.log",
+      "bytes": 803,
+      "sha256": "5072890584d383c1fa405a25ee9fce74492a8c929fc370f5c269d1f3a6caa9ad"
+    },
+    {
+      "path": "evidence/native-status-13/native-target-verification.json",
+      "bytes": 540,
+      "sha256": "dc927a4a1ba3abaa6ff617cf1134b6230afda3d40b265e340019e1962ea097ff"
+    },
+    {
+      "path": "evidence/native-status-13/usage.json",
+      "bytes": 822,
+      "sha256": "2a07549738246d49fcf966b92b5014bf258280cb7b6652f71134ffd94b0adab4"
+    },
+    {
+      "path": "evidence/native-status-13/verify-native-status.mjs",
+      "bytes": 4749,
+      "sha256": "39d4fc53e5541c0d6f560eb73de5929c8337d57f9e51ceb1b664702e4a1da0b1"
+    },
+    {
+      "path": "handoffs/backend/NATIVE_STATUS_RESULTS.md",
+      "bytes": 5289,
+      "sha256": "ff914a869ec04881410caf0fdd3a90b29793ac6b57a39c5ac559e71933508fed"
+    }
+  ],
+  "credentials_exported": false,
+  "secret_value_scan": "PASS"
+}

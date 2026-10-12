@@ -1,0 +1,26 @@
+{
+  "application_sha": "5acc6e521766f3b830dea3f47b3c611056370be4",
+  "documentation_sha": "a0764115ecc24ef4ca3cf3832c483249c64a1ea6",
+  "owner_sha": "edb09db466d3f636818b439c4e2102f9bb3d33f7",
+  "original_live_tested_sha": "4186d337a5d3b225fc257dda02b9d18bb10ab63e",
+  "build_id": "gjVVx487evDkjOh6YV9Pn",
+  "build_flags": {
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "1",
+    "NEXT_PUBLIC_WORKAGENT_API_BASE": "/api/domain"
+  },
+  "review_origin": "http://127.0.0.1:3166",
+  "backend_origin": "http://127.0.0.1:8166",
+  "public_deployment": false,
+  "credentials_exported": false,
+  "independent_verdict": "PASS",
+  "p2_status": "closed",
+  "documentation_ci": [
+    {
+      "conclusion": "success",
+      "databaseId": 38297691002,
+      "headSha": "a0764115ecc24ef4ca3cf3832c483249c64a1ea6",
+      "status": "completed",
+      "url": "https://github.com/alindebergASL/Workagent/actions/runs/38297691002"
+    }
+  ]
+}
