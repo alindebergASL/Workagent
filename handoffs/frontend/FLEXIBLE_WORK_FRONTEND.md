@@ -164,3 +164,61 @@ are fixed.
 Not frontend, left to the backend owner: a rejected model edit to a
 read-only cell bypassing adaptive recovery. The saved per-row assessment
 prose describing the original criteria is model content, already disclosed.
+
+## Shell corrections from the trusted-tester review
+
+The tester asked for the shell problems to be separated from the content the
+model generated. These are the shell fixes. The evidence is in
+`evidence/shell-corrections/`.
+
+- **Table rows were 153px tall.** The cause was not the data. The row's
+  "Remove" button was squeezed to 56px, so "Remove" wrapped one letter per
+  line, and every row took that height. The button now stays on one line.
+  Rows measure 62px on the retained model table at 1440 (`table-before-1440.png`
+  → `table-after-1440.png`).
+- **The table was narrow beside the conversation.** Work that needs width
+  (tables and views) now gets a wider page, and a narrower conversation
+  column, from 1100px up. Column headings wrap instead of widening their
+  columns, and number boxes are compact. On the same table and screen, the
+  visible area went from 702px to 875px wide, and the full table from 1607px
+  to 1139px. Phones keep the card layout.
+- **Long text was hidden in one-line boxes.** A text column whose saved
+  values run past 40 characters is edited in a two-line box that wraps.
+  Enter still doesn't add a line, so the value stays one line of text.
+  Whether a column wraps comes from the saved version, so a box never changes
+  type, or loses focus, while someone types.
+- **Calculator wording.**
+  - Titles made from identifiers read as words ("collected_litres tool" →
+    "Collected litres tool"). The saved title is unchanged.
+  - Each input reads as a label beside its value.
+  - Renaming, adding and removing inputs moved under "Change the inputs".
+    That section opens by itself when there is something to fix.
+  - The result lists its inputs one per line instead of as a run-on line.
+- **The view page had three trust notices.** Those were the status card, a
+  trust paragraph and the frame caption. They are now one line: "Made by
+  Workagent · reads X · current saved version · can't change your work or
+  reach the internet · not verified". The frame's caption is now optional,
+  and off on this page. Views can grow to 8000px before scrolling inside the
+  frame, up from 4000px, so there is less scrolling inside scrolling.
+
+**Generated content, for the backend owner (not shell):**
+
+- The view's controls and prompts are tied to the data the model saw. Its
+  £300/£350 budget hint and "Try a £350 budget" text are an example.
+- Long per-venue cards repeat every field with its "(supplied fact)" label.
+- Column labels carry provenance text ("(supplied fact)", "(derived, not
+  supplied)") that would read better as a field property.
+- The calculator's output description is folded into its last input's label.
+
+**Checks.** All were run on this commit. Everything was controlled, with no
+model calls:
+
+- `pnpm check`: 170 unit tests;
+- 28 DOM regressions;
+- 9 sandbox regressions;
+- 15 mock e2e tests;
+- `verify_general_integration.py` on the real UI, API and PostgreSQL,
+  including the calculator journey and a restart;
+- the flexible create/reopen journey across a stack restart;
+- the retained model table and view republished through the controlled path
+  (`flexible-live-records.mjs`).

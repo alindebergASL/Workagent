@@ -15,6 +15,7 @@ import {
   cellValue,
   changeSummary,
   fieldHeading,
+  longTextFields,
   flexibleKind,
   formatCell,
   isEmptyPayload,
@@ -39,6 +40,7 @@ import {
   type FlexibleBody,
   type StructuredTable,
 } from "@/lib/flexible";
+import { readableTitle } from "@/lib/titles";
 
 /** The saved version each bound piece of work is at now, by artifact id. */
 export type Bound = Record<
@@ -263,7 +265,7 @@ export function FlexibleEditor({
   return (
     <div className="stack product" data-kind={kind}>
       <header className="stack-sm">
-        <h1>{saved.title}</h1>
+        <h1>{readableTitle(saved.title)}</h1>
         <div className="row product-meta">
           <span className="small muted">
             {KIND_LABEL[kind]} · {origin}
@@ -312,25 +314,28 @@ export function FlexibleEditor({
         </p>
       ) : null}
 
-      <section className="card result-card" aria-labelledby="result-title">
-        <h2 id="result-title" className="sr-only">
-          Status
-        </h2>
-        {kind === "structured_table" ? (
-          <p className="result-headline">
-            {(saved as StructuredTable).rows.length} rows ·{" "}
-            {(saved as StructuredTable).fields.length} columns
+      {/* A view says who made it and what it reads in its own one line. */}
+      {kind === "custom_view" ? null : (
+        <section className="card result-card" aria-labelledby="result-title">
+          <h2 id="result-title" className="sr-only">
+            Status
+          </h2>
+          {kind === "structured_table" ? (
+            <p className="result-headline">
+              {(saved as StructuredTable).rows.length} rows ·{" "}
+              {(saved as StructuredTable).fields.length} columns
+            </p>
+          ) : null}
+          <p className="result-status" data-verified="false">
+            <span className="dot" aria-hidden="true" />
+            <span role="status" data-testid="product-verification">
+              {byWorkagent
+                ? "Draft made by Workagent. Its shape was checked; what it says hasn’t been verified."
+                : "Saved by you. Nothing checks this automatically."}
+            </span>
           </p>
-        ) : null}
-        <p className="result-status" data-verified="false">
-          <span className="dot" aria-hidden="true" />
-          <span role="status" data-testid="product-verification">
-            {byWorkagent
-              ? "Draft made by Workagent. Its shape was checked; what it says hasn’t been verified."
-              : "Saved by you. Nothing checks this automatically."}
-          </span>
-        </p>
-      </section>
+        </section>
+      )}
 
       {pendingProposals.map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
@@ -767,6 +772,7 @@ function TableEditor({
   const savedRows = new Set(saved.rows.map((r) => r.row_id));
   const readOnly = body.fields.some((f) => !f.editable);
   const errors = Object.entries(raw).filter(([, c]) => c.error);
+  const longText = longTextFields(saved);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
     const parsed = parseCell(field, text);
@@ -824,6 +830,11 @@ function TableEditor({
                     const typed = raw[k];
                     const label = `${name} ${f.label}`;
                     const locked = !f.editable && savedRows.has(r.row_id);
+                    const inputProps = {
+                      "aria-label": label,
+                      "aria-invalid": typed?.error ? true : undefined,
+                      value: typed?.text ?? cellInput(value),
+                    };
                     return (
                       <td
                         key={f.key}
@@ -854,10 +865,26 @@ function TableEditor({
                               </option>
                             ))}
                           </select>
+                        ) : longText.has(f.key) ? (
+                          // Long text wraps where it can be read, but stays
+                          // one value: Enter doesn't start a new line.
+                          <textarea
+                            {...inputProps}
+                            rows={2}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") e.preventDefault();
+                            }}
+                            onChange={(e) =>
+                              edit(
+                                r.row_id,
+                                f.key,
+                                e.target.value.replace(/[\r\n]+/g, " "),
+                              )
+                            }
+                          />
                         ) : (
                           <input
-                            aria-label={label}
-                            aria-invalid={typed?.error ? true : undefined}
+                            {...inputProps}
                             inputMode={
                               f.type === "integer"
                                 ? "numeric"
@@ -865,7 +892,6 @@ function TableEditor({
                                   ? "decimal"
                                   : undefined
                             }
-                            value={typed?.text ?? cellInput(value)}
                             onChange={(e) =>
                               edit(r.row_id, f.key, e.target.value)
                             }
@@ -1012,29 +1038,33 @@ function ViewSurface({
   return (
     <section className="stack view-surface" aria-label={view.title}>
       <div className="stack-sm view-trust">
-        <p className="small">
-          Workagent made this view. It reads your saved work and can’t change
-          it; what it shows hasn’t been verified.
+        {/* One line: who made it, what it reads and whether that's current,
+            and what it can't do. */}
+        <p className="small view-trust-line" data-testid="product-verification">
+          Made by Workagent
+          {states.map(({ binding, state }, i) => (
+            <span
+              key={binding.name}
+              className="view-binding"
+              data-state={state}
+            >
+              {i ? ", " : " · reads "}
+              <Link
+                href={`/conversations/${cid}/artifacts/${binding.artifact_id}`}
+              >
+                {readableTitle(
+                  bound[binding.artifact_id]?.title ?? "saved work",
+                )}
+              </Link>
+              {state === "current"
+                ? " · current saved version"
+                : state === "changed"
+                  ? " · changed since this view was made"
+                  : " · not available"}
+            </span>
+          ))}{" "}
+          · can’t change your work or reach the internet · not verified
         </p>
-        {states.length ? (
-          <ul className="small view-bindings">
-            {states.map(({ binding, state }) => (
-              <li key={binding.name} data-state={state}>
-                Reads{" "}
-                <Link
-                  href={`/conversations/${cid}/artifacts/${binding.artifact_id}`}
-                >
-                  {bound[binding.artifact_id]?.title ?? "saved work"}
-                </Link>
-                {state === "current"
-                  ? " · current saved version"
-                  : state === "changed"
-                    ? " · changed since this view was made"
-                    : " · not available"}
-              </li>
-            ))}
-          </ul>
-        ) : null}
         {behind ? (
           <div className="notice-line stack-sm" role="status">
             <p>
@@ -1085,6 +1115,7 @@ function ViewSurface({
         data={{}}
         actions={actions}
         fallback={<p className="view-fallback">{view.fallback}</p>}
+        caption={false}
       />
       {readable}
       <details className="disclosure">

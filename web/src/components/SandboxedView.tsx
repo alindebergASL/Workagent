@@ -33,6 +33,7 @@ export function SandboxedView({
   data,
   actions = {},
   fallback,
+  caption = true,
 }: {
   /** What this view shows, for assistive technology. */
   title: string;
@@ -41,6 +42,8 @@ export function SandboxedView({
   actions?: ViewActions;
   /** Readable content when the view can't be shown. */
   fallback?: React.ReactNode;
+  /** Off when the page around the view already says what it can reach. */
+  caption?: boolean;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const port = useRef<MessagePort | null>(null);
@@ -179,10 +182,12 @@ export function SandboxedView({
         onLoad={connect}
         {...{ csp: VIEW_CSP }}
       />
-      <figcaption className="small muted">
-        Made by Workagent for this work. It can’t reach your account or the
-        internet.
-      </figcaption>
+      {caption ? (
+        <figcaption className="small muted">
+          Made by Workagent for this work. It can’t reach your account or the
+          internet.
+        </figcaption>
+      ) : null}
     </figure>
   );
 }

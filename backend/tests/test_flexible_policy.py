@@ -13,11 +13,39 @@ def test_saved_and_temporary_criteria_have_separate_visible_labels():
     assert 'Label filter controls as temporary/current filters, not changes to the original task' in FLEXIBLE_POLICY
 
 
-def test_saved_assessment_label_is_adjacent_to_every_display():
+def test_saved_assessment_label_is_concise_and_adjacent_to_every_display():
     assert 'Label each displayed saved assessment adjacent to its text' in FLEXIBLE_POLICY
     assert 'including row/card/detail displays' in FLEXIBLE_POLICY
-    assert 'identify its original criteria there (or explicitly say they are unknown)' in FLEXIBLE_POLICY
+    assert 'concise saved/current labels' in FLEXIBLE_POLICY
+    assert 'shared original-criteria summary' in FLEXIBLE_POLICY
+    assert 'make clear which summary applies to each assessment' in FLEXIBLE_POLICY
+    assert 'rather than repeating full criteria in every row' in FLEXIBLE_POLICY
     assert 'a distant page-level notice alone is insufficient' in FLEXIBLE_POLICY
+
+
+def test_agent_chooses_proportionate_work_shape_without_fixed_artifact_sequence():
+    assert 'Choose a proportionate supported work shape based on the user goal' in FLEXIBLE_POLICY
+    assert 'no prescribed artifact sequence' in FLEXIBLE_POLICY
+    assert 'do not require a table followed by a custom view' in FLEXIBLE_POLICY
+
+
+def test_prose_corrections_preserve_meaningful_controls_and_ordinary_editing():
+    assert 'When correcting prose, preserve meaningful user-adjustable controls and ordinary editing' in FLEXIBLE_POLICY
+    assert 'do not replace useful interaction with static explanation' in FLEXIBLE_POLICY
+
+
+def test_example_values_do_not_become_closed_options_by_default():
+    assert 'Do not turn example or observed values into closed options unless the task requires a closed set' in FLEXIBLE_POLICY
+
+
+def test_presentation_starts_with_result_or_useful_next_decision():
+    assert 'Present the result or useful next decision first' in FLEXIBLE_POLICY
+
+
+def test_optional_history_does_not_hide_material_context():
+    assert 'Full historical prose may be placed in optional details' in FLEXIBLE_POLICY
+    assert 'Keep material uncertainty, action consequences and human notes discoverable' in FLEXIBLE_POLICY
+    assert 'surface decision-relevant caveats beside the result or action' in FLEXIBLE_POLICY
 
 
 def test_unknown_original_criteria_stay_unknown_without_inference():
@@ -38,10 +66,11 @@ def test_filtering_neither_rewrites_saved_work_nor_claims_reassessment():
     assert 'Explain that filters affect only this temporary view and local match status' in FLEXIBLE_POLICY
 
 
-def test_assessment_guidance_is_generic_without_fixture_amounts():
-    guidance = FLEXIBLE_POLICY.split('\n\nGenerated views', 1)[1]
+def test_general_guidance_is_generic_without_fixture_values():
+    guidance = FLEXIBLE_POLICY.split('\n\n', 1)[1]
     assert 'Never hardcode fixture-specific criteria or amounts' in guidance
     assert not re.search(r'\d|[$£€]', guidance)
+    assert not re.search(r'\b(?:venue|repair|rainwater)\b', guidance, re.IGNORECASE)
 
 
 @pytest.mark.parametrize('module', ['workagent.general_responses', 'workagent.adaptive'])

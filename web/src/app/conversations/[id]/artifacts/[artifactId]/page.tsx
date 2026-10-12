@@ -31,6 +31,7 @@ import {
   tableSummary,
   toolInputs,
 } from "@/lib/product-summary";
+import { readableTitle } from "@/lib/titles";
 
 type Data = {
   artifact: S["Artifact"];
@@ -488,7 +489,7 @@ function ProductEditor({
   return (
     <div className="stack product">
       <header className="stack-sm">
-        <h1>{saved.title}</h1>
+        <h1>{readableTitle(saved.title)}</h1>
         <div className="row product-meta">
           <span className="small muted">
             {kindLabel} · {originText(data.conversation, artifact, lead)}
@@ -1019,9 +1020,13 @@ function ProposedToolResult({
       <p className="decision-question" data-testid="proposal-result">
         Returns <strong>{output.value}</strong>
       </p>
-      <p className="small muted" data-testid="proposal-inputs">
-        {inputs.map((x) => `${x.label} ${x.value}`).join(" · ")}
-      </p>
+      <ul className="small muted result-inputs" data-testid="proposal-inputs">
+        {inputs.map((x, i) => (
+          <li key={i}>
+            {x.label}: {x.value}
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
@@ -1099,11 +1104,13 @@ function ResultCard({
               "Not run on this saved version yet."
             )}
           </p>
-          <p className="small muted">
-            {toolInputs(body)
-              .map((x) => `${x.label} ${x.value}`)
-              .join(" · ")}
-          </p>
+          <ul className="small muted result-inputs">
+            {toolInputs(body).map((x, i) => (
+              <li key={i}>
+                {x.label}: {x.value}
+              </li>
+            ))}
+          </ul>
         </>
       ) : (
         <p className="result-headline">{body.filename}</p>
@@ -1133,63 +1140,82 @@ function ToolInputs({
   update: (rows: InputRows) => void;
 }) {
   const change = update;
+  // Opens by itself when there's something to fix; otherwise it's the
+  // person's to open and close.
+  const [shown, setShown] = useState(Boolean(error));
+  useEffect(() => {
+    if (error) setShown(true);
+  }, [error]);
+  const set = (i: number, patch: Partial<InputRows[number]>) =>
+    change(rows.map((x, n) => (n === i ? { ...x, ...patch } : x)));
+  // People change values; renaming, adding or removing inputs changes the
+  // tool itself, so that sits behind its own disclosure.
   return (
     <fieldset className="tool-inputs stack-sm">
       <legend className="field-label">Inputs</legend>
       {rows.map((r, i) => (
-        <div key={i} className="tool-input-row">
-          <input
-            aria-label={`Input ${i + 1} name`}
-            value={r.label}
-            placeholder="Name"
-            onChange={(e) =>
-              change(
-                rows.map((x, n) =>
-                  n === i ? { ...x, label: e.target.value } : x,
-                ),
-              )
-            }
-          />
+        <label key={i} className="tool-input">
+          <span className="tool-input-label">
+            {r.label.trim() || `Input ${i + 1}`}
+          </span>
           <input
             aria-label={r.label.trim() || `Input ${i + 1} value`}
             inputMode="numeric"
             value={r.value}
             placeholder="0"
-            onChange={(e) =>
-              change(
-                rows.map((x, n) =>
-                  n === i ? { ...x, value: e.target.value } : x,
-                ),
-              )
-            }
+            onChange={(e) => set(i, { value: e.target.value })}
           />
-          <button
-            type="button"
-            className="btn btn-sm btn-quiet"
-            aria-label={`Remove input ${i + 1}`}
-            onClick={() => change(rows.filter((_, n) => n !== i))}
-          >
-            Remove
-          </button>
-        </div>
+        </label>
       ))}
-      <div className="row">
-        <button
-          type="button"
-          className="btn btn-sm"
-          disabled={rows.length >= 8}
-          onClick={() => change([...rows, { name: "", label: "", value: "" }])}
-        >
-          Add an input
-        </button>
-      </div>
       {error ? (
         <p role="alert" className="small">
           {error}
         </p>
       ) : (
-        <p className="hint">Whole numbers only. Up to eight inputs.</p>
+        <p className="hint">Whole numbers only.</p>
       )}
+      <details
+        className="disclosure tool-structure"
+        open={shown}
+        onToggle={(e) => setShown(e.currentTarget.open)}
+      >
+        <summary>Change the inputs</summary>
+        <div className="disclosure-body stack-sm">
+          <p className="hint">
+            Rename, add or remove what the tool asks for. Up to eight inputs.
+          </p>
+          {rows.map((r, i) => (
+            <div key={i} className="tool-input-row">
+              <input
+                aria-label={`Input ${i + 1} name`}
+                value={r.label}
+                placeholder="Name"
+                onChange={(e) => set(i, { label: e.target.value })}
+              />
+              <button
+                type="button"
+                className="btn btn-sm btn-quiet"
+                aria-label={`Remove input ${i + 1}`}
+                onClick={() => change(rows.filter((_, n) => n !== i))}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              disabled={rows.length >= 8}
+              onClick={() =>
+                change([...rows, { name: "", label: "", value: "" }])
+              }
+            >
+              Add an input
+            </button>
+          </div>
+        </div>
+      </details>
     </fieldset>
   );
 }

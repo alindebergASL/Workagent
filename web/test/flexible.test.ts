@@ -7,6 +7,7 @@ import {
   cellValue,
   changeSummary,
   fieldHeading,
+  longTextFields,
   flexibleKind,
   formatCell,
   isEmptyPayload,
@@ -368,5 +369,21 @@ describe("proposed views", () => {
     expect(viewChangeSummary(viewChanges(view, view))).toBe(
       "Nothing in the view changes.",
     );
+  });
+});
+
+describe("long text cells", () => {
+  it("wrap only text columns whose saved values are long", () => {
+    const text = venues.fields.find((f) => f.type === "text")!;
+    const other = venues.fields.find((f) => f.type !== "text")!;
+    expect(longTextFields(venues, 10_000).size).toBe(0);
+    const long = setCell(
+      venues,
+      venues.rows[0]!.row_id,
+      text.key,
+      "x".repeat(41),
+    );
+    expect([...longTextFields(long)]).toContain(text.key);
+    expect(longTextFields(long).has(other.key)).toBe(false);
   });
 });
