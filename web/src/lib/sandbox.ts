@@ -67,7 +67,7 @@ export const VIEW_LIMITS = {
   /** Any single message from a view. */
   messageBytes: 64_000,
   minHeight: 120,
-  maxHeight: 4000,
+  maxHeight: 8000,
   /** Action requests per view per minute. */
   requestsPerMinute: 30,
   /** Requests waiting for an answer at once. */

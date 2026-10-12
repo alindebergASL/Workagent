@@ -393,6 +393,7 @@ try {
 
 /** Fill the per-field tool inputs: one name and whole-number value each. */
 async function setToolInputs(page, fields) {
+  await openInputStructure(page);
   const rows = page.locator(".tool-input-row");
   while ((await rows.count()) > fields.length)
     await page
@@ -404,7 +405,7 @@ async function setToolInputs(page, fields) {
       .click();
   for (const [i, [label, value]] of fields.entries()) {
     await page.getByLabel(`Input ${i + 1} name`, { exact: true }).fill(label);
-    await rows.nth(i).locator("input").nth(1).fill(value);
+    await page.locator(".tool-input input").nth(i).fill(value);
   }
   await expect(
     page
@@ -412,4 +413,10 @@ async function setToolInputs(page, fields) {
       .locator("xpath=ancestor::fieldset")
       .getByRole("alert"),
   ).toHaveCount(0);
+}
+
+/** Renaming, adding and removing inputs sits behind its own disclosure. */
+async function openInputStructure(page) {
+  const d = page.locator("details.tool-structure");
+  if (!(await d.evaluate((e) => e.open))) await d.locator("summary").click();
 }
