@@ -1,6 +1,59 @@
 # Current runtime status and execution boundary
 
-## Flexible-work candidate (#13) — supersedes the next-slice status below
+## Native editable-continuation review — current (#13 remains open)
+
+Live-tested application: `4186d337a5d3b225fc257dda02b9d18bb10ab63e`.
+This adds an executable production-build admission guard; backend, web and
+contracts are byte-identical to `dd01cd49a9b026edf8a99281d182e0554d54f4e2`,
+including Claude's `dff730277c75e789bdc3b242f295e8270f7e7cf6` shell work.
+The prior general-continuation attempt remains PARTIAL/HOLD: its build omitted
+`NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1`. It is not relabeled by this result.
+
+A separately authorized fresh initial goal and follow-up were sent through the
+ordinary UI. The agent chose a document; a human edit was saved through its
+editor. The exact-target follow-up produced a pending revision of that same
+canonical document, not a substitute view. The operator inspected and explicitly
+accepted the proposal through trusted UI controls under Andrew's synthetic-test
+authorization. Home → Conversations → work, fresh browser contexts at
+1440/390/320px, and API/web service restart preserved the accepted body and the
+complete human-edited block, including its line break. No proposal was accepted
+in the older evidence and no broader acceptance is implied.
+
+- Conversation: `cf457e1d-0590-4dea-9287-279413eefa9c`.
+- Work: `54f1ff77-d3c1-43f1-8416-69338e415089`.
+- Accepted proposal: `aced3518-25c1-4cd7-a152-efa2c56ab2b7`.
+- Accepted revision: `cd06942f-1a32-409a-b186-13900632970c`.
+- Accepted body hash: `aae632c58fe85550e12acb53419254dece7c841d5d1fb4026792a2775f71a41a`.
+
+The content is a conditional plan, not a verified event: replacement-guide and
+access decisions remain open. Both model runs retain `partial/needs_validation`;
+accepting an editable revision does not certify the overall goal complete.
+
+Review UI: **http://127.0.0.1:3166**, API 8166, host loopback only. Services were
+restarted and checked; the model consumer is stopped. This is not public hosting
+or deployment. The two authorized live runs are consumed; no replacement turn
+or further paid generation is authorized by this closeout. Cumulative reserved
+cost is **$5.93640/$20**, including **$3.42992** carry, not provider billing.
+The historical count-only unknown remains unresolved. No counters were reset.
+
+Use `scripts/verify_native_admission.py` against the intended production build
+before a live review. A disabled-build negative control is rejected before
+message admission; the enabled-build positive control verifies exact target,
+complete saved body and canonical context hash with zero provider attempts.
+Build with `NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1` **during `next build`**;
+setting it only on `next start` is not sufficient. Use a new output directory/
+disposable DB for each preflight. No model transport or dispatcher is started.
+
+Historical full gates (792 backend/170 frontend) remain scoped to unchanged app
+code. New focused admission checks and exact-head CI are separate evidence.
+Current review/evidence is published on `hermes/flexible-work-13-evidence` in
+`handoffs/backend/NATIVE_CONTINUATION_RESULTS.md`; prior evidence is retained.
+Default-branch merge and deployment remain unauthorized. #13 stays open for
+broader requirements and Andrew's product/experience judgment.
+
+## Historical flexible-work candidate (#13)
+
+The material below is historical, not the current budget or review environment.
 
 The current integration branch is `hermes/flexible-work-13`. It combines the
 additive backend/contracts (`f2b747a`, bridge follow-up `fffb69b`), retained
