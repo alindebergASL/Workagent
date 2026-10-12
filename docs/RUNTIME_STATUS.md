@@ -1,6 +1,34 @@
 # Current runtime status and execution boundary
 
-## Native editable-continuation review — current (#13 remains open)
+## Frontend status correction — current (#13 remains open)
+
+Claude's `edb09db466d3f636818b439c4e2102f9bb3d33f7` is integrated at
+`5acc6e521766f3b830dea3f47b3c611056370be4`. Empty/unrun model-example checks
+now display **No model examples were run for this step**, not a failed-check
+claim. Explicit passed/failed outcomes remain distinct. Only three frontend
+source/test files changed; backend, contracts and migrations are unchanged.
+
+Parent verification at the integrated application SHA: **173 frontend tests**,
+typecheck, lint, format and production build passed. Both exact-head GitHub
+checks passed. The new bundle `gjVVx487evDkjOh6YV9Pn` was built with native
+admission enabled and passed the exact-target/full-saved-body preflight in a
+disposable database with zero provider attempts.
+
+The updated review UI remains **http://127.0.0.1:3166** (host loopback only),
+using the unchanged API on 8166. Actual saved turns show the corrected wording
+at desktop/390/320px; Home → Conversations → work succeeds without page errors,
+overflow or writes. Later human edits have advanced current work to revision
+`6029f895-07ca-421c-96a6-9c77a69ddb32`; they were preserved, not reset to the
+historical accepted revision. That accepted revision remains in history and
+the exact human-context block is intact. Readback confirms no new runs or
+provider usage: **$5.93640/$20 reserved**, original count-only unknown retained.
+The model consumer remains stopped; no further live-run allowance exists.
+
+The original live journey below remains evidence at its original SHA; this
+read-only status correction is not claimed as a new live generation. Default
+merge/deployment and broader product acceptance remain outside this mission.
+
+## Native editable-continuation live record (4186d33)
 
 Live-tested application: `4186d337a5d3b225fc257dda02b9d18bb10ab63e`.
 This adds an executable production-build admission guard; backend, web and
