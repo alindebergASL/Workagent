@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { TurnProgress } from "../src/lib/contract/natural";
-import { adaptivePresentation } from "../src/lib/adaptive-presentation";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import {
+  adaptivePresentation,
+  modelExamples,
+} from "../src/lib/adaptive-presentation";
+import { TurnProgressDetails } from "../src/components/TurnProgress";
 
 const hash = "a".repeat(64);
 function progress(): TurnProgress {
@@ -213,5 +219,59 @@ describe("honest adaptive presentation", () => {
     expect(adaptivePresentation("responding", p)?.title).toBe(
       "Trying another approach",
     );
+  });
+});
+
+describe("model examples: none, passed or failed", () => {
+  const check = (passed: boolean) => ({
+    criterion: { kind: "wasm_return" },
+    actual: "1",
+    passed,
+  });
+  const steps = (p: TurnProgress) => p.adaptive!.steps!;
+  function withExamples(
+    model_tests_passed: boolean,
+    checks?: ReturnType<typeof check>[],
+  ) {
+    const p = progress();
+    steps(p)[0]!.verification.model_tests_passed = model_tests_passed;
+    if (checks) steps(p)[0]!.verification.checks = checks;
+    return p;
+  }
+  const details = (p: TurnProgress) =>
+    renderToStaticMarkup(
+      createElement(TurnProgressDetails, { progress: p }),
+    ).replace(/<[^>]+>/g, " ");
+
+  it("reads no examples as none, not as a failure", () => {
+    const p = withExamples(false, []);
+    expect(modelExamples(steps(p)[0]!.verification)).toEqual({ state: "none" });
+    expect(details(p)).toContain("No model examples were run for this step.");
+    expect(details(p)).not.toContain("did not pass");
+    // A later changed step is not "a changed approach after a failed check".
+    steps(p).push({
+      ...steps(p)[0]!,
+      phase: "selection_2",
+      operation_hash: "b".repeat(64),
+    });
+    expect(adaptivePresentation("failed", p)?.changedAttempts).toBe(0);
+    expect(adaptivePresentation("replied", p)?.checks).toBeNull();
+  });
+  it("says passing examples passed, with the count", () => {
+    const p = withExamples(true, [check(true), check(true)]);
+    expect(details(p)).toContain("Model examples passed (2 of 2).");
+    expect(adaptivePresentation("replied", p)?.checks).toBe(
+      "Model examples passed — not independent checks.",
+    );
+  });
+  it("says failing examples failed, with the count, and counts the retry", () => {
+    const p = withExamples(false, [check(true), check(false)]);
+    expect(details(p)).toContain("Model examples did not pass (1 of 2).");
+    steps(p).push({
+      ...steps(p)[0]!,
+      phase: "selection_2",
+      operation_hash: "b".repeat(64),
+    });
+    expect(adaptivePresentation("failed", p)?.changedAttempts).toBe(1);
   });
 });
