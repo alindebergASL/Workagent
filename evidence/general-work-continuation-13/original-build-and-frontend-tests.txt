@@ -1,0 +1,49 @@
+Checking formatting...
+All matched files use Prettier code style!
+
+ RUN  v5.0.3 /home/ubuntu/workagent-general-continuation-review/web
+
+
+ Test Files  20 passed (20)
+      Tests  170 passed (170)
+   Start at  06:39:40
+   Duration  8.43s (transform 36%, import 36%, tests 23%, worker 5%)
+
+    Isolate  20 workers spawned · ~243ms startup each (spawn + environment, per file)
+             at least ~4.62s faster with isolate: false — reuses workers across files instead of one per file
+
+▲ Next.js 16.3.4 (webpack)
+✓ Running next.config.ts took 52ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 38.6s
+  Running TypeScript ...
+  Finished TypeScript in 24.9s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/7) ...
+  Generating static pages using 1 worker (1/7) 
+  Generating static pages using 1 worker (3/7) 
+  Generating static pages using 1 worker (5/7) 
+✓ Generating static pages using 1 worker (7/7) in 2.2s
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /activity
+├ ƒ /api/domain/[...path]
+├ ƒ /api/mock/[...path]
+├ ƒ /assignments/[id]
+├ ƒ /assignments/[id]/artifacts/[artifactId]
+├ ○ /conversations
+├ ƒ /conversations/[id]
+├ ƒ /conversations/[id]/artifacts/[artifactId]
+├ ○ /icon.svg
+├ ○ /spaces
+└ ƒ /spaces/[spaceId]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

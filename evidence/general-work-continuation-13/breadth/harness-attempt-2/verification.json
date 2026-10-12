@@ -1,0 +1,135 @@
+{
+  "mode": "REPLAY retained model-created calculator; continuous controlled consumer, no inference",
+  "application_commit": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "source_artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+  "source_revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+  "checks": {
+    "replay_code_and_inputform_identical": true,
+    "title_readable": true,
+    "structural_editing_collapsed": true,
+    "human_input_and_note_saved": true
+  },
+  "screenshots": [
+    "01-desktop-replayed-source.png",
+    "failure.png"
+  ],
+  "page_errors": [],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/artifacts/fc73045d-725f-4f6c-8178-5aed2c642b3d/save"
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/conversations/16fba03e-5929-4880-bf29-cc233427704b/messages"
+    }
+  ],
+  "conversation_id": "16fba03e-5929-4880-bf29-cc233427704b",
+  "initial_run_id": "1b1fb9be-bef1-4893-ba2f-adae63aa3ea6",
+  "artifact_url": "http://127.0.0.1:3175/conversations/16fba03e-5929-4880-bf29-cc233427704b/artifacts/fc73045d-725f-4f6c-8178-5aed2c642b3d",
+  "artifact_id": "fc73045d-725f-4f6c-8178-5aed2c642b3d",
+  "initial_revision_id": "e233e33a-cdf0-4768-b151-0ff27d186a52",
+  "initial_title": [
+    "Collected litres tool"
+  ],
+  "saved_revision_id": "37b0b98f-7f1c-4c08-80dc-b01d07478bae",
+  "saved_input_form_identical_to_source": true,
+  "proposals": [
+    {
+      "id": "cbb1dda3-456a-4e25-b045-8e7a74aa05ed",
+      "workspace_id": "local-workspace",
+      "assignment_id": null,
+      "conversation_id": "16fba03e-5929-4880-bf29-cc233427704b",
+      "artifact_id": "fc73045d-725f-4f6c-8178-5aed2c642b3d",
+      "base_revision_id": "37b0b98f-7f1c-4c08-80dc-b01d07478bae",
+      "base_work_version": 3,
+      "body": {
+        "kind": "tool",
+        "title": "collected_litres tool",
+        "code": "(module (func (export \"collected_litres\") (param $area i64) (param $rain i64) (param $eff i64) (result i64) (local $product i64) local.get $area i64.const 0 i64.lt_s local.get $area i64.const 1000000000 i64.gt_s i32.or local.get $rain i64.const 0 i64.lt_s i32.or local.get $rain i64.const 1000000000 i64.gt_s i32.or local.get $eff i64.const 0 i64.lt_s i32.or local.get $eff i64.const 100 i64.gt_s i32.or if unreachable end local.get $area local.get $rain i64.mul local.set $product local.get $product i64.const 100 i64.div_u local.get $eff i64.mul local.get $product i64.const 100 i64.rem_u local.get $eff i64.mul i64.const 100 i64.div_u i64.add))",
+        "entrypoint": "collected_litres",
+        "arguments": [
+          137,
+          12,
+          75
+        ],
+        "input_form": [
+          {
+            "name": "roof_area_m2",
+            "label": "Roof area (whole m²; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "rainfall_mm",
+            "label": "Rainfall (whole mm; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "capture_efficiency_percent",
+            "label": "Capture efficiency (whole percent; 0–100). Output: whole litres, rounded down.",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ],
+        "notes": [
+          "Human QA replay note: keep the first-flush diversion separate; not Andrew approval."
+        ]
+      },
+      "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+      "source_dependencies": [],
+      "reason": "Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.",
+      "status": "pending",
+      "accepted_revision_id": null,
+      "created_at": "2026-10-12T06:46:39.222699Z"
+    }
+  ],
+  "run_ids": [
+    {
+      "id": "1b1fb9be-bef1-4893-ba2f-adae63aa3ea6",
+      "state": "ready"
+    },
+    {
+      "id": "3fb81b6d-9d9c-40a0-a9ed-170e2675e335",
+      "state": "ready"
+    }
+  ],
+  "result_references": [
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 720."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "fc73045d-725f-4f6c-8178-5aed2c642b3d",
+      "revision_id": "e233e33a-cdf0-4768-b151-0ff27d186a52",
+      "proposal_id": null,
+      "observation_id": "1cc7038e-18d6-4f00-86a5-bca61b670e5e"
+    },
+    {
+      "kind": "file",
+      "artifact_id": "f0d086fb-97be-4319-affa-7f0c5672cbff",
+      "revision_id": "0d89a1d3-cfa3-45ad-9936-bddf19eb056a",
+      "proposal_id": null,
+      "observation_id": "a1d0f090-8dd9-4eaf-b25b-16993f98e371"
+    },
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 1233. Change proposed, not accepted; saved human notes retained."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "fc73045d-725f-4f6c-8178-5aed2c642b3d",
+      "revision_id": null,
+      "proposal_id": "cbb1dda3-456a-4e25-b045-8e7a74aa05ed",
+      "observation_id": "cec9eba1-6ff6-4759-86e2-79bfe7f0e66f"
+    }
+  ],
+  "passed": false,
+  "failure": "Error: 404 /product-observations/1cc7038e-18d6-4f00-86a5-bca61b670e5e {\"code\":\"not_found_or_not_authorized\",\"message\":\"Resource unavailable.\",\"request_id\":\"7fea0933-d97f-430c-8ceb-7a0f3539c743\",\"next_action\":\"Check your workspace and current access.\",\"details\":{\"current_revision_id\":null,\"current_version\":null,\"proposal_id\":null,\"fields\":[]}}\n    at api (file:///home/ubuntu/workagent-general-continuation-review/.local/general-breadth-browser.mjs:10:174)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///home/ubuntu/workagent-general-continuation-review/.local/general-breadth-browser.mjs:55:85"
+}

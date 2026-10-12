@@ -1,0 +1,50 @@
+{
+  "mode": "REPLAY retained model-created calculator; controlled local execution, no model calls",
+  "source_artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+  "source_revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+  "source_file": "/home/ubuntu/workagent-flexible-work/evidence/flexible-work-13/rainwater.json",
+  "source_file_sha256": "d32ebb6806ae7f90d62813823c0876814fc5f3098e61e83bb099274269700d68",
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+  "body": {
+    "kind": "tool",
+    "title": "collected_litres tool",
+    "code": "(module (func (export \"collected_litres\") (param $area i64) (param $rain i64) (param $eff i64) (result i64) (local $product i64) local.get $area i64.const 0 i64.lt_s local.get $area i64.const 1000000000 i64.gt_s i32.or local.get $rain i64.const 0 i64.lt_s i32.or local.get $rain i64.const 1000000000 i64.gt_s i32.or local.get $eff i64.const 0 i64.lt_s i32.or local.get $eff i64.const 100 i64.gt_s i32.or if unreachable end local.get $area local.get $rain i64.mul local.set $product local.get $product i64.const 100 i64.div_u local.get $eff i64.mul local.get $product i64.const 100 i64.rem_u local.get $eff i64.mul i64.const 100 i64.div_u i64.add))",
+    "entrypoint": "collected_litres",
+    "arguments": [
+      80,
+      12,
+      75
+    ],
+    "input_form": [
+      {
+        "name": "roof_area_m2",
+        "label": "Roof area (whole m\u00b2; 0\u20131,000,000,000)",
+        "type": "integer",
+        "minimum": -1000000000,
+        "maximum": 1000000000
+      },
+      {
+        "name": "rainfall_mm",
+        "label": "Rainfall (whole mm; 0\u20131,000,000,000)",
+        "type": "integer",
+        "minimum": -1000000000,
+        "maximum": 1000000000
+      },
+      {
+        "name": "capture_efficiency_percent",
+        "label": "Capture efficiency (whole percent; 0\u2013100). Output: whole litres, rounded down.",
+        "type": "integer",
+        "minimum": -1000000000,
+        "maximum": 1000000000
+      }
+    ],
+    "notes": []
+  },
+  "expected_arguments": [
+    137,
+    12,
+    75
+  ],
+  "expected_integer_result": 1233,
+  "formula": "floor(roof_area_m2 * rainfall_mm * capture_efficiency_percent / 100)"
+}

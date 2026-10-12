@@ -1,0 +1,38 @@
+{
+  "artifact_id": "85a3c800-5e03-43da-8412-41e62210deab",
+  "revision_id": "16e7560c-6cf7-4f11-ad05-3fc456bed47b",
+  "body_hash": "01a78b75aa7189e87cd92c499cdc814b02d7521d6f07b8711a17037ea27227ec",
+  "author_kind": "worker",
+  "body": {
+    "access_generation": 1,
+    "actions": [
+      {
+        "binding": "original",
+        "kind": "read_binding",
+        "name": "read_original",
+        "payload_schema": {
+          "additionalProperties": false,
+          "properties": {},
+          "type": "object"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "artifact_id": "ae6b9019-9af6-4bb9-a0b1-a67234f7cffe",
+        "body_hash": "332a03075a8dc18b403fd69c18c326d498a8dd864201c70dd1ee403fc66d4aa6",
+        "name": "original",
+        "revision_id": "d2154cf7-66e4-48f4-b3dc-0280d87b5c70"
+      }
+    ],
+    "fallback": "Proposed adjustment, not an accepted replacement: 10:00–10:15 everyone attends safety briefing; 10:15–10:45 first repair slot with Sam and Jules; 10:45–11:00 triage and Sam's safe handover; 11:00–11:30 second repair slot with Jules; 11:30–11:45 finish safely and close out; 11:45–12:00 protected pack-up with Jules and Lee. Lee handles sign-in and waiting updates outside the briefing and pack-up. At most three independent 30-minute repair places across the two slots, assuming one bike per repairer and no team repairs or overruns; six booked visitors are not six guaranteed repairs. Decide visitor priority, long-repair limits, and safe stopping/handover rules. The original run sheet and accessibility reminder must remain unchanged. Open the original saved run sheet in the shell if the bound original cannot be read here; its reminder is not available in this fallback. No contacts or bookings are made.",
+    "kind": "custom_view",
+    "source": {
+      "css": "body{font-family:system-ui;line-height:1.5;max-width:900px;margin:24px auto;padding:0 16px} section{border:1px solid #bbb;padding:16px;margin:16px 0}textarea{width:100%;min-height:70px}pre{white-space:pre-wrap} .error{color:#922}",
+      "html": "<h1>Saturday repair session: proposed adjustment</h1><p><strong>Decision first:</strong> retain two 30-minute slots, but move slot 2 to 11:00 so Jules can run it alone after Sam leaves. This is a proposal, not an accepted revision.</p><section><h2>Run sheet — Saturday 10:00–12:00</h2><ul><li><strong>10:00–10:15 — Protected safety briefing:</strong> Sam, Jules and Lee all attend. Do not schedule repairs or leave Lee on separate sign-in duty during it.</li><li><strong>10:15–10:45 — Repair slot 1:</strong> Sam and Jules repair; Lee signs in visitors and explains waits.</li><li><strong>10:45–11:00 — Triage and handover:</strong> Sam secures tools and any unfinished work, gives Jules a clear handover, and leaves at 11:00. Do not start a repair requiring Sam to stay longer.</li><li><strong>11:00–11:30 — Repair slot 2:</strong> Jules repairs alone; Lee manages sign-in and waiting updates. No work requiring two repairers.</li><li><strong>11:30–11:45 — Close-out buffer:</strong> finish or stop safely, explain incomplete work and clear visitors. This is not another promised repair slot.</li><li><strong>11:45–12:00 — Protected pack-up:</strong> Jules and Lee pack up; no new repairs. Sam is unavailable.</li></ul><p><strong>Capacity caveat:</strong> at most three independent 30-minute repair places in these two slots if each repairer handles one bike and work fits. Long repairs, shared tasks and overruns reduce that capacity. Six bookings do not guarantee six completed repairs.</p></section><section><h2>Decisions still needed</h2><ul><li>Choose a fair triage/priority rule for the six visitors; do not assign guaranteed repairs before assessing scope.</li><li>Choose a limit for long repairs and how to stop or defer work safely before pack-up; Jules must approve taking over any unfinished job.</li><li>Decide how arrivals during the all-person briefing are handled without removing Lee from it.</li><li>Check that Jules and Lee can pack up safely without Sam, and retain all accessibility arrangements in the original below.</li></ul><label for=\"notes\">Working decision notes — temporary, not saved</label><textarea id=\"notes\" placeholder=\"Record proposed priorities, limits, and arrangements here\"></textarea><p>Notes here affect only this view. Use the trusted shell's save/proposal controls for durable changes. No contacts or bookings are made.</p></section><section><h2>Original saved run sheet and accessibility reminder — unchanged</h2><p>The saved revision below remains the reference for your exact accessibility reminder and other human notes; this proposal does not replace or rewrite it.</p><p id=\"status\" role=\"status\">Loading original saved revision…</p><div id=\"original\"></div></section>",
+      "js": "(async()=>{const status=document.getElementById('status'),out=document.getElementById('original');try{await window.workagent.ready();const r=await window.workagent.request('read_original',{});if(!r||r.binding!=='original'||!r.body||typeof r.body.title!=='string'||!Array.isArray(r.body.blocks)||!r.body.blocks.every(b=>b&&typeof b.text==='string'&&typeof b.block_id==='string'))throw new Error('Unexpected saved-document shape');const h=document.createElement('h3');h.textContent=r.body.title;out.appendChild(h);for(const b of r.body.blocks){const p=document.createElement(b.kind==='heading'?'h4':'pre');p.textContent=(b.kind==='checklist'?(b.checked===true?'☑ ':b.checked===false?'☐ ':''):'')+b.text;out.appendChild(p);}status.textContent='Exact saved revision loaded. Original wording and accessibility reminder are displayed unchanged; the proposed schedule above is separate.';}catch(e){status.className='error';status.textContent='Original saved revision could not be loaded. Its accessibility reminder is unknown here: do not treat this proposal as a complete replacement. Open the original in the shell or supply the reminder before merging changes.';}})();"
+    },
+    "title": "Saturday repair session — proposed adjustment",
+    "version": "custom-view/v1"
+  }
+}

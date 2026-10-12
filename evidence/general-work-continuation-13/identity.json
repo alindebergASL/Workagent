@@ -1,0 +1,26 @@
+{
+  "application_sha": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "verdict": "PARTIAL / HOLD — intended editable continuation not demonstrated",
+  "backend_tests_passed": 792,
+  "frontend_tests_passed": 170,
+  "live_model": "gpt-6.1-sol",
+  "reviewers": "Independent Hermes subagents; not a fresh cross-model MOA review",
+  "initial_admission": "canonical Service, fresh empty conversation",
+  "followup_admission": "real artifact-page UI; original build omitted natural-admission flag; target null",
+  "original_review_build_flags": {
+    "NEXT_PUBLIC_WORKAGENT_API_BASE": "/api/domain",
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "not enabled"
+  },
+  "breadth": "controlled retained-code replay; no fresh generation",
+  "correction": "separate provider-free corrected-build admission proof; no replacement live turn",
+  "cost_limit_usd": "20.00",
+  "reserved_before_usd": "4.88104",
+  "reserved_after_usd": "5.40872",
+  "new_reservation_usd": "0.52768",
+  "billed_cost_usd": null,
+  "historical_count_only_unknown_preserved": true,
+  "public_deployment": false,
+  "accepted": false,
+  "issue_13_remains_open": true,
+  "credentials_exported": false
+}

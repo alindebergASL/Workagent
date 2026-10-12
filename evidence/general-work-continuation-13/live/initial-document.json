@@ -1,0 +1,83 @@
+{
+  "artifact_id": "ae6b9019-9af6-4bb9-a0b1-a67234f7cffe",
+  "revision_id": "abe017b2-f42a-4f07-b0e7-90d21db6dc40",
+  "body_hash": "9cde4ff5949d36ff749b4a5f053d46156ef8ca6c624d8a7ee8484b88098ff444",
+  "author_kind": "worker",
+  "body": {
+    "blocks": [
+      {
+        "block_id": "overview",
+        "checked": null,
+        "kind": "paragraph",
+        "text": "DRAFT RUN SHEET — Saturday, 10:00–12:00. Sam and Jules: bike repairs. Lee: sign-in and waiting-visitor updates. All three are initially available throughout. Six visitors are already booked; their repair needs and durations are unknown. This plan makes no new bookings and promises no repair completion."
+      },
+      {
+        "block_id": "schedule-title",
+        "checked": null,
+        "kind": "heading",
+        "text": "Session timetable"
+      },
+      {
+        "block_id": "schedule",
+        "checked": null,
+        "kind": "paragraph",
+        "text": "10:00–10:15 | Safety briefing — everyone together; no repairs or parallel sign-in during the briefing. Cover safe work areas, tools, bike handling, limits of available skills, and when to stop an unsafe job.\n10:15–10:45 | Repair slot 1 — Sam and Jules each work on one bike if the jobs can be handled independently. Lee signs visitors in, records needs, manages the queue, and explains uncertain wait times.\n10:45–11:15 | Repair slot 2 — Sam and Jules each take the next suitable bike, subject to unfinished jobs and safety. Lee updates waiting visitors.\n11:15–11:45 | Flexible buffer — finish safely, assess remaining bikes, and attempt suitable short jobs only if time and parts allow. This is not a promised extra repair slot.\n11:45–12:00 | Pack up — all three stop repair work, secure tools and parts, clean the area, return bikes, and record unfinished work. Finish by noon."
+      },
+      {
+        "block_id": "capacity",
+        "checked": null,
+        "kind": "paragraph",
+        "text": "CAPACITY CAUTION: The two required 30-minute slots provide four nominal mechanic–bike opportunities, not six guaranteed repairs. Long jobs, shared-mechanic work, missing parts, or handovers can reduce that capacity. The 30-minute buffer may help but does not guarantee the remaining two visitors will receive repairs. Offer all six a clear status update; distinguish assessment from completed repair."
+      },
+      {
+        "block_id": "decisions-title",
+        "checked": null,
+        "kind": "heading",
+        "text": "Decide before the session — proposed defaults are not commitments"
+      },
+      {
+        "block_id": "decide-queue",
+        "checked": false,
+        "kind": "checklist",
+        "text": "Choose queue and triage rules: proposed default is arrival order for assessment, with transparent exceptions for job suitability or safety. Decide who makes exceptions and whether early arrivals are expected for the 10:00 briefing. Arrange a brief safety induction for late arrivals before they enter the work area."
+      },
+      {
+        "block_id": "decide-scope",
+        "checked": false,
+        "kind": "checklist",
+        "text": "Choose repair scope and overruns: what can Sam and Jules safely tackle with available tools and parts? Proposed default: assess first, agree a bounded task, check progress before each slot boundary, and defer jobs that cannot be left safe by 11:45. Decide how unfinished bikes will be returned or otherwise handled; do not assume storage or later appointments exist."
+      },
+      {
+        "block_id": "decide-logistics",
+        "checked": false,
+        "kind": "checklist",
+        "text": "Confirm the actual Saturday date, venue/access, work-space layout, tools, parts, safety supplies, and any costs or consent requirements. Confirm staff availability remains as stated. Gather each visitor's bike problem and likely duration if possible; the number needing long repairs remains unknown."
+      },
+      {
+        "block_id": "operating-checklist",
+        "checked": false,
+        "kind": "checklist",
+        "text": "On the day: establish the safe waiting area; deliver the opening briefing; Lee records each arrival and requested repair; Sam/Jules assess suitability before committing; Lee explains the queue and any delays without promising finish times. At 10:45 and 11:15, review unfinished work and waiting visitors. At 11:30, avoid starting work unlikely to finish safely by 11:45. At 11:45, begin pack-up without extending beyond noon."
+      },
+      {
+        "block_id": "visitor-log-title",
+        "checked": null,
+        "kind": "heading",
+        "text": "Editable visitor log — fill in actual details; blanks are unknown"
+      },
+      {
+        "block_id": "visitor-log",
+        "checked": null,
+        "kind": "paragraph",
+        "text": "For each visitor record: name / arrival / bike issue / safety induction / assessed scope and duration / assigned mechanic / start / status and next update / outcome or unfinished-work instructions.\nVisitor 1: ____________________\nVisitor 2: ____________________\nVisitor 3: ____________________\nVisitor 4: ____________________\nVisitor 5: ____________________\nVisitor 6: ____________________\nUse explicit status descriptions such as waiting, assessment only, in progress, completed task, or deferred. Record what was actually done; do not imply a bike is fully safe merely because a repair task is complete."
+      },
+      {
+        "block_id": "human-notes",
+        "checked": null,
+        "kind": "paragraph",
+        "text": "Organizer notes and changes: ____________________\nKey unresolved question: how many of the six visitors need long repairs? Until assessed, do not promise that all six can be repaired. This editable plan is a draft for human review; nobody has been contacted and no bookings have been made through this task."
+      }
+    ],
+    "title": "Saturday Neighborhood Repair Session — Draft Run Sheet"
+  }
+}

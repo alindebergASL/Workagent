@@ -1,0 +1,271 @@
+{
+  "mode": "REPLAY retained model-created calculator; continuous controlled consumer, no inference",
+  "application_commit": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "source_artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+  "source_revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+  "checks": {
+    "replay_code_and_inputform_identical": true,
+    "title_readable": true,
+    "structural_editing_collapsed": true,
+    "human_input_and_note_saved": true,
+    "actual_result_matches_python": true,
+    "pending_proposal_not_accepted": true,
+    "note_preserved": true,
+    "phone_values_notes_and_no_overflow": true
+  },
+  "screenshots": [
+    "01-desktop-replayed-source.png",
+    "02-desktop-pending-proposal.png",
+    "03-phone-390.png",
+    "03-phone-320.png",
+    "failure.png"
+  ],
+  "page_errors": [],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/artifacts/c5de4dd6-ccbf-42f2-8c07-26d4a195c57c/save"
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/conversations/b51d4ac6-2afc-4525-b09b-a52f16c552a7/messages"
+    }
+  ],
+  "conversation_id": "b51d4ac6-2afc-4525-b09b-a52f16c552a7",
+  "initial_run_id": "251015b5-bdc9-4421-8ce7-dddd228ef25a",
+  "artifact_url": "http://127.0.0.1:3175/conversations/b51d4ac6-2afc-4525-b09b-a52f16c552a7/artifacts/c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+  "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+  "initial_revision_id": "c0deaaf5-65ec-49b6-91c3-6a603a4c74fe",
+  "initial_title": [
+    "Collected litres tool"
+  ],
+  "saved_revision_id": "1e80e662-2140-464c-81f9-ca92ff7970d0",
+  "saved_input_form_identical_to_source": true,
+  "proposals": [
+    {
+      "id": "c62c665d-5ae8-471e-b086-b95327f1ff84",
+      "workspace_id": "local-workspace",
+      "assignment_id": null,
+      "conversation_id": "b51d4ac6-2afc-4525-b09b-a52f16c552a7",
+      "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+      "base_revision_id": "1e80e662-2140-464c-81f9-ca92ff7970d0",
+      "base_work_version": 3,
+      "body": {
+        "kind": "tool",
+        "title": "collected_litres tool",
+        "code": "(module (func (export \"collected_litres\") (param $area i64) (param $rain i64) (param $eff i64) (result i64) (local $product i64) local.get $area i64.const 0 i64.lt_s local.get $area i64.const 1000000000 i64.gt_s i32.or local.get $rain i64.const 0 i64.lt_s i32.or local.get $rain i64.const 1000000000 i64.gt_s i32.or local.get $eff i64.const 0 i64.lt_s i32.or local.get $eff i64.const 100 i64.gt_s i32.or if unreachable end local.get $area local.get $rain i64.mul local.set $product local.get $product i64.const 100 i64.div_u local.get $eff i64.mul local.get $product i64.const 100 i64.rem_u local.get $eff i64.mul i64.const 100 i64.div_u i64.add))",
+        "entrypoint": "collected_litres",
+        "arguments": [
+          137,
+          12,
+          75
+        ],
+        "input_form": [
+          {
+            "name": "roof_area_m2",
+            "label": "Roof area (whole m²; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "rainfall_mm",
+            "label": "Rainfall (whole mm; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "capture_efficiency_percent",
+            "label": "Capture efficiency (whole percent; 0–100). Output: whole litres, rounded down.",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ],
+        "notes": [
+          "Human QA replay note: keep the first-flush diversion separate; not Andrew approval."
+        ]
+      },
+      "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+      "source_dependencies": [],
+      "reason": "Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.",
+      "status": "pending",
+      "accepted_revision_id": null,
+      "created_at": "2026-10-12T06:47:22.126618Z"
+    }
+  ],
+  "run_ids": [
+    {
+      "id": "251015b5-bdc9-4421-8ce7-dddd228ef25a",
+      "state": "ready"
+    },
+    {
+      "id": "0bf50739-ff5f-492f-8f2e-39e3004e19fc",
+      "state": "ready"
+    }
+  ],
+  "result_references": [
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 720."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+      "revision_id": "c0deaaf5-65ec-49b6-91c3-6a603a4c74fe",
+      "proposal_id": null,
+      "observation_id": "ae6ca8c9-feec-4901-9f4d-0d55e897d92d"
+    },
+    {
+      "kind": "file",
+      "artifact_id": "09a8386d-f438-4af7-aa5e-cbcb436cdca6",
+      "revision_id": "5e83cf8b-873c-4735-8c9a-2630b928eea9",
+      "proposal_id": null,
+      "observation_id": "6b203da1-a134-4cc9-9438-cd5be1417618"
+    },
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 1233. Change proposed, not accepted; saved human notes retained."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+      "revision_id": null,
+      "proposal_id": "c62c665d-5ae8-471e-b086-b95327f1ff84",
+      "observation_id": "9f53e516-d55c-4178-aa14-e249248a9ea6"
+    }
+  ],
+  "observations": [
+    {
+      "observation": {
+        "id": "ae6ca8c9-feec-4901-9f4d-0d55e897d92d",
+        "workspace_id": "local-workspace",
+        "conversation_id": "b51d4ac6-2afc-4525-b09b-a52f16c552a7",
+        "run_id": "251015b5-bdc9-4421-8ce7-dddd228ef25a",
+        "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+        "revision_id": "c0deaaf5-65ec-49b6-91c3-6a603a4c74fe",
+        "proposal_id": null,
+        "base_revision_id": null,
+        "body_hash": "7ab5985c92b1be4975ba26e75cf98db23730be4aa69ea28c2b4e17f08a60cdb4",
+        "operation_hash": "95a0d8ce6b0b23c1a0177e93d16ac2ee3526e68213e8ffd400aa84141107cf3b",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "720",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            80,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "11d27167b109d00fe3fd83a237c51f7892d35a0b6595a80d89671052b023df3a",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "historical",
+      "current_scope": true
+    },
+    {
+      "observation": {
+        "id": "6b203da1-a134-4cc9-9438-cd5be1417618",
+        "workspace_id": "local-workspace",
+        "conversation_id": "b51d4ac6-2afc-4525-b09b-a52f16c552a7",
+        "run_id": "251015b5-bdc9-4421-8ce7-dddd228ef25a",
+        "artifact_id": "09a8386d-f438-4af7-aa5e-cbcb436cdca6",
+        "revision_id": "5e83cf8b-873c-4735-8c9a-2630b928eea9",
+        "proposal_id": null,
+        "base_revision_id": null,
+        "body_hash": "077d2122e67fdc7298c90e0cf46ff87139aedab57e092cfec774ddb6f61187cd",
+        "operation_hash": "95a0d8ce6b0b23c1a0177e93d16ac2ee3526e68213e8ffd400aa84141107cf3b",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "720",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            80,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "11d27167b109d00fe3fd83a237c51f7892d35a0b6595a80d89671052b023df3a",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "current_revision",
+      "current_scope": true
+    },
+    {
+      "observation": {
+        "id": "9f53e516-d55c-4178-aa14-e249248a9ea6",
+        "workspace_id": "local-workspace",
+        "conversation_id": "b51d4ac6-2afc-4525-b09b-a52f16c552a7",
+        "run_id": "0bf50739-ff5f-492f-8f2e-39e3004e19fc",
+        "artifact_id": "c5de4dd6-ccbf-42f2-8c07-26d4a195c57c",
+        "revision_id": null,
+        "proposal_id": "c62c665d-5ae8-471e-b086-b95327f1ff84",
+        "base_revision_id": "1e80e662-2140-464c-81f9-ca92ff7970d0",
+        "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+        "operation_hash": "c89cb03c77bbcf185d9143b4b3054e3083e37b1ef8d3c503136d6f9738a40df4",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "1233",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            137,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "88f11a3c136d5c24f32f5e647a794f19e07edf0ab28ab0fa7ba0f30c935110cb",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "pending_proposal",
+      "current_scope": true
+    }
+  ],
+  "expected_integer_result": 1233,
+  "actual_ui_result": "",
+  "responsive": [
+    {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "title": "Collected litres tool"
+    },
+    {
+      "innerWidth": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "title": "Collected litres tool"
+    }
+  ],
+  "passed": false,
+  "failure": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('link', { name: 'Home', exact: true })\n\n    at /home/ubuntu/workagent-general-continuation-review/.local/general-breadth-browser.mjs:73:56"
+}

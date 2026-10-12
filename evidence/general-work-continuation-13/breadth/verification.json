@@ -1,0 +1,339 @@
+{
+  "mode": "REPLAY retained model-created calculator; continuous controlled consumer, no inference",
+  "application_commit": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "source_artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+  "source_revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+  "checks": {
+    "replay_code_and_inputform_identical": true,
+    "title_readable": true,
+    "structural_editing_collapsed": true,
+    "human_input_and_note_saved": true,
+    "observation_bound_to_exact_pending_proposal": true,
+    "actual_result_matches_python": true,
+    "pending_proposal_not_accepted": true,
+    "note_preserved": true,
+    "phone_values_notes_and_no_overflow": true,
+    "home_reopen_pending": true,
+    "fresh_browser_context_readback": true,
+    "replay_initial_revision_unchanged": true
+  },
+  "screenshots": [
+    "01-desktop-replayed-source.png",
+    "02-desktop-pending-proposal.png",
+    "03-phone-390.png",
+    "03-phone-320.png",
+    "04-home-pending.png",
+    "05-reopened-pending.png"
+  ],
+  "page_errors": [],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/artifacts/f8076664-1dd3-4ff6-bc2f-1829a8726bc4/save"
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/local-workspace/conversations/2550d1aa-6c2d-4049-9219-f4c0ae55fc6d/messages"
+    }
+  ],
+  "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+  "initial_run_id": "e9362425-cabd-441d-8bcc-72a7fe184bf6",
+  "artifact_url": "http://127.0.0.1:3175/conversations/2550d1aa-6c2d-4049-9219-f4c0ae55fc6d/artifacts/f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+  "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+  "initial_revision_id": "56f670c9-f171-40ef-b086-416d8802f522",
+  "initial_title": [
+    "Collected litres tool"
+  ],
+  "saved_revision_id": "f9698612-d77a-4d35-b562-518d18807758",
+  "saved_input_form_identical_to_source": true,
+  "proposals": [
+    {
+      "id": "def1b33e-a617-44ce-a0ee-3b7c2529f7f9",
+      "workspace_id": "local-workspace",
+      "assignment_id": null,
+      "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+      "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+      "base_revision_id": "f9698612-d77a-4d35-b562-518d18807758",
+      "base_work_version": 3,
+      "body": {
+        "kind": "tool",
+        "title": "collected_litres tool",
+        "code": "(module (func (export \"collected_litres\") (param $area i64) (param $rain i64) (param $eff i64) (result i64) (local $product i64) local.get $area i64.const 0 i64.lt_s local.get $area i64.const 1000000000 i64.gt_s i32.or local.get $rain i64.const 0 i64.lt_s i32.or local.get $rain i64.const 1000000000 i64.gt_s i32.or local.get $eff i64.const 0 i64.lt_s i32.or local.get $eff i64.const 100 i64.gt_s i32.or if unreachable end local.get $area local.get $rain i64.mul local.set $product local.get $product i64.const 100 i64.div_u local.get $eff i64.mul local.get $product i64.const 100 i64.rem_u local.get $eff i64.mul i64.const 100 i64.div_u i64.add))",
+        "entrypoint": "collected_litres",
+        "arguments": [
+          137,
+          12,
+          75
+        ],
+        "input_form": [
+          {
+            "name": "roof_area_m2",
+            "label": "Roof area (whole m²; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "rainfall_mm",
+            "label": "Rainfall (whole mm; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "capture_efficiency_percent",
+            "label": "Capture efficiency (whole percent; 0–100). Output: whole litres, rounded down.",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ],
+        "notes": [
+          "Human QA replay note: keep the first-flush diversion separate; not Andrew approval."
+        ]
+      },
+      "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+      "source_dependencies": [],
+      "reason": "Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.",
+      "status": "pending",
+      "accepted_revision_id": null,
+      "created_at": "2026-10-12T06:50:00.511275Z"
+    }
+  ],
+  "run_ids": [
+    {
+      "id": "e9362425-cabd-441d-8bcc-72a7fe184bf6",
+      "state": "ready"
+    },
+    {
+      "id": "61d0cfd6-ee46-466b-9939-a6e48af67e52",
+      "state": "ready"
+    }
+  ],
+  "result_references": [
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 720."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+      "revision_id": "56f670c9-f171-40ef-b086-416d8802f522",
+      "proposal_id": null,
+      "observation_id": "46fe3357-b3bd-4882-889b-b95c26792971"
+    },
+    {
+      "kind": "file",
+      "artifact_id": "c27fc79f-d49a-4823-8534-c523cfb0a51b",
+      "revision_id": "a5097ab9-4d88-4574-8165-0ca4fcbfabd4",
+      "proposal_id": null,
+      "observation_id": "94f9b255-cf66-4c0f-91ff-abb6d91aa0eb"
+    },
+    {
+      "kind": "text",
+      "text": "Controlled import-free Wasm execution observed return: 1233. Change proposed, not accepted; saved human notes retained."
+    },
+    {
+      "kind": "tool",
+      "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+      "revision_id": null,
+      "proposal_id": "def1b33e-a617-44ce-a0ee-3b7c2529f7f9",
+      "observation_id": "84ce4021-e6b9-47cd-a75c-7f85041e4ed3"
+    }
+  ],
+  "observations": [
+    {
+      "observation": {
+        "id": "46fe3357-b3bd-4882-889b-b95c26792971",
+        "workspace_id": "local-workspace",
+        "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+        "run_id": "e9362425-cabd-441d-8bcc-72a7fe184bf6",
+        "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+        "revision_id": "56f670c9-f171-40ef-b086-416d8802f522",
+        "proposal_id": null,
+        "base_revision_id": null,
+        "body_hash": "7ab5985c92b1be4975ba26e75cf98db23730be4aa69ea28c2b4e17f08a60cdb4",
+        "operation_hash": "95a0d8ce6b0b23c1a0177e93d16ac2ee3526e68213e8ffd400aa84141107cf3b",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "720",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            80,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "11d27167b109d00fe3fd83a237c51f7892d35a0b6595a80d89671052b023df3a",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "historical",
+      "current_scope": true
+    },
+    {
+      "observation": {
+        "id": "94f9b255-cf66-4c0f-91ff-abb6d91aa0eb",
+        "workspace_id": "local-workspace",
+        "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+        "run_id": "e9362425-cabd-441d-8bcc-72a7fe184bf6",
+        "artifact_id": "c27fc79f-d49a-4823-8534-c523cfb0a51b",
+        "revision_id": "a5097ab9-4d88-4574-8165-0ca4fcbfabd4",
+        "proposal_id": null,
+        "base_revision_id": null,
+        "body_hash": "077d2122e67fdc7298c90e0cf46ff87139aedab57e092cfec774ddb6f61187cd",
+        "operation_hash": "95a0d8ce6b0b23c1a0177e93d16ac2ee3526e68213e8ffd400aa84141107cf3b",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "720",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            80,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "11d27167b109d00fe3fd83a237c51f7892d35a0b6595a80d89671052b023df3a",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "current_revision",
+      "current_scope": true
+    },
+    {
+      "observation": {
+        "id": "84ce4021-e6b9-47cd-a75c-7f85041e4ed3",
+        "workspace_id": "local-workspace",
+        "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+        "run_id": "61d0cfd6-ee46-466b-9939-a6e48af67e52",
+        "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+        "revision_id": null,
+        "proposal_id": "def1b33e-a617-44ce-a0ee-3b7c2529f7f9",
+        "base_revision_id": "f9698612-d77a-4d35-b562-518d18807758",
+        "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+        "operation_hash": "ec79e89870fbf87f24ff739bcafa0d4dea4856ee95bcb6cdf9cbb80341e5d47e",
+        "access_generation": 1,
+        "evidence_origin": "controlled_transport",
+        "model_selection": null,
+        "output": {
+          "kind": "run_wasm",
+          "value": "1233",
+          "entrypoint": "collected_litres",
+          "arguments": [
+            137,
+            12,
+            75
+          ],
+          "code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+          "input_sha256": "88f11a3c136d5c24f32f5e647a794f19e07edf0ab28ab0fa7ba0f30c935110cb",
+          "engine": "wasmtime-49.0.0",
+          "execution_observed": true,
+          "fuel_consumed": 42,
+          "fuel_limit": 50000,
+          "memory_limit_bytes": 1048576,
+          "host_imports": 0
+        }
+      },
+      "binding_state": "pending_proposal",
+      "current_scope": true
+    }
+  ],
+  "expected_integer_result": 1233,
+  "visible_proposal_summary": "WAITING FOR YOU\n\nA proposed version is ready\n\nControlled local recalculation/execution; exact saved human notes retained. Review before acceptance.\n\nReturns 1233\n\nRoof area (whole m²; 0–1,000,000,000): 137\nRainfall (whole mm; 0–1,000,000,000): 12\nCapture efficiency (whole percent; 0–100). Output: whole litres, rounded down.: 75\nSee the proposed version\nDownload proposed file\nApply proposed version\nKeep my current version",
+  "actual_ui_result": "1233",
+  "responsive": [
+    {
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "title": "Collected litres tool"
+    },
+    {
+      "innerWidth": 320,
+      "scrollWidth": 320,
+      "bodyWidth": 320,
+      "title": "Collected litres tool"
+    }
+  ],
+  "home_card_text": "WAITING FOR YOU\n\nDecision needed\nA proposed version is ready\n\ncollected_litres tool\n\nFrom “Conversation”. Your saved version stays until you apply it.\n\nReview the proposal",
+  "home_card_links": [
+    {
+      "text": "Review the proposal",
+      "href": "/conversations/2550d1aa-6c2d-4049-9219-f4c0ae55fc6d/artifacts/f8076664-1dd3-4ff6-bc2f-1829a8726bc4"
+    }
+  ],
+  "final_current_revision_id": "f9698612-d77a-4d35-b562-518d18807758",
+  "final_proposals": [
+    {
+      "id": "def1b33e-a617-44ce-a0ee-3b7c2529f7f9",
+      "workspace_id": "local-workspace",
+      "assignment_id": null,
+      "conversation_id": "2550d1aa-6c2d-4049-9219-f4c0ae55fc6d",
+      "artifact_id": "f8076664-1dd3-4ff6-bc2f-1829a8726bc4",
+      "base_revision_id": "f9698612-d77a-4d35-b562-518d18807758",
+      "base_work_version": 3,
+      "body": {
+        "kind": "tool",
+        "title": "collected_litres tool",
+        "code": "(module (func (export \"collected_litres\") (param $area i64) (param $rain i64) (param $eff i64) (result i64) (local $product i64) local.get $area i64.const 0 i64.lt_s local.get $area i64.const 1000000000 i64.gt_s i32.or local.get $rain i64.const 0 i64.lt_s i32.or local.get $rain i64.const 1000000000 i64.gt_s i32.or local.get $eff i64.const 0 i64.lt_s i32.or local.get $eff i64.const 100 i64.gt_s i32.or if unreachable end local.get $area local.get $rain i64.mul local.set $product local.get $product i64.const 100 i64.div_u local.get $eff i64.mul local.get $product i64.const 100 i64.rem_u local.get $eff i64.mul i64.const 100 i64.div_u i64.add))",
+        "entrypoint": "collected_litres",
+        "arguments": [
+          137,
+          12,
+          75
+        ],
+        "input_form": [
+          {
+            "name": "roof_area_m2",
+            "label": "Roof area (whole m²; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "rainfall_mm",
+            "label": "Rainfall (whole mm; 0–1,000,000,000)",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "capture_efficiency_percent",
+            "label": "Capture efficiency (whole percent; 0–100). Output: whole litres, rounded down.",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ],
+        "notes": [
+          "Human QA replay note: keep the first-flush diversion separate; not Andrew approval."
+        ]
+      },
+      "body_hash": "64da6f1591bb28006c8bec5ed979a405af52ed555e02c14c9bac898b47bcb8c8",
+      "source_dependencies": [],
+      "reason": "Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.",
+      "status": "pending",
+      "accepted_revision_id": null,
+      "created_at": "2026-10-12T06:50:00.511275Z"
+    }
+  ],
+  "assignments": [],
+  "passed": true
+}

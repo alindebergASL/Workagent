@@ -1,0 +1,80 @@
+{
+  "scope": "NON-LIVE corrected-build configuration admission regression only",
+  "semantic_continuation_pass": false,
+  "original_attempt_unchanged": true,
+  "ports_initially_free": [
+    3165,
+    8165
+  ],
+  "candidate_sha": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "build_id": "iaKQHcHGIn8V1TbkNONjy",
+  "build_flags": {
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "1",
+    "NEXT_PUBLIC_WORKAGENT_API_BASE": "/api/domain",
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "bundler": "webpack",
+    "mode": "production",
+    "NEXT_PUBLIC_WORKAGENT_PRINCIPAL": "unset",
+    "WORKAGENT_MOCK_CONTROL": "unset"
+  },
+  "database_name": "workagent_test_4288453dfc56",
+  "ledger_before": {
+    "provider_attempts": 0,
+    "responses_steps": 0,
+    "responses_events": 0,
+    "responses_consumer_uses": 0,
+    "proposals": 0
+  },
+  "result": "PARTIAL_CONFIG_ADMISSION_PASS_STRICT_NETWORK_HOLD",
+  "owned_services_stopped": true,
+  "database_preserved": true,
+  "tracked_diff_empty": true,
+  "persisted_message_id": "16756df3-ad38-4efc-8a9b-5396914e9d6e",
+  "admitted_run_id": "26cc71d6-88dc-498b-8cc7-19a52e7e8527",
+  "target": {
+    "artifact_id": "7868ab81-6efc-4699-87bb-f8a397259762",
+    "revision_id": "641e3cfe-b1e4-4596-ac9c-75a0577f076a",
+    "body_hash": "0abaeb490efa9c9436c48b8b1b6218afb9afe5276e991e5d382524edabca6a63"
+  },
+  "saved_revision_number": 2,
+  "context_hash": "3775b5c2edaeba2f4ea7e13c2a2641ac1e19110fbd7ef3441228717926577a8f",
+  "exact_saved_revision_context": true,
+  "human_note_preserved": true,
+  "artifact_unchanged_except_observed_at": true,
+  "http_admission_status": 202,
+  "http_readback_status": 200,
+  "ordinary_reply_post_count": 1,
+  "reopen_post_count": 0,
+  "run_before_context": "queued",
+  "run_after_context": "running",
+  "worker_action": "claim_run + conversation_worker_context only; UI run never passed to worker or provider",
+  "provider_attempts": 0,
+  "provider_cost_usd": "0",
+  "ledger_after": {
+    "provider_attempts": 0,
+    "responses_steps": 0,
+    "responses_events": 0,
+    "responses_consumer_uses": 0,
+    "proposals": 0
+  },
+  "synthetic_grant_transport": "synthetic",
+  "provider_credentials_used": false,
+  "paid_grant_configured": false,
+  "external_successful_connections_observed": 0,
+  "external_connect_attempts_observed": 12,
+  "strict_zero_external_attempts": false,
+  "network_verification": "network-verification.json",
+  "ports_released": [
+    3165,
+    8165
+  ],
+  "issue_13": "OPEN; original live attempt remains PARTIAL/HOLD",
+  "limitations": [
+    "Strict zero-external-attempt condition NOT met: browser descendants attempted IPv6 reachability connects to 2001:4860:4860::8888:443; all returned ENETUNREACH. No successful external connection or browser HTTP request was observed.",
+    "Controlled fixture was Service-published via ControlledTransport and human_save; not live generation or a UI human-edit test.",
+    "Synthetic-only scoped local admission grant; no paid grant, budget change, provider request or model.",
+    "Context assembly requires claim_run; retained run is running with an expired/expiring local lease, not a completed answer or proposal. No dispatcher was started.",
+    "Initial browser post succeeded; strict text assertion failed on the You: prefix. Evidence preserved; only read-only reopen followed, never a second POST.",
+    "Trace scope excludes production build and privileged DB provisioning; no claim of host-wide external-call monitoring."
+  ]
+}

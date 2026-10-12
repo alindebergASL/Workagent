@@ -1,0 +1,19 @@
+{
+  "mode": "REPLAY retained model-created calculator; continuous controlled consumer, no inference",
+  "application_commit": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "source_artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+  "source_revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609",
+  "checks": {},
+  "screenshots": [
+    "failure.png"
+  ],
+  "page_errors": [],
+  "requests": [],
+  "conversation_id": "144f41da-9978-467f-b12b-bdad07c33025",
+  "initial_run_id": "e7ab6b51-6d0c-49c6-9a0e-ee5ad3fa77f6",
+  "artifact_url": "http://127.0.0.1:3175/conversations/144f41da-9978-467f-b12b-bdad07c33025",
+  "artifact_id": "144f41da-9978-467f-b12b-bdad07c33025",
+  "passed": false,
+  "failure": "Error: 404 /artifacts/144f41da-9978-467f-b12b-bdad07c33025 {\"code\":\"not_found_or_not_authorized\",\"message\":\"Resource unavailable.\",\"request_id\":\"bcd3a15c-2ba7-4ff9-ba0c-f3c05debed84\",\"next_action\":\"Check your workspace and current access.\",\"details\":{\"current_revision_id\":null,\"current_version\":null,\"proposal_id\":null,\"fields\":[]}}\n    at api (file:///home/ubuntu/workagent-general-continuation-review/.local/general-breadth-browser.mjs:10:174)\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async file:///home/ubuntu/workagent-general-continuation-review/.local/general-breadth-browser.mjs:25:16"
+}

@@ -1,0 +1,130 @@
+{
+  "scope": "strace -f connect/sendto/sendmsg across controlled fixture/check/API/Next/browser descendants; build and sudo DB bootstrap excluded",
+  "traces": [
+    {
+      "file": "initial-provisioning-block-runtime-network.strace",
+      "inet_sockaddr_observations": 0,
+      "addresses": []
+    },
+    {
+      "file": "pre-reopen-timewait-runtime-network.strace",
+      "inet_sockaddr_observations": 0,
+      "addresses": []
+    },
+    {
+      "file": "pre-ui-helper-error-runtime-network.strace",
+      "inet_sockaddr_observations": 18,
+      "addresses": [
+        "127.0.0.1"
+      ]
+    },
+    {
+      "file": "pre-ui-resolver-error-runtime-network.strace",
+      "inet_sockaddr_observations": 19,
+      "addresses": [
+        "127.0.0.1",
+        "2001:4860:4860::8888"
+      ]
+    },
+    {
+      "file": "pre-ui-selector-error-runtime-network.strace",
+      "inet_sockaddr_observations": 43,
+      "addresses": [
+        "127.0.0.1",
+        "2001:4860:4860::8888"
+      ]
+    },
+    {
+      "file": "runtime-network.strace",
+      "inet_sockaddr_observations": 48,
+      "addresses": [
+        "127.0.0.1",
+        "2001:4860:4860::8888"
+      ]
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "inet_sockaddr_observations": 49,
+      "addresses": [
+        "127.0.0.1",
+        "2001:4860:4860::8888"
+      ]
+    }
+  ],
+  "non_loopback_destinations": [
+    {
+      "file": "pre-ui-resolver-error-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "pre-ui-selector-error-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "pre-ui-selector-error-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "pre-ui-selector-error-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    },
+    {
+      "file": "ui-post-admitted-runtime-network.strace",
+      "address": "2001:4860:4860::8888",
+      "syscall": "connect",
+      "result": "-1 ENETUNREACH (Network is unreachable)"
+    }
+  ],
+  "external_browser_requests": [],
+  "no_response_fulfillment": true
+}

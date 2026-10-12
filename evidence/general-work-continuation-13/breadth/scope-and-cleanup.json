@@ -1,0 +1,27 @@
+{
+  "database": "workagent_test_ae55e72eba85",
+  "postgresql_readback": {
+    "proposal_id": "def1b33e-a617-44ce-a0ee-3b7c2529f7f9",
+    "status": "pending",
+    "accepted_revision_id": null,
+    "current_revision_id": "f9698612-d77a-4d35-b562-518d18807758"
+  },
+  "isolated_database_counts_including_harness_retries": {
+    "conversations": 5,
+    "runs": 9,
+    "provider_attempts": 0,
+    "proposals": 4
+  },
+  "owned_ports_closed": {
+    "3175": true,
+    "8175": true
+  },
+  "owned_pids_remaining": [],
+  "original_source_file_sha256_unchanged": true,
+  "tracked_diff_empty": true,
+  "git_commit": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "original_database_access": "Not opened, compared, modified, or granted. Only the newly provisioned isolated database was accessed. No global original-DB immutability assertion: parent live work is concurrent.",
+  "expected_formula": "floor(roof_area_m2 * rainfall_mm * capture_efficiency_percent / 100)",
+  "independent_python_expected_integer": 1233,
+  "source_code_sha256": "e13be796e686eba260784f2dcd17ba4a19ee03e30538ed0206526338f27ca609"
+}

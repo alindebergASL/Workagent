@@ -1,0 +1,89 @@
+{
+  "application_sha": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "mode": "real production UI over fresh live artifacts; read-only verification",
+  "natural_admission_build_flag": false,
+  "conversation_id": "43ff87f2-7f31-4b38-be48-c811b9e10bcd",
+  "document": {
+    "id": "ae6b9019-9af6-4bb9-a0b1-a67234f7cffe",
+    "revision": "d2154cf7-66e4-48f4-b3dc-0280d87b5c70",
+    "hash": "332a03075a8dc18b403fd69c18c326d498a8dd864201c70dd1ee403fc66d4aa6"
+  },
+  "view": {
+    "id": "85a3c800-5e03-43da-8412-41e62210deab",
+    "revision": "16e7560c-6cf7-4f11-ad05-3fc456bed47b",
+    "hash": "01a78b75aa7189e87cd92c499cdc814b02d7521d6f07b8711a17037ea27227ec"
+  },
+  "checks": [
+    {
+      "viewport": "desktop",
+      "exact_bound_note_rendered": true,
+      "proposed_schedule_separate_from_saved_document": true,
+      "home_and_reopen": true,
+      "temporary_notes_lost_as_labeled": true,
+      "saved_document_unchanged": true,
+      "steering_visible": true,
+      "overflow": {
+        "shell": 0,
+        "frame": 0
+      }
+    },
+    {
+      "viewport": "phone",
+      "exact_bound_note_rendered": true,
+      "proposed_schedule_separate_from_saved_document": true,
+      "home_and_reopen": true,
+      "temporary_notes_lost_as_labeled": true,
+      "saved_document_unchanged": true,
+      "steering_visible": true,
+      "overflow": {
+        "shell": 0,
+        "frame": 0
+      }
+    },
+    {
+      "viewport": "narrow-phone",
+      "exact_bound_note_rendered": true,
+      "proposed_schedule_separate_from_saved_document": true,
+      "home_and_reopen": true,
+      "temporary_notes_lost_as_labeled": true,
+      "saved_document_unchanged": true,
+      "steering_visible": true,
+      "overflow": {
+        "shell": 0,
+        "frame": 0
+      }
+    }
+  ],
+  "reads": [
+    {
+      "label": "desktop:open",
+      "status": 200
+    },
+    {
+      "label": "desktop:reopen",
+      "status": 200
+    },
+    {
+      "label": "phone:open",
+      "status": 200
+    },
+    {
+      "label": "phone:reopen",
+      "status": 200
+    },
+    {
+      "label": "narrow-phone:open",
+      "status": 200
+    },
+    {
+      "label": "narrow-phone:reopen",
+      "status": 200
+    }
+  ],
+  "writes": [],
+  "errors": [],
+  "provider_calls_by_verifier": 0,
+  "model_followup_target": null,
+  "canonical_proposals_created": false,
+  "verdict": "interaction observations only; not complete editable-continuation PASS"
+}

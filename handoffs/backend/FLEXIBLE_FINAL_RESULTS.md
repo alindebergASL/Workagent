@@ -1,6 +1,8 @@
-# Workagent #13 — current criteria clarification and historical results
+# Workagent #13 — general-work continuation and historical results
 
-**Latest application: `9a009c6467369716a5e1d0c0d6f3b83337a2da8a`.** See [criteria clarification results and deep review](CRITERIA_FINAL_RESULTS.md) for the new generated draft, 787-test backend result, exact-head CI, browser verification, review findings and explicit limits. The sections below are retained historical evidence, not current sign-off. #13 remains open.
+**Latest application: `dd01cd49a9b026edf8a99281d182e0554d54f4e2`; verdict: PARTIAL / HOLD.** See [general-work continuation results](GENERAL_CONTINUATION_RESULTS.md): useful fresh work and preserved human note, but the review build omitted exact-target admission and the follow-up did not revise the chosen editable work. Corrected-build admission was checked separately without provider execution; it does not replace the live proof. Tests and controlled breadth are green within their stated scopes; no feature acceptance, merge, or deployment. #13 remains open.
+
+The earlier [criteria clarification results and deep review](CRITERIA_FINAL_RESULTS.md) at `9a009c6467369716a5e1d0c0d6f3b83337a2da8a` and the sections below remain historical, narrower evidence—not current sign-off.
 
 ---
 
