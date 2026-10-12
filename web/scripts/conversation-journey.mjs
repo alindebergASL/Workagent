@@ -311,7 +311,10 @@ try {
   await page.getByLabel("Message your agent").fill("");
 
   // ---- Activity: latest recorded change of each item ----
-  await page.getByRole("link", { name: "Activity", exact: true }).click();
+  // Activity & details is a secondary destination, in the sidebar foot.
+  await page
+    .getByRole("link", { name: "Activity & details", exact: true })
+    .click();
   await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
   await expect(page.locator(`[data-activity="work:${aid}"]`)).toContainText(
     "Handed over · not started",
@@ -419,7 +422,7 @@ try {
     phone.getByRole("heading", { name: "Good to see you." }),
   ).toBeVisible();
   await noScroll(phone);
-  for (const name of ["Agent", "Spaces", "Activity", "Conversations"]) {
+  for (const name of ["Agent", "Spaces", "Conversations"]) {
     const link = phone
       .locator(".topbar-nav")
       .getByRole("link", { name, exact: true });
@@ -432,13 +435,32 @@ try {
   }
   // Keyboard reaches every destination in order.
   await phone.locator(".topbar .brand").focus();
-  for (const name of ["Agent", "Spaces", "Activity", "Conversations"]) {
+  for (const name of ["Agent", "Spaces", "Conversations"]) {
     await phone.keyboard.press("Tab");
     await expect(
       phone.locator(".topbar-nav").getByRole("link", { name, exact: true }),
     ).toBeFocused();
   }
+  // Activity & details is one step further, in the More menu.
+  await phone.keyboard.press("Tab");
+  const more = phone.locator(".topbar-more > summary");
+  await expect(more).toBeFocused();
+  await phone.keyboard.press("Enter");
+  const activity = phone
+    .locator(".topbar-more")
+    .getByRole("link", { name: "Activity & details", exact: true });
+  await expect(activity).toBeVisible();
+  const menuBox = await activity.boundingBox();
+  expect(
+    menuBox.x >= 0 && menuBox.x + menuBox.width <= 320,
+    "Activity & details fully on screen",
+  ).toBe(true);
+  await noScroll(phone);
   await shot(phone, "13-home-narrow");
+  await activity.click();
+  await phone.waitForURL(/\/activity$/);
+  await expect(phone.getByRole("heading", { name: "Activity" })).toBeVisible();
+  await expect(phone.locator(".topbar-more")).not.toHaveAttribute("open", "");
 
   // ---- Home: the first message is definitely refused after the
   // conversation exists; the retry sends what the person sees now, once ----

@@ -947,6 +947,96 @@
             "title": "Body",
             "type": "object"
           },
+          "CustomViewBody": {
+            "additionalProperties": false,
+            "properties": {
+              "access_generation": {
+                "maximum": 2147483647,
+                "minimum": 1,
+                "title": "Access Generation",
+                "type": "integer"
+              },
+              "actions": {
+                "items": {
+                  "$ref": "#/$defs/ReadBindingAction"
+                },
+                "maxItems": 8,
+                "title": "Actions",
+                "type": "array"
+              },
+              "bindings": {
+                "items": {
+                  "$ref": "#/$defs/ViewBinding"
+                },
+                "maxItems": 4,
+                "title": "Bindings",
+                "type": "array"
+              },
+              "fallback": {
+                "maxLength": 12000,
+                "minLength": 1,
+                "title": "Fallback",
+                "type": "string"
+              },
+              "kind": {
+                "const": "custom_view",
+                "default": "custom_view",
+                "title": "Kind",
+                "type": "string"
+              },
+              "source": {
+                "$ref": "#/$defs/ViewSource"
+              },
+              "title": {
+                "maxLength": 240,
+                "minLength": 1,
+                "title": "Title",
+                "type": "string"
+              },
+              "version": {
+                "const": "custom-view/v1",
+                "default": "custom-view/v1",
+                "title": "Version",
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "source",
+              "fallback",
+              "access_generation"
+            ],
+            "title": "CustomViewBody",
+            "type": "object"
+          },
+          "EmptyPayload": {
+            "additionalProperties": false,
+            "properties": {},
+            "title": "EmptyPayload",
+            "type": "object"
+          },
+          "EmptyPayloadSchema": {
+            "additionalProperties": false,
+            "properties": {
+              "additionalProperties": {
+                "const": false,
+                "default": false,
+                "title": "Additionalproperties",
+                "type": "boolean"
+              },
+              "properties": {
+                "$ref": "#/$defs/EmptyPayload"
+              },
+              "type": {
+                "const": "object",
+                "default": "object",
+                "title": "Type",
+                "type": "string"
+              }
+            },
+            "title": "EmptyPayloadSchema",
+            "type": "object"
+          },
           "FileBody": {
             "additionalProperties": false,
             "properties": {
@@ -1038,6 +1128,36 @@
             "title": "InputField",
             "type": "object"
           },
+          "ReadBindingAction": {
+            "additionalProperties": false,
+            "properties": {
+              "binding": {
+                "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+                "title": "Binding",
+                "type": "string"
+              },
+              "kind": {
+                "const": "read_binding",
+                "default": "read_binding",
+                "title": "Kind",
+                "type": "string"
+              },
+              "name": {
+                "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+                "title": "Name",
+                "type": "string"
+              },
+              "payload_schema": {
+                "$ref": "#/$defs/EmptyPayloadSchema"
+              }
+            },
+            "required": [
+              "name",
+              "binding"
+            ],
+            "title": "ReadBindingAction",
+            "type": "object"
+          },
           "Revision": {
             "additionalProperties": false,
             "properties": {
@@ -1076,6 +1196,12 @@
                   },
                   {
                     "$ref": "#/$defs/ToolBody"
+                  },
+                  {
+                    "$ref": "#/$defs/StructuredTableBody"
+                  },
+                  {
+                    "$ref": "#/$defs/CustomViewBody"
                   }
                 ],
                 "title": "Body"
@@ -1171,6 +1297,63 @@
             "title": "SourceRef",
             "type": "object"
           },
+          "StructuredTableBody": {
+            "additionalProperties": false,
+            "properties": {
+              "fields": {
+                "items": {
+                  "$ref": "#/$defs/TableField"
+                },
+                "maxItems": 24,
+                "minItems": 1,
+                "title": "Fields",
+                "type": "array"
+              },
+              "kind": {
+                "const": "structured_table",
+                "default": "structured_table",
+                "title": "Kind",
+                "type": "string"
+              },
+              "notes": {
+                "items": {
+                  "maxLength": 10000,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "title": "Notes",
+                "type": "array"
+              },
+              "rows": {
+                "items": {
+                  "$ref": "#/$defs/TableRow"
+                },
+                "maxItems": 200,
+                "title": "Rows",
+                "type": "array"
+              },
+              "title": {
+                "maxLength": 240,
+                "minLength": 1,
+                "title": "Title",
+                "type": "string"
+              },
+              "version": {
+                "const": "structured-table/v1",
+                "default": "structured-table/v1",
+                "title": "Version",
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "fields",
+              "rows"
+            ],
+            "title": "StructuredTableBody",
+            "type": "object"
+          },
           "TableBody": {
             "additionalProperties": false,
             "properties": {
@@ -1240,6 +1423,150 @@
             "title": "TableBody",
             "type": "object"
           },
+          "TableCell": {
+            "additionalProperties": false,
+            "properties": {
+              "field_key": {
+                "pattern": "^[a-z][a-z0-9_]{0,47}$",
+                "title": "Field Key",
+                "type": "string"
+              },
+              "value": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Value"
+              }
+            },
+            "required": [
+              "field_key",
+              "value"
+            ],
+            "title": "TableCell",
+            "type": "object"
+          },
+          "TableField": {
+            "additionalProperties": false,
+            "properties": {
+              "editable": {
+                "title": "Editable",
+                "type": "boolean"
+              },
+              "enum": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "maxLength": 120,
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 30,
+                    "type": "array"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Enum"
+              },
+              "key": {
+                "pattern": "^[a-z][a-z0-9_]{0,47}$",
+                "title": "Key",
+                "type": "string"
+              },
+              "label": {
+                "maxLength": 120,
+                "minLength": 1,
+                "title": "Label",
+                "type": "string"
+              },
+              "scale": {
+                "anyOf": [
+                  {
+                    "maximum": 6,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Scale"
+              },
+              "type": {
+                "enum": [
+                  "text",
+                  "integer",
+                  "decimal",
+                  "boolean",
+                  "enum"
+                ],
+                "title": "Type",
+                "type": "string"
+              },
+              "unit": {
+                "anyOf": [
+                  {
+                    "maxLength": 40,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "title": "Unit"
+              }
+            },
+            "required": [
+              "key",
+              "label",
+              "type",
+              "editable"
+            ],
+            "title": "TableField",
+            "type": "object"
+          },
+          "TableRow": {
+            "additionalProperties": false,
+            "properties": {
+              "cells": {
+                "items": {
+                  "$ref": "#/$defs/TableCell"
+                },
+                "maxItems": 24,
+                "title": "Cells",
+                "type": "array"
+              },
+              "row_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Row Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "row_id",
+              "cells"
+            ],
+            "title": "TableRow",
+            "type": "object"
+          },
           "ToolBody": {
             "additionalProperties": false,
             "properties": {
@@ -1303,6 +1630,71 @@
               "input_form"
             ],
             "title": "ToolBody",
+            "type": "object"
+          },
+          "ViewBinding": {
+            "additionalProperties": false,
+            "properties": {
+              "artifact_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Artifact Id",
+                "type": "string"
+              },
+              "body_hash": {
+                "pattern": "^[0-9a-f]{64}$",
+                "title": "Body Hash",
+                "type": "string"
+              },
+              "name": {
+                "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+                "title": "Name",
+                "type": "string"
+              },
+              "revision_id": {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "title": "Revision Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "artifact_id",
+              "revision_id",
+              "body_hash"
+            ],
+            "title": "ViewBinding",
+            "type": "object"
+          },
+          "ViewSource": {
+            "additionalProperties": false,
+            "properties": {
+              "css": {
+                "default": "",
+                "maxLength": 48000,
+                "title": "Css",
+                "type": "string"
+              },
+              "html": {
+                "maxLength": 48000,
+                "minLength": 1,
+                "title": "Html",
+                "type": "string"
+              },
+              "js": {
+                "default": "",
+                "maxLength": 48000,
+                "title": "Js",
+                "type": "string"
+              }
+            },
+            "required": [
+              "html"
+            ],
+            "title": "ViewSource",
             "type": "object"
           }
         },

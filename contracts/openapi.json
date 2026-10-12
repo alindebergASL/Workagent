@@ -1544,6 +1544,7 @@
               {
                 "discriminator": {
                   "mapping": {
+                    "publish_artifact": "#/components/schemas/PublishArtifact-Output",
                     "reconcile_csv": "#/components/schemas/ReconcileCSV",
                     "run_wasm": "#/components/schemas/RunWasm"
                   },
@@ -1555,6 +1556,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/RunWasm"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PublishArtifact-Output"
                   }
                 ]
               },
@@ -1815,6 +1819,130 @@
         "title": "CreateTask",
         "type": "object"
       },
+      "CustomViewBody-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ReadBindingAction-Input"
+            },
+            "maxItems": 8,
+            "title": "Actions",
+            "type": "array"
+          },
+          "bindings": {
+            "items": {
+              "$ref": "#/components/schemas/ViewBinding"
+            },
+            "maxItems": 4,
+            "title": "Bindings",
+            "type": "array"
+          },
+          "fallback": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Fallback",
+            "type": "string"
+          },
+          "kind": {
+            "const": "custom_view",
+            "default": "custom_view",
+            "title": "Kind",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ViewSource"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "const": "custom-view/v1",
+            "default": "custom-view/v1",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "source",
+          "fallback",
+          "access_generation"
+        ],
+        "title": "CustomViewBody",
+        "type": "object"
+      },
+      "CustomViewBody-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/ReadBindingAction-Output"
+            },
+            "maxItems": 8,
+            "title": "Actions",
+            "type": "array"
+          },
+          "bindings": {
+            "items": {
+              "$ref": "#/components/schemas/ViewBinding"
+            },
+            "maxItems": 4,
+            "title": "Bindings",
+            "type": "array"
+          },
+          "fallback": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Fallback",
+            "type": "string"
+          },
+          "kind": {
+            "const": "custom_view",
+            "default": "custom_view",
+            "title": "Kind",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ViewSource"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "const": "custom-view/v1",
+            "default": "custom-view/v1",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "source",
+          "fallback",
+          "access_generation"
+        ],
+        "title": "CustomViewBody",
+        "type": "object"
+      },
       "DelegateConversation": {
         "additionalProperties": false,
         "properties": {
@@ -1918,6 +2046,65 @@
           "resolution"
         ],
         "title": "DismissProposal",
+        "type": "object"
+      },
+      "DraftObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "generated_code_executed": {
+            "const": false,
+            "default": false,
+            "title": "Generated Code Executed",
+            "type": "boolean"
+          },
+          "goal_status": {
+            "const": "needs_validation",
+            "default": "needs_validation",
+            "title": "Goal Status",
+            "type": "string"
+          },
+          "kind": {
+            "const": "artifact_draft",
+            "default": "artifact_draft",
+            "title": "Kind",
+            "type": "string"
+          },
+          "validation": {
+            "const": "shape_only",
+            "default": "shape_only",
+            "title": "Validation",
+            "type": "string"
+          }
+        },
+        "title": "DraftObservation",
+        "type": "object"
+      },
+      "EmptyPayload": {
+        "additionalProperties": false,
+        "properties": {},
+        "title": "EmptyPayload",
+        "type": "object"
+      },
+      "EmptyPayloadSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "additionalProperties": {
+            "const": false,
+            "default": false,
+            "title": "Additionalproperties",
+            "type": "boolean"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/EmptyPayload"
+          },
+          "type": {
+            "const": "object",
+            "default": "object",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "title": "EmptyPayloadSchema",
         "type": "object"
       },
       "ErrorCode": {
@@ -2226,6 +2413,12 @@
               },
               {
                 "$ref": "#/components/schemas/ToolBody"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Input"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Input"
               }
             ],
             "title": "Body"
@@ -2597,6 +2790,7 @@
               {
                 "discriminator": {
                   "mapping": {
+                    "publish_artifact": "#/components/schemas/PublishArtifact-Input",
                     "reconcile_csv": "#/components/schemas/ReconcileCSV",
                     "run_wasm": "#/components/schemas/RunWasm"
                   },
@@ -2608,6 +2802,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/RunWasm"
+                  },
+                  {
+                    "$ref": "#/components/schemas/PublishArtifact-Input"
                   }
                 ]
               },
@@ -2734,6 +2931,9 @@
               },
               {
                 "$ref": "#/components/schemas/WasmObservation"
+              },
+              {
+                "$ref": "#/components/schemas/DraftObservation"
               }
             ],
             "title": "Output"
@@ -2873,6 +3073,9 @@
               },
               {
                 "$ref": "#/components/schemas/WasmObservationResponse"
+              },
+              {
+                "$ref": "#/components/schemas/DraftObservation"
               }
             ],
             "title": "Output"
@@ -2948,7 +3151,10 @@
             "enum": [
               "table",
               "file",
-              "tool"
+              "tool",
+              "document",
+              "structured_table",
+              "custom_view"
             ],
             "title": "Kind",
             "type": "string"
@@ -3061,6 +3267,12 @@
               },
               {
                 "$ref": "#/components/schemas/ToolBody"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Output"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Output"
               }
             ],
             "title": "Body"
@@ -3171,6 +3383,182 @@
           "items"
         ],
         "title": "ProposalPage",
+        "type": "object"
+      },
+      "PublishArtifact-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Input"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Input"
+              }
+            ],
+            "title": "Body"
+          },
+          "kind": {
+            "const": "publish_artifact",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "body"
+        ],
+        "title": "PublishArtifact",
+        "type": "object"
+      },
+      "PublishArtifact-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "base_revision_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision Id"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Output"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Output"
+              }
+            ],
+            "title": "Body"
+          },
+          "kind": {
+            "const": "publish_artifact",
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "body"
+        ],
+        "title": "PublishArtifact",
+        "type": "object"
+      },
+      "ReadBindingAction-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "binding": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Binding",
+            "type": "string"
+          },
+          "kind": {
+            "const": "read_binding",
+            "default": "read_binding",
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "payload_schema": {
+            "$ref": "#/components/schemas/EmptyPayloadSchema"
+          }
+        },
+        "required": [
+          "name",
+          "binding"
+        ],
+        "title": "ReadBindingAction",
+        "type": "object"
+      },
+      "ReadBindingAction-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "binding": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Binding",
+            "type": "string"
+          },
+          "kind": {
+            "const": "read_binding",
+            "default": "read_binding",
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "payload_schema": {
+            "$ref": "#/components/schemas/EmptyPayloadSchema"
+          }
+        },
+        "required": [
+          "name",
+          "binding"
+        ],
+        "title": "ReadBindingAction",
         "type": "object"
       },
       "ReconcileCSV": {
@@ -3449,6 +3837,15 @@
                 "$ref": "#/components/schemas/ToolBody"
               },
               {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Output"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Output"
+              },
+              {
                 "type": "null"
               }
             ],
@@ -3461,6 +3858,9 @@
               },
               {
                 "$ref": "#/components/schemas/WasmObservationResponse"
+              },
+              {
+                "$ref": "#/components/schemas/DraftObservation"
               },
               {
                 "type": "null"
@@ -3539,6 +3939,12 @@
               },
               {
                 "$ref": "#/components/schemas/ToolBody"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Output"
+              },
+              {
+                "$ref": "#/components/schemas/CustomViewBody-Output"
               }
             ],
             "title": "Body"
@@ -4365,6 +4771,120 @@
         "title": "SourceRef",
         "type": "object"
       },
+      "StructuredTableBody-Input": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/TableField"
+            },
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Fields",
+            "type": "array"
+          },
+          "kind": {
+            "const": "structured_table",
+            "default": "structured_table",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Notes",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TableRow"
+            },
+            "maxItems": 200,
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "const": "structured-table/v1",
+            "default": "structured-table/v1",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "fields",
+          "rows"
+        ],
+        "title": "StructuredTableBody",
+        "type": "object"
+      },
+      "StructuredTableBody-Output": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/TableField"
+            },
+            "maxItems": 24,
+            "minItems": 1,
+            "title": "Fields",
+            "type": "array"
+          },
+          "kind": {
+            "const": "structured_table",
+            "default": "structured_table",
+            "title": "Kind",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Notes",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/TableRow"
+            },
+            "maxItems": 200,
+            "title": "Rows",
+            "type": "array"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "version": {
+            "const": "structured-table/v1",
+            "default": "structured-table/v1",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "fields",
+          "rows"
+        ],
+        "title": "StructuredTableBody",
+        "type": "object"
+      },
       "TableBody": {
         "additionalProperties": false,
         "properties": {
@@ -4432,6 +4952,147 @@
           "rows"
         ],
         "title": "TableBody",
+        "type": "object"
+      },
+      "TableCell": {
+        "additionalProperties": false,
+        "properties": {
+          "field_key": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}$",
+            "title": "Field Key",
+            "type": "string"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "field_key",
+          "value"
+        ],
+        "title": "TableCell",
+        "type": "object"
+      },
+      "TableField": {
+        "additionalProperties": false,
+        "properties": {
+          "editable": {
+            "title": "Editable",
+            "type": "boolean"
+          },
+          "enum": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 30,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enum"
+          },
+          "key": {
+            "pattern": "^[a-z][a-z0-9_]{0,47}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "scale": {
+            "anyOf": [
+              {
+                "maximum": 6.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scale"
+          },
+          "type": {
+            "enum": [
+              "text",
+              "integer",
+              "decimal",
+              "boolean",
+              "enum"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type",
+          "editable"
+        ],
+        "title": "TableField",
+        "type": "object"
+      },
+      "TableRow": {
+        "additionalProperties": false,
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/TableCell"
+            },
+            "maxItems": 24,
+            "title": "Cells",
+            "type": "array"
+          },
+          "row_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Row Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_id",
+          "cells"
+        ],
+        "title": "TableRow",
         "type": "object"
       },
       "Task": {
@@ -4822,6 +5483,188 @@
           "reason"
         ],
         "title": "TurnState",
+        "type": "object"
+      },
+      "ViewActionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "action": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Action",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/EmptyPayload"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "view_body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "View Body Hash",
+            "type": "string"
+          },
+          "view_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "View Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "view_revision_id",
+          "view_body_hash",
+          "access_generation",
+          "action",
+          "payload"
+        ],
+        "title": "ViewActionRequest",
+        "type": "object"
+      },
+      "ViewActionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "binding": {
+            "title": "Binding",
+            "type": "string"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Body"
+              },
+              {
+                "$ref": "#/components/schemas/StructuredTableBody-Output"
+              }
+            ],
+            "title": "Body"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "view_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "View Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "view_revision_id",
+          "access_generation",
+          "binding",
+          "artifact_id",
+          "revision_id",
+          "body_hash",
+          "body"
+        ],
+        "title": "ViewActionResponse",
+        "type": "object"
+      },
+      "ViewBinding": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "body_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Body Hash",
+            "type": "string"
+          },
+          "name": {
+            "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "artifact_id",
+          "revision_id",
+          "body_hash"
+        ],
+        "title": "ViewBinding",
+        "type": "object"
+      },
+      "ViewSource": {
+        "additionalProperties": false,
+        "properties": {
+          "css": {
+            "default": "",
+            "maxLength": 48000,
+            "title": "Css",
+            "type": "string"
+          },
+          "html": {
+            "maxLength": 48000,
+            "minLength": 1,
+            "title": "Html",
+            "type": "string"
+          },
+          "js": {
+            "default": "",
+            "maxLength": 48000,
+            "title": "Js",
+            "type": "string"
+          }
+        },
+        "required": [
+          "html"
+        ],
+        "title": "ViewSource",
         "type": "object"
       },
       "WasmAcceptance": {
@@ -6451,6 +7294,157 @@
         "summary": "Save"
       }
     },
+    "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/view-actions": {
+      "post": {
+        "operationId": "invoke_view_action",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "artifact_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "View Action"
+      }
+    },
     "/v1/workspaces/{workspace_id}/assignments": {
       "get": {
         "operationId": "list_assignments",
@@ -6728,7 +7722,7 @@
                     "provider_turn_id": null,
                     "state": "queued",
                     "stop_reason": null,
-                    "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
+                    "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -9091,7 +10085,7 @@
                   "provider_turn_id": null,
                   "state": "running",
                   "stop_reason": null,
-                  "tool_registry_hash": "a6bc2aff6c37a35fc79a5d19fe6a8af392723a0cea0ac2f9d947db45dd52b508",
+                  "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

@@ -1,0 +1,23 @@
+{
+  "runtime_sha": "fffb69b3c3227d53a7137507b207face9d9b25d7",
+  "frontend_host_sha": "9e278e43abadb3e4a462533476b809c0dbff87b7",
+  "scope": "synthetic live-generated data; isolated host, not integrated product proof",
+  "files": {
+    "browser-evidence.json": "77cddbc83fefefd719ac234cd6dec4a0aeb63ba8957a1f56984e432f8217335c",
+    "browser-generated-view-desktop.png": "c91e300c88d22f6ef29df672909dc10b24337c138e09a50eeaa07a9eb7c1b157",
+    "browser-generated-view-phone.png": "e00309de1928d614ebc0e6e1f8ab1c8df5922072f7bf1b7235bfe4c3be9154be",
+    "browser-stale-view-refused.png": "5ea48b4d83b306a6ae95125e41b1a23178eeb7d08c71849237d50e050bbd484d",
+    "budget.json": "7d45356ad8b2fabf249b3447d4f3c7c7910b8b260a60409fe5547c32c5bd7534",
+    "custom-view.json": "cd5d671e63c002e12059ca7d8c288d9e79168b1c271760e13d8a95424de0939f",
+    "independent-initial-checks.json": "cf0ce3cfd68dc7553c104da108495a94a06370135d11b7f539dafa3fc42b5c87",
+    "interruption-after-restart.json": "d9efd25e5f086c4499a1fb1d7fe268abca40fb70e03943fe4ffb95e6549d413b",
+    "interruption-before-restart.json": "1ac1ca5847ae01ee71a7e4bf7db9a439bd763f3c7a9a4a721d561e241823a314",
+    "rainwater-goal.txt": "496b7e560f3bbcd5d0be2ad137406a87d6949f1fef0101e3dbe16d3cd860c36c",
+    "rainwater.json": "d32ebb6806ae7f90d62813823c0876814fc5f3098e61e83bb099274269700d68",
+    "venues-current.json": "40a40f14e74ed2dd3887628f7e13abe5a359a5c63e77cff29bb7b70ad38ad549",
+    "venues-goal.txt": "9ac4dd7b501c08aadad0fe4fbdc46a3596199c8f041b391a8b5678b95503cb6b",
+    "venues-obstacle.txt": "f567379ccaa4602ca3c23b766a502658ba21fb24fa92c7e77979785eb6668328",
+    "venues-original.json": "05b3120ab752b2666fb2ed9d11589766cb12d8c4ee29361a557d83565c4c3b8c",
+    "venues-view-goal.txt": "7151712ff4851efca2d213be7d5119c90dfa8ae56b8590853d572f0088510f4a"
+  }
+}

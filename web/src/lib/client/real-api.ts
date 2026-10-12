@@ -13,6 +13,7 @@ import { assignmentSummary, lifecycleOf } from "./assignment-summary";
 import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
+import { savedBody, viewBlocks } from "@/lib/document-blocks";
 const stablePayload = commandPayloadCache();
 type S = components["schemas"];
 const rid = () => crypto.randomUUID();
@@ -187,38 +188,7 @@ function toBlocks(body: S["Revision"]["body"]): V.Block[] {
       message:
         "Open this product from its conversation, not the document editor.",
     });
-  return body.blocks.map((b) => ({
-    id: b.block_id,
-    kind:
-      b.kind === "checklist"
-        ? "check_item"
-        : b.kind === "heading"
-          ? "heading"
-          : "paragraph",
-    text: b.text,
-    backend_kind: b.kind,
-    ...("checked" in b ? { checked: Boolean(b.checked) } : {}),
-  }));
-}
-function toBody(title: string, blocks: V.Block[]): S["Body"] {
-  return {
-    title,
-    blocks: blocks.map((b) => ({
-      block_id: b.id,
-      kind:
-        b.backend_kind ??
-        (b.kind === "check_item"
-          ? "checklist"
-          : b.kind === "heading"
-            ? "heading"
-            : "paragraph"),
-      text: b.text,
-      ...((b.backend_kind ??
-        (b.kind === "check_item" ? "checklist" : "paragraph")) === "checklist"
-        ? { checked: Boolean(b.checked) }
-        : {}),
-    })),
-  };
+  return viewBlocks(body.blocks);
 }
 const toRevision = (r: S["Revision"], current: string): V.Revision => ({
   id: r.id,
@@ -705,7 +675,7 @@ export const realApi = {
             body: {
               ...command(c.command_id),
               expected_current_revision_id: c.expected_current_revision_id,
-              body: toBody(
+              body: savedBody(
                 (base.requested_revision ?? base.current_revision).body.title,
                 c.body,
               ),
@@ -885,6 +855,30 @@ export function turnStateOf(
   }
 }
 
+/**
+ * A run that published a draft is partial by design (the draft still needs
+ * validating), and the service reports it as failed. If the reply carries
+ * that draft, the turn did answer: the work itself says what isn't verified.
+ */
+const DRAFT_KINDS = new Set(["document", "structured_table", "custom_view"]);
+export function draftAware(
+  state: V.TurnState,
+  runId: string,
+  messages: Pick<
+    S["ConversationMessage"],
+    "run_id" | "author_kind" | "result"
+  >[],
+): V.TurnState {
+  if (state !== "failed") return state;
+  const products = messages
+    .filter((m) => m.run_id === runId && m.author_kind === "assistant")
+    .flatMap((m) => m.result?.results ?? [])
+    .filter((x) => x.kind !== "text");
+  return products.length && products.every((x) => DRAFT_KINDS.has(x.kind))
+    ? "replied"
+    : state;
+}
+
 export function conversationDetail(
   d: S["ConversationDetail"],
 ): V.ConversationDetailView {
@@ -905,10 +899,14 @@ export function conversationDetail(
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,
-      state: turnStateOf(
-        r,
+      state: draftAware(
+        turnStateOf(
+          r,
+          messages,
+          d.turns?.find((t) => t.run_id === r.id),
+        ),
+        r.id,
         messages,
-        d.turns?.find((t) => t.run_id === r.id),
       ),
       reason:
         d.turns?.find((t) => t.run_id === r.id)?.reason ??

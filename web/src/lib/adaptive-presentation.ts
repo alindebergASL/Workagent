@@ -1,6 +1,35 @@
 import type { TurnProgress } from "./contract/natural";
 import type { TurnState } from "./contract/types";
 
+type Verification = NonNullable<
+  NonNullable<TurnProgress["adaptive"]>["steps"]
+>[number]["verification"];
+
+/**
+ * What the model's own examples showed for one step. The service reports
+ * `model_tests_passed: false` both when examples failed and when there were
+ * none to run, so the recorded checks decide which: no examples is "none",
+ * never a failure.
+ */
+export function modelExamples(
+  v: Verification,
+):
+  | { state: "none" }
+  | { state: "passed" | "failed"; passed: number; total: number } {
+  const checks = v.checks ?? [];
+  if (!checks.length)
+    return v.model_tests_passed
+      ? { state: "passed", passed: 0, total: 0 }
+      : { state: "none" };
+  const passed = checks.filter((c) => c.passed).length;
+  return {
+    state:
+      passed === checks.length && v.model_tests_passed ? "passed" : "failed",
+    passed,
+    total: checks.length,
+  };
+}
+
 /** Presentation only. Never changes a run's authority or promotes examples to proof. */
 export function adaptivePresentation(
   state: TurnState,
@@ -33,7 +62,7 @@ export function adaptivePresentation(
     (s.verification.automatic?.recognized === true &&
       s.verification.automatic.passed === false) ||
     s.verification.acceptance?.passed === false ||
-    s.verification.model_tests_passed === false;
+    modelExamples(s.verification).state === "failed";
   const changedAttempts = steps.slice(1).filter((s, i) => {
     const before = steps[i];
     return (
@@ -56,7 +85,7 @@ export function adaptivePresentation(
     last.verification.acceptance.checks.length > 0 &&
     last.verification.acceptance.checks.every((c) => c.passed)
       ? "Supplied checks passed — those cases only."
-      : bound && last?.verification.model_tests_passed
+      : bound && last && modelExamples(last.verification).state === "passed"
         ? "Model examples passed — not independent checks."
         : null;
   if (state === "queued" || state === "responding") {

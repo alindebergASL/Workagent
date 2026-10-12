@@ -1,0 +1,45 @@
+{
+  "checkpoint": "both owned API and consumer stopped after final identity before result",
+  "human_revision_id": "35441746-82ff-4632-bdfb-ece42a9cc9c8",
+  "body_hash": "ebcd38f6126236df5260dc524b4eef4c710962add97414381c283ebeebfe9e9a",
+  "human_edits_preserved": true,
+  "unaccepted_proposal_count": 0,
+  "final_event_counts": [
+    {
+      "kind": "count_result",
+      "n": 1
+    },
+    {
+      "kind": "count_send",
+      "n": 1
+    },
+    {
+      "kind": "dispatch",
+      "n": 1
+    },
+    {
+      "kind": "identity",
+      "n": 1
+    }
+  ],
+  "budget": {
+    "carried_reserved_cost_usd": "3.42992",
+    "request_counts": {
+      "count_send": 6,
+      "dispatch": 6,
+      "read": 31,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 120000,
+    "reserved_output_tokens": 49152,
+    "reserved_cost_usd": "4.22144",
+    "reported_usage": {
+      "input_tokens": 35964,
+      "output_tokens": 2989
+    },
+    "unknown_usage_steps": 1,
+    "conservatively_calculated_cost_usd": null,
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  }
+}

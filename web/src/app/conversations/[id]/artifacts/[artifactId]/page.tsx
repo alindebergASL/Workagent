@@ -21,6 +21,8 @@ import { ErrorNotice } from "@/components/ui";
 import { ConversationPeek } from "@/components/ConversationPeek";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { WorkSurface } from "@/components/WorkSurface";
+import { FlexibleEditor, type Bound } from "@/components/FlexibleWork";
+import { flexibleKind, isFlexible, type CustomView } from "@/lib/flexible";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import {
   isReconciliation,
@@ -29,6 +31,7 @@ import {
   tableSummary,
   toolInputs,
 } from "@/lib/product-summary";
+import { readableTitle } from "@/lib/titles";
 
 type Data = {
   artifact: S["Artifact"];
@@ -38,6 +41,8 @@ type Data = {
   observations: Awaited<ReturnType<typeof resolveObservations>>;
   version: number;
   open: boolean;
+  /** For an agent-made view: where each piece of work it reads is now. */
+  bound: Bound;
 };
 type Pending =
   | { kind: "save"; id: string; base: string; body: ProductBody }
@@ -163,9 +168,10 @@ export default function ProductPage() {
         productApi.proposals(ws!, artifactId, signal),
         productApi.history(ws!, artifactId, signal),
       ]);
+      const body = artifact.current_revision.body;
       if (
         artifact.conversation_id !== id ||
-        !isProduct(artifact.current_revision.body)
+        !(isProduct(body) || isFlexible(body))
       )
         throw new ApiError({
           code: "not_found_or_not_authorized",
@@ -177,6 +183,28 @@ export default function ProductPage() {
         conversation.messages.flatMap((m) => m.products ?? []),
         (oid) => productApi.observe(ws!, oid, signal),
       );
+      // A view's bindings are checked against what each bound piece of
+      // work is now; anything unreadable counts as unavailable.
+      const bound: Bound = {};
+      if (flexibleKind(body) === "custom_view")
+        await Promise.all(
+          ((body as CustomView).bindings ?? []).map(async (b) => {
+            try {
+              const a = await productApi.get(ws!, b.artifact_id, signal);
+              bound[b.artifact_id] =
+                a.conversation_id === id
+                  ? {
+                      revision_id: a.current_revision_id,
+                      body_hash: a.current_revision.body_hash,
+                      title: a.current_revision.body.title,
+                    }
+                  : null;
+            } catch (e) {
+              if (signal.aborted) throw e;
+              bound[b.artifact_id] = null;
+            }
+          }),
+        );
       return {
         artifact,
         conversation,
@@ -185,6 +213,7 @@ export default function ProductPage() {
         observations,
         version: conversation.conversation.work_version,
         open: conversation.conversation.state === "open",
+        bound,
       };
     },
   );
@@ -211,15 +240,46 @@ export default function ProductPage() {
         <WorkSurface
           focusAgent={0}
           document={
-            <ProductEditor
-              key={`${ws}:${id}:${artifactId}`}
-              ws={ws!}
-              cid={id}
-              data={resource.data}
-              stale={resource.reconnecting}
-              refresh={resource.refresh}
-              onDirtyChange={setUnsaved}
-            />
+            isProduct(resource.data.artifact.current_revision.body) ? (
+              <ProductEditor
+                key={`${ws}:${id}:${artifactId}`}
+                ws={ws!}
+                cid={id}
+                data={resource.data}
+                stale={resource.reconnecting}
+                refresh={resource.refresh}
+                onDirtyChange={setUnsaved}
+              />
+            ) : (
+              <FlexibleEditor
+                key={`${ws}:${id}:${artifactId}`}
+                ws={ws!}
+                cid={id}
+                artifact={resource.data.artifact}
+                proposals={resource.data.proposals}
+                history={resource.data.history}
+                observations={[
+                  resource.data.observations.current,
+                  resource.data.observations.latest,
+                ].filter(
+                  (r, i, all): r is S["ObservationReadback"] =>
+                    Boolean(r) &&
+                    all.findIndex(
+                      (o) => o?.observation.id === r?.observation.id,
+                    ) === i,
+                )}
+                bound={resource.data.bound ?? {}}
+                open={resource.data.open}
+                origin={originText(
+                  resource.data.conversation,
+                  resource.data.artifact,
+                  null,
+                )}
+                stale={resource.reconnecting}
+                refresh={resource.refresh}
+                onDirtyChange={setUnsaved}
+              />
+            )
           }
           agent={
             <ConversationPeek
@@ -429,7 +489,7 @@ function ProductEditor({
   return (
     <div className="stack product">
       <header className="stack-sm">
-        <h1>{saved.title}</h1>
+        <h1>{readableTitle(saved.title)}</h1>
         <div className="row product-meta">
           <span className="small muted">
             {kindLabel} · {originText(data.conversation, artifact, lead)}
@@ -960,9 +1020,13 @@ function ProposedToolResult({
       <p className="decision-question" data-testid="proposal-result">
         Returns <strong>{output.value}</strong>
       </p>
-      <p className="small muted" data-testid="proposal-inputs">
-        {inputs.map((x) => `${x.label} ${x.value}`).join(" · ")}
-      </p>
+      <ul className="small muted result-inputs" data-testid="proposal-inputs">
+        {inputs.map((x, i) => (
+          <li key={i}>
+            {x.label}: {x.value}
+          </li>
+        ))}
+      </ul>
     </>
   );
 }
@@ -1040,11 +1104,13 @@ function ResultCard({
               "Not run on this saved version yet."
             )}
           </p>
-          <p className="small muted">
-            {toolInputs(body)
-              .map((x) => `${x.label} ${x.value}`)
-              .join(" · ")}
-          </p>
+          <ul className="small muted result-inputs">
+            {toolInputs(body).map((x, i) => (
+              <li key={i}>
+                {x.label}: {x.value}
+              </li>
+            ))}
+          </ul>
         </>
       ) : (
         <p className="result-headline">{body.filename}</p>
@@ -1074,63 +1140,82 @@ function ToolInputs({
   update: (rows: InputRows) => void;
 }) {
   const change = update;
+  // Opens by itself when there's something to fix; otherwise it's the
+  // person's to open and close.
+  const [shown, setShown] = useState(Boolean(error));
+  useEffect(() => {
+    if (error) setShown(true);
+  }, [error]);
+  const set = (i: number, patch: Partial<InputRows[number]>) =>
+    change(rows.map((x, n) => (n === i ? { ...x, ...patch } : x)));
+  // People change values; renaming, adding or removing inputs changes the
+  // tool itself, so that sits behind its own disclosure.
   return (
     <fieldset className="tool-inputs stack-sm">
       <legend className="field-label">Inputs</legend>
       {rows.map((r, i) => (
-        <div key={i} className="tool-input-row">
-          <input
-            aria-label={`Input ${i + 1} name`}
-            value={r.label}
-            placeholder="Name"
-            onChange={(e) =>
-              change(
-                rows.map((x, n) =>
-                  n === i ? { ...x, label: e.target.value } : x,
-                ),
-              )
-            }
-          />
+        <label key={i} className="tool-input">
+          <span className="tool-input-label">
+            {r.label.trim() || `Input ${i + 1}`}
+          </span>
           <input
             aria-label={r.label.trim() || `Input ${i + 1} value`}
             inputMode="numeric"
             value={r.value}
             placeholder="0"
-            onChange={(e) =>
-              change(
-                rows.map((x, n) =>
-                  n === i ? { ...x, value: e.target.value } : x,
-                ),
-              )
-            }
+            onChange={(e) => set(i, { value: e.target.value })}
           />
-          <button
-            type="button"
-            className="btn btn-sm btn-quiet"
-            aria-label={`Remove input ${i + 1}`}
-            onClick={() => change(rows.filter((_, n) => n !== i))}
-          >
-            Remove
-          </button>
-        </div>
+        </label>
       ))}
-      <div className="row">
-        <button
-          type="button"
-          className="btn btn-sm"
-          disabled={rows.length >= 8}
-          onClick={() => change([...rows, { name: "", label: "", value: "" }])}
-        >
-          Add an input
-        </button>
-      </div>
       {error ? (
         <p role="alert" className="small">
           {error}
         </p>
       ) : (
-        <p className="hint">Whole numbers only. Up to eight inputs.</p>
+        <p className="hint">Whole numbers only.</p>
       )}
+      <details
+        className="disclosure tool-structure"
+        open={shown}
+        onToggle={(e) => setShown(e.currentTarget.open)}
+      >
+        <summary>Change the inputs</summary>
+        <div className="disclosure-body stack-sm">
+          <p className="hint">
+            Rename, add or remove what the tool asks for. Up to eight inputs.
+          </p>
+          {rows.map((r, i) => (
+            <div key={i} className="tool-input-row">
+              <input
+                aria-label={`Input ${i + 1} name`}
+                value={r.label}
+                placeholder="Name"
+                onChange={(e) => set(i, { label: e.target.value })}
+              />
+              <button
+                type="button"
+                className="btn btn-sm btn-quiet"
+                aria-label={`Remove input ${i + 1}`}
+                onClick={() => change(rows.filter((_, n) => n !== i))}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              disabled={rows.length >= 8}
+              onClick={() =>
+                change([...rows, { name: "", label: "", value: "" }])
+              }
+            >
+              Add an input
+            </button>
+          </div>
+        </div>
+      </details>
     </fieldset>
   );
 }

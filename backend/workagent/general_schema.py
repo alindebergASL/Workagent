@@ -6,6 +6,8 @@ from .product_models import Integer, Code
 from .responses_transport import FrozenSchema
 
 from .message_models import AttachmentInput,MessageAttachment,ExactTarget
+from .flexible_schema import ModelDraftBody
+
 
 class Closed(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True,frozen=True)
@@ -53,8 +55,14 @@ class WasmDecision(Closed):
             raise ValueError('bounded WAT and one unique field per argument')
         return self
 
+class PublishDecision(Closed):
+    kind: Literal['publish_artifact']
+    target: DecisionTarget | None
+    body: ModelDraftBody
+
+
 class GeneralDecision(Closed):
-    decision: Reply | CSVDecision | WasmDecision
+    decision: Reply | CSVDecision | WasmDecision | PublishDecision
 
 class GeneralExplanation(Closed):
     text: Annotated[str,Field(min_length=1,max_length=12000)]

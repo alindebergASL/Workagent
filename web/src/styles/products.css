@@ -231,9 +231,28 @@
   margin: 0;
   min-width: 0;
 }
+.tool-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(96px, 1fr);
+  gap: var(--sp-3);
+  align-items: center;
+}
+.tool-input-label {
+  color: var(--ink-2);
+}
+.tool-input input {
+  min-width: 0;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.result-inputs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .tool-input-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--sp-2);
   align-items: center;
 }
@@ -242,14 +261,207 @@
   width: 100%;
 }
 @media (max-width: 480px) {
-  .tool-input-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+  .tool-input {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
   }
-  .tool-input-row input:first-child {
-    grid-column: 1 / -1;
+}
+
+/* Self-describing tables: typed cells, read-only shading, invalid values. */
+.flex-table td[data-type="integer"],
+.flex-table td[data-type="decimal"],
+.flex-table th[data-type="integer"],
+.flex-table th[data-type="decimal"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.flex-table td[data-type="integer"] input,
+.flex-table td[data-type="decimal"] input {
+  text-align: right;
+}
+.flex-table td[data-type="text"] {
+  white-space: normal;
+  min-width: 140px;
+  max-width: 320px;
+}
+.flex-table td[data-type="text"] input {
+  max-width: none;
+  min-width: 160px;
+}
+.flex-table select {
+  font: inherit;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  background: var(--surface);
+  color: var(--ink);
+}
+.flex-table input[aria-invalid="true"],
+.flex-table textarea[aria-invalid="true"] {
+  border-color: var(--attn);
+  box-shadow: 0 0 0 1px var(--attn);
+}
+.cell-errors {
+  margin: 0;
+  padding-left: 1.2em;
+  color: var(--ink);
+}
+.table-notes {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3) var(--sp-2) 1.8em;
+}
+.view-fallback {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.view-binding[data-state="changed"],
+.view-binding[data-state="unavailable"] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* On a phone each row reads as a card: label, then value. */
+@media (max-width: 640px) {
+  .flex-table {
+    border: 0;
+    background: transparent;
+    overflow: visible;
   }
-  .tool-input-row + .tool-input-row {
-    border-top: 1px solid var(--line);
-    padding-top: var(--sp-2);
+  .flex-table table,
+  .flex-table tbody,
+  .flex-table tr,
+  .flex-table td {
+    display: block;
+    width: 100%;
+  }
+  .flex-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .flex-table tr {
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+    margin-bottom: var(--sp-2);
+    padding: var(--sp-1) 0;
+  }
+  .flex-table td,
+  .flex-table td[data-type] {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: var(--sp-2);
+    align-items: center;
+    text-align: left;
+    white-space: normal;
+    border-bottom: 0;
+    padding: 4px var(--sp-3);
+    max-width: none;
+    min-width: 0;
+  }
+  .flex-table td::before {
+    content: attr(data-label);
+    color: var(--ink-2);
+    font-size: var(--fs-sm);
+  }
+  .flex-table td[data-label=""] {
+    display: block;
+  }
+  .flex-table td[data-label=""]::before {
+    content: none;
+  }
+  .flex-table td input,
+  .flex-table td select,
+  .flex-table td[data-type] input {
+    min-width: 0;
+    width: 100%;
+    max-width: none;
+    text-align: left;
+  }
+  .flex-table + .scroll-cue,
+  .product[data-kind="structured_table"] .scroll-cue {
+    display: none;
+  }
+}
+
+/* A proposed view against the saved one, part by part. */
+.view-compare h3 {
+  margin: 0;
+}
+.view-compare-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+}
+@media (max-width: 640px) {
+  .view-compare-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * Tables beside the conversation: headings wrap instead of widening their
+ * columns, long text wraps where it can be read, and row actions stay on one
+ * line (a squeezed "Remove" made every row several lines tall).
+ */
+.flex-table th {
+  white-space: normal;
+  min-width: 88px;
+  max-width: 180px;
+  vertical-align: bottom;
+  line-height: 1.3;
+}
+.flex-table td {
+  vertical-align: middle;
+}
+.product-scroll .btn {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+.flex-table td[data-type="integer"] input,
+.flex-table td[data-type="decimal"] input {
+  min-width: 72px;
+  max-width: 120px;
+}
+.flex-table textarea {
+  display: block;
+  width: 100%;
+  min-width: 240px;
+  font: inherit;
+  line-height: 1.35;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 4px 6px;
+  background: var(--surface);
+  color: var(--ink);
+  resize: vertical;
+}
+.flex-table td:has(textarea) {
+  min-width: 260px;
+  max-width: 360px;
+}
+@media (max-width: 640px) {
+  .flex-table textarea,
+  .flex-table td:has(textarea) {
+    min-width: 0;
+    max-width: none;
+  }
+  .flex-table td[data-type="integer"] input,
+  .flex-table td[data-type="decimal"] input {
+    max-width: none;
+  }
+}
+
+/* Work that needs width (tables, views) gets it; the conversation narrows. */
+@media (min-width: 1100px) {
+  .content:has(.working-surface .flex-table),
+  .content:has(.working-surface .sandboxed-view) {
+    max-width: 1440px;
+  }
+  .working-surface:has(.flex-table),
+  .working-surface:has(.sandboxed-view) {
+    grid-template-columns: minmax(260px, 0.62fr) minmax(0, 2fr);
   }
 }

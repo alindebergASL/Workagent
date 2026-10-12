@@ -1,0 +1,1131 @@
+{
+  "scope": "Independent operator checks of exact saved synthetic artifacts, not universal goal verification or external venue truth",
+  "rainwater": {
+    "artifact_id": "0208e036-79c1-4b9a-a2c7-a1c7af844179",
+    "revision_id": "a4cad990-bd09-4165-8c45-2ab801bed4dc",
+    "body_hash": "7ab5985c92b1be4975ba26e75cf98db23730be4aa69ea28c2b4e17f08a60cdb4",
+    "oracle": "Python arbitrary-precision integer arithmetic, floor(area*rainfall*efficiency/100); fresh Wasmtime instance per case",
+    "passed": 107,
+    "cases": [
+      {
+        "arguments": [
+          80,
+          12,
+          75
+        ],
+        "expected": "720",
+        "observed": "720",
+        "passed": true
+      },
+      {
+        "arguments": [
+          80,
+          0,
+          75
+        ],
+        "expected": "0",
+        "observed": "0",
+        "passed": true
+      },
+      {
+        "arguments": [
+          3,
+          1,
+          50
+        ],
+        "expected": "1",
+        "observed": "1",
+        "passed": true
+      },
+      {
+        "arguments": [
+          0,
+          100,
+          100
+        ],
+        "expected": "0",
+        "observed": "0",
+        "passed": true
+      },
+      {
+        "arguments": [
+          1000000000,
+          1000000000,
+          100
+        ],
+        "expected": "1000000000000000000",
+        "observed": "1000000000000000000",
+        "passed": true
+      },
+      {
+        "arguments": [
+          1000000000,
+          1000000000,
+          99
+        ],
+        "expected": "990000000000000000",
+        "observed": "990000000000000000",
+        "passed": true
+      },
+      {
+        "arguments": [
+          999999999,
+          999999999,
+          1
+        ],
+        "expected": "9999999980000000",
+        "observed": "9999999980000000",
+        "passed": true
+      },
+      {
+        "arguments": [
+          535768224,
+          527930484,
+          93
+        ],
+        "expected": "263048991361570586",
+        "observed": "263048991361570586",
+        "passed": true
+      },
+      {
+        "arguments": [
+          342922648,
+          903127939,
+          29
+        ],
+        "expected": "89813877054152116",
+        "observed": "89813877054152116",
+        "passed": true
+      },
+      {
+        "arguments": [
+          559099272,
+          26478605,
+          68
+        ],
+        "expected": "10066834769771380",
+        "observed": "10066834769771380",
+        "passed": true
+      },
+      {
+        "arguments": [
+          822373029,
+          594313670,
+          63
+        ],
+        "expected": "307910945773624050",
+        "observed": "307910945773624050",
+        "passed": true
+      },
+      {
+        "arguments": [
+          920501316,
+          199668211,
+          90
+        ],
+        "expected": "165415365889979108",
+        "observed": "165415365889979108",
+        "passed": true
+      },
+      {
+        "arguments": [
+          383994171,
+          717324093,
+          70
+        ],
+        "expected": "192813789300903332",
+        "observed": "192813789300903332",
+        "passed": true
+      },
+      {
+        "arguments": [
+          790071216,
+          921455007,
+          52
+        ],
+        "expected": "378567840492284826",
+        "observed": "378567840492284826",
+        "passed": true
+      },
+      {
+        "arguments": [
+          816246284,
+          473364689,
+          63
+        ],
+        "expected": "243420766075031375",
+        "observed": "243420766075031375",
+        "passed": true
+      },
+      {
+        "arguments": [
+          905585746,
+          365879613,
+          20
+        ],
+        "expected": "66267072456959259",
+        "observed": "66267072456959259",
+        "passed": true
+      },
+      {
+        "arguments": [
+          882272643,
+          309839472,
+          86
+        ],
+        "expected": "235092085285761466",
+        "observed": "235092085285761466",
+        "passed": true
+      },
+      {
+        "arguments": [
+          522005335,
+          247267642,
+          90
+        ],
+        "expected": "116167525467183063",
+        "observed": "116167525467183063",
+        "passed": true
+      },
+      {
+        "arguments": [
+          617050907,
+          635754259,
+          44
+        ],
+        "expected": "172608806543827681",
+        "observed": "172608806543827681",
+        "passed": true
+      },
+      {
+        "arguments": [
+          872193979,
+          66566270,
+          34
+        ],
+        "expected": "19739957965486032",
+        "observed": "19739957965486032",
+        "passed": true
+      },
+      {
+        "arguments": [
+          960000911,
+          599762148,
+          44
+        ],
+        "expected": "253339771723859404",
+        "observed": "253339771723859404",
+        "passed": true
+      },
+      {
+        "arguments": [
+          62588842,
+          10403540,
+          7
+        ],
+        "expected": "45580186491047",
+        "observed": "45580186491047",
+        "passed": true
+      },
+      {
+        "arguments": [
+          869324312,
+          842042872,
+          93
+        ],
+        "expected": "680767756549590779",
+        "observed": "680767756549590779",
+        "passed": true
+      },
+      {
+        "arguments": [
+          973192472,
+          85832181,
+          60
+        ],
+        "expected": "50118739442724859",
+        "observed": "50118739442724859",
+        "passed": true
+      },
+      {
+        "arguments": [
+          580256159,
+          732048471,
+          18
+        ],
+        "expected": "76459614117170920",
+        "observed": "76459614117170920",
+        "passed": true
+      },
+      {
+        "arguments": [
+          71770036,
+          471246413,
+          30
+        ],
+        "expected": "10146411607764260",
+        "observed": "10146411607764260",
+        "passed": true
+      },
+      {
+        "arguments": [
+          109041718,
+          833308436,
+          82
+        ],
+        "expected": "74509614457973099",
+        "observed": "74509614457973099",
+        "passed": true
+      },
+      {
+        "arguments": [
+          923939256,
+          460883984,
+          3
+        ],
+        "expected": "12774864158378277",
+        "observed": "12774864158378277",
+        "passed": true
+      },
+      {
+        "arguments": [
+          383943214,
+          423925240,
+          72
+        ],
+        "expected": "117189517781751379",
+        "observed": "117189517781751379",
+        "passed": true
+      },
+      {
+        "arguments": [
+          942156722,
+          409855685,
+          12
+        ],
+        "expected": "46337794640719748",
+        "observed": "46337794640719748",
+        "passed": true
+      },
+      {
+        "arguments": [
+          859465312,
+          333515475,
+          34
+        ],
+        "expected": "97459293804419088",
+        "observed": "97459293804419088",
+        "passed": true
+      },
+      {
+        "arguments": [
+          346607628,
+          476634153,
+          21
+        ],
+        "expected": "34693056970975007",
+        "observed": "34693056970975007",
+        "passed": true
+      },
+      {
+        "arguments": [
+          245159604,
+          322620199,
+          50
+        ],
+        "expected": "39546720114620598",
+        "observed": "39546720114620598",
+        "passed": true
+      },
+      {
+        "arguments": [
+          254999356,
+          114343698,
+          47
+        ],
+        "expected": "13704057595749489",
+        "observed": "13704057595749489",
+        "passed": true
+      },
+      {
+        "arguments": [
+          557437627,
+          908744946,
+          29
+        ],
+        "expected": "146904901611480111",
+        "observed": "146904901611480111",
+        "passed": true
+      },
+      {
+        "arguments": [
+          107319048,
+          32141416,
+          79
+        ],
+        "expected": "2725015071528654",
+        "observed": "2725015071528654",
+        "passed": true
+      },
+      {
+        "arguments": [
+          109376050,
+          961185076,
+          49
+        ],
+        "expected": "51514007196596602",
+        "observed": "51514007196596602",
+        "passed": true
+      },
+      {
+        "arguments": [
+          889106565,
+          456892157,
+          20
+        ],
+        "expected": "81245163257142141",
+        "observed": "81245163257142141",
+        "passed": true
+      },
+      {
+        "arguments": [
+          996755860,
+          92821294,
+          49
+        ],
+        "expected": "45334882676368591",
+        "observed": "45334882676368591",
+        "passed": true
+      },
+      {
+        "arguments": [
+          810427588,
+          788817934,
+          10
+        ],
+        "expected": "63927981562276319",
+        "observed": "63927981562276319",
+        "passed": true
+      },
+      {
+        "arguments": [
+          26520875,
+          676002332,
+          26
+        ],
+        "expected": "4661325070136930",
+        "observed": "4661325070136930",
+        "passed": true
+      },
+      {
+        "arguments": [
+          837982621,
+          108511206,
+          59
+        ],
+        "expected": "53648997838933046",
+        "observed": "53648997838933046",
+        "passed": true
+      },
+      {
+        "arguments": [
+          845863327,
+          39503378,
+          19
+        ],
+        "expected": "6348747161135535",
+        "observed": "6348747161135535",
+        "passed": true
+      },
+      {
+        "arguments": [
+          331973073,
+          904996695,
+          66
+        ],
+        "expected": "198286792370035865",
+        "observed": "198286792370035865",
+        "passed": true
+      },
+      {
+        "arguments": [
+          545421696,
+          179424507,
+          70
+        ],
+        "expected": "68503413238332710",
+        "observed": "68503413238332710",
+        "passed": true
+      },
+      {
+        "arguments": [
+          123672676,
+          487175983,
+          57
+        ],
+        "expected": "34342703775308089",
+        "observed": "34342703775308089",
+        "passed": true
+      },
+      {
+        "arguments": [
+          75429172,
+          962240942,
+          49
+        ],
+        "expected": "35564708384584411",
+        "observed": "35564708384584411",
+        "passed": true
+      },
+      {
+        "arguments": [
+          776229023,
+          968222256,
+          9
+        ],
+        "expected": "67640599423956229",
+        "observed": "67640599423956229",
+        "passed": true
+      },
+      {
+        "arguments": [
+          134356958,
+          990669461,
+          10
+        ],
+        "expected": "13310333516345963",
+        "observed": "13310333516345963",
+        "passed": true
+      },
+      {
+        "arguments": [
+          533772564,
+          473725917,
+          52
+        ],
+        "expected": "131488186622177417",
+        "observed": "131488186622177417",
+        "passed": true
+      },
+      {
+        "arguments": [
+          683180182,
+          444135135,
+          53
+        ],
+        "expected": "160814890851804122",
+        "observed": "160814890851804122",
+        "passed": true
+      },
+      {
+        "arguments": [
+          999334795,
+          974816332,
+          72
+        ],
+        "expected": "701400873097347796",
+        "observed": "701400873097347796",
+        "passed": true
+      },
+      {
+        "arguments": [
+          339763853,
+          368556247,
+          85
+        ],
+        "expected": "106438776948748737",
+        "observed": "106438776948748737",
+        "passed": true
+      },
+      {
+        "arguments": [
+          540534131,
+          844450904,
+          70
+        ],
+        "expected": "319518174896063096",
+        "observed": "319518174896063096",
+        "passed": true
+      },
+      {
+        "arguments": [
+          176159067,
+          74025442,
+          24
+        ],
+        "expected": "3129660671275827",
+        "observed": "3129660671275827",
+        "passed": true
+      },
+      {
+        "arguments": [
+          770409550,
+          277054527,
+          53
+        ],
+        "expected": "113126090339912410",
+        "observed": "113126090339912410",
+        "passed": true
+      },
+      {
+        "arguments": [
+          933691715,
+          318752571,
+          57
+        ],
+        "expected": "169641481766260081",
+        "observed": "169641481766260081",
+        "passed": true
+      },
+      {
+        "arguments": [
+          517895919,
+          883035585,
+          19
+        ],
+        "expected": "86890899902622746",
+        "observed": "86890899902622746",
+        "passed": true
+      },
+      {
+        "arguments": [
+          19293023,
+          270960357,
+          10
+        ],
+        "expected": "522764439968921",
+        "observed": "522764439968921",
+        "passed": true
+      },
+      {
+        "arguments": [
+          81281465,
+          298050869,
+          50
+        ],
+        "expected": "12113005638421542",
+        "observed": "12113005638421542",
+        "passed": true
+      },
+      {
+        "arguments": [
+          522395952,
+          333453197,
+          86
+        ],
+        "expected": "149807356253062347",
+        "observed": "149807356253062347",
+        "passed": true
+      },
+      {
+        "arguments": [
+          139034404,
+          27821279,
+          33
+        ],
+        "expected": "1276477931613296",
+        "observed": "1276477931613296",
+        "passed": true
+      },
+      {
+        "arguments": [
+          159020962,
+          680064055,
+          11
+        ],
+        "expected": "11895888427249300",
+        "observed": "11895888427249300",
+        "passed": true
+      },
+      {
+        "arguments": [
+          641654391,
+          705610296,
+          87
+        ],
+        "expected": "393899411943992470",
+        "observed": "393899411943992470",
+        "passed": true
+      },
+      {
+        "arguments": [
+          792908041,
+          29084743,
+          96
+        ],
+        "expected": "22139065531313724",
+        "observed": "22139065531313724",
+        "passed": true
+      },
+      {
+        "arguments": [
+          129354514,
+          513466286,
+          33
+        ],
+        "expected": "21918330020701951",
+        "observed": "21918330020701951",
+        "passed": true
+      },
+      {
+        "arguments": [
+          875092110,
+          263462473,
+          8
+        ],
+        "expected": "18444314512271042",
+        "observed": "18444314512271042",
+        "passed": true
+      },
+      {
+        "arguments": [
+          889624250,
+          807296945,
+          95
+        ],
+        "expected": "682281392261770437",
+        "observed": "682281392261770437",
+        "passed": true
+      },
+      {
+        "arguments": [
+          47878946,
+          679577760,
+          13
+        ],
+        "expected": "4229870693599324",
+        "observed": "4229870693599324",
+        "passed": true
+      },
+      {
+        "arguments": [
+          719871942,
+          307853236,
+          27
+        ],
+        "expected": "59836024849582164",
+        "observed": "59836024849582164",
+        "passed": true
+      },
+      {
+        "arguments": [
+          270650810,
+          548126585,
+          19
+        ],
+        "expected": "28186671800428931",
+        "observed": "28186671800428931",
+        "passed": true
+      },
+      {
+        "arguments": [
+          303766935,
+          91566044,
+          22
+        ],
+        "expected": "6119242037910130",
+        "observed": "6119242037910130",
+        "passed": true
+      },
+      {
+        "arguments": [
+          739744568,
+          772608178,
+          15
+        ],
+        "expected": "85729905430181565",
+        "observed": "85729905430181565",
+        "passed": true
+      },
+      {
+        "arguments": [
+          210455593,
+          488499783,
+          66
+        ],
+        "expected": "67852957597679970",
+        "observed": "67852957597679970",
+        "passed": true
+      },
+      {
+        "arguments": [
+          630454340,
+          865030389,
+          35
+        ],
+        "expected": "190876757041928391",
+        "observed": "190876757041928391",
+        "passed": true
+      },
+      {
+        "arguments": [
+          745101260,
+          304408367,
+          31
+        ],
+        "expected": "70312667919935150",
+        "observed": "70312667919935150",
+        "passed": true
+      },
+      {
+        "arguments": [
+          278964578,
+          572797876,
+          82
+        ],
+        "expected": "131028060561261788",
+        "observed": "131028060561261788",
+        "passed": true
+      },
+      {
+        "arguments": [
+          380492537,
+          991458506,
+          89
+        ],
+        "expected": "335745880427571052",
+        "observed": "335745880427571052",
+        "passed": true
+      },
+      {
+        "arguments": [
+          80946845,
+          113276171,
+          28
+        ],
+        "expected": "2567417623716538",
+        "observed": "2567417623716538",
+        "passed": true
+      },
+      {
+        "arguments": [
+          259872623,
+          322302640,
+          16
+        ],
+        "expected": "13401221193059955",
+        "observed": "13401221193059955",
+        "passed": true
+      },
+      {
+        "arguments": [
+          857351554,
+          782482070,
+          77
+        ],
+        "expected": "516563908392560320",
+        "observed": "516563908392560320",
+        "passed": true
+      },
+      {
+        "arguments": [
+          501362359,
+          325902966,
+          58
+        ],
+        "expected": "94769378306536940",
+        "observed": "94769378306536940",
+        "passed": true
+      },
+      {
+        "arguments": [
+          754719662,
+          644826744,
+          53
+        ],
+        "expected": "257931613808527479",
+        "observed": "257931613808527479",
+        "passed": true
+      },
+      {
+        "arguments": [
+          788868616,
+          666193178,
+          62
+        ],
+        "expected": "325834111996851021",
+        "observed": "325834111996851021",
+        "passed": true
+      },
+      {
+        "arguments": [
+          612785635,
+          122176318,
+          82
+        ],
+        "expected": "61391671938225382",
+        "observed": "61391671938225382",
+        "passed": true
+      },
+      {
+        "arguments": [
+          340913693,
+          11835317,
+          29
+        ],
+        "expected": "1170098271625747",
+        "observed": "1170098271625747",
+        "passed": true
+      },
+      {
+        "arguments": [
+          193810963,
+          978172956,
+          6
+        ],
+        "expected": "11374838554974997",
+        "observed": "11374838554974997",
+        "passed": true
+      },
+      {
+        "arguments": [
+          741071037,
+          434793218,
+          18
+        ],
+        "expected": "57998278969888871",
+        "observed": "57998278969888871",
+        "passed": true
+      },
+      {
+        "arguments": [
+          193573187,
+          984162865,
+          53
+        ],
+        "expected": "100968997421703400",
+        "observed": "100968997421703400",
+        "passed": true
+      },
+      {
+        "arguments": [
+          39437083,
+          180646089,
+          55
+        ],
+        "expected": "3918285143035112",
+        "observed": "3918285143035112",
+        "passed": true
+      },
+      {
+        "arguments": [
+          504541734,
+          89530639,
+          77
+        ],
+        "expected": "34782396762334780",
+        "observed": "34782396762334780",
+        "passed": true
+      },
+      {
+        "arguments": [
+          193147013,
+          135495969,
+          25
+        ],
+        "expected": "6542660421472649",
+        "observed": "6542660421472649",
+        "passed": true
+      },
+      {
+        "arguments": [
+          326876878,
+          649953043,
+          49
+        ],
+        "expected": "104102764555795479",
+        "observed": "104102764555795479",
+        "passed": true
+      },
+      {
+        "arguments": [
+          629505977,
+          815978847,
+          22
+        ],
+        "expected": "113005983484255074",
+        "observed": "113005983484255074",
+        "passed": true
+      },
+      {
+        "arguments": [
+          571873595,
+          671190568,
+          91
+        ],
+        "expected": "349290908377549283",
+        "observed": "349290908377549283",
+        "passed": true
+      },
+      {
+        "arguments": [
+          931415219,
+          873707717,
+          23
+        ],
+        "expected": "187170472851455355",
+        "observed": "187170472851455355",
+        "passed": true
+      },
+      {
+        "arguments": [
+          185146714,
+          884742578,
+          31
+        ],
+        "expected": "50780226126302494",
+        "observed": "50780226126302494",
+        "passed": true
+      },
+      {
+        "arguments": [
+          389039907,
+          276184017,
+          28
+        ],
+        "expected": "30085049200798597",
+        "observed": "30085049200798597",
+        "passed": true
+      },
+      {
+        "arguments": [
+          497811734,
+          943935000,
+          60
+        ],
+        "expected": "281941151479974000",
+        "observed": "281941151479974000",
+        "passed": true
+      },
+      {
+        "arguments": [
+          195888871,
+          772431071,
+          70
+        ],
+        "expected": "105917455296457588",
+        "observed": "105917455296457588",
+        "passed": true
+      },
+      {
+        "arguments": [
+          525273976,
+          734535474,
+          79
+        ],
+        "expected": "304807571463409452",
+        "observed": "304807571463409452",
+        "passed": true
+      },
+      {
+        "arguments": [
+          622827953,
+          330794574,
+          42
+        ],
+        "expected": "86531805102929349",
+        "observed": "86531805102929349",
+        "passed": true
+      },
+      {
+        "arguments": [
+          50029409,
+          752763585,
+          74
+        ],
+        "expected": "27868634782960736",
+        "observed": "27868634782960736",
+        "passed": true
+      },
+      {
+        "arguments": [
+          368571471,
+          811445923,
+          72
+        ],
+        "expected": "215334588583485167",
+        "observed": "215334588583485167",
+        "passed": true
+      },
+      {
+        "arguments": [
+          371190467,
+          604389409,
+          84
+        ],
+        "expected": "188448613060313762",
+        "observed": "188448613060313762",
+        "passed": true
+      },
+      {
+        "arguments": [
+          253570300,
+          717148711,
+          97
+        ],
+        "expected": "176392185379096801",
+        "observed": "176392185379096801",
+        "passed": true
+      },
+      {
+        "arguments": [
+          676339335,
+          129193567,
+          7
+        ],
+        "expected": "6116508383374056",
+        "observed": "6116508383374056",
+        "passed": true
+      }
+    ],
+    "invalid_domain_cases": [
+      {
+        "arguments": [
+          1,
+          1,
+          101
+        ],
+        "rejected": true,
+        "diagnostic": "wasm_unreachable"
+      },
+      {
+        "arguments": [
+          -1,
+          1,
+          50
+        ],
+        "rejected": true,
+        "diagnostic": "wasm_unreachable"
+      },
+      {
+        "arguments": [
+          1,
+          -1,
+          50
+        ],
+        "rejected": true,
+        "diagnostic": "wasm_unreachable"
+      },
+      {
+        "arguments": [
+          1,
+          1,
+          -1
+        ],
+        "rejected": true,
+        "diagnostic": "wasm_unreachable"
+      }
+    ]
+  },
+  "venues": {
+    "artifact_id": "167c057f-3ff9-432a-930c-0bdc46841664",
+    "revision_id": "cf5da634-2937-43ae-9b27-2a466e8fe226",
+    "body_hash": "dcd7474c16c41989b52a4d601cb86f1d8dbaab5a0850015484dc462317b62d89",
+    "supplied_facts_preserved": true,
+    "row_count": 4,
+    "initial_eligible": [
+      "Willow Hall"
+    ],
+    "scope": "comparison to synthetic facts supplied in ordinary human prompt; no external verification"
+  }
+}

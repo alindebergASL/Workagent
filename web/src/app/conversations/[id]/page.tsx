@@ -23,6 +23,16 @@ import {
   replyTag,
 } from "@/components/TurnProgress";
 
+/** What a message's result link opens, in plain words. */
+const PRODUCT_NAME: Record<string, string> = {
+  table: "table",
+  tool: "tool",
+  file: "file",
+  document: "document",
+  structured_table: "table",
+  custom_view: "interactive view",
+};
+
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   queued: "Waiting for a reply. Nothing has been answered yet.",
   responding: "Replying…",
@@ -252,7 +262,7 @@ export default function ConversationPage() {
                       href={`/conversations/${id}/artifacts/${product.artifact_id}`}
                     >
                       <span>
-                        Open {product.kind}
+                        Open {PRODUCT_NAME[product.kind] ?? "work"}
                         {product.proposal_id ? " proposed change" : " product"}
                       </span>
                       <span aria-hidden="true">↗</span>

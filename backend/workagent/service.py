@@ -57,7 +57,10 @@ class WorkerCapability:
     secret: str
 
 
-class Service(Products, Conversations, ProviderAttempts):
+from .flexible_work import FlexibleWork
+
+
+class Service(FlexibleWork, Products, Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -328,6 +331,8 @@ class Service(Products, Conversations, ProviderAttempts):
             row,a=state
             self._cas(row,cmd.expected_current_revision_id)
             current=self._revision(c,p,ws,row,a)
+            self._validate_flexible_body(c,p,ws,a,cmd.body)
+            self._validate_flexible_edit(current.body,cmd.body)
             if row.get('conversation_id'):
                 # Human edits are new unverified revisions, never new origin claims.
                 if type(cmd.body) is not type(current.body):
@@ -365,6 +370,8 @@ class Service(Products, Conversations, ProviderAttempts):
             if proposal.status != 'pending':
                 raise DomainError('decision_stale')
             self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
+            self._validate_flexible_body(c,p,ws,a,proposal.body)
+            self._validate_flexible_edit(self._revision(c,p,ws,row,a).body,proposal.body)
             result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
             proposal.status='accepted'
             proposal.accepted_revision_id=result.current_revision_id

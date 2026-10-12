@@ -2,6 +2,7 @@
 import { CAPABILITIES } from "./capabilities";
 import { useResource, type Resource } from "./hooks";
 import { isProduct, productApi } from "./products";
+import { flexibleKind } from "@/lib/flexible";
 import { conversationApi } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
 
@@ -17,7 +18,8 @@ export interface ConversationWork {
   conversation_title: string;
   artifact_id: string;
   title: string;
-  kind: "table" | "tool" | "file";
+  kind:
+    "table" | "tool" | "file" | "document" | "structured_table" | "custom_view";
   revision_id: string;
   updated_at: string;
   saved_by: "you" | "agent";
@@ -65,7 +67,8 @@ export async function loadConversationWork(
             )
               return [];
             const body = artifact.current_revision.body;
-            if (!isProduct(body)) return [];
+            const kind = isProduct(body) ? body.kind : flexibleKind(body);
+            if (!kind) return [];
             const pending = proposals
               .filter((p) => p.status === "pending")
               .sort((a, b) =>
@@ -78,7 +81,7 @@ export async function loadConversationWork(
                 conversation_title: c.title,
                 artifact_id: artifact.id,
                 title: body.title,
-                kind: body.kind,
+                kind,
                 revision_id: artifact.current_revision_id,
                 updated_at: artifact.current_revision.created_at ?? "",
                 saved_by:

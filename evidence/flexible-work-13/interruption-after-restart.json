@@ -1,0 +1,42 @@
+{
+  "scope": "real provider result resumed after owned API and consumer restart; exact checked synthetic facts only",
+  "human_edits_preserved": true,
+  "no_generation_resubmission": true,
+  "before_dispatch_count": 6,
+  "after_dispatch_count": 6,
+  "unknown_usage_steps_after": 0,
+  "pending_proposal_was_explicitly_accepted": true,
+  "accepted_revision": "3067f3b4-8877-49cf-9778-ce6817dade1c",
+  "body_hash": "7c73a116f9d5c153f7937b01a18ef14b6f9483979ed0056fc5485245561154de",
+  "eligible_after_obstacle": [],
+  "model_summary_notes": [
+    "Draft synthetic planning data only: all venue facts were supplied by the human and have not been externally verified.",
+    "Requirements: capacity at least 70 people, step-free access, and hire cost at most \u00a3300.00 GBP. Travel time is supplied for comparison, not a stated eligibility requirement.",
+    "Proposed corrected summary (derived, not supplied): no venue currently meets all three requirements. Willow Hall's saved \u00a3350.00 hire cost makes the previous recommendation stale. No venue is recommended as qualifying, and this is not a booking or approval.",
+    "Suggested next steps, not changed facts: ask Marta whether Willow Hall can offer a confirmed hire cost of \u00a3300.00 or less (a reduction of at least \u00a350.00); ask River Centre whether it can offer \u00a3300.00 or less (a reduction of at least \u00a320.00). Neither discount is assumed or confirmed. Seek additional venues with capacity at least 70, step-free access and hire cost at most \u00a3300.00 if neither quote can meet the limit.",
+    "Station Loft remains unsuitable on the saved step-free fact, and Garden Room remains unsuitable on its saved capacity. Do not treat either as qualifying without new confirmed facts and a fresh assessment; keep the requirements unchanged.",
+    "Stable row IDs preserve individual venue identities across revisions. All field identities and supplied facts are unchanged in this proposal. The exact human note is retained; null notes mean no notes supplied.",
+    "Assessments are static draft text, not automatically recalculated when facts change; review them after editing. No interactive comparison view has been created at this stage.",
+    "This is a pending proposal for human review, not an automatically applied or accepted revision."
+  ],
+  "budget": {
+    "carried_reserved_cost_usd": "3.42992",
+    "request_counts": {
+      "count_send": 6,
+      "dispatch": 6,
+      "read": 32,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 120000,
+    "reserved_output_tokens": 49152,
+    "reserved_cost_usd": "4.22144",
+    "reported_usage": {
+      "input_tokens": 46589,
+      "output_tokens": 3210
+    },
+    "unknown_usage_steps": 0,
+    "conservatively_calculated_cost_usd": "0.1485725",
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  }
+}

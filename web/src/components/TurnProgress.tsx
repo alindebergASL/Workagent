@@ -1,6 +1,9 @@
 import type { TurnProgress } from "@/lib/contract/natural";
 import type { TurnState } from "@/lib/contract/types";
-import { adaptivePresentation } from "@/lib/adaptive-presentation";
+import {
+  adaptivePresentation,
+  modelExamples,
+} from "@/lib/adaptive-presentation";
 
 export function TurnSummary({
   state,
@@ -50,6 +53,16 @@ const ORIGIN: Record<NonNullable<TurnProgress["evidence_origin"]>, string> = {
     "Recorded from a controlled test transport; no model was called.",
 };
 
+/** The model's own examples for one step: none, passed or failed. */
+function modelExamplesText(v: Parameters<typeof modelExamples>[0]): string {
+  const r = modelExamples(v);
+  if (r.state === "none") return "No model examples were run for this step.";
+  const count = r.total ? ` (${r.passed} of ${r.total})` : "";
+  return r.state === "passed"
+    ? `Model examples passed${count}. These are not independent checks.`
+    : `Model examples did not pass${count}. These are not independent checks.`;
+}
+
 /** How a turn ran, one click away. Nothing here is work or a saved result. */
 export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
   if (!progress) return null;
@@ -90,11 +103,8 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
                 .
               </p>
               {step.reason ? <p>{step.reason}</p> : null}
-              <p>
-                {step.verification.model_tests_passed
-                  ? "Model examples passed."
-                  : "Model examples did not pass."}{" "}
-                These are not independent checks.
+              <p data-testid="model-examples">
+                {modelExamplesText(step.verification)}
               </p>
               {step.verification.automatic?.recognized ? (
                 <div>

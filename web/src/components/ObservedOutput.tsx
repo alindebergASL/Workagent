@@ -29,7 +29,12 @@ export function ObservedOutput({
   return (
     <section className="observed stack-sm">
       <p className="small">{bindingText(read, verified)}</p>
-      {output.kind === "run_wasm" ? (
+      {output.kind === "artifact_draft" ? (
+        <p>
+          Saved as a draft. Only its shape was checked; nothing in it was run or
+          verified.
+        </p>
+      ) : output.kind === "run_wasm" ? (
         <p>
           Returned <strong data-testid="observed-return">{output.value}</strong>{" "}
           for inputs {output.arguments.join(", ")}.

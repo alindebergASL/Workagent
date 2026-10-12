@@ -3,11 +3,15 @@ import Link from "next/link";
 import type { ConversationWork } from "@/lib/client/conversation-work";
 import { formatTime } from "@/lib/time";
 import { StatusBadge } from "@/components/ui";
+import { readableTitle } from "@/lib/titles";
 
 const KIND: Record<ConversationWork["kind"], string> = {
   table: "Table",
   tool: "Tool",
   file: "File",
+  document: "Document",
+  structured_table: "Table",
+  custom_view: "Interactive view",
 };
 
 /** One product a conversation owns; opens the exact work, not a summary. */
@@ -42,7 +46,9 @@ export function ConversationWorkRow({
         }
       >
         <span className="work-row-main">
-          <span className="work-row-title clamp-2">{w.title}</span>
+          <span className="work-row-title clamp-2">
+            {readableTitle(w.title)}
+          </span>
           <span className="work-row-note clamp-2">
             From “{w.conversation_title}”
           </span>

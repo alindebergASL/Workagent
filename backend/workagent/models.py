@@ -71,28 +71,25 @@ class SourceRef(Model):
         return value.astimezone(timezone.utc)
 
 
-class Block(Model):
-    block_id: Id
-    kind: Literal['heading', 'paragraph', 'checklist', 'protected_note']
-    text: Text
-    checked: bool | None = None
-
-    @model_validator(mode='after')
-    def checklist_state(self):
-        if self.checked is not None and self.kind != 'checklist':
-            raise ValueError('checked is only valid for checklist blocks')
-        return self
+from .flexible_models import Block, Body, StructuredTableBody, CustomViewBody, EmptyPayload, ActionName
 
 
-class Body(Model):
-    title: Annotated[str, Field(min_length=1, max_length=240)]
-    blocks: list[Block] = Field(min_length=1, max_length=200)
+class ViewActionRequest(Request):
+    view_revision_id: Id
+    view_body_hash: Hash
+    access_generation: Version
+    action: ActionName
+    payload: EmptyPayload
 
-    @model_validator(mode='after')
-    def unique_blocks(self):
-        if len({b.block_id for b in self.blocks}) != len(self.blocks):
-            raise ValueError('block IDs must be unique')
-        return self
+
+class ViewActionResponse(Model):
+    view_revision_id: Id
+    access_generation: Version
+    binding: str
+    artifact_id: Id
+    revision_id: Id
+    body_hash: Hash
+    body: Body | StructuredTableBody
 
 
 class Workspace(Model):
@@ -120,7 +117,7 @@ class SourceDetail(Source):
 from .product_models import (TableBody, FileBody, ToolBody, LocalOperation, ProductResult,
     ProductObservation, ObservationReadback, TurnState)
 from .message_models import AttachmentInput, MessageAttachment, ExactTarget
-ProductBody = Body | TableBody | FileBody | ToolBody
+ProductBody = Body | TableBody | FileBody | ToolBody | StructuredTableBody | CustomViewBody
 ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1', 'general-products-controlled-v1', 'general-responses-v1']
 
 

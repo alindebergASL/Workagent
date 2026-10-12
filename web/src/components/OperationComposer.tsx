@@ -49,7 +49,9 @@ function ScopedOperationComposer({ ws, cid, version, refresh }: Props) {
       if (saved) {
         setFilename(saved.filename);
         const operation = saved.payload.operation!;
-        setKind(operation.kind);
+        // This composer only starts runs; a saved retry of any other
+        // operation is still resent exactly as it was.
+        if (operation.kind !== "publish_artifact") setKind(operation.kind);
         if (operation.kind === "run_wasm") {
           setEntrypoint(operation.entrypoint ?? "total");
           setValues(operation.arguments.join(","));
