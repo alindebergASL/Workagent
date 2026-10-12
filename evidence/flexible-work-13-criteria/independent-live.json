@@ -1,0 +1,509 @@
+{
+  "artifact": "8f972d05-6e03-4095-9150-0a06eac1ede1",
+  "revision": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+  "matrix": [
+    {
+      "name": "desktop",
+      "budget": "300",
+      "matchNames": [],
+      "order": [
+        "Willow Hall",
+        "Station Loft",
+        "River Centre",
+        "Garden Room"
+      ],
+      "count": "0 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 704,
+        "scrollWidth": 704,
+        "height": 3374,
+        "contentHeight": 3376,
+        "firstCardY": 1126,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "desktop",
+      "budget": "350",
+      "matchNames": [
+        "Willow Hall",
+        "River Centre"
+      ],
+      "order": [
+        "Willow Hall",
+        "River Centre",
+        "Station Loft",
+        "Garden Room"
+      ],
+      "count": "2 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 704,
+        "scrollWidth": 704,
+        "height": 3996,
+        "contentHeight": 3996,
+        "firstCardY": 1126,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 1440,
+        "scrollWidth": 1440
+      }
+    },
+    {
+      "name": "phone",
+      "budget": "300",
+      "matchNames": [],
+      "order": [
+        "Willow Hall",
+        "Station Loft",
+        "River Centre",
+        "Garden Room"
+      ],
+      "count": "0 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 356,
+        "scrollWidth": 356,
+        "height": 3998,
+        "contentHeight": 5793,
+        "firstCardY": 1572,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "phone",
+      "budget": "350",
+      "matchNames": [
+        "Willow Hall",
+        "River Centre"
+      ],
+      "order": [
+        "Willow Hall",
+        "River Centre",
+        "Station Loft",
+        "Garden Room"
+      ],
+      "count": "2 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 356,
+        "scrollWidth": 356,
+        "height": 3998,
+        "contentHeight": 5793,
+        "firstCardY": 1572,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    },
+    {
+      "name": "narrow",
+      "budget": "300",
+      "matchNames": [],
+      "order": [
+        "Willow Hall",
+        "Station Loft",
+        "River Centre",
+        "Garden Room"
+      ],
+      "count": "0 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 286,
+        "scrollWidth": 286,
+        "height": 3998,
+        "contentHeight": 6804,
+        "firstCardY": 1982,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 320,
+        "scrollWidth": 320
+      }
+    },
+    {
+      "name": "narrow",
+      "budget": "350",
+      "matchNames": [
+        "Willow Hall",
+        "River Centre"
+      ],
+      "order": [
+        "Willow Hall",
+        "River Centre",
+        "Station Loft",
+        "Garden Room"
+      ],
+      "count": "2 of 4 venues match the current filter. 0 have unknown match status.",
+      "dimensions": {
+        "width": 286,
+        "scrollWidth": 286,
+        "height": 3998,
+        "contentHeight": 6804,
+        "firstCardY": 1982,
+        "controls": [
+          {
+            "tag": "SELECT",
+            "width": 83,
+            "height": 43
+          },
+          {
+            "tag": "BUTTON",
+            "width": 176,
+            "height": 46
+          }
+        ]
+      },
+      "shell": {
+        "width": 320,
+        "scrollWidth": 320
+      }
+    }
+  ],
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "63519c2d-156a-434f-ae2b-2dd708ec0204",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "48c256b4-6b7c-4fa1-bab9-9a00c966e776",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "820a8e5a-99f7-42a5-945c-1ca8c0f856ff",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "781b2545-1f40-44f9-9449-f68beb39d9e9",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "1bd56a85-bcaf-458b-a0b9-9eeed3524674",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "1a92ff5b-a923-4cb8-9982-b6498771a6b4",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "830868e9-2523-4499-85a5-4a37bae371a5",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "7547e4cd-de92-4f4f-8204-31ff7ae68f1a",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "f96f558f-db0f-46c8-b0b5-09a3fcb28842",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "69ae9b30-a222-4a9e-892a-d36bca9cbb01",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "8ada0501-fed6-4e2e-b32e-76e96173c68e",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "4cd986d8-c035-4938-9a79-5b716dadc8e1",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "6c45de69-e42b-49ac-9ef9-432bbde83fe4",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "9cb823f5-e721-4acd-a235-f55f89bfc35d",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "1c31181a-9097-4b25-b3d8-107d0aea061c",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/597739cf-363b-49ea-becb-decf484c452c/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "137a7c59-e739-46df-98b6-23957792f5cf",
+        "view_revision_id": "78f1f0b2-f51c-4f0e-bb5a-194a6bc4002d",
+        "view_body_hash": "11f53a0022eee5abc621d0b7c6ca826da07c7b7ce522bc140047aec6d7ca153b",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "7e7b9374-2052-4263-a26b-c352b5b91d3a",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "bff2f18f-712f-4899-b093-ef3ca6fc4c56",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/domain/v1/workspaces/flexible-proof/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1/view-actions",
+      "payload": {
+        "schema_version": "workagent/v1",
+        "request_id": "da576b14-d46a-4760-a2dd-63c9c12b56ea",
+        "view_revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+        "view_body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+        "access_generation": 1,
+        "action": "refresh_venues",
+        "payload": {}
+      }
+    }
+  ],
+  "errors": [],
+  "original350": {
+    "summary": "2 matching venues of 4 at ≤£350.00, capacity ≥70 people, step-free required.",
+    "willow": "Willow Hall\nVenue (supplied fact)\nWillow Hall\nCapacity (supplied fact) (people)\n80\nHire cost (supplied fact) (GBP)\n350.00\nStep-free access (supplied fact)\nYes\nTravel time (supplied fact) (minutes)\n15\nDraft assessment (derived, not supplied)\nDoes not qualify: hire cost exceeds the £300 limit by £50.00; capacity and step-free access meet requirements. The previous recommendation is stale.\nYour notes\nHuman: ask Marta about a discount before any booking. Keep this note."
+  },
+  "sandbox": {
+    "sandbox": "allow-scripts",
+    "allow": "accelerometer 'none'; autoplay 'none'; camera 'none'; clipboard-read 'none'; clipboard-write 'none'; display-capture 'none'; encrypted-media 'none'; fullscreen 'none'; geolocation 'none'; gyroscope 'none'; magnetometer 'none'; microphone 'none'; midi 'none'; payment 'none'; publickey-credentials-get 'none'; screen-wake-lock 'none'; serial 'none'; usb 'none'; xr-spatial-tracking 'none'",
+    "referrer": "no-referrer",
+    "probes": {
+      "parentDOM": {
+        "allowed": false,
+        "error": "SecurityError"
+      },
+      "storage": {
+        "allowed": false,
+        "error": "SecurityError"
+      },
+      "cookie": {
+        "allowed": false,
+        "error": "SecurityError"
+      },
+      "network": "TypeError",
+      "undeclared": "This view can’t do that."
+    }
+  },
+  "keyboard": {
+    "tag": "BUTTON",
+    "id": "refresh"
+  },
+  "failure": {
+    "status": "Saved-data read failed or was refused/stale. No fresh data loaded and no substitute data used. That didn’t work.",
+    "count": "Unknown — saved data unavailable; no matches calculated."
+  },
+  "unchanged": true
+}

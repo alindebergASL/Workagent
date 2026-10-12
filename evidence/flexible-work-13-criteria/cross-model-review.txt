@@ -1,0 +1,46 @@
+VERDICT: PASS — contained criteria-clarification scope only, zero P1/P2 blockers, six nonblocking P3 findings with sign-off conditions below. Not a claim of full feature acceptance ★
+
+(MoA note: one reference model returned an empty response; this verdict rests on my own packet analysis, cross-checked against the one substantive reference, which independently reached PASS with two of the same flags.)
+
+BLOCKERS: NONE
+
+Justification for the scary-looking items not being blockers:
+- Original-criteria string hardcoded in JS (£300/70/step-free): the packet states the human brief supplied these explicitly, and policy permits exactly that ("use original criteria only when explicitly recorded in the supplied saved context"). Not inference, not fixture guessing. Demoted to P3-1.
+- "Fictional/synthetic" self-labeling while rendering real saved data: the same card and fallback text state the view reads the exact bound revision and never substitutes data, so provenance stays honest. Cosmetic tension only.
+
+NONBLOCKING FINDINGS (P3)
+
+P3-1 Rebind coupling. The JS validates only body shape, but bakes the original-criteria prose (const `original`, HTML panel, noscript) and a required field-key set (venue/capacity/hire_cost/step_free/travel_time/assessment/venue_notes) into source. A future human rebind to a same-shape table with different original criteria would display stale criteria labeled "recorded human brief" — shape drift fails safe (visible error), criteria drift does not. Outside this delivery's single binding; policy already requires new revisions for changes. Condition: record in #13; future rebinds must generate a new draft, not reuse this view.
+
+P3-2 Untested runtime paths. The unknown-match branch (state() returning 'unknown'), refused/stale-read error branch, and invalid-table branch are correct by static review (failed refresh clears cards and table, never shows stale-as-fresh) but were never exercised live: the dataset is fully populated and every broker read returned 200. Not in the user-approved matrix, hence nonblocking.
+
+P3-3 Evidence-count wobble, concretely reproducible. The verifier flow implies 10 /view-actions responses (per viewport: initial auto-load, two explicit refresh clicks, post-reload auto-load, post-reopen auto-load = 5 × 2 viewports) but the executed result records 9. Every poll-dependent expect passed, so this is likely one lost response event across navigation — but this packet's own standard is count exactness. Reconcile before sign-off (rerun with per-step logging suffices).
+
+P3-4 Receipt conservatism. The receipt says browser_semantics_verified:false while the browser result passes. This is honest non-attestation, not contradiction — but sign-off must cite the browser output and screenshots as the semantic evidence, never the receipt.
+
+P3-5 Accounting residual. First-attempt count-only observation unresolved; unknown_usage_steps:0 is not all-operations-reconciled (the packet says so itself); billed_cost is null (reservation basis, undiscounted). Disclosed, retained, not auto-retried — acceptable as open, must stay recorded.
+
+P3-6 Cosmetic nits. During initial load the count line flips to "saved data unavailable; no matches calculated" while still loading (status line disambiguates). money() accepts only \d+\.\d{2} and capacity only safe integers, so a scale/type drift degrades all rows to unknown rather than erroring — conservative and policy-aligned, but schema drift presents as all-unknown.
+
+TEST BLIND SPOTS
+The nine pure tests assert substring presence in FLEXIBLE_POLICY (all asserted substrings are present; the no-digits/currency regex correctly scopes to the post-"Generated views" slice; both module policies end with exactly one copy). They cannot detect paraphrase-drift of untested adjacent text, nor generated-view compliance. Behavioral evidence is the browser verifier alone, and CI/fresh-DB outcome is pending and must not be assumed.
+
+HONESTY / PROVENANCE / BOUNDARIES
+Replay disclosure is explicit (replayed table labeled REPLAY; UI code model-created; no autonomous-recovery claim). Read-only held: bindings pin artifact/revision/hash, action is a sealed read_binding (empty object, additionalProperties:false), binding identified by response.binding not hardcoded IDs (policy-compliant), originals deep-equal pre/post, writes[] empty, provider_calls 0. Null/missing logic is sound: absent cell → "Unknown (not supplied)", invalid boolean → Unknown, unknown never silently matches or fails. One terminology note: policy prose says "bindable_artifacts" while the body uses "bindings" — implementation-consistent per the live API the verifier exercises; not pressable from the packet.
+
+TESTED (executed evidence in packet) vs PACKET-ONLY
+Tested: both viewports, both budgets (0 and 2 matches, independently recomputed), refresh preserves filter, reload/reopen reset to £300, per-card adjacent original criteria + verbatim assessments/notes (Marta note), no overflow, fallback text, originals unchanged, build passed after env-only symlink fix.
+Packet-only: adaptive-grant SQL/scoping/revoke semantics; the explicit brief contents underlying the £300 label; token-overage plausibility for attempt 1 (explicitly unproven); source byte limits (≤48000/96000); screenshot readability (taste limitation already conceded); CI/fresh-DB outcome.
+
+SIGN-OFF CONDITIONS
+C1 Fresh-DB suite and CI complete green.
+C2 Reconcile or annotate the 9-vs-10 view-action count (P3-3).
+C3 Record P3-1 (rebind limitation) and the unresolved first-attempt count observation as known-open in #13; #13 stays open, no merge/deploy.
+C4 Archive verification.json and screenshots keyed to SHA 9a009c6, artifact 8f972d05, revision e8ecf826, hash 7fc35005.
+C5 Optional follow-up: live-UI test of refused-read and unknown-status paths before any reuse beyond this artifact.
+
+Explicit non-claims: no full feature acceptance; generated-view semantics verified only on exercised paths; no billing finality; grant/SQL and CI unverified by me.
+
+Scope delivered honestly, boundaries held under execution — sign off on the contained clarification once C1–C4 land (◕‿◕)
+
+session_id: 20261012_014726_5be61e

@@ -1,0 +1,49 @@
+{
+  "kind": "corrective_read_only_observation",
+  "observed_at": "2026-10-12T01:57:22.908284+00:00",
+  "corrected_action_target": "workagent-flexible-criteria-clarification-01",
+  "historical_receipt": {
+    "file": "frozen.json",
+    "sha256": "b34b184efcbcb585e8264603479d952b6e89923682df6e0dc4ca2c0e6aded573",
+    "incorrect_action_target": "workagent-flexible-live-20261009-05",
+    "preserved_unchanged": true
+  },
+  "predecessor_readbacks": [
+    {
+      "grant_id": "workagent-flexible-criteria-clarification-01",
+      "active": false,
+      "grant_data_sha256": "7ac9660bd1f681f540ca4f85845a2614dfb0288df8fe8e127936cf06215170b8",
+      "unchanged_from_pre_second_attempt": true
+    },
+    {
+      "grant_id": "workagent-flexible-live-20261009-05",
+      "active": false,
+      "grant_data_sha256": "22dc5d51c970766de773af72a2533ff89dd08851b3001723d98cc33cc9bd9af4",
+      "unchanged_from_pre_second_attempt": true
+    }
+  ],
+  "shared_budget": {
+    "carried_reserved_cost_usd": "3.42992",
+    "request_counts": {
+      "count_send": 12,
+      "dispatch": 11,
+      "read": 106,
+      "cancel": 0
+    },
+    "reserved_input_tokens": 220000,
+    "reserved_output_tokens": 90112,
+    "reserved_cost_usd": "4.88104",
+    "reported_usage": {
+      "input_tokens": 109815,
+      "output_tokens": 12701
+    },
+    "unknown_usage_steps": 0,
+    "conservatively_calculated_cost_usd": "0.4015475",
+    "billed_cost_usd": null,
+    "cost_basis": "undiscounted reservation rates; not provider billing"
+  },
+  "no_revoke_or_other_database_mutation": true,
+  "no_provider_call": true,
+  "credentials_exported": false,
+  "scope": "Corrects freeze-action evidence only; first final count-only observation remains unresolved."
+}

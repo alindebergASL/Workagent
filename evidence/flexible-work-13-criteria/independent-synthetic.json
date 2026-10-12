@@ -1,0 +1,63 @@
+{
+  "scope": "Synthetic browser-only cloned table perturbations exercise exact generated JS; not evidence of changed saved data or backend stale authorization. Initial-refusal case is a client network override in real shell.",
+  "results": [
+    {
+      "name": "null capacity",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "1 of 4 venues match the current filter. 1 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "null hire_cost",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "1 of 4 venues match the current filter. 1 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "null step_free",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "1 of 4 venues match the current filter. 1 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "omitted required cell",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "0 of 4 venues match the current filter. 1 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "travel absent does not affect matching; assessment/note absent explicit unknown",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "2 of 4 venues match the current filter. 0 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "false access means No, not Unknown",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "1 of 4 venues match the current filter. 0 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "noncanonical currency is unknown not guessed",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "1 of 4 venues match the current filter. 1 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "malformed table schema never fabricates matches",
+      "status": "Saved-data read failed or was refused/stale. No fresh data loaded and no substitute data used. Unexpected saved table shape.",
+      "count": "Unknown — saved data unavailable; no matches calculated.",
+      "pass": true
+    },
+    {
+      "name": "table data markup rendered as literal text",
+      "status": "Saved revision loaded. Local filter results only; no independent verification.",
+      "count": "0 of 4 venues match the current filter. 0 have unknown match status.",
+      "pass": true
+    },
+    {
+      "name": "real shell initial read refusal retains fallback and working bound-table recovery link",
+      "pass": true
+    }
+  ]
+}

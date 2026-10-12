@@ -1,0 +1,9 @@
+{
+  "application_sha": "9a009c6467369716a5e1d0c0d6f3b83337a2da8a",
+  "conversation_id": "381b35eb-9451-487d-ae15-c67f12bc10c2",
+  "artifact_id": "8f972d05-6e03-4095-9150-0a06eac1ede1",
+  "revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+  "body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+  "local_review_url": "http://127.0.0.1:3163/conversations/381b35eb-9451-487d-ae15-c67f12bc10c2/artifacts/8f972d05-6e03-4095-9150-0a06eac1ede1",
+  "public_deployment": false
+}

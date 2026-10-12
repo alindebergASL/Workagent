@@ -1,0 +1,99 @@
+{
+  "mode": "production_ui_real_api_live_generated_view_over_replayed_saved_source",
+  "artifact_id": "8f972d05-6e03-4095-9150-0a06eac1ede1",
+  "revision_id": "e8ecf826-2d32-462d-b96a-babe69626bf4",
+  "body_hash": "7fc35005ed8feceadccfeac4ded0a93fbf9024f628a46647f33d50c51de50bbf",
+  "originals_unchanged": true,
+  "saved_mutations": 0,
+  "provider_calls_by_browser": 0,
+  "checks": [
+    {
+      "viewport": "desktop",
+      "budget": "300",
+      "match_count": 0,
+      "adjacent_original_criteria": true,
+      "exact_saved_assessments_and_notes": true,
+      "refresh_preserves_filter": true
+    },
+    {
+      "viewport": "desktop",
+      "budget": "350",
+      "match_count": 2,
+      "adjacent_original_criteria": true,
+      "exact_saved_assessments_and_notes": true,
+      "refresh_preserves_filter": true
+    },
+    {
+      "viewport": "desktop",
+      "reload_and_reopen_reset_temporary_filter": true,
+      "shell_and_frame_no_horizontal_overflow": true,
+      "explicit_criteria_fallback": true
+    },
+    {
+      "viewport": "phone",
+      "budget": "300",
+      "match_count": 0,
+      "adjacent_original_criteria": true,
+      "exact_saved_assessments_and_notes": true,
+      "refresh_preserves_filter": true
+    },
+    {
+      "viewport": "phone",
+      "budget": "350",
+      "match_count": 2,
+      "adjacent_original_criteria": true,
+      "exact_saved_assessments_and_notes": true,
+      "refresh_preserves_filter": true
+    },
+    {
+      "viewport": "phone",
+      "reload_and_reopen_reset_temporary_filter": true,
+      "shell_and_frame_no_horizontal_overflow": true,
+      "explicit_criteria_fallback": true
+    }
+  ],
+  "actions": [
+    {
+      "operation": "desktop:initial",
+      "status": 200
+    },
+    {
+      "operation": "desktop:300:refresh",
+      "status": 200
+    },
+    {
+      "operation": "desktop:350:refresh",
+      "status": 200
+    },
+    {
+      "operation": "desktop:reload",
+      "status": 200
+    },
+    {
+      "operation": "desktop:reopen",
+      "status": 200
+    },
+    {
+      "operation": "phone:initial",
+      "status": 200
+    },
+    {
+      "operation": "phone:300:refresh",
+      "status": 200
+    },
+    {
+      "operation": "phone:350:refresh",
+      "status": 200
+    },
+    {
+      "operation": "phone:reload",
+      "status": 200
+    },
+    {
+      "operation": "phone:reopen",
+      "status": 200
+    }
+  ],
+  "errors": [],
+  "writes": []
+}

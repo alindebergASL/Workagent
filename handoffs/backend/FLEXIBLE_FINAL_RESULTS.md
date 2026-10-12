@@ -1,4 +1,10 @@
-# Workagent #13 — contained correction verified; acceptance remains open
+# Workagent #13 — current criteria clarification and historical results
+
+**Latest application: `9a009c6467369716a5e1d0c0d6f3b83337a2da8a`.** See [criteria clarification results and deep review](CRITERIA_FINAL_RESULTS.md) for the new generated draft, 787-test backend result, exact-head CI, browser verification, review findings and explicit limits. The sections below are retained historical evidence, not current sign-off. #13 remains open.
+
+---
+
+## Historical contained correction at a73f7f5
 
 ## Current correction verdict — supersedes the historical report below
 
