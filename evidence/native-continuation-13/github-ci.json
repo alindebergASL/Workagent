@@ -1,0 +1,14 @@
+[
+  {
+    "conclusion": "success",
+    "headSha": "4186d337a5d3b225fc257dda02b9d18bb10ab63e",
+    "status": "completed",
+    "url": "https://github.com/alindebergASL/Workagent/actions/runs/38285714764"
+  },
+  {
+    "conclusion": "success",
+    "headSha": "fee03449b5d62c30224877851402867dcdb5c6d8",
+    "status": "completed",
+    "url": "https://github.com/alindebergASL/Workagent/actions/runs/38287252493"
+  }
+]

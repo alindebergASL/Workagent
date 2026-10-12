@@ -1,0 +1,158 @@
+{
+  "id": "aced3518-25c1-4cd7-a152-efa2c56ab2b7",
+  "workspace_id": "flexible-proof",
+  "assignment_id": null,
+  "conversation_id": "cf457e1d-0590-4dea-9287-279413eefa9c",
+  "artifact_id": "54f1ff77-d3c1-43f1-8416-69338e415089",
+  "base_revision_id": "5393b8b7-1bff-45e3-8ef5-4f24e94efe3b",
+  "base_work_version": 3,
+  "body": {
+    "title": "Volunteer orientation — proposed run sheet and readiness checklist",
+    "blocks": [
+      {
+        "block_id": "overview",
+        "kind": "paragraph",
+        "text": "Proposed revised run sheet — Friday, 14:00–16:00, eight new volunteers. Protect safeguarding at 14:00–14:20 and questions/next steps at 15:45–16:00. Mateo now leaves at 15:00. The proposed solution keeps Tour 1 with Mateo and assigns Tour 2 to Priya ONLY if she confirms she is willing and qualified to lead the agreed accessible route. This is not yet a ready-to-run plan: a suitable second-tour guide must be confirmed. Everyone still attends both 25-minute tours, sequentially; confirm that the tours cover different areas. Exact date, venue and routes remain unspecified.",
+        "checked": null
+      },
+      {
+        "block_id": "revision-summary",
+        "kind": "paragraph",
+        "text": "What changes: Tour 1 stays at 14:30–14:55 with Mateo. The 14:55–15:00 transition now also includes a guide handover. Tour 2 stays at 15:00–15:25 but needs a confirmed replacement guide; Priya is a proposal, not an established tour guide. Alex and Priya handle the final session without Mateo, recording venue questions they cannot answer. Why not simply bring both tours forward? Only 40 minutes remain between the protected briefing ending at 14:20 and Mateo leaving at 15:00; two 25-minute tours require 50 minutes even before sign-in or movement. They cannot both fit with Mateo under the current constraints.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-heading",
+        "kind": "heading",
+        "text": "Proposed running order — conditional on confirming the second-tour guide",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-briefing",
+        "kind": "paragraph",
+        "text": "14:00–14:20 | Safeguarding briefing | Priya leads; all eight attend. Cover relevant boundaries, how to report a concern and whom to contact, using the organisation’s approved guidance. Alex welcomes arrivals quietly without interrupting. Anyone arriving late needs the missed safeguarding content before undertaking volunteer duties; agree how to provide this without shortening anyone else’s briefing.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-signin",
+        "kind": "paragraph",
+        "text": "14:20–14:30 | Sign-in and route preparation | Alex completes sign-in and checks names; privately invite access requests. Mateo explains the route and meeting points. Priya remains available for clarification. Do not delay the opening briefing to complete registration.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-tour-one",
+        "kind": "paragraph",
+        "text": "14:30–14:55 | Tour 1 | Mateo leads all eight on the first agreed route. Priya supports the group; Alex remains available for arrival support and questions. Route, content and capacity require confirmation. Finish in time for the transition and Mateo’s departure; do not shorten the 25-minute tour.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-transition",
+        "kind": "paragraph",
+        "text": "14:55–15:00 | Rest, transition and guide handover | Allow time for toilets, seating and moving to the second tour’s start. Mateo hands over route/safety points and any outstanding venue questions to the confirmed second-tour guide before leaving at 15:00. Arrange advance route preparation rather than relying on a five-minute handover to train a new guide. Check that five minutes is sufficient for the actual accessible transition and handover.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-tour-two",
+        "kind": "paragraph",
+        "text": "15:00–15:25 | Tour 2 | Proposed: Priya leads all eight on the second agreed route, subject to confirmation of her competence, willingness and route preparation. If Priya cannot lead, the organiser must confirm another suitable guide; no additional guide is currently established. Mateo is unavailable. Alex remains available for support and gathers outstanding questions. Both tours must be suitable for confirmed access needs; no parallel groups are assumed.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-buffer",
+        "kind": "paragraph",
+        "text": "15:25–15:45 | Flexible time | Rest, recap, introductions and collection of questions with Alex and Priya. This can absorb second-tour movement or later delays, but cannot extend Mateo’s availability or repair an overrun in Tour 1. Do not reduce either 25-minute tour, the safeguarding briefing or the final questions session. Check the routes before the day; if Tour 1 cannot finish with transition and handover before 15:00, revise its route or confirm a guide who can take over safely rather than promise an unworkable itinerary.",
+        "checked": null
+      },
+      {
+        "block_id": "schedule-close",
+        "kind": "paragraph",
+        "text": "15:45–16:00 | Questions and next steps | Alex leads; Priya answers safeguarding questions. Mateo will have left. Use confirmed venue information handed over beforehand; record unanswered venue questions with a proposed follow-up owner rather than guessing. Explain the confirmed next action, responsible contact and any prerequisites before starting duties. Finish at 16:00. Required sessions total 85 minutes; the remaining 35 minutes cover sign-in, transition/handover and flexible time.",
+        "checked": null
+      },
+      {
+        "block_id": "decisions-heading",
+        "kind": "heading",
+        "text": "Open decisions — resolve before calling this ready to run",
+        "checked": null
+      },
+      {
+        "block_id": "decision-guide",
+        "kind": "checklist",
+        "text": "Priority decision — organiser: confirm who can safely lead Tour 2 after Mateo leaves. Priya’s supplied role is safeguarding, not tour guiding; do not assume competence or agreement. Confirm route knowledge, preparation and any required authority. If Priya cannot do it, confirm another suitable guide. Without one, the two required tours cannot be delivered as written: resolve staffing or explicitly reconsider the event arrangements with the organiser. Do not silently shorten tours, change attendance requirements, move the protected sessions or assume Mateo can stay.",
+        "checked": false
+      },
+      {
+        "block_id": "decision-logistics",
+        "kind": "checklist",
+        "text": "Organiser: confirm the exact Friday date, venue, arrival instructions, meeting point, room capacity and access permission. No room or route has been booked or confirmed by this plan. Decide how sign-in will be handled without delaying the 14:00 start.",
+        "checked": false
+      },
+      {
+        "block_id": "decision-tours",
+        "kind": "checklist",
+        "text": "Organiser with Mateo and the proposed second-tour guide: confirm that everyone needs two distinct tours, rather than two repeated tours for separate groups. Define each tour’s purpose and stops; check that one guide can manage eight people and that each route takes 25 minutes including accessible movement. Verify the first tour and handover fit before Mateo’s 15:00 departure. If the intention is separate groups, revise this draft explicitly rather than silently changing attendance requirements.",
+        "checked": false
+      },
+      {
+        "block_id": "decision-access",
+        "kind": "checklist",
+        "text": "Organiser: invite access requirements privately before the event, asking what adjustments people need rather than requesting diagnoses. Number needing step-free access: unknown, not zero. Prefer step-free routes for the whole group where feasible, but verify them rather than assume availability. Agree an inclusive alternative and accessible evacuation arrangements if any stop cannot be reached; do not default to leaving volunteers behind or offering a lesser experience.",
+        "checked": false
+      },
+      {
+        "block_id": "decision-route-check",
+        "kind": "checklist",
+        "text": "Mateo with the venue lead and proposed second-tour guide, proposed responsibility: check step-free entrance, doors, slopes, lifts and their availability, accessible toilets, seating/rest points and emergency arrangements. Keep the east entrance and its approach clear for step-free access. Time both routes, including transitions, for the required adjustments; prepare the replacement guide before the event. Confirm what to do if a lift or route is unavailable. If an inclusive safe route cannot be confirmed, change the route/venue or reconsider proceeding before the day.",
+        "checked": false
+      },
+      {
+        "block_id": "decision-content",
+        "kind": "checklist",
+        "text": "Priya: confirm approved safeguarding material, reporting contacts and late-arrival catch-up arrangements; if she takes Tour 2, agree how any catch-up can be provided without disrupting required sessions. Alex: confirm sign-in method, privacy/storage arrangements, next-step information and how unanswered questions will be recorded and followed up. Mateo: proposed advance handover of venue information and likely questions, since he cannot attend the closing session. Organiser: confirm these proposed responsibilities; Priya and Alex are available throughout, while Mateo now leaves at 15:00. Assignments remain proposals.",
+        "checked": false
+      },
+      {
+        "block_id": "prep-heading",
+        "kind": "heading",
+        "text": "Preparation and day-of checks",
+        "checked": null
+      },
+      {
+        "block_id": "prep-materials",
+        "kind": "checklist",
+        "text": "Prepare: readable revised run sheet for staff; accessible route notes and guide handover notes; safeguarding briefing and reporting contact details; minimal sign-in record; accessible-format orientation information as needed; question/next-step notes. Avoid placing private access information on a shared attendance sheet.",
+        "checked": false
+      },
+      {
+        "block_id": "prep-before-start",
+        "kind": "checklist",
+        "text": "Before 14:00: agree staff setup and guide preparation time separately; pre-event availability is not established. Recheck routes and equipment, identify the accessible meeting point, keep the east entrance and its approach clear for step-free access, confirm emergency arrangements and review access adjustments privately with relevant staff. Confirm the second-tour guide and Mateo’s departure/handover plan. At the start, state the schedule, toilet/rest options and how to request assistance.",
+        "checked": false
+      },
+      {
+        "block_id": "prep-close",
+        "kind": "checklist",
+        "text": "At 16:00: check everyone knows the next action and contact, record outstanding questions with a proposed owner, and secure sign-in information according to the organisation’s policy. Any follow-up contact remains a human action; this draft sends nothing.",
+        "checked": false
+      },
+      {
+        "block_id": "human-context",
+        "kind": "protected_note",
+        "text": "Human-supplied context: Friday 14:00–16:00; eight new volunteers; Priya can explain safeguarding, Mateo can show people around, Alex can handle sign-in and questions; all three available throughout. Everyone needs a 20-minute safeguarding briefing at the start, two 25-minute tours and 15 minutes at the end for questions and next steps. Some volunteers may need step-free access; how many is unknown. Do not contact anyone or make bookings.\nHuman note: keep the east entrance and its approach clear for step-free access.",
+        "checked": null
+      },
+      {
+        "block_id": "human-update",
+        "kind": "protected_note",
+        "text": "Latest human update supersedes the original availability statement for Mateo only: Mateo now has to leave at 15:00. Protect the opening briefing and the final 15 minutes. Keep the entrance reminder. The original context and human note above are retained unchanged as historical context.",
+        "checked": null
+      }
+    ]
+  },
+  "body_hash": "aae632c58fe85550e12acb53419254dece7c841d5d1fb4026792a2775f71a41a",
+  "source_dependencies": [],
+  "reason": "Model-selected local result; saved human notes retained. Review before acceptance.",
+  "status": "pending",
+  "accepted_revision_id": null,
+  "created_at": "2026-10-12T17:47:07.979051Z"
+}

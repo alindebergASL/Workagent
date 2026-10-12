@@ -1,0 +1,36 @@
+test_canonical_commands_include_required_envelope (resume_old_tests.PureContracts.test_canonical_commands_include_required_envelope) ... ok
+test_custom_view_returns_ui_hold_not_forged_note_field (resume_old_tests.PureContracts.test_custom_view_returns_ui_hold_not_forged_note_field) ... ok
+test_document_note_is_exact_addition (resume_old_tests.PureContracts.test_document_note_is_exact_addition) ... ok
+test_draft_route_and_all_limits_preserved (resume_old_tests.PureContracts.test_draft_route_and_all_limits_preserved) ... ok
+test_exact_freeze_only_and_additive_new_history (resume_old_tests.PureContracts.test_exact_freeze_only_and_additive_new_history) ... ok
+test_exclusive_private_sentinel_prevents_repeat (resume_old_tests.PureContracts.test_exclusive_private_sentinel_prevents_repeat) ... ok
+test_freeze_action_readback_and_receipt_share_exact_target (resume_old_tests.PureContracts.test_freeze_action_readback_and_receipt_share_exact_target) ... ok
+test_invalid_pin_format_rejected_before_git (resume_old_tests.PureContracts.test_invalid_pin_format_rejected_before_git) ... ok
+test_known_original_unknown_loaded_from_verified_manifest (resume_old_tests.PureContracts.test_known_original_unknown_loaded_from_verified_manifest) ... ok
+test_mutation_requires_execute_before_any_database_access (resume_old_tests.PureContracts.test_mutation_requires_execute_before_any_database_access) ... ok
+test_new_unknown_allowed_only_as_observation_not_starting (resume_old_tests.PureContracts.test_new_unknown_allowed_only_as_observation_not_starting) ... ok
+test_old_row_change_and_old_history_extension_rejected (resume_old_tests.PureContracts.test_old_row_change_and_old_history_extension_rejected) ... ok
+test_plan_text_exact_no_extra_prompt_material (resume_old_tests.PureContracts.test_plan_text_exact_no_extra_prompt_material) ... ok
+test_structured_table_does_not_forge_editability (resume_old_tests.PureContracts.test_structured_table_does_not_forge_editability) ... ok
+test_wasm_note_does_not_execute_or_change_code (resume_old_tests.PureContracts.test_wasm_note_does_not_execute_or_change_code) ... ok
+test_actual_new_draft_keeps_every_other_limit (__main__.ResumeContracts.test_actual_new_draft_keeps_every_other_limit) ... ok
+test_attach_needs_freeze_and_old_snapshot (__main__.ResumeContracts.test_attach_needs_freeze_and_old_snapshot) ... ok
+test_attach_reads_existing_cid_without_creation (__main__.ResumeContracts.test_attach_reads_existing_cid_without_creation) ... ok
+test_changed_prior_liability_halts (__main__.ResumeContracts.test_changed_prior_liability_halts) ... ok
+test_decimal_worst_case_uses_actual_limits (__main__.ResumeContracts.test_decimal_worst_case_uses_actual_limits) ... ok
+test_freeze_uses_exact_new_target_and_canonical_revoke (__main__.ResumeContracts.test_freeze_uses_exact_new_target_and_canonical_revoke) ... ok
+test_inspect_new_unknown_halts_after_observation (__main__.ResumeContracts.test_inspect_new_unknown_halts_after_observation) ... ok
+test_install_calls_configure_grant_with_exact_route_then_readback (__main__.ResumeContracts.test_install_calls_configure_grant_with_exact_route_then_readback) ... ok
+test_mutations_require_execute_before_db (__main__.ResumeContracts.test_mutations_require_execute_before_db) ... ok
+test_nonempty_ui_conversation_is_rejected (__main__.ResumeContracts.test_nonempty_ui_conversation_is_rejected) ... ok
+test_only_six_scoped_stages_no_generation (__main__.ResumeContracts.test_only_six_scoped_stages_no_generation) ... ok
+test_preexisting_cid_is_rejected (__main__.ResumeContracts.test_preexisting_cid_is_rejected) ... ok
+test_target_override_is_module_local (__main__.ResumeContracts.test_target_override_is_module_local) ... ok
+test_wrong_grant_id_rejected_without_db (__main__.ResumeContracts.test_wrong_grant_id_rejected_without_db) ... ok
+
+----------------------------------------------------------------------
+Ran 29 tests in 2.064s
+
+OK
+{"stage": "attach-empty", "conversation_id": "new-ui-cid", "created_by_helper": false, "provider_calls": 0}
+{"stage": "install", "evidence_directory": "/home/ubuntu/.hermes/cache/scratch/resume-pure-gwg_6fea/.local/general-continuation-resume-pure", "provider_calls_by_helper": 0, "consumer_started": false}

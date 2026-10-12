@@ -1,0 +1,12 @@
+{
+  "conversation_id": "cf457e1d-0590-4dea-9287-279413eefa9c",
+  "payload": {
+    "schema_version": "workagent/v1",
+    "request_id": "cf6bb7c4-ec82-4d53-9e26-71c3a32dc213",
+    "command_id": "c9ad325b-c45e-48b4-88ff-6b07a7a65d18",
+    "expected_work_version": 1,
+    "text": "I'm organizing a volunteer orientation on Friday from 14:00 to 16:00 for eight new volunteers. Priya can explain safeguarding, Mateo can show people around, and Alex can handle sign-in and questions; all three are available throughout. Everyone needs a 20-minute safeguarding briefing at the start, two 25-minute tours, and 15 minutes at the end for questions and next steps. Some volunteers may need step-free access, but I don't yet know how many. Help me get this ready to run and make the open decisions clear. Don't contact anyone or make bookings.",
+    "attachments": [],
+    "target": null
+  }
+}

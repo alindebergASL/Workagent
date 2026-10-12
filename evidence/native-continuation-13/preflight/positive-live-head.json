@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "negative_control": false,
+  "build_id": "iaKQHcHGIn8V1TbkNONjy",
+  "native_target_present": true,
+  "exact_saved_body_in_context": true,
+  "context_hash": "45b5c1d98fec00a8a482382654fb3fda75c65fae684b061a323de9a012fbc15e",
+  "provider_counts": {
+    "provider_attempts": 0,
+    "responses_steps": 0,
+    "responses_events": 0,
+    "responses_consumer_uses": 0,
+    "proposals": 0
+  },
+  "semantic_continuation": false,
+  "fixture_origin": "controlled",
+  "candidate_sha": "4186d337a5d3b225fc257dda02b9d18bb10ab63e"
+}

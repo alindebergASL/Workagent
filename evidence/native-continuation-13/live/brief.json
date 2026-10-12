@@ -1,0 +1,16 @@
+{
+  "initial_goal": "I'm organizing a volunteer orientation on Friday from 14:00 to 16:00 for eight new volunteers. Priya can explain safeguarding, Mateo can show people around, and Alex can handle sign-in and questions; all three are available throughout. Everyone needs a 20-minute safeguarding briefing at the start, two 25-minute tours, and 15 minutes at the end for questions and next steps. Some volunteers may need step-free access, but I don't yet know how many. Help me get this ready to run and make the open decisions clear. Don't contact anyone or make bookings.",
+  "human_note": "Human note: keep the east entrance and its approach clear for step-free access.",
+  "followup": "Mateo now has to leave at 15:00. Revise the saved work so the opening briefing and the final 15 minutes are protected. Keep my entrance reminder. Explain what changes and what I still need to decide.",
+  "authority": {
+    "new_live_runs": 2,
+    "max_selection_steps_per_run": 2,
+    "cumulative_cost_limit_usd": "20.00",
+    "route": "previously approved official gpt-6.1-sol",
+    "synthetic_proposal_acceptance_authorized": true,
+    "replacement_live_attempts_authorized": false,
+    "default_merge_authorized": false,
+    "deployment_authorized": false
+  },
+  "predeclared_scope": "No prescribed artifact type or output. Initial goal and follow-up through native UI. Save human edit, inspect and accept appropriate canonical proposal, reopen and restart. No output seeded. Prior partial/HOLD evidence remains unchanged."
+}

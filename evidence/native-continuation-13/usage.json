@@ -1,0 +1,27 @@
+{
+  "official_model": "gpt-6.1-sol",
+  "allowed_new_runs": 2,
+  "used_new_runs": 2,
+  "remaining_new_runs": 0,
+  "max_selection_steps_per_run": 2,
+  "cumulative_limit_usd": "20.00",
+  "carried_reserved_usd": "3.42992",
+  "starting_reserved_usd": "5.40872",
+  "final_reserved_usd": "5.93640",
+  "new_reserved_usd": "0.52768",
+  "monetary_headroom_usd": "14.06360",
+  "billed_cost_usd": null,
+  "new_request_counts": {
+    "cancel": 0,
+    "count_send": 4,
+    "dispatch": 4,
+    "read": 36
+  },
+  "reported_token_delta": {
+    "input_tokens": 43694,
+    "output_tokens": 4962
+  },
+  "historical_count_only_unknown_preserved": true,
+  "new_unresolved": [],
+  "consumer_stopped": true
+}

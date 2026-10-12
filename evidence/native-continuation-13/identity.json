@@ -1,0 +1,22 @@
+{
+  "live_tested_application_sha": "4186d337a5d3b225fc257dda02b9d18bb10ab63e",
+  "development_closeout_sha": "fee03449b5d62c30224877851402867dcdb5c6d8",
+  "closeout_delta": "docs/RUNTIME_STATUS.md only",
+  "build_id": "iaKQHcHGIn8V1TbkNONjy",
+  "native_admission_build_flag": "1",
+  "unchanged_runtime_frontend_contracts_base": "dd01cd49a9b026edf8a99281d182e0554d54f4e2",
+  "integrated_frontend_owner_commit": "dff730277c75e789bdc3b242f295e8270f7e7cf6",
+  "reused_backend_tests": 792,
+  "reused_frontend_tests": 170,
+  "reused_full_gate_evidence_commit": "865dc062c3f59840e7d882e1a9e4b58e270a6f2f",
+  "fresh_helper_tests": 29,
+  "verdict_scope": "bounded native editable continuation accepted/reopened/restarted; not overall goal verification",
+  "accepted_revision": "cd06942f-1a32-409a-b186-13900632970c",
+  "accepted_body_hash": "aae632c58fe85550e12acb53419254dece7c841d5d1fb4026792a2775f71a41a",
+  "review_url": "http://127.0.0.1:3166/conversations/cf457e1d-0590-4dea-9287-279413eefa9c/artifacts/54f1ff77-d3c1-43f1-8416-69338e415089",
+  "availability": "host loopback; model consumer stopped; UI permits human editing",
+  "default_branch_merge": false,
+  "deployment": false,
+  "issue13_open": true,
+  "credentials_exported": false
+}

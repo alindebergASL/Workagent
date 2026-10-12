@@ -1,0 +1,38 @@
+[
+  {
+    "id": "bc2de529-76ef-4448-9ce1-70b5677f70ad",
+    "author_kind": "human",
+    "text": "I'm organizing a volunteer orientation on Friday from 14:00 to 16:00 for eight new volunteers. Priya can explain safeguarding, Mateo can show people around, and Alex can handle sign-in and questions; all three are available throughout. Everyone needs a 20-minute safeguarding briefing at the start, two 25-minute tours, and 15 minutes at the end for questions and next steps. Some volunteers may need step-free access, but I don't yet know how many. Help me get this ready to run and make the open decisions clear. Don't contact anyone or make bookings.",
+    "target": null,
+    "evidence_origin": "human",
+    "run_id": "379ded33-2dc2-4331-a57d-645bec915fb6"
+  },
+  {
+    "id": "bfa40daa-fda1-4a18-9e1f-846207f35d29",
+    "author_kind": "assistant",
+    "text": "Draft artifact retained; only its data shape was checked. Generated content and code are unverified; the requested goal needs validation. Changes to existing work require human acceptance.",
+    "target": null,
+    "evidence_origin": "live_provider_receipt",
+    "run_id": "379ded33-2dc2-4331-a57d-645bec915fb6"
+  },
+  {
+    "id": "6f710d6a-9712-40da-8195-f281bde167fc",
+    "author_kind": "human",
+    "text": "Mateo now has to leave at 15:00. Revise the saved work so the opening briefing and the final 15 minutes are protected. Keep my entrance reminder. Explain what changes and what I still need to decide.",
+    "target": {
+      "artifact_id": "54f1ff77-d3c1-43f1-8416-69338e415089",
+      "revision_id": "5393b8b7-1bff-45e3-8ef5-4f24e94efe3b",
+      "body_hash": "f2b6848c19c22731cf29a03f70accdd4639f243b6fbec7d61f96016b15fa5823"
+    },
+    "evidence_origin": "human",
+    "run_id": "6b7ad92e-5db5-4774-a983-90f9530bfefb"
+  },
+  {
+    "id": "b604e5ee-d3e5-4a6d-9241-9e5842ccb7fa",
+    "author_kind": "assistant",
+    "text": "Draft artifact retained; only its data shape was checked. Generated content and code are unverified; the requested goal needs validation. Changes to existing work require human acceptance.",
+    "target": null,
+    "evidence_origin": "live_provider_receipt",
+    "run_id": "6b7ad92e-5db5-4774-a983-90f9530bfefb"
+  }
+]

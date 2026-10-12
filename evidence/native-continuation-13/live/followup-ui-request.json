@@ -1,0 +1,13 @@
+{
+  "schema_version": "workagent/v1",
+  "request_id": "6d732874-f798-4764-92cf-4de51a6afbd5",
+  "command_id": "e115b85b-f95d-4494-9315-7b8224bb0e40",
+  "expected_work_version": 2,
+  "text": "Mateo now has to leave at 15:00. Revise the saved work so the opening briefing and the final 15 minutes are protected. Keep my entrance reminder. Explain what changes and what I still need to decide.",
+  "attachments": [],
+  "target": {
+    "artifact_id": "54f1ff77-d3c1-43f1-8416-69338e415089",
+    "revision_id": "5393b8b7-1bff-45e3-8ef5-4f24e94efe3b",
+    "body_hash": "f2b6848c19c22731cf29a03f70accdd4639f243b6fbec7d61f96016b15fa5823"
+  }
+}

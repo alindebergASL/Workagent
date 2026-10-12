@@ -1,6 +1,8 @@
-# Workagent #13 — general-work continuation and historical results
+# Workagent #13 — native continuation and historical results
 
-**Latest application: `dd01cd49a9b026edf8a99281d182e0554d54f4e2`; verdict: PARTIAL / HOLD.** See [general-work continuation results](GENERAL_CONTINUATION_RESULTS.md): useful fresh work and preserved human note, but the review build omitted exact-target admission and the follow-up did not revise the chosen editable work. Corrected-build admission was checked separately without provider execution; it does not replace the live proof. Tests and controlled breadth are green within their stated scopes; no feature acceptance, merge, or deployment. #13 remains open.
+**Current live-tested application: `4186d337a5d3b225fc257dda02b9d18bb10ab63e`; documentation closeout: `fee03449b5d62c30224877851402867dcdb5c6d8`.** See [native editable-continuation results](NATIVE_CONTINUATION_RESULTS.md): fresh ordinary-UI goal, exact human edit, targeted proposal on the same document, trusted acceptance, reopening and service restart are now demonstrated. Review UI is host-local at port 3166; model consumer stopped and the two-run allowance consumed. This is a bounded continuation result, not overall goal validation, default-branch merge, deployment or Andrew's product sign-off. #13 remains open.
+
+The previous [general-work continuation report](GENERAL_CONTINUATION_RESULTS.md) remains **PARTIAL / HOLD** at `dd01cd49a9b026edf8a99281d182e0554d54f4e2`: its missing build flag invalidated the targeted proof. It is preserved, not relabeled by the separately authorized native journey.
 
 The earlier [criteria clarification results and deep review](CRITERIA_FINAL_RESULTS.md) at `9a009c6467369716a5e1d0c0d6f3b83337a2da8a` and the sections below remain historical, narrower evidence—not current sign-off.
 

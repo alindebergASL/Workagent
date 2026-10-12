@@ -1,0 +1,57 @@
+{
+  "application_sha": "4186d337a5d3b225fc257dda02b9d18bb10ab63e",
+  "build_id": "iaKQHcHGIn8V1TbkNONjy",
+  "api_before_pid": 2902280,
+  "web_before_pid": 2902304,
+  "api_after_pid": 2913266,
+  "web_after_pid": 2913290,
+  "provider_consumer_restarted": false,
+  "artifact_id": "54f1ff77-d3c1-43f1-8416-69338e415089",
+  "accepted_proposal_id": "aced3518-25c1-4cd7-a152-efa2c56ab2b7",
+  "accepted_revision_id": "cd06942f-1a32-409a-b186-13900632970c",
+  "accepted_body_hash": "aae632c58fe85550e12acb53419254dece7c841d5d1fb4026792a2775f71a41a",
+  "checks": [
+    {
+      "viewport": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "fresh_browser_context": true,
+      "home_conversations_work_navigation": true,
+      "exact_accepted_revision_displayed": true,
+      "exact_human_block_preserved": true,
+      "pending_acceptance_control_absent": true,
+      "ordinary_continuation_visible": true,
+      "horizontal_overflow": 0
+    },
+    {
+      "viewport": "phone",
+      "width": 390,
+      "height": 844,
+      "fresh_browser_context": true,
+      "home_conversations_work_navigation": true,
+      "exact_accepted_revision_displayed": true,
+      "exact_human_block_preserved": true,
+      "pending_acceptance_control_absent": true,
+      "ordinary_continuation_visible": true,
+      "horizontal_overflow": 0
+    },
+    {
+      "viewport": "narrow-phone",
+      "width": 320,
+      "height": 844,
+      "fresh_browser_context": true,
+      "home_conversations_work_navigation": true,
+      "exact_accepted_revision_displayed": true,
+      "exact_human_block_preserved": true,
+      "pending_acceptance_control_absent": true,
+      "ordinary_continuation_visible": true,
+      "horizontal_overflow": 0
+    }
+  ],
+  "errors": [],
+  "writes": [],
+  "provider_calls_by_verifier": 0,
+  "read_only_review_url": "http://127.0.0.1:3166/conversations/cf457e1d-0590-4dea-9287-279413eefa9c/artifacts/54f1ff77-d3c1-43f1-8416-69338e415089",
+  "review_location_scope": "host loopback only; no public deployment; consumer stopped; APIs/UI kept running",
+  "goal_state": "accepted editable work; staffing/access decisions remain unresolved; no automatic goal verification"
+}
