@@ -175,7 +175,16 @@ class Conversations:
         self._conversation_cas(cv,cmd.expected_work_version)
         self._conversation(c,p,ws,cid,True)
         from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
-        grant=admission(self,c,p,ws,cv,cmd)
+        try:
+            grant=admission(self,c,p,ws,cv,cmd)
+        except DomainError as exc:
+            if responsibility is not None and exc.code.value=='action_unresolved' and c.execute(
+                "SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id "
+                "WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed') LIMIT 1",
+                (ws,cid)).fetchone():
+                from .responsibility_execution import ContinuationAdmissionPending
+                raise ContinuationAdmissionPending() from exc
+            raise
         if responsibility is not None:
             if (p.kind != 'worker' or grant is None or grant.id != required_grant_id
                 or getattr(grant.responses, 'runtime_extension', None) != 'general-alpha-v1'):
@@ -194,7 +203,7 @@ class Conversations:
                      'next':cmd.model_dump(mode='json'),
                      'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
                      'tools':self.local_tool_registry() if cmd.operation else []}
-        if len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+        if responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
             raise DomainError('budget_exhausted')
         if sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
             raise DomainError('budget_exhausted')
@@ -262,8 +271,20 @@ class Conversations:
                              lambda c:self._conversation(c,p,ws,cid),mutate)
 
     def _general_context(self,c,cap):
-        from .service import canonical, digest, encoded
+        from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
+        context,sources=self._materialize_general_context(c,p,run,cv)
+        observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
+        previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
+        if previous and previous['data']!=observation:
+            raise DomainError('source_changed')
+        if not previous:
+            c.execute('INSERT INTO run_contexts(workspace_id,run_id,data) VALUES (%s,%s,%s)',(run.workspace_id,run.id,encoded(observation)))
+        return context
+
+    def _materialize_general_context(self,c,p,run,cv):
+        """Shared exact context and bounds, without claiming or observing a run."""
+        from .service import canonical
         if run.profile not in (PROFILE,PRODUCT_PROFILE,'general-responses-v1'):
             raise DomainError('unsupported_operation')
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
@@ -295,10 +316,10 @@ class Conversations:
                 for dep in config['responsibility']['observations']:
                     if dep['kind']=='artifact_revision':
                         material=c.execute('SELECT data FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id=%s',
-                            (cap.workspace_id,dep['object_id'],dep['observed_version'])).fetchone()['data']['body']
+                            (run.workspace_id,dep['object_id'],dep['observed_version'])).fetchone()['data']['body']
                     else:
                         material=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',
-                            (cap.workspace_id,dep['object_id'])).fetchone()['content']
+                            (run.workspace_id,dep['object_id'])).fetchone()['content']
                     context['dependencies'].append({'binding':dep,'content':material})
             context['bindable_artifacts']=[{'artifact_id':r['artifact_id'],'revision_id':r['id'],
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
@@ -315,14 +336,11 @@ class Conversations:
             for message in context['messages']:
                 for field in ('attachments','target','model_receipt'): message.pop(field,None)
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
+            if context.get('responsibility'):
+                from .responsibility_execution import ContinuationContextTooLarge
+                raise ContinuationContextTooLarge()
             raise DomainError('budget_exhausted')
-        observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
-        previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
-        if previous and previous['data']!=observation:
-            raise DomainError('source_changed')
-        if not previous:
-            c.execute('INSERT INTO run_contexts(workspace_id,run_id,data) VALUES (%s,%s,%s)',(run.workspace_id,run.id,encoded(observation)))
-        return context
+        return context,sources
 
     def conversation_worker_context(self,cap):
         with self.db.transaction() as c:

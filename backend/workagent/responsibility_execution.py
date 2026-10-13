@@ -9,6 +9,18 @@ from .errors import DomainError, deny
 from .models import Run, PostMessage, new_id
 
 
+class ContinuationAdmissionPending(DomainError):
+    """A conversation attempt must settle before this same wake can be admitted."""
+    def __init__(self):
+        super().__init__('action_unresolved')
+
+
+class ContinuationContextTooLarge(DomainError):
+    """The complete authorized worker context exceeds the execution bound."""
+    def __init__(self):
+        super().__init__('budget_exhausted')
+
+
 def validate_binding(c, run, config):
     """Recheck current authority for every general pin/capability/phase check."""
     from .service import digest
@@ -137,6 +149,9 @@ class ResponsibilityExecution:
             # Keep the fenced review lease for an exact lost-admission-ACK replay.
             c.execute('UPDATE assignments SET responsibility_lifecycle=%s WHERE workspace_id=%s AND id=%s',
                       (encoded(life), a.workspace_id, a.id))
+            # Materialize the identical authorized worker context before committing
+            # any admission effects. Oversize rolls back run/request/lifecycle.
+            self._materialize_general_context(c, p, queued.run, cv)
             c.execute("UPDATE outbox SET consumed_at=now() WHERE workspace_id=%s AND id=%s "
                 "AND operation='responsibility_wake' AND object_id=%s AND consumed_at IS NULL",
                 (a.workspace_id, cap.wake_id, a.id))
@@ -185,11 +200,25 @@ class ResponsibilityExecution:
                         self._scope(c,p,ws,write=True)
                         a,_=self._responsibility_assignment(c,p,ws,row['id'])
                         current=self._lifecycle(c,ws,a.id)
-                        if (a.work_version==cap.work_version and current.wake_id==cap.wake_id
+                        fence=c.execute('SELECT responsibility_fence FROM assignments WHERE workspace_id=%s AND id=%s',
+                                        (ws,a.id)).fetchone()['responsibility_fence']
+                        if (fence==cap.fence and a.work_version==cap.work_version and current.wake_id==cap.wake_id
                             and current.run_id is None and current.execution_status!='blocked'):
+                            if isinstance(exc,ContinuationAdmissionPending):
+                                # Release only our review lease, not the wake or the
+                                # other attempt. A fresh claim rechecks all authority.
+                                current.current_outcome=('Continuation pending: the existing conversation attempt must settle. '
+                                    'Unknown outcomes require explicit resolution; no resend or new run was started.')
+                                c.execute('UPDATE assignments SET responsibility_lifecycle=%s,responsibility_lease=NULL '
+                                          'WHERE workspace_id=%s AND id=%s', (encoded(current),ws,a.id))
+                                continue
                             current.execution_status='blocked'
                             current.state='blocked'
                             current.current_outcome='Continuation not admitted: '+exc.code.value+'. No provider work was started.'
+                            if isinstance(exc,ContinuationContextTooLarge):
+                                current.current_outcome=('Continuation not admitted: complete authorized dependency context exceeds the context byte bound '
+                                    '(budget_exhausted). Correct the saved material or explicitly revise the plan; no dependencies were dropped '
+                                    'and no provider work was started.')
                             c.execute('UPDATE assignments SET responsibility_lifecycle=%s WHERE workspace_id=%s AND id=%s',
                                       (encoded(current),ws,a.id))
                 continue
