@@ -127,6 +127,13 @@ class GeneralWorker:
             # BaseExceptions (SystemExit/KeyboardInterrupt) retain crash semantics.
             return self._recover_failure(p,ws,run_id,cap)
 
+    @staticmethod
+    def _request_context(context):
+        # These exact declarations already occupy the top-level provider fields.
+        # Keep all user content, target bodies, bindings and method discovery;
+        # remove only the redundant control-plane copies from the user payload.
+        return {k:v for k,v in context.items() if k not in ('instructions','tools')}
+
     def _responses_work(self,p,ws,run):
         from dataclasses import asdict
         import time
@@ -174,7 +181,7 @@ class GeneralWorker:
             return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
         selection,_=ledger.snapshot('selection',cap)
         if selection is None:
-            selection=build_tool_selection(instructions=POLICY,source_context=canonical(context),
+            selection=build_tool_selection(instructions=POLICY,source_context=canonical(self._request_context(context)),
                 read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
                 policy='general-responses-v1')
             ledger.prepare(selection,cap)
@@ -232,7 +239,7 @@ class GeneralWorker:
                         ledger._auth(c,cap)
                         observations=retained(c,receipt.attempt_id)
                     selection=build_tool_selection(instructions=POLICY,
-                        source_context=canonical(continuation_context(context,observations,bound)),
+                        source_context=canonical(continuation_context(self._request_context(context),observations,bound)),
                         read_schema=DECISION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id=phase),
                         policy=CAPABILITY,phase=phase)

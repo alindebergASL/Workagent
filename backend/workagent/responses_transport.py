@@ -35,12 +35,14 @@ _FIXED = {'model': MODEL, 'reasoning': {'effort': 'medium'}, 'service_tier': 'de
 class TransportError(Exception):
     """Only fixed codes and sanitized IDs; never a provider body/header/exception."""
     def __init__(self, code: str, *, outcome_unknown: bool = False,
-                 response_id: str | None = None, http_status: int | None = None):
+                 response_id: str | None = None, http_status: int | None = None,
+                 input_tokens: int | None = None):
         super().__init__(code)
         self.code = code
         self.outcome_unknown = outcome_unknown
         self.response_id = response_id
         self.http_status = http_status
+        self.input_tokens = input_tokens
 
 
 def _canonical(value: object) -> bytes:
@@ -549,8 +551,10 @@ class ResponsesTransport:
         body = request.count_body()  # Validates model AND entire generation payload.
         data = self._send('POST', 'responses/input_tokens', body, mutating=False)
         if (not isinstance(data, dict) or data.get('object') != 'response.input_tokens' or
-                type(data.get('input_tokens')) is not int or not 0 <= data['input_tokens'] <= MAX_INPUT_TOKENS):
+                type(data.get('input_tokens')) is not int or data['input_tokens'] < 0):
             raise TransportError('invalid_or_excessive_input_count')
+        if data['input_tokens'] > MAX_INPUT_TOKENS:
+            raise TransportError('input_count_exceeds_limit', input_tokens=data['input_tokens'])
         # The official count response does NOT echo model. Bind our exact sent
         # payload locally; never invent a provider-verified model response field.
         return TokenCount(request.sha256, sha256(body).hexdigest(), data['input_tokens'],
