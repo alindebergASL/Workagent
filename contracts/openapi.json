@@ -188,6 +188,85 @@
         "title": "AcceptanceVerification",
         "type": "object"
       },
+      "ActivateResponsibility": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "current_outcome": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Current Outcome",
+            "type": "string"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/ResponsibilityDependency"
+            },
+            "maxItems": 50,
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/ResponsibilityNextAction"
+          },
+          "next_check_in_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Check In At"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "wait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityWait"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current_outcome",
+          "next_action",
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version"
+        ],
+        "title": "ActivateResponsibility",
+        "type": "object"
+      },
       "AdaptiveExecution": {
         "additionalProperties": false,
         "properties": {
@@ -452,6 +531,180 @@
           "passed"
         ],
         "title": "AdaptiveVerificationCheck",
+        "type": "object"
+      },
+      "AlphaExecution": {
+        "additionalProperties": false,
+        "properties": {
+          "capability": {
+            "const": "adaptive-local-v1",
+            "default": "adaptive-local-v1",
+            "title": "Capability",
+            "type": "string"
+          },
+          "cost_basis": {
+            "const": "worst_case_reservations_not_billing",
+            "default": "worst_case_reservations_not_billing",
+            "title": "Cost Basis",
+            "type": "string"
+          },
+          "goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal"
+          },
+          "max_steps": {
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Max Steps",
+            "type": "integer"
+          },
+          "outcome": {
+            "enum": [
+              "pending",
+              "continue",
+              "answered",
+              "completed",
+              "waiting_for_user",
+              "blocked",
+              "step_limit",
+              "budget_limit",
+              "needs_validation",
+              "cancelled"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "runtime_extension": {
+            "const": "general-alpha-v1",
+            "title": "Runtime Extension",
+            "type": "string"
+          },
+          "shared_cost_limit_usd": {
+            "const": "20.00",
+            "default": "20.00",
+            "title": "Shared Cost Limit Usd",
+            "type": "string"
+          },
+          "shared_reserved_cost_usd": {
+            "title": "Shared Reserved Cost Usd",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/AlphaStep"
+            },
+            "maxItems": 4,
+            "title": "Steps",
+            "type": "array"
+          },
+          "success_criteria": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "maxItems": 8,
+            "title": "Success Criteria",
+            "type": "array"
+          }
+        },
+        "required": [
+          "runtime_extension",
+          "max_steps",
+          "outcome",
+          "shared_reserved_cost_usd"
+        ],
+        "title": "AlphaExecution",
+        "type": "object"
+      },
+      "AlphaStep": {
+        "additionalProperties": false,
+        "properties": {
+          "capability_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability Result"
+          },
+          "operation_hash": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operation Hash"
+          },
+          "outcome": {
+            "enum": [
+              "continue",
+              "answered",
+              "completed",
+              "waiting_for_user",
+              "blocked",
+              "step_limit",
+              "budget_limit",
+              "needs_validation"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "phase": {
+            "enum": [
+              "selection",
+              "selection_2",
+              "selection_3",
+              "selection_4"
+            ],
+            "title": "Phase",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "status": {
+            "enum": [
+              "reply",
+              "observed",
+              "rejected"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "verification": {
+            "$ref": "#/components/schemas/AdaptiveVerification"
+          }
+        },
+        "required": [
+          "phase",
+          "status",
+          "verification",
+          "outcome"
+        ],
+        "title": "AlphaStep",
         "type": "object"
       },
       "Artifact": {
@@ -1276,6 +1529,55 @@
         "title": "ControlAssignment",
         "type": "object"
       },
+      "ControlResponsibility": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "operation": {
+            "enum": [
+              "pause",
+              "resume",
+              "cancel",
+              "takeover"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version",
+          "operation"
+        ],
+        "title": "ControlResponsibility",
+        "type": "object"
+      },
       "Conversation": {
         "additionalProperties": false,
         "properties": {
@@ -2000,6 +2302,65 @@
         "title": "DelegateConversation",
         "type": "object"
       },
+      "DependencyObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "default": false,
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "content_hash": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Content Hash",
+            "type": "string"
+          },
+          "expected_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Expected Version",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "artifact_revision",
+              "source_version"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Object Id",
+            "type": "string"
+          },
+          "observed_version": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Version"
+          }
+        },
+        "required": [
+          "kind",
+          "object_id",
+          "expected_version",
+          "content_hash"
+        ],
+        "title": "DependencyObservation",
+        "type": "object"
+      },
       "DismissProposal": {
         "additionalProperties": false,
         "properties": {
@@ -2344,6 +2705,48 @@
           "profile"
         ],
         "title": "ExecutionProvenance",
+        "type": "object"
+      },
+      "ExplanationReadback": {
+        "additionalProperties": false,
+        "description": "Typed retained prose only, never raw reasoning or transport.",
+        "properties": {
+          "attempt_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "authority": {
+            "const": "model_explanation_not_verification",
+            "default": "model_explanation_not_verification",
+            "title": "Authority",
+            "type": "string"
+          },
+          "phase": {
+            "const": "final",
+            "default": "final",
+            "title": "Phase",
+            "type": "string"
+          },
+          "published": {
+            "title": "Published",
+            "type": "boolean"
+          },
+          "text": {
+            "maxLength": 12000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "attempt_id",
+          "published"
+        ],
+        "title": "ExplanationReadback",
         "type": "object"
       },
       "FileBody": {
@@ -3780,6 +4183,259 @@
         "title": "ResponseStepObservation",
         "type": "object"
       },
+      "ResponsibilityDependency": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_version": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Expected Version",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "artifact_revision",
+              "source_version"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "object_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Object Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "object_id",
+          "expected_version"
+        ],
+        "title": "ResponsibilityDependency",
+        "type": "object"
+      },
+      "ResponsibilityDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment": {
+            "$ref": "#/components/schemas/Assignment"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/ResponsibilityLifecycle"
+          },
+          "local_review_eligible": {
+            "title": "Local Review Eligible",
+            "type": "boolean"
+          },
+          "provider_execution_queued": {
+            "const": false,
+            "default": false,
+            "title": "Provider Execution Queued",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "assignment",
+          "lifecycle",
+          "local_review_eligible"
+        ],
+        "title": "ResponsibilityDetail",
+        "type": "object"
+      },
+      "ResponsibilityLifecycle": {
+        "additionalProperties": false,
+        "properties": {
+          "blocker": {
+            "anyOf": [
+              {
+                "enum": [
+                  "grant_required",
+                  "tool_required",
+                  "authority_unavailable",
+                  "conversation_closed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blocker"
+          },
+          "check_in_due": {
+            "default": false,
+            "title": "Check In Due",
+            "type": "boolean"
+          },
+          "conversation_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Conversation Work Version",
+            "type": "integer"
+          },
+          "current_outcome": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Current Outcome",
+            "type": "string"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/ResponsibilityDependency"
+            },
+            "maxItems": 50,
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "execution_status": {
+            "const": "not_admitted",
+            "default": "not_admitted",
+            "title": "Execution Status",
+            "type": "string"
+          },
+          "last_change_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Change Key"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/ResponsibilityNextAction"
+          },
+          "next_check_in_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Check In At"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/DependencyObservation"
+            },
+            "maxItems": 50,
+            "title": "Observations",
+            "type": "array"
+          },
+          "outcome_status": {
+            "default": "unverified",
+            "enum": [
+              "unverified",
+              "needs_review"
+            ],
+            "title": "Outcome Status",
+            "type": "string"
+          },
+          "review_required": {
+            "default": false,
+            "title": "Review Required",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "responsibility/v1",
+            "default": "responsibility/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "state": {
+            "default": "active",
+            "enum": [
+              "active",
+              "waiting_person",
+              "waiting_event",
+              "blocked",
+              "paused",
+              "cancelled",
+              "taken_over"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "wait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityWait"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "wake_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wake Id"
+          },
+          "wake_status": {
+            "default": "none",
+            "enum": [
+              "none",
+              "queued",
+              "reviewed"
+            ],
+            "title": "Wake Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "current_outcome",
+          "next_action",
+          "conversation_work_version"
+        ],
+        "title": "ResponsibilityLifecycle",
+        "type": "object"
+      },
+      "ResponsibilityNextAction": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Description",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "continue_work",
+              "review_dependency",
+              "request_decision",
+              "await_event",
+              "obtain_grant",
+              "obtain_tool"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "description"
+        ],
+        "title": "ResponsibilityNextAction",
+        "type": "object"
+      },
       "ResponsibilityOutcome": {
         "additionalProperties": false,
         "properties": {
@@ -3819,6 +4475,32 @@
           }
         },
         "title": "ResponsibilityOutcome",
+        "type": "object"
+      },
+      "ResponsibilityWait": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "person",
+              "dependency_change",
+              "check_in"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "reason"
+        ],
+        "title": "ResponsibilityWait",
         "type": "object"
       },
       "RetainedLocalResult": {
@@ -5394,12 +6076,16 @@
           "adaptive": {
             "anyOf": [
               {
+                "$ref": "#/components/schemas/AlphaExecution"
+              },
+              {
                 "$ref": "#/components/schemas/AdaptiveExecution"
               },
               {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Adaptive"
           },
           "evidence_origin": {
             "default": "controlled_transport",
@@ -5411,6 +6097,16 @@
             ],
             "title": "Evidence Origin",
             "type": "string"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplanationReadback"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "profile": {
             "default": "general-controlled-v1",
@@ -5483,6 +6179,85 @@
           "reason"
         ],
         "title": "TurnState",
+        "type": "object"
+      },
+      "UpdateResponsibility": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "current_outcome": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "title": "Current Outcome",
+            "type": "string"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/ResponsibilityDependency"
+            },
+            "maxItems": 50,
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/ResponsibilityNextAction"
+          },
+          "next_check_in_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Check In At"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "wait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityWait"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current_outcome",
+          "next_action",
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version"
+        ],
+        "title": "UpdateResponsibility",
         "type": "object"
       },
       "ViewActionRequest": {
@@ -8183,6 +8958,620 @@
           }
         ],
         "summary": "Control Assignment"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility": {
+      "get": {
+        "operationId": "get_responsibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsibilityDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Responsibility"
+      },
+      "post": {
+        "operationId": "activate_responsibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivateResponsibility"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsibilityDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Activate Responsibility"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility/control": {
+      "post": {
+        "operationId": "control_responsibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlResponsibility"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsibilityDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Control Responsibility"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility/update": {
+      "post": {
+        "operationId": "update_responsibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResponsibility"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResponsibilityDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Responsibility"
       }
     },
     "/v1/workspaces/{workspace_id}/assignments/{assignment_id}/tasks": {

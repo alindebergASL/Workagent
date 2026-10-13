@@ -99,11 +99,22 @@ class Ledger:
                 raise DomainError('action_unresolved')
             if kind=='dispatch' and 'count_result' not in events:
                 raise DomainError('action_unresolved')
-            n=c.execute('''SELECT count(*) AS n FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
-                           WHERE s.grant_id=%s AND e.kind=%s''',(attempt.grant_id,kind)).fetchone()['n']
             from .models import ProviderGrant
             grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(attempt.grant_id,)).fetchone()['data'])
             b=grant.responses
+            alpha=getattr(b,'runtime_extension',None)=='general-alpha-v1'
+            if alpha:
+                # Same workspace -> project lock order as SQL. Refresh shared
+                # counters only AFTER locking; pending/unknown sends never refund.
+                if c.execute('SHOW transaction_isolation').fetchone()['transaction_isolation']!='read committed':
+                    raise DomainError('unsupported_operation')
+                c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(grant.workspace_id,))
+                c.execute('SELECT pg_advisory_xact_lock(721004120)')
+                shared=summary(c,attempt.grant_id,shared=True)
+                n=shared['request_counts'][kind]
+            else:
+                n=c.execute('''SELECT count(*) AS n FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
+                               WHERE s.grant_id=%s AND e.kind=%s''',(attempt.grant_id,kind)).fetchone()['n']
             limit={'count_send':b.count_limit,'dispatch':b.generation_limit,'read':b.read_limit,'cancel':b.cancel_limit}[kind]
             if n >= limit:
                 raise DomainError('budget_exhausted')
@@ -115,7 +126,7 @@ class Ledger:
                 if c.execute('SHOW transaction_isolation').fetchone()['transaction_isolation']!='read committed':
                     raise DomainError('unsupported_operation')
                 c.execute('SELECT pg_advisory_xact_lock(721004120)')
-                totals=summary(c,attempt.grant_id)
+                totals=summary(c,attempt.grant_id,shared=alpha)
                 shared=summary(c,attempt.grant_id,shared=True)
                 if (totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
                     totals['reserved_output_tokens']+RESERVED_OUTPUT>b.output_limit or

@@ -23,6 +23,11 @@ from workagent.skill_catalog import catalog
 
 def activate(ctx, cv, **kw):
     s,p,ws,_,admin=ctx
+    # Explicit synthetic fixture authority, not defaults for a live grant.
+    caps=dict(kw)
+    for name,value in dict(generation_limit=50,count_limit=50,read_limit=500,
+                           input_limit=1000000,output_limit=409600,cost_limit_usd='20.00').items():
+        caps.setdefault(name,value)
     return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
         profile='general-responses-v1',model='gpt-6.1-sol',consumer_sha256=consumer_hash(),expires_at=None,
         max_runs=10,max_received_output_tokens=16384,responses=GeneralAlphaResponsesBinding(
@@ -30,7 +35,7 @@ def activate(ctx, cv, **kw):
             secret_reference='file:/synthetic/not-a-key',transport_mode='synthetic',
             instructions_sha256=sha256(POLICY.encode()).hexdigest(),schema_sha256=sha256(EXPLANATION_SCHEMA.material).hexdigest(),
             scope_tool_sha256=sha256(DECISION_SCHEMA.material).hexdigest(),authorization_sha256=AUTHORIZATION_HASH,
-            conversation_ids=[cv.id],**kw)))
+            conversation_ids=[cv.id],**caps)))
 
 
 class AlphaProvider(Provider):

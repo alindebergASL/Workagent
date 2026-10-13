@@ -250,6 +250,12 @@ class Responsibilities:
                              ResponsibilityDetail, authorize, mutate)
 
     def control_responsibility(self, p, ws, assignment_id, cmd):
+        return self._control_responsibility(p, ws, assignment_id, cmd)
+
+    def _control_responsibility(self, p, ws, assignment_id, cmd, *, legacy=False):
+        # Share mutation, not command identity: each public route keeps its own
+        # durable operation, original command payload and receipt model.
+        operation = 'control_assignment' if legacy else 'control_responsibility'
         def authorize(c):
             a, cv = self._responsibility_assignment(c, p, ws, assignment_id)
             if a.owner_id != p.id:
@@ -276,10 +282,10 @@ class Responsibilities:
             a.work_version += 1
             self._queue_responsibility_wake(c, p, a, life)
             self._persist_responsibility(c, a, life)
-            super(Responsibilities, self)._event(c, p, ws, 'control_responsibility', a.id)
-            return self._responsibility_detail(a, life)
-        return self._command(p, ws, 'control_responsibility', {'assignment_id': assignment_id}, cmd,
-                             ResponsibilityDetail, authorize, mutate)
+            super(Responsibilities, self)._event(c, p, ws, operation, a.id)
+            return a if legacy else self._responsibility_detail(a, life)
+        return self._command(p, ws, operation, {'assignment_id': assignment_id}, cmd,
+                             Assignment if legacy else ResponsibilityDetail, authorize, mutate)
 
     def control_assignment(self, p, ws, assignment_id, cmd):
         # Preserve legacy command semantics, including unsupported B1 resume, unless
@@ -290,8 +296,7 @@ class Responsibilities:
             life = self._lifecycle(c, ws, assignment_id, False)
         if life is None:
             return super().control_assignment(p, ws, assignment_id, cmd)
-        control = ControlResponsibility.model_validate(cmd.model_dump())
-        return self.control_responsibility(p, ws, assignment_id, control).assignment
+        return self._control_responsibility(p, ws, assignment_id, cmd, legacy=True)
 
     def get_responsibility(self, p, ws, assignment_id):
         with self.db.transaction() as c:

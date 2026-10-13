@@ -132,6 +132,11 @@ def publication_text(staged, generated):
         return staged['decision']['text']
     reason=staged.get('reason')
     if staged.get('terminal_outcome') in ('blocked','waiting_for_user','step_limit','budget_limit'):
+        # Bound only the display, never the immutable typed decision/staged reason.
+        # Keep the trusted leading status; mirror this exact rule in SQL021.
+        marker='\n[Stop display shortened; full stop text is retained in turn details.]'
+        if len(reason)>10000:
+            return reason[:10000-len(marker)]+marker
         return reason
     # Prose is explanation, not trusted verification; status is always supplied by
     # the broker. Do not discard useful explanation merely because scope is partial.

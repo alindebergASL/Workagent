@@ -15,6 +15,8 @@ from .db import Database
 from .errors import DomainError, STATUS
 from .models import *
 from .service import Service, Principal
+from .responsibility_models import (ActivateResponsibility, UpdateResponsibility,
+    ControlResponsibility, ResponsibilityDetail)
 
 
 @dataclass(frozen=True)
@@ -172,6 +174,22 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/control','POST','control_assignment',Assignment)
     def control_assignment(workspace_id:Id,assignment_id:Id,body:ControlAssignment,p:P):
         return service.control_assignment(p,workspace_id,assignment_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility','POST','activate_responsibility',ResponsibilityDetail,201)
+    def activate_responsibility(workspace_id:Id,assignment_id:Id,body:ActivateResponsibility,p:P):
+        return service.activate_responsibility(p,workspace_id,assignment_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility/update','POST','update_responsibility',ResponsibilityDetail)
+    def update_responsibility(workspace_id:Id,assignment_id:Id,body:UpdateResponsibility,p:P):
+        return service.update_responsibility(p,workspace_id,assignment_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility/control','POST','control_responsibility',ResponsibilityDetail)
+    def control_responsibility(workspace_id:Id,assignment_id:Id,body:ControlResponsibility,p:P):
+        return service.control_responsibility(p,workspace_id,assignment_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility','GET','get_responsibility',ResponsibilityDetail)
+    def get_responsibility(workspace_id:Id,assignment_id:Id,p:P,meta:Meta):
+        return service.get_responsibility(p,workspace_id,assignment_id)
 
     @route('/v1/workspaces/{workspace_id}/runs/{run_id}','GET','get_run',Run)
     def get_run(workspace_id:Id,run_id:Id,p:P,meta:Meta):

@@ -82,7 +82,9 @@ async function ready(cid, count) {
 }
 const exactTarget = a => ({artifact_id: a.id, revision_id: a.current_revision_id, body_hash: a.current_revision.body_hash});
 async function openProduct(page, kind) {
-  await page.getByRole('link', {name: 'Open ' + kind + ' product', exact: true}).click({timeout: 20000});
+  const link = page.getByRole('link', {name: 'Open ' + kind, exact: true});
+  await expect(link).toHaveCount(1);
+  await link.click({timeout: 20000});
   await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
   await expect(page.getByTestId('product-verification')).toHaveText('Checked against this saved version.');
 }

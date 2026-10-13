@@ -148,9 +148,18 @@ def test_import_after_count_send_and_repeatable_read_rejected(context,tmp_path):
 
 
 def test_migration_repeat_and_pins(context):
+    from pathlib import Path
+    from workagent import db
+    expected=[{'name':p.name,'checksum':sha256(p.read_bytes()).hexdigest()}
+              for p in sorted((Path(db.__file__).resolve().parents[1]/'migrations').glob('*.sql'))]
+    assert any(row['name']=='016_flexible_work.sql' for row in expected)
+    with context[0].db.transaction() as c:
+        before=c.execute('SELECT name,checksum,applied_at FROM schema_migrations ORDER BY name').fetchall()
     migrate(context[4])
     with context[0].db.transaction() as c:
-        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']=='016_flexible_work.sql'
+        after=c.execute('SELECT name,checksum,applied_at FROM schema_migrations ORDER BY name').fetchall()
+    assert after==before
+    assert [{'name':row['name'],'checksum':row['checksum']} for row in after]==expected
 
 
 def test_concurrent_workspaces_share_carry_and_dispatch_cap(context,tmp_path):

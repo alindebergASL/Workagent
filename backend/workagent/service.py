@@ -60,7 +60,7 @@ class WorkerCapability:
 from .flexible_work import FlexibleWork
 
 
-class Service(FlexibleWork, Products, Conversations, ProviderAttempts):
+class ServiceCore(FlexibleWork, Products, Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 
@@ -654,3 +654,12 @@ class Service(FlexibleWork, Products, Conversations, ProviderAttempts):
             if sorted(canonical(x) for x in command.source_dependencies)!=sorted(canonical(x) for x in a.selected_source_refs):
                 deny()
         return self.complete_run(cap,[command.body],command=command)
+
+
+# Lifecycle intercepts canonical events/control before the core implementations.
+# Adding a mixin to ServiceCore's bases would not override methods defined there.
+from .responsibilities import Responsibilities
+
+
+class Service(Responsibilities, ServiceCore):
+    pass

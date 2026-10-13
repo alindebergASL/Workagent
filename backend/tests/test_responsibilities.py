@@ -25,8 +25,7 @@ from workagent.responsibility_models import (ActivateResponsibility, UpdateRespo
 from workagent.service import Service, Principal, encoded
 
 
-class LifecycleService(Responsibilities, Service):
-    pass
+LifecycleService = Service  # Exercise the actual production MRO, not a test-only adapter.
 
 
 @pytest.fixture

@@ -42,7 +42,7 @@ async function ready(cid,n){
  report.turns.push({conversation:d,product,observation});await save('progress.json',report);
  return {d,product,artifact:await get('/artifacts/'+product.artifact_id)};
 }
-async function openTool(){await page.getByRole('link',{name:'Open tool product',exact:true}).click();await page.waitForURL(/\/artifacts\//);}
+async function openTool(){const link=page.getByRole('link',{name:'Open tool',exact:true});await expect(link).toHaveCount(1);await link.click();await page.waitForURL(/\/artifacts\/[^/?]+$/);}
 async function stopWorker(){if(worker&&worker.exitCode===null&&worker.signalCode===null){worker.kill('SIGTERM');await once(worker,'exit');}if(log){await log.close();log=null;}}
 try{
  if(phase==='reopen'){

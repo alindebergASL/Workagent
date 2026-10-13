@@ -246,8 +246,42 @@ class AdaptiveResponsesBinding(Model):
 
 
 class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
-    """Reviewed composition extension; inherits every adaptive grant ceiling."""
+    """Explicit cumulative project caps; alpha may tighten, never expand them.
+
+    Persisted historical alpha bindings already contain these fields. No defaults
+    are supplied for new authority: omitting a reviewed cap must fail closed.
+    """
     runtime_extension: Literal['general-alpha-v1']
+    generation_limit: int = Field(strict=True, ge=0, le=50)
+    count_limit: int = Field(strict=True, ge=0, le=50)
+    read_limit: int = Field(strict=True, ge=0, le=500)
+    input_limit: int = Field(strict=True, ge=0, le=1000000)
+    output_limit: int = Field(strict=True, ge=0, le=409600)
+    cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
+    conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
+
+    @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
+    @classmethod
+    def exact_inherited_literals(cls, value, info):
+        expected = int if info.field_name == 'cancel_limit' else bool
+        if type(value) is not expected:
+            raise ValueError('exact typed alpha literal required')
+        return value
+
+    @field_validator('cost_limit_usd')
+    @classmethod
+    def bounded_cost(cls, value):
+        from decimal import Decimal
+        if Decimal(value) > Decimal('20.00'):
+            raise ValueError('alpha cost may only tighten the cumulative ceiling')
+        return value
+
+    @field_validator('conversation_ids')
+    @classmethod
+    def unique_conversations(cls, value):
+        if len(value) != len(set(value)):
+            raise ValueError('explicit unique conversations required')
+        return value
 
 
 class ProviderGrant(Model):
