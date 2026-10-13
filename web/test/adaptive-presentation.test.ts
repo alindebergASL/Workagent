@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { TurnProgress } from "../src/lib/contract/natural";
+import type { components } from "../../contracts/src/client";
+
+type S = components["schemas"];
+/** The pre-alpha runtime's progress, typed exactly (not the alpha union). */
+type Adaptive = TurnProgress & { adaptive: S["AdaptiveExecution"] };
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -9,10 +14,11 @@ import {
 import {
   TurnOutcome,
   TurnProgressDetails,
+  replyText,
 } from "../src/components/TurnProgress";
 
 const hash = "a".repeat(64);
-function progress(): TurnProgress {
+function progress(): Adaptive {
   return {
     provider_observation: "received",
     retained_local_result: {
@@ -52,7 +58,7 @@ function progress(): TurnProgress {
   };
 }
 
-function verified(): TurnProgress {
+function verified(): Adaptive {
   const p = progress();
   p.adaptive!.outcome = "completed";
   const step = p.adaptive!.steps![0]!;
@@ -231,7 +237,7 @@ describe("model examples: none, passed or failed", () => {
     actual: "1",
     passed,
   });
-  const steps = (p: TurnProgress) => p.adaptive!.steps!;
+  const steps = (p: Adaptive) => p.adaptive.steps!;
   function withExamples(
     model_tests_passed: boolean,
     checks?: ReturnType<typeof check>[],
@@ -291,5 +297,91 @@ describe("the trusted outcome under an answer", () => {
   it("says nothing for turns that haven't finished", () => {
     expect(line("responding")).toBe("");
     expect(line("failed")).toBe("");
+  });
+});
+
+describe("general alpha: answers and retained explanations", () => {
+  function alpha(
+    outcome: S["AlphaExecution"]["outcome"],
+    explanation: string | null,
+  ): TurnProgress {
+    return {
+      provider_observation: "received",
+      evidence_origin: "live_provider_receipt",
+      retained_local_result: null,
+      explanation: explanation
+        ? {
+            text: explanation,
+            attempt_id: "attempt",
+            phase: "final",
+            authority: "model_explanation_not_verification",
+            published: true,
+          }
+        : null,
+      adaptive: {
+        runtime_extension: "general-alpha-v1",
+        capability: "adaptive-local-v1",
+        cost_basis: "worst_case_reservations_not_billing",
+        shared_cost_limit_usd: "20.00",
+        shared_reserved_cost_usd: "0.1",
+        max_steps: 4,
+        outcome,
+        steps: [
+          {
+            phase: "selection",
+            status: "reply",
+            outcome: outcome === "answered" ? "answered" : "needs_validation",
+            capability_result: {
+              capability: "guidance",
+              version: "1",
+              result: {},
+            },
+            verification: {
+              satisfied: false,
+              model_tests_passed: false,
+              basis: "model_proposed",
+              requested_goal_status: "needs_validation",
+            },
+          },
+        ],
+      },
+    };
+  }
+  const text = (p: TurnProgress) =>
+    renderToStaticMarkup(createElement(TurnProgressDetails, { progress: p }))
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ");
+
+  it("keeps a direct answer exactly as recorded, even with an explanation", () => {
+    const p = alpha("answered", "A different, secondary explanation.");
+    expect(replyText("The exact selected answer.", p)).toEqual({
+      body: "The exact selected answer.",
+      explanation: false,
+    });
+    // Answered is a finished reply, not a verified or completed task.
+    expect(adaptivePresentation("replied", p)).toBeNull();
+    expect(text(p)).toContain("Answered directly.");
+    expect(text(p)).toContain("not a verified result or a completed task");
+    expect(text(p)).toContain("answer recorded");
+    expect(text(p)).not.toMatch(/verified\b(?! result)/);
+  });
+  it("shows a work result's retained explanation first, keeping the message", () => {
+    const recorded =
+      "Here is the plan.\n\nExecution status: retained; needs validation.";
+    const p = alpha("needs_validation", "Here is the plan.");
+    expect(replyText(recorded, p)).toEqual({
+      body: "Here is the plan.",
+      explanation: true,
+    });
+    // Without a retained explanation the recorded message is the answer.
+    expect(replyText(recorded, alpha("needs_validation", null))).toEqual({
+      body: recorded,
+      explanation: false,
+    });
+  });
+  it("names a capability the step used, as a read, not a permission", () => {
+    expect(text(alpha("answered", null))).toContain(
+      "Used guidance (version 1). This reads information; it isn’t a permission or an action.",
+    );
   });
 });

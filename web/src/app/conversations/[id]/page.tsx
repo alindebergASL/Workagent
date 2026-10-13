@@ -17,9 +17,9 @@ import type {
   TurnState,
 } from "@/lib/contract/types";
 import { OperationComposer } from "@/components/OperationComposer";
-import { RichText } from "@/components/RichText";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import {
+  AgentReply,
   TurnOutcome,
   TurnProgressDetails,
   TurnSummary,
@@ -238,10 +238,12 @@ export default function ConversationPage() {
                 ) : null}
                 <div className="stack-sm">
                   {m.author === "agent" ? (
-                    <div className="msg-body">
-                      <span className="sr-only">Agent: </span>
-                      <RichText text={m.text} />
-                    </div>
+                    <AgentReply
+                      text={m.text}
+                      progress={
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress
+                      }
+                    />
                   ) : (
                     <p>
                       <span className="sr-only">You: </span>

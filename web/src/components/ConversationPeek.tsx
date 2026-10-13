@@ -7,9 +7,9 @@ import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
-import { RichText } from "@/components/RichText";
 import { ErrorNotice } from "@/components/ui";
 import {
+  AgentReply,
   TurnOutcome,
   TurnSummary,
   TurnProgressDetails,
@@ -116,10 +116,13 @@ export function ConversationPeek({
             ) : null}
             <div className="stack-sm">
               {m.author === "agent" ? (
-                <div className="msg-body">
-                  <span className="sr-only">Agent: </span>
-                  <RichText text={m.text} budget={280} />
-                </div>
+                <AgentReply
+                  text={m.text}
+                  budget={280}
+                  progress={
+                    d.turns.find((t) => t.run_id === m.run_id)?.progress
+                  }
+                />
               ) : (
                 <p>
                   <span className="sr-only">You: </span>

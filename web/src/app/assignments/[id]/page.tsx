@@ -4,6 +4,8 @@ import { useParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
+import { useResponsibility } from "@/lib/client/responsibility";
+import { ResponsibilityPanel } from "@/components/ResponsibilityPanel";
 import { useWorkspace } from "@/lib/client/workspace";
 import type { Assignment } from "@/lib/contract/types";
 import { EXECUTION } from "@/lib/execution";
@@ -50,6 +52,7 @@ export default function AssignmentPage() {
     },
   );
   const a = res.data;
+  const responsibility = useResponsibility(wsId, id);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const artifactTitles = useMemo(
@@ -298,7 +301,21 @@ export default function AssignmentPage() {
         </section>
       ) : null}
 
-      <Ownership assignment={a} onChanged={res.refresh} />
+      {responsibility.data && wsId ? (
+        <ResponsibilityPanel
+          ws={wsId}
+          detail={responsibility.data}
+          onChanged={async () => {
+            await Promise.all([res.refresh(), responsibility.refresh()]);
+          }}
+        />
+      ) : null}
+      <Ownership
+        assignment={a}
+        onChanged={res.refresh}
+        // A recorded responsibility has its own steering above.
+        steering={!responsibility.data}
+      />
 
       <section aria-labelledby="saved-title" className="stack">
         <h2 id="saved-title" className="section-title">

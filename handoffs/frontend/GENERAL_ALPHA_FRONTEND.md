@@ -76,3 +76,59 @@ the backend fix. The frontend does not reconstruct prose.
     shell can stop showing the disclaimer as the reply;
   - canonical Assignment lifecycle state and eligibility, to replace the
     paused-hand-over wording.
+
+## Generated wire contract (`cb87f3f`)
+
+Built on the published alpha contract. No backend or contract files were
+changed.
+
+- **`AlphaExecution | AdaptiveExecution`.**
+  - The test fixtures are now typed to the exact runtime they model, with no
+    casts.
+  - `answered` is a finished reply. It gets no "verified" or "completed" line.
+    "How this ran" says: "Answered directly. This is a reply, not a verified
+    result or a completed task."
+  - A step that used a capability names it and its version, as a read and
+    not a permission.
+- **`TurnState.explanation`.**
+  - A direct answer (`answered`) shows `message.text` exactly, even when an
+    explanation exists.
+  - Otherwise, when a retained explanation exists and differs from the
+    recorded message, the explanation is shown as the answer. The recorded
+    message stays one click away under "The message as recorded", including
+    its execution status, and is labelled as the model's retained explanation,
+    not a verification.
+  - Nothing is parsed or stripped from `message.text`.
+  - Earlier-version links and author labels are unchanged.
+- **Responsibility.**
+  - When `GET …/responsibility` returns a record, the assignment page shows
+    its state, current outcome, next action, wait, blocker, changed
+    dependencies, check-in time and review flags.
+  - While `execution_status` is `not_admitted`, the page says: "Recorded only.
+    I can't work on this on my own yet, so nothing runs in the background."
+  - A queued review reads "queued … it hasn't run".
+  - Steering uses `POST …/responsibility/control` (pause, resume, stop and
+    take back), compare-and-swap on `assignment.work_version`. Stop and take
+    back need confirmation, and an unconfirmed send retries the same command.
+  - The older steering on the page hides when a responsibility exists, so
+    there is one set of controls.
+  - No timers and no invented running state. Activation and update are runtime
+    commands and are not offered as UI.
+
+Checks on this commit:
+
+- `pnpm check`: 190 unit tests (alpha answer/explanation/capability,
+  responsibility view), plus type, lint and format checks.
+- Production build.
+- 28 DOM regressions; 9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls:
+  - flexible create/reopen;
+  - `verify_general_integration.py`;
+  - conversation journey;
+  - new `responsibility-journey.mjs`: hand-over through the UI, activation
+    through the generated route, then read, pause, resume and take back in the
+    UI, at 1440 and 390px with no overflow, ending with
+    `provider_execution_queued: false`.
+
+Not covered by these checks: live model output. Direct-answer and
+retained-explanation rendering is covered by unit tests, not a live run.

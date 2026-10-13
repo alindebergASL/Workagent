@@ -1073,3 +1073,12 @@ details.disclosure.card {
   border-left: 2px solid var(--line-strong);
   padding-left: var(--sp-2);
 }
+
+/* A recorded responsibility: state, next step, what it waits on. */
+.responsibility h2 {
+  margin: 0;
+}
+.responsibility-lines {
+  margin: 0;
+  padding-left: 1.2em;
+}

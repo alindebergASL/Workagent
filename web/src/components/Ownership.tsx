@@ -67,9 +67,12 @@ const VERB: Record<ControlOperation, string> = {
 export function Ownership({
   assignment: a,
   onChanged,
+  steering = true,
 }: {
   assignment: Assignment;
   onChanged: () => Promise<unknown> | void;
+  /** Off when a recorded responsibility provides the steering instead. */
+  steering?: boolean;
 }) {
   const phase = phaseOf(a);
   const g = glance(a, phase);
@@ -143,7 +146,7 @@ export function Ownership({
           </div>
         ) : null}
       </dl>
-      {canPause || canResume || canStop ? (
+      {steering && (canPause || canResume || canStop) ? (
         <div className="steer">
           {confirmStop ? (
             <div className="steer-confirm" role="group" aria-label="Stop">

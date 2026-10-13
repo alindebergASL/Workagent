@@ -66,6 +66,7 @@ export type TurnProgress = Partial<
     | "retained_local_result"
     | "adaptive"
     | "response_steps"
+    | "explanation"
   >
 >;
 
@@ -82,6 +83,7 @@ export function turnProgress(
     provider_observation: turn.provider_observation,
     evidence_origin: turn.evidence_origin,
     retained_local_result: turn.retained_local_result ?? null,
+    explanation: turn.explanation ?? null,
     ...(turn.adaptive
       ? { adaptive: turn.adaptive, response_steps: turn.response_steps }
       : {}),

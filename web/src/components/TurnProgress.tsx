@@ -4,6 +4,7 @@ import {
   adaptivePresentation,
   modelExamples,
 } from "@/lib/adaptive-presentation";
+import { RichText } from "@/components/RichText";
 
 export function TurnSummary({
   state,
@@ -29,6 +30,52 @@ export function TurnSummary({
             : `${view.changedAttempts} times`}
           .
         </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * What to show as an agent message's answer. A direct answer is the recorded
+ * message, exactly. For a work result, the service retains the model's final
+ * explanation on its own; that is the answer, and the recorded message (which
+ * also carries the execution status) stays one click away. Nothing is parsed
+ * or stripped from the message itself.
+ */
+export function replyText(
+  text: string,
+  progress?: TurnProgress,
+): { body: string; explanation: boolean } {
+  const e = progress?.explanation;
+  if (!e || progress?.adaptive?.outcome === "answered" || e.text === text)
+    return { body: text, explanation: false };
+  return { body: e.text, explanation: true };
+}
+
+/** An agent message: the answer first, the recorded message inspectable. */
+export function AgentReply({
+  text,
+  progress,
+  budget,
+}: {
+  text: string;
+  progress?: TurnProgress;
+  budget?: number;
+}) {
+  const reply = replyText(text, progress);
+  return (
+    <div className="msg-body">
+      <span className="sr-only">Agent: </span>
+      <RichText text={reply.body} budget={budget} />
+      {reply.explanation ? (
+        <details className="ids-details">
+          <summary>The message as recorded</summary>
+          <p className="small muted">
+            Above is the model’s retained explanation, not a verification. This
+            is the message exactly as it was recorded, with its status.
+          </p>
+          <RichText text={text} />
+        </details>
       ) : null}
     </div>
   );
@@ -112,6 +159,12 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
           </li>
         ) : null}
       </ul>
+      {progress.adaptive?.outcome === "answered" ? (
+        <p className="small">
+          Answered directly. This is a reply, not a verified result or a
+          completed task.
+        </p>
+      ) : null}
       {progress.adaptive?.steps?.length ? (
         <ol>
           {progress.adaptive.steps.map((step, index) => (
@@ -122,10 +175,22 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
                   ? "local execution rejected"
                   : step.status === "observed"
                     ? "local result observed"
-                    : "response recorded"}
+                    : step.outcome === "answered"
+                      ? "answer recorded"
+                      : "response recorded"}
                 .
               </p>
               {step.reason ? <p>{step.reason}</p> : null}
+              {"capability_result" in step &&
+              typeof step.capability_result?.capability === "string" ? (
+                <p>
+                  Used {step.capability_result.capability}
+                  {typeof step.capability_result.version === "string"
+                    ? ` (version ${step.capability_result.version})`
+                    : ""}
+                  . This reads information; it isn’t a permission or an action.
+                </p>
+              ) : null}
               <p data-testid="model-examples">
                 {modelExamplesText(step.verification)}
               </p>
