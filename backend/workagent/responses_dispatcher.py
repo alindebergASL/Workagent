@@ -48,6 +48,11 @@ class ResponsesDispatcher:
         if not model_authorized:
             return {'mode':self.worker.transport.provenance.mode,'local':local,
                     'results':[],'model_status':'authority_unavailable'}
+        if getattr(self.worker, 'phases', None) is not None:
+            try:
+                service.advance_responsibilities(self.workspace, self.grant_id)
+            except (DomainError,BundleDenied):
+                pass  # Revoked owner authority must not terminate the serving loop.
         with service.db.transaction() as c:
             rows=c.execute('''SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id

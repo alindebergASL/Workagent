@@ -488,25 +488,37 @@ class TurnResult(Model):
     results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
 
 
+from .general_alpha_models import ResponsibilityOrigin
+
+
 class ConversationMessage(Model):
     id: Id
     conversation_id: Id
     run_id: Id
     sequence: Version
     author_id: Id
-    author_kind: Literal['human', 'assistant']
+    author_kind: Literal['human', 'assistant', 'system']
     text: Text
-    evidence_origin: Literal['human', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
+    evidence_origin: Literal['human', 'runtime', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
     result: TurnResult | None = None
     operation: LocalOperation | None = None
     attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
     target: ExactTarget | None = None
     model_receipt: Id | None = None
+    responsibility_origin: ResponsibilityOrigin | None = None
     acceptance_checks: AcceptanceSpec | None = None
     created_at: AwareDatetime = Field(default_factory=now)
 
     @model_validator(mode='after')
     def human_checks_only(self):
+        if self.author_kind == 'system':
+            if (self.evidence_origin != 'runtime' or self.author_id != 'responsibility-runtime'
+                or self.responsibility_origin is None
+                or self.result is not None or self.operation is not None or self.attachments
+                or self.target is not None or self.model_receipt is not None):
+                raise ValueError('system requests require exact runtime provenance, not human authority')
+        elif self.responsibility_origin is not None or self.evidence_origin == 'runtime':
+            raise ValueError('runtime provenance is reserved for system requests')
         if self.acceptance_checks is not None and self.author_kind!='human':
             raise ValueError('only a human message can supply acceptance checks')
         return self
@@ -516,6 +528,8 @@ class ConversationMessage(Model):
         data=handler(self)
         if self.acceptance_checks is None:
             data.pop('acceptance_checks',None)
+        if self.responsibility_origin is None:
+            data.pop('responsibility_origin',None)
         return data
 
 

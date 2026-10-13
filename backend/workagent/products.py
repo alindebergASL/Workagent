@@ -87,7 +87,10 @@ def turn_state(run,c=None):
                     binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
         return TurnState(run_id=run.id,state=state,reason=reason,profile=run.profile,
             evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
-            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation_readback(c,run,attempt))
+            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation_readback(c,run,attempt),
+            responsibility_origin=(next((m['data'].get('responsibility_origin') for m in c.execute(
+                "SELECT data FROM conversation_messages WHERE workspace_id=%s AND run_id=%s AND author_kind='system'",
+                (run.workspace_id,run.id)).fetchall()),None) if c else None))
 
     state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
     reason={'ready':'Controlled result persisted; proposals still require explicit human acceptance.',
@@ -303,7 +306,7 @@ class Products:
             config=check_pins(c,current[1])
             if enabled(config):
                 message=next(m for m in self._conversation_messages(c,current[1].workspace_id,current[2].id)
-                             if m.run_id==current[1].id and m.author_kind=='human')
+                             if m.run_id==current[1].id and m.author_kind in ('human','system'))
                 from .composition import enabled as alpha_enabled
                 alpha=alpha_enabled(config)
                 staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase,alpha=alpha),operation,staged,config['responses']['max_steps'],message,base,alpha=alpha))

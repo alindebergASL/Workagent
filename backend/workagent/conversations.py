@@ -150,10 +150,10 @@ class Conversations:
                 'SELECT id,data FROM runs WHERE workspace_id=%s AND conversation_id=%s',(ws,cid)).fetchall()}
             assignments=c.execute('SELECT id FROM assignments WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()
             from .products import turn_state
-            ordered=[runs[m.run_id] for m in messages if m.author_kind=='human']
+            ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
             return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
-                runs=[runs[m.run_id] for m in messages if m.author_kind=='human'],assignment_ids=[r['id'] for r in assignments])
+                runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
         from .outcomes import acknowledge
@@ -165,55 +165,72 @@ class Conversations:
                 acknowledge(c,ws,run.id)
 
     def post_message(self,p,ws,cid,cmd):
+        return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
+            lambda c:self._conversation(c,p,ws,cid),
+            lambda c,cv:self._admit_conversation_turn(c,p,ws,cv,cmd))
+
+    def _admit_conversation_turn(self,c,p,ws,cv,cmd,*,responsibility=None,required_grant_id=None):
         from .service import digest, encoded
-        def mutate(c,cv):
-            self._conversation_cas(cv,cmd.expected_work_version)
-            self._conversation(c,p,ws,cid,True)
-            from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
-            grant=admission(self,c,p,ws,cv,cmd)
-            selected=GENERAL if grant else PRODUCT_PROFILE if cmd.operation else PROFILE
-            config=profile(selected)
-            selected_hash=GENERAL_HASH if grant else PRODUCT_HASH if cmd.operation else PROFILE_HASH
-            if cmd.operation:
-                self._product_base(c,p,ws,cv,cmd.operation)
-            messages=self._conversation_messages(c,ws,cid)
-            # Reject oversized history before admission rather than leaving queued work with no executable context.
-            from .service import canonical
-            prospective={'messages':[m.model_dump(mode='json') for m in messages],
-                         'next':cmd.model_dump(mode='json'),
-                         'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
-                         'tools':self.local_tool_registry() if cmd.operation else []}
-            if len(canonical(prospective).encode())+4096>config['max_context_bytes']:
-                raise DomainError('budget_exhausted')
-            if sum(m.author_kind=='human' for m in messages)>=config['max_turns_per_conversation']:
-                raise DomainError('budget_exhausted')
-            self._cancel_conversation_runs(c,ws,cid)  # New steering supersedes unfinished responses, not messages.
-            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(ws,)).fetchone()['access_generation']
-            run=Run(id=new_id(),workspace_id=ws,conversation_id=cid,principal_id=p.id,kind='conversation_turn',
-                access_generation=generation,profile=selected,bundle_hash=selected_hash,tool_registry_hash=digest(config['tools']),
-                execution=(ExecutionProvenance(mode='managed',profile=selected,model=grant.model,grant_id=grant.id) if grant else
-                           ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport')))
-            c.execute('INSERT INTO runs(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,run.id,cid,encoded(run)))
-            pinned={'profile':selected,'bundle_hash':selected_hash,
-                    'implementation_hash':grant.consumer_sha256 if grant else implementation_hash(),'tools':config['tools']}
-            if grant:
-                pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
-                    max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
-            c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
-                (ws,run.id,selected,encoded(pinned)))
-            message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
-                                        author_id=p.id,author_kind='human',text=cmd.text,evidence_origin='human',operation=cmd.operation,
-                                        acceptance_checks=cmd.acceptance_checks,
-                                        target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
-                                            sha256=hashlib.sha256(a.content.encode()).hexdigest(),byte_length=len(a.content.encode())) for a in cmd.attachments])
-            self._append_message(c,ws,message)
+        cid=cv.id
+        self._conversation_cas(cv,cmd.expected_work_version)
+        self._conversation(c,p,ws,cid,True)
+        from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
+        grant=admission(self,c,p,ws,cv,cmd)
+        if responsibility is not None:
+            if (p.kind != 'worker' or grant is None or grant.id != required_grant_id
+                or getattr(grant.responses, 'runtime_extension', None) != 'general-alpha-v1'):
+                raise DomainError('action_unresolved')
+            from .responsibility_execution import check_admission_budget
+            check_admission_budget(c,grant)
+        selected=GENERAL if grant else PRODUCT_PROFILE if cmd.operation else PROFILE
+        config=profile(selected)
+        selected_hash=GENERAL_HASH if grant else PRODUCT_HASH if cmd.operation else PROFILE_HASH
+        if cmd.operation:
+            self._product_base(c,p,ws,cv,cmd.operation)
+        messages=self._conversation_messages(c,ws,cid)
+        # Reject oversized history before admission rather than leaving queued work with no executable context.
+        from .service import canonical
+        prospective={'messages':[m.model_dump(mode='json') for m in messages],
+                     'next':cmd.model_dump(mode='json'),
+                     'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
+                     'tools':self.local_tool_registry() if cmd.operation else []}
+        if len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+            raise DomainError('budget_exhausted')
+        if sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
+            raise DomainError('budget_exhausted')
+        if responsibility is None:
+            self._cancel_conversation_runs(c,ws,cid)  # Only human steering supersedes other work.
+        generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(ws,)).fetchone()['access_generation']
+        run=Run(id=new_id(),workspace_id=ws,conversation_id=cid,principal_id=p.id,kind='conversation_turn',
+            access_generation=generation,profile=selected,bundle_hash=selected_hash,tool_registry_hash=digest(config['tools']),
+            execution=(ExecutionProvenance(mode='managed',profile=selected,model=grant.model,grant_id=grant.id) if grant else
+                       ExecutionProvenance(mode='fixture',profile=selected,evidence_origin='controlled_transport')))
+        c.execute('INSERT INTO runs(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,run.id,cid,encoded(run)))
+        pinned={'profile':selected,'bundle_hash':selected_hash,
+                'implementation_hash':grant.consumer_sha256 if grant else implementation_hash(),'tools':config['tools']}
+        if grant:
+            pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
+                max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
+        if responsibility is not None:
+            pinned['responsibility']=responsibility.model_dump(mode='json')
+        c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
+            (ws,run.id,selected,encoded(pinned)))
+        message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
+                                    author_id='responsibility-runtime' if responsibility else p.id,
+                                    author_kind='system' if responsibility else 'human',text=cmd.text,
+                                    evidence_origin='runtime' if responsibility else 'human',operation=cmd.operation,
+                                    responsibility_origin=(ResponsibilityOrigin(assignment_id=responsibility.assignment_id,
+                                        wake_id=responsibility.wake_id,work_version=responsibility.work_version) if responsibility else None),
+                                    acceptance_checks=cmd.acceptance_checks,
+                                    target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
+                                        sha256=hashlib.sha256(a.content.encode()).hexdigest(),byte_length=len(a.content.encode())) for a in cmd.attachments])
+        self._append_message(c,ws,message)
+        if responsibility is None:
             cv.work_version+=1
             self._store_conversation(c,cv)
-            self._event(c,p,ws,'post_message',run.id)
-            if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
-            return MessageQueued(conversation=cv,message=message,run=run)
-        return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
-                             lambda c:self._conversation(c,p,ws,cid),mutate)
+        self._event(c,p,ws,'post_message' if responsibility is None else 'responsibility_run_queued',run.id)
+        if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
+        return MessageQueued(conversation=cv,message=message,run=run)
 
     def cancel_conversation(self,p,ws,cid,cmd):
         def mutate(c,cv):
@@ -259,7 +276,7 @@ class Conversations:
             from .general_responses import exact_target
             from .adaptive import contract
             from .models import ProviderGrant
-            latest=next(m for m in messages if m.run_id==run.id and m.author_kind=='human')
+            latest=next(m for m in messages if m.run_id==run.id and m.author_kind in ('human','system'))
             base=exact_target(self,c,p,run.workspace_id,cv,latest.target)
             config=check_general_pins(c,run)
             grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
@@ -269,6 +286,20 @@ class Conversations:
             from .composition import enabled as alpha_enabled, discovery
             if alpha_enabled(config): context['composition']=discovery()
             context['access_generation']=run.access_generation
+            if config.get('responsibility'):
+                context['messages']=[m for m in context['messages'] if m['run_id']==run.id]
+                context['sources']=[]
+                sources=[]
+                context['responsibility']=config['responsibility']
+                context['dependencies']=[]
+                for dep in config['responsibility']['observations']:
+                    if dep['kind']=='artifact_revision':
+                        material=c.execute('SELECT data FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id=%s',
+                            (cap.workspace_id,dep['object_id'],dep['observed_version'])).fetchone()['data']['body']
+                    else:
+                        material=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',
+                            (cap.workspace_id,dep['object_id'])).fetchone()['content']
+                    context['dependencies'].append({'binding':dep,'content':material})
             context['bindable_artifacts']=[{'artifact_id':r['artifact_id'],'revision_id':r['id'],
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
                 for r in c.execute('''SELECT rev.* FROM artifacts art JOIN revisions rev
@@ -276,6 +307,9 @@ class Conversations:
                     WHERE art.workspace_id=%s AND art.conversation_id=%s
                     AND (rev.data->'body'->>'kind'='structured_table' OR rev.data->'body' ? 'blocks')
                     ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id)).fetchall()]
+            if config.get('responsibility'):
+                permitted={d['object_id'] for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'}
+                context['bindable_artifacts']=[a for a in context['bindable_artifacts'] if a['artifact_id'] in permitted]
         else:
             # Do not change the canonical historical controlled context shape.
             for message in context['messages']:
