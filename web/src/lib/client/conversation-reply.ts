@@ -35,6 +35,7 @@ export function useConversationReply({
   version,
   refresh,
   target,
+  held = false,
 }: {
   wsId: string | null;
   cid: string;
@@ -46,6 +47,12 @@ export function useConversationReply({
   /** The conversation's work version as last read; null until loaded. */
   version: number | null;
   refresh: () => Promise<unknown>;
+  /**
+   * Sending is held (for example, the conversation can't be re-read right
+   * now). Checked when a send is admitted, so no button, key or retry path
+   * can send while it is held; the draft and any unconfirmed send are kept.
+   */
+  held?: boolean;
 }) {
   const draftKey = `workagent:conversation:${cid}`;
   const [text, setText] = useState("");
@@ -69,9 +76,15 @@ export function useConversationReply({
     if (restored) setText(restored.text);
   }, [restored]);
 
+  const canSend =
+    Boolean(wsId) &&
+    version !== null &&
+    !sending &&
+    !held &&
+    (Boolean(cmd.current) || Boolean(text.trim()));
+
   const send = async () => {
-    if (!wsId || version === null || sending) return;
-    if (!cmd.current && !text.trim()) return;
+    if (!canSend || !wsId || version === null) return;
     setSending(true);
     setError(null);
     const sentText = text;
@@ -106,6 +119,8 @@ export function useConversationReply({
     sending,
     error,
     send,
+    /** Whether a send would be admitted right now, by any path. */
+    canSend,
     /** An earlier send's outcome is unknown; only an exact replay is offered. */
     uncertain: Boolean(cmd.current) && !sending,
   };

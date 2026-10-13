@@ -1109,7 +1109,7 @@ try {
     window.mount("product");
   });
   await expect(
-    page.locator('.agent-pane [data-state="outcome_unknown"]'),
+    page.locator('.agent-pane [data-state="outcome_unknown"] > span'),
   ).toHaveText(
     "Couldn’t confirm whether this finished. Check the work before asking again.",
   );
@@ -1225,6 +1225,212 @@ try {
   passed++;
   console.log(
     "PASS a runtime continuation beside the work is labelled as Workagent's, not the person's",
+  );
+
+  // R2: while the pane can't re-read the conversation, no path sends: not
+  // the button, Ctrl+Enter, Cmd+Enter or a form submission. The draft stays,
+  // and one deliberate send goes after it reconnects.
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.calls.length = 0;
+    window.ambiguous = false;
+    window.peek = {
+      data: window.resource.data.conversation,
+      error: null,
+      reconnecting: true,
+      refresh: async () => null,
+    };
+    window.mount("away");
+    window.mount("product");
+  });
+  const staleBox = page.getByLabel("Reply about this work", { exact: true });
+  await staleBox.fill("Do not send while disconnected");
+  await staleBox.press("Control+Enter");
+  await staleBox.press("Meta+Enter");
+  await page.evaluate(() =>
+    document.querySelector(".peek-ask").requestSubmit(),
+  );
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => window.calls.length), 0);
+  await expect(staleBox).toHaveValue("Do not send while disconnected");
+  await page.evaluate(() => {
+    window.peek = { ...window.peek, reconnecting: false };
+    window.mount("product");
+  });
+  await staleBox.press("Control+Enter");
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
+  assert.equal(
+    await page.evaluate(() => window.calls[0].payload.text),
+    "Do not send while disconnected",
+  );
+  // An unconfirmed send stays exact: held while stale, then the same
+  // command is replayed once it reconnects.
+  await page.evaluate(() => {
+    window.calls.length = 0;
+    window.ambiguous = true;
+  });
+  await staleBox.fill("Replay me exactly");
+  await staleBox.press("Meta+Enter");
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
+  const firstAttempt = await page.evaluate(() => window.calls[0].payload);
+  await page.evaluate(() => {
+    window.ambiguous = false;
+    window.peek = { ...window.peek, reconnecting: true };
+    window.mount("product");
+  });
+  await page.evaluate(() =>
+    document.querySelector(".peek-ask").requestSubmit(),
+  );
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => window.calls.length), 1);
+  await page.evaluate(() => {
+    window.peek = { ...window.peek, reconnecting: false };
+    window.mount("product");
+  });
+  await page
+    .locator(".agent-pane")
+    .getByRole("button", { name: "Send" })
+    .click();
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(2);
+  const replayed = await page.evaluate(() => window.calls[1].payload);
+  assert.equal(replayed.command_id, firstAttempt.command_id);
+  assert.equal(replayed.text, "Replay me exactly");
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    window.calls.length = 0;
+    window.ambiguous = true;
+    window.peek = undefined;
+    window.mount("away");
+  });
+  passed++;
+  console.log(
+    "PASS a stale pane admits no send by button, Ctrl/Cmd+Enter or submit; one deliberate send after it reconnects",
+  );
+
+  // R3: each request beside the work keeps its own unresolved state and
+  // reason; a later turn doesn't erase it, it isn't shown twice, and once
+  // the request scrolls out of the pane a link leads to it.
+  for (const state of ["failed", "outcome_unknown"]) {
+    await page.evaluate((state) => {
+      const conv = structuredClone(window.resource.data.conversation);
+      const origin = {
+        kind: "responsibility_wake",
+        assignment_id: "asg-1",
+        wake_id: "wake-1",
+        work_version: 2,
+      };
+      conv.messages.push(
+        {
+          id: "msg-ask",
+          author: "person",
+          text: "Help with the briefing.",
+          created_at: "2026-10-13T00:00:00Z",
+          sequence: 990,
+          run_id: "run-ask",
+          origin: "human",
+        },
+        {
+          id: "msg-wake",
+          author: "runtime",
+          text: "Continue the hand-over: check the totals.",
+          created_at: "2026-10-13T00:01:00Z",
+          sequence: 991,
+          run_id: "run-wake",
+          origin: "runtime",
+          responsibility_origin: origin,
+        },
+      );
+      conv.turns.push(
+        {
+          run_id: "run-ask",
+          state: "replied",
+          reason: null,
+          message_id: "msg-ask",
+        },
+        {
+          run_id: "run-wake",
+          state,
+          reason: "The totals file was locked.",
+          message_id: "msg-wake",
+          responsibility_origin: origin,
+        },
+      );
+      window.peek = {
+        data: conv,
+        error: null,
+        reconnecting: false,
+        refresh: async () => null,
+      };
+      window.mount("away");
+      window.mount("product");
+    }, state);
+    const own = page.locator(
+      `.agent-pane .msg-runtime [data-state="${state}"]`,
+    );
+    await expect(own).toContainText("Hand-over continuation");
+    await own.getByText("Why").click();
+    await expect(own).toContainText("The totals file was locked.");
+    await expect(
+      page.locator(`.agent-pane [data-state="${state}"]`),
+    ).toHaveCount(1);
+    // A later, unrelated turn that replied.
+    await page.evaluate(() => {
+      const conv = structuredClone(window.peek.data);
+      conv.messages.push({
+        id: "msg-later",
+        author: "person",
+        text: "Later unrelated turn",
+        created_at: "2026-10-13T00:02:00Z",
+        sequence: 992,
+        run_id: "run-later",
+        origin: "human",
+      });
+      conv.turns.push({
+        run_id: "run-later",
+        state: "replied",
+        reason: null,
+        message_id: "msg-later",
+      });
+      window.peek = { ...window.peek, data: conv };
+      window.mount("product");
+    });
+    await expect(page.getByText("Later unrelated turn")).toBeVisible();
+    await expect(own).toBeVisible();
+    await expect(
+      page.locator(`.agent-pane [data-state="${state}"]`),
+    ).toHaveCount(1);
+    await expect(page.getByTestId("peek-earlier")).toHaveCount(0);
+    // Enough later messages push the request out of the pane.
+    await page.evaluate(() => {
+      const conv = structuredClone(window.peek.data);
+      for (let i = 0; i < 8; i++)
+        conv.messages.push({
+          id: `msg-more-${i}`,
+          author: "person",
+          text: `More ${i}`,
+          created_at: "2026-10-13T00:03:00Z",
+          sequence: 1000 + i,
+          run_id: `run-more-${i}`,
+          origin: "human",
+        });
+      window.peek = { ...window.peek, data: conv };
+      window.mount("product");
+    });
+    await expect(page.locator(".agent-pane .msg-runtime")).toHaveCount(0);
+    const earlier = page.getByTestId("peek-earlier");
+    await expect(earlier).toContainText("An earlier hand-over continuation");
+    await expect(
+      earlier.getByRole("link", { name: "See it in the conversation" }),
+    ).toHaveAttribute("href", /\/conversations\/[^#]+#run-run-wake$/);
+  }
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("away");
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS each request beside the work keeps its own failed/unknown state and reason after later turns, with a link once out of view",
   );
 
   // Natural admission: a reply beside the work names the exact saved

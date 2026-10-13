@@ -28,9 +28,47 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   no_reply: "No reply was recorded.",
 };
 
+type Turn = ConversationDetailView["turns"][number];
+
+/** How an unresolved turn reads when its request is outside the pane. */
+const EARLIER: Partial<Record<string, string>> = {
+  queued: "is still waiting for a reply.",
+  responding: "is still being answered.",
+  cancelled: "was stopped before a reply.",
+  failed: "didn’t complete.",
+  unavailable: "hasn’t been picked up yet.",
+  outcome_unknown: "has an outcome that couldn’t be confirmed.",
+  no_reply: "has no recorded reply.",
+};
+
+/** One request's unresolved turn: its state and, when given, why. */
+function PendingTurn({ turn }: { turn: Turn }) {
+  return (
+    <div className="msg-pending" data-state={turn.state}>
+      {turn.responsibility_origin ? (
+        <p className="eyebrow-caps">Hand-over continuation</p>
+      ) : null}
+      <TurnSummary
+        state={turn.state}
+        progress={turn.progress}
+        fallback={TURN_TEXT[turn.state]}
+      />
+      {turn.reason &&
+      (turn.state === "failed" ||
+        turn.state === "unavailable" ||
+        turn.state === "outcome_unknown") ? (
+        <details className="ids-details">
+          <summary>Why</summary>
+          <p className="ids">{turn.reason}</p>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
 // An admitted turn whose consumer has not claimed it can still progress.
 // Keep read-only polling; never resend or infer a successful result.
-const awaitingReply = (t: ConversationDetailView["turns"][number]) =>
+const awaitingReply = (t: Turn) =>
   t.state === "queued" ||
   t.state === "responding" ||
   t.state === "unavailable" ||
@@ -76,12 +114,15 @@ export function ConversationPeek({
   // A recoverable failure keeps a labelled snapshot, with sending held.
   const staleRead = res.reconnecting || Boolean(res.error && !res.data);
   const d = res.data ?? initial;
+  const open = d.conversation.state === "open";
   const reply = useConversationReply({
     wsId,
     cid,
     version: d.conversation.work_version,
     refresh: res.refresh,
     target,
+    // Admission, not just the button: no key or retry sends while held.
+    held: revoked || staleRead || !open,
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -107,8 +148,23 @@ export function ConversationPeek({
   }, [settled, refreshWork]);
 
   const recent = d.messages.slice(-8);
+  // Each request's own turn shows under it. A turn that isn't resolved and
+  // whose request isn't shown here still gets a line: the latest in full
+  // (it may have no request to anchor to), older ones as a link into the
+  // full conversation.
+  const unresolved = (t: Turn) =>
+    t.state !== "replied" && Boolean(TURN_TEXT[t.state]);
+  const shownIds = new Set(recent.map((m) => m.id));
+  const turnOf = (m: ConversationDetailView["messages"][number]) =>
+    m.author === "agent"
+      ? null
+      : (d.turns.find((t) => t.message_id === m.id) ?? null);
+  const unanchored = d.turns.filter(
+    (t) => unresolved(t) && !(t.message_id && shownIds.has(t.message_id)),
+  );
   const last = d.turns.at(-1);
-  const open = d.conversation.state === "open";
+  const lastUnanchored = last && unanchored.includes(last) ? last : null;
+  const earlier = unanchored.filter((t) => t !== lastUnanchored);
   if (revoked)
     return (
       <div className="agent-pane conversation stack">
@@ -178,28 +234,38 @@ export function ConversationPeek({
                   />
                 </>
               ) : null}
+              {(() => {
+                const turn = turnOf(m);
+                return turn && unresolved(turn) ? (
+                  <PendingTurn turn={turn} />
+                ) : null;
+              })()}
             </div>
           </li>
         ))}
       </ol>
+      {earlier.length ? (
+        <ul className="small peek-earlier" data-testid="peek-earlier">
+          {earlier.map((t) => (
+            <li key={t.run_id} data-state={t.state}>
+              {t.responsibility_origin
+                ? "An earlier hand-over continuation"
+                : "An earlier request"}{" "}
+              {EARLIER[t.state]}{" "}
+              <Link href={`/conversations/${cid}#run-${t.run_id}`}>
+                See it in the conversation
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {staleRead ? (
         <p className="msg-pending" role="status" data-state="reconnecting">
           Can’t reach the conversation right now. Showing what was last read;
           sending waits until it reconnects.
         </p>
       ) : null}
-      {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
-        <div className="msg-pending" data-state={last.state}>
-          {last.responsibility_origin ? (
-            <p className="eyebrow-caps">Hand-over continuation</p>
-          ) : null}
-          <TurnSummary
-            state={last.state}
-            progress={last.progress}
-            fallback={TURN_TEXT[last.state]}
-          />
-        </div>
-      ) : null}
+      {lastUnanchored ? <PendingTurn turn={lastUnanchored} /> : null}
       {open ? (
         <form
           className="ask peek-ask"
@@ -246,11 +312,7 @@ export function ConversationPeek({
               className="send-round"
               aria-label="Send"
               title="Send"
-              disabled={
-                (!reply.text.trim() && !reply.uncertain) ||
-                reply.sending ||
-                staleRead
-              }
+              disabled={!reply.canSend}
             >
               <span aria-hidden="true">↑</span>
             </button>

@@ -15,10 +15,11 @@ const ABSENT = "unsupported_operation";
 type Read = { present: false } | { present: true; detail: Responsibility };
 
 /**
- * What is known about an assignment's responsibility right now. Only the
- * service's documented "none here" answer is absence; a denied or failed
- * read is never treated as absence, so nothing falls back to other controls
- * while the state is unknown.
+ * What is known about an assignment's responsibility right now. Only a
+ * current read of the service's documented "none here" answer is absence; a
+ * denied or failed read, or an earlier "none here" that can't be re-read, is
+ * never treated as absence, so nothing falls back to other controls while
+ * the state is unknown.
  */
 export type ResponsibilityState =
   | { kind: "loading" }
@@ -31,7 +32,16 @@ export type ResponsibilityState =
       stale: boolean;
     }
   | { kind: "denied"; error: ApiError }
-  | { kind: "unknown"; error: ApiError };
+  | {
+      kind: "unknown";
+      error: ApiError | null;
+      /**
+       * When a re-read fails after the service said there was none: when
+       * that was read. It may have been activated since, so it is not
+       * treated as absence until a fresh read says so.
+       */
+      lastAbsentAt?: string | null;
+    };
 
 const OPEN_POLL_MS = 4000;
 const ABSENT_POLL_MS = 15000;
@@ -103,6 +113,8 @@ export function useResponsibility(
       observedAt: res.observedAt,
       stale: res.reconnecting,
     };
+  else if (res.data && res.reconnecting)
+    state = { kind: "unknown", error: null, lastAbsentAt: res.observedAt };
   else if (res.data) state = { kind: "absent" };
   else if (res.error)
     state =

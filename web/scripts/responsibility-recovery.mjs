@@ -76,6 +76,7 @@ try {
   const cids = {};
   const plain = await handover("Keep the volunteer list tidy.");
   const aid = await handover("Help me run the volunteer briefing.");
+  const late = await handover("Sort the donation receipts.");
   const respURL = `**/assignments/${aid}/responsibility`;
   const controlURL = `**/assignments/${aid}/responsibility/control`;
 
@@ -156,6 +157,72 @@ try {
   });
   await page.unroute(`**/assignments/${plain}/responsibility`);
   pass("a delayed read offers no controls until absence is confirmed");
+
+  // R1: an earlier "none here" that can't be re-read isn't current absence.
+  // The older claims and controls go until a fresh read says "none" again.
+  const reread = (id) =>
+    page.waitForResponse(
+      (r) => r.url().endsWith(`/assignments/${id}/responsibility`),
+      { timeout: 20000 },
+    );
+  const staleAbsence = async (id) => {
+    await page.goto(`${origin}/assignments/${id}`);
+    await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(
+      page.getByText("nothing has been admitted to run").first(),
+    ).toBeVisible();
+    await page.route(`**/assignments/${id}/responsibility`, (route) =>
+      route.abort("failed"),
+    );
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(page.getByTestId("responsibility-unknown")).toContainText(
+      "When last read at",
+      { timeout: 15000 },
+    );
+    await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
+    await expect(
+      page.getByText("nothing has been admitted to run"),
+    ).toHaveCount(0);
+    await expect(page.getByText("I own")).toHaveCount(0);
+    await page.unroute(`**/assignments/${id}/responsibility`);
+  };
+  await staleAbsence(plain);
+  await shot(page, "r1-stale-absence");
+  const back = reread(plain);
+  await page
+    .getByTestId("responsibility-unknown")
+    .getByRole("button", { name: "Check again" })
+    .click();
+  await back;
+  await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByTestId("responsibility-unknown")).toHaveCount(0);
+  pass("stale absence holds older controls; a fresh absence brings them back");
+
+  await staleAbsence(late);
+  const l0 = (await api(`/assignments/${late}`)).body;
+  const lact = await api(`/assignments/${late}/responsibility`, {
+    ...cmd(),
+    expected_work_version: l0.work_version,
+    current_outcome: "Receipts are sorted by month.",
+    next_action: { kind: "continue_work", description: "Total each month." },
+  });
+  assert.equal(lact.status, 201, JSON.stringify(lact.body));
+  await page
+    .getByTestId("responsibility-unknown")
+    .getByRole("button", { name: "Check again" })
+    .click();
+  await expect(page.getByTestId("responsibility")).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
+  await expect(page.getByTestId("responsibility")).toContainText(
+    "Receipts are sorted by month.",
+  );
+  pass("stale absence recovers to a responsibility activated meanwhile");
 
   // Activation by the runtime shows up on an open page without a reload (F3).
   await page.goto(`${origin}/assignments/${aid}`);

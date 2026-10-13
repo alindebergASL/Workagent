@@ -58,8 +58,9 @@ export default function AssignmentPage() {
     a ? Boolean(a.conversation_id) : null,
   );
   const rs = responsibility.state;
-  // Legacy ownership wording and steering apply only once the service has
-  // said there is no responsibility here; never while it's unknown or denied.
+  // Legacy ownership wording and steering apply only while a current read
+  // says there is no responsibility here; never while it's unknown, denied,
+  // or an earlier "none" can't be re-read.
   const legacy = rs.kind === "absent";
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
@@ -348,7 +349,9 @@ export default function AssignmentPage() {
           data-testid="responsibility-unknown"
         >
           <p>
-            Couldn’t read who holds this. Steering waits until it can be read.
+            {rs.lastAbsentAt
+              ? `When last read at ${formatTime(rs.lastAbsentAt, zone)}, nothing was recorded as holding this, but it can’t be checked again right now and may have changed. Steering waits until it can be read.`
+              : "Couldn’t read who holds this. Steering waits until it can be read."}
           </p>
           <div className="row">
             <button

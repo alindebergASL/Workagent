@@ -256,3 +256,65 @@ edited.
 **Limits:** the runtime requests and execution statuses in those browser
 cases are injected into real API responses. No actual continuation run was
 admitted or executed here.
+
+## Residual review findings R1–R3 (comment 6149849176, against `9ef4d7b`)
+
+Narrow corrections; no new store, loop, backend or contract change.
+
+- **R1: a stale "none here" is not absence.** If a re-read fails after
+  the service said there was no responsibility, `useResponsibility` now
+  reports `unknown` with the time of that last read, not `absent`. The
+  older Stop/"nothing has been admitted" wording and steering stay hidden
+  until a fresh read says "none" again. The notice reads: "When last read
+  at …, nothing was recorded as holding this, but it can't be checked
+  again right now and may have changed. Steering waits until it can be
+  read." Re-reads keep going on their bounded backoff, and "Check again"
+  is offered. Screenshot: `evidence/general-alpha-15/stale-absence-1280.png`.
+- **R2: sending is held at admission, not just on the button.**
+  `useConversationReply` takes `held` and returns `canSend`. `send()`
+  refuses while held, so the button, Ctrl+Enter, Cmd+Enter and a form
+  submission all behave the same. The pane beside the work holds sending
+  while it can't re-read the conversation, has lost access, or the
+  conversation has ended. The draft is kept. An unconfirmed send keeps its
+  exact command and is replayed only after the pane reconnects.
+- **R3: each request beside the work keeps its own outcome.** An
+  unresolved turn (failed, unknown outcome, unavailable, stopped, no reply,
+  waiting) shows under the request that started it, with "Why" and the
+  service's reason where one is given. This matches the full conversation.
+  A later turn no longer removes it, and it is never shown twice. A latest
+  turn with no request to anchor to still shows at the end. An unresolved
+  turn whose request has scrolled out of the pane gets a line linking to
+  `/conversations/{id}#run-{run}`.
+
+**RED → GREEN.** Each new regression was run against the `9ef4d7b` source
+first and failed there:
+
+- R2: one send was admitted while stale.
+- R3: no failed state under the runtime request.
+- R1: the real stack kept showing absence after the failed re-read.
+
+They pass on this commit.
+
+**Checks on this commit:**
+
+- 201 unit tests; type, lint, format and `git diff --check`.
+- Production builds (domain and mock).
+- 32 mounted DOM regressions, including these new ones:
+  - zero sends from Ctrl+Enter, Cmd+Enter and form submission while
+    stale, then one deliberate send after reconnecting;
+  - an unconfirmed send held while stale and then replayed with the same
+    `command_id`;
+  - failed and outcome-unknown continuations keeping their own state and
+    reason after a later turn, with a link once out of view.
+- 9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls:
+  - `responsibility-recovery.mjs`, now 18 cases. The new ones go from
+    absent to a failed re-read and then recover to absent, and to ready
+    after an activation made meanwhile;
+  - responsibility journey; conversation journey;
+  - `verify_general_integration.py`; flexible create/reopen; products
+    journey.
+
+**Limits:** the failed re-reads in the R1 cases are network faults injected
+in the browser against a real API. The R2 and R3 cases use fixture
+transport. No actual continuation run was executed here.
