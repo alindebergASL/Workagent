@@ -1,4 +1,5 @@
 import type { components } from "../../../../contracts/src/client";
+import contract from "../../../../contracts/message-attachments.json";
 
 type S = components["schemas"];
 
@@ -11,52 +12,86 @@ export type MessageAttachment = S["AttachmentInput"];
 /** The exact saved version a reply is about, from the current readback. */
 export type ExactTarget = S["ExactTarget"];
 
+/**
+ * The service's published admission rules for message attachments
+ * (contracts/message-attachments.json). Every check below reads them; none
+ * is a separate frontend rule. Files are inert text: nothing in them is run,
+ * rendered or followed.
+ */
 export const ATTACHMENT_LIMITS = {
-  count: 2,
-  totalBytes: 200000,
-  filename: /^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|txt)$/,
+  count: contract.count,
+  totalBytes: contract.total_bytes,
+  fileBytes: contract.file_bytes,
+  filenameMaxLength: contract.filename_max_length,
+  filename: new RegExp(contract.filename_pattern),
+  extensions: contract.extensions,
 } as const;
 
+/** File-picker hint from the published extensions; not authoritative. */
+export const ATTACH_ACCEPT = contract.extensions.map((e) => `.${e}`).join(",");
+
 const utf8 = new TextEncoder();
+const kb = (n: number) => `${Math.round(n / 1000)} KB`;
+
+/** The MIME type the service requires for an admitted filename. */
+export function attachmentMime(
+  filename: string,
+): MessageAttachment["mime_type"] {
+  return (
+    filename.endsWith(".csv") ? contract.csv_mime : contract.other_mime
+  ) as MessageAttachment["mime_type"];
+}
+
+/** Why a filename can't be attached, or null if it can. */
+export function filenameProblem(name: string): string | null {
+  if (
+    name.length > ATTACHMENT_LIMITS.filenameMaxLength ||
+    !ATTACHMENT_LIMITS.filename.test(name)
+  )
+    return `Attach a text or code file (such as .txt, .csv, .md, .py or .ts) whose name has only letters, numbers, dots, - or _, at most ${ATTACHMENT_LIMITS.filenameMaxLength} characters.`;
+  return null;
+}
 
 /**
  * Read one chosen file as an attachment, or explain why it can't be one.
- * The content is the file's UTF-8 text exactly, except that a leading byte
- * order mark is dropped (the standard decoder does this), so a CSV header
- * keeps its first column name.
+ * The content is the file's UTF-8 text exactly as saved: a byte order mark
+ * and line endings are kept, nothing is normalised, so the service's hash
+ * and byte count describe the file's own bytes.
  */
 export async function readAttachment(file: File): Promise<MessageAttachment> {
-  if (!ATTACHMENT_LIMITS.filename.test(file.name))
-    throw new Error(
-      "Use a .csv or .txt file whose name has only letters, numbers, - or _.",
-    );
+  const nameProblem = filenameProblem(file.name);
+  if (nameProblem) throw new Error(nameProblem);
   if (file.size === 0) throw new Error(`${file.name} is empty.`);
-  if (file.size > ATTACHMENT_LIMITS.totalBytes)
-    throw new Error(`${file.name} is larger than 200 KB.`);
+  if (file.size > ATTACHMENT_LIMITS.fileBytes)
+    throw new Error(
+      `${file.name} is larger than ${kb(ATTACHMENT_LIMITS.fileBytes)}.`,
+    );
   let content: string;
   try {
-    content = new TextDecoder("utf-8", { fatal: true }).decode(
-      await file.arrayBuffer(),
-    );
+    content = new TextDecoder(contract.encoding, {
+      fatal: true,
+      ignoreBOM: contract.preserve_bom,
+    }).decode(await file.arrayBuffer());
   } catch {
     throw new Error(`${file.name} isn’t plain UTF-8 text.`);
   }
   if (!content) throw new Error(`${file.name} is empty.`);
-  if (content.includes("\u0000"))
+  if (contract.forbidden_characters.some((c) => content.includes(c)))
     throw new Error(`${file.name} contains a NUL character.`);
   return {
     filename: file.name,
-    mime_type: file.name.endsWith(".csv") ? "text/csv" : "text/plain",
+    mime_type: attachmentMime(file.name),
     content,
   };
 }
 
 /** Whether a set of attachments fits the admission limits together. */
 export function attachmentsProblem(list: MessageAttachment[]): string | null {
-  if (list.length > ATTACHMENT_LIMITS.count) return "Attach at most two files.";
+  if (list.length > ATTACHMENT_LIMITS.count)
+    return `Attach at most ${ATTACHMENT_LIMITS.count === 2 ? "two" : ATTACHMENT_LIMITS.count} files.`;
   const total = list.reduce((n, a) => n + utf8.encode(a.content).length, 0);
   if (total > ATTACHMENT_LIMITS.totalBytes)
-    return "Attachments can total at most 200 KB.";
+    return `Attachments can total at most ${kb(ATTACHMENT_LIMITS.totalBytes)}.`;
   return null;
 }
 

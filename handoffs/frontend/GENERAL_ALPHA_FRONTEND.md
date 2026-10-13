@@ -350,10 +350,8 @@ rule of its own for them.
   hover. The content is never shown or interpreted.
 - **Readable names.** Long names keep their extension, here and in the Home
   composer, so `….csv` and `….txt` stay distinguishable.
-- **Byte order mark (documented and tested).** A leading BOM is dropped
-  when the file is read, because the standard UTF-8 decoder does this. A
-  CSV header therefore keeps its first column name. Everything else is
-  kept byte for byte. A file that is only a BOM is refused as empty.
+- **Byte order mark:** superseded below. The published contract keeps the
+  BOM.
 
 **Checks on this commit:**
 
@@ -391,3 +389,54 @@ rule of its own for them.
 - Responsibility creation (`record_responsibility`) is a backend gap, as
   Hermes noted. Nothing in the frontend infers or activates a
   responsibility.
+
+## Published attachment contract integrated (`f0a0dd8`, comment 6153938304)
+
+Merged `hermes/alpha-text-attachments` (`f0a0dd8`). The frontend now reads
+`contracts/message-attachments.json` for every attachment check, with no
+separate frontend rule.
+
+- **Shared reader.** `readAttachment`, `filenameProblem`, `attachmentMime`
+  and `attachmentsProblem` (in `lib/contract/natural.ts`) take everything
+  from the descriptor: the pattern and 85-character limit, the extensions,
+  the per-file and total bytes, the count, the CSV versus other MIME
+  types, and the forbidden characters.
+  - The file picker's `ATTACH_ACCEPT` is built from the extensions. It is a
+    hint only; the service checks every file again.
+  - The same reader is used by the Home composer, the conversation's reply
+    and the pane beside the work.
+- **Exact bytes.** Files are decoded with `fatal: true, ignoreBOM: true`
+  (`preserve_bom`). A BOM, CRLF line endings and every other byte are kept,
+  so the hash and byte length the service records describe the file's own
+  bytes. This reverses the BOM-dropping behaviour of `44c86a0`. A file
+  that is only a BOM is now admitted, matching the backend.
+- **Shared vectors.** `web/test/fixtures/attachment-vectors.json` holds 23
+  generic synthetic cases: dotted basenames, paths, a leading dot, an empty
+  dot segment, spaces, tab, upper-case extensions, unsupported types, 85
+  and 86 characters, empty, NUL, invalid UTF-8, other control bytes,
+  BOM+CRLF and inert HTML/script content. The same file is checked in
+  three places, which agree on every verdict, MIME type and exact byte:
+  - Node: `test/attachment-vectors.test.ts`;
+  - Chromium: the DOM regressions;
+  - the backend's own `AttachmentInput`: `web/scripts/attachment-parity.py`.
+
+**Checks on this commit:**
+
+- 224 unit tests (23 new vector cases); type, lint, format and
+  `git diff --check`.
+- Domain and mock production builds.
+- 36 DOM regressions, including the vectors in Chromium.
+- Backend parity script: 23 of 23 agree.
+- 9 sandbox regressions; 15 mock e2e tests.
+- Real stack on the merged tree, controlled, no model calls:
+  - conversation, products, flexible create/reopen;
+  - `verify_general_integration.py`;
+  - 18 recovery cases.
+- Hermes's `test_text_attachments.py`: 38 of 38 pass.
+
+**Intermittent backend test (reported to Hermes, not changed here):**
+`test_text_attachment_journey.py` sometimes gets a 422
+`unsupported_operation` on the targeted reply. Hermes's exact `f0a0dd8`
+tree does the same; the backend files are byte-identical. It failed about
+1 in 6 repeated runs on one fresh database, and it also passed on both
+trees.

@@ -1,5 +1,5 @@
 "use client";
-import type { MessageAttachment } from "@/lib/contract/natural";
+import { ATTACH_ACCEPT, type MessageAttachment } from "@/lib/contract/natural";
 
 /**
  * A file name that keeps its extension when it has to be shortened, so two
@@ -16,9 +16,6 @@ export function FileName({ name }: { name: string }) {
     </span>
   );
 }
-
-/** Files the picker offers; the service checks every file again. */
-export const ATTACH_ACCEPT = ".csv,.txt,text/csv,text/plain";
 
 /**
  * The files attached to a reply: each by name with a way to remove it, any

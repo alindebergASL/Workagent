@@ -114,21 +114,6 @@ describe("natural admission payload (contract from PR #9)", () => {
     await expect(
       readAttachment(new File([new Uint8Array([0xff, 0xfe])], "bin.txt")),
     ).rejects.toThrow("UTF-8");
-    // A leading byte order mark is dropped; the rest is kept exactly.
-    const bom = new Uint8Array([
-      0xef,
-      0xbb,
-      0xbf,
-      ...new TextEncoder().encode("id\r\n1\n"),
-    ]);
-    await expect(
-      readAttachment(new File([bom], "bom.csv")),
-    ).resolves.toMatchObject({ content: "id\r\n1\n" });
-    await expect(
-      readAttachment(
-        new File([new Uint8Array([0xef, 0xbb, 0xbf])], "only-bom.txt"),
-      ),
-    ).rejects.toThrow("empty");
     expect(attachmentsProblem([csv, csv])).toBeNull();
     expect(attachmentsProblem([csv, csv, csv])).toMatch("two");
     const big = { ...csv, content: "é".repeat(100001) }; // 200002 bytes

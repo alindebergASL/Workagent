@@ -18,6 +18,7 @@ import {OperationComposer} from '@/components/OperationComposer';
 import ProductPage from '@/app/conversations/[id]/artifacts/[artifactId]/page';
 import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
+import {readAttachment} from '@/lib/contract/natural';
 function Reply({ws,cid,version}) {
   const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural)});
   return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
@@ -35,6 +36,21 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
     : mode === 'product' ? <ProductPage/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
 };
 window.reads = {};
+const realArrayBuffer = File.prototype.arrayBuffer;
+window.runVectors = async (vectors) => {
+  const out = [];
+  for (const v of vectors) {
+    const bytes = new Uint8Array((v.hex.match(/../g) ?? []).map(b => parseInt(b, 16)));
+    const file = new File([bytes], v.name);
+    file.arrayBuffer = realArrayBuffer;
+    try {
+      const a = await readAttachment(file);
+      const hex = [...new TextEncoder().encode(a.content)].map(b => b.toString(16).padStart(2, '0')).join('');
+      out.push({name: v.name, ok: true, mime: a.mime_type, exact: hex === v.hex});
+    } catch { out.push({name: v.name, ok: false}); }
+  }
+  return out;
+};
 File.prototype.arrayBuffer = function() {
   return new Promise((resolve,reject) => {
     window.reads[this.name] = {resolve: text => resolve(new TextEncoder().encode(text).buffer), reject};
@@ -1521,7 +1537,7 @@ try {
   };
   await pick("bad name.py");
   await expect(pane.getByRole("alert")).toContainText(
-    "Use a .csv or .txt file",
+    "Attach a text or code file",
   );
   await pick("notes.txt", "alpha\nbeta\n");
   await expect(pane.getByTestId("reply-files")).toContainText("notes.txt");
@@ -1685,6 +1701,27 @@ try {
   passed++;
   console.log(
     "PASS the conversation's own reply sends attached files with no target and clears them on confirmation",
+  );
+
+  // Browser half of the shared admission vectors (Node: vitest; backend:
+  // scripts/attachment-parity.py): same verdicts, MIME and exact bytes.
+  const shared = JSON.parse(
+    readFileSync(
+      path.join(web, "test/fixtures/attachment-vectors.json"),
+      "utf8",
+    ),
+  ).vectors;
+  const inBrowser = await page.evaluate((v) => window.runVectors(v), shared);
+  for (const [i, v] of shared.entries()) {
+    assert.equal(inBrowser[i].ok, v.ok, `browser verdict for ${v.name}`);
+    if (v.ok) {
+      assert.equal(inBrowser[i].mime, v.mime, `browser MIME for ${v.name}`);
+      assert.ok(inBrowser[i].exact, `browser exact bytes for ${v.name}`);
+    }
+  }
+  passed++;
+  console.log(
+    `PASS ${shared.length} shared attachment vectors read the same in Chromium (dotted names, paths, 85/86 characters, BOM/CRLF exact)`,
   );
 
   // A model reply reads as text: emphasis and lists render, syntax and any

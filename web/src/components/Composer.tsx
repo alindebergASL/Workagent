@@ -14,6 +14,7 @@ import { conversationApi } from "@/lib/client/real-api";
 import { shortTitle } from "@/lib/work-state";
 import { FileName } from "@/components/AttachedFiles";
 import {
+  ATTACH_ACCEPT,
   attachmentsProblem,
   readAttachment,
   type MessageAttachment,
@@ -515,7 +516,7 @@ export function Composer({
               <input
                 type="file"
                 className="sr-only"
-                accept=".csv,.txt,text/csv,text/plain"
+                accept={ATTACH_ACCEPT}
                 multiple
                 disabled={locked || files.length >= 2}
                 onChange={(e) => {

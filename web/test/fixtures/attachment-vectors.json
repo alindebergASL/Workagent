@@ -1,0 +1,130 @@
+{
+  "about": "Shared admission vectors: the browser reader, Node and the backend AttachmentInput must agree. Generic synthetic inputs only.",
+  "vectors": [
+    {
+      "name": "example.py",
+      "hex": "7072696e742827686927290a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "README.md",
+      "hex": "23205469746c650d0a0d0a426f64790d0a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "parser.test.ts",
+      "hex": "74657374282778272c202829203d3e207b7d290a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "data.csv",
+      "hex": "69642c7175616e746974790a312c320a",
+      "ok": true,
+      "mime": "text/csv"
+    },
+    {
+      "name": "page.html",
+      "hex": "3c7363726970743e616c6572742831293c2f7363726970743e0a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "bom-crlf.txt",
+      "hex": "efbbbf6c696e65206f6e650d0a6c696e652074776f0d0a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "bom.csv",
+      "hex": "efbbbf69642c7175616e746974790d0a312c320d0a",
+      "ok": true,
+      "mime": "text/csv"
+    },
+    {
+      "name": "only-bom.txt",
+      "hex": "efbbbf",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.py",
+      "hex": "783d310a",
+      "ok": true,
+      "mime": "text/plain"
+    },
+    {
+      "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.py",
+      "hex": "783d310a",
+      "ok": false
+    },
+    {
+      "name": "../escape.py",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "dir/inner.py",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": ".env.txt",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "a..py",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "a b.md",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "tab\tname.py",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "Upper.PY",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "report.xlsx",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "Makefile",
+      "hex": "780a",
+      "ok": false
+    },
+    {
+      "name": "empty.py",
+      "hex": "",
+      "ok": false
+    },
+    {
+      "name": "nul.txt",
+      "hex": "610062",
+      "ok": false
+    },
+    {
+      "name": "invalid.txt",
+      "hex": "fffe",
+      "ok": false
+    },
+    {
+      "name": "control.txt",
+      "hex": "62656c6c0720616e6420746162090a",
+      "ok": true,
+      "mime": "text/plain"
+    }
+  ]
+}
