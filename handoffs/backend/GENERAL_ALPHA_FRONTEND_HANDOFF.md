@@ -11,6 +11,16 @@ Base: PR #14 `a0764115ecc24ef4ca3cf3832c483249c64a1ea6`; tested application `5ac
 3. Explain actual capability gaps. An unavailable connection or unsupported operation is not an invitation to pretend an artifact performed it. No account configuration flow or implied external operation without a real contract.
 4. Inspect existing 'Take it from here' delegation. Do not imply active ownership when the backend only saves a paused handover. Until the new canonical lifecycle is available, accurately label what is recorded and what remains necessary. Do not substitute UI timers or a second task store.
 
+## Concrete findings from the retained actual experience
+
+Read-only desktop/390px review of conversation `cf457e1d-0590-4dea-9287-279413eefa9c` and document `54f1ff77-d3c1-43f1-8416-69338e415089` found:
+
+1. **Answer loss is backend-first.** Both `.msg-agent .msg-body` elements contain the same generic validation disclaimer already stored in `message.text`. `real-api.ts` passes it through; no adaptive-summary node is displacing it. `products.complete_general_product` overwrites the retained final explanation with `adaptive.stage_metadata`'s reason. Hermes is fixing this. Do not try to recover old model prose by frontend reconstruction or by editing `TurnProgress` alone. Present the supplied substantive answer separately from trusted validation/approval state, including `ConversationPeek`.
+2. **Historical result links misidentify current work.** “Open document proposed change” remains after proposal acceptance, and both message links open current work without revision/proposal targeting. Resolve labels against actual proposal state, distinguish “Open current work” from the historical/accepted result, and expose later-human-edit comparison/history. Accepted revision `cd06942f-1a32-409a-b186-13900632970c` closes at 16:00; current revision `6029f895-07ca-421c-96a6-9c77a69ddb32` has later human edits (checked guide decision and a 17:00 closing label). Do not attribute those changes to the agent, infer external agreement from a checkbox, or reset them.
+3. **Qualify ownership before commitment.** Entry CTA “Take it from here” implies more than the subsequent truthful “Record hand-over” paused-state disclosure. Label the actual capability before submission. After lifecycle integration, use canonical state/eligibility rather than either a permanent paused disclaimer or a premature ownership promise.
+
+The accepted body contains useful adaptation (protected sessions, a conditional replacement-guide decision and the entrance reminder); a concise change/decision lead would help more than another verification banner. Preserve meaningful uncertainties and immutable historical messages/receipts. This diagnosis is read-only evidence, not a new live experiment or a reason to modify saved work.
+
 ## Contract-dependent wiring (Hermes will publish exact generated delta)
 
 Backend writers are implementing:
