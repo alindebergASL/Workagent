@@ -132,3 +132,77 @@ Checks on this commit:
 
 Not covered by these checks: live model output. Direct-answer and
 retained-explanation rendering is covered by unit tests, not a live run.
+
+## Review corrections F1–F5 (comment 6137032304), against the published contract
+
+Hermes provided a contract snapshot patch (SHA-256 `90b0d973…3fba45`). I
+verified that the hash matches and that it applies to `55e2924`. Applying it
+locally was blocked in this session because it edits Hermes-owned contract
+files, so everything below compiles against the published contract at
+`cb87f3f`. Items that need the new types wait for the canonical revision.
+
+**Done:**
+
+- **F4: absence versus errors.**
+  - The responsibility read now has explicit states: loading, absent,
+    ready (or stale), denied and unknown.
+  - Only `unsupported_operation` counts as absence. A denied, failed or
+    still-loading read never falls back to the older steering or to "I own"
+    or "Waiting on" claims.
+  - The panel beside the work handles a terminal authorization failure by
+    replacing its opening snapshot and removing the conversation and the
+    reply box. A recoverable failure keeps a labelled snapshot and holds
+    sending.
+- **F3: refresh.**
+  - Re-reads are read-only: every 4s while open, every 15s while a
+    conversation's assignment has no responsibility yet, and never once it
+    is closed or denied. They stop when the route changes.
+  - The read starts only after the assignment is known, which fixes a race
+    that skipped the absent-state poll.
+  - A visible "Check again" re-reads both the assignment and the
+    responsibility. "Read at …" or a stale notice says what is shown.
+- **F5: control recovery.**
+  - An unconfirmed control is stored in the tab-scoped pending-command
+    journal, so it survives a reload.
+  - Until it is resolved, the only option is retrying that exact command;
+    no other control can replace it.
+  - The service's acknowledgement is kept separate from a successful
+    re-read. If the re-read fails, the page shows the reply, labelled as
+    "not re-read yet", and steering waits.
+  - A CAS conflict is never rebased and resent. Its message says whether the
+    current state was actually re-read.
+- **F2 (contract-independent part):**
+  - On an assignment that has a responsibility, the older ownership prose
+    and steering are suppressed, and the status line points to the panel.
+  - Lists and the conversation's hand-over link no longer claim "can't
+    carry work forward". They say "Handed over" and "Open it to see where it
+    stands".
+  - Execution wording is keyed by the generated `execution_status`
+    (`not_admitted`: "Not admitted to run…"), so every status the contract
+    adds must be worded before it compiles.
+  - Stopped and taken-back states say no one holds it any more.
+
+**Waiting for the canonical contract:** F1 (the `system` author, runtime
+origin and `responsibility_origin` on messages and turns), and F2's
+queued, running, settled and blocked wording plus a link to the run.
+
+**Checks:**
+
+- `pnpm check`: 190 unit tests, plus type, lint and format checks.
+- Production build.
+- 29 DOM regressions, including the stale and revoked panel beside the
+  work; 9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls:
+  - flexible create/reopen;
+  - `verify_general_integration.py`;
+  - conversation journey;
+  - responsibility journey;
+  - new `responsibility-recovery.mjs` (14 cases): confirmed absence;
+    denied, unauthenticated, transport and delayed reads with no fallback;
+    activation appearing on an open page; pause and resume made elsewhere
+    appearing without a reload; a stale read holding steering and then
+    recovering; a lost acknowledgement surviving a reload, with the retry
+    sending the same `command_id`, operation and version once; a confirmed
+    command with a failed re-read; CAS conflicts with a successful and a
+    failed re-read, each sent once; a dismissed confirmation sending
+    nothing; take-back; reads stopping when the route changes.

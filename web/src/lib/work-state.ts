@@ -173,7 +173,7 @@ export function statusOf(a: AssignmentSummary): {
       return { label: "Stopped", tone: "" };
     case "paused":
       return a.conversation_id
-        ? { label: "Handed over · not started", tone: "" }
+        ? { label: "Handed over", tone: "" }
         : { label: "Paused", tone: "" };
   }
   return legacyStatus(a);

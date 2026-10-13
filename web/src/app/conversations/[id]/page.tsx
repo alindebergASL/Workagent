@@ -378,7 +378,7 @@ export default function ConversationPage() {
                   <span className="work-row-main">
                     <span className="work-row-title">Recorded hand-over</span>
                     <span className="work-row-note">
-                      Paused: I can’t carry work forward on my own yet.
+                      Open it to see where it stands.
                     </span>
                   </span>
                   <span className="work-row-go" aria-hidden="true">

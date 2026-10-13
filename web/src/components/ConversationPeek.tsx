@@ -67,6 +67,13 @@ export function ConversationPeek({
     (signal) => conversationApi.get(wsId, cid, signal),
     { pollMs: 2000, shouldPoll: (d) => inFlight(d) },
   );
+  // A terminal read (no longer authorized, or gone) replaces everything that
+  // was shown, including the snapshot this pane opened with.
+  const revoked =
+    res.error?.code === "not_found_or_not_authorized" ||
+    res.error?.code === "unauthenticated";
+  // A recoverable failure keeps a labelled snapshot, with sending held.
+  const staleRead = res.reconnecting || Boolean(res.error && !res.data);
   const d = res.data ?? initial;
   const reply = useConversationReply({
     wsId,
@@ -101,6 +108,16 @@ export function ConversationPeek({
   const recent = d.messages.slice(-8);
   const last = d.turns.at(-1);
   const open = d.conversation.state === "open";
+  if (revoked)
+    return (
+      <div className="agent-pane conversation stack">
+        <p className="eyebrow-caps">From the conversation</p>
+        <p className="notice-line" role="status" data-testid="peek-revoked">
+          This conversation isn’t available to you any more, so nothing from it
+          is shown here.
+        </p>
+      </div>
+    );
   return (
     <div className="agent-pane conversation stack">
       <p className="eyebrow-caps">From the conversation</p>
@@ -159,9 +176,10 @@ export function ConversationPeek({
           </li>
         ))}
       </ol>
-      {res.reconnecting || (res.error && !res.data) ? (
+      {staleRead ? (
         <p className="msg-pending" role="status" data-state="reconnecting">
-          Can’t reach the conversation right now. Showing what was last read.
+          Can’t reach the conversation right now. Showing what was last read;
+          sending waits until it reconnects.
         </p>
       ) : null}
       {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
@@ -220,7 +238,9 @@ export function ConversationPeek({
               aria-label="Send"
               title="Send"
               disabled={
-                (!reply.text.trim() && !reply.uncertain) || reply.sending
+                (!reply.text.trim() && !reply.uncertain) ||
+                reply.sending ||
+                staleRead
               }
             >
               <span aria-hidden="true">↑</span>

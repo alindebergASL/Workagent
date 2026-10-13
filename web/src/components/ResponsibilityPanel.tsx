@@ -1,8 +1,10 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { newCommandId } from "@/lib/client/api";
+import { usePendingCommand } from "@/lib/client/pending-command";
 import {
   controlResponsibility,
+  type ControlIntent,
   type Responsibility,
   type ResponsibilityOperation,
 } from "@/lib/client/responsibility";
@@ -18,66 +20,123 @@ const LABEL: Record<ResponsibilityOperation, [string, string]> = {
   cancel: ["Stop", "Stopping…"],
   takeover: ["Take this back", "Taking it back…"],
 };
-const DONE: Record<ResponsibilityOperation, string> = {
-  pause: "Paused.",
-  resume: "Resumed. It is recorded as yours to carry forward again.",
-  cancel: "Stopped. Saved results are kept.",
-  takeover: "It’s back with you. Saved results are kept.",
+const NOUN: Record<ResponsibilityOperation, string> = {
+  pause: "pause",
+  resume: "resume",
+  cancel: "stop",
+  takeover: "take this back",
 };
+const ACKED: Record<ResponsibilityOperation, string> = {
+  pause: "The service confirmed the pause.",
+  resume: "The service confirmed the resume.",
+  cancel: "The service confirmed the stop. Saved results are kept.",
+  takeover: "The service confirmed it’s back with you. Saved results are kept.",
+};
+
+/**
+ * The newer of what was last read and what the service last acknowledged,
+ * by work version. A reply is shown only when it is newer, and is then
+ * labelled as not yet re-read.
+ */
+function latest(read: Responsibility, acked: Responsibility | null) {
+  return acked && acked.assignment.work_version > read.assignment.work_version
+    ? { detail: acked, fromReply: true }
+    : { detail: read, fromReply: false };
+}
 
 /**
  * The canonical responsibility on this assignment: what is recorded, what it
  * waits on, and the steering it supports. Nothing here implies work is
- * running; each command is compare-and-swap on the version on screen and an
- * unconfirmed send keeps its exact command for a retry.
+ * running. Each command is compare-and-swap on the version on screen. A
+ * command whose outcome is unknown is kept for this tab across reloads and
+ * can only be retried exactly; no other command replaces it, and nothing is
+ * resent automatically.
  */
 export function ResponsibilityPanel({
   ws,
-  detail,
-  onChanged,
+  detail: read,
+  observedAt,
+  stale,
+  refresh,
 }: {
   ws: string;
   detail: Responsibility;
-  onChanged: () => Promise<unknown> | void;
+  observedAt: string | null;
+  stale: boolean;
+  /** Re-reads the assignment and its responsibility; true if both read. */
+  refresh: () => Promise<boolean>;
 }) {
   const { zone } = useWorkspace();
-  const view = responsibilityView(detail.lifecycle);
+  const aid = read.assignment.id;
+  const pending = usePendingCommand<ControlIntent>(
+    `workagent:responsibility-control:${ws}:${aid}`,
+  );
+  const [acked, setAcked] = useState<Responsibility | null>(null);
+  const shown = latest(read, acked);
+  const view = responsibilityView(shown.detail.lifecycle);
   const [busy, setBusy] = useState<ResponsibilityOperation | null>(null);
   const [confirm, setConfirm] = useState<ResponsibilityOperation | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const [done, setDone] = useState<string | null>(null);
-  const pending = useRef<{
-    command_id: string;
-    operation: ResponsibilityOperation;
-    expected_work_version: number;
-  } | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  const unresolved = pending.current;
 
-  async function control(operation: ResponsibilityOperation) {
-    setBusy(operation);
+  async function send(intent: ControlIntent) {
+    setBusy(intent.operation);
     setError(null);
-    setDone(null);
+    setNote(null);
     try {
-      if (!pending.current || pending.current.operation !== operation)
-        pending.current = {
-          command_id: newCommandId(),
-          operation,
-          expected_work_version: detail.assignment.work_version,
-        };
-      await controlResponsibility(ws, detail.assignment.id, pending.current);
-      pending.current = null;
+      pending.set(intent);
+      const reply = await controlResponsibility(ws, aid, intent);
+      pending.clear(intent);
       setConfirm(null);
-      setDone(DONE[operation]);
-      await onChanged();
+      setAcked(reply);
+      const reread = await refresh();
+      setNote(
+        reread
+          ? ACKED[intent.operation]
+          : `${ACKED[intent.operation]} I couldn’t re-read its current state, so what’s shown is the service’s reply.`,
+      );
     } catch (e) {
+      setConfirm(null);
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
-        pending.current = null;
-        if (e instanceof ApiError && e.isVersionConflict) await onChanged();
+        // A definite answer resolves the command; never rebase and resend.
+        pending.clear(intent);
+        if (e instanceof ApiError && e.isVersionConflict) {
+          const reread = await refresh();
+          setNote(
+            reread
+              ? "This changed since you looked. Its current state is shown now; choose again if you still want to."
+              : "This changed since you looked, and I couldn’t re-read its current state. Check again before choosing.",
+          );
+          return;
+        }
       }
       setError(e);
     } finally {
       setBusy(null);
     }
   }
+
+  function start(operation: ResponsibilityOperation) {
+    if (pending.current) return; // Only the unresolved command may be retried.
+    void send({
+      command_id: newCommandId(),
+      operation,
+      expected_work_version: shown.detail.assignment.work_version,
+    });
+  }
+
+  async function checkAgain() {
+    setChecking(true);
+    setNote(null);
+    const ok = await refresh();
+    setChecking(false);
+    if (!ok) setNote("Couldn’t re-read its current state. Try again shortly.");
+  }
+
+  // Steering needs a current read and no command in doubt.
+  const steerable = !stale && !unresolved && !shown.fromReply && !busy;
 
   return (
     <section
@@ -87,12 +146,9 @@ export function ResponsibilityPanel({
     >
       <p className="eyebrow-caps">Responsibility</p>
       <h2 id="responsibility-title">{view.state}</h2>
-      {view.notRunning ? (
-        <p className="small" data-testid="responsibility-not-running">
-          Recorded only. I can’t work on this on my own yet, so nothing runs in
-          the background.
-        </p>
-      ) : null}
+      <p className="small" data-testid="responsibility-execution">
+        {view.execution}
+      </p>
       <dl className="glance-list">
         <div>
           <dt>Outcome so far</dt>
@@ -126,7 +182,45 @@ export function ResponsibilityPanel({
           A review is queued for when work can run. It hasn’t run.
         </p>
       ) : null}
-      {view.allowed.length ? (
+
+      <p className="hint" data-testid="responsibility-observed">
+        {shown.fromReply
+          ? "From the service’s reply; not re-read yet."
+          : stale
+            ? `Can’t reach the service. Showing what was read at ${observedAt ? formatTime(observedAt, zone) : "the last read"}; steering waits until it reconnects.`
+            : observedAt
+              ? `Read at ${formatTime(observedAt, zone)}.`
+              : null}{" "}
+        <button
+          type="button"
+          className="link-quiet small"
+          onClick={() => void checkAgain()}
+          disabled={checking}
+        >
+          {checking ? "Checking…" : "Check again"}
+        </button>
+      </p>
+
+      {unresolved ? (
+        <div className="notice-line stack-sm" role="status">
+          <p>
+            Your request to {NOUN[unresolved.operation]} wasn’t confirmed
+            {pending.restored ? " before this page reloaded" : ""}. Retrying
+            sends the same request, so it can’t happen twice. Nothing else can
+            be chosen until it’s resolved.
+          </p>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void send(unresolved)}
+              disabled={Boolean(busy)}
+            >
+              {busy ? "Retrying…" : `Retry: ${NOUN[unresolved.operation]}`}
+            </button>
+          </div>
+        </div>
+      ) : view.allowed.length ? (
         confirm ? (
           <div className="steer-confirm" role="group" aria-label="Confirm">
             <p className="small">
@@ -138,8 +232,8 @@ export function ResponsibilityPanel({
               <button
                 type="button"
                 className="btn btn-sm btn-danger-quiet"
-                onClick={() => void control(confirm)}
-                disabled={Boolean(busy)}
+                onClick={() => start(confirm)}
+                disabled={!steerable}
               >
                 {busy === confirm ? LABEL[confirm][1] : LABEL[confirm][0]}
               </button>
@@ -149,7 +243,7 @@ export function ResponsibilityPanel({
                 onClick={() => setConfirm(null)}
                 disabled={Boolean(busy)}
               >
-                Keep it as it is
+                Don’t {NOUN[confirm]}
               </button>
             </div>
           </div>
@@ -165,9 +259,9 @@ export function ResponsibilityPanel({
                 onClick={() =>
                   op === "cancel" || op === "takeover"
                     ? setConfirm(op)
-                    : void control(op)
+                    : start(op)
                 }
-                disabled={Boolean(busy)}
+                disabled={!steerable}
               >
                 {busy === op ? LABEL[op][1] : LABEL[op][0]}
               </button>
@@ -175,33 +269,12 @@ export function ResponsibilityPanel({
           </div>
         )
       ) : null}
-      {done ? (
+      {note ? (
         <p className="hint" role="status">
-          {done}
+          {note}
         </p>
       ) : null}
-      {error instanceof ApiError && error.isVersionConflict ? (
-        <p className="hint" role="status">
-          This changed since you looked. Its current state is shown now; choose
-          again if you still want to.
-        </p>
-      ) : error ? (
-        <ErrorNotice
-          error={error}
-          actions={
-            pending.current ? (
-              <button
-                type="button"
-                className="btn btn-sm"
-                onClick={() => void control(pending.current!.operation)}
-                disabled={Boolean(busy)}
-              >
-                Retry the same request
-              </button>
-            ) : undefined
-          }
-        />
-      ) : null}
+      {error ? <ErrorNotice error={error} /> : null}
     </section>
   );
 }

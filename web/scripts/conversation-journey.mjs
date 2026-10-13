@@ -284,7 +284,7 @@ try {
   await page.getByRole("link", { name: /Recorded hand-over/ }).click();
   await page.waitForURL(/\/assignments\//);
   await expect(page.locator("header .status").first()).toHaveText(
-    "Handed over · not started",
+    "Handed over",
   );
   await expect(page.getByRole("button", { name: "Resume" })).toHaveCount(0);
   await expect(
@@ -296,7 +296,7 @@ try {
   // Home never presents it as being handled.
   await page.goto(origin);
   await expect(page.locator(`[data-assignment="${aid}"] .status`)).toHaveText(
-    "Handed over · not started",
+    "Handed over",
   );
   await expect(page.locator(".since-handling")).toHaveCount(0);
   await shot(page, "06-home-desktop");
@@ -317,7 +317,7 @@ try {
     .click();
   await expect(page.getByRole("heading", { name: "Activity" })).toBeVisible();
   await expect(page.locator(`[data-activity="work:${aid}"]`)).toContainText(
-    "Handed over · not started",
+    "Handed over",
   );
   await expect(
     page.locator(`[data-activity="conversation:${cid}"]`),

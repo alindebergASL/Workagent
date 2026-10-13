@@ -83,7 +83,7 @@ describe("activity from recorded state", () => {
       ],
       [],
     );
-    expect(i!.status).toBe("Handed over · not started");
+    expect(i!.status).toBe("Handed over");
   });
 
   it("never presents a conversation's start as its latest change", () => {

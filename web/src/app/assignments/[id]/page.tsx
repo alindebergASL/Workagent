@@ -52,7 +52,15 @@ export default function AssignmentPage() {
     },
   );
   const a = res.data;
-  const responsibility = useResponsibility(wsId, id);
+  const responsibility = useResponsibility(
+    wsId,
+    id,
+    a ? Boolean(a.conversation_id) : null,
+  );
+  const rs = responsibility.state;
+  // Legacy ownership wording and steering apply only once the service has
+  // said there is no responsibility here; never while it's unknown or denied.
+  const legacy = rs.kind === "absent";
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const artifactTitles = useMemo(
@@ -163,10 +171,15 @@ export default function AssignmentPage() {
         return { tone: "done", text: "Stopped. Saved results are kept." };
       case "paused":
         return a.conversation_id
-          ? {
-              tone: "done",
-              text: "You handed this over from a conversation. It’s recorded, but I can’t start work on my own yet, so it stays paused.",
-            }
+          ? legacy
+            ? {
+                tone: "done",
+                text: "You handed this over from a conversation. It’s recorded, but nothing has been admitted to run for it, so it stays paused.",
+              }
+            : {
+                tone: "done",
+                text: "You handed this over from a conversation. Where it stands is shown below.",
+              }
           : {
               tone: "done",
               text: "Paused. Nothing new is prepared until you resume. Saved results are kept.",
@@ -301,21 +314,54 @@ export default function AssignmentPage() {
         </section>
       ) : null}
 
-      {responsibility.data && wsId ? (
+      {rs.kind === "ready" && wsId ? (
         <ResponsibilityPanel
           ws={wsId}
-          detail={responsibility.data}
-          onChanged={async () => {
-            await Promise.all([res.refresh(), responsibility.refresh()]);
+          detail={rs.detail}
+          observedAt={rs.observedAt}
+          stale={rs.stale}
+          refresh={async () => {
+            const [assignment, read] = await Promise.all([
+              res.refresh(),
+              responsibility.refresh(),
+            ]);
+            return Boolean(assignment && read);
           }}
         />
+      ) : rs.kind === "loading" && a.conversation_id ? (
+        <p className="hint" role="status" data-testid="responsibility-loading">
+          Checking who holds this…
+        </p>
+      ) : rs.kind === "denied" ? (
+        <p
+          className="notice-line"
+          role="status"
+          data-testid="responsibility-denied"
+        >
+          You can’t see who holds this right now, so it can’t be steered from
+          here.
+        </p>
+      ) : rs.kind === "unknown" ? (
+        <div
+          className="notice-line stack-sm"
+          role="status"
+          data-testid="responsibility-unknown"
+        >
+          <p>
+            Couldn’t read who holds this. Steering waits until it can be read.
+          </p>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => void responsibility.refresh()}
+            >
+              Check again
+            </button>
+          </div>
+        </div>
       ) : null}
-      <Ownership
-        assignment={a}
-        onChanged={res.refresh}
-        // A recorded responsibility has its own steering above.
-        steering={!responsibility.data}
-      />
+      <Ownership assignment={a} onChanged={res.refresh} legacy={legacy} />
 
       <section aria-labelledby="saved-title" className="stack">
         <h2 id="saved-title" className="section-title">

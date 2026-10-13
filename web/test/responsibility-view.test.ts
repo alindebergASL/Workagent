@@ -21,7 +21,10 @@ describe("a recorded responsibility, in plain words", () => {
   it("never implies work is running while execution isn't admitted", () => {
     const v = responsibilityView(life());
     expect(v.state).toBe("Recorded as yours to carry forward");
-    expect(v.notRunning).toBe(true);
+    expect(v.execution).toBe(
+      "Not admitted to run: nothing runs in the background for it right now.",
+    );
+    expect(v.execution).not.toMatch(/can’t|never/);
     expect(v.next).toBe("Draft the agenda.");
     expect(v.allowed).toEqual(["pause", "cancel", "takeover"]);
   });
@@ -60,7 +63,11 @@ describe("a recorded responsibility, in plain words", () => {
     for (const state of ["cancelled", "taken_over"] as const) {
       const v = responsibilityView(life({ state, wake_status: "queued" }));
       expect(v.allowed).toEqual([]);
-      expect(v.notRunning).toBe(false);
+      expect(v.execution).toBe(
+        state === "taken_over"
+          ? "It’s back with you. Workagent isn’t holding it any more."
+          : "Stopped. Nothing further runs for it.",
+      );
       expect(v.reviewQueued).toBe(false);
       expect(v.next).toBeNull();
     }

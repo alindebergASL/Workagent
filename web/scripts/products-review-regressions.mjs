@@ -1126,6 +1126,52 @@ try {
     "PASS pane beside the work refreshes once for a fast-settled turn and shows unknown/reconnecting",
   );
 
+  // A stale read keeps a labelled snapshot but holds sending; a terminal
+  // authorization failure replaces the opening snapshot entirely.
+  await page.evaluate(() => {
+    window.peek = {
+      data: window.resource.data.conversation,
+      error: null,
+      reconnecting: true,
+      refresh: async () => null,
+    };
+    window.mount("away");
+    window.mount("product");
+  });
+  const peekBox = page.getByLabel("Reply about this work", { exact: true });
+  await peekBox.fill("Hold this while offline.");
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toContainText("sending waits until it reconnects");
+  await expect(
+    page.locator(".agent-pane").getByRole("button", { name: "Send" }),
+  ).toBeDisabled();
+  for (const code of ["not_found_or_not_authorized", "unauthenticated"]) {
+    await page.evaluate((code) => {
+      window.peek = {
+        data: null,
+        error: { code, status: code === "unauthenticated" ? 401 : 404 },
+        reconnecting: false,
+        refresh: async () => null,
+      };
+      window.mount("product");
+    }, code);
+    await expect(page.getByTestId("peek-revoked")).toBeVisible();
+    await expect(page.locator(".agent-pane .thread")).toHaveCount(0);
+    await expect(
+      page.getByLabel("Reply about this work", { exact: true }),
+    ).toHaveCount(0);
+  }
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("away");
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS pane beside the work holds sending on a stale read and drops its snapshot when access ends",
+  );
+
   // Natural admission: a reply beside the work names the exact saved
   // version (never the unsaved working copy), and an unconfirmed reply
   // replays the same frozen target after the saved version moves on.

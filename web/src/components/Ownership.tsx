@@ -24,7 +24,7 @@ function glance(a: Assignment, phase: WorkPhase) {
     waiting: waitingSummary(run),
     unknown: "Confirming what happened with the last request.",
     paused: a.conversation_id
-      ? "Nothing yet. You handed this over, but I can’t carry work forward on my own yet."
+      ? "Nothing yet. You handed this over, and nothing has been admitted to run for it."
       : "Nothing while this is paused.",
     decision: "Nothing new until you decide.",
     blocked: "Nothing until what’s missing is resolved.",
@@ -44,7 +44,7 @@ function glance(a: Assignment, phase: WorkPhase) {
     mine: mine[phase],
     waitingOn:
       phase === "paused" && a.conversation_id
-        ? "The ability to start handed-over work on my own, which isn’t available yet"
+        ? "Nothing has been admitted to run for it"
         : (waitingOn[phase] ?? "Nothing"),
     yours:
       "Approving changes and any next action. Nothing is carried out without you.",
@@ -67,12 +67,16 @@ const VERB: Record<ControlOperation, string> = {
 export function Ownership({
   assignment: a,
   onChanged,
-  steering = true,
+  legacy,
 }: {
   assignment: Assignment;
   onChanged: () => Promise<unknown> | void;
-  /** Off when a recorded responsibility provides the steering instead. */
-  steering?: boolean;
+  /**
+   * True only once the service has said this assignment has no
+   * responsibility. Otherwise (recorded, unknown or denied) this says
+   * nothing about who holds it and offers no steering.
+   */
+  legacy: boolean;
 }) {
   const phase = phaseOf(a);
   const g = glance(a, phase);
@@ -127,14 +131,18 @@ export function Ownership({
     <section className="card card-quiet glance" aria-labelledby="glance-title">
       <h2 id="glance-title">Ownership at a glance</h2>
       <dl className="glance-list">
-        <div>
-          <dt>I own</dt>
-          <dd>{g.mine}</dd>
-        </div>
-        <div>
-          <dt>Waiting on</dt>
-          <dd>{g.waitingOn}</dd>
-        </div>
+        {legacy ? (
+          <>
+            <div>
+              <dt>I own</dt>
+              <dd>{g.mine}</dd>
+            </div>
+            <div>
+              <dt>Waiting on</dt>
+              <dd>{g.waitingOn}</dd>
+            </div>
+          </>
+        ) : null}
         <div>
           <dt>You own</dt>
           <dd>{g.yours}</dd>
@@ -146,7 +154,7 @@ export function Ownership({
           </div>
         ) : null}
       </dl>
-      {steering && (canPause || canResume || canStop) ? (
+      {legacy && (canPause || canResume || canStop) ? (
         <div className="steer">
           {confirmStop ? (
             <div className="steer-confirm" role="group" aria-label="Stop">

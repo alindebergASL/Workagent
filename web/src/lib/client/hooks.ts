@@ -16,7 +16,11 @@ export interface Resource<T> {
 export function useResource<T>(
   key: string | null,
   fetcher: (signal: AbortSignal) => Promise<T>,
-  options: { pollMs?: number; shouldPoll?: (data: T | null) => boolean } = {},
+  options: {
+    /** Re-read interval; may depend on what was last read. */
+    pollMs?: number | ((data: T | null) => number);
+    shouldPoll?: (data: T | null) => boolean;
+  } = {},
 ): Resource<T> {
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -99,7 +103,9 @@ export function useResource<T>(
       if (timer) clearTimeout(timer);
       timer = null;
       if (stopped || !key || inFlight || terminal.current) return;
-      const base = optionsRef.current.pollMs ?? 0;
+      const poll = optionsRef.current.pollMs;
+      const base =
+        typeof poll === "function" ? poll(dataRef.current) : (poll ?? 0);
       const shouldPoll =
         optionsRef.current.shouldPoll?.(dataRef.current) ?? base > 0;
       if (failures.current > 0) {

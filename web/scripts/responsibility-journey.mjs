@@ -99,9 +99,12 @@ try {
       ? "Waiting for a person"
       : "Recorded as yours to carry forward",
   );
-  await expect(page.getByTestId("responsibility-not-running")).toHaveText(
-    "Recorded only. I can’t work on this on my own yet, so nothing runs in the background.",
+  await expect(page.getByTestId("responsibility-execution")).toHaveText(
+    "Not admitted to run: nothing runs in the background for it right now.",
   );
+  // No older claim that it can never run sits beside the record.
+  await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
+  await expect(page.getByText("I own")).toHaveCount(0);
   await expect(panel).toContainText("A draft briefing outline is saved.");
   await expect(panel).toContainText("Decide who opens the doors.");
   await expect(panel).toContainText("Waiting: Asha to confirm the room.");
@@ -121,17 +124,26 @@ try {
   ).toBe("paused");
   await panel.getByRole("button", { name: "Resume", exact: true }).click();
   await expect(panel.getByRole("heading")).not.toHaveText("Paused");
-  await expect(page.getByTestId("responsibility-not-running")).toBeVisible();
+  await expect(page.getByTestId("responsibility-execution")).toContainText(
+    "Not admitted to run",
+  );
 
   // Take it back: confirmed, recorded, and then nothing left to steer.
-  await panel.getByRole("button", { name: "Take this back" }).click();
+  await panel
+    .getByRole("button", { name: "Take this back", exact: true })
+    .click();
   await panel
     .getByRole("group", { name: "Confirm" })
-    .getByRole("button", { name: "Take this back" })
+    .getByRole("button", { name: "Take this back", exact: true })
     .click();
   await expect(panel.getByRole("heading")).toHaveText("You took this back");
-  await expect(panel.getByRole("button")).toHaveCount(0);
-  await expect(page.getByTestId("responsibility-not-running")).toHaveCount(0);
+  // Only the read-only "Check again" remains; nothing left to steer.
+  await expect(
+    panel.getByRole("button", { name: /^(Pause|Resume|Stop|Take this back)$/ }),
+  ).toHaveCount(0);
+  await expect(page.getByTestId("responsibility-execution")).toHaveText(
+    "It’s back with you. Workagent isn’t holding it any more.",
+  );
   const final = await api(`/assignments/${aid}/responsibility`);
   expect(final.lifecycle.state).toBe("taken_over");
   expect(final.provider_execution_queued).toBe(false);

@@ -22,6 +22,17 @@ const BLOCKER: Record<NonNullable<Lifecycle["blocker"]>, string> = {
 };
 
 /**
+ * What the service records about running this responsibility, in words that
+ * claim no more than the record: admission is not dispatch, and a run is not
+ * the goal done. Keyed by the generated execution status, so every status the
+ * contract adds must be worded here before it compiles.
+ */
+const EXECUTION: Record<Lifecycle["execution_status"], string> = {
+  not_admitted:
+    "Not admitted to run: nothing runs in the background for it right now.",
+};
+
+/**
  * A recorded responsibility, in plain words, from its lifecycle only. It
  * never claims work is running: execution isn't admitted yet, and a queued
  * review is a record, not activity.
@@ -52,8 +63,12 @@ export function responsibilityView(life: Lifecycle) {
     checkIn: closed ? null : (life.next_check_in_at ?? null),
     checkInDue: !closed && life.check_in_due,
     reviewQueued: !closed && life.wake_status === "queued",
-    // Execution isn't connected yet: said plainly while it's open.
-    notRunning: !closed && life.execution_status === "not_admitted",
+    // Closed means no one holds it through Workagent any more.
+    execution: closed
+      ? life.state === "taken_over"
+        ? "It’s back with you. Workagent isn’t holding it any more."
+        : "Stopped. Nothing further runs for it."
+      : EXECUTION[life.execution_status],
     allowed,
   };
 }

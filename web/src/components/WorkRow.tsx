@@ -35,7 +35,7 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
             : phase === "working"
               ? "Results appear as they’re saved"
               : phase === "paused" && item.conversation_id
-                ? "I can’t carry work forward on my own yet"
+                ? "Open it to see where it stands"
                 : phase === "stopped" || phase === "paused"
                   ? "Saved results are kept"
                   : phase === "approved"
