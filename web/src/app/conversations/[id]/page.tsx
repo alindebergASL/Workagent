@@ -17,6 +17,8 @@ import type {
   TurnState,
 } from "@/lib/contract/types";
 import { OperationComposer } from "@/components/OperationComposer";
+import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
+import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import {
   AgentReply,
@@ -75,6 +77,7 @@ export default function ConversationPage() {
     cid: id,
     version: d?.conversation.work_version ?? null,
     refresh: res.refresh,
+    attach: CAPABILITIES.naturalAdmission,
   });
   const { text, setText, sending, send } = reply;
   const sendError = reply.error;
@@ -263,6 +266,9 @@ export default function ConversationPage() {
                       {m.text}
                     </p>
                   )}
+                  {m.author === "person" ? (
+                    <SentFiles files={m.attachments} />
+                  ) : null}
                   {m.products?.map((product) => {
                     const link = resultLink(
                       `/conversations/${id}`,
@@ -430,6 +436,15 @@ export default function ConversationPage() {
               }
             }}
           />
+          {CAPABILITIES.naturalAdmission ? (
+            <AttachedFiles
+              files={reply.files}
+              error={reply.fileError}
+              locked={reply.filesLocked}
+              onAdd={(list) => void reply.addFiles(list)}
+              onRemove={reply.removeFile}
+            />
+          ) : null}
           {sendError instanceof ApiError && sendError.isVersionConflict ? (
             <p className="hint" role="status">
               This conversation changed since you looked. Your message is kept;

@@ -902,6 +902,12 @@ export function conversationDetail(
         (r): r is S["ProductResult"] => r.kind !== "text",
       ),
       responsibility_origin: m.responsibility_origin ?? null,
+      // Names and sizes only; the content is the person's data, not shown.
+      attachments: (m.attachments ?? []).map((a) => ({
+        filename: a.filename,
+        byte_length: a.byte_length,
+        sha256: a.sha256,
+      })),
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,

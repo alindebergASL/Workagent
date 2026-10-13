@@ -4,7 +4,12 @@ import { newCommandId } from "@/lib/client/api";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
-import type { ExactTarget, MessageAttachment } from "@/lib/contract/natural";
+import {
+  attachmentsProblem,
+  readAttachment,
+  type ExactTarget,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
 
 function readKept(key: string): string {
   try {
@@ -22,12 +27,38 @@ function keep(key: string, text: string): void {
   }
 }
 
+function readKeptFiles(key: string): MessageAttachment[] {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as MessageAttachment[]) : [];
+  } catch {
+    return [];
+  }
+}
+function keepFiles(key: string, files: MessageAttachment[]): void {
+  try {
+    if (files.length) sessionStorage.setItem(key, JSON.stringify(files));
+    else sessionStorage.removeItem(key);
+  } catch {
+    /* storage unavailable: the in-memory files still exist */
+  }
+}
+const sameFiles = (a: MessageAttachment[], b: MessageAttachment[]) =>
+  a.length === b.length &&
+  a.every(
+    (f, i) =>
+      f.filename === b[i]!.filename &&
+      f.mime_type === b[i]!.mime_type &&
+      f.content === b[i]!.content,
+  );
+
 /**
- * Replying to one conversation, wherever the reply box is shown. The draft
- * and any unconfirmed send are keyed by conversation, so the full thread and
- * the pane beside the work share them: an unconfirmed send started in one
- * can only be replayed exactly, from either. Sending is a compare-and-swap on
- * the version last seen.
+ * Replying to one conversation, wherever the reply box is shown. The draft,
+ * its attached files and any unconfirmed send are keyed by conversation, so
+ * the full thread and the pane beside the work share them: an unconfirmed
+ * send started in one can only be replayed exactly (same words, files and
+ * target), from either. Sending is a compare-and-swap on the version last
+ * seen.
  */
 export function useConversationReply({
   wsId,
@@ -35,6 +66,7 @@ export function useConversationReply({
   version,
   refresh,
   target,
+  attach = false,
   held = false,
 }: {
   wsId: string | null;
@@ -44,6 +76,8 @@ export function useConversationReply({
    * Frozen into the attempt, so a replay names the same version.
    */
   target?: ExactTarget | null;
+  /** Files may be attached (natural admission only). */
+  attach?: boolean;
   /** The conversation's work version as last read; null until loaded. */
   version: number | null;
   refresh: () => Promise<unknown>;
@@ -55,7 +89,10 @@ export function useConversationReply({
   held?: boolean;
 }) {
   const draftKey = `workagent:conversation:${cid}`;
+  const filesKey = `${draftKey}:files`;
   const [text, setText] = useState("");
+  const [files, setFiles] = useState<MessageAttachment[]>([]);
+  const [fileError, setFileError] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const cmd = usePendingCommand<{
@@ -70,11 +107,45 @@ export function useConversationReply({
     if (kept) setText((v) => v || kept);
   }, [draftKey]);
   useEffect(() => keep(draftKey, text), [draftKey, text]);
-  // A send restored from before a reload shows its exact words, locked.
+  useEffect(() => {
+    if (!attach) return;
+    const kept = readKeptFiles(filesKey);
+    if (kept.length) setFiles((v) => (v.length ? v : kept));
+  }, [filesKey, attach]);
+  useEffect(() => {
+    if (attach) keepFiles(filesKey, files);
+  }, [filesKey, files, attach]);
+  // A send restored from before a reload shows its exact words and files,
+  // locked.
   const restored = cmd.restored ? cmd.current : null;
   useEffect(() => {
-    if (restored) setText(restored.text);
+    if (!restored) return;
+    setText(restored.text);
+    if (restored.attachments) setFiles(restored.attachments);
   }, [restored]);
+
+  /** Files can change only while no send is in doubt or in flight. */
+  const filesLocked = !attach || Boolean(cmd.current) || sending;
+  const addFiles = async (list: FileList | File[] | null) => {
+    if (filesLocked || !list || !list.length) return;
+    try {
+      const read = await Promise.all([...list].map(readAttachment));
+      const next = [...files, ...read];
+      const problem = attachmentsProblem(next);
+      if (problem) throw new Error(problem);
+      setFiles(next);
+      setFileError("");
+    } catch (e) {
+      setFileError(
+        e instanceof Error ? e.message : "That file can’t be attached.",
+      );
+    }
+  };
+  const removeFile = (index: number) => {
+    if (filesLocked) return;
+    setFiles((list) => list.filter((_, n) => n !== index));
+    setFileError("");
+  };
 
   const canSend =
     Boolean(wsId) &&
@@ -88,17 +159,21 @@ export function useConversationReply({
     setSending(true);
     setError(null);
     const sentText = text;
+    const sentFiles = files;
     const attempt = cmd.current ?? {
       command_id: newCommandId(),
       expected_work_version: version,
       text: text.trim(),
-      ...(target !== undefined ? { attachments: [], target } : {}),
+      ...(attach || target !== undefined
+        ? { attachments: attach ? files : [], target: target ?? null }
+        : {}),
     };
     try {
       if (!cmd.current) cmd.set(attempt);
       await conversationApi.send(wsId, cid, attempt);
       if (cmd.clear(attempt)) {
         setText((current) => (current === sentText ? "" : current));
+        setFiles((current) => (sameFiles(current, sentFiles) ? [] : current));
         await refresh();
       }
     } catch (e) {
@@ -119,6 +194,12 @@ export function useConversationReply({
     sending,
     error,
     send,
+    /** Files attached to the draft; frozen with an unconfirmed send. */
+    files,
+    fileError,
+    addFiles,
+    removeFile,
+    filesLocked,
     /** Whether a send would be admitted right now, by any path. */
     canSend,
     /** An earlier send's outcome is unknown; only an exact replay is offered. */

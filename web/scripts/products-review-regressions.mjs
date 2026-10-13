@@ -17,9 +17,11 @@ import {createRoot} from 'react-dom/client';
 import {OperationComposer} from '@/components/OperationComposer';
 import ProductPage from '@/app/conversations/[id]/artifacts/[artifactId]/page';
 import {useConversationReply} from '@/lib/client/conversation-reply';
+import {AttachedFiles} from '@/components/AttachedFiles';
 function Reply({ws,cid,version}) {
-  const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh});
+  const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural)});
   return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
+    {window.natural ? <AttachedFiles files={reply.files} error={reply.fileError} locked={reply.filesLocked} onAdd={l=>void reply.addFiles(l)} onRemove={reply.removeFile}/> : null}
     <button disabled={reply.sending} onClick={reply.send}>{reply.uncertain ? 'Retry reply' : 'Send reply'}</button></>;
 }
 window.calls = [];
@@ -1244,6 +1246,9 @@ try {
     window.mount("product");
   });
   const staleBox = page.getByLabel("Reply about this work", { exact: true });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toBeVisible();
   await staleBox.fill("Do not send while disconnected");
   await staleBox.press("Control+Enter");
   await staleBox.press("Meta+Enter");
@@ -1257,6 +1262,9 @@ try {
     window.peek = { ...window.peek, reconnecting: false };
     window.mount("product");
   });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toHaveCount(0);
   await staleBox.press("Control+Enter");
   await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
   assert.equal(
@@ -1278,6 +1286,9 @@ try {
     window.peek = { ...window.peek, reconnecting: true };
     window.mount("product");
   });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toBeVisible();
   await page.evaluate(() =>
     document.querySelector(".peek-ask").requestSubmit(),
   );
@@ -1287,6 +1298,9 @@ try {
     window.peek = { ...window.peek, reconnecting: false };
     window.mount("product");
   });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toHaveCount(0);
   await page
     .locator(".agent-pane")
     .getByRole("button", { name: "Send" })
@@ -1481,6 +1495,196 @@ try {
   passed++;
   console.log(
     "PASS natural reply beside the work sends the exact saved target and replays it frozen",
+  );
+
+  // Files in a reply beside the work: chosen, checked, removed, kept with
+  // the draft across a remount, held while stale, sent with the exact saved
+  // target, frozen with an unconfirmed send, replayed exactly, and cleared
+  // only once that send is confirmed.
+  await page.evaluate(() => {
+    window.natural = true;
+    window.calls.length = 0;
+    window.ambiguous = true;
+    sessionStorage.clear();
+    window.mount("away");
+    window.mount("product");
+  });
+  const pane = page.locator(".agent-pane");
+  const paneFile = pane.locator('input[type="file"]');
+  const pick = async (name, bytes) => {
+    await paneFile.setInputFiles({
+      name,
+      mimeType: "text/plain",
+      buffer: Buffer.from("placeholder"),
+    });
+    if (bytes !== undefined) await resolve(name, bytes);
+  };
+  await pick("bad name.py");
+  await expect(pane.getByRole("alert")).toContainText(
+    "Use a .csv or .txt file",
+  );
+  await pick("notes.txt", "alpha\nbeta\n");
+  await expect(pane.getByTestId("reply-files")).toContainText("notes.txt");
+  await expect(pane.getByRole("alert")).toHaveCount(0);
+  await pick("data.csv", "id,quantity\n1,2\n");
+  await pane.getByRole("button", { name: "Remove notes.txt" }).click();
+  await pick("notes.txt", "gamma\n");
+  await expect(pane.locator(".file-chip")).toHaveText([
+    /data\.csv/,
+    /notes\.txt/,
+  ]);
+  await expect(pane.locator('input[type="file"]')).toBeDisabled();
+  const fileReply = pane.getByLabel("Reply about this work", { exact: true });
+  await fileReply.fill("Compare these with my saved table.");
+  // Kept with the draft when the pane is left and opened again.
+  await page.evaluate(() => {
+    window.mount("away");
+    window.mount("product");
+  });
+  await expect(pane.locator(".file-chip")).toHaveText([
+    /data\.csv/,
+    /notes\.txt/,
+  ]);
+  await expect(fileReply).toHaveValue("Compare these with my saved table.");
+  // Held while the conversation can't be re-read, by key too.
+  await page.evaluate(() => {
+    window.peek = {
+      data: window.resource.data.conversation,
+      error: null,
+      reconnecting: true,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toBeVisible();
+  await fileReply.press("Control+Enter");
+  await fileReply.press("Meta+Enter");
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => window.calls.length), 0);
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("product");
+  });
+  await expect(
+    page.locator('.agent-pane [data-state="reconnecting"]'),
+  ).toHaveCount(0);
+  await fileReply.press("Control+Enter");
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
+  const withFiles = await page.evaluate(() => window.calls[0].payload);
+  assert.deepEqual(withFiles.attachments, [
+    {
+      filename: "data.csv",
+      mime_type: "text/csv",
+      content: "id,quantity\n1,2\n",
+    },
+    { filename: "notes.txt", mime_type: "text/plain", content: "gamma\n" },
+  ]);
+  assert.deepEqual(withFiles.target, saved);
+  // Unconfirmed: files are frozen with the exact command, across a remount.
+  await expect(
+    pane.getByRole("button", { name: "Remove data.csv" }),
+  ).toBeDisabled();
+  await page.evaluate(() => {
+    window.ambiguous = false;
+    window.resource.data.artifact.current_revision_id = "a-newer-revision";
+    window.mount("away");
+    window.mount("product");
+  });
+  await expect(pane.locator(".file-chip")).toHaveCount(2);
+  await pane.getByRole("button", { name: "Send", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(2);
+  assert.deepEqual(
+    await page.evaluate(() => window.calls[1].payload),
+    withFiles,
+  );
+  // Confirmed: the matching draft and its files are cleared.
+  await expect(fileReply).toHaveValue("");
+  await expect(pane.locator(".file-chip")).toHaveCount(0);
+  assert.equal(
+    await page.evaluate(
+      () =>
+        Object.keys(sessionStorage).filter((k) => k.endsWith(":files")).length,
+    ),
+    0,
+  );
+  // A sent message shows the files the service recorded, not their content.
+  await page.evaluate(() => {
+    const conv = structuredClone(window.resource.data.conversation);
+    conv.messages.push({
+      id: "msg-files",
+      author: "person",
+      text: "Compare these with my saved table.",
+      created_at: "",
+      sequence: 2000,
+      run_id: "run-files",
+      origin: "human",
+      attachments: [
+        { filename: "data.csv", byte_length: 16, sha256: "a".repeat(64) },
+      ],
+    });
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("product");
+  });
+  await expect(pane.getByRole("list", { name: "Attached files" })).toHaveText(
+    "data.csv · 16 bytes",
+  );
+  await expect(pane).not.toContainText("id,quantity");
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.natural = false;
+    window.resource.data.artifact.current_revision_id = "r";
+    sessionStorage.clear();
+    window.mount("away");
+  });
+  passed++;
+  console.log(
+    "PASS files beside the work: checked, removable, kept with the draft, held while stale, sent with the exact target, frozen and replayed, cleared on confirmation",
+  );
+
+  // The full conversation's reply sends files with no exact target, and
+  // leaves files chosen after the send was confirmed in place.
+  await page.evaluate(() => {
+    window.natural = true;
+    window.calls.length = 0;
+    window.ambiguous = false;
+    sessionStorage.clear();
+    window.mount("away");
+    window.mount("reply", "w", "c-files");
+  });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "README.txt",
+    mimeType: "text/plain",
+    buffer: Buffer.from("placeholder"),
+  });
+  await resolve("README.txt", "Read me first.\n");
+  await page.getByLabel("Test reply").fill("Summarise the attached notes.");
+  await page.getByRole("button", { name: "Send reply" }).click();
+  await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
+  const threadSend = await page.evaluate(() => window.calls[0].payload);
+  assert.deepEqual(threadSend.attachments, [
+    {
+      filename: "README.txt",
+      mime_type: "text/plain",
+      content: "Read me first.\n",
+    },
+  ]);
+  assert.equal(threadSend.target, null);
+  await expect(page.locator(".file-chip")).toHaveCount(0);
+  await page.evaluate(() => {
+    window.natural = false;
+    sessionStorage.clear();
+    window.mount("away");
+  });
+  passed++;
+  console.log(
+    "PASS the conversation's own reply sends attached files with no target and clears them on confirmation",
   );
 
   // A model reply reads as text: emphasis and lists render, syntax and any
@@ -2086,6 +2290,57 @@ try {
   await expect(page.getByText("Loading authorized product…")).toHaveCount(0);
   passed++;
   console.log("PASS initial read failure is unavailable with explicit retry");
+
+  // On a phone, attached files beside the work wrap inside the pane. Runs
+  // last: it loads the app's real stylesheets into the fixture page.
+  for (const sheet of ["globals", "agent-first", "foundations", "products"])
+    await page.addStyleTag({
+      content: readFileSync(
+        path.join(web, "src/styles", `${sheet}.css`),
+        "utf8",
+      ),
+    });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate((product) => {
+    window.natural = true;
+    sessionStorage.clear();
+    const long =
+      "quarterly-volunteer-schedule-with-a-very-long-descriptive-name";
+    sessionStorage.setItem(
+      "workagent:conversation:c:files",
+      JSON.stringify([
+        { filename: `${long}.csv`, mime_type: "text/csv", content: "id\n1\n" },
+        {
+          filename: `${long}.txt`,
+          mime_type: "text/plain",
+          content: "notes\n",
+        },
+      ]),
+    );
+    window.resource = {
+      data: product,
+      error: null,
+      reconnecting: false,
+      refresh: window.refresh,
+    };
+    window.mount("away");
+    window.mount("product");
+  }, data);
+  await page.getByRole("button", { name: "Conversation", exact: true }).click();
+  await expect(page.locator(".agent-pane .file-chip")).toHaveCount(2);
+  assert.ok(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+    "no horizontal scroll at 390px",
+  );
+  if (process.env["REVIEW_SHOT_DIR"])
+    await page.screenshot({
+      path: path.join(process.env["REVIEW_SHOT_DIR"], "reply-files-390.png"),
+      fullPage: true,
+    });
+  passed++;
+  console.log("PASS attached files beside the work fit a 390px phone");
   assert.deepEqual(errors, []);
   console.log(
     `${passed} focused DOM regressions passed (fixture transport; no server/provider).`,

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/contract/types";
 import { conversationApi } from "@/lib/client/real-api";
 import { shortTitle } from "@/lib/work-state";
+import { FileName } from "@/components/AttachedFiles";
 import {
   attachmentsProblem,
   readAttachment,
@@ -486,7 +487,7 @@ export function Composer({
           <div className="composer-files">
             {files.map((f, i) => (
               <span className="file-chip" key={`${f.filename}:${i}`}>
-                <span>{f.filename}</span>
+                <FileName name={f.filename} />
                 <button
                   type="button"
                   className="link-quiet small"

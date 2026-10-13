@@ -19,7 +19,12 @@ export const ATTACHMENT_LIMITS = {
 
 const utf8 = new TextEncoder();
 
-/** Read one chosen file as an attachment, or explain why it can't be one. */
+/**
+ * Read one chosen file as an attachment, or explain why it can't be one.
+ * The content is the file's UTF-8 text exactly, except that a leading byte
+ * order mark is dropped (the standard decoder does this), so a CSV header
+ * keeps its first column name.
+ */
 export async function readAttachment(file: File): Promise<MessageAttachment> {
   if (!ATTACHMENT_LIMITS.filename.test(file.name))
     throw new Error(
@@ -36,6 +41,7 @@ export async function readAttachment(file: File): Promise<MessageAttachment> {
   } catch {
     throw new Error(`${file.name} isn’t plain UTF-8 text.`);
   }
+  if (!content) throw new Error(`${file.name} is empty.`);
   if (content.includes("\u0000"))
     throw new Error(`${file.name} contains a NUL character.`);
   return {

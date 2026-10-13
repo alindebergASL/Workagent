@@ -379,6 +379,8 @@ export interface ChatMessage {
   products?: import("../../../../contracts/src/client").components["schemas"]["ProductResult"][];
   /** The hand-over, wake and work version a runtime request came from. */
   responsibility_origin?: ResponsibilityOrigin | null;
+  /** Files sent with the message, as the service recorded them. */
+  attachments?: { filename: string; byte_length: number; sha256: string }[];
 }
 
 export interface ChatTurn {

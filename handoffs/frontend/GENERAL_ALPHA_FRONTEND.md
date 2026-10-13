@@ -318,3 +318,76 @@ They pass on this commit.
 **Limits:** the failed re-reads in the R1 cases are network faults injected
 in the browser against a real API. The R2 and R3 cases use fixture
 transport. No actual continuation run was executed here.
+
+## Attachments in existing conversations (comment 6153671353)
+
+Files can now go with a reply in an existing conversation, both on the full
+conversation page and in the pane beside the work. Before, only the first
+message from Home could carry them. This uses the **current published
+contract** (`AttachmentInput`: `.csv` or `.txt`, `text/csv` or
+`text/plain`, at most two files, 200000 UTF-8 bytes in total, no NUL). It
+is not end-to-end complete: the code and text file types Hermes is adding
+wait on the next published attachment contract, and the frontend has no
+rule of its own for them.
+
+- **One shared controller.** `useConversationReply` (`attach`) holds the
+  files with the draft. They are stored per conversation in the tab and
+  shared by the full thread and the pane beside the work.
+  - Choosing, checking (the existing `readAttachment` and
+    `attachmentsProblem`) and removing files all happen in the
+    controller.
+  - Files are locked while a send is in flight or unconfirmed. An
+    unconfirmed send freezes its exact words, files and target, and is
+    replayed exactly, including after a reload.
+  - Files are cleared only when the confirmed send matches them.
+- **Held means held.** The existing hold (stale, revoked, ended) and the
+  keyboard checks apply to file sends too.
+- **Target and files together.** Beside the work, the files go with the
+  exact saved target; that send used to hard-code `attachments: []`. The
+  full conversation page sends them with `target: null`.
+- **What was sent.** A person's message in the thread and in the pane lists
+  the files the service recorded, by name and size, with the SHA-256 on
+  hover. The content is never shown or interpreted.
+- **Readable names.** Long names keep their extension, here and in the Home
+  composer, so `….csv` and `….txt` stay distinguishable.
+- **Byte order mark (documented and tested).** A leading BOM is dropped
+  when the file is read, because the standard UTF-8 decoder does this. A
+  CSV header therefore keeps its first column name. Everything else is
+  kept byte for byte. A file that is only a BOM is refused as empty.
+
+**Checks on this commit:**
+
+- 201 unit tests (BOM cases added); type, lint, format and
+  `git diff --check`.
+- Domain and mock production builds.
+- 35 mounted DOM regressions. The new ones are below. They fail on
+  `c34920c`, where the pane has no file picker.
+  - The pane beside the work, covering: refusing a bad name; adding and
+    removing files; the two-file limit; keeping files with the draft when
+    the pane is reopened; holding a stale send by Ctrl+Enter and
+    Cmd+Enter; the exact attachments and target in the payload; files
+    frozen while a send is unconfirmed, then replayed with an identical
+    payload after the saved version moves on; clearing on confirmation
+    with no stored files left; and a sent message listing names and
+    sizes, never content.
+  - The conversation's own reply sends files with `target: null` and
+    clears them on confirmation.
+  - At 390px with the app's stylesheets, two long names fit with no
+    sideways scroll. Screenshot:
+    `evidence/general-alpha-15/reply-files-390.png`.
+- An existing stale-send test was racing React's re-render; it now waits
+  for the stale notice before submitting.
+- 9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls:
+  - conversation journey and products journey;
+  - `responsibility-recovery.mjs` (18 cases);
+  - flexible create/reopen.
+
+**Limits:**
+
+- The real backend refuses attachments on a conversation without a scoped
+  model grant (`unsupported_operation`), so no real-stack send with files
+  was made here. The file cases use fixture transport.
+- Responsibility creation (`record_responsibility`) is a backend gap, as
+  Hermes noted. Nothing in the frontend infers or activates a
+  responsibility.

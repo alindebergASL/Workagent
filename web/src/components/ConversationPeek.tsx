@@ -8,6 +8,7 @@ import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
 import { ErrorNotice } from "@/components/ui";
+import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import {
   AgentReply,
   RuntimeRequest,
@@ -121,6 +122,8 @@ export function ConversationPeek({
     version: d.conversation.work_version,
     refresh: res.refresh,
     target,
+    // Files go with a reply only where a reply names its exact version.
+    attach: target !== undefined,
     // Admission, not just the button: no key or retry sends while held.
     held: revoked || staleRead || !open,
   });
@@ -208,6 +211,9 @@ export function ConversationPeek({
                   {m.text}
                 </p>
               )}
+              {m.author === "person" ? (
+                <SentFiles files={m.attachments} />
+              ) : null}
               {m.author === "agent" ? (
                 <TurnOutcome
                   state={
@@ -291,6 +297,15 @@ export function ConversationPeek({
               }
             }}
           />
+          {target !== undefined ? (
+            <AttachedFiles
+              files={reply.files}
+              error={reply.fileError}
+              locked={reply.filesLocked}
+              onAdd={(list) => void reply.addFiles(list)}
+              onRemove={reply.removeFile}
+            />
+          ) : null}
           {reply.error instanceof ApiError && reply.error.isVersionConflict ? (
             <p className="hint" role="status">
               This conversation changed since you looked. Your message is kept;
