@@ -47,6 +47,9 @@ def enabled(config):
 def contract(binding):
     from .general_schema import DECISION_SCHEMA as historical
     from .general_responses import POLICY as policy
+    if getattr(binding,'runtime_extension',None)=='general-alpha-v1':
+        from .composition import POLICY as alpha_policy, DECISION_SCHEMA as alpha_schema
+        return alpha_policy,alpha_schema
     return (POLICY,DECISION_SCHEMA) if binding.policy_version==CAPABILITY else (policy,historical)
 
 
@@ -62,11 +65,13 @@ def retained(c,attempt_id):
     return [dict(phase=r['phase'],**r['data']) for r in c.execute("SELECT phase,data FROM responses_events WHERE attempt_id=%s AND kind='tool_result' ORDER BY phase",(attempt_id,)).fetchall()]
 
 
-def decision(c,ledger,phase):
+def decision(c,ledger,phase,*,alpha=False):
     result=ledger._events(c,phase).get('result',{})
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
-    value=AdaptiveDecision.model_validate(result['value'],strict=True)
-    first=AdaptiveDecision.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
+    from .composition import AlphaDecision
+    model=AlphaDecision if alpha else AdaptiveDecision
+    value=model.model_validate(result['value'],strict=True)
+    first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
         raise DomainError('source_changed')
     return value
@@ -116,7 +121,7 @@ def request_provenance(message):
     return {'message_id':message.id, 'message_sha256':digest(material)}
 
 
-def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=None):
+def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=None,*,alpha=False):
     request=request_provenance(message)
     previous=retained(c,ledger.receipt.attempt_id)
     if previous and previous[0]['verification'].get('request')!=request:
@@ -137,7 +142,14 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         from .acceptance_checks import evaluate
         acceptance=evaluate(message.acceptance_checks,operation,staged)
         observation['verification']['acceptance']=acceptance
-    if isinstance(value.decision,(Stop,Reply)):
+    if alpha and staged.get('capability_result') is not None:
+        outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
+        staged['reason']=('Observation limit reached after reading guidance/context; no answer or operational completion was delivered.'
+                          if outcome=='step_limit' else 'Read-only observation retained; no permissions or work-state changed.')
+    elif alpha and isinstance(value.decision,Reply):
+        outcome='answered'
+        staged['reason']='Answer delivered; no external action or independently verified objective completion is asserted.'
+    elif isinstance(value.decision,(Stop,Reply)):
         outcome=value.decision.outcome if isinstance(value.decision,Stop) else 'waiting_for_user'
         # No empty action / success assertion can publish a product.
         outcome='blocked' if outcome=='complete' else outcome

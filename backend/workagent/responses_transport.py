@@ -220,6 +220,8 @@ def _validate_request(request: PreparedRequest) -> dict:
         from .general_schema import DECISION_SCHEMA, EXPLANATION_SCHEMA
         if request.policy=='adaptive-local-v1':
             from .adaptive import DECISION_SCHEMA
+            from .composition import DECISION_SCHEMA as ALPHA_SCHEMA
+            if request.schema==ALPHA_SCHEMA: DECISION_SCHEMA=ALPHA_SCHEMA
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA
         if request.schema!=expected:
             raise TransportError('schema_validator_mismatch')

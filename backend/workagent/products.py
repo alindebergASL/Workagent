@@ -16,6 +16,19 @@ def byte_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+def explanation_readback(c,run,attempt):
+    from .general_schema import GeneralExplanation
+    from .general_alpha_models import ExplanationReadback
+    from pydantic import ValidationError
+    if not attempt: return None
+    row=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND phase='final' AND kind='result'",(attempt['id'],)).fetchone()
+    if not row or row['data'].get('state')!='completed': return None
+    try: text=GeneralExplanation.model_validate(row['data']['value'],strict=True).text
+    except (ValidationError,KeyError): return None
+    published=bool(c.execute("SELECT 1 FROM conversation_messages WHERE workspace_id=%s AND run_id=%s AND data->>'model_receipt'=%s AND data->>'author_kind'='assistant'",(run.workspace_id,run.id,attempt['id'])).fetchone())
+    return ExplanationReadback(text=text,attempt_id=attempt['id'],published=published)
+
+
 def adaptive_readback(c,run,attempt):
     from .adaptive import enabled,retained
     from .product_models import AdaptiveExecution,AdaptiveStep
@@ -28,11 +41,15 @@ def adaptive_readback(c,run,attempt):
     outcome='cancelled' if run.state=='cancelled' else (run.stop_reason or (observations[-1]['terminal_outcome'] if observations else 'pending'))
     # Passing staged evidence is not delivered work: an ambiguous final send or
     # interruption must not advertise completion before durable publication.
-    if outcome=='completed' and run.state!='ready': outcome='pending'
-    return AdaptiveExecution(goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
+    if outcome in ('completed','answered') and run.state!='ready': outcome='pending'
+    from .composition import enabled as alpha_enabled
+    from .general_alpha_models import AlphaExecution, AlphaStep
+    alpha=alpha_enabled(data)
+    execution_model,step_model=(AlphaExecution,AlphaStep) if alpha else (AdaptiveExecution,AdaptiveStep)
+    return execution_model(**({'runtime_extension':'general-alpha-v1'} if alpha else {}),goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
         max_steps=data['responses']['max_steps'],outcome=outcome,
         shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
-        steps=[AdaptiveStep(phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
+        steps=[step_model(**({'capability_result':o.get('capability_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
             reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
 
 
@@ -70,7 +87,7 @@ def turn_state(run,c=None):
                     binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
         return TurnState(run_id=run.id,state=state,reason=reason,profile=run.profile,
             evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
-            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt))
+            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation_readback(c,run,attempt))
 
     state={'ready':'replied','partial':'failed','cancelled':'cancelled','queued':'queued','running':'responding'}[run.state]
     reason={'ready':'Controlled result persisted; proposals still require explicit human acceptance.',
@@ -259,7 +276,12 @@ class Products:
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
                 return prior
-        if operation is None:
+        from .composition import READ_DECISIONS, execute_read
+        if isinstance(operation,READ_DECISIONS):
+            context=self.conversation_worker_context(cap)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'capability_result':execute_read(operation,context)}
+        elif operation is None:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
         else:
             try:
@@ -282,7 +304,9 @@ class Products:
             if enabled(config):
                 message=next(m for m in self._conversation_messages(c,current[1].workspace_id,current[2].id)
                              if m.run_id==current[1].id and m.author_kind=='human')
-                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase),operation,staged,config['responses']['max_steps'],message,base))
+                from .composition import enabled as alpha_enabled
+                alpha=alpha_enabled(config)
+                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase,alpha=alpha),operation,staged,config['responses']['max_steps'],message,base,alpha=alpha))
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior!=staged: raise DomainError('command_conflict')
@@ -309,6 +333,10 @@ class Products:
             if not staged or staged['binding']!=binding or final.get('state')!='completed':
                 raise DomainError('action_unresolved')
             text=GeneralExplanation.model_validate(final['value'],strict=True).text
+            from .composition import enabled as alpha_enabled, publication_text
+            from .general_responses import check_pins
+            alpha=alpha_enabled(check_pins(c,run))
+            generated=text
             adaptive_outcome=staged.get('terminal_outcome')
             if adaptive_outcome and adaptive_outcome=='continue': raise DomainError('action_unresolved')
             if adaptive_outcome=='completed':
@@ -328,20 +356,21 @@ class Products:
                 # Ordinary conversation, not only technical details, must expose
                 # the trusted limitation. Keep provider prose in its receipt.
                 text=staged['reason']
+            if alpha: text=publication_text(staged,generated)
             if staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
                 file=FileBody.model_validate(staged['file']) if staged['file'] else None
                 output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
                 if isinstance(operation,PublishArtifact):
                     unresolved=unresolved or 'Draft retained; data shape only was checked. The requested goal needs validation.'
-                    text=staged['reason']  # Provider prose never becomes trusted draft status.
+                    if not alpha: text=staged['reason']  # Preserve legacy receipt semantics.
                 results=self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,unresolved=unresolved)
             else:
                 messages=self._conversation_messages(c,run.workspace_id,cv.id)
                 self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
                     sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
                     evidence_origin=origin,model_receipt=receipt.attempt_id,result=TurnResult(results=[TextResult(text=text)])))
-                run.state='partial' if staged['status']=='rejected' or adaptive_outcome not in (None,'completed') else 'ready'
+                run.state='partial' if staged['status']=='rejected' or adaptive_outcome not in (None,'completed','answered') else 'ready'
                 run.used_units+=1; run.lease_expires_at=None
                 if run.state=='partial':
                     from .adaptive import unresolved_summary

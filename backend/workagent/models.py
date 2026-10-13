@@ -115,7 +115,8 @@ class SourceDetail(Source):
 
 
 from .product_models import (TableBody, FileBody, ToolBody, LocalOperation, ProductResult,
-    ProductObservation, ObservationReadback, TurnState)
+    ProductObservation, ObservationReadback)
+from .general_alpha_models import TurnState
 from .message_models import AttachmentInput, MessageAttachment, ExactTarget
 ProductBody = Body | TableBody | FileBody | ToolBody | StructuredTableBody | CustomViewBody
 ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1', 'general-products-controlled-v1', 'general-responses-v1']
@@ -244,12 +245,17 @@ class AdaptiveResponsesBinding(Model):
     store_acknowledged: Literal[True] = True
 
 
+class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
+    """Reviewed composition extension; inherits every adaptive grant ceiling."""
+    runtime_extension: Literal['general-alpha-v1']
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
     profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | GeneralResponsesBinding | AdaptiveResponsesBinding | None = None
+    responses: ResponsesBinding | GeneralResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime | None

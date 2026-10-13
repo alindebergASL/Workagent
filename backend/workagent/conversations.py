@@ -266,6 +266,8 @@ class Conversations:
             policy,schema=contract(grant.responses)
             context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
                            tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
+            from .composition import enabled as alpha_enabled, discovery
+            if alpha_enabled(config): context['composition']=discovery()
             context['access_generation']=run.access_generation
             context['bindable_artifacts']=[{'artifact_id':r['artifact_id'],'revision_id':r['id'],
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}

@@ -49,8 +49,12 @@ class Ledger:
                 from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
                 from .general_responses import check_pins
                 from .adaptive import enabled,CAPABILITY
-                if enabled(check_pins(c,run)):
+                config=check_pins(c,run)
+                if enabled(config):
                     from .adaptive import DECISION_SCHEMA
+                    from .composition import enabled as alpha_enabled
+                    if alpha_enabled(config):
+                        from .composition import DECISION_SCHEMA
                     policy=CAPABILITY
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
             else:
