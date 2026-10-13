@@ -17,7 +17,9 @@ def main():
     from workagent.general_responses import PROFILE
     from workagent.conversations import profile
     from workagent.adaptive import AdaptiveDecision
-    outputs={'adaptive-decision.schema.json':AdaptiveDecision.model_json_schema(),
+    from workagent.message_models import attachment_contract
+    outputs={'message-attachments.json':attachment_contract(),
+             'adaptive-decision.schema.json':AdaptiveDecision.model_json_schema(),
              'general-decision.schema.json':GeneralDecision.model_json_schema(),
              'general-explanation.schema.json':GeneralExplanation.model_json_schema(),
              'general-responses-profile.json':profile(PROFILE),

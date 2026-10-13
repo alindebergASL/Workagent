@@ -1,0 +1,40 @@
+{
+  "count": 2,
+  "csv_mime": "text/csv",
+  "encoding": "UTF-8",
+  "executable": false,
+  "extension_case": "lowercase_exact",
+  "extensions": [
+    "csv",
+    "txt",
+    "md",
+    "py",
+    "js",
+    "jsx",
+    "ts",
+    "tsx",
+    "json",
+    "yaml",
+    "yml",
+    "toml",
+    "xml",
+    "html",
+    "css",
+    "sql",
+    "sh",
+    "wat",
+    "log"
+  ],
+  "file_bytes": 200000,
+  "filename_max_length": 85,
+  "filename_pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*(?:\\.[A-Za-z0-9_-]+)*\\.(csv|txt|md|py|js|jsx|ts|tsx|json|yaml|yml|toml|xml|html|css|sql|sh|wat|log)$",
+  "forbidden_characters": [
+    "\u0000"
+  ],
+  "hash_basis": "exact retained UTF-8 content",
+  "normalization": "none",
+  "other_mime": "text/plain",
+  "preserve_bom": true,
+  "schema_version": "workagent/attachments/v1",
+  "total_bytes": 200000
+}

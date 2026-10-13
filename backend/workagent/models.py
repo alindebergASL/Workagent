@@ -117,7 +117,7 @@ class SourceDetail(Source):
 from .product_models import (TableBody, FileBody, ToolBody, LocalOperation, ProductResult,
     ProductObservation, ObservationReadback)
 from .general_alpha_models import TurnState
-from .message_models import AttachmentInput, MessageAttachment, ExactTarget
+from .message_models import AttachmentInput, MessageAttachment, ExactTarget, ATTACHMENT_COUNT, ATTACHMENT_BYTES
 ProductBody = Body | TableBody | FileBody | ToolBody | StructuredTableBody | CustomViewBody
 ExecutionProfile = Literal['fixture-deterministic-v1', 'openai-agents-v1', 'openai-responses-v1', 'general-controlled-v1', 'general-products-controlled-v1', 'general-responses-v1']
 
@@ -447,7 +447,7 @@ class PostMessage(Command):
     expected_work_version: Version
     text: Text
     operation: LocalOperation | None = None
-    attachments: list[AttachmentInput] = Field(default_factory=list,max_length=2)
+    attachments: list[AttachmentInput] = Field(default_factory=list,max_length=ATTACHMENT_COUNT)
     target: ExactTarget | None = None
     acceptance_checks: AcceptanceSpec | None = None
 
@@ -462,7 +462,7 @@ class PostMessage(Command):
     def bounded_inputs(self):
         if self.operation is not None and (self.attachments or self.target or self.acceptance_checks):
             raise ValueError('controlled operation cannot mix with general inputs')
-        if sum(len(a.content.encode()) for a in self.attachments)>200000:
+        if sum(len(a.content.encode()) for a in self.attachments)>ATTACHMENT_BYTES:
             raise ValueError('aggregate attachment bound')
         return self
 
