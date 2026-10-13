@@ -1096,7 +1096,7 @@ export interface components {
              * Author Kind
              * @enum {string}
              */
-            author_kind: "human" | "assistant";
+            author_kind: "human" | "assistant" | "system";
             /** Conversation Id */
             conversation_id: string;
             /**
@@ -1108,13 +1108,14 @@ export interface components {
              * Evidence Origin
              * @enum {string}
              */
-            evidence_origin: "human" | "controlled_transport" | "synthetic_provider_receipt" | "live_provider_receipt";
+            evidence_origin: "human" | "runtime" | "controlled_transport" | "synthetic_provider_receipt" | "live_provider_receipt";
             /** Id */
             id: string;
             /** Model Receipt */
             model_receipt?: string | null;
             /** Operation */
             operation?: (components["schemas"]["ReconcileCSV"] | components["schemas"]["RunWasm"] | components["schemas"]["PublishArtifact-Output"]) | null;
+            responsibility_origin?: components["schemas"]["ResponsibilityOrigin"] | null;
             result?: components["schemas"]["TurnResult"] | null;
             /** Run Id */
             run_id: string;
@@ -1863,9 +1864,8 @@ export interface components {
             /**
              * Provider Execution Queued
              * @default false
-             * @constant
              */
-            provider_execution_queued: false;
+            provider_execution_queued: boolean;
         };
         /** ResponsibilityLifecycle */
         ResponsibilityLifecycle: {
@@ -1885,9 +1885,9 @@ export interface components {
             /**
              * Execution Status
              * @default not_admitted
-             * @constant
+             * @enum {string}
              */
-            execution_status: "not_admitted";
+            execution_status: "not_admitted" | "queued" | "running" | "settled" | "blocked";
             /** Last Change Key */
             last_change_key?: string | null;
             next_action: components["schemas"]["ResponsibilityNextAction"];
@@ -1906,6 +1906,8 @@ export interface components {
              * @default false
              */
             review_required: boolean;
+            /** Run Id */
+            run_id?: string | null;
             /**
              * Schema Version
              * @default responsibility/v1
@@ -1937,6 +1939,21 @@ export interface components {
              * @enum {string}
              */
             kind: "continue_work" | "review_dependency" | "request_decision" | "await_event" | "obtain_grant" | "obtain_tool";
+        };
+        /** ResponsibilityOrigin */
+        ResponsibilityOrigin: {
+            /** Assignment Id */
+            assignment_id: string;
+            /**
+             * Kind
+             * @default responsibility_wake
+             * @constant
+             */
+            kind: "responsibility_wake";
+            /** Wake Id */
+            wake_id: string;
+            /** Work Version */
+            work_version: number;
         };
         /** ResponsibilityOutcome */
         ResponsibilityOutcome: {
@@ -2511,6 +2528,7 @@ export interface components {
             reason: string;
             /** Response Steps */
             response_steps?: components["schemas"]["ResponseStepObservation"][];
+            responsibility_origin?: components["schemas"]["ResponsibilityOrigin"] | null;
             retained_local_result?: components["schemas"]["RetainedLocalResult"] | null;
             /** Run Id */
             run_id: string;
