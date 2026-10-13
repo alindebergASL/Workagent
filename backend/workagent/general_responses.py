@@ -18,8 +18,8 @@ POLICY += FLEXIBLE_POLICY
 
 def consumer_hash():
     from .service import digest
-    names=('general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
-           'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py','responsibilities.py','responsibility_models.py',
+    names=('responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
+           'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
            'composition.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
@@ -81,7 +81,7 @@ def check_pins(c,run):
         raise DomainError('unsupported_operation')
     config=row['data']; grant=check_grant(c,run,config); validate_grant(grant,c)
     if not c.execute("""SELECT 1 FROM conversation_messages WHERE workspace_id=%s
-        AND conversation_id=%s AND run_id=%s AND author_kind='human'""",
+        AND conversation_id=%s AND run_id=%s AND author_kind IN ('human','system')""",
         (run.workspace_id,run.conversation_id,run.id)).fetchone():
         raise DomainError('action_unresolved')
     if (run.bundle_hash!=PROFILE_HASH or config.get('bundle_hash')!=PROFILE_HASH or
@@ -89,6 +89,8 @@ def check_pins(c,run):
         run.tool_registry_hash!=digest(profile(PROFILE)['tools']) or
         run.conversation_id not in grant.responses.conversation_ids):
         raise DomainError('unsupported_operation')
+    from .responsibility_execution import validate_binding
+    validate_binding(c,run,config)
     return config
 
 
@@ -158,7 +160,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .composition import enabled as alpha_enabled, READ_DECISIONS
     decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
-    message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind=='human')
+    message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
     if isinstance(decision,READ_DECISIONS):
         if not alpha_enabled(config): raise DomainError('unsupported_operation')
@@ -170,6 +172,12 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
             raise DomainError('not_found_or_not_authorized')
         target={'artifact_id':message.target.artifact_id,'base_revision_id':message.target.revision_id} if message.target else {}
         if isinstance(decision,PublishDecision):
+            if config.get('responsibility'):
+                allowed={(d['object_id'],d['observed_version'],d['content_hash'])
+                    for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'}
+                for ref in getattr(decision.body,'bindings',[]):
+                    if (ref.artifact_id,ref.revision_id,ref.body_hash) not in allowed:
+                        raise DomainError('not_found_or_not_authorized')
             operation=PublishArtifact(kind='publish_artifact',body=decision.body.model_dump(mode='json'),**target)
         elif isinstance(decision,CSVDecision):
             attachment=next((a for a in message.attachments if decision.attachment and a.ref==decision.attachment.ref and a.sha256==decision.attachment.sha256),None)

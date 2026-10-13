@@ -1793,7 +1793,8 @@
           "author_kind": {
             "enum": [
               "human",
-              "assistant"
+              "assistant",
+              "system"
             ],
             "title": "Author Kind",
             "type": "string"
@@ -1813,6 +1814,7 @@
           "evidence_origin": {
             "enum": [
               "human",
+              "runtime",
               "controlled_transport",
               "synthetic_provider_receipt",
               "live_provider_receipt"
@@ -1869,6 +1871,16 @@
               }
             ],
             "title": "Operation"
+          },
+          "responsibility_origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "result": {
             "anyOf": [
@@ -4231,7 +4243,6 @@
             "type": "boolean"
           },
           "provider_execution_queued": {
-            "const": false,
             "default": false,
             "title": "Provider Execution Queued",
             "type": "boolean"
@@ -4291,8 +4302,14 @@
             "type": "array"
           },
           "execution_status": {
-            "const": "not_admitted",
             "default": "not_admitted",
+            "enum": [
+              "not_admitted",
+              "queued",
+              "running",
+              "settled",
+              "blocked"
+            ],
             "title": "Execution Status",
             "type": "string"
           },
@@ -4343,6 +4360,20 @@
             "default": false,
             "title": "Review Required",
             "type": "boolean"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
           },
           "schema_version": {
             "const": "responsibility/v1",
@@ -4434,6 +4465,43 @@
           "description"
         ],
         "title": "ResponsibilityNextAction",
+        "type": "object"
+      },
+      "ResponsibilityOrigin": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "responsibility_wake",
+            "default": "responsibility_wake",
+            "title": "Kind",
+            "type": "string"
+          },
+          "wake_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Wake Id",
+            "type": "string"
+          },
+          "work_version": {
+            "minimum": 1.0,
+            "title": "Work Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "wake_id",
+          "work_version"
+        ],
+        "title": "ResponsibilityOrigin",
         "type": "object"
       },
       "ResponsibilityOutcome": {
@@ -6141,6 +6209,16 @@
             "maxItems": 5,
             "title": "Response Steps",
             "type": "array"
+          },
+          "responsibility_origin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "retained_local_result": {
             "anyOf": [

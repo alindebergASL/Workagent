@@ -37,6 +37,13 @@ class ExplanationReadback(Model):
     published: bool
 
 
+class ResponsibilityOrigin(Model):
+    kind: Literal['responsibility_wake'] = 'responsibility_wake'
+    assignment_id: Id
+    wake_id: Id
+    work_version: int = Field(ge=1)
+
+
 class TurnState(Model):
     profile: Literal['general-controlled-v1','general-products-controlled-v1','general-responses-v1'] = 'general-controlled-v1'
     run_id: Id
@@ -48,3 +55,4 @@ class TurnState(Model):
     adaptive: AlphaExecution | AdaptiveExecution | None = None
     retained_local_result: RetainedLocalResult | None = None
     explanation: ExplanationReadback | None = None
+    responsibility_origin: ResponsibilityOrigin | None = None

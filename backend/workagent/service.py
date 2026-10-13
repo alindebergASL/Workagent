@@ -132,7 +132,7 @@ class ServiceCore(FlexibleWork, Products, Conversations, ProviderAttempts):
         event_id = new_id()
         c.execute('INSERT INTO audit(id,workspace_id,principal_id,operation,object_id) VALUES (%s,%s,%s,%s,%s)', (event_id,ws,p.id,operation,object_id))
         c.execute('INSERT INTO outbox(id,workspace_id,operation,object_id) VALUES (%s,%s,%s,%s)', (event_id,ws,operation,object_id))
-        if operation in ('create_assignment', 'request_revision', 'control_assignment', 'post_message'):
+        if operation in ('create_assignment', 'request_revision', 'control_assignment', 'post_message', 'responsibility_run_queued'):
             c.execute('''INSERT INTO run_dispatches(workspace_id,run_id,outbox_id)
                 SELECT workspace_id,id,%s FROM runs WHERE workspace_id=%s
                 AND (id=%s OR assignment_id=%s) AND data->>'state'='queued'

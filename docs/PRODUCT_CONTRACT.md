@@ -122,6 +122,32 @@ oversized checklists or an artifact for every turn. Match depth to complexity.
   commitments without replaying the entire conversation. Pause/resume/interruption
   and real check-in behavior are required; a paused handover is not ownership.
 
+## Adaptive, intelligent UI
+
+Status: required direction, not implementation evidence. This addition grants
+no new permissions, no new live-evaluation budget, and no default merge or deployment authority.
+Existing approval, human-edit, source/audience, recovery and accounting boundaries remain in force.
+
+Andrew’s additional instruction, preserved verbatim:
+
+> Additional product direction: adaptive, intelligent UI
+>
+> ChatGPT’s Intelligent UI is a key interaction reference for WorkAgent. Carry its principle into our general-purpose agent with a productivity and work emphasis: the agent should shape the interface around what the user is trying to understand, decide, create or accomplish.
+>
+> Make adaptive interaction a first-class product capability. The agent should choose between concise text, comparisons, editable work, visual explanations, adjustable analyses and actionable controls—and combine them when useful. Users should not need to request a dashboard or navigate a workflow menu before receiving an appropriate experience.
+>
+> Keep skills, tools and presentation components separately extensible. Prefer composable, accessible components with consistent behavior. Support richer custom experiences where justified, without making arbitrary generated UI the only route to flexibility.
+>
+> Connect interactive controls to real application state and authorized capabilities. A generated button is not evidence that its action exists. Changes made through the interface and through conversation must operate on the same authoritative work, preserve human contributions and remain coherent after reopening or resuming.
+>
+> Maintain a stable, familiar application shell while adapting the working area. Preserve active inputs and user orientation as responses develop. Make temporary exploration lightweight; retain useful work when continuity calls for it.
+>
+> Coordinate this across Hermes’s runtime/backend work and Claude Code’s frontend work. Extend the current implementation rather than starting a disconnected UI prototype.
+>
+> Evaluate whether the interface helps users understand, decide and act with less effort. Visual richness alone is not success. Simple answers must remain simple, and illustrative examples must never become the supported-workflow ceiling.
+>
+> This strengthens the existing broad mission; it does not replace it with a UI-only milestone.
+
 ## Experience
 
 - Home answers “What needs me?” and “What are you handling?” with timely

@@ -78,7 +78,8 @@ class ResponsibilityLifecycle(ResponsibilityPlan):
     conversation_work_version: Version
     wake_id: Id | None = None
     wake_status: Literal['none', 'queued', 'reviewed'] = 'none'
-    execution_status: Literal['not_admitted'] = 'not_admitted'
+    execution_status: Literal['not_admitted', 'queued', 'running', 'settled', 'blocked'] = 'not_admitted'
+    run_id: Id | None = None
     # A material-change key coalesces duplicate deliveries without clearing review.
     last_change_key: str | None = None
 
@@ -88,7 +89,7 @@ class ResponsibilityDetail(Model):
     lifecycle: ResponsibilityLifecycle
     # This is eligibility for a LOCAL readiness review, never a model-call grant.
     local_review_eligible: bool
-    provider_execution_queued: Literal[False] = False
+    provider_execution_queued: bool = False
 
 
 class ResponsibilityContinuationRequest(Model):
@@ -105,11 +106,29 @@ class ResponsibilityContinuationRequest(Model):
     current_outcome: Text
     next_action: ResponsibilityNextAction
     observations: list[DependencyObservation]
-    execution_admitted: Literal[False] = False
+    execution_admitted: bool = False
+    run_id: Id | None = None
+
+
+class ResponsibilityRunBinding(Model):
+    schema_version: Literal['responsibility-run/v1'] = 'responsibility-run/v1'
+    review_fence: int = Field(ge=1)
+    workspace_id: Id
+    assignment_id: Id
+    conversation_id: Id
+    owner_id: Id
+    wake_id: Id
+    work_version: Version
+    conversation_work_version: Version
+    observations: list[DependencyObservation] = Field(max_length=50)
+    goal: Text
+    completion_criteria: list[Text]
+    current_outcome: Text
+    next_action: ResponsibilityNextAction
 
 
 class ResponsibilityReviewReceipt(Model):
     responsibility: ResponsibilityDetail
     reviewed_wake_id: Id
     continuation: ResponsibilityContinuationRequest | None = None
-    provider_execution_started: Literal[False] = False
+    provider_execution_started: bool = False

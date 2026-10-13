@@ -30,7 +30,10 @@ class ResponsibilityReviewCapability:
     secret: str
 
 
-class Responsibilities:
+from .responsibility_execution import ResponsibilityExecution
+
+
+class Responsibilities(ResponsibilityExecution):
     def _responsibility_assignment(self, c, p, ws, aid):
         a = self._assignment(c, p, ws, aid)
         if not a.conversation_id:
@@ -97,7 +100,8 @@ class Responsibilities:
     @staticmethod
     def _responsibility_detail(a, life):
         return ResponsibilityDetail(assignment=a, lifecycle=life,
-            local_review_eligible=life.wake_status == 'queued' and (
+            provider_execution_queued=life.execution_status == 'queued',
+            local_review_eligible=life.wake_status in ('queued', 'reviewed') and life.execution_status not in ('queued','running','settled') and (
                 life.state == 'active' or (life.state == 'blocked' and life.review_required
                                           and life.blocker in ('grant_required', 'tool_required'))))
 
@@ -116,7 +120,11 @@ class Responsibilities:
             "AND g.principal_id=%s AND g.active AND g.data->>'profile'='general-responses-v1' "
             "AND g.data->'responses'->'conversation_ids' ? %s "
             "AND (SELECT count(*) FROM run_configurations rc WHERE rc.workspace_id=g.workspace_id "
-            "AND rc.data->>'grant_id'=g.id) < (g.data->>'max_runs')::integer",
+            "AND rc.data->>'grant_id'=g.id) < (g.data->>'max_runs')::integer"
+            if life.execution_status not in ('queued', 'running') else
+            "SELECT g.id FROM provider_grants g WHERE g.workspace_id=%s AND g.principal_id=%s "
+            "AND g.active AND g.data->>'profile'='general-responses-v1' "
+            "AND g.data->'responses'->'conversation_ids' ? %s",
             (a.workspace_id, p.id, a.conversation_id)).fetchall()
         if len(rows) != 1:
             life.blocker = 'grant_required'
@@ -132,9 +140,10 @@ class Responsibilities:
                 expected_conversation_work_version=life.conversation_work_version,
                 goal=a.goal, completion_criteria=a.completion_criteria,
                 current_outcome=life.current_outcome, next_action=life.next_action,
-                observations=life.observations)
+                observations=life.observations,run_id=life.run_id,execution_admitted=life.run_id is not None)
         return ResponsibilityReviewReceipt(responsibility=self._responsibility_detail(a, life),
-            reviewed_wake_id=wake_id, continuation=continuation)
+            reviewed_wake_id=wake_id, continuation=continuation,
+            provider_execution_started=life.execution_status in ('running','settled'))
 
     def _persist_responsibility(self, c, a, life):
         from .service import encoded
@@ -168,8 +177,9 @@ class Responsibilities:
     def _stop_responsibility_runs(self, c, a):
         from .outcomes import acknowledge
         # Never cancel unrelated conversation turns; these have no responsibility binding.
-        for row in c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s',
-                             (a.workspace_id, a.id)).fetchall():
+        for row in c.execute("SELECT r.data FROM runs r JOIN run_configurations rc ON rc.workspace_id=r.workspace_id "
+                             "AND rc.run_id=r.id WHERE r.workspace_id=%s AND (r.assignment_id=%s OR rc.data->'responsibility'->>'assignment_id'=%s)",
+                             (a.workspace_id, a.id, a.id)).fetchall():
             run = Run.model_validate(row['data'])
             if run.state in ('queued', 'running'):
                 run.state = 'cancelled'
@@ -278,6 +288,8 @@ class Responsibilities:
             else:
                 life.state = {'pause': 'paused', 'cancel': 'cancelled', 'takeover': 'taken_over'}[cmd.operation]
             self._stop_responsibility_runs(c, a)
+            if life.execution_status in ('queued', 'running'):
+                life.execution_status = 'blocked'
             a.state = 'cancelled' if life.state == 'cancelled' else 'paused'
             a.work_version += 1
             self._queue_responsibility_wake(c, p, a, life)
@@ -322,6 +334,8 @@ class Responsibilities:
         if key == life.last_change_key:
             return False
         life.last_change_key = key
+        life.execution_status = 'not_admitted'
+        life.run_id = None
         life.observations = observations
         life.conversation_work_version = cv.work_version
         life.check_in_due = due
@@ -379,6 +393,8 @@ class Responsibilities:
 
     def _event(self, c, p, ws, operation, object_id):
         super()._event(c, p, ws, operation, object_id)
+        if operation in ('claim_run', 'complete_run'):
+            self._responsibility_run_event(c, p, ws, operation, object_id)
         if operation.startswith('responsibility_'):
             return
         # No workspace-wide private-body reads. Resolve only event object ownership

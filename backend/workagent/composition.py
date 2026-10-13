@@ -113,7 +113,7 @@ def _load(decision,context):
 
 
 def _read(decision,context):
-    current=next(m for m in context['messages'] if m['run_id']==context['run_id'] and m['author_kind']=='human')
+    current=next(m for m in context['messages'] if m['run_id']==context['run_id'] and m['author_kind'] in ('human','system'))
     return {'section':decision.section,'value':{'messages':context['messages'],
             'target':context.get('target_body'),'attachments':current.get('attachments',[])}[decision.section]}
 
