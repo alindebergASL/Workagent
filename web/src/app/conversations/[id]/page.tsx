@@ -78,6 +78,11 @@ export default function ConversationPage() {
     version: d?.conversation.work_version ?? null,
     refresh: res.refresh,
     attach: CAPABILITIES.naturalAdmission,
+    // Sending waits for a confirmed current read: not while reconnecting,
+    // before the first read, or once the conversation has ended. Drafting
+    // and attaching go on; nothing is sent when it reconnects.
+    held:
+      res.reconnecting || !res.data || res.data.conversation.state !== "open",
   });
   const { text, setText, sending, send } = reply;
   const sendError = reply.error;
@@ -364,8 +369,12 @@ export default function ConversationPage() {
       </ol>
 
       {res.reconnecting ? (
-        <p role="status">
-          Connection lost. Displaying previously read state; refresh to confirm.
+        <p role="status" data-state="reconnecting">
+          Connection lost. Showing what was last read; sending waits until it
+          reconnects.{" "}
+          {CAPABILITIES.naturalAdmission
+            ? "Your draft and files are kept."
+            : "Your draft is kept."}
         </p>
       ) : null}
       <div className="row">
@@ -475,7 +484,7 @@ export default function ConversationPage() {
               className="send-round"
               aria-label="Send"
               title="Send"
-              disabled={(!text.trim() && !uncertainSend) || sending}
+              disabled={!reply.canSend}
             >
               <span aria-hidden="true">↑</span>
             </button>
@@ -493,6 +502,7 @@ export default function ConversationPage() {
           cid={id}
           version={d.conversation.work_version}
           refresh={res.refresh}
+          held={res.reconnecting}
         />
       ) : null}
 

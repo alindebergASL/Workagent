@@ -284,7 +284,12 @@ try {
   await peek
     .getByLabel("Reply about this work", { exact: true })
     .fill("Does 4250 include shipping?");
-  await peek.getByRole("button", { name: "Send", exact: true }).click();
+  // This build can't link a reply to the saved version, so it is held with
+  // a plain notice and sent only by the explicit button.
+  await expect(peek.getByTestId("peek-unlinked")).toBeVisible();
+  await peek
+    .getByRole("button", { name: "Send without linking this version" })
+    .click();
   const mine = peek.locator("ol.thread > li.msg-person", {
     hasText: "Does 4250 include shipping?",
   });

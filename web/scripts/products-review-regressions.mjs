@@ -20,7 +20,7 @@ import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
 import {readAttachment} from '@/lib/contract/natural';
 function Reply({ws,cid,version}) {
-  const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural)});
+  const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural),held:Boolean(window.replyHeld)});
   return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
     {window.natural ? <AttachedFiles files={reply.files} error={reply.fileError} locked={reply.filesLocked} onAdd={l=>void reply.addFiles(l)} onRemove={reply.removeFile}/> : null}
     <button disabled={reply.sending} onClick={reply.send}>{reply.uncertain ? 'Retry reply' : 'Send reply'}</button></>;
@@ -762,21 +762,41 @@ try {
     "PASS restored unapplied raw inputs cannot silently use the last-valid Body; editing repairs them immediately",
   );
 
-  // Replying beside the work: a lost acknowledgement keeps the exact command
-  // under the conversation's own key, and retrying replays it unchanged.
+  // Replying beside the work where a reply can't name its saved version:
+  // nothing goes by Enter or submit; a plain notice explains and the draft
+  // stays; only the explicit button sends it, as a general message. A lost
+  // acknowledgement keeps the exact command, and retrying replays it.
   const reply = page.getByLabel("Reply about this work", { exact: true });
   await reply.fill("Beside the work");
   await page.evaluate(() => {
     window.calls.length = 0;
     window.ambiguous = true;
   });
-  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(page.getByTestId("peek-unlinked")).toContainText(
+    "can’t be linked to this saved version",
+  );
+  await expect(page.getByTestId("peek-unlinked")).not.toContainText("NATURAL");
+  await expect(
+    page.getByRole("button", { name: "Send", exact: true }),
+  ).toHaveCount(0);
+  await reply.press("Control+Enter");
+  await reply.press("Meta+Enter");
+  await page.evaluate(() =>
+    document.querySelector(".peek-ask").requestSubmit(),
+  );
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => window.calls.length), 0);
+  await expect(reply).toHaveValue("Beside the work");
+  await page
+    .getByRole("button", { name: "Send without linking this version" })
+    .click();
   await expect(
     page.getByText("Your last send wasn’t confirmed.", { exact: false }),
   ).toBeVisible();
   await expect(reply).toBeDisabled();
   const lost = await page.evaluate(() => window.calls[0]);
   assert.equal(lost.payload.text, "Beside the work");
+  assert.equal(lost.payload.target, undefined);
   const stored = await page.evaluate(() =>
     sessionStorage.getItem(
       `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
@@ -786,12 +806,12 @@ try {
   await page.evaluate(() => {
     window.ambiguous = false;
   });
-  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page.getByRole("button", { name: "Retry the same message" }).click();
   await expect(reply).toHaveValue("");
   assert.deepEqual(await page.evaluate(() => window.calls[1]), lost);
   passed++;
   console.log(
-    "PASS reply beside the work keeps and replays the exact unconfirmed send",
+    "PASS an unlinked reply beside the work is held with a plain notice, sent only by its explicit button, and replays exactly",
   );
 
   const tableData = structuredClone(data);
@@ -1247,8 +1267,10 @@ try {
 
   // R2: while the pane can't re-read the conversation, no path sends: not
   // the button, Ctrl+Enter, Cmd+Enter or a form submission. The draft stays,
-  // and one deliberate send goes after it reconnects.
+  // and one deliberate send goes after it reconnects. (Linked replies, so
+  // keys and submit would otherwise send.)
   await page.evaluate(() => {
+    window.natural = true;
     sessionStorage.clear();
     window.calls.length = 0;
     window.ambiguous = false;
@@ -1330,6 +1352,7 @@ try {
     window.calls.length = 0;
     window.ambiguous = true;
     window.peek = undefined;
+    window.natural = false;
     window.mount("away");
   });
   passed++;
@@ -1664,10 +1687,12 @@ try {
     "PASS files beside the work: checked, removable, kept with the draft, held while stale, sent with the exact target, frozen and replayed, cleared on confirmation",
   );
 
-  // The full conversation's reply sends files with no exact target, and
-  // leaves files chosen after the send was confirmed in place.
+  // The full conversation's reply: while sending is held, drafting and
+  // attaching go on and a send is refused at admission; once released, it
+  // sends files with no exact target and clears them on confirmation.
   await page.evaluate(() => {
     window.natural = true;
+    window.replyHeld = true;
     window.calls.length = 0;
     window.ambiguous = false;
     sessionStorage.clear();
@@ -1680,7 +1705,16 @@ try {
     buffer: Buffer.from("placeholder"),
   });
   await resolve("README.txt", "Read me first.\n");
+  await expect(page.locator(".file-chip")).toHaveCount(1);
   await page.getByLabel("Test reply").fill("Summarise the attached notes.");
+  await page.getByRole("button", { name: "Send reply" }).click();
+  await page.waitForTimeout(150);
+  assert.equal(await page.evaluate(() => window.calls.length), 0);
+  await page.evaluate(() => {
+    window.replyHeld = false;
+    window.mount("reply", "w", "c-files");
+  });
+  await expect(page.locator(".file-chip")).toHaveCount(1);
   await page.getByRole("button", { name: "Send reply" }).click();
   await expect.poll(() => page.evaluate(() => window.calls.length)).toBe(1);
   const threadSend = await page.evaluate(() => window.calls[0].payload);

@@ -150,6 +150,10 @@ export function ConversationPeek({
     void refreshWork();
   }, [settled, refreshWork]);
 
+  // Without an exact saved version (older services), a reply here can't
+  // name the version it's about. It is held until the person sends it
+  // deliberately as a general message; it never goes by Enter or submit.
+  const unlinked = target === undefined;
   const recent = d.messages.slice(-8);
   // Each request's own turn shows under it. A turn that isn't resolved and
   // whose request isn't shown here still gets a line: the latest in full
@@ -277,7 +281,8 @@ export function ConversationPeek({
           className="ask peek-ask"
           onSubmit={(e) => {
             e.preventDefault();
-            void reply.send();
+            // An unlinked reply goes only by its own explicit button.
+            if (!unlinked) void reply.send();
           }}
         >
           <label htmlFor="peek-reply" className="sr-only">
@@ -293,7 +298,7 @@ export function ConversationPeek({
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
-                void reply.send();
+                if (!unlinked) void reply.send();
               }
             }}
           />
@@ -314,23 +319,46 @@ export function ConversationPeek({
           ) : reply.error ? (
             <ErrorNotice error={reply.error} />
           ) : null}
+          {unlinked ? (
+            <p className="notice-line small" data-testid="peek-unlinked">
+              Replies from here can’t be linked to this saved version, and files
+              can’t be attached here. Your draft is kept: send it to the
+              conversation as a general message, or continue in the full
+              conversation.
+            </p>
+          ) : null}
           <div className="ask-bar">
             <span className="hint">
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
                 : target && unsavedEdits
                   ? "Your unsaved edits aren’t included. Replies work from your saved version."
-                  : "Ask about this work or ask for a change."}
+                  : unlinked
+                    ? "Nothing is sent until you choose to."
+                    : "Ask about this work or ask for a change."}
             </span>
-            <button
-              type="submit"
-              className="send-round"
-              aria-label="Send"
-              title="Send"
-              disabled={!reply.canSend}
-            >
-              <span aria-hidden="true">↑</span>
-            </button>
+            {unlinked ? (
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => void reply.send()}
+                disabled={!reply.canSend}
+              >
+                {reply.uncertain
+                  ? "Retry the same message"
+                  : "Send without linking this version"}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="send-round"
+                aria-label="Send"
+                title="Send"
+                disabled={!reply.canSend}
+              >
+                <span aria-hidden="true">↑</span>
+              </button>
+            )}
           </div>
         </form>
       ) : (

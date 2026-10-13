@@ -440,3 +440,68 @@ separate frontend rule.
 tree does the same; the backend files are byte-identical. It failed about
 1 in 6 repeated runs on one fresh database, and it also passed on both
 trees.
+
+## Two decisions from Andrew: unlinked pane replies and full-conversation holds
+
+**1. Replies beside the work that can't name their saved version.** When
+the build doesn't offer exact targets (natural admission off: the
+controlled setup and the older released backend), the pane no longer sends
+such a reply silently.
+
+- A plain notice explains what isn't available: the reply can't be linked
+  to this saved version, and files can't be attached here. It says the
+  draft is kept, and points to sending it as a general message or
+  continuing in the full conversation. No flag name is shown.
+- Enter, Ctrl/Cmd+Enter and form submission send nothing. Only the
+  explicit "Send without linking this version" button sends, as a general
+  message. Andrew chose this over holding replies completely, so pane
+  replies still work in those setups by deliberate choice.
+- An unconfirmed send replays exactly through "Retry the same message".
+- The capability gate itself is unchanged.
+
+**2. The full conversation holds sending while it can't confirm its current
+state** (reconnecting, no confirmed read yet, or ended), matching the pane.
+
+- The reply's admission check (`held`) covers the button, Ctrl+Enter,
+  Cmd+Enter and form submission. The local-operation composer's Run
+  button is held too.
+- Drafting and attaching continue, and the notice says the draft (and
+  files, where offered) are kept.
+- Reconnecting sends nothing by itself.
+- An unconfirmed send keeps its exact command for a deliberate replay.
+- Recording a hand-over is a separate write and is not held by this
+  change.
+
+**RED → GREEN.**
+
+- `web/scripts/conversation-hold.mjs` (real stack, injected read failures
+  and a lost acknowledgement) failed on `0db61e7`: Send stayed enabled
+  while disconnected.
+- The pane DOM regression failed on `0db61e7`: there was no unlinked
+  notice.
+
+Both pass now. Screenshots:
+`evidence/general-alpha-15/conversation-hold-stale.png` and
+`pane-unlinked-reply.png`.
+
+**Checks on this commit:**
+
+- 224 unit tests; type, lint, format and `git diff --check`.
+- Domain and mock production builds.
+- 36 DOM regressions. They now include the unlinked pane reply, and
+  attaching while held followed by one release send.
+- 9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls:
+  - `conversation-hold.mjs` (3 cases): no send by any path while stale,
+    with drafting continuing; nothing sent on reconnect, then one
+    deliberate send; an unconfirmed send held while stale and replayed
+    with the same `command_id` and version.
+  - conversation journey; products journey, which now uses the explicit
+    unlinked send;
+  - 18 recovery cases; flexible create/reopen;
+    `verify_general_integration.py`.
+
+**For Hermes:** `scripts/verify_product_companion.mjs` clicks "Send" in the
+pane on a build without exact targets. That send now needs the explicit
+"Send without linking this version" button. The script is Hermes-owned, so
+I haven't changed it.

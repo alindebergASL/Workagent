@@ -15,6 +15,8 @@ type Props = {
   cid: string;
   version: number;
   refresh: () => Promise<unknown>;
+  /** Sending is held (the conversation can't be confirmed right now). */
+  held?: boolean;
 };
 export function OperationComposer(props: Props) {
   return (
@@ -24,7 +26,13 @@ export function OperationComposer(props: Props) {
     />
   );
 }
-function ScopedOperationComposer({ ws, cid, version, refresh }: Props) {
+function ScopedOperationComposer({
+  ws,
+  cid,
+  version,
+  refresh,
+  held = false,
+}: Props) {
   const [kind, setKind] = useState<"reconcile_csv" | "run_wasm">(
     "reconcile_csv",
   );
@@ -67,7 +75,13 @@ function ScopedOperationComposer({ ws, cid, version, refresh }: Props) {
     return () => reader.invalidate();
   }, [ws, cid, reader]);
   async function run() {
-    if (inFlight.current || reader.pending || !ready || !journal.current)
+    if (
+      held ||
+      inFlight.current ||
+      reader.pending ||
+      !ready ||
+      !journal.current
+    )
       return;
     inFlight.current = true;
     setBusy(true);
@@ -224,7 +238,7 @@ function ScopedOperationComposer({ ws, cid, version, refresh }: Props) {
       {error ? <p role="alert">{error}</p> : null}
       <button
         className="btn btn-primary"
-        disabled={!ready || busy || reading || (!content && !pending)}
+        disabled={held || !ready || busy || reading || (!content && !pending)}
         onClick={() => void run()}
       >
         {busy
