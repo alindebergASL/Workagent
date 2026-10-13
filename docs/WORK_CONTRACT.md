@@ -127,6 +127,41 @@ selective acceptance without bypassing atomic approval. Correction scope stays
 work-local, project or personal as instructed, not an automatic global rule.
 Bundle consequential questions and expose commitments clearly on takeover.
 
+## Adaptive, intelligent UI
+
+Status: required direction, not implementation evidence. This addition grants
+no new permissions, no new live-evaluation budget, and no default merge or deployment authority.
+Existing approval, human-edit, source/audience, recovery and accounting boundaries remain in force.
+
+Apply the [product direction](PRODUCT_CONTRACT.md#adaptive-intelligent-ui) through
+one authoritative work model and the existing worker/domain/broker, not a new UI
+agent or a parallel editable-work store. Skills describe methods; tools expose
+real authorized capabilities; presentation components describe how to understand
+and interact with their state. These are separately extensible contracts, not a
+fixed workflow menu or a requirement that a skill prescribe its own screen.
+
+Hermes and Claude agree typed, versioned presentation descriptions and fallback
+behavior before client wiring. Reuse composable, accessible components with
+consistent input, focus, validation, loading, error and recovery semantics. The
+agent can choose concise text or combine useful representations; a presentation
+choice neither creates a capability nor grants permission. Richer custom
+experiences are supported where justified, within the existing reviewed rendering
+and execution boundaries; arbitrary generated UI is not the only flexible path.
+
+Actionable controls bind real operation handlers and exact canonical work/target
+versions. UI and conversation changes use the same authorized commands, replay
+identity, reauthorization, proposal/acceptance and stale-write checks. Unknown
+outcomes remain unknown; readback must establish effects. Missing or denied
+operations are explained, not rendered as misleading working buttons. Runtime
+origin and current-versus-proposed/human-edited state remain explicit.
+
+Keep the application shell and navigation familiar while the working area adapts.
+Incremental responses must preserve active inputs, focus and orientation. Treat
+exploration as temporary when appropriate; retain useful work when continuity
+calls for it, without forcing every answer into an artifact or responsibility.
+Reopening/resuming uses authoritative saved state and protected drafts rather
+than reconstructing a competing truth from the rendered interface.
+
 ## Canonical overview and frontend agreement
 
 Home/Spaces must include conversation-owned current products and pending decisions

@@ -138,6 +138,46 @@ zero observed violations is bounded evidence, not a universal guarantee. Inspect
 actual answers/results and the first mobile screen, not only screenshots.
 Unmet categories remain visible gaps rather than disappearing from scope.
 
+## Adaptive, intelligent UI
+
+Status: required direction, not implementation evidence. This addition grants
+no new permissions, no new live-evaluation budget, and no default merge or deployment authority.
+Existing approval, human-edit, source/audience, recovery and accounting boundaries remain in force.
+
+The following are required acceptance dimensions, currently NOT TESTED as a
+complete adaptive-interaction capability. Existing individual surfaces or bounded
+examples retain their evidence; their existence is not proof of agent-selected,
+general-purpose interaction. Follow the exact candidate and three verdicts above.
+
+- **Proportionate selection:** a simple question receives a simple answer. When
+  useful, the agent chooses or combines comparison, editable work, visual
+  explanation, adjustable analysis and actionable controls without a dashboard
+  request or workflow menu. Test unfamiliar combinations and a case where richer
+  UI would add effort; illustrative examples never define the support ceiling.
+- **Real actions, one truth:** trace controls to actual authorized handlers and
+  the same authoritative work used in conversation. Exercise both directions of
+  change, human contributions, stale revisions, explicit acceptance, unavailable
+  tools, permission revocation, lost acknowledgement and effect readback. A
+  generated button or successful render alone cannot establish an action exists.
+- **Stable interaction:** preserve active inputs, keyboard focus, user orientation
+  and drafts as responses develop and the working area changes. Check desktop,
+  phone, keyboard and screen-reader semantics, loading/errors and accessible
+  fallback; keep the shell familiar rather than replacing navigation each turn.
+- **Appropriate continuity:** temporary exploration stays lightweight. Useful
+  saved work and human changes remain coherent after reopen, resume and restart;
+  durable retention must not require an assignment or artifact for every answer.
+- **Practical value:** inspect whether users understand, decide and act with less
+  effort. Record avoidable navigation, repeated explanation, manual corrections,
+  decision clarity and successful authorized actions, not merely visual richness
+  or component count. Compare against concise text when practical; no invented
+  benefit scores or superiority claims. Live comparisons consume only existing
+  authorized evaluation scope and bounds; otherwise report NOT TESTED.
+
+Both owners inspect the integrated experience. Runtime/backend selection and
+binding evidence belongs with Hermes; component behavior and interaction evidence
+belongs with Claude; usefulness judgment remains with Andrew. Rendering polish
+cannot replace broad agency, continuity, permission enforcement or recovery.
+
 ## UX review
 
 Review Home, conversation, responsibility inspection, two different work surfaces,

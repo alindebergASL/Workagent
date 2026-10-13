@@ -113,6 +113,47 @@ These increments manage risk, not the product's breadth. No new vision document.
    broader tools, specialist coordination and #11 portability visible. Private
    alpha readiness needs usable supported capabilities, not a canned scenario.
 
+## Adaptive, intelligent UI
+
+Status: required direction, not implementation evidence. This addition grants
+no new permissions, no new live-evaluation budget, and no default merge or deployment authority.
+Existing approval, human-edit, source/audience, recovery and accounting boundaries remain in force.
+
+This strengthens the broad mission; it is not a UI-only milestone. Extend the
+existing runtime and frontend, not a disconnected prototype or new harness.
+ChatGPT’s Intelligent UI is an interaction reference, not a claim of equivalent
+capability or a dependency on another product’s unpublished implementation.
+
+1. **Preserve delivery in progress (Hermes + Claude):** close current review
+   blockers in continuation, attribution, authorization, revalidation and
+   command recovery. This direction does not erase HOLD findings or renew grants.
+   Interface design can proceed in parallel without masking those defects.
+2. **Agree the presentation seam (Hermes runtime/contracts + Claude frontend):**
+   inspect existing products, capability descriptors, work bindings and renderers;
+   specify a small typed extension only where needed. Keep skills, tools and
+   presentation separately extensible. Present the simplest useful experience,
+   with no required dashboard request, workflow menu or new central-loop branch
+   for each illustrative example. Do not prescribe a new registry/framework
+   before inspecting the reusable current seams.
+3. **Implement in the current product (same owners):** add failing selection,
+   authorized-control and continuity tests; compose accessible components in the
+   stable shell. Use existing domain commands for both conversation and controls,
+   preserving human contributions, active inputs and reopen/resume behavior.
+   Permit justified richer custom experiences without making generated code the
+   default or only route. Ordinary text and lightweight exploration stay valid.
+4. **Evaluate the outcome, not the layout count:** through actual UI/worker paths,
+   compare effort to understand, decide and act; cover unfamiliar combinations,
+   simple answers, authorized actions, revoked/unavailable controls and recovery.
+   Use PRODUCT_ACCEPTANCE’s adaptive-interaction criteria. Illustrations are
+   evidence probes, never production routers or the supported-workflow ceiling.
+
+These are coordinated implementation requirements, not a claim that adaptive
+selection or all presentation/control bindings are implemented. Publish exact
+payloads and engineering/usefulness/experience evidence as the extension lands.
+Use the existing evaluation grant only within its installed scope and limits;
+this addition neither expands nor activates it, and does not change held-out
+inputs, reset accounting or authorize replacement evaluation calls.
+
 ## Completed checkpoint execution order (M1 / bounded M2)
 
 1. Incorporate both notes in active contracts, acceptance and this plan; publish
