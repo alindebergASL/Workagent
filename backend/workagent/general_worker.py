@@ -217,6 +217,11 @@ class GeneralWorker:
         from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
         from .service import canonical
         s=self.service; phases=self.phases; rid=run.id
+        from .adaptive import contract
+        from .models import ProviderGrant
+        with s.db.transaction() as c:
+            grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
+        POLICY,DECISION_SCHEMA=contract(grant.responses)
         bound=config['responses']['max_steps']
         try:
             for index in range(1,bound+1):
