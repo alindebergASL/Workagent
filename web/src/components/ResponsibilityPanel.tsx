@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { usePendingCommand } from "@/lib/client/pending-command";
@@ -148,6 +149,17 @@ export function ResponsibilityPanel({
       <h2 id="responsibility-title">{view.state}</h2>
       <p className="small" data-testid="responsibility-execution">
         {view.execution}
+        {view.runId && shown.detail.assignment.conversation_id ? (
+          <>
+            {" "}
+            <Link
+              href={`/conversations/${shown.detail.assignment.conversation_id}#run-${view.runId}`}
+              data-testid="responsibility-run"
+            >
+              See its run in the conversation
+            </Link>
+          </>
+        ) : null}
       </p>
       <dl className="glance-list">
         <div>
@@ -178,9 +190,7 @@ export function ResponsibilityPanel({
         </ul>
       ) : null}
       {view.reviewQueued ? (
-        <p className="hint">
-          A review is queued for when work can run. It hasn’t run.
-        </p>
+        <p className="hint">A readiness review is queued. That isn’t a run.</p>
       ) : null}
 
       <p className="hint" data-testid="responsibility-observed">

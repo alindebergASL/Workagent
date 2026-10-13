@@ -20,6 +20,7 @@ import { OperationComposer } from "@/components/OperationComposer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import {
   AgentReply,
+  RuntimeRequest,
   TurnOutcome,
   TurnProgressDetails,
   TurnSummary,
@@ -226,9 +227,16 @@ export default function ConversationPage() {
 
       <ol className="thread" aria-label="Conversation">
         {d.messages.map((m) => {
-          const turn = m.author === "person" ? turnOf(m) : null;
+          // A turn's state shows under the request that started it: the
+          // person's message or the runtime's continuation request.
+          const turn = m.author !== "agent" ? turnOf(m) : null;
           return (
-            <li key={m.id} className="thread-turn">
+            <li
+              key={m.id}
+              className="thread-turn"
+              // The request that started a run is where links to it land.
+              id={m.author !== "agent" ? `run-${m.run_id}` : undefined}
+            >
               <div className={`msg msg-${m.author}`}>
                 {m.author === "agent" ? (
                   <div
@@ -243,6 +251,11 @@ export default function ConversationPage() {
                       progress={
                         d.turns.find((t) => t.run_id === m.run_id)?.progress
                       }
+                    />
+                  ) : m.author === "runtime" ? (
+                    <RuntimeRequest
+                      text={m.text}
+                      origin={m.responsibility_origin}
                     />
                   ) : (
                     <p>

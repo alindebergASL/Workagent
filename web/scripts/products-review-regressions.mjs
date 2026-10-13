@@ -1172,6 +1172,61 @@ try {
     "PASS pane beside the work holds sending on a stale read and drops its snapshot when access ends",
   );
 
+  // A runtime continuation request beside the work is Workagent's, never
+  // "You", and the latest turn says it's a hand-over continuation.
+  await page.evaluate(() => {
+    const conv = structuredClone(window.resource.data.conversation);
+    const origin = {
+      kind: "responsibility_wake",
+      assignment_id: "asg-1",
+      wake_id: "wake-1",
+      work_version: 2,
+    };
+    conv.messages.push({
+      id: "msg-wake",
+      author: "runtime",
+      text: "Continue the hand-over: check the totals.",
+      created_at: "2026-10-13T00:00:00Z",
+      sequence: 999,
+      run_id: "run-wake",
+      origin: "runtime",
+      responsibility_origin: origin,
+    });
+    conv.turns.push({
+      run_id: "run-wake",
+      state: "queued",
+      reason: "Queued continuation",
+      message_id: "msg-wake",
+      responsibility_origin: origin,
+    });
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("away");
+    window.mount("product");
+  });
+  const wake = page.locator(".agent-pane .msg-runtime");
+  await expect(wake.getByTestId("runtime-request")).toContainText(
+    "Continue the hand-over: check the totals.",
+  );
+  await expect(wake).not.toContainText("You:");
+  await expect(wake).toContainText("not by you");
+  await expect(
+    page.locator('.agent-pane .msg-pending[data-state="queued"]'),
+  ).toContainText("Hand-over continuation");
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("away");
+    window.mount("product");
+  });
+  passed++;
+  console.log(
+    "PASS a runtime continuation beside the work is labelled as Workagent's, not the person's",
+  );
+
   // Natural admission: a reply beside the work names the exact saved
   // version (never the unsaved working copy), and an unconfirmed reply
   // replays the same frozen target after the saved version moves on.

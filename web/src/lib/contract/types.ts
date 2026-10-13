@@ -359,9 +359,17 @@ export interface ConversationSummary {
   last_message_preview?: string | null;
 }
 
+/** Why the runtime asked for a continuation: a recorded hand-over's wake. */
+export type ResponsibilityOrigin =
+  import("../../../../contracts/src/client").components["schemas"]["ResponsibilityOrigin"];
+
 export interface ChatMessage {
   id: string;
-  author: "person" | "agent";
+  /**
+   * Who the message is from. "runtime" is a continuation request the
+   * service made for a recorded hand-over: never the person's words.
+   */
+  author: "person" | "agent" | "runtime";
   text: string;
   created_at: string;
   sequence: number;
@@ -369,14 +377,18 @@ export interface ChatMessage {
   /** Server-attested origin; a controlled reply is a wiring receipt, not model output. */
   origin: import("../../../../contracts/src/client").components["schemas"]["ConversationMessage"]["evidence_origin"];
   products?: import("../../../../contracts/src/client").components["schemas"]["ProductResult"][];
+  /** The hand-over, wake and work version a runtime request came from. */
+  responsibility_origin?: ResponsibilityOrigin | null;
 }
 
 export interface ChatTurn {
   run_id: string;
   state: TurnState;
   reason?: string;
-  /** The person's message that admitted this turn. */
+  /** The message that started this turn: the person's, or a runtime request. */
   message_id: string | null;
+  /** Set when the runtime started this turn for a recorded hand-over. */
+  responsibility_origin?: ResponsibilityOrigin | null;
   /** Model-path progress, when the backend reports it. */
   progress?: import("./natural").TurnProgress;
 }

@@ -30,6 +30,14 @@ const BLOCKER: Record<NonNullable<Lifecycle["blocker"]>, string> = {
 const EXECUTION: Record<Lifecycle["execution_status"], string> = {
   not_admitted:
     "Not admitted to run: nothing runs in the background for it right now.",
+  queued:
+    "Admitted to run and waiting its turn. Queued isn’t the same as started.",
+  running:
+    "The service records a run in progress. Running isn’t the same as done.",
+  settled:
+    "Its latest run finished and its result is recorded. That result still needs your review; it isn’t accepted, and the goal isn’t marked done.",
+  blocked:
+    "Its run is blocked. Some work may already have happened, so check its run.",
 };
 
 /**
@@ -70,5 +78,7 @@ export function responsibilityView(life: Lifecycle) {
         : "Stopped. Nothing further runs for it."
       : EXECUTION[life.execution_status],
     allowed,
+    /** The run the service bound to this responsibility, if any. */
+    runId: life.run_id ?? null,
   };
 }

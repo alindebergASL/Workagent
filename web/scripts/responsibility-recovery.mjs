@@ -69,8 +69,11 @@ try {
     await expect(
       page.getByRole("heading", { name: "Handed over" }),
     ).toBeVisible({ timeout: 15000 });
-    return (await api(`/conversations/${cid}`)).body.assignment_ids[0];
+    const id = (await api(`/conversations/${cid}`)).body.assignment_ids[0];
+    cids[id] = cid;
+    return id;
   }
+  const cids = {};
   const plain = await handover("Keep the volunteer list tidy.");
   const aid = await handover("Help me run the volunteer briefing.");
   const respURL = `**/assignments/${aid}/responsibility`;
@@ -344,6 +347,121 @@ try {
   pass(
     "dismissing a confirmation sends nothing; take-back leaves nothing to steer",
   );
+
+  // F1: a runtime continuation request is never "You" and its state sits
+  // under its own request, for every turn state (responses injected into the
+  // real conversation read; no runtime execution happens here).
+  const cid = cids[aid];
+  const wakeOrigin = {
+    kind: "responsibility_wake",
+    assignment_id: aid,
+    wake_id: "wake-fixture",
+    work_version: 3,
+  };
+  for (const state of [
+    "queued",
+    "responding",
+    "failed",
+    "unavailable",
+    "outcome_unknown",
+    "cancelled",
+    "replied",
+  ]) {
+    await page.route(`**/api/domain/**/conversations/${cid}`, async (route) => {
+      if (route.request().method() !== "GET") return route.continue();
+      const real = await (await route.fetch()).json();
+      const human = real.messages[0];
+      const run = real.runs[0];
+      real.messages.push({
+        ...human,
+        id: "msg-wake",
+        run_id: "run-wake",
+        sequence: real.messages.length + 1,
+        author_kind: "system",
+        evidence_origin: "runtime",
+        text: "Continue the hand-over: confirm the room booking.",
+        responsibility_origin: wakeOrigin,
+      });
+      real.runs.push({ ...run, id: "run-wake" });
+      real.turns = [
+        ...(real.turns ?? []),
+        {
+          run_id: "run-wake",
+          state,
+          reason: `Fixture continuation ${state}`,
+          profile: "general-responses-v1",
+          evidence_origin: "unverified",
+          provider_observation: "not_observed",
+          responsibility_origin: wakeOrigin,
+        },
+      ];
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(real),
+      });
+    });
+    await page.goto(`${origin}/conversations/${cid}`);
+    const req = page.locator("#run-run-wake");
+    await expect(req.getByTestId("runtime-request")).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(req).not.toContainText("You:");
+    await expect(
+      req.getByRole("link", { name: "Open the hand-over" }),
+    ).toHaveAttribute("href", `/assignments/${aid}`);
+    // The person's own first message is still theirs.
+    await expect(page.locator(".msg-person").first()).toContainText("You:");
+    if (state === "replied")
+      await expect(req.locator(".msg-pending")).toHaveCount(0);
+    else
+      await expect(req.locator(".msg-pending")).toHaveAttribute(
+        "data-state",
+        state,
+      );
+    if (state === "queued") await shot(page, "03-runtime-request-queued");
+    await page.unroute(`**/api/domain/**/conversations/${cid}`);
+  }
+  pass("runtime continuation requests: labelled, anchored, every turn state");
+
+  // F2: every execution status worded truthfully, with its bound run.
+  for (const [status, expected] of [
+    ["not_admitted", "Not admitted to run"],
+    ["queued", "Queued isn’t the same as started."],
+    ["running", "Running isn’t the same as done."],
+    ["settled", "it isn’t accepted, and the goal isn’t marked done."],
+    ["blocked", "Some work may already have happened"],
+  ]) {
+    await page.route(respURL, async (route) => {
+      if (route.request().method() !== "GET") return route.continue();
+      const real = await (await route.fetch()).json();
+      real.lifecycle.state = "active";
+      real.lifecycle.execution_status = status;
+      real.lifecycle.run_id = status === "not_admitted" ? null : "run-wake";
+      real.provider_execution_queued = status === "queued";
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(real),
+      });
+    });
+    await page.goto(`${origin}/assignments/${aid}`);
+    const exec = page.getByTestId("responsibility-execution");
+    await expect(exec).toContainText(expected, { timeout: 15000 });
+    if (status === "not_admitted")
+      await expect(page.getByTestId("responsibility-run")).toHaveCount(0);
+    else
+      await expect(page.getByTestId("responsibility-run")).toHaveAttribute(
+        "href",
+        `/conversations/${cid}#run-run-wake`,
+      );
+    await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
+    await expect(page.getByText("isn’t available yet")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
+    if (status === "running") await shot(page, "04-execution-running");
+    await page.unroute(respURL);
+  }
+  pass("execution statuses worded without overclaiming, linked to their run");
 
   // Leaving the route stops its reads.
   await page.goto(`${origin}/`);

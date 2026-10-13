@@ -1,5 +1,6 @@
 import type { TurnProgress } from "@/lib/contract/natural";
-import type { TurnState } from "@/lib/contract/types";
+import Link from "next/link";
+import type { ResponsibilityOrigin, TurnState } from "@/lib/contract/types";
 import {
   adaptivePresentation,
   modelExamples,
@@ -75,6 +76,47 @@ export function AgentReply({
             is the message exactly as it was recorded, with its status.
           </p>
           <RichText text={text} />
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * A continuation request the service made for a recorded hand-over. It is
+ * never shown as the person's words, and it is a request, not a sign that a
+ * model ran: what happened to it shows under it, by its own run.
+ */
+export function RuntimeRequest({
+  text,
+  origin,
+}: {
+  text: string;
+  origin?: ResponsibilityOrigin | null;
+}) {
+  return (
+    <div className="stack-xs runtime-request" data-testid="runtime-request">
+      <p className="eyebrow-caps">Continuation request from a hand-over</p>
+      <p>
+        <span className="sr-only">Workagent’s continuation request: </span>
+        {text}
+      </p>
+      {origin ? (
+        <p className="small muted">
+          Asked by Workagent for a recorded hand-over, not by you.{" "}
+          <Link href={`/assignments/${origin.assignment_id}`}>
+            Open the hand-over
+          </Link>
+        </p>
+      ) : (
+        <p className="small muted">Asked by Workagent, not by you.</p>
+      )}
+      {origin ? (
+        <details className="ids-details">
+          <summary>Request details</summary>
+          <p className="ids">
+            Wake {origin.wake_id} · hand-over version {origin.work_version}
+          </p>
         </details>
       ) : null}
     </div>

@@ -10,6 +10,7 @@ import type { ExactTarget } from "@/lib/contract/natural";
 import { ErrorNotice } from "@/components/ui";
 import {
   AgentReply,
+  RuntimeRequest,
   TurnOutcome,
   TurnSummary,
   TurnProgressDetails,
@@ -140,6 +141,11 @@ export function ConversationPeek({
                     d.turns.find((t) => t.run_id === m.run_id)?.progress
                   }
                 />
+              ) : m.author === "runtime" ? (
+                <RuntimeRequest
+                  text={m.text}
+                  origin={m.responsibility_origin}
+                />
               ) : (
                 <p>
                   <span className="sr-only">You: </span>
@@ -184,6 +190,9 @@ export function ConversationPeek({
       ) : null}
       {last && last.state !== "replied" && TURN_TEXT[last.state] ? (
         <div className="msg-pending" data-state={last.state}>
+          {last.responsibility_origin ? (
+            <p className="eyebrow-caps">Hand-over continuation</p>
+          ) : null}
           <TurnSummary
             state={last.state}
             progress={last.progress}

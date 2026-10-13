@@ -887,7 +887,12 @@ export function conversationDetail(
     conversation: toConversation(d.conversation),
     messages: messages.map((m) => ({
       id: m.id,
-      author: m.author_kind === "assistant" ? "agent" : "person",
+      author:
+        m.author_kind === "assistant"
+          ? "agent"
+          : m.author_kind === "system"
+            ? "runtime"
+            : "person",
       text: m.text,
       created_at: m.created_at ?? "",
       sequence: m.sequence,
@@ -896,6 +901,7 @@ export function conversationDetail(
       products: (m.result?.results ?? []).filter(
         (r): r is S["ProductResult"] => r.kind !== "text",
       ),
+      responsibility_origin: m.responsibility_origin ?? null,
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,
@@ -911,9 +917,19 @@ export function conversationDetail(
       reason:
         d.turns?.find((t) => t.run_id === r.id)?.reason ??
         (r.unresolved ?? []).join("; "),
+      // Anchored to the request that started this run: the person's own
+      // message, or the runtime's continuation request; never another one.
       message_id:
-        messages.find((m) => m.run_id === r.id && m.author_kind === "human")
-          ?.id ?? null,
+        messages.find(
+          (m) =>
+            m.run_id === r.id &&
+            (m.author_kind === "human" || m.author_kind === "system"),
+        )?.id ?? null,
+      responsibility_origin:
+        d.turns?.find((t) => t.run_id === r.id)?.responsibility_origin ??
+        messages.find((m) => m.run_id === r.id && m.author_kind === "system")
+          ?.responsibility_origin ??
+        null,
       progress: turnProgress(d.turns?.find((t) => t.run_id === r.id)),
     })),
     assignment_ids: d.assignment_ids,

@@ -206,3 +206,53 @@ queued, running, settled and blocked wording plus a link to the run.
     command with a failed re-read; CAS conflicts with a successful and a
     failed re-read, each sent once; a dismissed confirmation sending
     nothing; take-back; reads stopping when the route changes.
+
+## F1 and F2 on the canonical contract (`hermes/general-alpha-backend-15` `11def03`)
+
+The branch is merged into the owner branch, and no contract file was
+edited.
+
+- **F1: runtime requests.**
+  - `author_kind: system` maps to a `runtime` author, and
+    `responsibility_origin` is kept on messages and turns.
+  - The full thread and the panel beside the work both render it as a
+    "Continuation request from a hand-over", marked "Asked by Workagent …,
+    not by you". It links to the hand-over and shows its wake and version
+    under "Request details". It is never shown as "You".
+  - Each turn is anchored to the message that started its run, human or
+    system. Its queued, responding, failed, unavailable, unknown or
+    cancelled state and its reason show under its own request, never under
+    an unrelated human message.
+  - The panel beside the work marks the latest turn as a "Hand-over
+    continuation".
+- **F2: execution.**
+  - Every `execution_status` is worded so it claims no more than the
+    record: queued is not started, running is not done, settled still
+    needs review and is not accepted or the goal done, and blocked means
+    some work may have happened. Adding a status is a compile error until
+    it is worded.
+  - A bound `run_id` links to `/conversations/{id}#run-{run}`, which
+    anchors on the request that started that run.
+  - A readiness review is worded separately from execution ("That isn't a
+    run").
+
+**Checks on this commit:**
+
+- `pnpm check`: 201 unit tests (new: continuation mapping for every turn
+  state, runtime rendering, execution wording), plus type, lint and format
+  checks.
+- Production build.
+- 30 DOM regressions (new: a runtime continuation beside the work);
+  9 sandbox regressions; 15 mock e2e tests.
+- Real stack, controlled, no model calls, fresh database through SQL022:
+  - flexible create/reopen;
+  - `verify_general_integration.py`;
+  - conversation journey;
+  - responsibility journey;
+  - `responsibility-recovery.mjs`, 16 cases. The two new ones inject
+    runtime requests into real reads for all seven turn states, and all
+    five execution statuses, each with its run link.
+
+**Limits:** the runtime requests and execution statuses in those browser
+cases are injected into real API responses. No actual continuation run was
+admitted or executed here.

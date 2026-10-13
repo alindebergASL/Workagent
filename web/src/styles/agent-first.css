@@ -1082,3 +1082,12 @@ details.disclosure.card {
   margin: 0;
   padding-left: 1.2em;
 }
+
+/* A continuation request the service made for a hand-over: not the person. */
+.msg-runtime {
+  border-left: 3px solid var(--line-strong);
+  padding-left: var(--sp-3);
+}
+.runtime-request p {
+  margin: 0;
+}
