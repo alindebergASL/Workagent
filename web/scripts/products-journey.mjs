@@ -80,7 +80,7 @@ try {
   report.csv_conversation = csvCid;
   await attach("reconcile_csv", "invoices.csv");
   await page
-    .getByRole("link", { name: "Open table product", exact: true })
+    .getByRole("link", { name: "Open table", exact: true })
     .click({ timeout: 15000 });
   await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
   const tableURL = page.url();
@@ -124,7 +124,10 @@ try {
     .click();
   await page.waitForURL(new RegExp("/conversations/" + csvCid + "$"));
   await page
-    .getByRole("link", { name: "Open table proposed change", exact: true })
+    .getByRole("link", {
+      name: "Review proposed change to the table",
+      exact: true,
+    })
     .click({ timeout: 15000 });
   await expect(page.getByTestId("product-proposal")).toContainText(
     "Human review note retained",
@@ -209,7 +212,7 @@ try {
   report.tool_conversation = toolCid;
   await attach("run_wasm", "invoice-total.wat");
   await page
-    .getByRole("link", { name: "Open tool product", exact: true })
+    .getByRole("link", { name: "Open tool", exact: true })
     .click({ timeout: 15000 });
   await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
   const toolURL = page.url();
@@ -254,7 +257,10 @@ try {
     .click();
   await page.waitForURL(new RegExp("/conversations/" + toolCid + "$"));
   await page
-    .getByRole("link", { name: "Open tool proposed change", exact: true })
+    .getByRole("link", {
+      name: "Review proposed change to the tool",
+      exact: true,
+    })
     .click({ timeout: 15000 });
   await expect(page.getByTestId("observed-return")).toHaveText("4250");
   await expect(page.getByTestId("product-verification")).toHaveText(

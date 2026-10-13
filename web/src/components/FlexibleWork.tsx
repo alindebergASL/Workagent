@@ -41,6 +41,7 @@ import {
   type StructuredTable,
 } from "@/lib/flexible";
 import { readableTitle } from "@/lib/titles";
+import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
 /** The saved version each bound piece of work is at now, by artifact id. */
 export type Bound = Record<
@@ -157,9 +158,12 @@ export function FlexibleEditor({
   stale,
   refresh,
   onDirtyChange,
+  focusRevision,
 }: {
   ws: string;
   cid: string;
+  /** An earlier version a conversation link opened, if any. */
+  focusRevision?: string | null;
   artifact: S["Artifact"];
   proposals: S["Proposal"][];
   history: S["Revision"][];
@@ -291,6 +295,18 @@ export function FlexibleEditor({
         </div>
       </header>
 
+      {focusRevision ? (
+        <EarlierVersion
+          revisionId={focusRevision}
+          current={artifact.current_revision}
+          history={history}
+          proposals={proposals}
+          workHref={`/conversations/${cid}/artifacts/${artifact.id}`}
+          render={(body) =>
+            isFlexible(body) ? <ReadOnly body={body} /> : null
+          }
+        />
+      ) : null}
       {stale ? (
         <p role="alert" className="notice-line">
           Connection lost. Showing what was last read; changes are paused until
@@ -576,8 +592,8 @@ export function FlexibleEditor({
           {history.map((r) => (
             <details key={r.id} className="ids-details">
               <summary>
-                Version {r.revision_number} ·{" "}
-                {r.author_kind === "human" ? "your edit" : "Workagent"}
+                Version {r.revision_number} · {versionAuthor(r, proposals)}
+                {r.id === artifact.current_revision_id ? " · current" : ""}
               </summary>
               {isFlexible(r.body) ? <ReadOnly body={r.body} /> : null}
               <p className="ids">

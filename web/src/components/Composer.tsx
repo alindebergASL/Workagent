@@ -225,6 +225,10 @@ export function Composer({
 
   const hasText = request.trim().length > 0;
 
+  // Without chosen context, handing over only records a paused hand-over in
+  // a new conversation; with context it starts work on an assignment.
+  const pausedOnly =
+    !pending.current && selected.length === 0 && CAPABILITIES.conversation;
   const delegate = async () => {
     if (!wsId || submitting) return;
     setUnsentNote(false);
@@ -535,6 +539,11 @@ export function Composer({
           <button
             type="button"
             className="btn btn-sm delegate"
+            title={
+              pausedOnly
+                ? "Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
+                : undefined
+            }
             onClick={() => void delegate()}
             disabled={
               (!hasText && !pending.current) || submitting || wsLoading || !wsId
@@ -544,7 +553,9 @@ export function Composer({
               ? "Handing over…"
               : ambiguous
                 ? "Retry same request"
-                : "Take it from here"}
+                : pausedOnly
+                  ? "Record a hand-over"
+                  : "Take it from here"}
           </button>
           <button
             type="submit"

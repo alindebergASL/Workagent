@@ -250,21 +250,21 @@ try {
   record.worker_batches.push(worker());
 
   // ---- explicit hand-over: recorded, paused, linked; no Resume ----
-  await page.getByRole("button", { name: "Take it from here" }).click();
+  await page.getByRole("button", { name: "Record a hand-over" }).click();
   await expect(
-    page.getByRole("heading", { name: "Hand this over" }),
+    page.getByRole("heading", { name: "Record a hand-over" }),
   ).toBeVisible();
   await page.getByLabel("Done when").fill("We’ve reviewed the plan together");
   await shot(page, "04-handover-desktop");
   loseNext = /\/delegate$/;
-  await page.getByRole("button", { name: "Record hand-over" }).click();
+  await page.getByRole("button", { name: "Save paused hand-over" }).click();
   await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
   expect((await api(`/conversations/${cid}`)).body.assignment_ids).toHaveLength(
     1,
   );
   await page.reload();
   await expect(
-    page.getByRole("heading", { name: "Hand this over" }),
+    page.getByRole("heading", { name: "Record a hand-over" }),
   ).toBeVisible();
   await expect(page.getByLabel("Done when")).toHaveValue(
     "We’ve reviewed the plan together",
@@ -339,7 +339,7 @@ try {
     .fill("Take the weekly review off my plate.");
   const conversationsBefore = (await api("/conversations")).body.items.length;
   loseNext = /\/conversations$/;
-  await page.getByRole("button", { name: "Take it from here" }).click();
+  await page.getByRole("button", { name: "Record a hand-over" }).click();
   await expect(page.getByText("Couldn’t reach the service")).toBeVisible();
   await page.reload();
   await expect(page.getByLabel("Message your agent")).toHaveValue(
@@ -351,7 +351,7 @@ try {
     timeout: 15000,
   });
   await expect(
-    page.getByRole("heading", { name: "Hand this over" }),
+    page.getByRole("heading", { name: "Record a hand-over" }),
   ).toBeVisible();
   await expect(page.getByLabel("What to carry forward")).toHaveValue(
     "Take the weekly review off my plate.",
