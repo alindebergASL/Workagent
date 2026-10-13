@@ -176,6 +176,30 @@ class Ledger:
             self.event(c,request.phase,kind,data)
         return True
 
+    def count_problem(self,request,error):
+        """Retain only safe count diagnostics; never clear/retry an unknown slot."""
+        allowed={'observation_unavailable','http_error','malformed_response',
+                 'invalid_or_excessive_input_count','input_count_exceeds_limit'}
+        code=error.code if error.code in allowed else 'count_observation_unavailable'
+        data={'operation':'count','code':code,'received':False}
+        if code=='http_error' and type(error.http_status) is int and 100<=error.http_status<=599:
+            data['http_status']=error.http_status
+        if (code=='input_count_exceeds_limit' and type(error.input_tokens) is int
+                and error.input_tokens>RESERVED_INPUT):
+            data.update(received=True,input_tokens=error.input_tokens,limit=RESERVED_INPUT)
+        with self.service.db.transaction() as c:
+            self._auth(c)
+            row=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                          (self.receipt.attempt_id,request.phase)).fetchone()
+            events=self._events(c,request.phase)
+            if (not row or row['request_sha256']!=request.sha256 or 'count_send' not in events
+                    or 'count_result' in events or 'dispatch' in events):
+                raise DomainError('command_conflict')
+            if 'problem' in events:
+                if events['problem']!=data: raise DomainError('command_conflict')
+                return
+            self.event(c,request.phase,'problem',data)
+
     def corrected_readback(self,request,response,read_id,cap):
         """One exact parser correction, NOT a general receipt replacement/import.
 

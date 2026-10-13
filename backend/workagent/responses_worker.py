@@ -286,7 +286,11 @@ class ResponsesWorker:
                 ledger.reserve_operation(request,'count_send',cap)
                 self._fresh(cap)
                 if time.monotonic()>=deadline:return None
-                count=self.transport.count(request)
+                try:
+                    count=self.transport.count(request)
+                except TransportError as error:
+                    ledger.count_problem(request,error)
+                    raise
                 ledger.retain(request,'count_result',{'request_sha256':count.request_sha256,
                     'count_sha256':count.count_sha256,'input_tokens':count.input_tokens,
                     'metadata':count.metadata.model_dump(),'provenance':asdict(count.provenance)})

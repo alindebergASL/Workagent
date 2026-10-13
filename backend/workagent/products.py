@@ -72,6 +72,14 @@ def turn_state(run,c=None):
             'invalid':'Provider output invalid; no repair or generation retry; retained local result is not yet a published product.',
             'received':'Receipt-backed explanation and local result read back; proposals require explicit human acceptance.'}[observation]
         if observation in ('outcome_unknown','invalid'): state='unavailable'
+        if c is not None and attempt and observation in ('outcome_unknown','invalid'):
+            problems=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND kind='problem' ORDER BY created_at,id",(attempt['id'],)).fetchall()
+            count_problem=next((r['data'] for r in reversed(problems) if r['data'].get('operation')=='count'),None)
+            if count_problem:
+                if count_problem.get('code')=='input_count_exceeds_limit' and count_problem.get('received') is True:
+                    reason='Input exceeds the 20000-token per-request limit. No generation was sent for this phase; saved work is unchanged. No automatic retry.'
+                else:
+                    reason='Token count could not be confirmed; the count attempt is retained. No generation was sent for this phase. No automatic retry.'
         if run.state=='cancelled': state='cancelled'; reason='Turn cancelled; any sent provider reservations remain retained.'
         if run.state=='partial' and run.unresolved:
             state='failed'; reason=' '.join(run.unresolved)

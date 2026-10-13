@@ -181,7 +181,7 @@ def test_reject_changed_payload_before_count_network(harness, changes):
 def test_bad_or_excessive_count_never_creates(harness, tokens):
     transport, calls = harness(lambda _: httpx.Response(200, json={
         'object': 'response.input_tokens', 'input_tokens': tokens}))
-    with pytest.raises(TransportError, match='invalid_or_excessive_input_count'):
+    with pytest.raises(TransportError, match='input_count_exceeds_limit' if tokens==20001 else 'invalid_or_excessive_input_count'):
         transport.count(selection())
     assert [call.url.path for call in calls] == ['/v1/responses/input_tokens']
 
