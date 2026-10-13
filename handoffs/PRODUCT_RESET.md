@@ -5,15 +5,27 @@ Patch base: `93db754c28385401d62703116313cfd23e153855`, the current
 `hermes/intake-next-action` evidence head at preparation. This reset changes no
 application code, accepted runtime bundle or saved state.
 
-## Apply once and acknowledge
+## Reset already applied — do not repeat it
 
-The coordinator can read/comment but cannot push files through its current
-connection. The accompanying exact-base patch is prepared/verified; it is not
-active until applied. Hermes applies on an isolated non-default branch, preserving
-concurrent work. If head advanced, inspect/reconcile; never force-reset or overwrite
-dirty work. Run `git apply --check` first. Report installed SHA/conflicts.
-Claude consumes that base rather than applying a second reset. PR comments do
-not restart idle sessions.
+The original reset and harness comparison are completed history. Current product
+work follows issue #15 and the existing four canonical contracts, not this old
+patch-install sequence. PR #14 `a0764115` / application `5acc6e5` is the preserved
+reviewed baseline; next implementation uses `hermes/general-alpha-15`.
+
+Hermes owns backend/runtime/contracts/integration. The existing Claude Cloud
+session owns `web/`; Andrew is resuming it. See
+[concrete frontend handoff](backend/GENERAL_ALPHA_FRONTEND_HANDOFF.md). Contract
+changes precede client wiring; do not replace owners or overwrite concurrent work.
+A repository comment does not itself wake a Cloud session.
+
+Current sequence: substantive direct answers and composable skill/tool execution;
+canonical responsibility lifecycle/dependencies; integrated result-first/mobile
+experience; varied/held-out actual-product verification. The broad guidepost and
+remaining gaps stay in PRODUCT_CONTRACT/WORK_CONTRACT/PRODUCT_ACCEPTANCE/BUILD_PLAN.
+No repeated harness selection, competing vision, task store or orchestration loop.
+
+The historical deliverables below are retained to explain provenance, not as a
+fresh reset or a claim that their formerly missing features remain undelivered.
 
 ## Active instruction map
 
@@ -32,7 +44,7 @@ revision IDs in primary UI are superseded for new work. Preserve technical/histo
 evidence and execution constraints. Replace stale instructions, not just append
 another vision note.
 
-## Hermes: first implementation deliverable
+## Historical Hermes first deliverable
 
 1. Install reset, update active mission/status and PR description to this scope.
    Intake is closed for its engineering slice, not the next product mission.
@@ -50,7 +62,7 @@ another vision note.
 First checkpoint: installed SHA, mutually agreed contract delta, one runnable CLI
 case and named gaps. Fixtures alone cannot qualify general model behavior.
 
-## Claude: first implementation deliverable
+## Historical Claude first deliverable
 
 Resume the existing session and `web/` ownership. Wait only for contract details
 needed to wire behavior; establish visual/layout foundations concurrently.

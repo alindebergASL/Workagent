@@ -1,62 +1,21 @@
 # Build plan: independent work through a seamless experience
 
-## Flexible-work candidate (#13) — supersedes the next-slice status below
+## Current delivery state — general-alpha mandate (#15)
 
-The current integration branch is `hermes/flexible-work-13`. It combines the
-additive backend/contracts (`f2b747a`, bridge follow-up `fffb69b`), retained
-live-model proof (`a48c6d5`) and Claude’s structured renderer/custom-view adapter
-(`878b6b867c3173e428d3744d8c53da92506b9152`). Historical checkpoint sections below
-retain their original evidence scope; they no longer describe #13 as unimplemented.
+[Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
+in this existing contract, not a separate vision or new routine approval gate.
+Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
+Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
+it does not establish broad product readiness. Development now continues on
+`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
+[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+Historical reports retain their original scope, failures and verdicts.
 
-Delivered candidate capabilities: `structured-table/v1` with stable typed fields,
-units and edit rules; `custom-view/v1` with durable HTML/CSS/JS, readable fallback,
-exact same-conversation bindings and named read-only actions. Historical invoice
-`table` bodies are not reinterpreted. The existing save/propose/accept/history
-lifecycle remains canonical. Generated source runs only in the opaque no-network
-sandbox; the trusted shell owns unverified status and permission/action failures.
-Shape-only drafts cannot satisfy human CSV/Wasm acceptance checks: incompatible
-selections are rejected and follow the existing continuation/step-limit path.
-No SQL acceptance gate or historical migration is weakened.
-
-[Contract](../handoffs/backend/FLEXIBLE_VIEW_CONTRACT.md),
-[live evidence and limits](../handoffs/backend/FLEXIBLE_LIVE_PROOF.md), and
-[frontend handoff](../handoffs/frontend/FLEXIBLE_WORK_FRONTEND.md) distinguish live
-model output, independent bounded checks and controlled engineering fixtures.
-Actual rainwater and venue goals, human-price-obstacle adaptation, restart and
-scoped-view proof are retained. They are not universal verification or Andrew’s
-usefulness/experience acceptance. Static derived assessments can diverge from
-changed local filter criteria; those claims remain draft data.
-
-Exact combined gates/review are required before #13 can close. Until their
-published verdict, this is an integrated candidate, not accepted delivery.
-Backend full-suite evidence at `a48c6d5` is 768 passed; never relabel it as the
-post-fix/combined gate. Run `scripts/verify_flexible_integration.py` on a new env
-for the real controlled-consumer production-UI lifecycle and process restart.
-One cumulative $20 budget remains: latest retained reserve $4.48528 includes
-$3.42992 historical carry; reservations are not billing. No additional provider
-calls are needed to integrate/replay these saved outputs. Preserve saved review
-state. Default merge/deployment remain unauthorized; #10/#11 and broader M4/M5
-remain sequenced, undelivered work.
-
-## Current bounded checkpoint and next boundary — 2026-10-08
-
-The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
-with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
-[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
-separate engineering, usefulness and experience. Continuous workers recovered the
-original interrupted run, preserving its response identities, saved human note,
-pending approval and cumulative reservations. Run 06 failed in the evidence
-harness after recovery, not in application publication; its failed evidence is retained.
-
-[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
-This checkpoint is not flexible work creation or sandboxed HTML delivery.
-The next slice is a general structured surface plus an isolated generated
-HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
-The earlier blanket "never generated HTML or script" restriction is superseded;
-generated views still receive no ambient credentials, approval authority or
-unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
-records the agreed direction, responsibilities, and still-undelivered wire contract.
-Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+The prior live allowance is exhausted; Andrew approved a new consolidated alpha
+evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+Budget headroom is never independent authority. Routine implementation and
+deterministic checks continue; no default merge/deployment, external business
+effects or expanded account/private-data access.
 
 
 Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
@@ -109,22 +68,50 @@ a real deterministic obstacle, retaining edits/authority. Claude retains the
 frontend corrections. The original four-turn/eight-generation/eight-count grant
 is exhausted; deterministic development does not require additional paid tests.
 
-## Milestones, owners and required evidence
+## Milestones, owners and required evidence — reconciled
 
-| Milestone | Owner | Implementation next / acceptance evidence |
+| Milestone | Owner | Implemented/demonstrated versus missing |
 | --- | --- | --- |
-| M1: Same-runtime model connection | Hermes backend/runtime; Claude prompt/attachment/target UI | Finish recovered GeneralWorker/dispatcher/Products/Responses integration; immutable attachments/exact targets, strict model decisions, trusted staged local observations, result-aware explanation, cumulative guards/recovery. Deterministic PostgreSQL/HTTP/CLI proof before the four-turn live test in GENERAL_MODEL_SLICE.md. No operator choice or supplied WAT |
-| M2: Seamless work and continuity | Claude web; Hermes canonical read contract/integration | Agree exact generated contract for natural-language entry and conversation-owned products/decisions in Home/Spaces without fake assignments. Integrate preserved edits, collapsed code/details and useful result metadata. Demonstrate ask → useful work → revise → leave → find → reopen → continue on actual desktop/phone service |
-| M3: Goal formation and adaptive execution | Hermes same runtime/domain; Claude meaningful progress and steering | Implement bounded observation-driven continuation with derived goals/success criteria. Deterministic obstacle scenario must cause a justified next action and verification, not merely a fixed sequence or a plan. Then live test only under an applicable grant |
-| M4: Specialist coordination | Hermes same runtime/domain; Claude consolidated result/decision | Implement scoped delegation/dependencies/shared budgets, cancellation/material-edit propagation, reconciliation and verified combined output. Exercise actual delegated work plus failed/stale/conflicting child; do not surface topology as required user management |
-| M5: Persistent ownership | Hermes responsibility/event/recovery; Claude Home/Spaces/check-ins | Same responsibility resumes on relevant event/restart with current context, decisions, edits and dependencies; useful check-in, pause/resume/cancel/takeover and no duplicate effects. Saved chat or paused handover does not pass |
+| M1: Same-runtime model connection | Hermes runtime; Claude input UI | Implemented and bounded live turns demonstrated; not broad model usefulness |
+| M2: Seamless work and continuity | Claude web; Hermes domain/integration | Native same-work proposal/acceptance/reopen/restart and human edit preservation demonstrated; broad answer quality, selective changes and ordinary ownership UX incomplete |
+| M3: Goal formation and adaptation | Hermes runtime; Claude progress/steering | Bounded obstacle recovery and flexible work implemented/demonstrated; direct-answer semantics and real skill/tool composition in implementation, broader judgment still unproven |
+| M4: Specialist coordination | Hermes runtime; Claude consolidated outcomes | Required/planned; no product delegation proof. Development subagents are not product capability |
+| M5: Persistent ownership | Hermes canonical responsibility/events; Claude controls | Lifecycle/dependency handling in implementation; full ongoing execution and user experience not yet demonstrated |
 
-M1's one-operation profile is checkpoint-specific, not the general architecture.
-M1 demonstrates adaptation across human turns; M3 must demonstrate autonomous
-continuation within a task. M3–M5 are core requirements still planned, not optional
-aspirations or delivered behavior. Implement incrementally using existing authority
-and runtime seams; reuse fitting components without a new orchestration stack.
-B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicable.
+## Active implementation sequence — general alpha
+
+Use subagent-driven implementation with one integrator and isolated ownership.
+These increments manage risk, not the product's breadth. No new vision document.
+
+1. **Answer semantics and composition (runtime writer):** failing direct-answer,
+   no-skill, draft-response and skill-load tests first; change
+   `backend/workagent/{adaptive,general_worker,general_responses,products}.py`
+   and reviewed new guidance/handler modules. Preserve receipt identity and
+   completion/approval boundaries. New methods must extend guidance/catalog,
+   not require task-specific loop branches. Run focused real-PostgreSQL worker
+   tests using controlled transport, then regress authorization/recovery.
+2. **Responsibilities (isolated lifecycle writer):** extend authoritative
+   Assignments via new `responsibilities.py`, `responsibility_models.py` and
+   additive migration 018, leaving shared service/API wiring to integrator.
+   Test changed dependency, no-change suppression, two scopes, CAS/idempotency,
+   interruption/resumption and fresh-service restart. A wake is not execution.
+3. **Integration (Hermes):** agree exact payloads before generated contract/API
+   changes; connect lifecycle to canonical events and existing worker, rather
+   than shipping isolated modules. Recheck source authority, human edits and
+   grant loss across selection/execution/publication. Preserve historical DBs.
+4. **Experience (existing Claude owner):** use generated contracts for result-
+   first replies, mobile work/conversation, truthful capability gaps and real
+   responsibility controls. No competing frontend or workflow menu. Diagnose
+   substantive answer loss separately from shell labels; no mere caveat hiding.
+5. **Behavioral proof (Hermes + independent reviewers):** real UI/production
+   worker deterministic breadth first, then separately authorized varied and
+   held-out live requests. Include no skill/new method, source conflicts,
+   human-edited revision, failure, changed dependency and unrelated ownership.
+   Judge useful results, attention, recovery and resource use, not test totals.
+6. **Continue, do not redefine done:** publish integrated outcomes/limits at each
+   meaningful milestone; keep #10 scoped memory/learning, selective acceptance,
+   broader tools, specialist coordination and #11 portability visible. Private
+   alpha readiness needs usable supported capabilities, not a canned scenario.
 
 ## Completed checkpoint execution order (M1 / bounded M2)
 
@@ -148,15 +135,14 @@ B4–B7 continuity/scope/failure gates in PRODUCT_ACCEPTANCE.md remain applicabl
 
 ## Execution boundary
 
-Routine development, tests, fixes, branch publication and compatible non-default
-integration are authorized. GENERAL_MODEL_AUTHORIZATION.md permits reasonable
-bounded synthetic tests on the recorded official route within one cumulative $20
-budget, without calendar expiry and with acknowledged store:true. The original
-four-turn/eight-generation checkpoint is not a project-wide stop. Runtime profiles
-remain bounded; historical counters, reservations and unknown liabilities never
-reset per restart, batch or child. Shared-budget enforcement is implemented.
-
-Default merge, deployment, new paid routes, broader private-context access and
-external business actions remain excluded. Continue routine findings without
-another checkpoint approval; escalate only a concrete missing decision, permission
-or access requirement.
+Routine implementation, fixes, tests, sanitized publication and compatible
+non-default integration are authorized. The alpha evaluation is **APPROVED, NOT INSTALLED**.
+Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and activate only after
+exact-candidate deterministic checks and review pass, fresh route/account/pricing
+verification, and enforcement of durable per-run and aggregate bounds retaining
+all inherited reservations and unknown liabilities: $5.93640/$20 reserved,
+$3.42992 carry, original count-only unknown retained. Budget headroom is not authority.
+Request fresh authority only for scope expansion or an exhausted bound.
+No counter reset, silent retry, default merge/deployment, external business
+actions, expanded account access or private-data scope. Continue provider-free
+work while awaiting only genuinely necessary authority or owner access.

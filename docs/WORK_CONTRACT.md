@@ -1,62 +1,21 @@
 # General work contract and migration boundary
 
-## Flexible-work candidate (#13) — supersedes the next-slice status below
+## Current delivery state — general-alpha mandate (#15)
 
-The current integration branch is `hermes/flexible-work-13`. It combines the
-additive backend/contracts (`f2b747a`, bridge follow-up `fffb69b`), retained
-live-model proof (`a48c6d5`) and Claude’s structured renderer/custom-view adapter
-(`878b6b867c3173e428d3744d8c53da92506b9152`). Historical checkpoint sections below
-retain their original evidence scope; they no longer describe #13 as unimplemented.
+[Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
+in this existing contract, not a separate vision or new routine approval gate.
+Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
+Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
+it does not establish broad product readiness. Development now continues on
+`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
+[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+Historical reports retain their original scope, failures and verdicts.
 
-Delivered candidate capabilities: `structured-table/v1` with stable typed fields,
-units and edit rules; `custom-view/v1` with durable HTML/CSS/JS, readable fallback,
-exact same-conversation bindings and named read-only actions. Historical invoice
-`table` bodies are not reinterpreted. The existing save/propose/accept/history
-lifecycle remains canonical. Generated source runs only in the opaque no-network
-sandbox; the trusted shell owns unverified status and permission/action failures.
-Shape-only drafts cannot satisfy human CSV/Wasm acceptance checks: incompatible
-selections are rejected and follow the existing continuation/step-limit path.
-No SQL acceptance gate or historical migration is weakened.
-
-[Contract](../handoffs/backend/FLEXIBLE_VIEW_CONTRACT.md),
-[live evidence and limits](../handoffs/backend/FLEXIBLE_LIVE_PROOF.md), and
-[frontend handoff](../handoffs/frontend/FLEXIBLE_WORK_FRONTEND.md) distinguish live
-model output, independent bounded checks and controlled engineering fixtures.
-Actual rainwater and venue goals, human-price-obstacle adaptation, restart and
-scoped-view proof are retained. They are not universal verification or Andrew’s
-usefulness/experience acceptance. Static derived assessments can diverge from
-changed local filter criteria; those claims remain draft data.
-
-Exact combined gates/review are required before #13 can close. Until their
-published verdict, this is an integrated candidate, not accepted delivery.
-Backend full-suite evidence at `a48c6d5` is 768 passed; never relabel it as the
-post-fix/combined gate. Run `scripts/verify_flexible_integration.py` on a new env
-for the real controlled-consumer production-UI lifecycle and process restart.
-One cumulative $20 budget remains: latest retained reserve $4.48528 includes
-$3.42992 historical carry; reservations are not billing. No additional provider
-calls are needed to integrate/replay these saved outputs. Preserve saved review
-state. Default merge/deployment remain unauthorized; #10/#11 and broader M4/M5
-remain sequenced, undelivered work.
-
-## Current bounded checkpoint and next boundary — 2026-10-08
-
-The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
-with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
-[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
-separate engineering, usefulness and experience. Continuous workers recovered the
-original interrupted run, preserving its response identities, saved human note,
-pending approval and cumulative reservations. Run 06 failed in the evidence
-harness after recovery, not in application publication; its failed evidence is retained.
-
-[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
-This checkpoint is not flexible work creation or sandboxed HTML delivery.
-The next slice is a general structured surface plus an isolated generated
-HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
-The earlier blanket "never generated HTML or script" restriction is superseded;
-generated views still receive no ambient credentials, approval authority or
-unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
-records the agreed direction, responsibilities, and still-undelivered wire contract.
-Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+The prior live allowance is exhausted; Andrew approved a new consolidated alpha
+evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+Budget headroom is never independent authority. Routine implementation and
+deterministic checks continue; no default merge/deployment, external business
+effects or expanded account/private-data access.
 
 
 Status: target design contract, not a claim that these routes/states exist.
@@ -134,13 +93,39 @@ Required behavior, including still-undelivered specialist/ownership scope:
 
 Implement these using existing worker/domain/broker/attempt seams, additive
 schemas and suitable established components; no competing orchestration stack
-or restarted framework investigation. Reasonable bounded synthetic model tests
-on the recorded route are authorized within one cumulative $20 project ceiling;
-activate scoped runtime grants without resetting past counters or liabilities.
+or restarted framework investigation. New live evaluation requires an explicit
+consolidated grant under the latest mandate; budget headroom alone does not
+renew authority. Preserve all historical counters, reservations and liabilities.
 Verification records request/source/base/operation/result bindings and scope;
 unsupported clauses stay needs-validation. Verification never records human
 acceptance. Changes after admission invalidate stale pending work; restart cannot
 overwrite them or regenerate an uncertain provider attempt.
+
+## Guidepost semantics: authoritative work, contextual memory
+
+A useful answer may complete a conversational request without an Assignment or
+artifact. Response completion, prepared work, approval, delivery and achieved
+objectives are distinct; generic validation warnings cannot erase substantive
+answers. Keep consequential uncertainty beside the result, details secondary.
+
+Skills are versioned applicability/method/exception/success-check guidance, loaded
+when useful; tools have real typed handlers, availability and scope/effect limits.
+Record exact selected versions on runs. Neither grants permissions. Reuse the
+same journal, broker, domain and work state, including when no skill fits.
+
+Use existing Assignments for continuing responsibility, not a rival task store.
+Persist current outcome, next action, dependencies, waits and lifecycle version.
+Material events make only relevant work eligible; no-change reads do not notify.
+Pause/resume/cancel/takeover and grant loss constrain execution. Durable wake
+eligibility is not evidence that provider execution or external delivery happened.
+Restart must use current accepted work and human corrections, not stale summaries.
+
+Accepted/current material, drafts, stale attachments and conflicts retain source
+authority and audience. Scoped consequence checks must not rewrite everything.
+Reject stale proposals and preserve concurrent edits; separable changes require
+selective acceptance without bypassing atomic approval. Correction scope stays
+work-local, project or personal as instructed, not an automatic global rule.
+Bundle consequential questions and expose commitments clearly on takeover.
 
 ## Canonical overview and frontend agreement
 
@@ -169,20 +154,18 @@ the broker.
 The spike is complete: `handoffs/backend/HARNESS_ADOPTION.md` records the
 keep/adopt/reject decision. Retain Workagent authority and the existing runtime;
 do not repeat the investigation. Controlled transport proved wiring only.
-The current separately approved model test is governed by
-`GENERAL_MODEL_AUTHORIZATION.md`: one cumulative $20, no calendar expiry,
-reasonable bounded synthetic tests on the recorded route. The original four-turn /
-eight-generation cap belongs to its immutable checkpoint, not the whole project.
-Shared project reservations, carried historical usage and unknown liabilities
-remain enforced. Historical expired intake grants remain closed. New paid routes,
-private data, default merge and deployment remain excluded.
+The latest boundary in `GENERAL_MODEL_AUTHORIZATION.md` controls: the scoped
+allowance is exhausted. The $20 cumulative ceiling, carried usage and unresolved
+liabilities remain; further live evaluation needs an explicit scoped grant.
+Historical profiles stay readable, not automatically reactivated. No new paid
+route, private-data access, external business effect, default merge or deployment.
 
 Memory/learning #10 and provider portability #11 are sequenced after the adaptive
 slice. Durable work belongs to Workagent; adapters may use provider persistence
 without making it canonical memory. Known-ID retrieval and ambiguous-send
 liabilities remain distinct; portability cannot imply safe automatic regeneration.
 
-## Migration hotspots at 93db754
+## Historical migration hotspots at 93db754
 
 - `web/src/components/Composer.tsx`: remove mandatory sources and fixed
   plan/checklist completion criteria from general entry; keep an intake route.

@@ -1,6 +1,30 @@
 # Current runtime status and execution boundary
 
-## Frontend status correction — current (#13 remains open)
+## General alpha (#15) — implementation underway, not yet demonstrated
+
+Integration branch: `hermes/general-alpha-15`, based on PR #14 `a0764115`.
+Runtime/skill composition and canonical responsibility lifecycle have isolated
+backend writers; Hermes integrates. Existing Claude retains `web/`; Andrew is
+resuming that Cloud session (local CLI currently has no login). Exact generated
+contracts precede client wiring; [owner handoff](../handoffs/backend/GENERAL_ALPHA_FRONTEND_HANDOFF.md).
+
+Current gaps: ordinary replies are misclassified as waiting/unverified in parts
+of the adaptive path, and generic validation text can displace substantive
+responses. Skills/tool definitions alone are not runtime composition; a paused
+handover is not ownership. These are implementation targets, not declared fixes.
+The existing product/work/acceptance/build contracts now incorporate #15 in place.
+
+Earned baseline remains unchanged below. Preview `127.0.0.1:3166` is host-local,
+not a deployed alpha; preserve its saved work and later human edits. New work
+must use isolated databases and verification before replacing any review build.
+
+Live grant readback: native allowance exhausted, **$5.93640/$20 reserved**,
+$3.42992 carry and original count-only unknown preserved. A new bounded alpha
+evaluation is approved but **not installed or dispatched**; see
+[authorization and all bounds](GENERAL_MODEL_AUTHORIZATION.md). No default
+merge/deployment, external business effect or broader account/private-data access.
+
+## Preserved frontend status correction (#13 remains open)
 
 Claude's `edb09db466d3f636818b439c4e2102f9bb3d33f7` is integrated at
 `5acc6e521766f3b830dea3f47b3c611056370be4`. Empty/unrun model-example checks
@@ -119,7 +143,7 @@ calls are needed to integrate/replay these saved outputs. Preserve saved review
 state. Default merge/deployment remain unauthorized; #10/#11 and broader M4/M5
 remain sequenced, undelivered work.
 
-## Verified bounded checkpoint
+## Historical: Verified bounded checkpoint
 
 Runtime implementation **0e8112795e09f83a8c393571bfc994c4d603b7c4** is published
 on PR #12, `hermes/adaptive-product-integration`. Integrated application
@@ -147,7 +171,7 @@ readback and actual downloads passed. The downtime unsaved draft survived phone
 switching/reload before worker restart; persistence after the original browser
 closed is **not** claimed. Saved-note preservation is verified after recovery.
 
-## Review environments and workers
+## Historical: Review environments and workers
 
 - Integrated UI/API: **http://127.0.0.1:3140**, API 8140, same isolated milestone state.
 - Original `0e81127`: http://127.0.0.1:3130, API 8130, preserved.
@@ -161,7 +185,7 @@ Do not reset the saved review database, accept the proposal or replace its human
 revision merely to rerun proof. Process readiness is checked independently of
 these durable documentation claims.
 
-## Limits and next work
+## Historical: Limits and next work
 
 Completion is deliberately narrow: full recognized request, exact input/result
 bindings, independent finite oracle. Unsupported phrases/obligations retain
@@ -181,7 +205,7 @@ sequenced work, not prerequisites for this proof. Broader M4/M5 remain undeliver
 Claude resumed and published ea4e29d; the old local-CLI-authentication blocker is
 superseded. No login action is requested from Andrew for this owner coordination.
 
-## Authority and one cumulative budget
+## Historical: Authority and one cumulative budget
 
 Routine development, fixes, tests, publication and compatible non-default
 integration remain authorized. Reasonable bounded synthetic testing uses the

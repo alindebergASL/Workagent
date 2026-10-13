@@ -1,62 +1,21 @@
 # Workagent product contract
 
-## Flexible-work candidate (#13) — supersedes the next-slice status below
+## Current delivery state — general-alpha mandate (#15)
 
-The current integration branch is `hermes/flexible-work-13`. It combines the
-additive backend/contracts (`f2b747a`, bridge follow-up `fffb69b`), retained
-live-model proof (`a48c6d5`) and Claude’s structured renderer/custom-view adapter
-(`878b6b867c3173e428d3744d8c53da92506b9152`). Historical checkpoint sections below
-retain their original evidence scope; they no longer describe #13 as unimplemented.
+[Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
+in this existing contract, not a separate vision or new routine approval gate.
+Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
+Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
+it does not establish broad product readiness. Development now continues on
+`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
+[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+Historical reports retain their original scope, failures and verdicts.
 
-Delivered candidate capabilities: `structured-table/v1` with stable typed fields,
-units and edit rules; `custom-view/v1` with durable HTML/CSS/JS, readable fallback,
-exact same-conversation bindings and named read-only actions. Historical invoice
-`table` bodies are not reinterpreted. The existing save/propose/accept/history
-lifecycle remains canonical. Generated source runs only in the opaque no-network
-sandbox; the trusted shell owns unverified status and permission/action failures.
-Shape-only drafts cannot satisfy human CSV/Wasm acceptance checks: incompatible
-selections are rejected and follow the existing continuation/step-limit path.
-No SQL acceptance gate or historical migration is weakened.
-
-[Contract](../handoffs/backend/FLEXIBLE_VIEW_CONTRACT.md),
-[live evidence and limits](../handoffs/backend/FLEXIBLE_LIVE_PROOF.md), and
-[frontend handoff](../handoffs/frontend/FLEXIBLE_WORK_FRONTEND.md) distinguish live
-model output, independent bounded checks and controlled engineering fixtures.
-Actual rainwater and venue goals, human-price-obstacle adaptation, restart and
-scoped-view proof are retained. They are not universal verification or Andrew’s
-usefulness/experience acceptance. Static derived assessments can diverge from
-changed local filter criteria; those claims remain draft data.
-
-Exact combined gates/review are required before #13 can close. Until their
-published verdict, this is an integrated candidate, not accepted delivery.
-Backend full-suite evidence at `a48c6d5` is 768 passed; never relabel it as the
-post-fix/combined gate. Run `scripts/verify_flexible_integration.py` on a new env
-for the real controlled-consumer production-UI lifecycle and process restart.
-One cumulative $20 budget remains: latest retained reserve $4.48528 includes
-$3.42992 historical carry; reservations are not billing. No additional provider
-calls are needed to integrate/replay these saved outputs. Preserve saved review
-state. Default merge/deployment remain unauthorized; #10/#11 and broader M4/M5
-remain sequenced, undelivered work.
-
-## Current bounded checkpoint and next boundary — 2026-10-08
-
-The bounded adaptive checkpoint is verified at runtime implementation `0e81127`,
-with Claude's `ea4e29d` generic-table correction integrated at `65e84c6`.
-[Executed evidence and limitations](../handoffs/backend/ADAPTIVE_COMPLETION_CHECKPOINT.md)
-separate engineering, usefulness and experience. Continuous workers recovered the
-original interrupted run, preserving its response identities, saved human note,
-pending approval and cumulative reservations. Run 06 failed in the evidence
-harness after recovery, not in application publication; its failed evidence is retained.
-
-[Issue #13](https://github.com/alindebergASL/Workagent/issues/13) remains **OPEN**.
-This checkpoint is not flexible work creation or sandboxed HTML delivery.
-The next slice is a general structured surface plus an isolated generated
-HTML/CSS/scoped-JS view on the same durable work/revision/proposal/action substrate.
-The earlier blanket "never generated HTML or script" restriction is superseded;
-generated views still receive no ambient credentials, approval authority or
-unrestricted API/network access. [Owner contract and next slice](../handoffs/backend/FLEXIBLE_WORK_OWNER_CONTRACT.md)
-records the agreed direction, responsibilities, and still-undelivered wire contract.
-Memory/learning #10 and portability #11 remain sequenced work, not prerequisites.
+The prior live allowance is exhausted; Andrew approved a new consolidated alpha
+evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+Budget headroom is never independent authority. Routine implementation and
+deterministic checks continue; no default merge/deployment, external business
+effects or expanded account/private-data access.
 
 
 Status: active product direction after Andrew's approved course correction.
@@ -113,6 +72,55 @@ Ordinary conversation is useful immediately. The user may work together with
 the agent or say “Take it from here.” A task, Space, source selection or approval
 form is not a prerequisite for talking. Durable ownership begins when something
 needs continuing work, not on every message.
+
+## Optional methods, reusable tools and broad requests
+
+Direct conversation, exploration, research, writing, analysis, building,
+troubleshooting, planning, tool operation, coordination and ongoing work belong
+in scope, including unfamiliar combinations. These are examples, not a router's
+whitelist. A simple answer needs no task, project, Space, artifact or formal plan.
+GTD and other productivity methods are optional skills, never mandatory flows.
+
+Skills are discoverable versioned guidance: applicability, method, exceptions
+and success checks, loaded when useful. Tools are typed capabilities with actual
+handlers, availability, scope and effect boundaries. The agent chooses and
+combines them, adapts to observations and reasons when no skill fits. New methods
+using existing tools should normally require no central-loop or bespoke-screen
+change. Neither skill text nor available tools grant permission. Missing tools
+or connections must be explained, not silently replaced by an unwanted artifact.
+
+Work state owns commitments, accepted revisions, dependencies and status. Memory
+supplies scoped context, never competing authoritative commitments. Muse, Dot and
+Hermes may inform useful mechanisms; no superiority claim or architecture change
+follows from naming them. The completed harness comparison stays closed absent
+concrete new evidence.
+
+## Result quality and collaboration guidepost
+
+Lead with the useful answer, recommendation or change, then material decisions
+and uncertainty. Supporting detail remains available. Ordinary answers are not
+failed executions merely because no independent tool check ran. Prepared,
+approved, delivered and achieved mean different things; approval alone cannot
+complete an external objective. Current facts/recommendations lead, historical
+notes follow. Use concise structure/tables where helpful, not repetitive caveats,
+oversized checklists or an artifact for every turn. Match depth to complexity.
+
+- Changed assumptions trigger scoped consequence checks and justified proposed or
+  authorized updates, not indiscriminate rewriting of related work.
+- Accepted/current material, drafts, stale attachments and conflicting sources
+  retain provenance and authority distinctions; do not silently choose the latest
+  upload over canonical work.
+- Preserve concurrent edits; reject stale proposals, explain material differences
+  and support selective acceptance where changes are separable.
+- Judge success against the actual objective and available evidence, not a tool's
+  exit status or a draft's acceptance.
+- Bundle consequential questions, suppress no-change notifications and use standing
+  permissions without exhausting the user's attention.
+- Check audience when private context might enter shared work. Keep one-document,
+  project and global corrections distinct; not every correction becomes memory.
+- A takeover must show current outcome, next action, dependencies and outstanding
+  commitments without replaying the entire conversation. Pause/resume/interruption
+  and real check-in behavior are required; a paused handover is not ownership.
 
 ## Experience
 
@@ -173,27 +181,22 @@ justify delaying functional proof indefinitely.
 
 ## Current delivery sequence
 
-The active candidate is PR #12 on `hermes/adaptive-product-integration`; PR #9
-is the coordination/history entrypoint, not the latest application head. Preserve
-Claude's integrated frontend and existing review environments.
+The prior candidate remains PR #14 on `hermes/flexible-work-13`; the next
+integration branch is `hermes/general-alpha-15`. PR #9 coordinates the existing
+owners. Preserve Claude's frontend, saved review environments and bounded proof.
 
-The verified bounded M3 checkpoint turns an ordinary goal into useful work, encounters
-an observed obstacle, changes approach, verifies a bounded requested result, and
-resumes interrupted execution with human edits and effect identities preserved.
-Completion evidence is distinct from approval: a verified proposed revision still
-needs the person's explicit decision before replacing saved work. Unsupported or
-unverified obligations remain partial/needs-validation. No required user-authored
-test specification and no model-generated examples promoted into proof.
-
-Run existing local/model workers continuously in isolated review state; manual
-operator ticks are not the demonstrated user journey. General conversation,
-tables and runnable tools remain supported; a narrow verified task is an honest
-first completion capability, not the product's identity.
-
-Memory/learning [#10](https://github.com/alindebergASL/Workagent/issues/10) and
-portability [#11](https://github.com/alindebergASL/Workagent/issues/11) follow this
-slice. Workagent owns durable work; provider persistence is optional capability,
-not canonical memory. Their full backlogs are not prerequisites for M3.
+1. Correct answer/outcome semantics in the existing runtime; keep substantive
+   responses and truthful uncertainty together.
+2. Connect optional versioned guidance and real reusable tool handlers to the
+   production selection/observation path, with no-skill reasoning supported.
+3. Implement canonical responsibility lifecycle, dependencies, interruption and
+   resumption; integrate truthful controls through the existing frontend owner.
+4. Verify varied/partly held-out requests, changing assumptions and failures through
+   the real UI/worker. Deterministic engineering proof precedes separately granted
+   live usefulness evaluation. Iterate on actual answers, not only screenshots.
+5. Continue toward the private alpha without redefining the broad scope around
+   its first tools. #10 scoped memory/learning, specialist coordination and #11
+   portability remain visible gaps, not prerequisites for every earlier gain.
 
 ## Scope discipline
 

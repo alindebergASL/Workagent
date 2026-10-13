@@ -1,5 +1,50 @@
 # Andrew's general-model testing authorization
 
+## Current execution boundary — general-alpha evaluation approved, not active
+
+The prior native-continuation two-run allowance remains exhausted. After the
+new product-building mandate, Hermes requested one consolidated alpha evaluation
+and Andrew selected **“Authorize this bounded evaluation”** in the submitted
+clarification. This is new scoped authority, not a reset or inference from money.
+
+Approved scope: synthetic ordinary-UI/production-path breadth and continuity,
+including human edits, explicit trusted proposal acceptance, local failure and
+restart tests, dependency-triggered continuations and up to two plain-chat
+comparison turns. Existing official OpenAI `gpt-6.1-sol`, medium reasoning,
+default tier and acknowledged `store:true` only.
+
+Hard bounds, shared across the entire batch:
+- At most **10 runs**, including triggered continuations and comparisons.
+- At most **4 selection steps + one final response per run**, and **30 generation
+  dispatches total**; per-run allowances cannot multiply that aggregate.
+- **30 token-count requests**, **280 same-ID retrievals** maximum.
+- Additional reservations: **600,000 input / 245,760 output tokens**.
+- **$4 additional reservation ceiling**, unchanged **$20 cumulative ceiling**.
+- Failed attempts count; no silent replacement generation, account/business
+  effects, expanded private-data access, default merge or deployment.
+
+Baseline readback: **$5.93640 reserved**, including **$3.42992 carry**; counts
+20 token-count / 19 dispatch / 167 read; reserved tokens 380,000 input / 155,648
+output. Original count-only unknown retained. At recorded conservative rates,
+30 dispatches reserve $3.95760 extra ($9.89400 cumulative), but fresh route,
+account and pricing verification is mandatory before activation.
+
+**Approved, NOT INSTALLED:** integrated exact-candidate deterministic checks and
+review must pass first. Parent owns runtime activation and must bind all bounds
+to durable controls without widening inherited limits or losing liabilities.
+No child or frontend handoff may spend this allowance independently. The local
+verbatim request/response receipt is retained; later evidence must identify the
+actual activation and all used/failed runs, not merely this document.
+
+Andrew also selected **“I’ll resume the existing Claude Cloud frontend session”**;
+this preserves the existing owner, not a replacement frontend implementation.
+Routine implementation/deterministic checks/publication continue meanwhile.
+
+## Historical approvals and interpretation
+
+The statements below remain verbatim source history. They do not override the
+latest bounded approval above or authorize resetting old grants/receipts.
+
 ## Source statement (verbatim)
 
 Received from Andrew Lindeberg in the existing Telegram conversation:
@@ -13,7 +58,7 @@ Received from Andrew Lindeberg in the existing Telegram conversation:
 >
 > I approve $20 and no expiration. Keep this going until we use $20 and I can reapprove. Lets not slow the project down when this amount is not that much. This will help with testing
 
-## Current clarification — continue within the cumulative $20
+## Historical clarification — continue within the cumulative $20
 
 Andrew subsequently clarified in the same working conversation:
 
@@ -49,7 +94,7 @@ continued development, not a fabricated demonstration. Technical checkpoints are
 progress reports, not additional permission gates. The initial one-operation
 profile is not the architectural ceiling.
 
-## Current continuation instruction — October 8
+## Historical continuation instruction — October 8
 
 Andrew's direct continuation explicitly states:
 
