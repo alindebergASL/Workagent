@@ -6,7 +6,10 @@ import {
   adaptivePresentation,
   modelExamples,
 } from "../src/lib/adaptive-presentation";
-import { TurnProgressDetails } from "../src/components/TurnProgress";
+import {
+  TurnOutcome,
+  TurnProgressDetails,
+} from "../src/components/TurnProgress";
 
 const hash = "a".repeat(64);
 function progress(): TurnProgress {
@@ -273,5 +276,20 @@ describe("model examples: none, passed or failed", () => {
       operation_hash: "b".repeat(64),
     });
     expect(adaptivePresentation("failed", p)?.changedAttempts).toBe(1);
+  });
+});
+
+describe("the trusted outcome under an answer", () => {
+  const line = (state: Parameters<typeof TurnOutcome>[0]["state"]) =>
+    renderToStaticMarkup(
+      createElement(TurnOutcome, { state, progress: progress() }),
+    ).replace(/<[^>]+>/g, "");
+  it("shows the recorded state of a finished turn as its own line", () => {
+    expect(line("replied")).toContain("Result saved — needs review.");
+    expect(line("replied")).toContain("not yet verified");
+  });
+  it("says nothing for turns that haven't finished", () => {
+    expect(line("responding")).toBe("");
+    expect(line("failed")).toBe("");
   });
 });

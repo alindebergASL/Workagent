@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useResource } from "@/lib/client/hooks";
@@ -32,6 +32,7 @@ import {
   toolInputs,
 } from "@/lib/product-summary";
 import { readableTitle } from "@/lib/titles";
+import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
 type Data = {
   artifact: S["Artifact"];
@@ -156,6 +157,7 @@ function ProductView({ body }: { body: ProductBody }) {
 }
 export default function ProductPage() {
   const { id, artifactId } = useParams<{ id: string; artifactId: string }>();
+  const focusRevision = useSearchParams().get("revision");
   const { workspace } = useWorkspace();
   const ws = workspace?.id;
   const [unsaved, setUnsaved] = useState(false);
@@ -249,9 +251,11 @@ export default function ProductPage() {
                 stale={resource.reconnecting}
                 refresh={resource.refresh}
                 onDirtyChange={setUnsaved}
+                focusRevision={focusRevision}
               />
             ) : (
               <FlexibleEditor
+                focusRevision={focusRevision}
                 key={`${ws}:${id}:${artifactId}`}
                 ws={ws!}
                 cid={id}
@@ -312,6 +316,7 @@ function ProductEditor({
   stale,
   refresh,
   onDirtyChange,
+  focusRevision,
 }: {
   ws: string;
   cid: string;
@@ -319,6 +324,8 @@ function ProductEditor({
   stale: boolean;
   refresh: () => Promise<unknown>;
   onDirtyChange: (dirty: boolean) => void;
+  /** An earlier version a conversation link opened, if any. */
+  focusRevision?: string | null;
 }) {
   const router = useRouter();
   const artifact = data.artifact;
@@ -514,6 +521,18 @@ function ProductEditor({
         </div>
       </header>
 
+      {focusRevision ? (
+        <EarlierVersion
+          revisionId={focusRevision}
+          current={artifact.current_revision}
+          history={data.history}
+          proposals={data.proposals}
+          workHref={`/conversations/${cid}/artifacts/${artifact.id}`}
+          render={(body) =>
+            isProduct(body) ? <ProductView body={body} /> : null
+          }
+        />
+      ) : null}
       {stale ? (
         <p role="alert" className="notice-line">
           Connection lost. Showing what was last read; changes are paused until
@@ -972,7 +991,10 @@ function ProductEditor({
             <section key={r.id} className="stack-sm">
               <h3>
                 Version {r.revision_number} ·{" "}
-                {r.author_kind === "human" ? "your edit" : "calculated"}
+                {r.author_kind === "human"
+                  ? versionAuthor(r, data.proposals)
+                  : "calculated"}
+                {r.id === artifact.current_revision_id ? " · current" : ""}
               </h3>
               {isProduct(r.body) ? (
                 <>

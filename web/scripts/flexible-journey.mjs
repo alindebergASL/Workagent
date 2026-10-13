@@ -230,7 +230,7 @@ try {
     ids.table = table.artifact_id;
     await page.reload();
     await page
-      .getByRole("link", { name: "Open table product", exact: true })
+      .getByRole("link", { name: "Open table", exact: true })
       .click({ timeout: 15000 });
     await page.waitForURL(/\/artifacts\/[^/?]+$/);
     await expect(page.getByTestId("product-verification")).toHaveText(
@@ -387,6 +387,35 @@ try {
     expect(savedDoc.blocks.find((b) => b.block_id === "c1").checked).toBe(true);
     expect(savedDoc.blocks.map((b) => b.block_id)).toEqual(["h", "c1", "p"]);
 
+    // The conversation's link to the document now opens the version it made,
+    // says the work changed since, and offers the current version beside it.
+    await page.goto(`${origin}/conversations/${cid}`);
+    const docResult = page
+      .locator(".product-result")
+      .filter({ has: page.locator(`a[href*="${ids.doc}"]`) });
+    await expect(
+      docResult.getByRole("link", { name: "Open this version", exact: true }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(docResult).toContainText("Changed since.");
+    await expect(
+      docResult.getByRole("link", { name: "Open current document" }),
+    ).toHaveAttribute("href", `/conversations/${cid}/artifacts/${ids.doc}`);
+    await docResult.getByRole("link", { name: "Open this version" }).click();
+    await page.waitForURL(/\?revision=/);
+    const earlier = page.getByTestId("earlier-version");
+    await expect(earlier).toContainText("Version 1 · Workagent");
+    await expect(earlier).toContainText("Version 2 · your edit");
+    await expect(earlier).toContainText(
+      "What changed since version 1 (1 added, 1 removed)",
+    );
+    // The editor below is the current version, not the earlier one.
+    await expect(page.getByLabel("Mark done: Hand out lanyards")).toBeChecked();
+    await shot(page, "03b-doc-earlier-version");
+    await page.setViewportSize({ width: 390, height: 900 });
+    await noOverflow(page);
+    await shot(page, "03c-doc-earlier-version-phone");
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
     // 4. An agent-made view bound to the exact saved rota.
     const workspace = (await api("", undefined, root)).items.find(
       (w) => w.id === "local-workspace",
@@ -454,6 +483,20 @@ try {
     await expect(
       page.getByText("Your edits are saved.", { exact: true }),
     ).toBeVisible();
+    // The applied proposal's link now opens the applied version: it was
+    // Workagent's change, applied by a person, and edited by them since.
+    await page.goto(`${origin}/conversations/${cid}`);
+    const applied = page.getByRole("link", {
+      name: "Open the applied version",
+    });
+    await expect(applied).toHaveCount(1, { timeout: 15000 });
+    await expect(
+      page.getByRole("link", { name: /proposed change/ }),
+    ).toHaveCount(0);
+    await applied.click();
+    await expect(page.getByTestId("earlier-version")).toContainText(
+      "Workagent’s change, applied by you",
+    );
     await page.goto(`${origin}/conversations/${cid}/artifacts/${ids.view}`);
     await expect(
       page.getByText("· changed since this view was made"),

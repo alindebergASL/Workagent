@@ -465,3 +465,35 @@
     grid-template-columns: minmax(260px, 0.62fr) minmax(0, 2fr);
   }
 }
+
+/* A message's result link, and what changed since it was written. */
+.product-result {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+.product-result-note {
+  margin: 0;
+}
+.later-versions {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.version-diff {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+.version-diff li[data-change="added"] {
+  border-left: 3px solid var(--ok);
+  padding-left: var(--sp-2);
+}
+.version-diff li[data-change="removed"] {
+  border-left: 3px solid var(--attn);
+  padding-left: var(--sp-2);
+  text-decoration: line-through;
+  color: var(--ink-2);
+}

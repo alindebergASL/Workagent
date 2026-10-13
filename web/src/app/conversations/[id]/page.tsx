@@ -8,6 +8,8 @@ import { useConversationReply } from "@/lib/client/conversation-reply";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
+import { resultState, useResultStates } from "@/lib/client/result-states";
+import { resultLink } from "@/lib/result-links";
 import { ApiError } from "@/lib/contract/errors";
 import type {
   ChatMessage,
@@ -18,20 +20,11 @@ import { OperationComposer } from "@/components/OperationComposer";
 import { RichText } from "@/components/RichText";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import {
+  TurnOutcome,
   TurnProgressDetails,
   TurnSummary,
   replyTag,
 } from "@/components/TurnProgress";
-
-/** What a message's result link opens, in plain words. */
-const PRODUCT_NAME: Record<string, string> = {
-  table: "table",
-  tool: "tool",
-  file: "file",
-  document: "document",
-  structured_table: "table",
-  custom_view: "interactive view",
-};
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
   queued: "Waiting for a reply. Nothing has been answered yet.",
@@ -73,6 +66,7 @@ export default function ConversationPage() {
     },
   );
   const d = res.data;
+  const results = useResultStates(wsId, d?.messages);
 
   // ---- follow-up composer ----
   const reply = useConversationReply({
@@ -254,20 +248,52 @@ export default function ConversationPage() {
                       {m.text}
                     </p>
                   )}
-                  {m.products?.map((product) => (
-                    <Link
-                      key={`${product.artifact_id}:${product.observation_id}`}
-                      className="product-link"
-                      data-kind={product.kind}
-                      href={`/conversations/${id}/artifacts/${product.artifact_id}`}
-                    >
-                      <span>
-                        Open {PRODUCT_NAME[product.kind] ?? "work"}
-                        {product.proposal_id ? " proposed change" : " product"}
-                      </span>
-                      <span aria-hidden="true">↗</span>
-                    </Link>
-                  ))}
+                  {m.products?.map((product) => {
+                    const link = resultLink(
+                      `/conversations/${id}`,
+                      product,
+                      resultState(results.data, product),
+                    );
+                    return (
+                      <div
+                        key={`${product.artifact_id}:${product.observation_id}`}
+                        className="product-result stack-xs"
+                      >
+                        <Link
+                          className="product-link"
+                          data-kind={product.kind}
+                          href={link.href}
+                        >
+                          <span>{link.label}</span>
+                          <span aria-hidden="true">↗</span>
+                        </Link>
+                        {link.note || link.current ? (
+                          <p className="small muted product-result-note">
+                            {link.note}
+                            {link.current ? (
+                              <>
+                                {" "}
+                                <Link href={link.current.href}>
+                                  {link.current.label}
+                                </Link>
+                              </>
+                            ) : null}
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                  {m.author === "agent" ? (
+                    <TurnOutcome
+                      state={
+                        d.turns.find((t) => t.run_id === m.run_id)?.state ??
+                        "replied"
+                      }
+                      progress={
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress
+                      }
+                    />
+                  ) : null}
                   {m.author === "agent" && replyTag(m.origin) ? (
                     <span className="msg-tag">{replyTag(m.origin)}</span>
                   ) : null}
@@ -410,8 +436,9 @@ export default function ConversationPage() {
               className="btn btn-sm delegate"
               onClick={() => setHandoverOpen((v) => !v)}
               aria-expanded={handoverOpen}
+              title="Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
             >
-              Take it from here
+              Record a hand-over
             </button>
             <button
               type="submit"
@@ -444,11 +471,11 @@ export default function ConversationPage() {
           className="card card-quiet handover"
           aria-labelledby="handover-title"
         >
-          <h2 id="handover-title">Hand this over</h2>
+          <h2 id="handover-title">Record a hand-over</h2>
           <p className="small muted">
-            I’ll record it as work you’ve handed to me, linked to this
-            conversation. I can’t carry work forward on my own yet, so it stays
-            paused until I can.
+            This saves what to carry forward, linked to this conversation. I
+            can’t work on it on my own yet: it stays paused, and nothing happens
+            until it’s picked up here.
           </p>
           <label className="field">
             <span className="field-label">What to carry forward</span>
@@ -483,7 +510,7 @@ export default function ConversationPage() {
                 ? "Recording…"
                 : handCmd.current
                   ? "Retry the same hand-over"
-                  : "Record hand-over"}
+                  : "Save paused hand-over"}
             </button>
             <button
               type="button"

@@ -69,7 +69,7 @@ try {
   expect(payloads).toHaveLength(2);
   expect(payloads[1]).toBe(payloads[0]);
   await page
-    .getByRole("link", { name: "Open tool product", exact: true })
+    .getByRole("link", { name: "Open tool", exact: true })
     .click({ timeout: 15000 });
   await page.waitForURL(/\/artifacts\/[^/?]+$/);
   await expect(page.getByTestId("observed-return")).toHaveText(
@@ -94,7 +94,10 @@ try {
     .click();
   await page.waitForURL(new RegExp(`/conversations/${cid}$`));
   await page
-    .getByRole("link", { name: "Open tool proposed change", exact: true })
+    .getByRole("link", {
+      name: "Review proposed change to the tool",
+      exact: true,
+    })
     .click({ timeout: 15000 });
   await expect(page.getByTestId("product-proposal")).toBeVisible();
   await expect(page.getByTestId("product-verification")).toHaveText(

@@ -34,6 +34,29 @@ export function TurnSummary({
   );
 }
 
+/**
+ * The trusted state of a finished turn, as one quiet line under the answer:
+ * what the service recorded (needs review, verified, stopped), never the
+ * model's own claim. The answer itself stays first and untouched.
+ */
+export function TurnOutcome({
+  state,
+  progress,
+}: {
+  state: TurnState;
+  progress?: TurnProgress;
+}) {
+  if (state !== "replied") return null;
+  const view = adaptivePresentation(state, progress);
+  if (!view) return null;
+  return (
+    <p className="msg-outcome small" data-testid="turn-outcome">
+      <strong>{view.title}.</strong> {view.note}
+      {view.checks ? ` ${view.checks}` : ""}
+    </p>
+  );
+}
+
 const RESPONSE: Record<
   NonNullable<TurnProgress["provider_observation"]>,
   string

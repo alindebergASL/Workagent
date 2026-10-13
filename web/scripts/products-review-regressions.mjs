@@ -69,7 +69,7 @@ export const unwrap = x => x; export const all = () => {throw new Error('Unexpec
   "@/lib/client/workspace":
     "export const useWorkspace = () => ({workspace:{id:window.scope.ws}});",
   "next/navigation":
-    "export const useParams = () => ({id:window.scope.cid,artifactId:'a'}); export const useRouter = () => ({push:()=>{}});",
+    "export const useParams = () => ({id:window.scope.cid,artifactId:'a'}); export const useRouter = () => ({push:()=>{}}); export const useSearchParams = () => new URLSearchParams(location.search);",
   "next/link":
     "import React from 'react'; export default function Link(p){return React.createElement('a',p);}",
   "@/components/ui":

@@ -10,6 +10,7 @@ import type { ExactTarget } from "@/lib/contract/natural";
 import { RichText } from "@/components/RichText";
 import { ErrorNotice } from "@/components/ui";
 import {
+  TurnOutcome,
   TurnSummary,
   TurnProgressDetails,
   replyTag,
@@ -125,6 +126,17 @@ export function ConversationPeek({
                   {m.text}
                 </p>
               )}
+              {m.author === "agent" ? (
+                <TurnOutcome
+                  state={
+                    d.turns.find((t) => t.run_id === m.run_id)?.state ??
+                    "replied"
+                  }
+                  progress={
+                    d.turns.find((t) => t.run_id === m.run_id)?.progress
+                  }
+                />
+              ) : null}
               {m.products?.some((p) => p.artifact_id === artifactId) ? (
                 <span className="msg-tag">This work</span>
               ) : null}
