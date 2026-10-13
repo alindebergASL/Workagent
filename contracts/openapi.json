@@ -1052,7 +1052,8 @@
             "type": "string"
           },
           "filename": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "maxLength": 85,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*(?:\\.[A-Za-z0-9_-]+)*\\.(csv|txt|md|py|js|jsx|ts|tsx|json|yaml|yml|toml|xml|html|css|sql|sh|wat|log)$",
             "title": "Filename",
             "type": "string"
           },
@@ -2931,7 +2932,8 @@
             "type": "string"
           },
           "filename": {
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|txt)$",
+            "maxLength": 85,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*(?:\\.[A-Za-z0-9_-]+)*\\.(csv|txt|md|py|js|jsx|ts|tsx|json|yaml|yml|toml|xml|html|css|sql|sh|wat|log)$",
             "title": "Filename",
             "type": "string"
           },
