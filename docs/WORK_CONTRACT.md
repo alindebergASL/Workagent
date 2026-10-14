@@ -4,23 +4,66 @@
 
 [Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
 in this existing contract, not a separate vision or new routine approval gate.
-Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
-Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
-it does not establish broad product readiness. Development now continues on
-`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
-[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+The verified backend responsibility-recording checkpoint is tree
+`81243ea9a03375f815c04559ae469ccac3a5491e` over HEAD
+`571d0d13df5062dc8f29d795252e2489f24537bc`: 1116 passed, zero errors/skips,
+with independent R1–R6 and test-fixture correction review. This exact tree is
+published at `367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
+`hermes/responsibility-recording-checkpoint`; remote commit/tree readback matches.
+It does not establish broad product readiness.
+Existing Claude Cloud frontend `90ba73bd497d63cfc558855f2156c309dc00a0e2`
+has separate owner checks. Their combined local candidate is not an integrated
+PASS; exact combined verification and the pre-demonstration QA gate remain open.
+See [current runtime state](RUNTIME_STATUS.md) and the
+[precise owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
 Historical reports retain their original scope, failures and verdicts.
 
-The prior live allowance is exhausted; Andrew approved a new consolidated alpha
-evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+The prior live allowance is exhausted only as a historical native-run statement;
+later alpha attempts require ledger reconciliation, not an assumption of no use.
+Andrew approved a NEW +$20 allowance, raising total authorization to $40.
+This additional allowance is **not yet activated** by this documentation.
+See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
 Budget headroom is never independent authority. Routine implementation and
 deterministic checks continue; no default merge/deployment, external business
-effects or expanded account/private-data access.
+effects or expanded account/private-data access. Andrew subsequently authorized
+publication of the verified development checkpoint and Claude handoff:
+
+> Yes — publish a development checkpoint and Claude handoff; no merge or deployment
+
+This supersedes the earlier local-only publication restriction, not the
+engineering/QA gates or effect boundaries. Preserve production and SQL001–024 bytes.
 
 
-Status: target design contract, not a claim that these routes/states exist.
+Status: broad target design contract; implemented subsets require exact evidence.
+The responsibility-recording subset below exists in the verified backend tree,
+not a claim that every target route/state or adaptive UI capability is delivered.
 Implement additive migrations and regenerate shared contracts from Python.
 `contracts/README.md` remains the guide for actual API generation.
+
+## Verified responsibility-recording seam — local checkpoint
+
+The model-side `RecordResponsibility` decision (`record_responsibility`) records
+an Assignment and its canonical lifecycle through the receipt-bound worker path,
+not a model-owned store or new public frontend write route. Generated
+`ResponsibilityMutationResult` appears on `TurnState.responsibility_recording`
+and `AlphaStep.mutation_result`. It records `assignment_id`, `conversation_id`,
+`owner_id`, `work_version`, lifecycle state, `outcome_status: unverified` and
+`execution_status: not_admitted`; this is a recording receipt, not current-state
+or future-execution proof. `owner_id` is the authorized principal, not an inferred
+agent identity.
+
+Read current state from
+`GET /v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility`
+(`ResponsibilityDetail`, including `assignment` and `lifecycle`). A turn's receipt
+can survive later steering; current state must not be reconstructed from its
+snapshot or model prose. Use existing generated controls and CAS/idempotency,
+keep failed/denied reads distinct from absence, and preserve uncertain commands.
+See the [exact frontend handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
+
+Backend recording is verified separately from combined frontend readback and
+broader ownership UX, which remain pending. Recording does not monitor an external
+inbox, book or send anything, grant tools, authorize future paid execution,
+verify the outcome or accept a proposal. SQL001–024 stays immutable in this pass.
 
 ## Common concepts
 
@@ -189,11 +232,13 @@ the broker.
 The spike is complete: `handoffs/backend/HARNESS_ADOPTION.md` records the
 keep/adopt/reject decision. Retain Workagent authority and the existing runtime;
 do not repeat the investigation. Controlled transport proved wiring only.
-The latest boundary in `GENERAL_MODEL_AUTHORIZATION.md` controls: the scoped
-allowance is exhausted. The $20 cumulative ceiling, carried usage and unresolved
-liabilities remain; further live evaluation needs an explicit scoped grant.
-Historical profiles stay readable, not automatically reactivated. No new paid
-route, private-data access, external business effect, default merge or deployment.
+The latest boundary in `GENERAL_MODEL_AUTHORIZATION.md` controls: NEW +$20 is
+approved, $40 total authorization, with actual ledger/route/pricing and enforced
+runtime accounting still pending. Prior exhausted grants, carried usage and
+unresolved liabilities remain; this documentation neither activates the increment
+nor asserts that earlier alpha attempts never happened. Historical profiles stay
+readable, not automatically reactivated. No unverified paid route, expanded
+private-data access, external business effect, default merge or deployment.
 
 Memory/learning #10 and provider portability #11 are sequenced after the adaptive
 slice. Durable work belongs to Workagent; adapters may use provider persistence

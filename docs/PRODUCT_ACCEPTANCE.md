@@ -4,18 +4,34 @@
 
 [Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
 in this existing contract, not a separate vision or new routine approval gate.
-Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
-Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
-it does not establish broad product readiness. Development now continues on
-`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
-[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+The verified backend responsibility-recording checkpoint is tree
+`81243ea9a03375f815c04559ae469ccac3a5491e` over HEAD
+`571d0d13df5062dc8f29d795252e2489f24537bc`: 1116 passed, zero errors/skips,
+with independent R1–R6 and test-fixture correction review. This exact tree is
+published at `367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
+`hermes/responsibility-recording-checkpoint`; remote commit/tree readback matches.
+It does not establish broad product readiness.
+Existing Claude Cloud frontend `90ba73bd497d63cfc558855f2156c309dc00a0e2`
+has separate owner checks. Their combined local candidate is not an integrated
+PASS; exact combined verification and the pre-demonstration QA gate remain open.
+See [current runtime state](RUNTIME_STATUS.md) and the
+[precise owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
 Historical reports retain their original scope, failures and verdicts.
 
-The prior live allowance is exhausted; Andrew approved a new consolidated alpha
-evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+The prior live allowance is exhausted only as a historical native-run statement;
+later alpha attempts require ledger reconciliation, not an assumption of no use.
+Andrew approved a NEW +$20 allowance, raising total authorization to $40.
+This additional allowance is **not yet activated** by this documentation.
+See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
 Budget headroom is never independent authority. Routine implementation and
 deterministic checks continue; no default merge/deployment, external business
-effects or expanded account/private-data access.
+effects or expanded account/private-data access. Andrew subsequently authorized
+publication of the verified development checkpoint and Claude handoff:
+
+> Yes — publish a development checkpoint and Claude handoff; no merge or deployment
+
+This supersedes the earlier local-only publication restriction, not the
+engineering/QA gates or effect boundaries. Preserve production and SQL001–024 bytes.
 
 
 Three independent verdicts apply to integrated milestones: engineering,
@@ -30,9 +46,9 @@ candidate SHA. Evidence closes only the property it actually tested.
 
 ## Current candidate and evidence precedence
 
-The last reviewed PR #14 head is `a0764115` with tested application `5acc6e5`;
-new implementation continues on `hermes/general-alpha-15`. Read current runtime
-status for the exact integrated candidate. Prior accepted/restart proof and the
+Historical PR #14 `a0764115` / application `5acc6e5` remains prior evidence.
+Current backend and frontend identities are recorded above and in RUNTIME_STATUS;
+the local combined candidate has no integrated PASS yet. Prior accepted/restart proof and the
 closed frontend P2 remain bounded evidence; earlier PARTIAL/HOLD stays intact.
 Engineering proof, live model behavior and Andrew's experience judgment remain
 separate. Documentation reconciliation is not implementation.
@@ -59,7 +75,7 @@ are required; a planned row is not implemented merely because this table exists.
 | M2: Seamless integrated journey | Ask → useful editable work → revise → leave → find current result/pending decision in Home or appropriate Space → reopen and continue, desktop and phone; drafts/edits survive; technical details remain closed | Historical journeys at1b81a1d are retained. Current candidate preserves Claude's rich-text/proposed-input corrections and adds generic-table handling; actual bounded browser closeout passed. Full experience acceptance remains incomplete/NOT TESTED by Andrew; historical GENERAL_MODEL_REVIEW failures are not all current defects |
 | M3: Goal formation and adaptive execution | Broad goal yields sensible success criteria/subgoals; more than one plausible approach; an actual obstacle or changed condition changes the next useful action without prescribed steps; verify the result and stop within bounds | Bounded live obstacle/change/finite-verification/unfinished-run recovery proved at0e81127; flexible creation/HTML and same-work accepted continuation are now demonstrated in later #13 evidence; broad goal formation remains incomplete. The repair was selected from observed saved work, not supplied by the operator |
 | M4: Actual specialist coordination | Suitable work delegates through runtime with scoped context/success criteria/dependencies; coordinator reconciles and checks the combined result; inject one failed, stale or conflicting child and handle honestly | Required, planned; NOT TESTED. Specialist labels, subprocess count or an agent development team do not prove product delegation |
-| M5: Persistent ownership | Relevant event/restart resumes the same responsibility with current decisions, corrections and edits, dependency-aware next action/check-in and no duplicate effects; pause/resume/cancel/takeover behave truthfully | Required; lifecycle implementation is in progress, integrated/live proof NOT TESTED. Saved conversations and the unsupported paused handover are not proof |
+| M5: Persistent ownership | Relevant event/restart resumes the same responsibility with current decisions, corrections and edits, dependency-aware next action/check-in and no duplicate effects; pause/resume/cancel/takeover behave truthfully | Canonical lifecycle and receipt-bound local recording implemented and backend-tested; combined recording journey and broad persistent-ownership acceptance NOT TESTED. Saved conversations and a paused handover are not proof |
 
 M3–M5 must test parent/child authority, shared budget conservation, cancellation,
 revocation and material edits. Delegation cannot multiply budgets or widen data
@@ -178,6 +194,50 @@ binding evidence belongs with Hermes; component behavior and interaction evidenc
 belongs with Claude; usefulness judgment remains with Andrew. Rendering polish
 cannot replace broad agency, continuity, permission enforcement or recovery.
 
+## Mandatory pre-demonstration QA gate
+
+This gate is inserted before step 3 (the user demonstration), not after it.
+Fanout must include genuinely different models: record provider/model identity,
+reviewed candidate and independent findings. Multiple personas or roles on one
+model are useful probes but do not meet the multi-model requirement. If a model,
+route or authority is unavailable, report NOT TESTED/blocker rather than substitute
+silently. All paid runtime evaluation requires reconciled, enforced accounting.
+
+| Dimension | Required probes and evidence | Open checkpoint verdict |
+| --- | --- | --- |
+| Engineering | Exact combined backend/contracts/web gates; real UI/API/PostgreSQL readback; same-command recovery, stale/revoked/ended holds, human edits, restart and no duplicate effects | Combined NOT TESTED; separate component PASS retained |
+| Model/agent behavior | Simple answer without forced artifact; unfamiliar request; substantive retained explanation; useful recorded responsibility versus mere promises; unavailable tools/grants, changed dependency, uncertain send and bounded stop | New multi-model response gate NOT TESTED; historical live attempts retained |
+| Persona usefulness | Novice conversational user, operations/analysis user, maker, ongoing-work coordinator, mobile and assistive-technology user; task success, clarity of next step, effort and decisions | NOT TESTED as a complete gate; Andrew's acceptance remains separate |
+| Visual/interaction quality | Actual desktop/phone screens, hierarchy, typography, density, answer-first copy, loading/empty/error/wait states, no overflow, stable drafts and orientation | NOT TESTED on the combined checkpoint |
+| Accessibility | Keyboard-only paths, focus visibility/order/restoration, accessible names/status announcements, screen-reader semantics and actual reading flow, contrast and narrow-width/zoom behavior | NOT TESTED on the combined checkpoint |
+| Responsibility truth | Typed recording receipt → same assignment → current canonical responsibility read; no invented ownership/running/completion, no external inbox/booking/send claims | Backend recording PASS; combined user journey NOT TESTED |
+
+Keep engineering, usefulness and experience as three independent verdicts with
+PASS / FAIL / NOT TESTED, exact evidence and remaining gaps. A review-model vote,
+DOM fixture, accessibility scan or test count cannot stand in for human usefulness
+acceptance, live agent behavior or actual assistive-technology experience.
+Report manual interventions and controlled/injected faults explicitly. Fix and
+regate actual failures; do not erase failed runs, add hidden replacement calls,
+or reduce the broad mission to the tested scenarios.
+
+### No pre-canned behavior evidence
+
+Latest user clarification (verbatim):
+
+> Ok yes, we aren’t proving anything when it is pre canned
+
+Scripted provider replies or preselected action sequences prove mechanics only;
+they CANNOT pass agency, usefulness or response-quality gates. Rigorous behavior
+QA must use actual live model decisions on varied, partly held-out natural-language
+requests, unexpected follow-ups and observed failures. No seeded answers, supplied
+repair instructions, operator result repair, selective replacement calls or
+production task-name branches. Keep evaluation criteria and independent oracles
+outside model context. Realistic synthetic input data is permitted for privacy;
+synthetic data is not canned model behavior. Report failed/partial cases honestly
+and preserve the full attempt and accounting history, not just successful examples.
+Live behavior evidence still requires reconciled and enforced runtime authority;
+if blocked, report NOT TESTED rather than substituting scripted responses.
+
 ## UX review
 
 Review Home, conversation, responsibility inspection, two different work surfaces,
@@ -194,12 +254,15 @@ before those results and independent verdicts are concrete.
 ## Live gate and release
 
 Historical grants/counters remain unchanged. Routine development, deterministic
-tests, publication and compatible non-default integration continue. The alpha
-evaluation is **APPROVED, NOT INSTALLED**. Parent must read back
-`GENERAL_MODEL_AUTHORIZATION.md` and activate only after exact-candidate
-deterministic checks and review pass, fresh route/account/pricing verification,
-and enforcement of durable per-run and aggregate bounds retaining all inherited
-reservations and unknown liabilities. Request fresh authority only for scope
+tests and compatible non-default integration continue. Development-checkpoint and
+Claude-handoff publication is now explicitly authorized; default merge and
+deployment remain prohibited. The additional +$20 alpha evaluation budget is
+**APPROVED, NOT INSTALLED** by this file, for $40 total authorization.
+Earlier alpha live attempts require reconciliation; their absence is not claimed.
+Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and the actual ledger and
+activate only after exact-candidate deterministic checks and review pass,
+fresh route/account/pricing verification, and enforcement of durable per-run and
+aggregate bounds retaining all inherited reservations and unknown liabilities. Request fresh authority only for scope
 expansion or an exhausted bound; remaining monetary headroom does not renew
 exhausted run authority. Reserve before I/O,
 never silently reset/refund/retry uncertain attempts. Reservations are not billing.

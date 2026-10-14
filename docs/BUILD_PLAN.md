@@ -4,18 +4,34 @@
 
 [Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
 in this existing contract, not a separate vision or new routine approval gate.
-Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
-Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
-it does not establish broad product readiness. Development now continues on
-`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
-[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+The verified backend responsibility-recording checkpoint is tree
+`81243ea9a03375f815c04559ae469ccac3a5491e` over HEAD
+`571d0d13df5062dc8f29d795252e2489f24537bc`: 1116 passed, zero errors/skips,
+with independent R1–R6 and test-fixture correction review. This exact tree is
+published at `367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
+`hermes/responsibility-recording-checkpoint`; remote commit/tree readback matches.
+It does not establish broad product readiness.
+Existing Claude Cloud frontend `90ba73bd497d63cfc558855f2156c309dc00a0e2`
+has separate owner checks. Their combined local candidate is not an integrated
+PASS; exact combined verification and the pre-demonstration QA gate remain open.
+See [current runtime state](RUNTIME_STATUS.md) and the
+[precise owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
 Historical reports retain their original scope, failures and verdicts.
 
-The prior live allowance is exhausted; Andrew approved a new consolidated alpha
-evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+The prior live allowance is exhausted only as a historical native-run statement;
+later alpha attempts require ledger reconciliation, not an assumption of no use.
+Andrew approved a NEW +$20 allowance, raising total authorization to $40.
+This additional allowance is **not yet activated** by this documentation.
+See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
 Budget headroom is never independent authority. Routine implementation and
 deterministic checks continue; no default merge/deployment, external business
-effects or expanded account/private-data access.
+effects or expanded account/private-data access. Andrew subsequently authorized
+publication of the verified development checkpoint and Claude handoff:
+
+> Yes — publish a development checkpoint and Claude handoff; no merge or deployment
+
+This supersedes the earlier local-only publication restriction, not the
+engineering/QA gates or effect boundaries. Preserve production and SQL001–024 bytes.
 
 
 Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
@@ -76,9 +92,59 @@ is exhausted; deterministic development does not require additional paid tests.
 | M2: Seamless work and continuity | Claude web; Hermes domain/integration | Native same-work proposal/acceptance/reopen/restart and human edit preservation demonstrated; broad answer quality, selective changes and ordinary ownership UX incomplete |
 | M3: Goal formation and adaptation | Hermes runtime; Claude progress/steering | Bounded obstacle recovery and flexible work implemented/demonstrated; direct-answer semantics and real skill/tool composition in implementation, broader judgment still unproven |
 | M4: Specialist coordination | Hermes runtime; Claude consolidated outcomes | Required/planned; no product delegation proof. Development subagents are not product capability |
-| M5: Persistent ownership | Hermes canonical responsibility/events; Claude controls | Lifecycle/dependency handling in implementation; full ongoing execution and user experience not yet demonstrated |
+| M5: Persistent ownership | Hermes canonical responsibility/events; Claude controls | Canonical lifecycle/dependency and receipt-bound recording implemented; exact backend recording checkpoint verified. Combined recording readback, full ongoing execution and user experience not yet demonstrated |
 
-## Active implementation sequence — general alpha
+## Active checkpoint sequence — QA gate before demonstration
+
+1. **Package/reconcile (Hermes):** retain the exact tested backend tree and
+   independent reviews, all failed attempts and the three test-only corrections.
+   Publish only the already-approved verified development checkpoint and Claude
+   handoff; no merge or deployment. Preserve production and SQL001–024 bytes.
+2. **Integrate the existing owner (Hermes + Claude Cloud):** retain Claude
+   `90ba73bd497d63cfc558855f2156c309dc00a0e2`, not a new frontend writer.
+   The combined local candidate exists; combined checks are still required.
+   Handoff the generated responsibility-recording DTOs and canonical read route;
+   close actual wiring gaps without inferring ownership from model prose.
+3. **Mandatory gate BEFORE user demonstration:** fan out independent review to
+   genuinely different models and multiple personas. Cover novice/simple-answer,
+   operational analyst, maker, ongoing-work coordinator and mobile/assistive-tech
+   needs. Test real UI/worker behavior, UX usefulness, visual quality, keyboard and
+   screen-reader access, model/agent responses, and failure/recovery. Use the
+   acceptance matrix in PRODUCT_ACCEPTANCE; preserve exact candidate/model
+   identities and distinguish controlled fixtures from actual live responses.
+   Runtime spend waits for ledger/route/pricing reconciliation and enforced
+   accounting, not another routine permission request. No unsupported-model
+   substitution or single-model fanout may be labelled multi-model PASS.
+4. **Step 3, user demonstration, only after the QA gate:** present actual results,
+   open gaps and separate engineering/usefulness/experience verdicts. Human
+   usefulness acceptance remains Andrew's, not a reviewer/model vote. Do not
+   conceal a blocker to reach a demonstration or claim broad completion.
+
+Issue #15 and the adaptive, intelligent UI direction remain the product guidepost,
+not a responsibility-only or UI-only replacement mission. Agent-selected
+presentation, specialist coordination, broad ongoing execution and learning stay
+visible wherever not demonstrated. Earlier implementation ordering follows as
+historical design context, not instructions to recreate already implemented code.
+
+### No pre-canned behavior evidence
+
+Latest user clarification (verbatim):
+
+> Ok yes, we aren’t proving anything when it is pre canned
+
+Scripted provider replies or preselected action sequences prove mechanics only;
+they CANNOT pass agency, usefulness or response-quality gates. Rigorous behavior
+QA must use actual live model decisions on varied, partly held-out natural-language
+requests, unexpected follow-ups and observed failures. No seeded answers, supplied
+repair instructions, operator result repair, selective replacement calls or
+production task-name branches. Keep evaluation criteria and independent oracles
+outside model context. Realistic synthetic input data is permitted for privacy;
+synthetic data is not canned model behavior. Report failed/partial cases honestly
+and preserve the full attempt and accounting history, not just successful examples.
+Live behavior evidence still requires reconciled and enforced runtime authority;
+if blocked, report NOT TESTED rather than substituting scripted responses.
+
+## Historical implementation sequence — general alpha
 
 Use subagent-driven implementation with one integrator and isolated ownership.
 These increments manage risk, not the product's breadth. No new vision document.
@@ -176,13 +242,18 @@ inputs, reset accounting or authorize replacement evaluation calls.
 
 ## Execution boundary
 
-Routine implementation, fixes, tests, sanitized publication and compatible
-non-default integration are authorized. The alpha evaluation is **APPROVED, NOT INSTALLED**.
-Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and activate only after
-exact-candidate deterministic checks and review pass, fresh route/account/pricing
-verification, and enforcement of durable per-run and aggregate bounds retaining
-all inherited reservations and unknown liabilities: $5.93640/$20 reserved,
-$3.42992 carry, original count-only unknown retained. Budget headroom is not authority.
+Routine implementation, fixes, tests and compatible non-default integration
+continue; publication of the verified development checkpoint and Claude handoff
+is already approved; no merge or deployment. The additional
++$20 alpha evaluation budget is **APPROVED, NOT INSTALLED** by this file.
+Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and the actual ledger;
+activate only after exact-candidate deterministic checks and review pass,
+fresh route/account/pricing verification, and enforcement of durable per-run and
+aggregate bounds retaining all inherited reservations and unknown liabilities.
+Authorization now totals $40; installed accounting is not changed by this plan.
+$5.93640/$20 reserved and $3.42992 carry are historical readbacks, not fresh totals;
+original count-only unknown retained. Later alpha attempts must be reconciled.
+Budget headroom is not authority.
 Request fresh authority only for scope expansion or an exhausted bound.
 No counter reset, silent retry, default merge/deployment, external business
 actions, expanded account access or private-data scope. Continue provider-free

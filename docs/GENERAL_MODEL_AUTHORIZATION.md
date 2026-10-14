@@ -1,6 +1,74 @@
 # Andrew's general-model testing authorization
 
-## Current execution boundary — general-alpha evaluation approved, not active
+## Current execution boundary — NEW +$20 approved; runtime reconciliation pending
+
+Latest direct approval (verbatim):
+
+> Also I grant you $20 more in budget, use and test the model unrestrained!
+
+Record this as **NEW +$20**, increasing the earlier $20 to a **$40 total
+authorization ceiling**. “Unrestrained” provides broad scenario discretion within
+that finite allowance, not unlimited spend or removal of safety/authority checks.
+It neither resets nor refunds historical usage, reservations, failed attempts or
+unknown liabilities. This additional live-runtime budget is **APPROVED, NOT
+INSTALLED** by this message/file; activation and actual accounting are separate.
+Do not interpret the older “alpha not installed” entry as proof that earlier
+alpha execution never occurred: later live attempts must be reconciled.
+
+Before further paid runtime use, parent must read back the actual cumulative
+ledger and all grants/attempts, reconcile reserved/known/unknown amounts and
+remaining independent counters, verify the exact route/account/pricing, and
+install enforced per-run and aggregate accounting for the approved increment.
+Fresh pricing verification is mandatory. Existing code still exposes
+`AlphaExecution.shared_cost_limit_usd` as literal `20.00`; this documentation does
+not change runtime/SQL/profile limits to $40 or permit bypassing them. Stop at an
+unenforced boundary, retain liabilities and report the blocker; do not reset old
+grants or reinterpret a reservation as a billing/refund receipt.
+
+The required QA gate precedes the user demonstration: fanout, genuinely multiple
+models, multiple user personas, UX needs and visual quality, accessibility, and
+model/agent response tests. Identify actual model identities/routes and evidence;
+multiple prompts or roles on one model are not genuine multi-model proof.
+Reviewer/model availability and runtime route authorization are distinct. This
+request does not silently authorize an unverified paid route or fallback.
+Engineering, usefulness and experience verdicts remain separate. Deterministic
+checks and exact combined-candidate review precede additional runtime activation.
+
+Synthetic/local evaluation remains the scope. No external account/business
+effects, expanded private-data access, default merge or deployment, bypasses,
+automatic human approval or unsafe automatic retries. Failed attempts count;
+no silent replacement generation. No child or frontend handoff may spend this
+allowance independently. The subsequent approval permits publishing the verified
+development checkpoint and Claude handoff only; no default merge or deployment.
+The source approval is not an active grant or evidence of spending.
+
+### No pre-canned behavior evidence
+
+Latest user clarification (verbatim):
+
+> Ok yes, we aren’t proving anything when it is pre canned
+
+Scripted provider replies or preselected action sequences prove mechanics only;
+they CANNOT pass agency, usefulness or response-quality gates. Rigorous behavior
+QA must use actual live model decisions on varied, partly held-out natural-language
+requests, unexpected follow-ups and observed failures. No seeded answers, supplied
+repair instructions, operator result repair, selective replacement calls or
+production task-name branches. Keep evaluation criteria and independent oracles
+outside model context. Realistic synthetic input data is permitted for privacy;
+synthetic data is not canned model behavior. Report failed/partial cases honestly
+and preserve the full attempt and accounting history, not just successful examples.
+Live behavior evidence still requires reconciled and enforced runtime authority;
+if blocked, report NOT TESTED rather than substituting scripted responses.
+
+### Historical bounded alpha approval and baseline — retained, not fresh readback
+
+The following earlier approval, counts and monetary ceilings are historical.
+Its independent counters remain constraints until parent reconciles and explicitly
+binds the new authority to enforced controls; none is automatically reset or
+multiplied. The prior $20 cumulative ceiling is superseded at the authorization
+level by $40, not silently changed in installed runtime grants. The historical
+“NOT INSTALLED” description below was accurate for that recorded opening status,
+not a claim about later attempts.
 
 The prior native-continuation two-run allowance remains exhausted. After the
 new product-building mandate, Hermes requested one consolidated alpha evaluation
@@ -29,8 +97,9 @@ output. Original count-only unknown retained. At recorded conservative rates,
 30 dispatches reserve $3.95760 extra ($9.89400 cumulative), but fresh route,
 account and pricing verification is mandatory before activation.
 
-**Approved, NOT INSTALLED:** integrated exact-candidate deterministic checks and
-review must pass first. Parent owns runtime activation and must bind all bounds
+**Historical opening status: Approved, NOT INSTALLED.** This statement is
+superseded as a description of later runtime activity. At that opening checkpoint,
+integrated exact-candidate deterministic checks and review were required first. Parent owns runtime activation and must bind all bounds
 to durable controls without widening inherited limits or losing liabilities.
 No child or frontend handoff may spend this allowance independently. The local
 verbatim request/response receipt is retained; later evidence must identify the
@@ -122,4 +191,8 @@ Continue the bounded same-GeneralWorker implementation and deterministic authori
 
 The source approval is effective, but **this file is not itself an active runtime grant or evidence of any spending**. Activate only after the implementation candidate is reviewed, deterministic gates pass, the exact model/account/pricing is verified and the cumulative ledger is initialized without resetting any existing spend. Failed/unknown sends retain their reservations; billing and conservative reservations are reported separately.
 
-Default-branch merge, deployment, private-context access and broader capability work remain unapproved. Local/review/development branches are separate from the frozenf68efe5 hands-on runtime.
+Default-branch merge, deployment and expanded private-context access remain
+unapproved. Broad product implementation and synthetic QA remain within the
+mission, not a narrow capability whitelist. Publication of the verified development checkpoint and Claude
+handoff is already approved; no merge or deployment. Local/review/development branches are separate
+from the frozenf68efe5 hands-on runtime.

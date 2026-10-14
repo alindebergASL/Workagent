@@ -4,18 +4,34 @@
 
 [Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
 in this existing contract, not a separate vision or new routine approval gate.
-Base PR #14 `a0764115` / tested application `5acc6e5` includes Claude `edb09db`.
-Its bounded continuity, human-edit, acceptance and recovery evidence is earned;
-it does not establish broad product readiness. Development now continues on
-`hermes/general-alpha-15`; see [current runtime state](RUNTIME_STATUS.md) and
-[implementation sequence](BUILD_PLAN.md) for implemented/demonstrated/gap status.
+The verified backend responsibility-recording checkpoint is tree
+`81243ea9a03375f815c04559ae469ccac3a5491e` over HEAD
+`571d0d13df5062dc8f29d795252e2489f24537bc`: 1116 passed, zero errors/skips,
+with independent R1–R6 and test-fixture correction review. This exact tree is
+published at `367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
+`hermes/responsibility-recording-checkpoint`; remote commit/tree readback matches.
+It does not establish broad product readiness.
+Existing Claude Cloud frontend `90ba73bd497d63cfc558855f2156c309dc00a0e2`
+has separate owner checks. Their combined local candidate is not an integrated
+PASS; exact combined verification and the pre-demonstration QA gate remain open.
+See [current runtime state](RUNTIME_STATUS.md) and the
+[precise owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
 Historical reports retain their original scope, failures and verdicts.
 
-The prior live allowance is exhausted; Andrew approved a new consolidated alpha
-evaluation, **not yet activated**. See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
+The prior live allowance is exhausted only as a historical native-run statement;
+later alpha attempts require ledger reconciliation, not an assumption of no use.
+Andrew approved a NEW +$20 allowance, raising total authorization to $40.
+This additional allowance is **not yet activated** by this documentation.
+See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
 Budget headroom is never independent authority. Routine implementation and
 deterministic checks continue; no default merge/deployment, external business
-effects or expanded account/private-data access.
+effects or expanded account/private-data access. Andrew subsequently authorized
+publication of the verified development checkpoint and Claude handoff:
+
+> Yes — publish a development checkpoint and Claude handoff; no merge or deployment
+
+This supersedes the earlier local-only publication restriction, not the
+engineering/QA gates or effect boundaries. Preserve production and SQL001–024 bytes.
 
 
 Status: active product direction after Andrew's approved course correction.
@@ -34,6 +50,21 @@ approval. Implemented capability and observed proof must be stated separately.
 The reviewed controlled application proves work surfaces and persistence, not
 independent intelligence. The initial one-operation model profile is a connection
 checkpoint, not a ceiling on the general runtime or a definition of the product.
+
+## Responsibility checkpoint does not narrow the product
+
+The verified local recording action is one implemented seam, not completion of
+persistent agency. A typed recording receipt and current canonical Assignment
+lifecycle support truthful ownership display; neither model prose, a saved
+hand-over nor `active` alone proves that execution is admitted or work completed.
+Existing Claude Cloud owns the frontend integration. No new dashboard, autonomous
+monitor, adaptive presentation capability or external action is claimed here.
+
+Before the user demonstration, apply the rigorous multi-model, multi-persona QA
+gate in PRODUCT_ACCEPTANCE, including actual model/agent responses, UX needs,
+visual quality and accessibility. Separate engineering, usefulness and experience
+verdicts. Issue #15, the broad mission and adaptive, intelligent UI direction below
+remain governing; passing this narrow backend slice cannot replace them.
 
 ## Goal-directed agency
 

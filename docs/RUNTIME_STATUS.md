@@ -1,6 +1,83 @@
 # Current runtime status and execution boundary
 
-## General alpha (#15) — implementation underway, not yet demonstrated
+## General alpha (#15) — verified backend checkpoint; combined QA pending
+
+Local candidate: `/home/ubuntu/workagent-alpha-qa-integration`, detached HEAD
+`571d0d13df5062dc8f29d795252e2489f24537bc`. The parent-verified backend tree is
+`81243ea9a03375f815c04559ae469ccac3a5491e`: full suite **1116 passed, zero
+errors/skips**, independent R1–R6 **PASS (129 tests)** and independent PASS for
+three authorized test-only fixture corrections. Earlier **1113 passed / 2 failed**
+and **1114 passed / 1 failed** runs remain historical failures, not erased.
+Read-only parent evidence: `/home/ubuntu/workagent-alpha-responsibility-integrated/.local/responsibility-complete-final-review.json`
+and `three-fixture-correction-status.md` in that same `.local/` directory.
+These results are carried from the verified parent checkpoint, not rerun by the
+documentation writer. The parent subsequently verified every manifest file against
+the Git tree and all 1116 unique JUnit cases, then published the exact tree as
+`367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
+`hermes/responsibility-recording-checkpoint`. Remote commit/tree readback matches.
+
+The candidate combines that backend with existing Claude Cloud frontend
+`90ba73bd497d63cfc558855f2156c309dc00a0e2` and its frontend handoff, exact bytes.
+Initial integration index tree: `703f9a36e1d60b0290a2d064740bc4a6f639b376`
+(before these unstaged documentation updates). Claude's separate checks passed
+224 unit tests, 36 DOM cases, three real UI/API/PostgreSQL send-hold cases,
+production webpack build, typecheck, lint and format. **Separate component
+checks are not combined PASS.** Combined deterministic/browser/contract gates
+and independent review remain pending at this documentation checkpoint.
+
+`record_responsibility` now has a backend implementation and generated readback;
+its former implementation-gap label is superseded for this backend tree only.
+A canonical local record is not proof of future execution, monitored inboxes,
+external effects, verified outcomes or accepted work. The
+[frontend-owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md)
+names exact DTOs, authoritative reads and still-open UI wiring/QA.
+
+Approved order: package/reconcile this checkpoint; integrate the existing Claude
+frontend; **rigorous fanout QA before step 3, the user demonstration**. QA must use
+genuinely different models, multiple personas, UX needs, visual quality,
+accessibility and actual model/agent-response tests. Keep engineering,
+usefulness and experience verdicts separate; none becomes broad acceptance from
+the backend count. Issue #15 and the adaptive, intelligent UI direction govern.
+
+NEW budget authority: **+$20**, **$40 total authorization ceiling**. This is not
+a reset/refund of old reservations or unknown liabilities. Additional runtime
+budget is approved but not activated by this file. Actual ledger, route/account,
+pricing and enforced accounting still require reconciliation. Earlier “alpha not
+installed” text is stale relative to later live attempts; **do not infer zero
+prior alpha use**. Historical $5.93640/$20 and $3.42992 carry below are not a
+fresh ledger or remaining-spend calculation. See
+[authorization](GENERAL_MODEL_AUTHORIZATION.md).
+
+Andrew subsequently authorized publication of this verified development checkpoint
+and the Claude handoff: “Yes — publish a development checkpoint and Claude handoff;
+no merge or deployment”. This supersedes the local-only publication restriction.
+There is still no default merge, deployment, external business effect, expanded
+private-data access or unsafe
+automatic retries. Preserve production, SQL001–024, saved review state and human
+edits. No new frontend writer replaces the existing Claude Cloud owner.
+
+### No pre-canned behavior evidence
+
+Latest user clarification (verbatim):
+
+> Ok yes, we aren’t proving anything when it is pre canned
+
+Scripted provider replies or preselected action sequences prove mechanics only;
+they CANNOT pass agency, usefulness or response-quality gates. Rigorous behavior
+QA must use actual live model decisions on varied, partly held-out natural-language
+requests, unexpected follow-ups and observed failures. No seeded answers, supplied
+repair instructions, operator result repair, selective replacement calls or
+production task-name branches. Keep evaluation criteria and independent oracles
+outside model context. Realistic synthetic input data is permitted for privacy;
+synthetic data is not canned model behavior. Report failed/partial cases honestly
+and preserve the full attempt and accounting history, not just successful examples.
+Live behavior evidence still requires reconciled and enforced runtime authority;
+if blocked, report NOT TESTED rather than substituting scripted responses.
+
+## Historical alpha opening status — superseded by the checkpoint above
+
+The following opening status and activation statement describe their original
+checkpoint only, not current implementation or the absence of later alpha use.
 
 Integration branch: `hermes/general-alpha-15`, based on PR #14 `a0764115`.
 Runtime/skill composition and canonical responsibility lifecycle have isolated
