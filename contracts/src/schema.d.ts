@@ -706,6 +706,7 @@ export interface components {
             capability_result?: {
                 [key: string]: unknown;
             } | null;
+            mutation_result?: components["schemas"]["ResponsibilityMutationResult"] | null;
             /** Operation Hash */
             operation_hash?: string | null;
             /**
@@ -1930,6 +1931,46 @@ export interface components {
              */
             wake_status: "none" | "queued" | "reviewed";
         };
+        /** ResponsibilityMutationResult */
+        ResponsibilityMutationResult: {
+            /** Assignment Id */
+            assignment_id: string;
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Execution Status
+             * @default not_admitted
+             * @constant
+             */
+            execution_status: "not_admitted";
+            /**
+             * Kind
+             * @default record_responsibility
+             * @constant
+             */
+            kind: "record_responsibility";
+            /**
+             * Outcome Status
+             * @default unverified
+             * @constant
+             */
+            outcome_status: "unverified";
+            /** Owner Id */
+            owner_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "active" | "waiting_person" | "waiting_event" | "blocked";
+            /**
+             * Version
+             * @default 1
+             * @constant
+             */
+            version: "1";
+            /** Work Version */
+            work_version: number;
+        };
         /** ResponsibilityNextAction */
         ResponsibilityNextAction: {
             /** Description */
@@ -2529,6 +2570,7 @@ export interface components {
             /** Response Steps */
             response_steps?: components["schemas"]["ResponseStepObservation"][];
             responsibility_origin?: components["schemas"]["ResponsibilityOrigin"] | null;
+            responsibility_recording?: components["schemas"]["ResponsibilityMutationResult"] | null;
             retained_local_result?: components["schemas"]["RetainedLocalResult"] | null;
             /** Run Id */
             run_id: string;

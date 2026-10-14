@@ -25,7 +25,9 @@ class DB:
 def dispatcher(monkeypatch, outcomes):
     calls=[]
     rows=[dict(cursor=i+1,run_id=key,data={'principal_id':'person'},active=True) for i,key in enumerate(outcomes)]
-    service=SimpleNamespace(db=DB(rows))
+    advances=[]
+    service=SimpleNamespace(db=DB(rows),advances=advances,
+        advance_responsibilities=lambda ws,grant:advances.append((ws,grant)))
     def work(p,ws,rid):
         calls.append(rid)
         value=outcomes[rid]
@@ -55,6 +57,16 @@ def test_revoked_grant_skips_model_but_advances_local(monkeypatch):
     d.worker.service.db.rows[0]['active']=False
     assert d.once()['results'][0]['status']=='authority_unavailable'
     assert calls==[]
+    assert d.worker.service.advances==[('workspace','grant')]
+
+
+def test_unapproved_model_tick_does_not_advance_responsibilities(monkeypatch):
+    d,calls=dispatcher(monkeypatch,{'model':'ready'})
+    result=d.once(model_authorized=False)
+    assert result['local']['completed']==1
+    assert result['model_status']=='authority_unavailable'
+    assert result['results']==[] and calls==[]
+    assert d.worker.service.advances==[]
 
 
 @pytest.mark.parametrize('state',['outcome_unknown','count_unknown','invalid'])

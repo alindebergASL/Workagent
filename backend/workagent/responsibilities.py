@@ -209,21 +209,24 @@ class Responsibilities(ResponsibilityExecution):
 
         def mutate(c, scope):
             a, cv = scope
-            self._responsibility_cas(a, cmd.expected_work_version)
-            if (self._lifecycle(c, ws, a.id, False) is not None or cv.state != 'open' or
-                    a.state == 'cancelled' or a.run_ids):
-                raise DomainError('unsupported_operation')
-            life = self._new_responsibility_plan(c, p, a, cv, cmd)
-            a.work_version += 1
-            # Legacy preparation state stays paused: ownership is NOT a queued run.
-            a.state = 'paused'
-            a.unresolved = ['Ongoing responsibility recorded; execution is not admitted.']
-            self._queue_responsibility_wake(c, p, a, life)
-            self._persist_responsibility(c, a, life)
-            super(Responsibilities, self)._event(c, p, ws, 'activate_responsibility', a.id)
-            return self._responsibility_detail(a, life)
+            return self._activate_responsibility(c,p,a,cv,cmd,cmd.expected_work_version)
         return self._command(p, ws, 'activate_responsibility', {'assignment_id': assignment_id}, cmd,
                              ResponsibilityDetail, authorize, mutate)
+
+    def _activate_responsibility(self,c,p,a,cv,plan,expected_work_version):
+        """Transaction-local activation shared with receipt-bound recording."""
+        self._responsibility_cas(a,expected_work_version)
+        if (a.owner_id != p.id or self._lifecycle(c,a.workspace_id,a.id,False) is not None
+                or cv.state != 'open' or a.state == 'cancelled' or a.run_ids):
+            raise DomainError('unsupported_operation')
+        life=self._new_responsibility_plan(c,p,a,cv,plan)
+        a.work_version+=1
+        a.state='paused'
+        a.unresolved=['Ongoing responsibility recorded; execution is not admitted.']
+        self._queue_responsibility_wake(c,p,a,life)
+        self._persist_responsibility(c,a,life)
+        super(Responsibilities,self)._event(c,p,a.workspace_id,'activate_responsibility',a.id)
+        return self._responsibility_detail(a,life)
 
     def update_responsibility(self, p, ws, assignment_id, cmd):
         def authorize(c):

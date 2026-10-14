@@ -253,22 +253,27 @@ class Conversations:
                              lambda c:self._conversation(c,p,ws,cid),mutate)
 
     def delegate_conversation(self,p,ws,cid,cmd):
-        from .service import encoded
         def mutate(c,cv):
-            self._conversation_cas(cv,cmd.expected_work_version)
-            self._conversation(c,p,ws,cid,True)
-            a=Assignment(id=new_id(),workspace_id=ws,conversation_id=cid,owner_id=p.id,goal=cmd.goal,
-                completion_criteria=cmd.completion_criteria,selected_source_refs=cv.selected_source_refs,state='paused',
-                unresolved=['Delegation recorded; autonomous execution is not supported by B1. Resume is disabled.'])
-            c.execute('INSERT INTO assignments(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,a.id,cid,encoded(a)))
-            for ref in a.selected_source_refs:
-                c.execute('INSERT INTO assignment_sources(workspace_id,assignment_id,source_id) VALUES (%s,%s,%s)',(ws,a.id,ref.source_id))
-            cv.work_version+=1
-            self._store_conversation(c,cv)
-            self._event(c,p,ws,'delegate_conversation',a.id)
-            return a
+            return self._delegate_conversation(c,p,cv,cmd.expected_work_version,cmd.goal,cmd.completion_criteria)
         return self._command(p,ws,'delegate_conversation',{'conversation_id':cid},cmd,Assignment,
                              lambda c:self._conversation(c,p,ws,cid),mutate)
+
+    def _delegate_conversation(self,c,p,cv,expected_work_version,goal,completion_criteria):
+        """Transaction-local shared delegation; caller owns commit and authority."""
+        from .service import encoded
+        ws,cid=cv.workspace_id,cv.id
+        self._conversation_cas(cv,expected_work_version)
+        self._conversation(c,p,ws,cid,True)
+        a=Assignment(id=new_id(),workspace_id=ws,conversation_id=cid,owner_id=p.id,goal=goal,
+            completion_criteria=completion_criteria,selected_source_refs=cv.selected_source_refs,state='paused',
+            unresolved=['Delegation recorded; autonomous execution is not supported by B1. Resume is disabled.'])
+        c.execute('INSERT INTO assignments(workspace_id,id,conversation_id,data) VALUES (%s,%s,%s,%s)',(ws,a.id,cid,encoded(a)))
+        for ref in a.selected_source_refs:
+            c.execute('INSERT INTO assignment_sources(workspace_id,assignment_id,source_id) VALUES (%s,%s,%s)',(ws,a.id,ref.source_id))
+        cv.work_version+=1
+        self._store_conversation(c,cv)
+        self._event(c,p,ws,'delegate_conversation',a.id)
+        return a
 
     def _general_context(self,c,cap):
         from .service import digest, encoded
@@ -305,7 +310,10 @@ class Conversations:
             context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
                            tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
             from .composition import enabled as alpha_enabled, discovery
-            if alpha_enabled(config): context['composition']=discovery()
+            if alpha_enabled(config):
+                from .responsibility_action import offer
+                context['composition']=discovery()
+                context['responsibility_offer']=offer(c,run,cv,latest,config)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):
                 context['messages']=[m for m in context['messages'] if m['run_id']==run.id]

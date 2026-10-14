@@ -1,6 +1,7 @@
 from hashlib import sha256
 import json
 import httpx
+import pytest
 from test_domain import context,cmd
 from test_conversations import conversation,post
 from test_general_responses_journey import api
@@ -26,10 +27,20 @@ class ReplyWhenTargeted(Provider):
         return response
 
 
-def test_existing_targeted_http_reply_retains_code_bytes_and_replays(context,tmp_path):
+@pytest.mark.parametrize('first_kind',['file','table'])
+def test_existing_targeted_http_reply_retains_code_bytes_and_replays(context,tmp_path,first_kind):
     s,p,ws,_,_=context;cv=conversation(context);activate(context,[cv]);fake=ReplyWhenTargeted();w=worker(context,fake,tmp_path)
     initial=post(context,cv,'Reconcile the supplied CSV.',attachments=[attach()]);w.work(p,ws,initial.run.id)
-    detail=s.get_conversation(p,ws,cv.id);art=s.get_artifact(p,ws,detail.artifact_ids[0]);exact=target(art)
+    detail=s.get_conversation(p,ws,cv.id)
+    artifacts={aid:s.get_artifact(p,ws,aid) for aid in detail.artifact_ids}
+    assert {a.current_revision.body.kind for a in artifacts.values()}=={'file','table'}
+    # The public list is UUID-sorted, not product-kind ordered. Exercise both
+    # possible orders without changing persisted artifacts or target authority.
+    detail.artifact_ids.sort(key=lambda aid:artifacts[aid].current_revision.body.kind!=first_kind)
+    assert artifacts[detail.artifact_ids[0]].current_revision.body.kind==first_kind
+    tables=[artifacts[aid] for aid in detail.artifact_ids if artifacts[aid].current_revision.body.kind=='table']
+    assert len(tables)==1
+    art=tables[0];exact=target(art)
     marker=tmp_path/'NOT_EXECUTED'
     text='\ufefffrom pathlib import Path\r\nPath('+repr(str(marker))+').touch()\r\n'
     file=AttachmentInput(filename='example.test.py',mime_type='text/plain',content=text)

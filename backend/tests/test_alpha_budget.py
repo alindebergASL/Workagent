@@ -298,8 +298,13 @@ def test_additive_018_upgrade_preserves_unknowns_carry_pins_and_acl(tmp_path,mon
         c.execute('''INSERT INTO responses_budget_carry(project_id,transport_mode,source_database,source_grant_id,
             source_manifest_sha256,reserved_cost_usd) VALUES (%s,'synthetic','prior_isolated_db',%s,%s,1)''',
             (project,new_id(),'a'*64))
-    g,f,x=prepared(ctx,tmp_path/'worker',project=project)
-    count(x,f); reserve(x,'dispatch')  # no identity/result: irrevocable unknown liability
+    # Historical 018 has no recording column and this fixture never selects a
+    # mutation. Emulate its absent read projection only while creating the old
+    # liability; every real ledger/accounting/authority guard remains enabled.
+    with monkeypatch.context() as historical:
+        historical.setattr('workagent.responsibility_action.recording',lambda c,run:None)
+        g,f,x=prepared(ctx,tmp_path/'worker',project=project)
+        count(x,f); reserve(x,'dispatch')  # no identity/result: irrevocable unknown liability
     def snapshot():
         with ctx[0].db.transaction() as c:
             return (summary(c,g.id,shared=True),c.execute('SELECT data FROM provider_grants WHERE id=%s',(g.id,)).fetchone(),

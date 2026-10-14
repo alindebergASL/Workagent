@@ -5,6 +5,18 @@ from .model_base import Model, Id, Hash, Text
 from .product_models import AdaptiveExecution, AdaptiveVerification, ResponseStepObservation, RetainedLocalResult
 
 
+class ResponsibilityMutationResult(Model):
+    kind: Literal['record_responsibility'] = 'record_responsibility'
+    version: Literal['1'] = '1'
+    assignment_id: Id
+    conversation_id: Id
+    owner_id: Id
+    work_version: int = Field(ge=1)
+    state: Literal['active','waiting_person','waiting_event','blocked']
+    outcome_status: Literal['unverified'] = 'unverified'
+    execution_status: Literal['not_admitted'] = 'not_admitted'
+
+
 class AlphaStep(Model):
     phase: Literal['selection','selection_2','selection_3','selection_4']
     status: Literal['reply','observed','rejected']
@@ -13,6 +25,7 @@ class AlphaStep(Model):
     verification: AdaptiveVerification
     outcome: Literal['continue','answered','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation']
     capability_result: dict | None = None
+    mutation_result: ResponsibilityMutationResult | None = None
 
 
 class AlphaExecution(Model):
@@ -56,3 +69,4 @@ class TurnState(Model):
     retained_local_result: RetainedLocalResult | None = None
     explanation: ExplanationReadback | None = None
     responsibility_origin: ResponsibilityOrigin | None = None
+    responsibility_recording: ResponsibilityMutationResult | None = None

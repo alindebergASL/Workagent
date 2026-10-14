@@ -30,6 +30,7 @@ def explanation_readback(c,run,attempt):
 
 
 def adaptive_readback(c,run,attempt):
+    from .service import encoded
     from .adaptive import enabled,retained
     from .product_models import AdaptiveExecution,AdaptiveStep
     from .responses_ledger import summary
@@ -41,7 +42,18 @@ def adaptive_readback(c,run,attempt):
     outcome='cancelled' if run.state=='cancelled' else (run.stop_reason or (observations[-1]['terminal_outcome'] if observations else 'pending'))
     # Passing staged evidence is not delivered work: an ambiguous final send or
     # interruption must not advertise completion before durable publication.
-    if outcome in ('completed','answered') and run.state!='ready': outcome='pending'
+    if outcome in ('completed','answered') and run.state!='ready':
+        # A published bounded product can be completed while its separately
+        # recorded ongoing responsibility is still unverified. Do not advertise
+        # delivery after a lost ACK until exact product + explanation readback.
+        published_local=(outcome=='completed' and run.state=='partial' and observations
+            and observations[-1].get('responsibility_recording')
+            and c.execute("SELECT 1 FROM product_observations po JOIN conversation_messages m "
+                "ON m.workspace_id=po.workspace_id AND m.run_id=po.run_id "
+                "WHERE po.workspace_id=%s AND po.run_id=%s AND po.data->'model_selection'=%s "
+                "AND m.author_kind='assistant' AND m.data->>'model_receipt'=%s LIMIT 1",
+                (run.workspace_id,run.id,encoded(observations[-1]['binding']),attempt['id'])).fetchone())
+        outcome='needs_validation' if published_local else 'pending'
     from .composition import enabled as alpha_enabled
     from .general_alpha_models import AlphaExecution, AlphaStep
     alpha=alpha_enabled(data)
@@ -49,7 +61,7 @@ def adaptive_readback(c,run,attempt):
     return execution_model(**({'runtime_extension':'general-alpha-v1'} if alpha else {}),goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
         max_steps=data['responses']['max_steps'],outcome=outcome,
         shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
-        steps=[step_model(**({'capability_result':o.get('capability_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
+        steps=[step_model(**({'capability_result':o.get('capability_result'),'mutation_result':o.get('mutation_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
             reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
 
 
@@ -93,7 +105,15 @@ def turn_state(run,c=None):
                     (run.workspace_id,run.id,encoded(data['binding']))).fetchone())
                 retained=RetainedLocalResult(status=data['status'],published=published,
                     binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
-        return TurnState(run_id=run.id,state=state,reason=reason,profile=run.profile,
+        from .responsibility_action import recording, RECORDING_REASON
+        ownership=recording(c,run) if c else None
+        if ownership:
+            published_explanation=bool(c.execute("SELECT 1 FROM conversation_messages WHERE workspace_id=%s AND run_id=%s AND author_kind='assistant'",(run.workspace_id,run.id)).fetchone())
+            if published_explanation and run.state=='partial' and run.stop_reason is None:
+                state='replied'
+            reason=RECORDING_REASON+(' Explanation published; goal remains unverified.' if published_explanation else
+                ' The recording succeeded and is retained; the explanation is unfinished. '+reason)
+        return TurnState(responsibility_recording=ownership['result'] if ownership else None,run_id=run.id,state=state,reason=reason,profile=run.profile,
             evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
             retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation_readback(c,run,attempt),
             responsibility_origin=(next((m['data'].get('responsibility_origin') for m in c.execute(
@@ -287,6 +307,10 @@ class Products:
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
                 return prior
+            from .composition import RecordResponsibility
+            if isinstance(operation,RecordResponsibility):
+                from .responsibility_action import stage
+                return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
         from .composition import READ_DECISIONS, execute_read
         if isinstance(operation,READ_DECISIONS):
             context=self.conversation_worker_context(cap)
@@ -361,7 +385,7 @@ class Products:
                 # Full model explanation remains immutable in its receipt.
                 text=staged['reason']
             unresolved=None
-            if adaptive_outcome=='needs_validation':
+            if adaptive_outcome=='needs_validation' or staged.get('responsibility_recording'):
                 from .adaptive import unresolved_summary
                 unresolved=unresolved_summary(staged['reason'])
                 # Ordinary conversation, not only technical details, must expose
