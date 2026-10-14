@@ -16,6 +16,7 @@ import { Composer } from "@/components/Composer";
 import { ConversationRow } from "@/components/ConversationRow";
 import { ErrorNotice } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
+import { useHolds } from "@/lib/client/responsibility";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 
 type Tab = "work" | "conversations" | "context";
@@ -29,6 +30,11 @@ export default function SpacePage() {
   const overview = useWorkOverview(space ? space.id : null);
   // A Space is exactly its workspace; conversation-owned work joins on that.
   const made = useConversationWork(space ? space.id : null);
+  // Where conversation hand-overs stand now, from their own records.
+  const { holds } = useHolds(
+    space ? space.id : null,
+    (overview.data ?? []).filter((i) => i.conversation_id).map((i) => i.id),
+  );
   const conversations = useResource<ConversationSummary[]>(
     space && CAPABILITIES.conversation && tab === "conversations"
       ? `space-conversations:${space.id}`
@@ -131,7 +137,7 @@ export default function SpacePage() {
               />
             ))}
           {overview.data?.map((item) => (
-            <WorkRow key={item.id} item={item} />
+            <WorkRow key={item.id} item={item} hold={holds[item.id]} />
           ))}
           {made.data
             ?.filter((w) => !w.decision)

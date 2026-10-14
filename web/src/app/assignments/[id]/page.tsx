@@ -10,6 +10,7 @@ import { useWorkspace } from "@/lib/client/workspace";
 import type { Assignment } from "@/lib/contract/types";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
+import { holdStatus } from "@/lib/hold-view";
 import {
   checkLabel,
   completedSummary,
@@ -101,7 +102,17 @@ export default function AssignmentPage() {
   }
 
   const phase = phaseOf(a);
-  const badge = statusOf(a);
+  // The current record, when the responsibility could be read: its goal,
+  // criteria and version are authoritative over the summary read earlier,
+  // so a human edit is never masked by an older copy.
+  const current = rs.kind === "ready" ? rs.detail.assignment : null;
+  const goal = current?.goal ?? a.goal;
+  const criteria = current?.completion_criteria ?? a.completion_criteria;
+  const badge =
+    rs.kind === "ready"
+      ? (holdStatus({ kind: "ready", detail: rs.detail, stale: rs.stale }) ??
+        statusOf(a))
+      : statusOf(a);
   const run = currentRun(a);
   const provenance = provenanceOf(run?.execution);
   // The document the recommendation was read from, else the plan.
@@ -220,7 +231,7 @@ export default function AssignmentPage() {
           Updated {formatTime(a.updated_at || a.observed_at, zone)}
           {res.reconnecting ? " · reconnecting…" : ""}
         </p>
-        <h1>{shortTitle(a.title)}</h1>
+        <h1>{shortTitle(current?.goal ?? a.title)}</h1>
         <div className="row">
           <StatusBadge label={badge.label} tone={badge.tone} />
           {a.conversation_id ? (
@@ -364,7 +375,11 @@ export default function AssignmentPage() {
           </div>
         </div>
       ) : null}
-      <Ownership assignment={a} onChanged={res.refresh} legacy={legacy} />
+      <Ownership
+        assignment={current ? { ...a, goal, completion_criteria: criteria } : a}
+        onChanged={res.refresh}
+        legacy={legacy}
+      />
 
       <section aria-labelledby="saved-title" className="stack">
         <h2 id="saved-title" className="section-title">
@@ -372,9 +387,13 @@ export default function AssignmentPage() {
         </h2>
         {a.artifacts.length === 0 ? (
           <p className="muted">
-            {phase === "working" || phase === "unknown" || phase === "waiting"
-              ? "Nothing saved yet."
-              : "No results were saved."}
+            {rs.kind === "ready"
+              ? "No documents or files are attached to it yet. The responsibility itself is saved, above."
+              : phase === "working" ||
+                  phase === "unknown" ||
+                  phase === "waiting"
+                ? "No documents or files saved yet."
+                : "No documents or files were saved."}
           </p>
         ) : (
           <ul className="work-list">
@@ -415,11 +434,13 @@ export default function AssignmentPage() {
         <div className="disclosure-body stack-lg stack">
           <div className="stack">
             <h3>Your request</h3>
-            <p className="small">{a.goal}</p>
+            <p className="small">{goal}</p>
             <p className="hint">
               {provenance
                 ? `${provenance.label}.`
-                : `Prepared by the ${EXECUTION.worker}, not a live agent run.`}{" "}
+                : run
+                  ? `Prepared by the ${EXECUTION.worker}, not a live agent run.`
+                  : "No run is recorded for it."}{" "}
               Reference {a.id}.
             </p>
           </div>
@@ -466,7 +487,7 @@ export default function AssignmentPage() {
           <div className="stack">
             <h3>Done when</h3>
             <ul className="evidence">
-              {a.completion_criteria.map((c, i) => (
+              {criteria.map((c, i) => (
                 <li key={i}>{c}</li>
               ))}
             </ul>

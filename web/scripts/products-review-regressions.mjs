@@ -75,12 +75,15 @@ export const conversationApi = {send: async (ws,cid,payload) => {
   return {};
 }};
 export const client = {}; export const command = () => ({}); export const meta = () => ({});
-export const unwrap = x => x; export const all = () => {throw new Error('Unexpected list call in DOM fixture');};`,
+export const unwrap = x => x; export const all = () => {throw new Error('Unexpected list call in DOM fixture');};
+export const rawAssignment = async () => {throw new Error('Unexpected assignment read in DOM fixture');};`,
   // The product read is the fixture; the conversation pane beside it keeps
   // its initial record (no polling in the DOM fixture).
   "@/lib/client/hooks":
     "export const useResource = (key) => key && key.startsWith('peek:') ? (window.peek ?? {data:null,error:null,reconnecting:false,refresh:async()=>null}) : window.resource;",
-  "@/lib/client/api": "export const newCommandId = () => crypto.randomUUID();",
+  // API_MODE is "mock" here: read-only list lookups (useHolds) stay off.
+  "@/lib/client/api":
+    "export const newCommandId = () => crypto.randomUUID(); export const API_MODE = 'mock';",
   // Natural admission is a build switch; the fixture flips it per test.
   "@/lib/client/capabilities":
     "export const CAPABILITIES = { conversation: true, delegateWithoutContext: false, get naturalAdmission() { return Boolean(window.natural); } };",
@@ -104,9 +107,16 @@ const bundle = await build({
     {
       name: "review-fixtures",
       enforce: "pre",
-      resolveId(id) {
+      resolveId(id, importer) {
         if (id === "review-entry" || id === path.join(web, "review-entry"))
           return "\0review-entry.tsx";
+        // The shared responsibility reader imports its transport relatively;
+        // it gets the same fixture transport (other modules keep theirs).
+        if (
+          id.startsWith(".") &&
+          importer?.endsWith(path.join("lib", "client", "responsibility.ts"))
+        )
+          id = path.join(path.dirname(importer), id);
         // Vite resolves aliases before plugins; match both original and resolved paths.
         for (const key of Object.keys(mocks)) {
           if (
@@ -1263,6 +1273,109 @@ try {
   passed++;
   console.log(
     "PASS a runtime continuation beside the work is labelled as Workagent's, not the person's",
+  );
+
+  // A responsibility a turn recorded shows beside the work as a receipt link:
+  // under the reply when there is one, under the request when there isn't.
+  await page.evaluate(() => {
+    const conv = structuredClone(window.resource.data.conversation);
+    const receipt = (id) => ({
+      kind: "record_responsibility",
+      version: "1",
+      assignment_id: id,
+      conversation_id: "c",
+      owner_id: "local-human",
+      work_version: 2,
+      state: "waiting_person",
+      outcome_status: "unverified",
+      execution_status: "not_admitted",
+    });
+    conv.messages.push(
+      {
+        id: "m-ask-r",
+        author: "person",
+        text: "Keep the venue current.",
+        created_at: "",
+        sequence: 3000,
+        run_id: "run-r",
+        origin: "human",
+      },
+      {
+        id: "m-reply-r",
+        author: "agent",
+        text: "Recorded locally.",
+        created_at: "",
+        sequence: 3001,
+        run_id: "run-r",
+        origin: "synthetic_provider_receipt",
+      },
+      {
+        id: "m-ask-q",
+        author: "person",
+        text: "Hold the catering follow-up.",
+        created_at: "",
+        sequence: 3002,
+        run_id: "run-q",
+        origin: "human",
+      },
+    );
+    conv.turns.push(
+      {
+        run_id: "run-r",
+        state: "replied",
+        reason: null,
+        message_id: "m-ask-r",
+        progress: {
+          responsibility_recording: receipt("asg-r"),
+          explanation: null,
+        },
+      },
+      {
+        run_id: "run-q",
+        state: "failed",
+        reason: "Explanation unfinished.",
+        message_id: "m-ask-q",
+        progress: {
+          responsibility_recording: receipt("asg-q"),
+          explanation: null,
+        },
+      },
+    );
+    window.peek = {
+      data: conv,
+      error: null,
+      reconnecting: false,
+      refresh: async () => null,
+    };
+    window.mount("away");
+    window.mount("product");
+  });
+  const receipts = page.locator(
+    '.agent-pane [data-testid="recording-receipt"]',
+  );
+  await expect(receipts).toHaveCount(2);
+  await expect(
+    page.locator(".agent-pane .msg-agent").getByRole("link", {
+      name: "Open the saved responsibility",
+    }),
+  ).toHaveAttribute("href", "/assignments/asg-r");
+  const quietRequest = page.locator(".agent-pane li", {
+    hasText: "Hold the catering follow-up.",
+  });
+  await expect(quietRequest.getByTestId("recording-receipt")).toContainText(
+    "Recorded as waiting for a person",
+  );
+  await expect(
+    quietRequest.getByRole("link", { name: "Open the saved responsibility" }),
+  ).toHaveAttribute("href", "/assignments/asg-q");
+  await expect(page.locator(".agent-pane")).not.toContainText(/calculated/i);
+  await page.evaluate(() => {
+    window.peek = undefined;
+    window.mount("away");
+  });
+  passed++;
+  console.log(
+    "PASS a recorded responsibility shows beside the work as a receipt link, under the reply or, with none, under the request",
   );
 
   // R2: while the pane can't re-read the conversation, no path sends: not

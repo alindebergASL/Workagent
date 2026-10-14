@@ -530,8 +530,9 @@ try {
   }
   pass("execution statuses worded without overclaiming, linked to their run");
 
-  // Leaving the route stops its reads.
-  await page.goto(`${origin}/`);
+  // Leaving the route stops its reads (the conversations list reads none;
+  // Home has its own bounded read of hand-overs).
+  await page.goto(`${origin}/conversations`);
   let after = 0;
   page.on("request", (r) => {
     if (r.url().includes("/responsibility")) after++;

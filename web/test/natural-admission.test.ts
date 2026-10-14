@@ -145,6 +145,7 @@ describe("turn progress on the model path", () => {
       evidence_origin: "unverified",
       retained_local_result: null,
       explanation: null,
+      responsibility_recording: null,
     });
   });
   it("keeps a retained local result as data, with its exact decimal", () => {

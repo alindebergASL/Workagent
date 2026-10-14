@@ -10,6 +10,10 @@ import { conversationApi } from "@/lib/client/real-api";
 import { useWorkspace } from "@/lib/client/workspace";
 import { resultState, useResultStates } from "@/lib/client/result-states";
 import { resultLink } from "@/lib/result-links";
+import { holdGoal, useHolds } from "@/lib/client/responsibility";
+import { holdStatus } from "@/lib/hold-view";
+import { recordedResponsibilities } from "@/lib/contract/natural";
+import { shortTitle } from "@/lib/work-state";
 import { ApiError } from "@/lib/contract/errors";
 import type {
   ChatMessage,
@@ -25,6 +29,7 @@ import {
   RuntimeRequest,
   TurnOutcome,
   TurnProgressDetails,
+  RecordingReceipts,
   TurnSummary,
   replyTag,
 } from "@/components/TurnProgress";
@@ -70,6 +75,7 @@ export default function ConversationPage() {
   );
   const d = res.data;
   const results = useResultStates(wsId, d?.messages);
+  const { holds } = useHolds(wsId, d?.assignment_ids ?? []);
 
   // ---- follow-up composer ----
   const reply = useConversationReply({
@@ -201,6 +207,19 @@ export default function ConversationPage() {
     );
 
   const open = d.conversation.state === "open";
+  // Which turn recorded each responsibility, from the service's receipts.
+  const recordedIn: Record<string, string> = {};
+  for (const t of d.turns)
+    for (const r of recordedResponsibilities(t.progress))
+      recordedIn[r.assignment_id] ??= t.run_id;
+  const names = Object.fromEntries(
+    d.assignment_ids.map((aid) => {
+      const goal = holdGoal(holds[aid]);
+      return [aid, goal ? shortTitle(goal) : undefined];
+    }),
+  );
+  const hasReply = (runId: string) =>
+    d.messages.some((x) => x.author === "agent" && x.run_id === runId);
   const turnOf = (m: ChatMessage) =>
     d.turns.find((t) => t.message_id === m.id) ?? null;
   const inFlight = d.turns.some(
@@ -324,6 +343,14 @@ export default function ConversationPage() {
                     <span className="msg-tag">{replyTag(m.origin)}</span>
                   ) : null}
                   {m.author === "agent" ? (
+                    <RecordingReceipts
+                      progress={
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress
+                      }
+                      names={names}
+                    />
+                  ) : null}
+                  {m.author === "agent" ? (
                     <TurnProgressDetails
                       progress={
                         d.turns.find((t) => t.run_id === m.run_id)?.progress
@@ -332,6 +359,9 @@ export default function ConversationPage() {
                   ) : null}
                 </div>
               </div>
+              {turn && !hasReply(turn.run_id) ? (
+                <RecordingReceipts progress={turn.progress} names={names} />
+              ) : null}
               {turn && turn.state !== "replied" ? (
                 <div
                   className="msg-pending"
@@ -400,21 +430,45 @@ export default function ConversationPage() {
             Handed over
           </h2>
           <ul className="work-list">
-            {d.assignment_ids.map((aid) => (
-              <li key={aid}>
-                <Link className="work-row" href={`/assignments/${aid}`}>
-                  <span className="work-row-main">
-                    <span className="work-row-title">Recorded hand-over</span>
-                    <span className="work-row-note">
-                      Open it to see where it stands.
+            {d.assignment_ids.map((aid) => {
+              const status = holdStatus(holds[aid]);
+              const goal = holdGoal(holds[aid]);
+              const from = recordedIn[aid];
+              return (
+                <li key={aid} className="stack-xs">
+                  <Link
+                    className="work-row"
+                    href={`/assignments/${aid}`}
+                    data-assignment={aid}
+                  >
+                    <span className="work-row-main">
+                      <span className="work-row-title clamp-2">
+                        {goal ? shortTitle(goal) : "A recorded hand-over"}
+                      </span>
+                      <span className="work-row-status">
+                        {status ? (
+                          <StatusBadge
+                            label={status.label}
+                            tone={status.tone}
+                          />
+                        ) : null}
+                        <span className="work-row-note">
+                          {status?.note ?? "Open it to see where it stands."}
+                        </span>
+                      </span>
                     </span>
-                  </span>
-                  <span className="work-row-go" aria-hidden="true">
-                    ↗
-                  </span>
-                </Link>
-              </li>
-            ))}
+                    <span className="work-row-go" aria-hidden="true">
+                      ↗
+                    </span>
+                  </Link>
+                  {from ? (
+                    <a className="link-quiet small" href={`#run-${from}`}>
+                      Where it was recorded in this conversation
+                    </a>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
         </section>
       ) : null}

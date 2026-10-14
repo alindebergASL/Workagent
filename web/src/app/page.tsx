@@ -18,9 +18,15 @@ import {
 import { Composer } from "@/components/Composer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
+import { useHolds } from "@/lib/client/responsibility";
+import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 
-function lede(items: AssignmentSummary[], made: ConversationWork[]): string {
+function lede(
+  items: AssignmentSummary[],
+  made: ConversationWork[],
+  holding = 0,
+): string {
   const phases = items.map(phaseOf);
   // The timely card below carries the exact action; the lede only orients.
   if (
@@ -38,6 +44,8 @@ function lede(items: AssignmentSummary[], made: ConversationWork[]): string {
     return "Your approved work is saved. What should we move forward next?";
   if (items.some((i) => phaseOf(i) === "paused" && !isRecordedHandover(i)))
     return "Some work is paused. Resume it whenever you’re ready, or start something new.";
+  if (holding)
+    return "Some responsibilities are recorded as mine to carry. Nothing runs for them on its own yet.";
   if (items.some(isRecordedHandover))
     return "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.";
   if (made.length)
@@ -66,20 +74,37 @@ export default function AgentHome() {
   const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
   const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
   const madeSaved = made.filter((w) => !w.decision);
+  // Where conversation hand-overs stand now: their current responsibility
+  // records decide their group, never the assignment's coarse "paused".
+  const { holds } = useHolds(
+    wsId,
+    items.filter((i) => i.conversation_id).map((i) => i.id),
+  );
+  const groupOf = (i: AssignmentSummary) => holdGroup(holds[i.id]);
   const others = items.filter((i) => i !== attention?.item);
+  const holding = others.filter((i) => groupOf(i) === "holding");
+  const legacy = others.filter((i) => groupOf(i) === null);
   // A recorded hand-over that can't start yet is never shown as being handled.
-  const handling = others.filter(
+  const handling = legacy.filter(
     (i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i),
   );
-  const approved = others.filter((i) => phaseOf(i) === "approved");
-  const stopped = others.filter((i) => phaseOf(i) === "stopped");
-  const ready = others.filter(
-    (i) =>
-      (!HANDLING.has(phaseOf(i)) && !SETTLED.has(phaseOf(i))) ||
-      isRecordedHandover(i),
-  );
+  const approved = legacy.filter((i) => phaseOf(i) === "approved");
+  const stopped = [
+    ...legacy.filter((i) => phaseOf(i) === "stopped"),
+    ...others.filter((i) => groupOf(i) === "closed"),
+  ];
+  const ready = [
+    ...others.filter((i) => groupOf(i) === "attention"),
+    ...legacy.filter(
+      (i) =>
+        (!HANDLING.has(phaseOf(i)) && !SETTLED.has(phaseOf(i))) ||
+        isRecordedHandover(i),
+    ),
+  ];
   const rows = (list: AssignmentSummary[]) =>
-    list.map((item) => <WorkRow key={item.id} item={item} />);
+    list.map((item) => (
+      <WorkRow key={item.id} item={item} hold={holds[item.id]} />
+    ));
   const madeRows = (list: ConversationWork[]) =>
     list.map((w) => (
       <ConversationWorkRow
@@ -100,6 +125,14 @@ export default function AgentHome() {
       label: "Ready for you",
       dot: "dot-attn",
       rows: [...madeRows(madeDecisions), ...rows(ready)],
+    },
+    {
+      // Recorded as Workagent's to carry. Held isn't running: each row says
+      // whether anything runs for it.
+      key: "holding",
+      label: "Responsibilities I’m holding",
+      dot: "",
+      rows: rows(holding),
     },
     {
       key: "made",
@@ -143,7 +176,7 @@ export default function AgentHome() {
         <p className="lede" aria-live="polite">
           {overview.loading && !overview.data
             ? "Checking on your work…"
-            : lede(items, made)}
+            : lede(items, made, holding.length)}
         </p>
       </section>
 

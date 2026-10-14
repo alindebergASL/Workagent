@@ -1,4 +1,7 @@
-import type { TurnProgress } from "./contract/natural";
+import {
+  recordedResponsibilities,
+  type TurnProgress,
+} from "./contract/natural";
 import type { TurnState } from "./contract/types";
 
 type Verification = NonNullable<
@@ -28,6 +31,17 @@ export function modelExamples(
     passed,
     total: checks.length,
   };
+}
+
+/**
+ * Whether a retained local result is actual product output (a calculation,
+ * a document, a file). A step that only recorded a responsibility retains
+ * no output, and must never read as an unsaved calculation.
+ */
+export function hasProductOutput(
+  local: TurnProgress["retained_local_result"] | undefined,
+): boolean {
+  return Boolean(local && (local.output || local.body));
 }
 
 /** Presentation only. Never changes a run's authority or promotes examples to proof. */
@@ -74,6 +88,24 @@ export function adaptivePresentation(
     );
   }).length;
   const local = progress.retained_local_result;
+  // A responsibility the turn saved, with no product output: say what was
+  // saved and what isn't known, never "calculated but not saved".
+  const recorded = recordedResponsibilities(progress);
+  if (
+    recorded.length &&
+    !hasProductOutput(local) &&
+    state !== "queued" &&
+    state !== "responding"
+  )
+    return {
+      title:
+        recorded.length === 1
+          ? "Responsibility recorded"
+          : `${recorded.length} responsibilities recorded`,
+      note: "Saved as a hand-over Workagent holds. Its outcome isn’t verified, and nothing runs for it yet.",
+      checks: null,
+      changedAttempts: 0,
+    };
   const last = steps.at(-1);
   const bound =
     !!last?.operation_hash &&

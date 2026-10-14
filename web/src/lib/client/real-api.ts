@@ -93,7 +93,8 @@ const list = <T>(
   items: T[],
   observed_at = new Date().toISOString(),
 ): V.ListResult<T> => ({ items, next_cursor: null, observed_at });
-const rawAssignment = (ws: string, id: string, signal?: AbortSignal) =>
+/** One assignment record as the service returns it, with no joins. */
+export const rawAssignment = (ws: string, id: string, signal?: AbortSignal) =>
   unwrap(
     client.GET("/v1/workspaces/{workspace_id}/assignments/{assignment_id}", {
       params: { path: { workspace_id: ws, assignment_id: id }, header: meta() },

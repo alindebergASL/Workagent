@@ -1,0 +1,187 @@
+{
+  "profile": "general-responses-v1",
+  "run_id": "5ae52c55-1001-40e8-868f-8a00bc3773a7",
+  "state": "replied",
+  "reason": "Local responsibility recorded; the outcome still needs validation. External inboxes are not monitored; no booking or message was sent. Future execution requires separate current grant and budget authority. Explanation published; goal remains unverified.",
+  "evidence_origin": "synthetic_provider_receipt",
+  "provider_observation": "received",
+  "response_steps": [
+    {
+      "phase": "selection",
+      "state": "received",
+      "response_id": "resp_alpha_0",
+      "reported_input_tokens": 700,
+      "reported_output_tokens": 200,
+      "reserved_cost_usd": "0.13192",
+      "conservatively_calculated_cost_usd": "0.00375",
+      "billed_cost_usd": null
+    },
+    {
+      "phase": "selection_2",
+      "state": "received",
+      "response_id": "resp_alpha_1",
+      "reported_input_tokens": 700,
+      "reported_output_tokens": 200,
+      "reserved_cost_usd": "0.13192",
+      "conservatively_calculated_cost_usd": "0.00375",
+      "billed_cost_usd": null
+    },
+    {
+      "phase": "final",
+      "state": "received",
+      "response_id": "resp_alpha_2",
+      "reported_input_tokens": 700,
+      "reported_output_tokens": 200,
+      "reserved_cost_usd": "0.13192",
+      "conservatively_calculated_cost_usd": "0.00375",
+      "billed_cost_usd": null
+    }
+  ],
+  "adaptive": {
+    "runtime_extension": "general-alpha-v1",
+    "capability": "adaptive-local-v1",
+    "goal": "Respond usefully within current authority",
+    "success_criteria": [],
+    "max_steps": 4,
+    "outcome": "needs_validation",
+    "steps": [
+      {
+        "phase": "selection",
+        "status": "reply",
+        "operation_hash": "372668a63a7e5bddd5a26209634a0835cd783350ec070717049b7c4855965d62",
+        "reason": "Local responsibility recorded; the outcome still needs validation. External inboxes are not monitored; no booking or message was sent. Future execution requires separate current grant and budget authority.",
+        "verification": {
+          "satisfied": false,
+          "model_tests_passed": false,
+          "basis": "model_proposed",
+          "requested_goal_status": "needs_validation",
+          "request": {
+            "message_id": "abe77929-26ac-4d51-9807-b448ffce1cc5",
+            "message_sha256": "f5b6f01c522dde3cf3026d49df7fb394fc528de807f715c58b6d1cd54a653359"
+          },
+          "checks": [],
+          "acceptance": null,
+          "automatic": {
+            "checker_version": "csv-reconciliation-v1",
+            "scope": "bounded_csv_goal_only",
+            "limitations": [
+              "Only the fully recognized request and exact supplied table are verified; no external truth or effects.",
+              "Nonnegative decimal amounts, integer quantities, two decimal places, half-up or half-even; at most 500 rows.",
+              "A verified proposed revision remains pending human acceptance; downloading it does not apply it."
+            ],
+            "recognized": false,
+            "passed": false,
+            "spec": null,
+            "request": {
+              "message_id": "abe77929-26ac-4d51-9807-b448ffce1cc5",
+              "message_sha256": "f5b6f01c522dde3cf3026d49df7fb394fc528de807f715c58b6d1cd54a653359"
+            },
+            "source_sha256": null,
+            "base_revision_id": null,
+            "base_hash": null,
+            "operation_hash": "372668a63a7e5bddd5a26209634a0835cd783350ec070717049b7c4855965d62",
+            "staged_sha256": "6e6a54c9787e6235c582dea301ea672dc76fa1573325f8adb57c38977280d9e2",
+            "case_count": 0,
+            "row_count": 0,
+            "failures": ["unsupported_goal"]
+          }
+        },
+        "outcome": "continue",
+        "capability_result": null,
+        "mutation_result": {
+          "kind": "record_responsibility",
+          "version": "1",
+          "assignment_id": "11a55efc-a877-4d43-a883-6458d8b8a9ff",
+          "conversation_id": "3aa3d7fa-bf73-4101-bd8f-dcd5f6ff16f4",
+          "owner_id": "local-human",
+          "work_version": 2,
+          "state": "waiting_person",
+          "outcome_status": "unverified",
+          "execution_status": "not_admitted"
+        }
+      },
+      {
+        "phase": "selection_2",
+        "status": "reply",
+        "operation_hash": null,
+        "reason": "Local responsibility recorded; the outcome still needs validation. External inboxes are not monitored; no booking or message was sent. Future execution requires separate current grant and budget authority.",
+        "verification": {
+          "satisfied": false,
+          "model_tests_passed": false,
+          "basis": "model_proposed",
+          "requested_goal_status": "needs_validation",
+          "request": {
+            "message_id": "abe77929-26ac-4d51-9807-b448ffce1cc5",
+            "message_sha256": "f5b6f01c522dde3cf3026d49df7fb394fc528de807f715c58b6d1cd54a653359"
+          },
+          "checks": [],
+          "acceptance": null,
+          "automatic": {
+            "checker_version": "csv-reconciliation-v1",
+            "scope": "bounded_csv_goal_only",
+            "limitations": [
+              "Only the fully recognized request and exact supplied table are verified; no external truth or effects.",
+              "Nonnegative decimal amounts, integer quantities, two decimal places, half-up or half-even; at most 500 rows.",
+              "A verified proposed revision remains pending human acceptance; downloading it does not apply it."
+            ],
+            "recognized": false,
+            "passed": false,
+            "spec": null,
+            "request": {
+              "message_id": "abe77929-26ac-4d51-9807-b448ffce1cc5",
+              "message_sha256": "f5b6f01c522dde3cf3026d49df7fb394fc528de807f715c58b6d1cd54a653359"
+            },
+            "source_sha256": null,
+            "base_revision_id": null,
+            "base_hash": null,
+            "operation_hash": null,
+            "staged_sha256": "b8c658006b546dd24333bf037653a3913cb3633d4ad68db11273aacef05ba17c",
+            "case_count": 0,
+            "row_count": 0,
+            "failures": ["unsupported_goal"]
+          }
+        },
+        "outcome": "needs_validation",
+        "capability_result": null,
+        "mutation_result": null
+      }
+    ],
+    "shared_reserved_cost_usd": "0.39576",
+    "shared_cost_limit_usd": "20.00",
+    "cost_basis": "worst_case_reservations_not_billing"
+  },
+  "retained_local_result": {
+    "status": "reply",
+    "published": false,
+    "binding": {
+      "attempt_id": "e310862c-c039-4685-bd45-183d4b2f4e2b",
+      "selection_request_sha256": "56f9d32293dc989045552d581a9b6b47dc9563e17ce8f674e6c4be4214f4ba46",
+      "selection_response_id": "resp_alpha_1",
+      "decision_sha256": "41a54d48b4fabc2c25c489765c50adfc57eb9eac078ee86b9a7a65fa74909c77",
+      "operation_hash": null,
+      "base_hash": null
+    },
+    "body": null,
+    "output": null,
+    "reason": "Local responsibility recorded; the outcome still needs validation. External inboxes are not monitored; no booking or message was sent. Future execution requires separate current grant and budget authority."
+  },
+  "explanation": {
+    "text": "The calculated result is 3750 cents: quantity times price.",
+    "attempt_id": "e310862c-c039-4685-bd45-183d4b2f4e2b",
+    "phase": "final",
+    "authority": "model_explanation_not_verification",
+    "published": true
+  },
+  "responsibility_origin": null,
+  "responsibility_recording": {
+    "kind": "record_responsibility",
+    "version": "1",
+    "assignment_id": "11a55efc-a877-4d43-a883-6458d8b8a9ff",
+    "conversation_id": "3aa3d7fa-bf73-4101-bd8f-dcd5f6ff16f4",
+    "owner_id": "local-human",
+    "work_version": 2,
+    "state": "waiting_person",
+    "outcome_status": "unverified",
+    "execution_status": "not_admitted"
+  }
+}

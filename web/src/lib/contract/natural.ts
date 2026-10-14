@@ -108,8 +108,32 @@ export type TurnProgress = Partial<
     | "adaptive"
     | "response_steps"
     | "explanation"
+    | "responsibility_recording"
   >
 >;
+
+/** The service's immutable receipt for a responsibility a turn recorded. */
+export type RecordingReceipt = S["ResponsibilityMutationResult"];
+
+/**
+ * The responsibilities a turn recorded, from the service's typed receipts
+ * only (the turn's own and each step's), one per assignment. Never inferred
+ * from what the reply says.
+ */
+export function recordedResponsibilities(
+  progress?: TurnProgress,
+): RecordingReceipt[] {
+  const all = [
+    progress?.responsibility_recording ?? null,
+    ...(progress?.adaptive?.steps ?? []).map((s) =>
+      "mutation_result" in s ? (s.mutation_result ?? null) : null,
+    ),
+  ].filter((r): r is RecordingReceipt => Boolean(r));
+  const seen = new Set<string>();
+  return all.filter((r) =>
+    seen.has(r.assignment_id) ? false : (seen.add(r.assignment_id), true),
+  );
+}
 
 /**
  * The progress fields of a model-path turn. Controlled test turns carry the
@@ -125,6 +149,7 @@ export function turnProgress(
     evidence_origin: turn.evidence_origin,
     retained_local_result: turn.retained_local_result ?? null,
     explanation: turn.explanation ?? null,
+    responsibility_recording: turn.responsibility_recording ?? null,
     ...(turn.adaptive
       ? { adaptive: turn.adaptive, response_steps: turn.response_steps }
       : {}),

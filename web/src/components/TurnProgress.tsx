@@ -3,8 +3,13 @@ import Link from "next/link";
 import type { ResponsibilityOrigin, TurnState } from "@/lib/contract/types";
 import {
   adaptivePresentation,
+  hasProductOutput,
   modelExamples,
 } from "@/lib/adaptive-presentation";
+import {
+  recordedResponsibilities,
+  type RecordingReceipt,
+} from "@/lib/contract/natural";
 import { RichText } from "@/components/RichText";
 
 export function TurnSummary({
@@ -189,7 +194,7 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
         {progress.evidence_origin ? (
           <li>{ORIGIN[progress.evidence_origin]}</li>
         ) : null}
-        {local && !local.published ? (
+        {local && !local.published && hasProductOutput(local) ? (
           <li>
             {local.status === "rejected"
               ? "A local calculation was rejected."
@@ -201,6 +206,13 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
           </li>
         ) : null}
       </ul>
+      {recordedResponsibilities(progress).map((r) => (
+        <p key={r.assignment_id} className="small">
+          Recorded a responsibility (version {r.work_version}) as{" "}
+          {RECORDED_STATE[r.state].toLowerCase()}. Outcome not verified; not
+          admitted to run.
+        </p>
+      ))}
       {progress.adaptive?.outcome === "answered" ? (
         <p className="small">
           Answered directly. This is a reply, not a verified result or a
@@ -213,13 +225,15 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
             <li key={step.phase}>
               <p>
                 Attempt {index + 1}:{" "}
-                {step.status === "rejected"
-                  ? "local execution rejected"
-                  : step.status === "observed"
-                    ? "local result observed"
-                    : step.outcome === "answered"
-                      ? "answer recorded"
-                      : "response recorded"}
+                {"mutation_result" in step && step.mutation_result
+                  ? "responsibility recorded"
+                  : step.status === "rejected"
+                    ? "local execution rejected"
+                    : step.status === "observed"
+                      ? "local result observed"
+                      : step.outcome === "answered"
+                        ? "answer recorded"
+                        : "response recorded"}
                 .
               </p>
               {step.reason ? <p>{step.reason}</p> : null}
@@ -278,6 +292,48 @@ export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
         </ol>
       ) : null}
     </details>
+  );
+}
+
+const RECORDED_STATE: Record<RecordingReceipt["state"], string> = {
+  active: "Held by Workagent",
+  waiting_person: "Waiting for a person",
+  waiting_event: "Waiting for something to change",
+  blocked: "Blocked",
+};
+
+/**
+ * The responsibilities a turn saved, as links to them. This is the service's
+ * receipt from when they were recorded, not where they stand now: that is
+ * read on the hand-over itself. Shown whether or not a final explanation
+ * arrived.
+ */
+export function RecordingReceipts({
+  progress,
+  names,
+}: {
+  progress?: TurnProgress;
+  /** Current goals, where they could be read; keyed by assignment. */
+  names?: Record<string, string | undefined>;
+}) {
+  const recorded = recordedResponsibilities(progress);
+  if (!recorded.length) return null;
+  return (
+    <ul className="recording-receipts stack-xs" data-testid="recording-receipt">
+      {recorded.map((r) => (
+        <li key={r.assignment_id} className="small">
+          <span className="eyebrow-caps">Responsibility saved</span>{" "}
+          <Link href={`/assignments/${r.assignment_id}`}>
+            {names?.[r.assignment_id] ?? "Open the saved responsibility"}
+          </Link>
+          <span className="muted">
+            {" "}
+            · Recorded as {RECORDED_STATE[r.state].toLowerCase()}. Open it for
+            where it stands now.
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

@@ -505,3 +505,122 @@ Both pass now. Screenshots:
 pane on a build without exact targets. That send now needs the explicit
 "Send without linking this version" button. The script is Hermes-owned, so
 I haven't changed it.
+
+## Responsibility recording integrated (comment 6158398270)
+
+Merged `hermes/responsibility-recording-checkpoint` (`9a0c0d1`, merge
+`28fb06a`). Two Hermes-owned conflicts (`backend/export_contracts.py` and
+`backend/tests/test_text_attachment_journey.py`) were resolved to Hermes's
+side. Everything outside `web/` and `handoffs/frontend/` is byte-identical
+to `9a0c0d1`, and `web/` started from `90ba73b`. The five seam findings:
+
+1. **Receipt kept and shown.** `turnProgress` keeps
+   `TurnState.responsibility_recording`. `recordedResponsibilities()` reads
+   it together with each step's `mutation_result`, giving one entry per
+   assignment, never anything read from reply text.
+   `RecordingReceipts` (in `TurnProgress.tsx`) shows each one as a link
+   named by the work's current goal. The full thread and the pane beside
+   the work share it. It appears under the reply, or under the request
+   when no reply or explanation arrived. The receipt is historical: it
+   says what the work was recorded as and points to the work for where it
+   stands now.
+2. **A recording is not a calculation.** `hasProductOutput()` tells actual
+   product output (output or body) apart from a recording-only step.
+   - A recording-only turn reads "Responsibility recorded", saying the
+     outcome isn't verified and nothing runs for it.
+   - It is never "calculated" or "not saved as work". "How this ran" lists
+     the recording and its version.
+   - Mixed turns keep the product result's own presentation, and the
+     receipt still says the outcome isn't verified.
+3. **Home and Spaces follow the canonical lifecycle.**
+   - `useHolds()` (in `lib/client/responsibility.ts`) does one bounded
+     read (at most 20 items), read-only, scoped to the workspace and
+     aborted on change. It reads conversation-backed rows: their
+     responsibility, or their assignment when the service reports none.
+   - A failed re-read keeps a stale responsibility (labelled as such), or
+     reports an earlier "none" as unknown; it never becomes current
+     absence.
+   - `holdStatus()` and `holdGroup()` (in `lib/hold-view.ts`) give the same
+     words and groups everywhere.
+   - On Home, a needs-the-person state (waiting for a person, blocked,
+     review, or a settled run) goes to Ready for you. Active or paused goes
+     to a new "Responsibilities I'm holding" group, below Ready for you;
+     held is not running. Taken back or stopped goes to Stopped.
+   - Denied reads show "Not available"; unreadable ones show "Couldn't
+     check". The coarse assignment `paused` no longer decides any of this.
+4. **The work page reads the current record.** The title, request,
+   criteria and Ownership "Done when" come from
+   `ResponsibilityDetail.assignment` when it could be read.
+   - The empty state says "No documents or files are attached to it yet.
+     The responsibility itself is saved".
+   - With no run, it says "No run is recorded for it." instead of guessing
+     where the work came from.
+   - Controls stay on the panel's current read, compare-and-swap version
+     and confirmation.
+5. **Meaningful links.** The conversation's Handed over rows are named by
+   their current goal and carry the shared status. Recorded ones also link
+   to the turn that recorded them (`#run-{run}`). No artifact is invented.
+
+**Tests (deterministic):**
+
+- 234 unit tests. The 10 new ones run on a real recording-only `TurnState`
+  dumped from the backend (`test/fixtures/recording-turn.json`). They
+  cover:
+  - receipt and step preservation, a missing receipt, and two
+    obligations;
+  - recording-only, failed or never-arrived explanation, and mixed
+    output;
+  - every `holdStatus` and `holdGroup` state, including stale, denied,
+    unknown and absent.
+- 37 DOM regressions; the new one covers receipts beside the work under
+  the reply and under the request.
+- The harness mock gained `rawAssignment` and `API_MODE`. The shared reader
+  gets the fixture transport through its relative imports.
+
+**Real UI, API and PostgreSQL** (`web/scripts/responsibility-recording-journey.mjs`,
+9 cases):
+
+- **Fixture.** `web/scripts/rr_fixture.py` records responsibilities
+  beforehand through the real Service, PostgreSQL and `GeneralWorker`,
+  using the backend tests' synthetic provider transport. No live model is
+  called, so this proves mechanics and presentation, not agency. It
+  records:
+  - two obligations: one waiting for a person, one active;
+  - one whose final explanation count fails;
+  - one in another person's workspace.
+- **Cases covered:**
+  - Home grouping and wording, with no other-workspace leak;
+  - the conversation receipt link, turn wording and recorded-in link,
+    plus keyboard focus and Enter;
+  - the work page reading the current record;
+  - take-back through the existing control: the current record changes
+    everywhere, while the API and UI receipt stay `waiting_person` at the
+    original work version;
+  - a pause made elsewhere showing on Home;
+  - the receipt under the request when no explanation arrived;
+  - unknown and denied reads;
+  - the other workspace's work returning 404 and never being shown.
+- No horizontal scroll at 390 and 320px, and no duplicate element IDs.
+  Screenshots are in `evidence/responsibility-recording/`.
+
+**Other checks on this commit:**
+
+- Type, lint, format and `git diff --check`; domain and mock production
+  builds; 9 sandbox regressions; 15 mock e2e tests.
+- Real stack:
+  - `conversation-hold.mjs` (3 cases); conversation journey (now expects
+    goal-named hand-over rows); products journey; responsibility journey;
+  - 18 recovery cases (its route-change check now leaves to the
+    conversations list, because Home has its own bounded read);
+  - flexible create/reopen; `verify_general_integration.py`.
+- Backend on the merged tree (fresh PostgreSQL through SQL024): 107
+  responsibility-action, authority, review-regression and attachment
+  tests pass, and `test_text_attachment_journey.py` passed 6 of 6
+  repeats.
+
+**Limits:**
+
+- No live model decisions. The recordings come from scripted synthetic
+  decisions, so usefulness and agency are NOT TESTED here.
+- No screen-reader pass beyond role, name and keyboard checks.
+- The multi-model and multi-persona QA gate is Hermes's next step.

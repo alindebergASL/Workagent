@@ -281,7 +281,12 @@ try {
   expect(assignment.state).toBe("paused");
   expect(assignment.conversation_id).toBe(cid);
   expect(assignment.goal).toBe(first);
-  await page.getByRole("link", { name: /Recorded hand-over/ }).click();
+  // The hand-over is named by its goal and says where it stands.
+  const handedOver = page.locator(`a.work-row[data-assignment="${aid}"]`);
+  await expect(handedOver).toContainText("Paused hand-over", {
+    timeout: 15000,
+  });
+  await handedOver.click();
   await page.waitForURL(/\/assignments\//);
   await expect(page.locator("header .status").first()).toHaveText(
     "Handed over",

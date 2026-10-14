@@ -6,7 +6,12 @@ import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
-import type { ExactTarget } from "@/lib/contract/natural";
+import {
+  recordedResponsibilities,
+  type ExactTarget,
+} from "@/lib/contract/natural";
+import { holdGoal, useHolds } from "@/lib/client/responsibility";
+import { shortTitle } from "@/lib/work-state";
 import { ErrorNotice } from "@/components/ui";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import {
@@ -15,6 +20,7 @@ import {
   TurnOutcome,
   TurnSummary,
   TurnProgressDetails,
+  RecordingReceipts,
   replyTag,
 } from "@/components/TurnProgress";
 
@@ -162,6 +168,18 @@ export function ConversationPeek({
   const unresolved = (t: Turn) =>
     t.state !== "replied" && Boolean(TURN_TEXT[t.state]);
   const shownIds = new Set(recent.map((m) => m.id));
+  // Current goals for the responsibilities recorded in view, so links name
+  // the work; a bounded, read-only read.
+  const recordedIds = d.turns.flatMap((t) =>
+    recordedResponsibilities(t.progress).map((r) => r.assignment_id),
+  );
+  const { holds } = useHolds(revoked ? null : wsId, recordedIds);
+  const names = Object.fromEntries(
+    recordedIds.map((id) => {
+      const goal = holdGoal(holds[id]);
+      return [id, goal ? shortTitle(goal) : undefined];
+    }),
+  );
   const turnOf = (m: ConversationDetailView["messages"][number]) =>
     m.author === "agent"
       ? null
@@ -237,6 +255,12 @@ export function ConversationPeek({
                   {replyTag(m.origin) ? (
                     <span className="msg-tag">{replyTag(m.origin)}</span>
                   ) : null}
+                  <RecordingReceipts
+                    progress={
+                      d.turns.find((t) => t.run_id === m.run_id)?.progress
+                    }
+                    names={names}
+                  />
                   <TurnProgressDetails
                     progress={
                       d.turns.find((t) => t.run_id === m.run_id)?.progress
@@ -246,8 +270,19 @@ export function ConversationPeek({
               ) : null}
               {(() => {
                 const turn = turnOf(m);
-                return turn && unresolved(turn) ? (
-                  <PendingTurn turn={turn} />
+                return turn ? (
+                  <>
+                    {unresolved(turn) ? <PendingTurn turn={turn} /> : null}
+                    {/* With no reply (yet, or ever), the receipt shows here. */}
+                    {!d.messages.some(
+                      (x) => x.author === "agent" && x.run_id === turn.run_id,
+                    ) ? (
+                      <RecordingReceipts
+                        progress={turn.progress}
+                        names={names}
+                      />
+                    ) : null}
+                  </>
                 ) : null;
               })()}
             </div>

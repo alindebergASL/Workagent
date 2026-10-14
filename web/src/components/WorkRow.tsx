@@ -9,10 +9,23 @@ import {
   waitingSummary,
 } from "@/lib/work-state";
 import type { AssignmentSummary } from "@/lib/contract/types";
+import type { HoldEntry } from "@/lib/client/responsibility";
+import { holdStatus } from "@/lib/hold-view";
 import { StatusBadge } from "./ui";
 
-/** One line of work: what it is, its status (same label on every surface), and where to go next. */
-export function WorkRow({ item }: { item: AssignmentSummary }) {
+/**
+ * One line of work: what it is, its status (same label on every surface), and
+ * where to go next. When its responsibility was read, that current record
+ * decides the status, not the assignment's coarse state.
+ */
+export function WorkRow({
+  item,
+  hold,
+}: {
+  item: AssignmentSummary;
+  hold?: HoldEntry;
+}) {
+  const held = holdStatus(hold);
   const phase = phaseOf(item);
   const review = decisionArtifactId(item);
   const run = currentRun(item);
@@ -20,9 +33,10 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
     phase === "decision" && review
       ? `/assignments/${item.id}/artifacts/${review}`
       : `/assignments/${item.id}`;
-  const status = statusOf(item);
-  const note =
-    phase === "decision"
+  const status = held ?? statusOf(item);
+  const note = held
+    ? held.note
+    : phase === "decision"
       ? run?.state === "decision_stale"
         ? "A proposal is based on an older version"
         : "A proposed revision needs your decision"
@@ -48,6 +62,7 @@ export function WorkRow({ item }: { item: AssignmentSummary }) {
         href={href}
         data-phase={phase}
         data-assignment={item.id}
+        data-hold={hold?.kind}
       >
         <span className="work-row-main">
           <span className="work-row-title clamp-2">

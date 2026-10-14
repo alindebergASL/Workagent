@@ -1,0 +1,46 @@
+{
+  "provider_calls": "not_performed",
+  "cases": [
+    "Home groups recorded responsibilities by their current lifecycle; held is not running; another workspace never appears",
+    "the conversation shows a named receipt link, the recording (not a calculation), and the turn it came from; keyboard opens it",
+    "the work page reads the current record: no document or run claims",
+    "taking it back changes the current record everywhere; the turn's receipt stays as recorded",
+    "a pause made elsewhere shows on Home from the current record",
+    "with no final explanation, the receipt shows under the request",
+    "a unknown read shows \"Couldn’t check\" on Home",
+    "a denied read shows \"Not available\" on Home",
+    "another workspace's responsibility can't be read or opened"
+  ],
+  "ids": {
+    "mode": "real_service_postgresql_worker_with_synthetic_provider_transport",
+    "live_provider_calls": 0,
+    "waiting": {
+      "conversation_id": "f359df7e-6740-4e02-b882-542fb821067f",
+      "assignment_id": "fd5afdf6-e973-4249-91eb-3509d531f167",
+      "run_id": "869a3d7d-0dcd-4994-a944-4e02554c7d39",
+      "worker_state": "partial",
+      "synthetic_provider_calls": 6
+    },
+    "active": {
+      "conversation_id": "d52933f6-521e-4280-bdd0-79ff0bb1d7cd",
+      "assignment_id": "97d21f2d-df7a-4fa9-9029-e957b1f7042b",
+      "run_id": "ec2baaf8-47a6-4dd5-b45c-55f4d220dbfe",
+      "worker_state": "partial",
+      "synthetic_provider_calls": 6
+    },
+    "no_explanation": {
+      "conversation_id": "ae0d1fb1-3eb3-4dcb-9062-4b51a3c64cd8",
+      "assignment_id": "e936c87a-8660-424e-9d33-ccccf366467a",
+      "run_id": "cdbf8a00-fbfe-450a-8ffd-783a47275ef1",
+      "worker_state": "running",
+      "synthetic_provider_calls": 5
+    },
+    "other_workspace": {
+      "conversation_id": "b4c74b61-046c-4792-9151-af93300fa1d3",
+      "assignment_id": "0d29ed76-f361-449d-b1dd-8c1e491a1321",
+      "run_id": "f172c029-7b12-46a3-ac83-ab1ea3a517af",
+      "worker_state": "partial",
+      "synthetic_provider_calls": 6
+    }
+  }
+}
