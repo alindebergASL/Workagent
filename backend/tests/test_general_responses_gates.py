@@ -1,18 +1,18 @@
 """DB and CLI authority gates for the additive general profile; synthetic only."""
 import json
+import hashlib
+import io
 import os
 from pathlib import Path
-import shutil
 import subprocess
 import sys
-from unittest.mock import patch
+import tarfile
 import psycopg
 import pytest
 from pydantic import ValidationError
-from test_domain import context,cmd,PrivateDsn,ACTOR
+from test_domain import context,cmd,PrivateDsn
 from test_general_responses import activate,Provider,worker,setup,totals
 from test_conversations import conversation,post
-from test_general_products import execute,csvop
 from workagent.models import *
 from workagent.service import Service,Principal,WorkerCapability,encoded
 from workagent.db import Database,migrate
@@ -20,7 +20,6 @@ from workagent.provider_attempts import ReceiptCapability,configure_grant
 from workagent.responses_ledger import Ledger
 from workagent.general_responses import verify_route_record
 from workagent.responses_transport import TransportError
-from dev_db import provision
 
 
 def test_retrieval_80_cancel_zero_sql_and_application(context,tmp_path):
@@ -134,35 +133,82 @@ def test_general_http_payload_and_honest_projection(context,tmp_path):
 
 
 def test_exact_010_upgrade_preserves_records_hashes_and_minimal_acl(tmp_path):
-    # Provision ONLY via dev_db. All databases are new; no adopted review state.
+    # Run the actual SQL010-era writer against its own schema. Current runtime
+    # hooks require later columns; do not monkeypatch those guards to seed old SQL.
     root=Path(__file__).resolve().parents[1]
-    prefix=tmp_path/'prefix'; (prefix/'workagent').mkdir(parents=True); (prefix/'migrations').mkdir()
-    for path in sorted((root/'migrations').glob('*.sql'))[:10]:shutil.copyfile(path,prefix/'migrations'/path.name)
+    predecessor='8ef4aabd53540d804ea580db8b1c9297f8508012'
+    archive=subprocess.check_output(['git','archive',predecessor,'backend','runtime','agent','fixtures'],cwd=root.parent)
+    with tarfile.open(fileobj=io.BytesIO(archive)) as tar:
+        tar.extractall(tmp_path,filter='data')
+    historical_sql=sorted((tmp_path/'backend/migrations').glob('*.sql'))
+    canonical_sql=sorted((root/'migrations').glob('*.sql'))
+    assert len(historical_sql)==10
+    assert [(p.name,p.read_bytes()) for p in historical_sql]==[(p.name,p.read_bytes()) for p in canonical_sql[:10]]
+    child_env={k:v for k,v in os.environ.items() if k not in ('PYTHONHOME','PYTHONPATH','DATABASE_URL','MIGRATION_DATABASE_URL')}
+    child_env['PYTHONPATH']=str(tmp_path/'backend')
     env=tmp_path/'upgrade.env'
-    with patch('workagent.db.__file__',str(prefix/'workagent/db.py')): provision(env)
+    child=subprocess.run([sys.executable,str(tmp_path/'backend/dev_db.py'),'--env-file',str(env)],
+        cwd=tmp_path,env=child_env,capture_output=True,text=True,timeout=60)
+    assert child.returncode==0,'historical provisioning failed (details withheld to protect credentials)'
     values=dict(line.removeprefix('export ').split('=',1) for line in env.read_text().splitlines())
     owner=PrivateDsn(values['MIGRATION_DATABASE_URL']); runtime=PrivateDsn(values['DATABASE_URL'])
-    from workagent.fixture import seed
-    from datetime import timedelta
-    ws='upgrade-'+new_id(); p=Principal('local-human'); seed(owner,json.loads(ACTOR.read_text()),ws,p.id)
-    s=Service(Database(runtime)); ctx=(s,p,ws,[],owner)
-    detail,products=execute(ctx,csvop()); artifact=s.get_artifact(p,ws,products[0].artifact_id)
-    historical=ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,model='synthetic-historical',consumer_sha256='a'*64,expires_at=now()+timedelta(minutes=20))
-    configure_grant(Database(owner),historical)
+    assert '/workagent_test_' in owner and '/workagent_test_' in runtime
+    source='''import json,os
+from pathlib import Path
+from datetime import timedelta
+import workagent.db as db_module
+from workagent.db import Database
+from workagent.fixture import seed
+from workagent.service import Service,Principal
+from workagent.models import *
+from workagent.product_models import ReconcileCSV,ProductResult
+from workagent.general_worker import GeneralWorker,ControlledTransport
+from workagent.provider_attempts import configure_grant
+assert Path(db_module.__file__).resolve()==Path('backend/workagent/db.py').resolve()
+owner=Database(os.environ['MIGRATION_DATABASE_URL']); runtime=Database()
+runtime.check_runtime_role()
+ws='upgrade-'+new_id(); p=Principal('local-human')
+seed(owner.dsn,json.loads(Path('fixtures/actor/solo-v0.1/initial_records.json').read_text()),ws,p.id)
+s=Service(runtime)
+def cmd(cls,**kw): return cls(schema_version='workagent/v1',request_id=new_id(),command_id=new_id(),**kw)
+cv=s.create_conversation(p,ws,cmd(CreateConversation))
+op=ReconcileCSV(kind='reconcile_csv',input_csv=Path('fixtures/general-work/invoices.csv').read_text())
+queued=s.post_message(p,ws,cv.id,cmd(PostMessage,expected_work_version=cv.work_version,text='Historical controlled CSV',operation=op))
+assert GeneralWorker(s,transport=ControlledTransport()).work(p,ws,queued.run.id).state=='ready'
+detail=s.get_conversation(p,ws,cv.id)
+products=[r for r in detail.messages[-1].result.results if isinstance(r,ProductResult)]
+assert len(products)==2
+artifact=s.get_artifact(p,ws,products[0].artifact_id)
+historical=ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,model='synthetic-historical',consumer_sha256='a'*64,expires_at=now()+timedelta(minutes=20))
+configure_grant(owner,historical)
+print(json.dumps({'workspace':ws,'artifact_id':artifact.id,'grant_id':historical.id,
+    'body_hash':artifact.current_revision.body_hash,'body':artifact.current_revision.body.model_dump(mode='json')}))
+'''
+    child=subprocess.run([sys.executable,'-c',source],cwd=tmp_path,
+        env={**child_env,**values},capture_output=True,text=True,timeout=60)
+    assert child.returncode==0,'historical fixture failed (details withheld to protect credentials)'
+    snapshot=json.loads(child.stdout); ws=snapshot['workspace']; p=Principal('local-human')
+    s=Service(Database(runtime))
+    preserved_tables=('provider_grants','artifacts','revisions','product_observations','conversation_messages')
     with Database(owner).transaction() as c:
         assert c.execute('SELECT count(*) n FROM schema_migrations').fetchone()['n']==10
-        before=c.execute('SELECT data FROM provider_grants WHERE id=%s',(historical.id,)).fetchone()['data']
+        before={table:c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()
+                for table in preserved_tables}
+        assert all(before.values())
         migrations=c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()
     migrate(owner);migrate(owner)
     with Database(runtime).transaction() as c:
-        assert c.execute('SELECT data FROM provider_grants WHERE id=%s',(historical.id,)).fetchone()['data']==before
+        for table in preserved_tables:
+            assert c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()==before[table]
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations
-        assert c.execute('SELECT name FROM schema_migrations ORDER BY name DESC LIMIT 1').fetchone()['name']==max(p.name for p in (root/'migrations').glob('*.sql'))
+        assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()==[
+            {'name':path.name,'checksum':hashlib.sha256(path.read_bytes()).hexdigest()} for path in canonical_sql]
         assert c.execute("SELECT has_table_privilege(current_user,'responses_budget_carry','SELECT') s,has_table_privilege(current_user,'responses_budget_carry','INSERT') i,has_table_privilege(current_user,'responses_budget_carry','UPDATE') u,has_table_privilege(current_user,'responses_budget_carry','DELETE') d").fetchone()=={'s':True,'i':False,'u':False,'d':False}
         for table in ('conversation_messages','product_observations','responses_events'):
             assert c.execute("SELECT has_table_privilege(current_user,%s,'INSERT') i,has_table_privilege(current_user,%s,'UPDATE') u,has_table_privilege(current_user,%s,'DELETE') d",(table,table,table)).fetchone()=={'i':True,'u':False,'d':False}
-    after=s.get_artifact(p,ws,artifact.id)
-    assert after.current_revision.body_hash==artifact.current_revision.body_hash and after.current_revision.body==artifact.current_revision.body
+    after=s.get_artifact(p,ws,snapshot['artifact_id'])
+    assert after.current_revision.body_hash==snapshot['body_hash']
+    assert after.current_revision.body.model_dump(mode='json')==snapshot['body']
     s.db.check_runtime_role()
 
 

@@ -142,7 +142,11 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         from .acceptance_checks import evaluate
         acceptance=evaluate(message.acceptance_checks,operation,staged)
         observation['verification']['acceptance']=acceptance
-    if alpha and staged.get('capability_result') is not None:
+    if alpha and staged.get('mutation_result') is not None:
+        outcome='needs_validation' if len(previous)+1>=max_steps else 'continue'
+        from .responsibility_action import RECORDING_REASON
+        staged['reason']=RECORDING_REASON
+    elif alpha and staged.get('capability_result') is not None:
         outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
         staged['reason']=('Observation limit reached after reading guidance/context; no answer or operational completion was delivered.'
                           if outcome=='step_limit' else 'Read-only observation retained; no permissions or work-state changed.')
@@ -187,6 +191,19 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         staged['reason']='Execution stopped at the step limit; the requested goal is not verified. '+staged.get('reason','Local tests did not establish a passing result.')
     else:
         outcome='continue'
+    if alpha:
+        ownership=staged.get('mutation_result') or next((o['mutation_result'] for o in previous if o.get('mutation_result')),None)
+        if ownership:
+            from .responsibility_action import RECORDING_REASON
+            observation['responsibility_recording']=ownership
+            # Never rewrite an independently verified local result into a failed
+            # verifier. Its completion is distinct from the unverified ownership
+            # receipt; publication/readback keep the overall responsibility open.
+            if outcome=='answered':
+                outcome='needs_validation'
+                staged['reason']=RECORDING_REASON
+            elif staged.get('reason')!=RECORDING_REASON:
+                staged['reason']=RECORDING_REASON+' '+staged.get('reason','')
     observation['terminal_outcome']=outcome
     return observation
 

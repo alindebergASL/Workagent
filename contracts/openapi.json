@@ -638,6 +638,16 @@
             ],
             "title": "Capability Result"
           },
+          "mutation_result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityMutationResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "operation_hash": {
             "anyOf": [
               {
@@ -4440,6 +4450,80 @@
         "title": "ResponsibilityLifecycle",
         "type": "object"
       },
+      "ResponsibilityMutationResult": {
+        "additionalProperties": false,
+        "properties": {
+          "assignment_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "execution_status": {
+            "const": "not_admitted",
+            "default": "not_admitted",
+            "title": "Execution Status",
+            "type": "string"
+          },
+          "kind": {
+            "const": "record_responsibility",
+            "default": "record_responsibility",
+            "title": "Kind",
+            "type": "string"
+          },
+          "outcome_status": {
+            "const": "unverified",
+            "default": "unverified",
+            "title": "Outcome Status",
+            "type": "string"
+          },
+          "owner_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Owner Id",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "waiting_person",
+              "waiting_event",
+              "blocked"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "version": {
+            "const": "1",
+            "default": "1",
+            "title": "Version",
+            "type": "string"
+          },
+          "work_version": {
+            "minimum": 1.0,
+            "title": "Work Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "conversation_id",
+          "owner_id",
+          "work_version",
+          "state"
+        ],
+        "title": "ResponsibilityMutationResult",
+        "type": "object"
+      },
       "ResponsibilityNextAction": {
         "additionalProperties": false,
         "properties": {
@@ -6216,6 +6300,16 @@
             "anyOf": [
               {
                 "$ref": "#/components/schemas/ResponsibilityOrigin"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "responsibility_recording": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponsibilityMutationResult"
               },
               {
                 "type": "null"

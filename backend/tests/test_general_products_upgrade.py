@@ -1,5 +1,6 @@
 """Actual predecessor provisioning -> additive upgrade, under runtime role."""
 import io
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -37,7 +38,11 @@ def test_predecessor_runtime_gets_only_new_observation_privileges(tmp_path):
     with Database(admin).transaction() as c:
         after=c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()
         assert after[:len(before)]==before
-        assert [row['name'] for row in after[len(before):]]==['010_general_products.sql','011_general_responses.sql','012_adaptive_execution.sql','013_acceptance_checks.sql','014_budget_carryforward.sql','015_bounded_csv_verification.sql','016_flexible_work.sql']
+        # The successor chain grows; require every canonical name and checksum,
+        # not an obsolete tail ending at a formerly latest migration.
+        expected=[{'name':path.name,'checksum':hashlib.sha256(path.read_bytes()).hexdigest()}
+                  for path in sorted((ROOT/'backend/migrations').glob('*.sql'))]
+        assert after==expected
     db=Database(runtime); db.check_runtime_role()
     with db.transaction() as c:
         rights=c.execute("SELECT has_table_privilege(current_user,'product_observations','SELECT') s, has_table_privilege(current_user,'product_observations','INSERT') i, has_table_privilege(current_user,'product_observations','UPDATE') u, has_table_privilege(current_user,'product_observations','DELETE') d").fetchone()

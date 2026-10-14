@@ -1,0 +1,1231 @@
+[
+  {
+    "availability": "available",
+    "effects": [
+      "record_local_responsibility"
+    ],
+    "handler": "responsibility",
+    "input_schema": {
+      "$defs": {
+        "RecordingPlan": {
+          "additionalProperties": false,
+          "properties": {
+            "current_outcome": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "title": "Current Outcome",
+              "type": "string"
+            },
+            "dependencies": {
+              "items": {
+                "$ref": "#/$defs/ResponsibilityDependency"
+              },
+              "maxItems": 50,
+              "title": "Dependencies",
+              "type": "array"
+            },
+            "next_action": {
+              "$ref": "#/$defs/ResponsibilityNextAction"
+            },
+            "next_check_in_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next Check In At"
+            },
+            "wait": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ResponsibilityWait"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "current_outcome",
+            "next_action",
+            "dependencies",
+            "wait",
+            "next_check_in_at"
+          ],
+          "title": "RecordingPlan",
+          "type": "object"
+        },
+        "ResponsibilityDependency": {
+          "additionalProperties": false,
+          "properties": {
+            "expected_version": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Expected Version",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "artifact_revision",
+                "source_version"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "object_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Object Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "object_id",
+            "expected_version"
+          ],
+          "title": "ResponsibilityDependency",
+          "type": "object"
+        },
+        "ResponsibilityNextAction": {
+          "additionalProperties": false,
+          "properties": {
+            "description": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "title": "Description",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "continue_work",
+                "review_dependency",
+                "request_decision",
+                "await_event",
+                "obtain_grant",
+                "obtain_tool"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "description"
+          ],
+          "title": "ResponsibilityNextAction",
+          "type": "object"
+        },
+        "ResponsibilityWait": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "person",
+                "dependency_change",
+                "check_in"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "reason": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "title": "Reason",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "reason"
+          ],
+          "title": "ResponsibilityWait",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "completion_criteria": {
+          "items": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "minItems": 1,
+          "title": "Completion Criteria",
+          "type": "array"
+        },
+        "goal": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "kind": {
+          "const": "record_responsibility",
+          "title": "Kind",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/RecordingPlan"
+        }
+      },
+      "required": [
+        "kind",
+        "goal",
+        "completion_criteria",
+        "plan"
+      ],
+      "title": "RecordResponsibility",
+      "type": "object"
+    },
+    "name": "record_responsibility",
+    "reason": "No external monitoring, actions, completion or execution grant.",
+    "scope": "Current human request and exact offered local dependencies",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "read_guidance"
+    ],
+    "handler": "discover",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "discover_capabilities",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiscoverCapabilities",
+      "type": "object"
+    },
+    "name": "discover_capabilities",
+    "reason": null,
+    "scope": "Reviewed installed catalog only",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "read_guidance"
+    ],
+    "handler": "load",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "load_skill",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "skill_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Skill Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "skill_id",
+        "version",
+        "sha256"
+      ],
+      "title": "LoadSkill",
+      "type": "object"
+    },
+    "name": "load_skill",
+    "reason": null,
+    "scope": "Exact offered reviewed skill id/version/hash",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "read_context"
+    ],
+    "handler": "read",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "section": {
+          "enum": [
+            "messages",
+            "target",
+            "attachments"
+          ],
+          "title": "Section",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "section"
+      ],
+      "title": "ReadContext",
+      "type": "object"
+    },
+    "name": "read_context",
+    "reason": null,
+    "scope": "Already authorized current run context only",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "append_answer"
+    ],
+    "handler": "reply",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "AlphaReply",
+      "type": "object"
+    },
+    "name": "reply",
+    "reason": null,
+    "scope": "Current conversation",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "append_status"
+    ],
+    "handler": "stop",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "stop",
+          "title": "Kind",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "complete",
+            "waiting_for_user",
+            "blocked"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "outcome",
+        "text"
+      ],
+      "title": "AlphaStop",
+      "type": "object"
+    },
+    "name": "stop",
+    "reason": null,
+    "scope": "Current run only",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "local_compute",
+      "retain_product_or_proposal"
+    ],
+    "handler": "product",
+    "input_schema": {
+      "$defs": {
+        "AttachmentRef": {
+          "additionalProperties": false,
+          "properties": {
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentRef",
+          "type": "object"
+        },
+        "DecisionTarget": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "DecisionTarget",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AttachmentRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "const": "reconcile_csv",
+          "title": "Kind",
+          "type": "string"
+        },
+        "rounding": {
+          "enum": [
+            "ROUND_HALF_UP",
+            "ROUND_HALF_EVEN"
+          ],
+          "title": "Rounding",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "target",
+        "rounding"
+      ],
+      "title": "CSVDecision",
+      "type": "object"
+    },
+    "name": "reconcile_csv",
+    "reason": "Invoice schema only; not an arbitrary spreadsheet engine.",
+    "scope": "Exact offered attachment or saved target",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "local_compute",
+      "retain_product_or_proposal"
+    ],
+    "handler": "product",
+    "input_schema": {
+      "$defs": {
+        "DecisionTarget": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "DecisionTarget",
+          "type": "object"
+        },
+        "FormField": {
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "name": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "label"
+          ],
+          "title": "FormField",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "maximum": 1000000000,
+            "minimum": -1000000000,
+            "type": "integer"
+          },
+          "maxItems": 8,
+          "title": "Arguments",
+          "type": "array"
+        },
+        "code": {
+          "maxLength": 16000,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "entrypoint": {
+          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+          "title": "Entrypoint",
+          "type": "string"
+        },
+        "input_form": {
+          "items": {
+            "$ref": "#/$defs/FormField"
+          },
+          "maxItems": 8,
+          "title": "Input Form",
+          "type": "array"
+        },
+        "kind": {
+          "const": "run_wasm",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "code",
+        "entrypoint",
+        "arguments",
+        "input_form"
+      ],
+      "title": "WasmDecision",
+      "type": "object"
+    },
+    "name": "run_wasm",
+    "reason": "No host imports or external access.",
+    "scope": "Import-free bounded local kernel; exact saved base",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "retain_product_or_proposal"
+    ],
+    "handler": "product",
+    "input_schema": {
+      "$defs": {
+        "DecisionTarget": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "DecisionTarget",
+          "type": "object"
+        },
+        "DraftAction": {
+          "additionalProperties": false,
+          "properties": {
+            "binding": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Binding",
+              "type": "string"
+            },
+            "kind": {
+              "const": "read_binding",
+              "title": "Kind",
+              "type": "string"
+            },
+            "name": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            },
+            "payload_schema": {
+              "$ref": "#/$defs/DraftPayloadSchema"
+            }
+          },
+          "required": [
+            "name",
+            "kind",
+            "binding",
+            "payload_schema"
+          ],
+          "title": "DraftAction",
+          "type": "object"
+        },
+        "DraftBlock": {
+          "additionalProperties": false,
+          "properties": {
+            "block_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Block Id",
+              "type": "string"
+            },
+            "checked": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Checked"
+            },
+            "kind": {
+              "enum": [
+                "heading",
+                "paragraph",
+                "checklist",
+                "protected_note"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "text": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "title": "Text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "block_id",
+            "kind",
+            "text",
+            "checked"
+          ],
+          "title": "DraftBlock",
+          "type": "object"
+        },
+        "DraftDocument": {
+          "additionalProperties": false,
+          "properties": {
+            "blocks": {
+              "items": {
+                "$ref": "#/$defs/DraftBlock"
+              },
+              "maxItems": 200,
+              "minItems": 1,
+              "title": "Blocks",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "blocks"
+          ],
+          "title": "DraftDocument",
+          "type": "object"
+        },
+        "DraftField": {
+          "additionalProperties": false,
+          "properties": {
+            "editable": {
+              "title": "Editable",
+              "type": "boolean"
+            },
+            "enum": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 30,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Enum"
+            },
+            "key": {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "label": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "scale": {
+              "anyOf": [
+                {
+                  "maximum": 6,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Scale"
+            },
+            "type": {
+              "enum": [
+                "text",
+                "integer",
+                "decimal",
+                "boolean",
+                "enum"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "unit": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Unit"
+            }
+          },
+          "required": [
+            "key",
+            "label",
+            "type",
+            "editable",
+            "unit",
+            "scale",
+            "enum"
+          ],
+          "title": "DraftField",
+          "type": "object"
+        },
+        "DraftPayloadSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "additionalProperties": {
+              "const": false,
+              "title": "Additionalproperties",
+              "type": "boolean"
+            },
+            "properties": {
+              "$ref": "#/$defs/EmptyPayload"
+            },
+            "type": {
+              "const": "object",
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "properties",
+            "additionalProperties"
+          ],
+          "title": "DraftPayloadSchema",
+          "type": "object"
+        },
+        "DraftSource": {
+          "additionalProperties": false,
+          "properties": {
+            "css": {
+              "maxLength": 48000,
+              "title": "Css",
+              "type": "string"
+            },
+            "html": {
+              "maxLength": 48000,
+              "minLength": 1,
+              "title": "Html",
+              "type": "string"
+            },
+            "js": {
+              "maxLength": 48000,
+              "title": "Js",
+              "type": "string"
+            }
+          },
+          "required": [
+            "html",
+            "css",
+            "js"
+          ],
+          "title": "DraftSource",
+          "type": "object"
+        },
+        "DraftTable": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/DraftField"
+              },
+              "maxItems": 24,
+              "minItems": 1,
+              "title": "Fields",
+              "type": "array"
+            },
+            "kind": {
+              "const": "structured_table",
+              "title": "Kind",
+              "type": "string"
+            },
+            "notes": {
+              "items": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 10,
+              "title": "Notes",
+              "type": "array"
+            },
+            "rows": {
+              "items": {
+                "$ref": "#/$defs/TableRow"
+              },
+              "maxItems": 200,
+              "title": "Rows",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "version": {
+              "const": "structured-table/v1",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "version",
+            "title",
+            "fields",
+            "rows",
+            "notes"
+          ],
+          "title": "DraftTable",
+          "type": "object"
+        },
+        "DraftView": {
+          "additionalProperties": false,
+          "properties": {
+            "access_generation": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Access Generation",
+              "type": "integer"
+            },
+            "actions": {
+              "items": {
+                "$ref": "#/$defs/DraftAction"
+              },
+              "maxItems": 8,
+              "title": "Actions",
+              "type": "array"
+            },
+            "bindings": {
+              "items": {
+                "$ref": "#/$defs/ViewBinding"
+              },
+              "maxItems": 4,
+              "title": "Bindings",
+              "type": "array"
+            },
+            "fallback": {
+              "maxLength": 12000,
+              "minLength": 1,
+              "title": "Fallback",
+              "type": "string"
+            },
+            "kind": {
+              "const": "custom_view",
+              "title": "Kind",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/DraftSource"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "version": {
+              "const": "custom-view/v1",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "version",
+            "title",
+            "source",
+            "fallback",
+            "access_generation",
+            "bindings",
+            "actions"
+          ],
+          "title": "DraftView",
+          "type": "object"
+        },
+        "EmptyPayload": {
+          "additionalProperties": false,
+          "properties": {},
+          "title": "EmptyPayload",
+          "type": "object"
+        },
+        "TableCell": {
+          "additionalProperties": false,
+          "properties": {
+            "field_key": {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "title": "Field Key",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value"
+            }
+          },
+          "required": [
+            "field_key",
+            "value"
+          ],
+          "title": "TableCell",
+          "type": "object"
+        },
+        "TableRow": {
+          "additionalProperties": false,
+          "properties": {
+            "cells": {
+              "items": {
+                "$ref": "#/$defs/TableCell"
+              },
+              "maxItems": 24,
+              "title": "Cells",
+              "type": "array"
+            },
+            "row_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Row Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "row_id",
+            "cells"
+          ],
+          "title": "TableRow",
+          "type": "object"
+        },
+        "ViewBinding": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "name": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "ViewBinding",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DraftDocument"
+            },
+            {
+              "$ref": "#/$defs/DraftTable"
+            },
+            {
+              "$ref": "#/$defs/DraftView"
+            }
+          ],
+          "title": "Body"
+        },
+        "kind": {
+          "const": "publish_artifact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "body"
+      ],
+      "title": "PublishDecision",
+      "type": "object"
+    },
+    "name": "publish_artifact",
+    "reason": "Shape-only draft; not verified or accepted.",
+    "scope": "Current conversation and exact saved base",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "email",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "calendar",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "web",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "shell",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "filesystem",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  },
+  {
+    "availability": "unavailable",
+    "effects": [],
+    "handler": null,
+    "input_schema": {},
+    "name": "accounts",
+    "reason": "No installed authorized handler; never silently substitute.",
+    "scope": "none",
+    "version": "1"
+  }
+]

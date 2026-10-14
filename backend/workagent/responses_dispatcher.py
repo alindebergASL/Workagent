@@ -23,6 +23,15 @@ def general_dispatch_status(run, observation):
     if run.state=='ready': return 'completed'
     if run.state=='partial':
         local=observation.retained_local_result
+        # Recording is an acknowledged local effect, not an artifact. Only a
+        # settled receipt-backed explanation makes it safe to resume watching;
+        # unknown/invalid phases above and _blocked_status remain authoritative.
+        if (getattr(observation,'responsibility_recording',None)
+            and observation.provider_observation=='received'
+            and observation.adaptive and observation.adaptive.outcome=='needs_validation'
+            and getattr(observation,'explanation',None) and observation.explanation.published
+            and observation.response_steps and all(s.state=='received' for s in observation.response_steps)):
+            return 'result_needs_review'
         if (observation.adaptive and observation.adaptive.outcome=='needs_validation'
             and local and local.published and local.status=='observed'
             and observation.response_steps and all(s.state=='received' for s in observation.response_steps)):
