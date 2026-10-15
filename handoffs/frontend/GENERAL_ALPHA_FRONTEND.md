@@ -691,7 +691,8 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
 
 **Following Hermes's notes (comments 6182056809 and 6182165171):**
 
-- The flag is `NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1`. It labels example input data,
+- The flag is `NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1`; the earlier name
+  `NEXT_PUBLIC_WORKAGENT_DEMO=1` also works. It labels example input data,
   not whether a model was live; per-turn provenance tags are unchanged.
 - **Nothing is chosen for the person.** The work a reply is about is only ever
   the work they picked (`?work=`). With nothing picked, the page says "Choose
