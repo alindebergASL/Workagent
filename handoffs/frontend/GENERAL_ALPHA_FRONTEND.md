@@ -1213,3 +1213,32 @@ missing.
 - 37 DOM regressions;
 - review-boundary 15/15;
 - type, lint and format checks.
+
+## What a view in place reads is named once; a wider conversation beside wide work (batch 3 experience notes)
+
+These address Hermes's batch-3 note: "repeated provenance/read links and visible
+version IDs remain experience limitations", and "desktop still has a narrow
+conversation column".
+
+**What the view reads, named once.** In place on a project page, the view's trust
+line no longer repeats the names and links of what it reads; the "Reads …" line
+above it already names them, with links that open them in place. The trust line
+now only says whether that is current:
+- "reads the current saved version";
+- "what it reads changed since this view was made";
+- "something it reads isn't available".
+
+The view's own page is unchanged.
+
+**No version ID.** The demonstration supplier view (fixture-authored content) says
+"Using the saved quotes." instead of showing a revision ID.
+
+**Wider conversation.** Beside a table or view at 1100 px and wider, the
+conversation column gets `minmax(300px, 0.8fr)` instead of `minmax(260px, 0.62fr)`,
+about 330 px instead of 270 px at 1440 px; the work keeps most of the width. Other
+two-pane pages use `minmax(280px, 1fr) minmax(0, 1.8fr)`.
+
+**Tests.** `space-experience.mjs` checks the in-place trust line states currency
+without repeating "Supplier evidence". GREEN 25/25 on a fresh fixture: routing 7
+plus experience 18. Also passing: 265 unit tests, 37 DOM regressions,
+review-boundary 15/15, type, lint and format checks.

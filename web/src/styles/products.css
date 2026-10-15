@@ -462,7 +462,7 @@
   }
   .working-surface:has(.flex-table),
   .working-surface:has(.sandboxed-view) {
-    grid-template-columns: minmax(260px, 0.62fr) minmax(0, 2fr);
+    grid-template-columns: minmax(300px, 0.8fr) minmax(0, 2fr);
   }
 }
 

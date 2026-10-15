@@ -246,7 +246,7 @@ COMPARE_JS = (
     'async function load(){try{const r=await workagent.request("read",{});'
     'rows=r.body.rows.map(row=>{const c=Object.fromEntries(row.cells.map(x=>[x.field_key,x.value]));'
     'return {supplier:c.supplier,price:Number(c.price),days:Number(c.days)};});'
-    '$("state").textContent="Reading saved version "+r.revision_id.slice(0,8);render();}'
+    '$("state").textContent="Using the saved quotes.";render();}'
     'catch(e){$("state").textContent="Couldn\u2019t read the saved quotes.";}}'
     '$("weight").addEventListener("input",render);workagent.ready().then(load);')
 COMPARE = {'kind': 'custom_view', 'version': 'custom-view/v1', 'title': 'Supplier comparison',
