@@ -2,7 +2,11 @@
 
 ## Current delivery state — reconciled Spaces checkpoint
 
-Integrated application candidate: `5854e9f2a1b2778e034ba189aba01c39cae9ccb9`
+Latest integrated candidate: `70b4d8c`, with frontend fixes required by
+[the exact integration review](SPACE_INTEGRATION_REVIEW.md). See
+[runtime status](RUNTIME_STATUS.md) for fresh execution and current readiness.
+
+Preserved starting checkpoint: `5854e9f2a1b2778e034ba189aba01c39cae9ccb9`
 on `hermes/spaces-continuity-checkpoint`, directly above Claude's `cdea2a0`.
 The formerly local 45-file Spaces/TUI implementation is now committed and published;
 Claude retains frontend ownership and must integrate/review its inherited web delta.

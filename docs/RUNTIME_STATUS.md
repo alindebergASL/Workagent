@@ -1,6 +1,19 @@
 # Current runtime status and execution boundary
 
-## Current reconciliation — 2026-10-15
+## Integrated candidate — changes required
+
+`70b4d8cf692355acc137608e0424a026c2c7f0a7` combines Claude04ae36e and
+backend3aa8f3f, preserving both owners' ancestry. Current work projection and safe
+inferred targeting are implemented; the coherent Space view is integrated.
+255frontend tests, type/lint/format and production build pass. Independent review
+found no new backend blocker but identified three frontend issues; the real-service
+journey passed8 cases then exposed a purpose-save recovery failure. See
+[the concrete review](SPACE_INTEGRATION_REVIEW.md). Claude owns the focused fixes.
+No live grant is installed for this candidate; no product-model calls occurred.
+The full backend suite is still running; authenticated user review is not yet
+claimed ready. Baseline distinct-model critique is complete, not user acceptance.
+
+## Historical reconciliation — preserved Spaces checkpoint
 
 Application `5854e9f2a1b2778e034ba189aba01c39cae9ccb9` is published on
 `hermes/spaces-continuity-checkpoint` (tree `6cfec3fa31a2a91561eebb688e9e7da368d1578d`).
@@ -16,7 +29,7 @@ and actual live Spaces usefulness, integrated-candidate multi-model review and
 broader continuity/ongoing ownership remain unproven. No new product-model call this checkpoint.
 
 Existing Claude Cloud owns web and has ACKed integration of `9675daf` on its
-existing branch (2026-10-15 #9 comment6182049930); the coherent Space redesign is
+existing branch (2026-10-15 #9 comment6182032666); the coherent Space redesign is
 underway there. No substitute frontend owner was created. The prior resume request
 is resolved; do not ask the user to resume again. Hermes continues backend/integration.
 
