@@ -67,6 +67,30 @@ const noDuplicateIds = async (page) =>
     }),
     [],
   );
+// The share of an image's pixels that are dark (text, controls): about 0 for
+// an empty box, well above it once a view is drawn.
+const inkIn = async (png) => {
+  const scratch = await browser.newPage();
+  try {
+    return await scratch.evaluate(async (b64) => {
+      const img = new Image();
+      img.src = `data:image/png;base64,${b64}`;
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data;
+      let dark = 0;
+      for (let i = 0; i < d.length; i += 4)
+        if (d[i] + d[i + 1] + d[i + 2] < 384) dark++;
+      return dark / (d.length / 4);
+    }, png.toString("base64"));
+  } finally {
+    await scratch.close();
+  }
+};
 // Words that would mean internal machinery leaked into the work itself.
 const JARGON =
   /grant|schema|fixture|CONTROLLED|Model-selected|exact target|run_id|general Space chat|Agent identified|Human saved|Workspace context/;
@@ -836,6 +860,37 @@ try {
   );
   await expect(page.getByText("View source")).toHaveCount(0);
   await shot(page, "09-investigation-view-in-place");
+  // On a phone, after a resize from desktop, the same view is drawn and
+  // usable where the person scrolls to it: its pixels are painted (not just
+  // present in the frame's DOM), and the weighting still works by keyboard.
+  // Chromium doesn't paint a cross-origin frame below the fold, so a
+  // full-page capture taken before scrolling to it shows an empty box.
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 700 });
+    const frameBox = page.locator(".space-work iframe");
+    await frameBox.scrollIntoViewIfNeeded();
+    await expect(frameBox).toBeInViewport({ ratio: 0.9 });
+    await expect(viewFrame.locator("#list")).toContainText("Lark & Co");
+    await viewFrame.locator("#weight").focus();
+    await viewFrame.locator("#weight").press("End");
+    await expect(viewFrame.locator("#list li").first()).toContainText(
+      "Best fit: Quayside Press",
+    );
+    await viewFrame.locator("#weight").press("Home");
+    await expect(viewFrame.locator("#list li").first()).toContainText(
+      "Best fit: Lark & Co",
+    );
+    assert.ok(
+      (await inkIn(await frameBox.screenshot())) > 0.01,
+      `the view is painted at ${width}px`,
+    );
+    await noOverflow(page);
+    await page.screenshot({
+      path: path.join(out, `09-investigation-view-${width}.png`),
+    });
+  }
+  assert.equal(posts.length, writesBefore, "adjusting the view sends nothing");
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page
     .getByTestId("space-reads")
     .getByRole("button", { name: "Supplier evidence" })
@@ -888,7 +943,7 @@ try {
   await noOverflow(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   pass(
-    "an investigation's comparison runs in place on the saved quotes; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and where to update it",
+    "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and where to update it",
   );
 
   // Unavailable and refused reads are said as such.
