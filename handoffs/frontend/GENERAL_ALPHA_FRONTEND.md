@@ -1092,3 +1092,41 @@ first with a failed plan read, then with a failed plan proposals read. Each
 time the budget shows nothing of itself and says unavailable, the plan stays
 as last read and says so, and both recover on the next refresh. RED on
 `fa54552`. GREEN 16/16, routing 7/7.
+
+## A project's work, together: views run in place (comment 6185672218)
+
+This is the first bounded increment toward a context-sensitive working surface
+across materially different tasks. It is composed only from what the agent
+already chooses (documents, tables, interactive views) and the existing
+canonical bindings and trusted Ask/Review/Edit paths. No schema change.
+
+- **An interactive view runs on the project page.** It uses the same sandbox
+  and broker as on its own page and reads only its exact bindings. Its local
+  interactions are the person's own and save nothing. Pointing it at newer
+  versions saves, so that, its readable version and its source stay on its
+  own page; on the project page it says "Open the view to point it at the
+  latest saved versions".
+- **Related work is one click away, in place.** A view says what it reads; a
+  table or document says which views read it. Each is a button that selects
+  that work on the same page.
+- **A second, materially different demo project.** "Supplier choice", an
+  investigation in "Personal work", is made by the real worker (synthetic
+  transport) and holds:
+  - an evidence table of three quotes;
+  - a comparison view bound to it, with a weighting slider (price against
+    speed) that re-ranks locally;
+  - a findings document with an open checklist item.
+
+  It sits beside the event-plan project ("Autumn workshop").
+
+Regression: `space-experience.mjs` case 16, on the real service. It checks:
+- the view in place reads the saved quotes (a revision shown inside the frame)
+  and re-ranks for both weightings with no POST;
+- "Reads" selects the evidence table in place, which says it's used by the
+  comparison;
+- after a human save of a quote through the API and a Refresh, the view says
+  it is behind and where to update it, with no update button here;
+- the page fits 390 px.
+
+RED on `a5a87c8` (the view showed as text only). GREEN 17/17, routing 7/7,
+37 DOM regressions, review-boundary 15/15.

@@ -174,6 +174,7 @@ runs['plain'] = ask(plain.id, 'How long should breaks be in a full-day workshop?
 runs['newsletter'] = ask(newsletter.id, 'Outline the October issue.', [publish(NEWSLETTER)],
                          'Here’s an outline for October.', name='newsletter')
 
+
 detail = s.get_conversation(p, ws, workshop.id)
 seed(admin, [], 'isolated-workspace', 'someone-else')
 
@@ -189,7 +190,10 @@ first_ws, first_me = ws, me
 ws, me = second, (service, p, second, [], admin)
 open_day = area('Spring open day', 'Plan the studio open day in March for about 60 visitors.', 'project')
 chat = conversation(me)
-activate_many(me, [open_day, chat])
+# A materially different project: an investigation that compares evidence.
+supplier = area('Supplier choice', 'Choose a print supplier for the open day materials, '
+                'weighing price against how quickly they can deliver.', 'project')
+activate_many(me, [open_day, chat, supplier])
 OPEN_DAY = {'title': 'Open day schedule', 'blocks': [
     para(1, 'Doors at 10:00; short talks at 11:00 and 14:00; studio tours every hour.'),
     para(2, 'Ask two volunteers to run the welcome desk.', 'checklist', False),
@@ -205,6 +209,71 @@ runs['open_day_handover'] = ask(
 runs['chat'] = ask(chat.id, 'What time should the first talk start?',
                    [{'kind': 'reply', 'text': 'Eleven works well: people have arrived and looked around.'}],
                    'Eleven works well.', name='chat')
+def field(key, label, type_, unit=None, scale=None):
+    return {'key': key, 'label': label, 'type': type_, 'editable': True, 'unit': unit,
+            'scale': scale, 'enum': None}
+
+
+def srow(rid, name, price, days, note):
+    return {'row_id': rid, 'cells': [{'field_key': 'supplier', 'value': name},
+                                     {'field_key': 'price', 'value': price},
+                                     {'field_key': 'days', 'value': days},
+                                     {'field_key': 'notes', 'value': note}]}
+
+
+EVIDENCE = {'kind': 'structured_table', 'version': 'structured-table/v1', 'title': 'Supplier evidence',
+            'notes': ['Quotes for 40 workbooks and 200 cards, collected this week.'],
+            'fields': [field('supplier', 'Supplier', 'text'),
+                       field('price', 'Quote', 'decimal', 'EUR', 2),
+                       field('days', 'Delivery', 'integer', 'days'),
+                       field('notes', 'Notes', 'text')],
+            'rows': [srow('north', 'Northprint', '640.00', 12, 'Recycled stock; samples were good'),
+                     srow('quay', 'Quayside Press', '520.00', 18, 'Cheapest; slower in October'),
+                     srow('lark', 'Lark & Co', '715.00', 6, 'Fastest; has printed for us before')]}
+runs['evidence'] = ask(supplier.id, 'Collect the three supplier quotes into a table.', [publish(EVIDENCE)],
+                       'I put the three quotes side by side.', name='evidence')
+evidence_id = s.get_conversation(p, ws, supplier.id).artifact_ids[0]
+evidence = s.get_artifact(p, ws, evidence_id)
+generation = next(w.access_generation for w in s.list_workspaces(p).items if w.id == ws)
+COMPARE_JS = (
+    'const $=(id)=>document.getElementById(id);let rows=[];'
+    'function render(){const w=Number($("weight").value)/100;'
+    '$("weightLabel").textContent=Math.round(w*100)+"% price, "+Math.round((1-w)*100)+"% speed";'
+    'if(!rows.length)return;const maxP=Math.max(...rows.map(r=>r.price)),maxD=Math.max(...rows.map(r=>r.days));'
+    'const scored=rows.map(r=>({...r,score:w*(1-r.price/maxP)+(1-w)*(1-r.days/maxD)})).sort((a,b)=>b.score-a.score);'
+    '$("list").replaceChildren(...scored.map((r,i)=>{const li=document.createElement("li");'
+    'li.textContent=(i===0?"Best fit: ":"")+r.supplier+" \u00b7 \u20ac"+r.price.toFixed(0)+" \u00b7 "+r.days+" days";return li;}));}'
+    'async function load(){try{const r=await workagent.request("read",{});'
+    'rows=r.body.rows.map(row=>{const c=Object.fromEntries(row.cells.map(x=>[x.field_key,x.value]));'
+    'return {supplier:c.supplier,price:Number(c.price),days:Number(c.days)};});'
+    '$("state").textContent="Reading saved version "+r.revision_id.slice(0,8);render();}'
+    'catch(e){$("state").textContent="Couldn\u2019t read the saved quotes.";}}'
+    '$("weight").addEventListener("input",render);workagent.ready().then(load);')
+COMPARE = {'kind': 'custom_view', 'version': 'custom-view/v1', 'title': 'Supplier comparison',
+           'source': {'html': '<main><label>What matters more? <input id="weight" type="range" min="0" max="100" value="50"></label>'
+                              ' <span id="weightLabel"></span><ol id="list"></ol><p id="state">Reading saved quotes.</p></main>',
+                      'css': 'main{padding:12px;font:15px system-ui}li{margin:4px 0}#state{color:#666;font-size:13px}',
+                      'js': COMPARE_JS},
+           'fallback': 'Lark & Co is fastest (6 days, EUR 715); Quayside Press is cheapest (EUR 520, 18 days); '
+                       'Northprint sits between (EUR 640, 12 days).',
+           'access_generation': generation,
+           'bindings': [{'name': 'quotes', 'artifact_id': evidence.id, 'revision_id': evidence.current_revision_id,
+                         'body_hash': evidence.current_revision.body_hash}],
+           'actions': [{'name': 'read', 'kind': 'read_binding', 'binding': 'quotes',
+                        'payload_schema': {'type': 'object', 'properties': {}, 'additionalProperties': False}}]}
+runs['compare'] = ask(supplier.id, 'Help me weigh price against speed.', [publish(COMPARE)],
+                      'Here is a comparison you can weigh yourself; it reads the saved quotes.', name='compare')
+FINDINGS = {'title': 'Findings so far', 'blocks': [
+    para(1, 'What we know', 'heading'),
+    para(2, 'Lark & Co can deliver in 6 days; the others need two to three weeks.'),
+    para(3, 'Quayside Press is EUR 195 cheaper than Lark & Co but has been slow in October before.'),
+    para(4, 'Ask Northprint whether they can match a 10-day delivery.', 'checklist', False),
+]}
+runs['findings'] = ask(supplier.id, 'Write down what we know so far.', [publish(FINDINGS)],
+                       'I wrote up what the quotes show and the open question.', name='findings')
+supplier_detail = s.get_conversation(p, ws, supplier.id)
+compare_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id,)
+                  and getattr(s.get_artifact(p, ws, a).current_revision.body, 'kind', None) == 'custom_view')
 open_detail = s.get_conversation(p, ws, open_day.id)
 second_ids = {'workspace': second, 'conversation_id': open_day.id,
               'artifact_id': open_detail.artifact_ids[0],
@@ -220,6 +289,8 @@ result = {
     'newsletter': {'conversation_id': newsletter.id},
     'plain': {'conversation_id': plain.id},
     'second': second_ids,
+    'supplier': {'workspace': second, 'conversation_id': supplier.id, 'evidence_id': evidence_id,
+                 'compare_id': compare_id},
     'worker_states': {k: v[1] for k, v in runs.items()},
 }
 out.write_text(json.dumps(result, indent=2))

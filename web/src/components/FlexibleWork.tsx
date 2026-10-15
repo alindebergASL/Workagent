@@ -725,6 +725,43 @@ function ViewProposal({
 }
 
 /** Any version, read-only. A view reads as its readable version here. */
+/**
+ * An agent-made view running beside the rest of a project's work. It reads
+ * only its exact bindings through the service, as on its own page; anything
+ * that would save (pointing it at newer versions) stays there.
+ */
+export function InPlaceView({
+  ws,
+  cid,
+  artifact,
+  bound,
+  open,
+  refresh,
+}: {
+  ws: string;
+  cid: string;
+  artifact: S["Artifact"];
+  bound: Bound;
+  open: boolean;
+  refresh: () => Promise<unknown>;
+}) {
+  return (
+    <ViewSurface
+      inPlace
+      ws={ws}
+      cid={cid}
+      artifact={artifact}
+      view={artifact.current_revision.body as CustomView}
+      bound={bound}
+      open={open}
+      stale={false}
+      refresh={refresh}
+      canRebind={false}
+      rebindNow={() => {}}
+    />
+  );
+}
+
 export function ReadOnly({ body }: { body: FlexibleBody }) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
@@ -1004,6 +1041,7 @@ function ViewSurface({
   refresh,
   canRebind,
   rebindNow,
+  inPlace = false,
 }: {
   ws: string;
   cid: string;
@@ -1015,6 +1053,12 @@ function ViewSurface({
   refresh: () => Promise<unknown>;
   canRebind: boolean;
   rebindNow: () => void;
+  /**
+   * Shown beside other work (a project page): it runs and reads as here, but
+   * pointing it at newer versions, its readable version and its source stay
+   * on the work's own page.
+   */
+  inPlace?: boolean;
 }) {
   // A failed read clears when a read works again; a refused request stays,
   // because the view did ask for something it may not have.
@@ -1100,7 +1144,11 @@ function ViewSurface({
               What this view reads has been saved since it was made, so it can’t
               read it any more.
             </p>
-            {pinned ? (
+            {inPlace ? (
+              <p data-testid="view-update-elsewhere">
+                Open the view to point it at the latest saved versions.
+              </p>
+            ) : pinned ? (
               <p data-testid="view-pinned">
                 This view was written for that earlier version, so it can’t
                 simply be pointed at the new one. Ask in the conversation for an
@@ -1146,22 +1194,24 @@ function ViewSurface({
         fallback={<p className="view-fallback">{view.fallback}</p>}
         caption={false}
       />
-      {readable}
-      <details className="disclosure">
-        <summary>View source</summary>
-        <div className="disclosure-body stack-sm">
-          <p className="hint">
-            Kept as text and only ever run inside the isolated frame above.
-          </p>
-          {(["html", "css", "js"] as const).map((part) =>
-            view.source[part] ? (
-              <pre key={part} className="product-code" aria-label={part}>
-                {view.source[part]}
-              </pre>
-            ) : null,
-          )}
-        </div>
-      </details>
+      {inPlace ? null : readable}
+      {inPlace ? null : (
+        <details className="disclosure">
+          <summary>View source</summary>
+          <div className="disclosure-body stack-sm">
+            <p className="hint">
+              Kept as text and only ever run inside the isolated frame above.
+            </p>
+            {(["html", "css", "js"] as const).map((part) =>
+              view.source[part] ? (
+                <pre key={part} className="product-code" aria-label={part}>
+                  {view.source[part]}
+                </pre>
+              ) : null,
+            )}
+          </div>
+        </details>
+      )}
     </section>
   );
 }
