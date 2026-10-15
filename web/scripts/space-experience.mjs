@@ -722,6 +722,35 @@ try {
         timeout: 15000,
       });
     }
+  // A refusal shows at once even while another read is still pending (this
+  // work's proposals, or another work's), not when that read settles.
+  const planProposals = new RegExp(`/artifacts/${planId}/proposals`);
+  for (const pendingRead of [budgetProposals, planProposals]) {
+    const held = [];
+    await page.route(pendingRead, (route) =>
+      route.request().method() === "GET" ? held.push(route) : route.continue(),
+    );
+    await page.route(budgetRead, deny);
+    await refreshBtn.click();
+    await expect.poll(() => held.length, { timeout: 15000 }).toBeGreaterThan(0);
+    await expect(latestBudget.getByTestId("work-card-unavailable")).toBeVisible(
+      { timeout: 2000 },
+    );
+    await expect(latestBudget).not.toContainText("Venue, two days");
+    assert.ok(held.length > 0, "the other read is still pending");
+    // Releasing the pending read later (here as a failure) changes nothing.
+    for (const r of held.splice(0)) await r.abort("failed");
+    await page.waitForTimeout(300);
+    await expect(
+      latestBudget.getByTestId("work-card-unavailable"),
+    ).toBeVisible();
+    await page.unroute(budgetRead);
+    await page.unroute(pendingRead);
+    await refreshBtn.click();
+    await expect(latestBudget).toContainText("Venue, two days", {
+      timeout: 15000,
+    });
+  }
   await page.locator("#follow-up").fill("");
   pass(
     "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; a refusal beside a sibling's failed work or proposal read still removes the refused work; all recover; the draft is kept",

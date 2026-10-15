@@ -102,10 +102,12 @@ try {
   ).toBeVisible();
   await expect(page.getByText(/Develop a bounded offer/).first()).toBeVisible();
   // The selected work is shown with its canonical content, not only a link.
+  // It opens in place under its own entry, which names it and labels it.
   const surface = page.locator(".space-work");
-  await expect(surface.getByRole("heading", { level: 2 })).toHaveText(
-    "Synthetic service launch offer",
-  );
+  const entry = page.locator(`#space-item-${aid}`);
+  await expect(entry).toHaveAttribute("aria-pressed", "true");
+  await expect(entry).toContainText("Synthetic service launch offer");
+  await expect(surface).toHaveAttribute("aria-labelledby", `space-item-${aid}`);
   await expect(
     surface.getByText(/A two-week service design pilot/),
   ).toBeVisible();
@@ -377,9 +379,8 @@ try {
   await expect(page).toHaveURL(spaceURL);
   await expect(page.getByText(/Develop a bounded offer/).first()).toBeVisible();
   await page.locator(`.space-work-item[data-artifact="${aid}"]`).click();
-  await expect(surface.getByRole("heading", { level: 2 })).toHaveText(
-    "Synthetic service launch offer",
-  );
+  await expect(entry).toHaveAttribute("aria-pressed", "true");
+  await expect(surface).toHaveAttribute("aria-labelledby", `space-item-${aid}`);
   await page.screenshot({
     path: path.join(directory, "reopen-mobile.png"),
     fullPage: true,
