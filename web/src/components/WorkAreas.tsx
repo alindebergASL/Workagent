@@ -51,6 +51,7 @@ function AreaForm({
   label,
   onCancel,
   onConflict,
+  held = false,
 }: {
   draftKey: string;
   initial?: AreaInput;
@@ -61,6 +62,11 @@ function AreaForm({
   onCancel?: () => void;
   /** A save was refused because the project changed: re-read it. */
   onConflict?: () => void;
+  /**
+   * The project is being re-read after a refused save. Saving waits for it,
+   * so the next save is checked against the version the person can now see.
+   */
+  held?: boolean;
 }) {
   const [value, setValue] = useState<AreaInput>(
     () =>
@@ -86,7 +92,7 @@ function AreaForm({
       className="stack-sm area-form"
       onSubmit={async (e) => {
         e.preventDefault();
-        if (busy) return;
+        if (busy || held) return;
         const attempt: Attempt = pending.current ?? {
           command_id: newCommandId(),
           expected: version,
@@ -156,6 +162,11 @@ function AreaForm({
       ) : error ? (
         <ErrorNotice error={error} />
       ) : null}
+      {held && !uncertain ? (
+        <p role="status" className="hint" data-testid="area-rechecking">
+          Checking what changed before you can save again…
+        </p>
+      ) : null}
       {uncertain ? (
         <p role="status" className="hint">
           Your last save wasn’t confirmed. Saving again sends exactly the same
@@ -166,7 +177,8 @@ function AreaForm({
         <button
           className="btn btn-sm"
           disabled={
-            busy || (!uncertain && (!value.title.trim() || !value.goal.trim()))
+            busy ||
+            (!uncertain && (held || !value.title.trim() || !value.goal.trim()))
           }
         >
           {busy ? "Saving…" : uncertain ? "Retry the same save" : label}
@@ -204,14 +216,14 @@ export function SpaceDetails({
   title: string;
   version: number;
   open: boolean;
-  refresh: () => Promise<unknown>;
+  refresh: () => Promise<{ conversation: { work_version: number } } | null>;
 }) {
   const draftKey = `workagent:space-edit:${ws}:${id}`;
   const [editing, setEditing] = useState(false);
   const [from, setFrom] = useState(version);
-  // After a refused save, the next deliberate save is made against the
-  // version just re-read; until then, edits are checked against where they
-  // started.
+  // After a refused save, saving is held until the project has been re-read;
+  // the next deliberate save is then checked against that version, the one
+  // now on screen. A cancel and reopen meanwhile doesn't release the hold.
   const [conflicted, setConflicted] = useState(false);
   useEffect(() => {
     if (conflicted && version !== from) {
@@ -221,7 +233,11 @@ export function SpaceDetails({
   }, [conflicted, version, from]);
   const conflict = () => {
     setConflicted(true);
-    void refresh();
+    void refresh().then((fresh) => {
+      if (!fresh) return; // Unread: stay held; a later read releases it.
+      setFrom(fresh.conversation.work_version);
+      setConflicted(false);
+    });
   };
   // A draft or unconfirmed save survives a reload: reopen the editor for it.
   useEffect(() => {
@@ -261,6 +277,7 @@ export function SpaceDetails({
             label="Save"
             onCancel={() => setEditing(false)}
             onConflict={conflict}
+            held={conflicted}
             submit={async (attempt) => {
               await workAreas.promote(
                 ws,
@@ -284,7 +301,7 @@ export function SpaceDetails({
             type="button"
             className="btn btn-sm btn-quiet"
             onClick={() => {
-              setFrom(version);
+              if (!conflicted) setFrom(version);
               setEditing(true);
             }}
           >
@@ -376,14 +393,14 @@ export function WorkAreaHeader({
   id: string;
   area?: WorkArea | null;
   version: number;
-  refresh: () => Promise<unknown>;
+  refresh: () => Promise<{ conversation: { work_version: number } } | null>;
 }) {
   const draftKey = `workagent:space-edit:${ws}:${id}`;
   const [editing, setEditing] = useState(false);
   const [from, setFrom] = useState(version);
-  // After a refused save, the next deliberate save is made against the
-  // version just re-read; until then, edits are checked against where they
-  // started.
+  // After a refused save, saving is held until the project has been re-read;
+  // the next deliberate save is then checked against that version, the one
+  // now on screen. A cancel and reopen meanwhile doesn't release the hold.
   const [conflicted, setConflicted] = useState(false);
   useEffect(() => {
     if (conflicted && version !== from) {
@@ -393,7 +410,11 @@ export function WorkAreaHeader({
   }, [conflicted, version, from]);
   const conflict = () => {
     setConflicted(true);
-    void refresh();
+    void refresh().then((fresh) => {
+      if (!fresh) return; // Unread: stay held; a later read releases it.
+      setFrom(fresh.conversation.work_version);
+      setConflicted(false);
+    });
   };
   if (area)
     return (
@@ -416,6 +437,7 @@ export function WorkAreaHeader({
             label="Keep as a project"
             onCancel={() => setEditing(false)}
             onConflict={conflict}
+            held={conflicted}
             submit={async (attempt) => {
               await workAreas.promote(
                 ws,
@@ -438,7 +460,7 @@ export function WorkAreaHeader({
           type="button"
           className="btn btn-sm btn-quiet"
           onClick={() => {
-            setFrom(version);
+            if (!conflicted) setFrom(version);
             setEditing(true);
           }}
         >

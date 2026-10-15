@@ -321,6 +321,28 @@ try {
     kind: "project",
   });
   assert.equal(meanwhile.status, 200, JSON.stringify(meanwhile.body));
+  // The re-read after the refusal is slow (held until released here), and the
+  // person cancels, reopens and tries to save before it lands. That save must
+  // not go out against the version already refused.
+  const detailUrl = `**/work-areas/${cid}`;
+  let release;
+  const released = new Promise((r) => (release = r));
+  let delayed = 0;
+  await page.route(detailUrl, async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    delayed += 1;
+    await released;
+    return route.continue();
+  });
+  const saves = [];
+  const onSave = (r) => {
+    if (
+      r.request().method() === "POST" &&
+      r.url().endsWith(`/work-areas/${cid}`)
+    )
+      saves.push(r.status());
+  };
+  page.on("response", onSave);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
     page.getByText("This project changed since you started editing.", {
@@ -337,16 +359,35 @@ try {
     .fill(
       "Run a two-day workshop for 40 people in Leeds, under €9,000, with a remote seat if affordable.",
     );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
+  const save = page.getByRole("button", { name: "Save", exact: true });
+  // Try to save before the re-read lands, as a quick person would.
+  await save.click({ timeout: 1500 }).catch(() => {});
+  await page.waitForTimeout(500);
+  assert.deepEqual(saves, [409], "no second save while the re-read is pending");
+  await expect(page.getByTestId("area-rechecking")).toBeVisible();
+  await expect(save).toBeDisabled();
+  assert.ok(delayed >= 1, "the re-read was actually held");
+  // Release the held re-read; later reads pass straight through.
+  release();
+  await expect(page.getByTestId("area-rechecking")).toHaveCount(0, {
+    timeout: 15000,
+  });
+  await expect(page.getByLabel("What it’s for", { exact: true })).toHaveValue(
+    /remote seat if affordable/,
+  );
+  await save.click();
   await expect(page.locator(".space-goal")).toContainText(
     "remote seat if affordable",
     { timeout: 15000 },
   );
+  page.off("response", onSave);
+  await page.unroute(detailUrl);
+  assert.deepEqual(saves, [409, 200], "one refused save, then one that landed");
   const saved = (await api(`/work-areas/${cid}`)).body.conversation.work_area;
   assert.equal(saved.origin, "human");
   assert.match(saved.goal, /remote seat/);
   pass(
-    "the purpose is the person's to edit; a draft survives reload; a stale save is refused with the text kept; the saved goal reads back",
+    "the purpose is the person's to edit; a draft survives reload; a stale save is refused with the text kept; saving waits for a slow re-read even across cancel and reopen, then lands once; the saved goal reads back",
   );
 
   // The real control: review and apply the proposed change; the Space follows the record.

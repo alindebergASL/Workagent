@@ -726,6 +726,23 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
 8. The 320px "Next" button didn't wrap.
 9. A textarea nested in its label had an accessible name that included its
    value.
+10. A save made before the post-refusal re-read landed was refused again
+    (found by Hermes; see above).
+
+**Found by Hermes on integrated `70b4d8c` (comment 6182492982), fixed:**
+
+- **The bug.** After a refused name/purpose save, the form re-read the project
+  in the background. If the person cancelled, reopened and saved before that
+  read landed, the save went out against the version already refused, and was
+  refused again (409 → 409).
+- **The fix.** Saving is now held ("Checking what changed before you can save
+  again…") until the project has been re-read, across cancel and reopen. The
+  next save is then checked against the version re-read. Typed text is kept.
+  An unknown outcome is still only replayed exactly. Nothing is resent and
+  versions are never ignored.
+- **The regression** (case 9) holds the re-read open, then cancels, reopens and
+  tries to save early. Without the fix it fails on the second 409; with it,
+  saves are `[409, 200]`.
 
 **Hermes-owned scripts I changed because they test this UI** (selectors
 only; their checks keep the same intent):
