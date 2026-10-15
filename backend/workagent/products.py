@@ -311,8 +311,16 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
-        from .composition import READ_DECISIONS, execute_read
-        if isinstance(operation,READ_DECISIONS):
+        from .composition import READ_DECISIONS, ReadSavedWork, execute_read
+        if isinstance(operation,ReadSavedWork):
+            from .saved_work import result as saved_result
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'capability_result':read}
+        elif isinstance(operation,READ_DECISIONS):
             context=self.conversation_worker_context(cap)
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_read(operation,context)}

@@ -357,6 +357,9 @@ class Conversations:
             version=context.get('responsibility_offer',{}).get('conversation_work_version',cv.work_version)
             context['work_area_context']=self._work_area_context(c,p,run.workspace_id,cv,
                 snapshot=snapshot,work_version=version).model_dump(mode='json')
+            if alpha_enabled(config):
+                from .saved_work import index
+                context['saved_work']=index(self,c,p,run.workspace_id,cv,context['work_area_context'])
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             if context.get('responsibility'):
                 from .responsibility_execution import ContinuationContextTooLarge
