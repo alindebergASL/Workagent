@@ -1,0 +1,150 @@
+{
+  "candidate": "4e676b19876d1efac9867efb51c1263faf00ca7e",
+  "model": "gpt-6.1-sol",
+  "mode": "official API, medium/background, synthetic inputs",
+  "admissions": {
+    "library": {
+      "admitted": true,
+      "state": "running",
+      "outcome": "STOPPED_UNRESOLVED",
+      "saved_artifacts": 0,
+      "reason": "runner stopped on action_unresolved after final response identity accepted; lease expiry is a supported diagnosis, not a captured exact exception stack",
+      "replaced_or_retried": false
+    },
+    "library_followup": {
+      "admitted": false,
+      "reason": "initial run unresolved and no saved artifact for frozen human correction; no forced target or fabricated save"
+    },
+    "investigation": {
+      "admitted": true,
+      "state": "partial",
+      "saved_artifacts": 1,
+      "representation": "model-chosen document, not generated interactive view",
+      "body_canonical_bytes": 7886,
+      "ui_human_note_saved": true,
+      "note_followup_model_tested": false
+    }
+  },
+  "attempts": [
+    {
+      "id": "71e47a5a-7eb8-48b4-a953-904e9bc91b56",
+      "run_id": "63e52832-8162-4a68-b6af-160983b4cf2b",
+      "phases": [
+        {
+          "phase": "selection",
+          "state": "received",
+          "reported_input_tokens": 9592,
+          "reported_output_tokens": 2059,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.04457",
+          "billed_cost_usd": null
+        },
+        {
+          "phase": "final",
+          "state": "accepted",
+          "reported_input_tokens": null,
+          "reported_output_tokens": null,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": null,
+          "billed_cost_usd": null
+        }
+      ],
+      "staged_body_canonical_bytes": 9876
+    },
+    {
+      "id": "59a9baf1-a1d2-4feb-9d5f-78a1f6dc08a2",
+      "run_id": "b52e8ab9-634d-498d-9c41-10354b683cc4",
+      "phases": [
+        {
+          "phase": "selection",
+          "state": "received",
+          "reported_input_tokens": 9591,
+          "reported_output_tokens": 1674,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0407175",
+          "billed_cost_usd": null
+        },
+        {
+          "phase": "final",
+          "state": "received",
+          "reported_input_tokens": 12383,
+          "reported_output_tokens": 584,
+          "reserved_cost_usd": "0.13192",
+          "conservatively_calculated_cost_usd": "0.0367975",
+          "billed_cost_usd": null
+        }
+      ],
+      "staged_body_canonical_bytes": 7886
+    }
+  ],
+  "oracle": {
+    "rates_per_100": [
+      "10",
+      "10",
+      "16"
+    ],
+    "tickets_growth_pct": "100",
+    "users_growth_pct": "25",
+    "rate_growth_pct": "60",
+    "prior_rate_benchmark_tickets": "30",
+    "above_benchmark": "18",
+    "mixed_tickets": 18,
+    "category_shares_pct": [
+      "25",
+      "75/2",
+      "75/2"
+    ],
+    "not_model_input": true
+  },
+  "criteria": {
+    "correct_rates": true,
+    "week3_correct": true,
+    "relative_change": true,
+    "benchmark": true,
+    "category_share": true,
+    "causal_caution": true,
+    "not_affected_user_percentage": true,
+    "no_invented_initiative": true
+  },
+  "budget": {
+    "authorized_usd": "40.000000",
+    "new_allocation_usd": "0.79152",
+    "aggregate_encumbered_usd": "25.408720",
+    "unactivated_usd": "14.591280",
+    "new_request_counts": {
+      "count_send": 4,
+      "dispatch": 4,
+      "read": 18,
+      "cancel": 0
+    },
+    "new_reserved_usd": "0.52768",
+    "known_new_calculated_cost_usd": "0.1220850",
+    "new_unknown_usage_steps": 1,
+    "billed_cost_usd": null,
+    "shared_reserved_usd": "9.49824",
+    "shared_cap_usd": "9.76208",
+    "local_counts": {
+      "count_send": 48,
+      "dispatch": 46,
+      "read": 395,
+      "cancel": 0
+    },
+    "all_lineage_dedup_counts": {
+      "count_send": 74,
+      "dispatch": 72,
+      "read": 584,
+      "cancel": 0
+    },
+    "new_reported_input": 31566,
+    "new_reported_output": 4317,
+    "two_original_unknown_counts": "unchanged quarantined",
+    "additional_uncertainty": "known accepted final response for library; usage unknown, no repeat or cancel"
+  },
+  "limits": [
+    "No natural large-body saved-work follow-up completed.",
+    "No library human correction saved; no substitute claimed.",
+    "Investigation human note save/reload is real but not later model recall.",
+    "No useful autonomous standing responsibility or generated interactive UI demonstrated by new live probes.",
+    "No parity or superiority evidence."
+  ]
+}

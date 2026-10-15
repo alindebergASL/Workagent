@@ -1,6 +1,29 @@
 # Andrew's general-model testing authorization
 
-## Current execution boundary — cumulative authority retained
+## Current execution boundary — overnight exact-candidate evaluation
+
+Cumulative authorization remains **$40**. Reviewed successor
+`workagent-overnight-20261015-03` was installed/read back on an isolated full-history
+clone for application `4e676b19876d1efac9867efb51c1263faf00ca7e` after actual
+account/model, pricing, source/lineage and exact-helper review gates. New allocation
+**$0.791520**; cumulative encumbered **$25.408720**, unactivated **$14.591280**.
+This allocation is not actual billing. Shared reservation cap remains **$9.762080**.
+
+Two of at most three admissions were used, with **4 counts / 4 generations /
+18 reads / 0 cancels**. New reservations **$0.527680**. Known reported usage is
+31566 input / 4317 output; known calculated portion **$0.122085**, not total cost:
+one accepted library final response still has unknown usage. Shared reserved
+liability **$9.498240**. No release/refund/reset/replacement. Both older ambiguous
+counts remain quarantined; this additional accepted-response uncertainty is separate.
+
+The library run remains unresolved; its same-conversation correction was NOT
+admitted. The independent investigation saved a document, canonical state PARTIAL.
+No remaining headroom authorizes rerunning a failed admission. Original six-turn
+evaluation and grant pins are unchanged. Same official gpt-6.1-sol medium/background,
+synthetic-only route; no external accounts, main merge or deployment. No continuous
+product worker is left running. See [exact report](OVERNIGHT_20261015_BATCH4.md).
+
+## Prior execution boundary — historical, not current balances
 
 Latest user instruction continues broad development and ordinary-path model testing
 under the latest recorded authority, not a new allowance or reset. Publication and

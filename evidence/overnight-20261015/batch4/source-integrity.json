@@ -1,0 +1,8 @@
+{
+  "source_manifest_unchanged": true,
+  "two_original_unknown_counts_unchanged": true,
+  "candidate": "4e676b19876d1efac9867efb51c1263faf00ca7e",
+  "helper_sha256": "06dee496ad1340d5ec01a376f2746767b5c071c9d0af26c88b44639b9c3d8d28",
+  "source_old_exhausted_grant_not_reused": true,
+  "new_worker_stopped": true
+}

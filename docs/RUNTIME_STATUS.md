@@ -1,6 +1,32 @@
 # Current runtime status and execution boundary
 
-## Overnight batch3 — latest factual handoff
+## Overnight batch4 — current factual handoff
+
+Reviewed application `4e676b19876d1efac9867efb51c1263faf00ca7e`, frontend owner
+through `a0b756b`. All source changes are on the isolated nondefault branch.
+Independent final review approved exact helper and owner delta; current focused
+backend61, helper47, frontend265/type/lint/format/webpack, real-service7 routing
+and18 Space cases pass. Desktop/390/320 viewed with real content. Full-suite result
+and artifact identities are recorded in [the final report](OVERNIGHT_20261015_BATCH4.md).
+
+Fresh official-model probes: library plan9876bytes staged but NOT published;
+runner stopped on `action_unresolved` around lease expiry, with a known accepted
+final response retained. No retry, replacement or cancellation. Its human-note and
+same-chat follow-up were not performed. Independent investigation saved a7886byte
+document with correct independently checked arithmetic, uncertainty and useful
+continuation criteria. Actual UI reviewer-note save/reload/mobile readback passed;
+later model recall NOT tested. The live model chose a document, not an interactive
+view. General intelligence/useful autonomy/parity remain unproven.
+
+Successor installed/read back: allocation0.791520 within40; encumbered25.408720,
+unactivated14.591280. New4count/4generation/18read/0cancel, reserve0.527680; known
+calculated portion0.122085 plus one unknown-usage accepted final, not billed total.
+Shared reserve9.498240 against9.762080cap. Both old unknown counts unchanged.
+Original checkout/data/build/six admissions and3151/8151 services left intact.
+No replacement preview, public listener, default merge, host Hermes change or
+continuous product worker. See `STATUS.md` and batch4 manifest for final closure.
+
+## Overnight batch3 — historical handoff
 
 Application`afab13b`, owner through`133e857`: per-work Space refusal precedence,
 pinned-view regeneration guidance and verified mobile frame content.265 frontend

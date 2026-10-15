@@ -1,0 +1,224 @@
+{
+  "created_at": "2026-10-15T09:14:25.676514+00:00",
+  "application_commit": "4e676b19876d1efac9867efb51c1263faf00ca7e",
+  "owner_commit": "a0b756bc60da487b2e15eac3f287d4ff0d638054",
+  "helper_sha256": "06dee496ad1340d5ec01a376f2746767b5c071c9d0af26c88b44639b9c3d8d28",
+  "tests": {
+    "full_backend": {
+      "tests": 1224,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1224
+    },
+    "focused_backend": {
+      "tests": 61,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 61
+    },
+    "final_docguards": {
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 15
+    },
+    "independent_helper": {
+      "tests": 47,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 47
+    },
+    "controlled_lease_diagnostic": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 3
+    },
+    "frontend_units": 265,
+    "frontend_gates": "type/lint/format/webpack production passed",
+    "independent_frontend_controlled": 26,
+    "real_service_routing": 7,
+    "real_service_space": 18,
+    "live_note_readback_cases": 4,
+    "qualification": "Suites overlap; do not sum. Full Python/SQL/contracts source unchanged; final docs-only overlays separately checked."
+  },
+  "spend": {
+    "authorized_usd": "40.000000",
+    "new_allocation_usd": "0.79152",
+    "aggregate_encumbered_usd": "25.408720",
+    "unactivated_usd": "14.591280",
+    "new_request_counts": {
+      "count_send": 4,
+      "dispatch": 4,
+      "read": 18,
+      "cancel": 0
+    },
+    "new_reserved_usd": "0.52768",
+    "known_new_calculated_cost_usd": "0.1220850",
+    "new_unknown_usage_steps": 1,
+    "billed_cost_usd": null,
+    "shared_reserved_usd": "9.49824",
+    "shared_cap_usd": "9.76208",
+    "local_counts": {
+      "count_send": 48,
+      "dispatch": 46,
+      "read": 395,
+      "cancel": 0
+    },
+    "all_lineage_dedup_counts": {
+      "count_send": 74,
+      "dispatch": 72,
+      "read": 584,
+      "cancel": 0
+    },
+    "new_reported_input": 31566,
+    "new_reported_output": 4317,
+    "two_original_unknown_counts": "unchanged quarantined",
+    "additional_uncertainty": "known accepted final response for library; usage unknown, no repeat or cancel"
+  },
+  "live_verdict": {
+    "library": {
+      "admitted": true,
+      "state": "running",
+      "outcome": "STOPPED_UNRESOLVED",
+      "saved_artifacts": 0,
+      "reason": "runner stopped on action_unresolved after final response identity accepted; lease expiry is a supported diagnosis, not a captured exact exception stack",
+      "replaced_or_retried": false
+    },
+    "library_followup": {
+      "admitted": false,
+      "reason": "initial run unresolved and no saved artifact for frozen human correction; no forced target or fabricated save"
+    },
+    "investigation": {
+      "admitted": true,
+      "state": "partial",
+      "saved_artifacts": 1,
+      "representation": "model-chosen document, not generated interactive view",
+      "body_canonical_bytes": 7886,
+      "ui_human_note_saved": true,
+      "note_followup_model_tested": false
+    }
+  },
+  "limitations": [
+    "No natural large-body saved-work follow-up completed.",
+    "No library human correction saved; no substitute claimed.",
+    "Investigation human note save/reload is real but not later model recall.",
+    "No useful autonomous standing responsibility or generated interactive UI demonstrated by new live probes.",
+    "No parity or superiority evidence."
+  ],
+  "original_source_unchanged": true,
+  "model_reviewer": {
+    "http_status": 200,
+    "model": "glm-5.3",
+    "id": "20261015170412c313c43e8b1741bb",
+    "finish_reason": "stop",
+    "usage": {
+      "completion_tokens": 857,
+      "completion_tokens_details": {
+        "reasoning_tokens": 37
+      },
+      "prompt_tokens": 4377,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 5234
+    },
+    "complete": true,
+    "sha256": "cf9c47cfb489745b4330d865ebd2986afd89513e9851ae3a34cfdb8a50b33815",
+    "billing": "direct subscription endpoint; not asserted zero or product inference",
+    "finished_at": "2026-10-15T09:04:33.538842+00:00"
+  },
+  "model_reviewer_adjudication": "See docs/OVERNIGHT_20261015_BATCH4.md; raw critique unchanged",
+  "publication": "feature branch only; no default merge or deployment",
+  "screenshots_parent_viewed": [
+    "controlled desktop390320",
+    "live investigation desktop390320"
+  ],
+  "private_evidence": "/home/ubuntu/workagent-overnight-20261015/.local/overnight-batch4",
+  "secrets_excluded": [
+    "route/env/worker capability state/raw inventory/raw logs"
+  ],
+  "files": {
+    "controlled-390.png": {
+      "sha256": "32390c7402491d4d0a8cae111d40b91838b67a26ac2193f376d0fc0c344e02d0",
+      "bytes": 62612
+    },
+    "independent-final-review.md": {
+      "sha256": "b6f6e73d4cdf843438d50738f48c9cb78020b13e0297486c89badb6d015c8009",
+      "bytes": 7208
+    },
+    "live-investigation-desktop.png": {
+      "sha256": "5aa067a3c6905a0dea0d446e6d488ce96d07348fb340453c5fa009d80e558e22",
+      "bytes": 743256
+    },
+    "source-integrity.json": {
+      "sha256": "bc78486ac499da3a3f2c11ea96c769ec2fcaeb56c80e0280dccd5099a9db0784",
+      "bytes": 313
+    },
+    "controlled-space.json": {
+      "sha256": "91c76c042f85c7f8a9ba1f1526a64b287e92778183f49c1e4a5b87d15f55fdc0",
+      "bytes": 4545
+    },
+    "glm-review.md": {
+      "sha256": "7526c7b74f09871904360eae462dce311902026c02cf234a03f3eee993a5a957",
+      "bytes": 4140
+    },
+    "live-investigation-320.png": {
+      "sha256": "221c2ba78e9e41f8505fbe10d296f77addadcc94ba3e43c78a5e22969d3282ee",
+      "bytes": 63655
+    },
+    "glm-receipt.json": {
+      "sha256": "88d4579d5e02108d188f910035382c644197db6b02ba6b9c1f6fe8144d6ba08e",
+      "bytes": 587
+    },
+    "controlled-routing.json": {
+      "sha256": "8b44b602a8bebaf504c862d45454c9e1ff8a56f384ee128a450c3ce2e0219b89",
+      "bytes": 1074
+    },
+    "controlled-desktop.png": {
+      "sha256": "334e3bacdf7710b9cad05c664e717987a8476a43d12133534db3bf4f5e45d2e0",
+      "bytes": 207860
+    },
+    "heldout-protocol.md": {
+      "sha256": "e4a2e9f22bb7b1da85e66e475f9bcbb504d92c6b6a2b40c10468ac49f11542a6",
+      "bytes": 4643
+    },
+    "model-investigation.md": {
+      "sha256": "9dc5a524bbfbf3657f382004e90c1dfc489347850289d7a5b5c3632ef1ee4cd2",
+      "bytes": 6631
+    },
+    "live-investigation-390.png": {
+      "sha256": "c0213e3f37883046ef2160803e4b1a29475e37c1612a5f0b9019929240bb59a8",
+      "bytes": 68465
+    },
+    "independent-prior-required-changes.md": {
+      "sha256": "4c6ab41c3b32a1e5d6e05d53e484c9596366ff3c8840b6b4c46bf295ecad14d1",
+      "bytes": 7123
+    },
+    "controlled-320.png": {
+      "sha256": "9886d39ef784b7be984c1be3e7b746325442de45de703da0c78d9da786ed1726",
+      "bytes": 60432
+    },
+    "independent-final-verification.json": {
+      "sha256": "2dbe24bc86adbbb3a4bdb0515a5a28a626882644c43a5d6da21d8229f1882b57",
+      "bytes": 1782
+    },
+    "library-staged-NOT-SAVED.json": {
+      "sha256": "f071c9cbff5750b6298b567e9b3be0526def21b1dc192fcbd9e23d993838f7b0",
+      "bytes": 11209
+    },
+    "live-analysis.json": {
+      "sha256": "8536db3822c6a18895a365e49f4f2d53e2dc9395bb456ef9df4f50b9e61867ab",
+      "bytes": 4597
+    },
+    "live-human-readback.json": {
+      "sha256": "4d82d74b5656abb6e42ce6c28486d8a35f0019a2b6c105467f6048add0bccc93",
+      "bytes": 838
+    }
+  }
+}

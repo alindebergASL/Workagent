@@ -1,6 +1,25 @@
 # Build plan: independent work through a seamless experience
 
-## Current delivery state — reconciled Spaces checkpoint
+## Current delivery state — overnight reviewed slice
+
+Latest integrated candidate: application `4e676b19876d1efac9867efb51c1263faf00ca7e` integrates sole frontend
+owner through `a0b756b`. Bounded saved-work retrieval, protected-note enforcement,
+human-wait continuity and in-place version-bound views are implemented/reviewed.
+Fresh live evidence is mixed: a useful investigation document was saved; the
+library run stopped unresolved before publication, so its correction/follow-up
+was not tested. Next: review lease-aware same-ID continuation, then finish that
+retained work without replacement generation or an allowance reset.
+See [overnight report](OVERNIGHT_20261015_BATCH4.md) and [runtime status](RUNTIME_STATUS.md).
+
+The #15 bar remains general agency + extensible skills/tools + scoped context/memory
++ durable continuity + authorized initiative + optional Spaces + Intelligent UI.
+Controlled engineering does not establish broad product readiness. Historical
+reports retain their original scope, failures and verdicts. Budget headroom is
+never independent authority: no default merge/deployment, external business actions
+or expanded account/private-data access. [Authorization](GENERAL_MODEL_AUTHORIZATION.md)
+and [runtime status](RUNTIME_STATUS.md) govern actual execution, not historical balances.
+
+## Historical Spaces checkpoint — retained context
 
 Latest integrated candidate: `70b4d8c`, with frontend fixes required by
 [the exact integration review](SPACE_INTEGRATION_REVIEW.md). See

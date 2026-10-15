@@ -1,0 +1,140 @@
+{
+  "evidence_state": "staged tool result ONLY; no canonical artifact, no delivered save",
+  "body": {
+    "title": "Volunteer library relocation \u2014 six-week working plan",
+    "blocks": [
+      {
+        "kind": "paragraph",
+        "text": "Working draft\u2014not an approval to move. The upstairs room's suitability is unknown. No contacts, purchases, bookings or extra shifts are authorized by this plan. First decision: establish whether there is a safe, accessible and affordable relocation route before committing to packing or the upstairs room.",
+        "checked": null,
+        "block_id": "status"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Known constraints: move required in six weeks; 600 books; 24 active borrowers; four volunteers available for two hours each on Saturdays; $250 total budget; lending closure must not exceed one week. Nominal capacity is 8 volunteer-hours per Saturday, or 48 across six Saturdays if all attend. This is a ceiling, not a commitment: routine lending and administration also consume it. Borrower names and contact details remain private. Extra shifts have not been requested or agreed.",
+        "checked": null,
+        "block_id": "constraints"
+      },
+      {
+        "kind": "heading",
+        "text": "Gate 1 \u2014 room and route suitability, before committing",
+        "checked": null,
+        "block_id": "first-gate"
+      },
+      {
+        "kind": "checklist",
+        "text": "Proposed owner: a volunteer nominated at the next Saturday session. Confirm the complete route from arrival to room: steps, lift availability and reliability, doors, circulation space, access during lending hours, relevant facilities, and emergency evacuation arrangements. Separately assess safe movement of books, shelves and equipment. A lift alone is not proof of accessibility. Record findings without identifying individual borrowers or collecting unnecessary health information.",
+        "checked": false,
+        "block_id": "access-check"
+      },
+      {
+        "kind": "checklist",
+        "text": "Proposed owner: library coordinator, not yet assigned. Establish permission to use the room, opening/access arrangements, capacity for books and shelving, and any building/shelving safety checks needed from the responsible premises person. Confirm when the current room must be vacated and whether the new room can be prepared while lending continues in the old room. Unknowns remain unknown until checked.",
+        "checked": false,
+        "block_id": "premises-check"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Decision target: end of Week 1; unresolved barriers trigger alternative-space or deadline discussions by Week 2, not silent acceptance. Proceed only after the responsible humans confirm acceptable access and evacuation, premises permission/safety, a safe handling route, and a feasible staffing/budget/continuity plan. If the upstairs room fails, explore another suitable space, a deadline extension, or an accessible interim service with appropriate storage and permissions. None is assumed available. If no compliant option exists, escalate the conflict rather than promise the deadline and one-week closure can both be met.",
+        "checked": null,
+        "block_id": "gate-decision"
+      },
+      {
+        "kind": "heading",
+        "text": "Six-Saturday working schedule \u2014 within existing availability",
+        "checked": null,
+        "block_id": "weeks"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 1: nominate a coordinator and access-check lead from willing volunteers; begin Gate 1 checks; confirm dates and routine lending workload. Suggested total allocation: 2 volunteer-hours for checks/coordination, 2 for a representative packing/handling trial and inventory spot-check, 4 reserved for routine lending and contingency. If checks need more time, defer the trial. Do not pre-pack books needed for lending.",
+        "checked": false,
+        "block_id": "week1"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 2: review actual access findings and handling trial; choose proceed, alternative, or escalation. Estimate total person-hours for packing, transport, stairs/lift use, setup and reconciliation; measure all stages, not packing alone. Identify shelving/transport/equipment needs and obtain cost information only through human action. Reserve routine-service time first. If the remaining work does not fit the remaining Saturday capacity, reduce scope or obtain explicit agreement to a different arrangement\u2014do not assume extra shifts.",
+        "checked": false,
+        "block_id": "week2"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 3, only after Gate 1: confirm room access and the move-day route; secure any approved equipment and transport arrangements; label shelves and shelf locations; start packing low-demand material only where lending access can be preserved. Set a provisional closure and reopening date no more than seven calendar days apart, subject to the readiness gate. Draft borrower information for a human to review and send privately or display without borrower identifiers.",
+        "checked": false,
+        "block_id": "week3"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 4: continue staged preparation while operating lending; prepare the new room if authorized; pack and label by shelf section; reconcile stock counts and create a private exception list for books on loan or unlocated. Keep loan records separate from box labels. Check actual progress against remaining person-hours and funds. If the move must be staged, confirm secure storage and continued access to the lending collection.",
+        "checked": false,
+        "block_id": "week4"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 5: readiness gate and intended main move Saturday, not a guaranteed date. Close lending only when the room, route, transport, handling method, shelving, staffing, records access and reopening plan are confirmed. Move in small, manageable loads using agreed safe handling; no assumed carrying of loaded bookcases or heavy boxes upstairs. Leave time for setup, stock reconciliation and a route/access check. A service closure from this Saturday to the next is the full seven-day allowance, not a spare week.",
+        "checked": false,
+        "block_id": "week5"
+      },
+      {
+        "kind": "checklist",
+        "text": "Week 6: intended reopening by the agreed deadline, with accessible service, usable catalogue/loan records and safe shelving. Resolve missing-item exceptions privately and confirm the old room handover. This Saturday is a limited setup/reopening buffer, not permission to extend closure. Confirm exact dates and room handover time early: if the current room must be cleared sooner or setup needs more time, replan before closing.",
+        "checked": false,
+        "block_id": "week6"
+      },
+      {
+        "kind": "heading",
+        "text": "Capacity and move-day feasibility",
+        "checked": null,
+        "block_id": "capacity"
+      },
+      {
+        "kind": "paragraph",
+        "text": "A two-person handling task uses two person-hours per elapsed hour. Four volunteers for two hours provide only eight person-hours on move day, before breaks or lending duties. Do not assume all 600 books plus shelving can move in that window. Trial representative small loads and include walking/lift waits, loading, travel, unloading and shelving. Record books per load, load weight/handling constraints, elapsed time and people required. Do not choose a box count until safe loads and book sizes are known. Compare estimated work plus contingency with the actual hours left after routine service.",
+        "checked": null,
+        "block_id": "capacity-detail"
+      },
+      {
+        "kind": "heading",
+        "text": "Budget control \u2014 proposed envelopes, not spending authority",
+        "checked": null,
+        "block_id": "budget"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Illustrative $250 ceiling: up to $50 for packing/labels, $100 for transport or handling equipment, $50 for setup/access-related needs and $50 held as contingency. These are adjustable planning envelopes, not quotes or evidence that access works fit the budget. Borrow suitable supplies only with permission. Coordinator records each proposed cost, actual quote, payer approval and spend before purchase. No spending until a human approves. If safe access, transport or shelving exceeds the total, stop and revisit the room or seek explicit additional support; do not solve the gap by unsafe unpaid lifting.",
+        "checked": null,
+        "block_id": "budget-detail"
+      },
+      {
+        "kind": "heading",
+        "text": "Privacy and lending continuity",
+        "checked": null,
+        "block_id": "privacy"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Public/shared move records contain book or box IDs, counts, shelf destinations, task status and non-sensitive blockers\u2014not borrower names, contacts or individual borrowing histories. Keep the existing borrower/loan register in its authorized private location; do not copy it into this plan. Designate an authorized records custodian; secure paper records during transit and retain existing access restrictions for digital records. Reconcile outstanding loans privately, using book IDs in general stock lists. Any borrower message is a draft for a human to approve and send via an existing appropriate private channel; do not expose recipients or assume permission for a new tool.",
+        "checked": null,
+        "block_id": "privacy-detail"
+      },
+      {
+        "kind": "heading",
+        "text": "Carry-forward update format",
+        "checked": null,
+        "block_id": "tracker"
+      },
+      {
+        "kind": "paragraph",
+        "text": "At each Saturday handover, update: actual date; willing owner and agreed next action; access/room decision and evidence; hours available, used and remaining; stock packed/moved/reconciled; proposed, approved and spent costs; exact closure/reopening dates; unresolved blockers and next decision date. Owners remain unassigned until volunteers agree. Record general findings here, with private borrower information kept out. Next human update needed: actual move deadline, Week 1 room/access findings, and the willing coordinator. No automated check-in or external monitoring is set.",
+        "checked": null,
+        "block_id": "tracker-detail"
+      },
+      {
+        "kind": "paragraph",
+        "text": "Completion evidence to seek: humans confirm safe and accessible service arrangements; 600-book collection reconciled across shelves, legitimate loans and documented exceptions; private records controlled; lending interruption no longer than seven days; actual spend no more than $250 unless explicitly revised; volunteer work stayed within agreed availability; current room handed over as required. This draft does not establish that these outcomes have been achieved.",
+        "checked": null,
+        "block_id": "finish"
+      }
+    ]
+  }
+}

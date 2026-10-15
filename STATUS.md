@@ -1,78 +1,84 @@
-# Overnight integrator status — batch3 handoff
+# Overnight integrator status — batch4/4 final handoff
 
-CONTINUE. Application afab13babd54a14ed3da5404677265b74b11ce73; owner through133e857.
-Original92e76d8 checkout/data/build/six admissions unchanged. No integrator web edits,
-main merge, deployment, new product inference, new encumbrance or host Hermes edits.
+COMPLETE means this bounded reviewed slice/evidence is delivered, NOT broad product
+intelligence, parity, autonomy or user acceptance. Application4e676b19876d1efac9867efb51c1263faf00ca7e;
+sole frontend owner througha0b756b. Final documentation/publication SHA and readback
+are in /home/ubuntu/workagent-overnight-20261015-control/batch-result.json.
+No more overnight batches, recursive runner, budget increase, main merge or deployment.
 
-## Delivered / verified
+## Actual delivery
 
-Owner1810fea mobile-content checks and133e857 Space denial race/pinned guidance fixes
-integrated. Frozen actual-React in-place13/13, retention17/17, overlay6/6 and pinned
-copy probe pass.265 frontend tests/type/lint/format pass; webpack production build
-passes (default Turbopack rejected externally symlinked deps; failure retained).
-Real Next/API/PostgreSQL journeys:7 routing +18 Space cases pass. Includes actual
-human-note save/reload, keyboard/draft holds, refusal despite failing/pending siblings,
-canonical source staleness and actual slider keyboard use after390/320 resize.
-Parent viewed desktop390320 screenshots: real iframe content, not batch2's empty box.
-Controlled authored fixture shapes, NOT natural model intelligence. Density/repeated
-provenance/version text remain UX limitations; no broad experience acceptance.
+General bounded saved-work discovery/read with exact revisions, protected notes,
+proposal/CAS enforcement; human waits survive unrelated activity; generic in-place
+sandboxed views with canonical input bindings. Owner workspace-routing, denied-body
+retention, scope-copy and pending-sibling fixes are integrated/reviewed. Final owner
+change reduces duplicate provenance and widens conversation. No integrator web edits.
+Historical six admissions, original92e76d8 data/build and both unknown counts unchanged.
 
-Full backend frozen-source1223pass/1fail, then diagnosed umask-sensitive test fixture:
-mkdir0755 underumask077 created SAFE0700. Pre-fix test fails077/passes022. afab13b
-explicitly chmods deliberately unsafe fixture0755, asserts mode;22 operator tests
-pass under077 AND022. Runtime/backend/contracts/migrations unchanged froma719f28.
-No post-fix full-suite green claim. Original full/failed traces retained.
+Full backend1224PASS; focused61PASS; final documentation15PASS; frontend265/type/lint/
+format/webpackPASS. Independent final helper47PASS and frontend26PASS; earlier64
+frontend cases reused unchanged. Actual real-service7routing+18SpacePASS. Three
+controlled lease-reclaim diagnosticsPASS. Suites overlap, not additive. Desktop,
+390px and320px screenshots actually viewed with real content; not physical phones.
+Final docs-only overlays checked separately; Python/SQL/contracts remained frozen.
 
-## New successor implementation — NOT activated
+## Fresh live evaluation — mixed, all failures retained
 
-.local/overnight-batch3/successor.py implements atomic installer/readback and named
-one-run canonical driver, exclusivefsynced intents, source/lineage checks, same-ID
-polling, no replacement, immediate pre-I/O STOP, exact review/evidence/grant pins.
-Hash81cfd85a6134a44636d7c4ca22b6aa1a0e15ae31e8a04eb20be6dd8d31162174.
-Independent review initially found3 blockers: clone readonly allowlist, intra-visit
-STOP, account timestamp relabeling. Parent fixed;46 controlled tests pass, including
-31 reviewer cases. Actual readonly inventory/source/process gates pass;33source+
-33clone table manifests unchanged; actual clone allgrantsinactive. NO package,
-parent-review, installation intent or grant was created on actual clone.
+Reviewed successor workagent-overnight-20261015-03 installed/read back on separate
+full-history clone workagent_test_47b87fe3b82e, official gpt-6.1-sol medium/background.
+Two admissions used from frozen3-admission/6count+generation/100read/0cancel envelope.
 
-Final independent follow-up of these changed helper bytes STILL REQUIRED.2bounded
-Astra reviewers joined; further delegation rejected at2/2 cap; no bypass. Do not
-turn parent retests into independent approval. Frontend review findings closed by
-owner commits and parent frozen real-component/real-service repros; final delta can
-be included in the same narrow follow-up nextbatch. Reuse unchanged backend reviews.
+1. Library move:9876byte plan STAGED ONLY, zero saved artifacts. Known final response
+accepted but runner stopped action_unresolved around lease expiry. Exact exception
+stack absent; timing + controlled diagnostics support, not prove, cause. Run
+63e52832-8162-4a68-b6af-160983b4cf2b remains unresolved, NO retry/replacement/cancel.
+Planned human note could not be saved; same-chat changed-constraints follow-up NOT
+admitted. Natural large-body retrieval/edit acceptance remains NOT TESTED.
 
-Proposed3admissions/2fresh conversations share SAME6newgeneration+count slots,
-100reads/0cancels/$0.791520 as prior2admission preparation draft. Explicit new review
-required; nothing activated. SQL019 forbids renewing old conversation scopes; never
-weaken/repin/reset it. Frozen heldout-protocol.md contains new natural initial task,
-actual human correction/untargeted same-chat change and distinct investigation if
-caps permit. Do not pad output to exceed8KiB; if natural body isn'tlarge, live boundary
-criterion stays untested. No prescribed shapes/target coaching/replacement failures.
+2. Separate support investigation: model chose7886byte document; saved artifact
+f9ff3d10-bdb4-43fc-95bb-29795bfc1668, canonical PARTIAL. Independent arithmetic and
+causal caution verified. Useful hypotheses/evidence update template; no monitoring
+or automatic execution claim. Actual UI reviewer-protected-note save/reload390320
+verified; every original block unchanged. Later model recall NOT tested. First
+browser readback locator matched2legitimate notes; exact-block readonly continuation
+passed, no second save. No substitution for failed library correction.
 
-## Money / retained state
+Direct GLM5.3 critique completed4377prompt/857completion, receipt20261015170412c313c43e8b1741bb.
+Raw critique + explicit corrections retained. Subscription route, not asserted$0.
+Current primary-source baseline identities preserved; no comparative performance.
+Live model-generated interactive adaptation and useful autonomous initiative unproven.
 
-NEW productrequests/spend0/$0. Authorization40; encumbered24.617200/unactivated15.382800.
-Local44count/42dispatch/377read/0cancel; all-lineage dedup70count/68dispatch/566read/0cancel.
-Shared reserved8.97056 =local5.54064 +carry3.42992; no doublecharge copied events.
-IF installed new0.791520 =>aggregate25.408720/unactivated14.591280. Not yet installed.
-Both quarantined counts unchanged, never retried/released/refunded/resolved.
-Source original ACTIVE but sixadmissions exhausted and terminal, NOT fenced.
+## Budget / uncertainty
 
-## Mechanical nextbatch
+Authorization40.000000; allocation0.791520; totalencumbered25.408720/unactivated14.591280.
+New4counts/4generations/18reads/0cancels; reserved0.527680. Known usage31566input/
+4317output; known calculatedportion0.122085 PLUS one accepted-final unknown usage;
+NOT total/billed cost. Sharedreserved9.498240 against9.762080cap. Local48/46/395;
+all-lineage dedup74/72/584;0cancels. Two old count unknowns remain quarantined.
+No release/refund/reset/repin. Unused slots are not fresh authority.
 
-1. STOP/git/status/result reconciliation. Read docs/OVERNIGHT_20261015_BATCH3.md,
-   evidence/overnight-20261015/batch3/manifest.json and private raw reviews.
-2. Narrow independent follow-up of helper fixes +owner133e857. No new broad research.
-3. Freeze exactcandidate, confirm source/clone manifests and account/price freshness,
-   create package/parent review bound to exacthelper/candidate/grant after approval.
-   NO old exhausted inference helper. Clone must be explicitly in ledger inventory.
-4. Only then actual successorinstall/readback and frozen natural probes via HTTP/TUI,
-   no reruns/coaching/padding/replacements. Preserve all failures/proposed-vs-current.
-5. Fresh full backend can run concurrently (last full40min). Final live/controlled,
-   money and comparative-gap morning report; no parity/superiority claims.
+## Access / preservation
 
-Evidence/private helpers under .local/overnight-batch3 (permanent worktree, notscratch).
-Python env -u PYTHONPATH -u PYTHONHOME /home/ubuntu/workagent-adaptive-execution/.venv/bin/python,
-frombackend. Frontend source copy .local/overnight-batch3/frontend-current fullgitarchive,
-nonmutating dependencyreuse, webpackbuild. Candidate3153/8153 controlledservices are
-stopped at batchexit. Original3151/8151 left intact; user's own device untested.
+Candidate3154/8154 and controlled3155/8155 stopped; socket closure verified.
+Original3151web and8151API schema stillHTTP200, untouched old92e76d8 app. No public
+app/API listener or continuous product worker added. User device access untested.
+Builds, databases and all evidence retained, not deleted or replaced.
+
+Detailed report docs/OVERNIGHT_20261015_BATCH4.md; baseline dossier
+OVERNIGHT_20261015_BASELINES.md; sanitized evidence/overnight-20261015/batch4/manifest.json.
+Full private receipts/helpers/traces .local/overnight-batch4 and
+.local/overnight-batch3/successor. Never publish route/env/raw worker capability files.
+One diagnostic accidentally printed local run capabilities to private CLI trace;
+no provider/account credential published, no rotation. Incident documented in report;
+subsequent evidence collection excludes capability state and allowlist-scans output.
+
+## Next useful work, not authorization for another run
+
+Review narrow lease-aware SAME-ID continuation for retained accepted library final;
+canonical controlled recovery works but the reviewed one-run wrapper stopped on
+DomainError. Preserve STOP, revocation, exact pins and budget; do not retry generation
+or erase the failed admission. Then finish frozen library note/untargeted follow-up
+only within reconciled authority. No broad harness reset or extra widget showcase.
+Model-selected representations, correction recall, scoped memory provenance and
+useful authorized initiative require natural varied-task evidence. Claude remains
+sole web owner; existing#9 is the coordination channel, not automatic resumption.
