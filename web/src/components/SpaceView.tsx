@@ -91,7 +91,19 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   // Only the person's own choice names the work a reply is about; nothing
   // is selected for them. With nothing chosen, a reply is about the project.
   const param = search.get("work");
-  const selected = (items ?? []).find((i) => i.artifact.id === param) ?? null;
+  const resolved = (items ?? []).find((i) => i.artifact.id === param) ?? null;
+  // A choice stays the person's while its work is being re-read (a changed
+  // list of work re-reads it from scratch): it is shown as last read, and
+  // sending waits for it. Missing data never reads as "the whole project".
+  const [remembered, setRemembered] = useState<SpaceWorkItem | null>(null);
+  useEffect(() => {
+    if (resolved) setRemembered(resolved);
+  }, [resolved]);
+  const selected =
+    resolved ??
+    (param && remembered?.artifact.id === param ? remembered : null);
+  const choiceChecking = Boolean(param) && !resolved && items === null;
+  const choiceGone = Boolean(param) && !resolved && items !== null;
   const select = (aid: string | null) => {
     const next = new URLSearchParams(search.toString());
     if (aid) next.set("work", aid);
@@ -159,7 +171,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   });
   // A reply names only work the person chose and the service accepts as a
   // subject; anything else (a saved file) leaves it about the project.
-  const subject = selected && canAskAbout(selected.artifact) ? selected : null;
+  const subject = resolved && canAskAbout(resolved.artifact) ? resolved : null;
   const target: ExactTarget | null | undefined = CAPABILITIES.naturalAdmission
     ? subject
       ? {
@@ -287,6 +299,13 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
       eyebrow="Conversation"
       compact
       held={res.reconnecting || Boolean(res.error)}
+      paused={
+        choiceChecking
+          ? "Checking the work you chose before sending. Your draft is kept."
+          : choiceGone
+            ? "The work you chose isn’t in this project any more. Choose again, or ask about the whole project."
+            : undefined
+      }
       placeholder="Ask, or ask for a change…"
       idleHint={
         subject
@@ -305,28 +324,36 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
               ? undefined
               : subject
                 ? workTitle(subject.artifact)
-                : null;
+                : param && !resolved
+                  ? selected
+                    ? workTitle(selected.artifact)
+                    : "the work you chose"
+                  : null;
         if (shown === undefined) return null;
         return (
           <div className="reply-about small" data-testid="reply-about">
             <p>
               <span className="muted">About:</span>{" "}
               <strong>{shown ?? "the whole project"}</strong>
-              {pending === undefined && subject ? (
+              {pending === undefined && (subject || choiceGone) ? (
                 <button
                   type="button"
                   className="link-quiet small"
-                  aria-label={`Stop replying about ${workTitle(subject.artifact)}`}
+                  aria-label={
+                    subject
+                      ? `Stop replying about ${workTitle(subject.artifact)}`
+                      : "Ask about the whole project instead"
+                  }
                   onClick={() => select(null)}
                 >
                   Ask about the whole project instead
                 </button>
               ) : null}
             </p>
-            {pending === undefined && selected && !subject ? (
+            {pending === undefined && resolved && !subject ? (
               <p className="muted" data-testid="reply-about-file">
                 A reply can’t point at a saved file like “
-                {workTitle(selected.artifact)}”, so it goes to the project; name
+                {workTitle(resolved.artifact)}”, so it goes to the project; name
                 the file in your message.
               </p>
             ) : null}

@@ -205,6 +205,63 @@ try {
   await expect(about).toContainText("About: Workshop plan");
   pass("a typed reply and the selected work survive a reload");
 
+  // A background refresh finds the project's work list changed (here, the
+  // same work in a new order) while re-reading that work is slow. The choice
+  // stays the person's: sending waits, by any path, and nothing goes out
+  // about "the whole project" in the meantime.
+  {
+    let releaseWork;
+    const workReleased = new Promise((r) => (releaseWork = r));
+    const artifactReads = "**/api/domain/**/artifacts/**";
+    let held = 0;
+    await page.route(artifactReads, async (route) => {
+      if (route.request().method() === "GET") {
+        held += 1;
+        await workReleased;
+      }
+      return route.continue();
+    });
+    const detailReads = `**/work-areas/${cid}`;
+    await page.route(detailReads, async (route) => {
+      if (route.request().method() !== "GET") return route.continue();
+      const response = await route.fetch();
+      const body = await response.json();
+      body.artifact_ids = [...body.artifact_ids].reverse();
+      return route.fulfill({ response, json: body });
+    });
+    const sentBefore = posts.length;
+    await page.getByRole("button", { name: "Refresh this project" }).click();
+    // Wait until the re-read of the changed list is actually held.
+    await expect.poll(() => held, { timeout: 15000 }).toBeGreaterThan(0);
+    await page.waitForTimeout(300);
+    await box.press("Control+Enter");
+    await page.waitForTimeout(500);
+    assert.equal(
+      posts.length,
+      sentBefore,
+      "nothing sent while the choice is re-read",
+    );
+    await expect(page.locator('[data-state="paused"]')).toContainText(
+      "Checking the work you chose",
+    );
+    await expect(send).toBeDisabled();
+    await expect(about).toContainText("About: Workshop plan");
+    await expect(box).toHaveValue(
+      "Move the show-and-tell to the morning of day two.",
+    );
+    releaseWork();
+    await expect(page.locator('[data-state="paused"]')).toHaveCount(0, {
+      timeout: 15000,
+    });
+    await expect(about).toContainText("About: Workshop plan");
+    await page.unroute(detailReads);
+    await page.unroute(artifactReads);
+    assert.equal(posts.length, sentBefore);
+  }
+  pass(
+    "a background change to the work list while the chosen work is re-read keeps the choice: sending waits by button and keys, never falls back to the whole project",
+  );
+
   // Sending names the selected work's exact saved version.
   const plan = (await api(`/artifacts/${planId}`)).body;
   let before = posts.length;

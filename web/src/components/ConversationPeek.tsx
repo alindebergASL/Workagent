@@ -103,6 +103,7 @@ export function ConversationPeek({
   idleHint = "Ask about this work or ask for a change.",
   compact = false,
   held: heldByPage = false,
+  paused,
 }: {
   conversation: ConversationDetailView;
   /** The work shown beside this pane, if one is. */
@@ -132,6 +133,11 @@ export function ConversationPeek({
    * project that can't be re-read); sending is held as if this pane couldn't.
    */
   held?: boolean;
+  /**
+   * Sending waits, for the reason given (shown by the reply box); drafting
+   * goes on. For example, the work a reply is about is being re-read.
+   */
+  paused?: string;
 }) {
   const cid = initial.conversation.id;
   const res = useResource<ConversationDetailView>(
@@ -165,7 +171,7 @@ export function ConversationPeek({
     // Files go with a reply only where a reply names its exact version.
     attach: target !== undefined,
     // Admission, not just the button: no key or retry sends while held.
-    held: revoked || staleRead || !open,
+    held: revoked || staleRead || !open || Boolean(paused),
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -370,6 +376,11 @@ export function ConversationPeek({
         </p>
       ) : null}
       {lastUnanchored ? <PendingTurn turn={lastUnanchored} /> : null}
+      {paused && !staleRead ? (
+        <p className="msg-pending" role="status" data-state="paused">
+          {paused}
+        </p>
+      ) : null}
       {open ? (
         <form
           className="ask peek-ask"
