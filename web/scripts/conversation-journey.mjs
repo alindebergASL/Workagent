@@ -418,8 +418,10 @@ try {
   ).toBeVisible();
   await noScroll(phone);
   await shot(phone, "12-home-mobile");
+  // The intro doesn't infer whether a hand-over is held or paused from its
+  // coarse summary; the rows below say so from their current records.
   await expect(phone.locator(".lede")).toHaveText(
-    "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.",
+    "Here’s where your work stands.",
   );
   await phone.setViewportSize({ width: 320, height: 640 });
   await phone.goto(origin);

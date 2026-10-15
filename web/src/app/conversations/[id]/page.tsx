@@ -20,7 +20,7 @@ import type {
   ConversationDetailView,
   TurnState,
 } from "@/lib/contract/types";
-import { WorkAreaHeader, SpaceWork } from "@/components/WorkAreas";
+import { WorkAreaHeader } from "@/components/WorkAreas";
 import { OperationComposer } from "@/components/OperationComposer";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import { CAPABILITIES } from "@/lib/client/capabilities";
@@ -54,13 +54,13 @@ const PENDING: Record<Exclude<TurnState, "replied">, string> = {
  * exact command so retrying can't post twice.
  */
 export default function ConversationPage() {
-  const { id, spaceId } = useParams<{ id: string; spaceId?: string }>();
+  const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
   const { workspace } = useWorkspace();
-  const wsId = spaceId ?? workspace?.id ?? null;
+  const wsId = workspace?.id ?? null;
   const res = useResource<ConversationDetailView>(
-    wsId ? `${spaceId ? "space" : "conversation"}:${wsId}:${id}` : null,
-    (signal) => conversationApi.get(wsId!, id, signal, Boolean(spaceId)),
+    wsId ? `conversation:${wsId}:${id}` : null,
+    (signal) => conversationApi.get(wsId!, id, signal),
     {
       pollMs: 2000,
       shouldPoll: (d) =>
@@ -231,7 +231,6 @@ export default function ConversationPage() {
   );
   const uncertainSend = reply.uncertain;
   const endPending = Boolean(endCmd.current) && !ending;
-  const latestReply = d.messages.filter((m) => m.author === "agent").at(-1);
   const history = (
     <>
       <ol className="thread" aria-label="Conversation">
@@ -484,65 +483,12 @@ export default function ConversationPage() {
           ws={wsId}
           id={id}
           area={d.conversation.work_area}
-          inSpace={Boolean(spaceId)}
           version={d.conversation.work_version}
           refresh={res.refresh}
         />
       ) : null}
 
-      {wsId && spaceId && d.conversation.work_area ? (
-        <SpaceWork
-          ws={wsId}
-          id={id}
-          artifactIds={d.artifact_ids}
-          versionKey={`${d.conversation.work_version}:${d.messages.length}`}
-        />
-      ) : null}
-
-      {!spaceId ? (
-        history
-      ) : (
-        <section className="stack-sm" aria-label="Space conversation">
-          <h2>Talk about this Space</h2>
-          <p className="hint">
-            This chat follows the Space as a whole; no artifact is targeted. To
-            refine an exact saved version, use “Edit, review or refine this
-            version” above.
-          </p>
-          {latestReply ? (
-            <AgentReply
-              text={latestReply.text}
-              progress={
-                d.turns.find((t) => t.run_id === latestReply.run_id)?.progress
-              }
-              budget={360}
-            />
-          ) : null}
-          {d.turns
-            .filter((t) => t.state !== "replied" && t.state !== "cancelled")
-            .map((t) => (
-              <div key={t.run_id} role="status">
-                <TurnSummary
-                  state={t.state}
-                  progress={t.progress}
-                  fallback={PENDING[t.state as Exclude<TurnState, "replied">]}
-                />
-                {t.reason ? (
-                  <details>
-                    <summary>Why</summary>
-                    <p className="small">{t.reason}</p>
-                  </details>
-                ) : null}
-              </div>
-            ))}
-          {res.reconnecting ? (
-            <p role="status">
-              Connection lost. Your draft is kept; sending waits for a current
-              read.
-            </p>
-          ) : null}
-        </section>
-      )}
+      {history}
 
       {open ? (
         <form
@@ -620,13 +566,6 @@ export default function ConversationPage() {
           This conversation has ended. Its history is kept.
         </p>
       )}
-
-      {spaceId ? (
-        <details className="disclosure">
-          <summary>Conversation history and activity</summary>
-          {history}
-        </details>
-      ) : null}
 
       {open && wsId ? (
         <OperationComposer

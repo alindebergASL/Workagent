@@ -47,7 +47,12 @@ function cli(action, args = [], allowFailure = false) {
   });
   return data;
 }
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  headless: true,
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
+});
 const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
@@ -94,17 +99,11 @@ try {
     }),
   ).toBeVisible();
   await expect(page.getByText(/Develop a bounded offer/).first()).toBeVisible();
-  await expect(
-    page.getByRole("link", {
-      name: "Synthetic service launch offer",
-      exact: true,
-    }),
-  ).toBeVisible();
-  // Regression: the Space must expose canonical content, not only links.
-  const surface = page.getByRole("region", {
-    name: "Saved Space work",
-    exact: true,
-  });
+  // The selected work is shown with its canonical content, not only a link.
+  const surface = page.locator(".space-work");
+  await expect(surface.getByRole("heading", { level: 2 })).toHaveText(
+    "Synthetic service launch offer",
+  );
   await expect(
     surface.getByText(/A two-week service design pilot/),
   ).toBeVisible();
@@ -154,28 +153,24 @@ try {
   await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
   await expect(surface.getByText(/Unsent editor-only draft/)).toHaveCount(0);
   await page
-    .getByLabel("Continue the conversation", { exact: true })
+    .getByLabel("Ask, or ask for a change", { exact: true })
     .fill("Unsent Space chat draft");
   await page
-    .getByRole("button", { name: "Edit Space goal", exact: true })
+    .getByRole("button", { name: "Edit name and purpose", exact: true })
     .click();
-  const goalField = page.getByLabel("Goal", { exact: true });
+  const goalField = page.getByLabel("What it’s for", { exact: true });
   await goalField.fill(
     "Develop a bounded offer and validate demand before launch; human-scoped goal",
   );
-  await page
-    .getByText("Conversation history and activity", { exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Refresh conversation", exact: true })
-    .click();
+  // A reload keeps the goal draft and its editor open.
+  await page.reload();
   await expect(goalField).toHaveValue(
     "Develop a bounded offer and validate demand before launch; human-scoped goal",
   );
-  await page.getByRole("button", { name: "Save Space", exact: true }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(goalField).toHaveCount(0);
   await expect(
-    page.getByLabel("Continue the conversation", { exact: true }),
+    page.getByLabel("Ask, or ask for a change", { exact: true }),
   ).toHaveValue("Unsent Space chat draft");
   await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
   assert.equal(
@@ -218,14 +213,13 @@ try {
   control("work", follow.receipt.run.id, "one-week");
   await page.goto(spaceURL);
   await expect(
-    surface.getByText("1 pending proposal to review", { exact: true }),
+    surface.getByText("A proposed change is waiting for your review.", {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
-  await page
-    .getByRole("link", {
-      name: "Edit, review or refine this version",
-      exact: true,
-    })
+  await surface
+    .getByRole("link", { name: "Review and edit", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Apply proposed version", exact: true }),
@@ -266,7 +260,8 @@ try {
     ),
   );
   // The accepted canonical content, not only a link/count, survives leaving
-  // and reopening the Space on desktop and 320px. Chat is secondary/untargeted.
+  // and reopening the Space on desktop and 320px. A reply names its subject;
+  // on a phone the work comes first and the conversation is one switch away.
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto(spaceURL);
@@ -274,18 +269,20 @@ try {
       surface.getByText(/one-week service design pilot/),
     ).toBeVisible();
     await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
-    await expect(page.getByText(/no artifact is targeted/)).toBeVisible();
-    await expect(
-      page.getByRole("list", { name: "Conversation", exact: true }),
-    ).not.toBeVisible();
-    await expect(
-      page.getByLabel("Continue the conversation", { exact: true }),
-    ).toBeVisible();
+    const box = page.getByLabel("Ask, or ask for a change", { exact: true });
+    if (width === 320) {
+      await expect(box).not.toBeVisible();
+      await page
+        .getByRole("button", { name: "Conversation", exact: true })
+        .click();
+    }
+    await expect(box).toBeVisible();
+    await expect(page.getByTestId("reply-about")).toContainText(
+      "About: Synthetic service launch offer",
+    );
+    if (width === 320)
+      await page.getByRole("button", { name: "Work", exact: true }).click();
     const workBox = await surface.boundingBox();
-    const chatBox = await page
-      .getByRole("region", { name: "Space conversation", exact: true })
-      .boundingBox();
-    assert.ok(workBox.y < chatBox.y);
     assert.ok(workBox.x >= 0 && workBox.x + workBox.width <= width + 1);
     await page.screenshot({
       path: path.join(directory, `accepted-space-${width}.png`),
@@ -331,9 +328,7 @@ try {
   assert.equal(multiple.artifact_ids.length, 2);
   const tableId = multiple.artifact_ids.find((id) => id !== aid);
   await page.goto(spaceURL);
-  await page
-    .getByRole("combobox", { name: "Work to read" })
-    .selectOption(tableId);
+  await page.locator(`.space-work-item[data-artifact="${tableId}"]`).click();
   const nextAction = surface.getByText(
     "Interview three prospective clients before quoting a fixed fee.",
     { exact: true },
@@ -356,7 +351,7 @@ try {
     path: path.join(directory, "table-space-320.png"),
     fullPage: true,
   });
-  await page.getByRole("combobox", { name: "Work to read" }).selectOption(aid);
+  await page.locator(`.space-work-item[data-artifact="${aid}"]`).click();
   await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
   evidence.push({
     multiple_artifact_selection: true,
@@ -379,29 +374,26 @@ try {
     .click();
   await expect(page).toHaveURL(spaceURL);
   await expect(page.getByText(/Develop a bounded offer/).first()).toBeVisible();
-  await page.getByRole("combobox", { name: "Work to read" }).selectOption(aid);
-  await expect(
-    page.getByRole("link", {
-      name: "Synthetic service launch offer",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await page.locator(`.space-work-item[data-artifact="${aid}"]`).click();
+  await expect(surface.getByRole("heading", { level: 2 })).toHaveText(
+    "Synthetic service launch offer",
+  );
   await page.screenshot({
     path: path.join(directory, "reopen-mobile.png"),
     fullPage: true,
   });
   await page.goto(`${fixture.web}/spaces`);
-  await page.getByRole("button", { name: "New Space", exact: true }).click();
+  await page.getByRole("button", { name: "New project", exact: true }).click();
+  await page.getByLabel("Name", { exact: true }).fill("Human-created workflow");
   await page
-    .getByLabel("Space title", { exact: true })
-    .fill("Human-created workflow");
-  await page
-    .getByLabel("Goal", { exact: true })
+    .getByLabel("What it’s for", { exact: true })
     .fill("Prepare a reusable weekly offer review");
   await page
-    .getByRole("combobox", { name: "Space kind", exact: true })
+    .getByRole("combobox", { name: "Kind", exact: true })
     .selectOption("workflow");
-  await page.getByRole("button", { name: "Create Space", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Create project", exact: true })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Human-created workflow", exact: true }),
   ).toBeVisible();

@@ -22,6 +22,7 @@ import { ConversationPeek } from "@/components/ConversationPeek";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { WorkSurface } from "@/components/WorkSurface";
 import { ProductView } from "@/components/ProductView";
+import { areaHref } from "@/lib/client/work-areas";
 import { FlexibleEditor, type Bound } from "@/components/FlexibleWork";
 import { flexibleKind, isFlexible, type CustomView } from "@/lib/flexible";
 import type { ConversationDetailView } from "@/lib/contract/types";
@@ -187,9 +188,15 @@ export default function ProductPage() {
   );
   return (
     <div className="doc-page product-page">
-      <Link className="back-link" href={`/conversations/${id}`}>
-        ← Back to conversation
-      </Link>
+      {resource.data?.conversation.conversation.work_area && ws ? (
+        <Link className="back-link" href={areaHref(ws, id)}>
+          ← {resource.data.conversation.conversation.work_area.title}
+        </Link>
+      ) : (
+        <Link className="back-link" href={`/conversations/${id}`}>
+          ← Back to conversation
+        </Link>
+      )}
       {resource.error ? <ErrorNotice error={resource.error} /> : null}
       {!resource.data ? (
         resource.error ? (

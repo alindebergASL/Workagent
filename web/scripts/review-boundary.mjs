@@ -15,19 +15,20 @@ const entry = `
 import React from 'react';
 import {createRoot} from 'react-dom/client';
 import Home from '@/app/page';
-import {SpaceWork} from '@/components/WorkAreas';
+import {SpaceView} from '@/components/SpaceView';
 import {useHolds} from '@/lib/client/responsibility';
 import {adaptivePresentation} from '@/lib/adaptive-presentation';
 import {turnProgress} from '@/lib/contract/natural';
 import fixture from '${path.join(web, "test/fixtures/recording-turn.json")}';
 window.mode='absent';window.calls=[];window.scope={ws:'w',ids:['a']};
-window.space={ws:'w',id:'c',artifactIds:['a'],versionKey:'v1'};
+window.space={ws:'w',id:'c',artifactIds:['a']};
+window.spaceDetail=()=>({conversation:{id:window.space.id,title:'Synthetic project',state:'open',work_version:1,work_area:{title:'Synthetic project',goal:'Synthetic goal',kind:'project',origin:'human'}},messages:[],turns:[],artifact_ids:window.space.artifactIds,assignment_ids:[]});
 window.revision='r1';
 window.item={id:'a',title:'Synthetic venue responsibility',conversation_id:'c',state:'paused',lifecycle:'paused',needs_review_artifact_ids:[],responsibility:null};
 window.detail=()=>({assignment:{...window.item,goal:'Synthetic venue responsibility',work_version:3},lifecycle:{state:window.mode==='closed'?'taken_over':'active',execution_status:window.mode==='running'?'running':'not_admitted',outcome_status:'unverified',dependencies:[],review_required:false,check_in_due:false,current_outcome:'Synthetic',next_action:{kind:'continue_work',description:'Synthetic'},wait:null}});
 function Holds(){const r=useHolds(window.scope.ws,window.scope.ids);return <pre id="holds">{JSON.stringify(r.holds)}</pre>}
 const root=createRoot(document.getElementById('root'));
-window.mount=(kind='holds')=>root.render(kind==='space'?<SpaceWork {...window.space}/>:kind==='home'?<Home/>:<Holds/>);
+window.mount=(kind='holds')=>root.render(kind==='space'?<SpaceView key={window.space.ws+':'+window.space.id} ws={window.space.ws} id={window.space.id}/>:kind==='home'?<Home/>:<Holds/>);
 window.unmount=()=>root.render(null);
 window.present=()=>adaptivePresentation('replied',turnProgress(fixture));
 `;
@@ -44,7 +45,8 @@ const mocks = {
  return window.detail();},POST:()=>{throw new Error('FORBIDDEN WRITE')}};
  export const unwrap=x=>x;export const meta=()=>({});export const command=()=>({});
  export const all=async fetch=>(await fetch()).items;
- export const rawAssignment=async()=>({...window.item,goal:'Synthetic venue responsibility'});`,
+ export const rawAssignment=async()=>({...window.item,goal:'Synthetic venue responsibility'});
+ export const conversationApi={get:async(ws,id)=>{window.calls.push({method:'GET',path:'/work-areas/{conversation_id}',ws});return window.spaceDetail();}};`,
   "@/lib/client/api":
     "export const API_MODE='real';export const newCommandId=()=>crypto.randomUUID();",
   "@/lib/client/workspace":
@@ -59,7 +61,10 @@ const mocks = {
   "next/link":
     "import React from 'react';export default function Link(p){return React.createElement('a',p);}",
   "next/navigation":
-    "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')}});",
+    "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')},replace:()=>{}});export const usePathname=()=>'/spaces/w/work/c';export const useSearchParams=()=>new URLSearchParams('');",
+  "@/components/ConversationPeek": "export const ConversationPeek=()=>null;",
+  "@/lib/client/capabilities":
+    "export const CAPABILITIES={conversation:true,delegateWithoutContext:false,naturalAdmission:true};",
 };
 const bundle = await build({
   root: web,
@@ -105,6 +110,9 @@ const code = (Array.isArray(bundle) ? bundle[0] : bundle).output.find(
 const browser = await chromium.launch({
   headless: true,
   args: ["--no-sandbox"],
+  ...(process.env["PLAYWRIGHT_CHROMIUM_PATH"]
+    ? { executablePath: process.env["PLAYWRIGHT_CHROMIUM_PATH"] }
+    : {}),
 });
 const results = [];
 async function run(name, fn) {
@@ -147,10 +155,12 @@ async function run(name, fn) {
 }
 try {
   await run(
-    "SpaceWork reads settle and explicit changes refresh",
+    "SpaceView reads settle; a refresh or a new scope rereads, bounded",
     async (p) => {
       const counts = () =>
         p.evaluate(() => ({
+          detail: window.calls.filter((x) => x.path.includes("/work-areas/"))
+            .length,
           artifacts: window.calls.filter((x) =>
             x.path.endsWith("/{artifact_id}"),
           ).length,
@@ -163,14 +173,14 @@ try {
         await delay(300);
         const second = await counts();
         console.log(
-          JSON.stringify({ probe: "SpaceWork unchanged props", first, second }),
+          JSON.stringify({ probe: "SpaceView unchanged", first, second }),
         );
         assert.deepEqual(
           second,
           first,
-          "unchanged props must not continuously reread",
+          "an idle project must not keep rereading",
         );
-        assert.ok(first.artifacts > 0 && first.artifacts === first.proposals);
+        assert.ok(first.artifacts === first.proposals);
         return second;
       };
       await p.evaluate(() => window.mount("space"));
@@ -179,59 +189,38 @@ try {
         "r1",
       );
       const initial = await settle();
-      assert.ok(
-        initial.artifacts <= 2,
-        "bounded initial load plus explicit refresh",
-      );
+      assert.deepEqual(initial, { detail: 1, artifacts: 1, proposals: 1 });
       await p.evaluate(() => {
         window.space.artifactIds = ["a"];
         window.mount("space");
       });
-      assert.deepEqual(
-        await settle(),
-        initial,
-        "same values with new array must not reread",
-      );
+      assert.deepEqual(await settle(), initial, "a re-render must not reread");
       await p.evaluate(() => {
         window.revision = "r2";
-        window.space.versionKey = "v2";
-        window.mount("space");
       });
+      await p.getByRole("button", { name: "Refresh this project" }).click();
       await expect(p.locator('[data-artifact-id="a"]')).toHaveAttribute(
         "data-revision-id",
         "r2",
       );
-      const version = await settle();
-      assert.deepEqual(version, {
-        artifacts: initial.artifacts + 1,
-        proposals: initial.proposals + 1,
-      });
+      const refreshed = await settle();
+      assert.deepEqual(refreshed, { detail: 2, artifacts: 2, proposals: 2 });
       await p.evaluate(() => {
         window.space.artifactIds = ["b"];
-        window.mount("space");
       });
+      await p.getByRole("button", { name: "Refresh this project" }).click();
       await expect(p.locator('[data-artifact-id="b"]')).toHaveAttribute(
         "data-revision-id",
         "r2",
       );
-      const artifact = await settle();
-      assert.deepEqual(artifact, {
-        artifacts: version.artifacts + 1,
-        proposals: version.proposals + 1,
-      });
-      await p.evaluate(() => {
-        window.revision = "r3";
-      });
-      await p.getByRole("button", { name: "Refresh saved work" }).click();
-      await expect(p.locator('[data-artifact-id="b"]')).toHaveAttribute(
-        "data-revision-id",
-        "r3",
+      const moved = await settle();
+      assert.equal(moved.detail, 3);
+      // The old list may be re-read once alongside; the new one once.
+      assert.ok(moved.artifacts - refreshed.artifacts <= 2);
+      assert.equal(
+        await p.evaluate(() => window.calls.filter((x) => x.aid).at(-1).aid),
+        "b",
       );
-      const manual = await settle();
-      assert.deepEqual(manual, {
-        artifacts: artifact.artifacts + 1,
-        proposals: artifact.proposals + 1,
-      });
       await p.evaluate(() => {
         window.space.ws = "other";
         window.revision = "r4";

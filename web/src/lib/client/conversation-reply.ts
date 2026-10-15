@@ -204,5 +204,10 @@ export function useConversationReply({
     canSend,
     /** An earlier send's outcome is unknown; only an exact replay is offered. */
     uncertain: Boolean(cmd.current) && !sending,
+    /**
+     * The saved version an unconfirmed send is about (null: none), frozen
+     * with it; undefined when no send is in doubt.
+     */
+    pendingTarget: cmd.current ? (cmd.current.target ?? null) : undefined,
   };
 }

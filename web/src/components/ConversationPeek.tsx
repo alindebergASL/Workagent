@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useConversationReply } from "@/lib/client/conversation-reply";
 import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
@@ -97,15 +97,41 @@ export function ConversationPeek({
   refreshWork,
   target,
   unsavedEdits = false,
+  about,
+  placeholder = "Reply about this work…",
+  eyebrow = "From the conversation",
+  idleHint = "Ask about this work or ask for a change.",
+  compact = false,
+  held: heldByPage = false,
 }: {
   conversation: ConversationDetailView;
-  artifactId: string;
+  /** The work shown beside this pane, if one is. */
+  artifactId?: string;
   wsId: string;
   refreshWork: () => Promise<unknown>;
-  /** The exact saved version a reply is about; undefined on older backends. */
-  target?: ExactTarget;
+  /**
+   * The exact saved version a reply is about. Null: deliberately about none
+   * (a reply about the whole project). Undefined: this build can't name a
+   * version, so a reply is held until sent deliberately as a general message.
+   */
+  target?: ExactTarget | null;
   /** Edits in the working copy that a reply does not include. */
   unsavedEdits?: boolean;
+  /** What a reply is about, shown with the reply box. */
+  about?: (pendingTarget: ExactTarget | null | undefined) => ReactNode;
+  placeholder?: string;
+  eyebrow?: string;
+  idleHint?: string;
+  /**
+   * Fewer messages, each reply's recorded outcome and run details folded
+   * away (the surrounding page says what needs the person).
+   */
+  compact?: boolean;
+  /**
+   * The page around this pane can't confirm what it shows (for example, a
+   * project that can't be re-read); sending is held as if this pane couldn't.
+   */
+  held?: boolean;
 }) {
   const cid = initial.conversation.id;
   const res = useResource<ConversationDetailView>(
@@ -119,14 +145,22 @@ export function ConversationPeek({
     res.error?.code === "not_found_or_not_authorized" ||
     res.error?.code === "unauthenticated";
   // A recoverable failure keeps a labelled snapshot, with sending held.
-  const staleRead = res.reconnecting || Boolean(res.error && !res.data);
+  const staleRead =
+    heldByPage || res.reconnecting || Boolean(res.error && !res.data);
   const d = res.data ?? initial;
   const open = d.conversation.state === "open";
+  // After a send, the work beside this pane is re-read too: a project's
+  // standing depends on the new turn.
+  const refreshConversation = res.refresh;
+  const refreshBoth = useCallback(
+    () => Promise.all([refreshConversation(), refreshWork()]),
+    [refreshConversation, refreshWork],
+  );
   const reply = useConversationReply({
     wsId,
     cid,
     version: d.conversation.work_version,
-    refresh: res.refresh,
+    refresh: refreshBoth,
     target,
     // Files go with a reply only where a reply names its exact version.
     attach: target !== undefined,
@@ -160,7 +194,7 @@ export function ConversationPeek({
   // name the version it's about. It is held until the person sends it
   // deliberately as a general message; it never goes by Enter or submit.
   const unlinked = target === undefined;
-  const recent = d.messages.slice(-8);
+  const recent = d.messages.slice(compact ? -6 : -8);
   // Each request's own turn shows under it. A turn that isn't resolved and
   // whose request isn't shown here still gets a line: the latest in full
   // (it may have no request to anchor to), older ones as a link into the
@@ -193,7 +227,7 @@ export function ConversationPeek({
   if (revoked)
     return (
       <div className="agent-pane conversation stack">
-        <p className="eyebrow-caps">From the conversation</p>
+        <p className="eyebrow-caps">{eyebrow}</p>
         <p className="notice-line" role="status" data-testid="peek-revoked">
           This conversation isn’t available to you any more, so nothing from it
           is shown here.
@@ -201,9 +235,13 @@ export function ConversationPeek({
       </div>
     );
   return (
-    <div className="agent-pane conversation stack">
-      <p className="eyebrow-caps">From the conversation</p>
-      <p className="small muted clamp-2">{d.conversation.title}</p>
+    <div
+      className={`agent-pane conversation stack${compact ? " compact" : ""}`}
+    >
+      <p className="eyebrow-caps">{eyebrow}</p>
+      {about ? null : (
+        <p className="small muted clamp-2">{d.conversation.title}</p>
+      )}
       <ol className="thread" aria-label="Recent conversation">
         {recent.map((m) => (
           <li key={m.id} className={`msg msg-${m.author}`}>
@@ -236,7 +274,7 @@ export function ConversationPeek({
               {m.author === "person" ? (
                 <SentFiles files={m.attachments} />
               ) : null}
-              {m.author === "agent" ? (
+              {m.author === "agent" && !compact ? (
                 <TurnOutcome
                   state={
                     d.turns.find((t) => t.run_id === m.run_id)?.state ??
@@ -247,7 +285,8 @@ export function ConversationPeek({
                   }
                 />
               ) : null}
-              {m.products?.some((p) => p.artifact_id === artifactId) ? (
+              {artifactId &&
+              m.products?.some((p) => p.artifact_id === artifactId) ? (
                 <span className="msg-tag">This work</span>
               ) : null}
               {m.author === "agent" ? (
@@ -261,11 +300,31 @@ export function ConversationPeek({
                     }
                     names={names}
                   />
-                  <TurnProgressDetails
-                    progress={
-                      d.turns.find((t) => t.run_id === m.run_id)?.progress
-                    }
-                  />
+                  {compact ? (
+                    <details className="ids-details">
+                      <summary>Details</summary>
+                      <TurnOutcome
+                        state={
+                          d.turns.find((t) => t.run_id === m.run_id)?.state ??
+                          "replied"
+                        }
+                        progress={
+                          d.turns.find((t) => t.run_id === m.run_id)?.progress
+                        }
+                      />
+                      <TurnProgressDetails
+                        progress={
+                          d.turns.find((t) => t.run_id === m.run_id)?.progress
+                        }
+                      />
+                    </details>
+                  ) : (
+                    <TurnProgressDetails
+                      progress={
+                        d.turns.find((t) => t.run_id === m.run_id)?.progress
+                      }
+                    />
+                  )}
                 </>
               ) : null}
               {(() => {
@@ -321,13 +380,14 @@ export function ConversationPeek({
           }}
         >
           <label htmlFor="peek-reply" className="sr-only">
-            Reply about this work
+            {placeholder.replace(/…$/, "")}
           </label>
+          {about ? about(reply.pendingTarget) : null}
           <textarea
             id="peek-reply"
             value={reply.text}
             onChange={(e) => reply.setText(e.target.value)}
-            placeholder="Reply about this work…"
+            placeholder={placeholder}
             rows={2}
             disabled={reply.sending || reply.uncertain}
             onKeyDown={(e) => {
@@ -370,7 +430,7 @@ export function ConversationPeek({
                   ? "Your unsaved edits aren’t included. Replies work from your saved version."
                   : unlinked
                     ? "Nothing is sent until you choose to."
-                    : "Ask about this work or ask for a change."}
+                    : idleHint}
             </span>
             {unlinked ? (
               <button
