@@ -50,9 +50,12 @@ conversation read back identically via HTTP API and via the browser UI
 
 ## Budget and next work
 
-Operator aggregate checkpoint: encumbrance 25.408720 + new live reservations
-0.65960 = 26.068320 of 40; the grant ceiling 12.136640 caps shared project
-reservation. Two old unknown count attempts remain quarantined; 63e52832
+Corrected operator aggregate: 25.408720 historical nonrefundable encumbrance +
+the FULL 04 allocation 2.638400 = 28.047120 of 40 (not 26.068320; used
+reservations do not replace allocations). Unactivated 11.952880. Read-only
+historical union reconciled: 77 generations/79 counts/596 reads/0 cancels,
+10.157840 reserved including 3.429920 carry. The 04 grant ceiling 12.136640
+caps shared project reservation. Two old unknown count attempts remain quarantined; 63e52832
 malformed final remains terminal. No cancels.
 
 Next: merged web-owner slice (ed5cd7e execution views) integration + frontend
@@ -62,6 +65,19 @@ proof); cross-conversation scoped context; due-condition responsibility
 advance; then different-model/multi-persona milestone review and authenticated
 alpha access. Frozen worker SIGKILL/state-preservation evidence retained in
 supervision-verification.json.
+
+Iteration 2 continuation implementation (not yet activated): additive 028 permits
+explicit owner-installed same-scope/same-route alpha successor grants for NEW
+turns, while old grants/configurations/attempts/receipts stay immutable. No budget
+reset. Atomic predecessor revocation and immutable lineage prevent implicit resets,
+forks and route/scope expansion. Independent Astra review found one P2 wrong-profile
+successor bypass; reproduced 2 RED cases, fixed both API/SQL and reran:
+154 PASS (continuation-reviewed-regressions.xml), 73 PASS
+(continuation-service-regressions-verified.xml). Includes fresh prefix migration,
+unknown-count quarantine, shared budget, replay and authority tests. A 300s run
+was incomplete, not PASS; an env-missing invocation was setup ERROR, rerun above.
+Owner e9a2df9 unsaved-tab guard merged; frontend279 PASS + webpack PASS.
+Current source needs a freshly pinned bounded grant before worker restart.
 
 Historical evidence (scope/failures retained, not current instructions):
 docs/OVERNIGHT_20261015_BATCH4.md. Private receipts/service config:

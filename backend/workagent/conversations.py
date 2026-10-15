@@ -85,7 +85,7 @@ class Conversations:
         messages=self._conversation_messages(c,ws,cv.id)
         cv.updated_at=messages[-1].created_at if messages else cv.created_at
         cv.last_message_preview=messages[-1].text[:240] if messages else None
-        activation=c.execute("SELECT active FROM provider_grants WHERE workspace_id=%s AND data->>'profile'='general-responses-v1' AND data->'responses'->'conversation_ids' ? %s",(ws,cv.id)).fetchone()
+        activation=c.execute("SELECT active FROM provider_grants WHERE workspace_id=%s AND data->>'profile'='general-responses-v1' AND data->'responses'->'conversation_ids' ? %s ORDER BY active DESC,id LIMIT 1",(ws,cv.id)).fetchone()
         if activation:
             cv.execution_profile='general-responses-v1'
             cv.model_activation='active' if activation['active'] else 'revoked'

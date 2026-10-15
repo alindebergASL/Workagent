@@ -102,8 +102,9 @@ def admission(service,c,p,ws,cv,cmd):
     if not scoped:
         if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
         return None
-    if len(scoped)!=1 or not scoped[0]['active']: raise DomainError('action_unresolved')
-    grant=ProviderGrant.model_validate(scoped[0]['data']); validate_grant(grant,c)
+    active=[r for r in scoped if r['active']]
+    if len(active)!=1: raise DomainError('action_unresolved')
+    grant=ProviderGrant.model_validate(active[0]['data']); validate_grant(grant,c)
     if cmd.acceptance_checks is not None and getattr(grant.responses,'policy_version',None)!='adaptive-local-v1':
         raise DomainError('unsupported_operation')
     if cv.selected_source_refs: raise DomainError('unsupported_operation')

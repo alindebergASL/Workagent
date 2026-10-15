@@ -19,15 +19,20 @@ def _owner(c):
         raise BundleDenied('migration identity required')
 
 
-def configure_grant(db,grant,*,route_record=None):
-    """Operator only; scoped to one principal/workspace, <=10 runs and <=1 hour.
+def configure_grant(db,grant,*,route_record=None,predecessor_id=None):
+    """Operator only; scoped to one principal/workspace and explicit run bounds.
 
     Does not approve task effects, override source grants, or install a consumer.
     An expired/exhausted active grant blocks admission rather than falling back.
+    Explicit alpha continuation revokes its predecessor atomically. Only NEW
+    turns use the new grant; old attempts/configurations are never rebound.
     """
     from .service import encoded
     from .runtime_config import BundleDenied
     grant=ProviderGrant.model_validate(grant)
+    if predecessor_id is not None and (grant.profile!='general-responses-v1'
+            or getattr(grant.responses,'runtime_extension',None)!='general-alpha-v1'):
+        raise BundleDenied('alpha successor required')
     if grant.profile=='general-responses-v1':
         from .general_responses import validate_grant
         validate_grant(grant)
@@ -39,6 +44,15 @@ def configure_grant(db,grant,*,route_record=None):
     with db.transaction() as c:
         _owner(c)
         c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(grant.workspace_id,))
+        if predecessor_id is not None:
+            predecessor=c.execute('SELECT workspace_id,principal_id FROM provider_grants WHERE id=%s',
+                                  (predecessor_id,)).fetchone()
+            if (not predecessor or predecessor['workspace_id']!=grant.workspace_id
+                    or predecessor['principal_id']!=grant.principal_id):
+                raise BundleDenied('exact predecessor scope required')
+            c.execute('INSERT INTO general_grant_continuations(successor_id,predecessor_id) VALUES (%s,%s)',
+                      (grant.id,predecessor_id))
+            c.execute('UPDATE provider_grants SET active=false WHERE id=%s AND active',(predecessor_id,))
         c.execute('INSERT INTO provider_grants(id,workspace_id,principal_id,data) VALUES (%s,%s,%s,%s)',
                   (grant.id,grant.workspace_id,grant.principal_id,encoded(grant)))
     with db.transaction() as c:
