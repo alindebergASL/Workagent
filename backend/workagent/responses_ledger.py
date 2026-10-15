@@ -273,6 +273,20 @@ def restore_result(data,request):
 
 def observations(c,attempt_id):
     from .models import ResponseStepObservation
+    # Mirror the immutable explicit-target equality gate in general_responses.
+    # A parsed call that cannot pass that gate is not pending provider work.
+    # This is read-only classification: never rewrite/settle the received result,
+    # release its reservation, retry it, or broaden the selected target.
+    message=c.execute("SELECT m.data->'target' target,m.author_kind,rc.data config FROM conversation_messages m "
+                      'JOIN provider_attempts a ON a.workspace_id=m.workspace_id AND a.run_id=m.run_id '
+                      'JOIN run_configurations rc ON rc.workspace_id=a.workspace_id AND rc.run_id=a.run_id '
+                      "WHERE a.id=%s AND m.author_kind IN ('human','system')",(attempt_id,)).fetchone()
+    target=message['target'] if message else None
+    from .selection_policy import companion_view, companion_enabled
+    # Only the new policy permits companion creation. Historical denied receipts
+    # keep their original classification; this is not retrospective authority.
+    config=message['config'] if message else {}
+    companion_policy=companion_enabled(config)
     steps=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY CASE phase WHEN \'final\' THEN 1 ELSE 0 END,phase',(attempt_id,)).fetchall()
     result=[]
     for step in steps:
@@ -282,6 +296,13 @@ def observations(c,attempt_id):
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
         if e.get('problem',{}).get('received') and not receipt: state='invalid'
+        decision=(receipt.get('value') or {}).get('decision',{})
+        if (target is not None and receipt.get('state')=='function_call' and 'tool_result' not in e
+                and decision.get('kind') in ('publish_artifact','reconcile_csv','run_wasm')
+                and decision.get('target')!=target
+                and not companion_view(decision,target,author_kind=message['author_kind'],
+                    alpha=companion_policy,responsibility=bool(config.get('responsibility')))):
+            state='invalid'
         cost=(Decimal(usage['input_tokens'])*Decimal('2.5')+Decimal(usage['output_tokens'])*Decimal('10'))/Decimal(1000000) if usage else None
         result.append(ResponseStepObservation(phase=step['phase'],state=state,response_id=identity.get('response_id'),
             reported_input_tokens=usage['input_tokens'] if usage else None,reported_output_tokens=usage['output_tokens'] if usage else None,

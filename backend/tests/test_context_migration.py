@@ -35,7 +35,7 @@ def test_actual_request_keeps_full_tool_schema_without_duplicate_in_context(cont
     assert offered['messages'][0]['text']=='Explain a reversible decision.'
 
 
-@pytest.mark.parametrize('cutoff',['029','030'])
+@pytest.mark.parametrize('cutoff',['029','030','031'])
 def test_prefix_upgrade_preserves_authority_and_history(tmp_path,monkeypatch,cutoff):
     from dev_db import provision
     from test_domain import context as fixture

@@ -20,7 +20,7 @@ def consumer_hash():
     from .service import digest
     names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'composition.py','saved_work.py','work_context.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'composition.py','selection_policy.py','saved_work.py','work_context.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -181,8 +181,13 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
         operation=None
     else:
         selected=decision.target
+        from .selection_policy import companion_view, companion_enabled
+        companion=companion_view(decision.model_dump(mode='json'),
+            message.target.model_dump(mode='json') if message.target else None,
+            author_kind=message.author_kind,alpha=companion_enabled(config),
+            responsibility=bool(config.get('responsibility')))
         if message.target is not None or message.author_kind!='human' or not alpha_enabled(config):
-            if (selected.model_dump() if selected else None)!=(message.target.model_dump() if message.target else None):
+            if not companion and (selected.model_dump() if selected else None)!=(message.target.model_dump() if message.target else None):
                 raise DomainError('not_found_or_not_authorized')
         elif selected is not None:
             # Offered by the immutable first run snapshot, not arbitrary workspace
@@ -193,6 +198,8 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
                 authorize(context,message,selected)
                 if not was_read(c,attempt.id,phase,selected):
                     raise DomainError('not_found_or_not_authorized')
+        # A companion has an exact source above, but no mutation base: it creates
+        # a separate read-only view. The broker rechecks every source binding.
         base=exact_target(service,c,p,run.workspace_id,cv,selected)
         target={'artifact_id':selected.artifact_id,'base_revision_id':selected.revision_id} if selected else {}
         if isinstance(decision,PublishDecision):

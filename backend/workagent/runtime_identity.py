@@ -11,8 +11,13 @@ from pathlib import Path
 
 def manifest(root):
     root=Path(root)
+    # export_contracts.py writes canonical JSON at this level. npm-installed
+    # tooling, TypeScript build settings and illustrative examples aren't domain
+    # authority and must not make a frontend-only install look like a new runtime.
+    contracts=[p for p in root.glob('contracts/*.json')
+               if p.name not in ('package.json','package-lock.json','tsconfig.json','examples.json')]
     files=sorted([*root.glob('backend/workagent/*.py'),*root.glob('backend/migrations/*.sql'),
-        *root.glob('backend/requirements*.txt'),*root.glob('contracts/**/*.json')])
+        *root.glob('backend/requirements*.txt'),*contracts])
     if not files:raise ValueError('runtime files missing')
     hashes={str(p.relative_to(root)):sha256(p.read_bytes()).hexdigest() for p in files}
     canonical=json.dumps(hashes,sort_keys=True,separators=(',',':')).encode()
