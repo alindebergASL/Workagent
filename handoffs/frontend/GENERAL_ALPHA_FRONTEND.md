@@ -771,6 +771,24 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
     code. Plus a unit test. The worker can't publish files, so there is no
     real-service file case.
 
+**From Hermes's focused re-review of `48272f3` (comment 6182957865), fixed:**
+
+- **The bug.** When a background refresh changed the project's list of work
+  (a different list re-reads all work from scratch) while that re-read was
+  slow, a person's chosen work briefly resolved to nothing. The reply box
+  then said "the whole project", and Ctrl+Enter sent `target: null`.
+- **The fix.** A choice (`?work=`) stays the person's while its work is
+  re-read. It is shown as last read, and sending is paused by button, keys
+  and submit: "Checking the work you chose before sending. Your draft is
+  kept." (`ConversationPeek` `paused`). If the chosen work is really gone,
+  the box says so, and the person chooses again or picks the whole project.
+  Missing or reloading data never reads as the whole project.
+- **The regression** (new case 5). A refresh returns the same work in a new
+  order while work reads are held; Ctrl+Enter is pressed. It fails on the
+  previous code (a send went out); it passes now (nothing sent, still about
+  the chosen work, which is then sent with its exact version in the next
+  case).
+
 **Hermes-owned scripts I changed because they test this UI** (selectors
 only; their checks keep the same intent):
 
@@ -782,7 +800,7 @@ only; their checks keep the same intent):
   bounded. 12/12 pass.
 
 **Evidence (real UI, API and PostgreSQL)** — `web/scripts/space-experience.mjs`,
-12 cases, on example projects written beforehand by the real worker with the
+13 cases, on example projects written beforehand by the real worker with the
 synthetic provider transport (`web/scripts/space_demo_fixture.py`):
 
 - a two-day workshop with a plan, a budget, a proposed catering change, a
