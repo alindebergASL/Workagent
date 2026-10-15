@@ -36,7 +36,7 @@ test("An unsent request survives pane switches and a reload @journey", async ({
   await page
     .getByRole("link", { name: "Open plan" })
     .click({ timeout: 30_000 });
-  await page.waitForURL(/\/artifacts\/[^/]+$/);
+  await page.waitForURL(/\/artifacts\/[^/?]+(?:\?[^#]*)?$/);
   const artifactId = new URL(page.url()).pathname.split("/").pop()!;
   await showAgent(page);
 

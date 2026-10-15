@@ -128,7 +128,9 @@ try {
   const first = "Help me think about how to plan next week.";
   await page.getByLabel("Message your agent").fill(first);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await page.waitForURL(/\/conversations\/[^/?]+$/, { timeout: 15000 });
+  await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/, {
+    timeout: 15000,
+  });
   const cid = new URL(page.url()).pathname.split("/").pop();
   record.conversation_id = cid;
   const thread = page.getByRole("list", { name: "Conversation" });
@@ -352,7 +354,7 @@ try {
   );
   await expect(page.getByLabel("Message your agent")).toBeDisabled();
   await page.getByRole("button", { name: "Retry same request" }).click();
-  await page.waitForURL(/\/conversations\/[^/]+\?handover=1$/, {
+  await page.waitForURL(/\/conversations\/[^/]+\?handover=1(?:&[^#]*)?$/, {
     timeout: 15000,
   });
   await expect(
@@ -485,7 +487,9 @@ try {
   const editedText = "Draft the agenda with time for questions.";
   await homeBox.fill(editedText);
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await page.waitForURL(/\/conversations\/[^/?]+$/, { timeout: 15000 });
+  await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/, {
+    timeout: 15000,
+  });
   const refusedCid = new URL(page.url()).pathname.split("/").pop();
   expect((await api("/conversations")).body.items.length).toBe(listBefore + 1);
   const humanTexts = (await api(`/conversations/${refusedCid}`)).body.messages

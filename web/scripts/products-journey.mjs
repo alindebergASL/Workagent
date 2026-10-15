@@ -58,7 +58,7 @@ try {
     await page.goto(origin);
     await page.getByLabel("Message your agent").fill(text);
     await page.getByRole("button", { name: "Send", exact: true }).click();
-    await page.waitForURL(/\/conversations\/[^/?]+$/);
+    await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/);
     const cid = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
     return cid;
@@ -82,7 +82,9 @@ try {
   await page
     .getByRole("link", { name: "Open table", exact: true })
     .click({ timeout: 15000 });
-  await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
+  await page.waitForURL(
+    /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
+  );
   const tableURL = page.url();
   const tableId = tableURL.split("/").pop();
   report.table_id = tableId;
@@ -216,7 +218,9 @@ try {
   await page
     .getByRole("link", { name: "Open tool", exact: true })
     .click({ timeout: 15000 });
-  await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
+  await page.waitForURL(
+    /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
+  );
   const toolURL = page.url();
   const toolId = toolURL.split("/").pop();
   report.tool_id = toolId;

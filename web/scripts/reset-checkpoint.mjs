@@ -118,7 +118,9 @@ try {
         page.getByRole("button", { name: "Your context · 1 source" }),
       ).toBeVisible();
       await page.getByRole("button", { name: "Take it from here" }).click();
-      await page.waitForURL(/\/assignments\/[^/]+$/, { timeout: 15000 });
+      await page.waitForURL(/\/assignments\/[^/?]+(?:\?[^#]*)?$/, {
+        timeout: 15000,
+      });
       created = new URL(page.url()).pathname.split("/").pop();
       checks.delegated = (await api(`/assignments/${created}`)).state;
       // No dispatcher runs here, so the work stays queued: steerable.

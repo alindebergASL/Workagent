@@ -175,7 +175,7 @@ try {
     await p
       .getByRole("button", { name: "Retry same request", exact: true })
       .click();
-    await p.waitForURL(/\/assignments\/[^/]+$/);
+    await p.waitForURL(/\/assignments\/[^/?]+(?:\?[^#]*)?$/);
     expect(sent).toHaveLength(2);
     expect(sent[1]).toEqual(sent[0]);
     const assignmentId = new URL(p.url()).pathname.split("/").pop();
@@ -188,7 +188,7 @@ try {
       p.getByRole("link", { name: "Open plan", exact: true }),
     ).toBeVisible({ timeout: 15000 });
     await p.getByRole("link", { name: "Open plan", exact: true }).click();
-    await p.waitForURL(/\/artifacts\/[^/]+$/);
+    await p.waitForURL(/\/artifacts\/[^/?]+(?:\?[^#]*)?$/);
     const artifactUrl = new URL(p.url()).pathname,
       artifactId = new URL(p.url()).pathname.split("/").pop();
     await expect(p.getByText(/4 of 8 usable personal cases/)).toBeVisible();
