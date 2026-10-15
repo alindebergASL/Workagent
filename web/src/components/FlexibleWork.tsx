@@ -3,6 +3,7 @@ import Link from "next/link";
 import { scopedHref } from "@/lib/scope";
 import { useEffect, useMemo, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
+import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
 import { DocEdit, DocRead } from "@/components/DocBody";
 import { ObservedOutput } from "@/components/ObservedOutput";
@@ -214,6 +215,7 @@ export function FlexibleEditor({
     return out;
   }, [kind, savedNoteAuthors, draft.body, artifact.current_revision.body]);
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
+  useLeaveGuard(dirty || Boolean(draft.pending));
 
   function keep(next: Draft) {
     setDraft(next);
@@ -863,6 +865,7 @@ export function ViewInputs({
   } | null>(null);
   const viewBody = view.current_revision.body as CustomView;
   const pinned = pinsVersions(viewBody);
+  useLeaveGuard(Boolean(rebinding));
   const states = bindingStates(viewBody, bound);
   const behind = states.some((x) => x.state === "changed");
   const missing = states.some((x) => x.state === "unavailable");
@@ -1032,6 +1035,7 @@ function ViewInput({
     Boolean(draft.raw && Object.keys(draft.raw).length && problem) ||
     JSON.stringify(normal(draft.body)) !== JSON.stringify(normal(saved));
   const changed = draft.base !== table.current_revision_id;
+  useLeaveGuard(dirty || Boolean(draft.pending));
   function keep(next: Draft) {
     setDraft(next);
     store(key, next);
