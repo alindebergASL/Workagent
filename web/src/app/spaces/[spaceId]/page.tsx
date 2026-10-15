@@ -8,7 +8,7 @@ import { useResource } from "@/lib/client/hooks";
 import { useWorkOverview } from "@/lib/client/overview";
 import { useConversationWork } from "@/lib/client/conversation-work";
 import { conversationApi } from "@/lib/client/real-api";
-import { useWorkspace } from "@/lib/client/workspace";
+import { InWorkspace, useWorkspace } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
 import type { ConversationSummary, SourceDetail } from "@/lib/contract/types";
 import { formatTime } from "@/lib/time";
@@ -25,8 +25,12 @@ type Tab = "work" | "conversations" | "context";
 export default function SpacePage() {
   const { spaceId } = useParams<{ spaceId: string }>();
   const id = decodeURIComponent(spaceId);
-  const { workspaces, loading, zone } = useWorkspace();
+  const ctx = useWorkspace();
+  const { workspaces, loading } = ctx;
   const space = workspaces.find((w) => w.id === id) ?? null;
+  // Times read in this Space's own zone, unless this device's was chosen.
+  const zone =
+    ctx.zoneChoice === "local" || !space ? ctx.zone : space.display_time_zone;
   const [tab, setTab] = useState<Tab>("work");
   const overview = useWorkOverview(space ? space.id : null);
   // Workspace authorization boundary; project Spaces are canonical conversations.
@@ -74,139 +78,142 @@ export default function SpacePage() {
   }
 
   return (
-    <div className="agent-col" aria-labelledby="space-title">
-      <p className="context-line">
-        <span className="dot" aria-hidden="true" />
-        <Link href="/spaces">Spaces</Link> / {space?.name ?? "…"}
-      </p>
-      <header className="stack">
-        <p className="eyebrow-caps">
-          {space?.kind === "shared" ? "Shared space" : "Private · Your space"}
+    <InWorkspace ws={space?.id ?? null}>
+      <div className="agent-col" aria-labelledby="space-title">
+        <p className="context-line">
+          <span className="dot" aria-hidden="true" />
+          <Link href="/spaces">Spaces</Link> / {space?.name ?? "…"}
         </p>
-        <h1 id="space-title">{space?.name ?? "Loading…"}</h1>
-        <p className="lede">
-          Talk things through, hand work over, and keep the records it may use
-          in one place.
-        </p>
-      </header>
-      {space ? <WorkAreaList ws={space.id} /> : null}
-      <Composer
-        wsId={space?.id ?? null}
-        contextLabel={space?.name ?? "This space"}
-      />
-      <div className="tabs" role="tablist" aria-label="Space">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            role="tab"
-            id={`tab-${t.key}`}
-            aria-selected={tab === t.key}
-            aria-controls={`panel-${t.key}`}
-            className="tab"
-            onClick={() => setTab(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div
-        id="panel-work"
-        role="tabpanel"
-        aria-labelledby="tab-work"
-        hidden={tab !== "work"}
-      >
-        {overview.error && !overview.data ? (
-          <ErrorNotice error={overview.error} />
-        ) : null}
-        {overview.loading && !overview.data ? (
-          <p role="status">Loading work…</p>
-        ) : null}
-        {overview.data?.length === 0 && !made.data?.length ? (
-          <p className="muted">
-            Nothing here yet. Work you hand over or make in a conversation
-            appears here.
+        <header className="stack">
+          <p className="eyebrow-caps">
+            {space?.kind === "shared" ? "Shared space" : "Private · Your space"}
           </p>
-        ) : null}
-        <ul className="work-list">
-          {made.data
-            ?.filter((w) => w.decision)
-            .map((w) => (
-              <ConversationWorkRow
-                key={`${w.workspace_id}:${w.artifact_id}`}
-                w={w}
-                zone={zone}
-              />
-            ))}
-          {overview.data?.map((item) => (
-            <WorkRow key={item.id} item={item} hold={holds[item.id]} />
+          <h1 id="space-title">{space?.name ?? "Loading…"}</h1>
+          <p className="lede">
+            Talk things through, hand work over, and keep the records it may use
+            in one place.
+          </p>
+        </header>
+        {space ? <WorkAreaList ws={space.id} /> : null}
+        <Composer
+          wsId={space?.id ?? null}
+          contextLabel={space?.name ?? "This space"}
+        />
+        <div className="tabs" role="tablist" aria-label="Space">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              id={`tab-${t.key}`}
+              aria-selected={tab === t.key}
+              aria-controls={`panel-${t.key}`}
+              className="tab"
+              onClick={() => setTab(t.key)}
+            >
+              {t.label}
+            </button>
           ))}
-          {made.data
-            ?.filter((w) => !w.decision)
-            .map((w) => (
-              <ConversationWorkRow
-                key={`${w.workspace_id}:${w.artifact_id}`}
-                w={w}
-                zone={zone}
-              />
-            ))}
-        </ul>
-      </div>
+        </div>
 
-      {CAPABILITIES.conversation ? (
         <div
-          id="panel-conversations"
+          id="panel-work"
           role="tabpanel"
-          aria-labelledby="tab-conversations"
-          hidden={tab !== "conversations"}
+          aria-labelledby="tab-work"
+          hidden={tab !== "work"}
         >
-          {conversations.error && !conversations.data ? (
-            <ErrorNotice error={conversations.error} />
+          {overview.error && !overview.data ? (
+            <ErrorNotice error={overview.error} />
           ) : null}
-          {conversations.loading && !conversations.data ? (
-            <p role="status">Loading conversations…</p>
+          {overview.loading && !overview.data ? (
+            <p role="status">Loading work…</p>
           ) : null}
-          {conversations.data?.length === 0 ? (
-            <p className="muted">No conversations here yet.</p>
+          {overview.data?.length === 0 && !made.data?.length ? (
+            <p className="muted">
+              Nothing here yet. Work you hand over or make in a conversation
+              appears here.
+            </p>
           ) : null}
           <ul className="work-list">
-            {[...(conversations.data ?? [])]
-              .sort((a, b) => b.created_at.localeCompare(a.created_at))
-              .map((c) => (
-                <ConversationRow key={c.id} c={c} zone={zone} />
+            {made.data
+              ?.filter((w) => w.decision)
+              .map((w) => (
+                <ConversationWorkRow
+                  key={`${w.workspace_id}:${w.artifact_id}`}
+                  w={w}
+                  zone={zone}
+                />
+              ))}
+            {overview.data?.map((item) => (
+              <WorkRow key={item.id} item={item} hold={holds[item.id]} />
+            ))}
+            {made.data
+              ?.filter((w) => !w.decision)
+              .map((w) => (
+                <ConversationWorkRow
+                  key={`${w.workspace_id}:${w.artifact_id}`}
+                  w={w}
+                  zone={zone}
+                />
               ))}
           </ul>
         </div>
-      ) : null}
 
-      <div
-        id="panel-context"
-        role="tabpanel"
-        aria-labelledby="tab-context"
-        hidden={tab !== "context"}
-      >
-        <p className="hint">
-          Records you can use in this space now. Work uses the version shown.
-        </p>
-        {sources.error ? <ErrorNotice error={sources.error} /> : null}
-        {sources.loading && !sources.data ? (
-          <p role="status">Loading records…</p>
+        {CAPABILITIES.conversation ? (
+          <div
+            id="panel-conversations"
+            role="tabpanel"
+            aria-labelledby="tab-conversations"
+            hidden={tab !== "conversations"}
+          >
+            {conversations.error && !conversations.data ? (
+              <ErrorNotice error={conversations.error} />
+            ) : null}
+            {conversations.loading && !conversations.data ? (
+              <p role="status">Loading conversations…</p>
+            ) : null}
+            {conversations.data?.length === 0 ? (
+              <p className="muted">No conversations here yet.</p>
+            ) : null}
+            <ul className="work-list">
+              {[...(conversations.data ?? [])]
+                .sort((a, b) => b.created_at.localeCompare(a.created_at))
+                .map((c) => (
+                  <ConversationRow key={c.id} c={c} zone={zone} />
+                ))}
+            </ul>
+          </div>
         ) : null}
-        <ul className="work-list">
-          {sources.data?.map((s) => (
-            <li key={s.id} className="source-row">
-              <span className="work-row-title">{s.title}</span>
-              <span className="work-row-note">
-                Version {s.version} · checked {formatTime(s.observed_at, zone)}
-              </span>
-              <details className="ids-details">
-                <summary>Details</summary>
-                <p className="ids">Record {s.id}</p>
-              </details>
-            </li>
-          ))}
-        </ul>
+
+        <div
+          id="panel-context"
+          role="tabpanel"
+          aria-labelledby="tab-context"
+          hidden={tab !== "context"}
+        >
+          <p className="hint">
+            Records you can use in this space now. Work uses the version shown.
+          </p>
+          {sources.error ? <ErrorNotice error={sources.error} /> : null}
+          {sources.loading && !sources.data ? (
+            <p role="status">Loading records…</p>
+          ) : null}
+          <ul className="work-list">
+            {sources.data?.map((s) => (
+              <li key={s.id} className="source-row">
+                <span className="work-row-title">{s.title}</span>
+                <span className="work-row-note">
+                  Version {s.version} · checked{" "}
+                  {formatTime(s.observed_at, zone)}
+                </span>
+                <details className="ids-details">
+                  <summary>Details</summary>
+                  <p className="ids">Record {s.id}</p>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </div>
+    </InWorkspace>
   );
 }

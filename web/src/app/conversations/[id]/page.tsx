@@ -7,7 +7,9 @@ import { useResource } from "@/lib/client/hooks";
 import { useConversationReply } from "@/lib/client/conversation-reply";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
-import { useWorkspace } from "@/lib/client/workspace";
+import type { WorkspaceScope } from "@/lib/client/workspace";
+import { scopedHref } from "@/lib/scope";
+import { backTo, ScopedRecord } from "@/components/ScopedRecord";
 import { resultState, useResultStates } from "@/lib/client/result-states";
 import { resultLink } from "@/lib/result-links";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
@@ -54,10 +56,15 @@ const PENDING: Record<Exclude<TurnState, "replied">, string> = {
  * exact command so retrying can't post twice.
  */
 export default function ConversationPage() {
+  return (
+    <ScopedRecord>{(scope) => <ConversationView scope={scope} />}</ScopedRecord>
+  );
+}
+
+function ConversationView({ scope }: { scope: WorkspaceScope }) {
   const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
-  const { workspace } = useWorkspace();
-  const wsId = workspace?.id ?? null;
+  const { wsId } = scope;
   const res = useResource<ConversationDetailView>(
     wsId ? `conversation:${wsId}:${id}` : null,
     (signal) => conversationApi.get(wsId!, id, signal),
@@ -188,8 +195,8 @@ export default function ConversationPage() {
   };
 
   const back = (
-    <Link className="back-link" href="/">
-      ← Back to agent
+    <Link className="back-link" href={backTo(scope).href}>
+      {backTo(scope).label}
     </Link>
   );
   if (res.error && !d)
@@ -279,6 +286,7 @@ export default function ConversationPage() {
                       `/conversations/${id}`,
                       product,
                       resultState(results.data, product),
+                      wsId,
                     );
                     return (
                       <div
@@ -419,7 +427,7 @@ export default function ConversationPage() {
                 <li key={aid} className="stack-xs">
                   <Link
                     className="work-row"
-                    href={`/assignments/${aid}`}
+                    href={scopedHref(`/assignments/${aid}`, wsId)}
                     data-assignment={aid}
                   >
                     <span className="work-row-main">

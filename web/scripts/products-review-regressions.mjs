@@ -88,7 +88,7 @@ export const rawAssignment = async () => {throw new Error('Unexpected assignment
   "@/lib/client/capabilities":
     "export const CAPABILITIES = { conversation: true, delegateWithoutContext: false, get naturalAdmission() { return Boolean(window.natural); } };",
   "@/lib/client/workspace":
-    "export const useWorkspace = () => ({workspace:{id:window.scope.ws}});",
+    "import React from 'react'; import {scopedHref} from '@/lib/scope'; export const useWorkspace = () => ({workspace:{id:window.scope.ws},workspaces:[{id:window.scope.ws}],loading:false,error:null}); export const useScopedWorkspace = () => ({workspace:{id:window.scope.ws,name:'W'},wsId:window.scope.ws,status:'ready',isDefault:true,zone:'UTC'}); export const useCurrentWorkspace = () => ({workspace:{id:window.scope.ws},zone:'UTC'}); export const useScopedHref = () => (h, ws) => scopedHref(h, ws ?? window.scope.ws); export const InWorkspace = ({children}) => React.createElement(React.Fragment, null, children);",
   "next/navigation":
     "export const useParams = () => ({id:window.scope.cid,artifactId:'a'}); export const useRouter = () => ({push:()=>{}}); export const useSearchParams = () => new URLSearchParams(location.search);",
   "next/link":
@@ -1358,7 +1358,7 @@ try {
     page.locator(".agent-pane .msg-agent").getByRole("link", {
       name: "Open the saved responsibility",
     }),
-  ).toHaveAttribute("href", "/assignments/asg-r");
+  ).toHaveAttribute("href", "/assignments/asg-r?workspace=w");
   const quietRequest = page.locator(".agent-pane li", {
     hasText: "Hold the catering follow-up.",
   });
@@ -1367,7 +1367,7 @@ try {
   );
   await expect(
     quietRequest.getByRole("link", { name: "Open the saved responsibility" }),
-  ).toHaveAttribute("href", "/assignments/asg-q");
+  ).toHaveAttribute("href", "/assignments/asg-q?workspace=w");
   await expect(page.locator(".agent-pane")).not.toContainText(/calculated/i);
   await page.evaluate(() => {
     window.peek = undefined;

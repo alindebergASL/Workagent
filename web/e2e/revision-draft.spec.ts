@@ -32,12 +32,12 @@ test("An unsent request survives pane switches and a reload @journey", async ({
   await page.goto("/");
   await page.getByRole("button", { name: /Try the intake example/ }).click();
   await page.getByRole("button", { name: "Take it from here" }).click();
-  await page.waitForURL(/\/assignments\/asg_\d+$/);
+  await page.waitForURL(/\/assignments\/asg_\d+(?:\?[^#]*)?$/);
   await page
     .getByRole("link", { name: "Open plan" })
     .click({ timeout: 30_000 });
-  await page.waitForURL(/\/artifacts\/[^/]+$/);
-  const artifactId = page.url().split("/").pop()!;
+  await page.waitForURL(/\/artifacts\/[^/?]+(?:\?[^#]*)?$/);
+  const artifactId = new URL(page.url()).pathname.split("/").pop()!;
   await showAgent(page);
 
   // The conversation opens with the person's own request and what was saved.

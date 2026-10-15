@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { ArtifactHistory } from "@/lib/contract/types";
 import { api } from "@/lib/client/api";
 import { ApiError } from "@/lib/contract/errors";
-import { useWorkspace } from "@/lib/client/workspace";
+import { useCurrentWorkspace } from "@/lib/client/workspace";
 import { formatTime } from "@/lib/time";
 import { Drawer, ErrorNotice } from "./ui";
 
@@ -22,7 +22,7 @@ export function HistoryDrawer({
   returnFocusTo?: React.RefObject<HTMLElement | null>;
   refreshKey: string;
 }) {
-  const { workspace, zone } = useWorkspace();
+  const { workspace, zone } = useCurrentWorkspace();
   const [history, setHistory] = useState<ArtifactHistory | null>(null);
   const [error, setError] = useState<unknown>(null);
 

@@ -58,8 +58,8 @@ try {
     await page.goto(origin);
     await page.getByLabel("Message your agent").fill(goal);
     await page.getByRole("button", { name: "Send", exact: true }).click();
-    await page.waitForURL(/\/conversations\/[^/?]+$/);
-    const cid = page.url().split("/").pop();
+    await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/);
+    const cid = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator(".msg-agent")).toHaveCount(1, {
       timeout: 15000,
     });
@@ -84,7 +84,10 @@ try {
   // then are the older controls offered; no perpetual retry of absence.
   let reads = 0;
   page.on("request", (r) => {
-    if (r.url().endsWith(`/assignments/${plain}/responsibility`)) reads++;
+    if (
+      new URL(r.url()).pathname.endsWith(`/assignments/${plain}/responsibility`)
+    )
+      reads++;
   });
   await page.goto(`${origin}/assignments/${plain}`);
   await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible({
@@ -162,7 +165,8 @@ try {
   // The older claims and controls go until a fresh read says "none" again.
   const reread = (id) =>
     page.waitForResponse(
-      (r) => r.url().endsWith(`/assignments/${id}/responsibility`),
+      (r) =>
+        new URL(r.url()).pathname.endsWith(`/assignments/${id}/responsibility`),
       { timeout: 20000 },
     );
   const staleAbsence = async (id) => {
@@ -476,7 +480,7 @@ try {
     await expect(req).not.toContainText("You:");
     await expect(
       req.getByRole("link", { name: "Open the hand-over" }),
-    ).toHaveAttribute("href", `/assignments/${aid}`);
+    ).toHaveAttribute("href", `/assignments/${aid}?workspace=local-workspace`);
     // The person's own first message is still theirs.
     await expect(page.locator(".msg-person").first()).toContainText("You:");
     if (state === "replied")
@@ -520,7 +524,7 @@ try {
     else
       await expect(page.getByTestId("responsibility-run")).toHaveAttribute(
         "href",
-        `/conversations/${cid}#run-run-wake`,
+        `/conversations/${cid}?workspace=local-workspace#run-run-wake`,
       );
     await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
     await expect(page.getByText("isn’t available yet")).toHaveCount(0);

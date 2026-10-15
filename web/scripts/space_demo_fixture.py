@@ -19,8 +19,8 @@ sys.path[:0] = [str(ROOT / 'backend'), str(ROOT / 'backend/tests')]
 
 from workagent.db import Database  # noqa: E402
 from workagent.fixture import seed  # noqa: E402
-from workagent.models import CreateWorkArea, HumanSave, PostMessage  # noqa: E402
-from workagent.service import Service, Principal  # noqa: E402
+from workagent.models import CreateWorkArea, HumanSave, PostMessage, Workspace  # noqa: E402
+from workagent.service import Service, Principal, encoded  # noqa: E402
 from test_general_alpha_runtime import AlphaProvider  # noqa: E402
 from test_general_responses import worker  # noqa: E402
 from test_conversations import cmd, conversation  # noqa: E402
@@ -176,6 +176,41 @@ runs['newsletter'] = ask(newsletter.id, 'Outline the October issue.', [publish(N
 
 detail = s.get_conversation(p, ws, workshop.id)
 seed(admin, [], 'isolated-workspace', 'someone-else')
+
+# A second personal workspace for the same person, listed after the first
+# (workspaces are listed by id). Its work must open in it, never be looked up
+# in the first one.
+second = 'personal-work'
+with Database(admin).transaction() as c:
+    w = Workspace(id=second, name='Personal work', owner_id=p.id)
+    c.execute('INSERT INTO workspaces(id,data) VALUES (%s,%s)', (w.id, encoded(w)))
+    c.execute("INSERT INTO memberships(workspace_id,principal_id,role) VALUES (%s,%s,'owner')", (w.id, p.id))
+first_ws, first_me = ws, me
+ws, me = second, (service, p, second, [], admin)
+open_day = area('Spring open day', 'Plan the studio open day in March for about 60 visitors.', 'project')
+chat = conversation(me)
+activate_many(me, [open_day, chat])
+OPEN_DAY = {'title': 'Open day schedule', 'blocks': [
+    para(1, 'Doors at 10:00; short talks at 11:00 and 14:00; studio tours every hour.'),
+    para(2, 'Ask two volunteers to run the welcome desk.', 'checklist', False),
+]}
+runs['open_day'] = ask(open_day.id, 'Draft a schedule for the open day.', [publish(OPEN_DAY)],
+                       'Here’s a first schedule; the talks are the fixed points.', name='open_day')
+runs['open_day_handover'] = ask(
+    open_day.id, 'Keep track of the volunteer sign-ups until two have confirmed.',
+    [responsibility('Get two volunteers for the welcome desk', ['Two volunteers have confirmed'],
+                    wait={'kind': 'person', 'reason': 'Waiting for volunteers to reply.'}),
+     {'kind': 'reply', 'text': 'I’ve recorded it; it’s waiting on the volunteers.'}],
+    'I’ve recorded the volunteer follow-up.', name='open_day_handover')
+runs['chat'] = ask(chat.id, 'What time should the first talk start?',
+                   [{'kind': 'reply', 'text': 'Eleven works well: people have arrived and looked around.'}],
+                   'Eleven works well.', name='chat')
+open_detail = s.get_conversation(p, ws, open_day.id)
+second_ids = {'workspace': second, 'conversation_id': open_day.id,
+              'artifact_id': open_detail.artifact_ids[0],
+              'assignment_ids': open_detail.assignment_ids,
+              'chat_id': chat.id}
+ws, me = first_ws, first_me
 result = {
     'mode': 'real_service_postgresql_worker_with_synthetic_provider_transport',
     'live_provider_calls': 0,
@@ -184,6 +219,7 @@ result = {
                  'assignment_ids': detail.assignment_ids},
     'newsletter': {'conversation_id': newsletter.id},
     'plain': {'conversation_id': plain.id},
+    'second': second_ids,
     'worker_states': {k: v[1] for k, v in runs.items()},
 }
 out.write_text(json.dumps(result, indent=2))

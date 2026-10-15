@@ -5,6 +5,7 @@ import {
   shortTitle,
   statusOf,
 } from "./work-state";
+import { scopedHref } from "./scope";
 
 /**
  * Activity across work and conversations, newest first. Work is placed by its
@@ -27,6 +28,8 @@ export interface ActivityItem {
 export function activityFrom(
   work: AssignmentSummary[],
   conversations: ConversationSummary[],
+  /** The workspace the conversations were listed from. */
+  ws?: string | null,
 ): ActivityItem[] {
   const items: ActivityItem[] = [
     ...work.map((a) => {
@@ -40,10 +43,12 @@ export function activityFrom(
         tone: s.tone,
         at: a.updated_at || a.created_at,
         timeLabel: "updated" as const,
-        href:
+        href: scopedHref(
           phaseOf(a) === "decision" && review
             ? `/assignments/${a.id}/artifacts/${review}`
             : `/assignments/${a.id}`,
+          a.workspace_id,
+        ),
       };
     }),
     ...conversations.map((c) => ({
@@ -56,7 +61,7 @@ export function activityFrom(
       // conversation is placed and labelled by when it started.
       at: c.created_at,
       timeLabel: "started" as const,
-      href: `/conversations/${c.id}`,
+      href: scopedHref(`/conversations/${c.id}`, ws),
     })),
   ];
   return items

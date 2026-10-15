@@ -11,6 +11,7 @@ import {
   type RecordingReceipt,
 } from "@/lib/contract/natural";
 import { RichText } from "@/components/RichText";
+import { useScopedHref } from "@/lib/client/workspace";
 
 export function TurnSummary({
   state,
@@ -99,6 +100,7 @@ export function RuntimeRequest({
   text: string;
   origin?: ResponsibilityOrigin | null;
 }) {
+  const inScope = useScopedHref();
   return (
     <div className="stack-xs runtime-request" data-testid="runtime-request">
       <p className="eyebrow-caps">Continuation request from a hand-over</p>
@@ -109,7 +111,7 @@ export function RuntimeRequest({
       {origin ? (
         <p className="small muted">
           Asked by Workagent for a recorded hand-over, not by you.{" "}
-          <Link href={`/assignments/${origin.assignment_id}`}>
+          <Link href={inScope(`/assignments/${origin.assignment_id}`)}>
             Open the hand-over
           </Link>
         </p>
@@ -316,6 +318,7 @@ export function RecordingReceipts({
   /** Current goals, where they could be read; keyed by assignment. */
   names?: Record<string, string | undefined>;
 }) {
+  const inScope = useScopedHref();
   const recorded = recordedResponsibilities(progress);
   if (!recorded.length) return null;
   return (
@@ -323,7 +326,7 @@ export function RecordingReceipts({
       {recorded.map((r) => (
         <li key={r.assignment_id} className="small">
           <span className="eyebrow-caps">Responsibility saved</span>{" "}
-          <Link href={`/assignments/${r.assignment_id}`}>
+          <Link href={inScope(`/assignments/${r.assignment_id}`)}>
             {names?.[r.assignment_id] ?? "Open the saved responsibility"}
           </Link>
           <span className="muted">

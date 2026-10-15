@@ -2,7 +2,9 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useWorkspace } from "@/lib/client/workspace";
+import type { WorkspaceScope } from "@/lib/client/workspace";
+import { scopedHref } from "@/lib/scope";
+import { ScopedRecord } from "@/components/ScopedRecord";
 import { useResource } from "@/lib/client/hooks";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { conversationApi } from "@/lib/client/real-api";
@@ -123,10 +125,15 @@ function readDraft(key: string, artifact: S["Artifact"]): Draft {
   };
 }
 export default function ProductPage() {
+  return (
+    <ScopedRecord>{(scope) => <ProductPageView scope={scope} />}</ScopedRecord>
+  );
+}
+
+function ProductPageView({ scope }: { scope: WorkspaceScope }) {
   const { id, artifactId } = useParams<{ id: string; artifactId: string }>();
   const focusRevision = useSearchParams().get("revision");
-  const { workspace } = useWorkspace();
-  const ws = workspace?.id;
+  const ws = scope.wsId ?? undefined;
   const [unsaved, setUnsaved] = useState(false);
   const resource = useResource<Data>(
     ws ? `product:${ws}:${id}:${artifactId}` : null,
@@ -193,7 +200,10 @@ export default function ProductPage() {
           ← {resource.data.conversation.conversation.work_area.title}
         </Link>
       ) : (
-        <Link className="back-link" href={`/conversations/${id}`}>
+        <Link
+          className="back-link"
+          href={scopedHref(`/conversations/${id}`, ws)}
+        >
           ← Back to conversation
         </Link>
       )}
@@ -402,7 +412,7 @@ function ProductEditor({
           operation: exact.operation,
         });
         keep({ ...draft, pending: null });
-        router.push(`/conversations/${cid}`);
+        router.push(scopedHref(`/conversations/${cid}`, ws));
       }
       await refresh();
     } catch (e) {
@@ -500,7 +510,10 @@ function ProductEditor({
           current={artifact.current_revision}
           history={data.history}
           proposals={data.proposals}
-          workHref={`/conversations/${cid}/artifacts/${artifact.id}`}
+          workHref={scopedHref(
+            `/conversations/${cid}/artifacts/${artifact.id}`,
+            ws,
+          )}
           render={(body) =>
             isProduct(body) ? <ProductView body={body} /> : null
           }

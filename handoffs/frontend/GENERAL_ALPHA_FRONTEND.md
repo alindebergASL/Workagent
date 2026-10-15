@@ -870,3 +870,59 @@ intended. Your call.
 - A Space doesn't poll while idle. Changes made in another tab show on
   "Refresh", reload or any turn activity.
 - Multi-model and persona QA and live evaluation remain Hermes's.
+
+## Work opens in its own workspace (comment 6183261490)
+
+**Defect.** Conversation, work and hand-over pages read the first personal
+workspace the server listed, whatever workspace they were reached from. When a
+person has more than one personal workspace (the retained database has older
+ones plus the new "Personal work"), authorized work in the later one showed as
+"isn’t available". Fixtures with a single workspace hid this.
+
+**Fix (frontend only; no new provider authority, data store or scope):**
+
+- A record page's address names its workspace: `?workspace=<id>` on
+  `/conversations/…` and `/assignments/…` (`web/src/lib/scope.ts`). Every link
+  and navigation into one carries it. That includes:
+  - rows on Home, Spaces and Activity;
+  - project pages, the side pane and result links;
+  - hand-over receipts and back links;
+  - the editors' earlier-version links;
+  - the composer's navigation after a send.
+
+  Each link uses the record's own `workspace_id` where the record has one;
+  otherwise it uses the workspace of the page it's on.
+- A record page resolves the named workspace against the list this person can
+  open (`ScopedRecord`, `useScopedWorkspace`). It never falls back to another
+  workspace:
+  - a workspace not on that list is not available, and nothing is read from it;
+  - an unreadable list is shown as unreadable;
+  - an address that names no workspace keeps its earlier meaning, the default.
+- Drawers, time zones and back links follow the page's workspace. "Back" leads
+  to the agent home for the default workspace and to its own Space otherwise.
+- Unconfirmed commands were already keyed by workspace and conversation. A lost
+  acknowledgement in the second workspace now replays the same `command_id`
+  there after a reload.
+- Old memberships and authorization are unchanged and nothing is hidden. No
+  fixture ID or list order is relied on.
+
+**Regression.** `space_demo_fixture.py` now also writes a second personal
+workspace, `personal-work` ("Personal work"). The same person owns it and it is
+listed after `local-workspace`. It holds a project with saved work, a hand-over
+and a plain chat. `web/scripts/workspace-routing.mjs` covers 6 cases on the
+real UI, API and PostgreSQL. It records the workspace of every record request:
+
+1. the rail leads to "Personal work"; its work opens there and stays there on
+   reload;
+2. the hand-over opens there, and back leads to it;
+3. the chat opens there, and a lost send replays its exact command there after
+   a reload;
+4. from the project page, its work, full conversation and hand-over all open
+   there;
+5. an unopenable or unknown workspace is not available and reads nothing, and
+   unscoped addresses still mean the default;
+6. a shared link opens at 390px.
+
+RED on `b41973e`: links carry no workspace. Following them reads
+`local-workspace`, gets 404 and shows "This item isn’t available to you". GREEN
+with this change.

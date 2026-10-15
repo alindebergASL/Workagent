@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { scopedHref } from "@/lib/scope";
 import { useEffect, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { ApiError } from "@/lib/contract/errors";
@@ -301,7 +302,10 @@ export function FlexibleEditor({
           current={artifact.current_revision}
           history={history}
           proposals={proposals}
-          workHref={`/conversations/${cid}/artifacts/${artifact.id}`}
+          workHref={scopedHref(
+            `/conversations/${cid}/artifacts/${artifact.id}`,
+            ws,
+          )}
           render={(body) =>
             isFlexible(body) ? <ReadOnly body={body} /> : null
           }
@@ -1066,7 +1070,10 @@ function ViewSurface({
             >
               {i ? ", " : " · reads "}
               <Link
-                href={`/conversations/${cid}/artifacts/${binding.artifact_id}`}
+                href={scopedHref(
+                  `/conversations/${cid}/artifacts/${binding.artifact_id}`,
+                  ws,
+                )}
               >
                 {readableTitle(
                   bound[binding.artifact_id]?.title ?? "saved work",

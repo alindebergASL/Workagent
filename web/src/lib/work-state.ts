@@ -4,6 +4,7 @@ import type {
   ExecutionProvenance,
   RunOutcome,
 } from "./contract/types";
+import { scopedHref } from "./scope";
 
 /**
  * Where a piece of work stands. When the backend projects a responsibility
@@ -271,9 +272,12 @@ export function workAttention(items: AssignmentSummary[]): Attention | null {
           ? "Your edits are kept. Review it, or ask for a new proposal."
           : "Nothing is applied until you decide. Your saved version stays as it is.",
       action: "Review the change",
-      href: artifact
-        ? `/assignments/${decision.id}/artifacts/${artifact}`
-        : `/assignments/${decision.id}`,
+      href: scopedHref(
+        artifact
+          ? `/assignments/${decision.id}/artifacts/${artifact}`
+          : `/assignments/${decision.id}`,
+        decision.workspace_id,
+      ),
     };
   }
   const blocked = items.find((i) => phaseOf(i) === "blocked");
@@ -286,7 +290,7 @@ export function workAttention(items: AssignmentSummary[]): Attention | null {
         blocked.next_step ??
         "Saved results are kept. Open it to see what is missing.",
       action: "See what’s needed",
-      href: `/assignments/${blocked.id}`,
+      href: scopedHref(`/assignments/${blocked.id}`, blocked.workspace_id),
     };
   const prepared = items.find((i) => phaseOf(i) === "prepared");
   if (prepared)
@@ -296,7 +300,7 @@ export function workAttention(items: AssignmentSummary[]): Attention | null {
       title: "Your prepared work is ready to inspect.",
       body: "Review it, edit anything, or ask for a revision. Nothing is approved or carried out until you decide.",
       action: "Open prepared work",
-      href: `/assignments/${prepared.id}`,
+      href: scopedHref(`/assignments/${prepared.id}`, prepared.workspace_id),
     };
   return null;
 }

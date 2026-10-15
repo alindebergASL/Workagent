@@ -9,7 +9,7 @@ import {
   type Responsibility,
   type ResponsibilityOperation,
 } from "@/lib/client/responsibility";
-import { useWorkspace } from "@/lib/client/workspace";
+import { useCurrentWorkspace, useScopedHref } from "@/lib/client/workspace";
 import { ApiError } from "@/lib/contract/errors";
 import { responsibilityView } from "@/lib/responsibility-view";
 import { formatTime } from "@/lib/time";
@@ -67,7 +67,8 @@ export function ResponsibilityPanel({
   /** Re-reads the assignment and its responsibility; true if both read. */
   refresh: () => Promise<boolean>;
 }) {
-  const { zone } = useWorkspace();
+  const { zone } = useCurrentWorkspace();
+  const inScope = useScopedHref();
   const aid = read.assignment.id;
   const pending = usePendingCommand<ControlIntent>(
     `workagent:responsibility-control:${ws}:${aid}`,
@@ -153,7 +154,10 @@ export function ResponsibilityPanel({
           <>
             {" "}
             <Link
-              href={`/conversations/${shown.detail.assignment.conversation_id}#run-${view.runId}`}
+              href={inScope(
+                `/conversations/${shown.detail.assignment.conversation_id}#run-${view.runId}`,
+                shown.detail.assignment.workspace_id,
+              )}
               data-testid="responsibility-run"
             >
               See its run in the conversation

@@ -11,6 +11,7 @@ import {
 import type { AssignmentSummary } from "@/lib/contract/types";
 import type { HoldEntry } from "@/lib/client/responsibility";
 import { holdStatus } from "@/lib/hold-view";
+import { scopedHref } from "@/lib/scope";
 import { StatusBadge } from "./ui";
 
 /**
@@ -29,10 +30,12 @@ export function WorkRow({
   const phase = phaseOf(item);
   const review = decisionArtifactId(item);
   const run = currentRun(item);
-  const href =
+  const href = scopedHref(
     phase === "decision" && review
       ? `/assignments/${item.id}/artifacts/${review}`
-      : `/assignments/${item.id}`;
+      : `/assignments/${item.id}`,
+    item.workspace_id,
+  );
   const status = held ?? statusOf(item);
   const note = held
     ? held.note

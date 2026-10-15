@@ -92,8 +92,8 @@ try {
     .getByLabel("Message your agent")
     .fill("Compare the venues for the volunteer social.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
-  await page.waitForURL(/\/conversations\/[^/?]+$/);
-  const cid = page.url().split("/").pop();
+  await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/);
+  const cid = new URL(page.url()).pathname.split("/").pop();
   await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
 
   const table = await publish(cid, "Keep the venue comparison.", tableRev.body);

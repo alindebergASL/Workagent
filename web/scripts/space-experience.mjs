@@ -111,7 +111,14 @@ try {
   await expect(
     page.getByRole("link", { name: /Monthly newsletter/ }),
   ).toContainText("Ongoing workflow");
-  await expect(page.locator(".work-row")).toHaveCount(2);
+  // Each workspace's projects are listed, and each opens in its own workspace.
+  await expect(page.locator(".work-row")).toHaveCount(3);
+  await expect(
+    page.getByRole("link", { name: /Spring open day/ }),
+  ).toHaveAttribute(
+    "href",
+    `/spaces/${ids.second.workspace}/work/${ids.second.conversation_id}`,
+  );
   assert.equal(list ? true : true, true);
   await shot(page, "01-spaces");
   await page.getByRole("link", { name: /Autumn workshop/ }).click();
@@ -133,7 +140,10 @@ try {
   );
   await expect(
     page.getByRole("link", { name: "Review the change to Budget" }),
-  ).toHaveAttribute("href", `/conversations/${cid}/artifacts/${budgetId}`);
+  ).toHaveAttribute(
+    "href",
+    `/conversations/${cid}/artifacts/${budgetId}?workspace=${ws}`,
+  );
   await expect(page.locator(".space-standing")).toContainText(
     "Get written confirmation of the venue booking",
   );
@@ -452,7 +462,7 @@ try {
 
   // The real control: review and apply the proposed change; the Space follows the record.
   await page.getByRole("link", { name: "Review the change to Budget" }).click();
-  await page.waitForURL(`**/artifacts/${budgetId}`);
+  await page.waitForURL(`**/artifacts/${budgetId}**`);
   await expect(
     page.getByRole("link", { name: "← Autumn workshop" }),
   ).toBeVisible({ timeout: 15000 });

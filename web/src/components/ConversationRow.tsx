@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { ConversationSummary } from "@/lib/contract/types";
 import { formatTime } from "@/lib/time";
+import { useScopedHref } from "@/lib/client/workspace";
 
 /** One conversation: its title, whether it's open, and when it started. */
 export function ConversationRow({
@@ -11,11 +12,12 @@ export function ConversationRow({
   c: ConversationSummary;
   zone: string;
 }) {
+  const inScope = useScopedHref();
   return (
     <li>
       <Link
         className="work-row"
-        href={`/conversations/${c.id}`}
+        href={inScope(`/conversations/${c.id}`)}
         data-conversation={c.id}
       >
         <span className="work-row-main">

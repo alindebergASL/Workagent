@@ -69,8 +69,8 @@ test.describe("S1 journey (mock mode)", () => {
     await page.getByRole("button", { name: "Take it from here" }).click();
 
     // ---- Assignment: queued/working → ready ----
-    await page.waitForURL(/\/assignments\/asg_\d+$/);
-    const assignmentId = page.url().split("/").pop()!;
+    await page.waitForURL(/\/assignments\/asg_\d+(?:\?[^#]*)?$/);
+    const assignmentId = new URL(page.url()).pathname.split("/").pop()!;
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /intake log/i,
     );
@@ -124,8 +124,8 @@ test.describe("S1 journey (mock mode)", () => {
 
     // ---- Artifact: read ----
     await page.getByRole("link", { name: "Open plan" }).click();
-    await page.waitForURL(/\/artifacts\/art_\d+$/);
-    const planId = page.url().split("/").pop()!;
+    await page.waitForURL(/\/artifacts\/art_\d+(?:\?[^#]*)?$/);
+    const planId = new URL(page.url()).pathname.split("/").pop()!;
     await expect(
       page.getByRole("heading", { level: 1, name: "Working plan" }),
     ).toBeVisible();
@@ -486,7 +486,7 @@ test.describe("S1 journey (mock mode)", () => {
     await shot(page, info, "17-home-start-error");
     await expect(page.getByLabel("Message your agent")).toBeDisabled();
     await page.getByRole("button", { name: "Retry same request" }).click();
-    await page.waitForURL(/\/assignments\/asg_\d+$/);
+    await page.waitForURL(/\/assignments\/asg_\d+(?:\?[^#]*)?$/);
     const after = (
       (
         await (
@@ -505,7 +505,7 @@ test.describe("S1 journey (mock mode)", () => {
     // first read is in flight can leave that read unanswered.
 
     // Connection drops while working: the page keeps what it has, shows reconnecting, then resumes the same assignment.
-    const assignmentId = page.url().split("/").pop()!;
+    const assignmentId = new URL(page.url()).pathname.split("/").pop()!;
     // Cut the connection only after the first read has landed: with no data yet
     // the page correctly shows an error, not "reconnecting".
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
@@ -532,7 +532,7 @@ test.describe("S1 journey (mock mode)", () => {
       timeout: 30_000,
     });
     expect(
-      page.url().endsWith(`/assignments/${assignmentId}`),
+      new URL(page.url()).pathname.endsWith(`/assignments/${assignmentId}`),
       "same assignment after reconnect",
     ).toBeTruthy();
     const total = (

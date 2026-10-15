@@ -58,8 +58,8 @@ try {
     await page.goto(origin);
     await page.getByLabel("Message your agent").fill(text);
     await page.getByRole("button", { name: "Send", exact: true }).click();
-    await page.waitForURL(/\/conversations\/[^/?]+$/);
-    const cid = page.url().split("/").pop();
+    await page.waitForURL(/\/conversations\/[^/?]+(?:\?[^#]*)?$/);
+    const cid = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
     return cid;
   }
@@ -82,9 +82,11 @@ try {
   await page
     .getByRole("link", { name: "Open table", exact: true })
     .click({ timeout: 15000 });
-  await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
+  await page.waitForURL(
+    /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
+  );
   const tableURL = page.url();
-  const tableId = tableURL.split("/").pop();
+  const tableId = new URL(tableURL).pathname.split("/").pop();
   report.table_id = tableId;
   await expect(page.getByTestId("product-verification")).toHaveText(
     "Checked against this saved version.",
@@ -122,7 +124,9 @@ try {
   await page
     .getByRole("button", { name: "Recalculate saved rows", exact: true })
     .click();
-  await page.waitForURL(new RegExp("/conversations/" + csvCid + "$"));
+  await page.waitForURL(
+    new RegExp("/conversations/" + csvCid + "(?:\\?[^#]*)?$"),
+  );
   await page
     .getByRole("link", {
       name: "Review proposed change to the table",
@@ -214,9 +218,11 @@ try {
   await page
     .getByRole("link", { name: "Open tool", exact: true })
     .click({ timeout: 15000 });
-  await page.waitForURL(/\/conversations\/[^/]+\/artifacts\/[^/?]+$/);
+  await page.waitForURL(
+    /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
+  );
   const toolURL = page.url();
-  const toolId = toolURL.split("/").pop();
+  const toolId = new URL(toolURL).pathname.split("/").pop();
   report.tool_id = toolId;
   await expect(page.getByTestId("observed-return")).toHaveText("3750");
   await page
@@ -255,7 +261,9 @@ try {
   await page
     .getByRole("button", { name: "Run saved tool", exact: true })
     .click();
-  await page.waitForURL(new RegExp("/conversations/" + toolCid + "$"));
+  await page.waitForURL(
+    new RegExp("/conversations/" + toolCid + "(?:\\?[^#]*)?$"),
+  );
   await page
     .getByRole("link", {
       name: "Review proposed change to the tool",

@@ -44,7 +44,7 @@ describe("work phases from the authoritative summary", () => {
   it("never lets prepared work lose its review route", () => {
     const a = workAttention([item("ready_for_review", { id: "p" })]);
     expect(a?.action).toBe("Open prepared work");
-    expect(a?.href).toBe("/assignments/p");
+    expect(a?.href).toBe("/assignments/p?workspace=local-workspace");
   });
 
   it("puts a waiting proposal ahead of prepared work and links the exact artifact", () => {
@@ -55,7 +55,9 @@ describe("work phases from the authoritative summary", () => {
         needs_review_artifact_ids: ["plan"],
       }),
     ]);
-    expect(attention?.href).toBe("/assignments/b/artifacts/plan");
+    expect(attention?.href).toBe(
+      "/assignments/b/artifacts/plan?workspace=local-workspace",
+    );
     expect(attention?.action).toBe("Review the change");
   });
 
@@ -71,7 +73,7 @@ describe("work phases from the authoritative summary", () => {
         next_step: "Source SG-F2 is unavailable.",
       }),
     ]);
-    expect(a?.href).toBe("/assignments/c");
+    expect(a?.href).toBe("/assignments/c?workspace=local-workspace");
     expect(a?.body).toBe("Source SG-F2 is unavailable.");
   });
 
@@ -178,7 +180,9 @@ describe("responsibility outcome from the backend projection", () => {
     expect(decisionArtifactId(a)).toBe("plan-1");
     const card = workAttention([a]);
     expect(card?.body).toMatch(/Nothing is applied until you decide/);
-    expect(card?.href).toBe("/assignments/assignment-a/artifacts/plan-1");
+    expect(card?.href).toBe(
+      "/assignments/assignment-a/artifacts/plan-1?workspace=local-workspace",
+    );
   });
 
   it("keeps a stale base a decision without claiming the proposal applies", () => {

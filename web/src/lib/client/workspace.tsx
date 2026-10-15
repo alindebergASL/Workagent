@@ -7,7 +7,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import { api, API_MODE } from "./api";
+import {
+  resolveScope,
+  scopedHref,
+  WORKSPACE_PARAM,
+  type ScopeStatus,
+} from "@/lib/scope";
 import { ApiError } from "@/lib/contract/errors";
 import type { Workspace } from "@/lib/contract/types";
 
@@ -108,4 +115,95 @@ export function useWorkspace(): WorkspaceContextValue {
   const v = useContext(Ctx);
   if (!v) throw new Error("useWorkspace outside provider");
   return v;
+}
+
+// Undefined outside any record page: that part of the app shows the default
+// workspace. Null inside one whose workspace isn't resolved yet.
+const ScopeCtx = createContext<string | null | undefined>(undefined);
+
+/** Everything inside reads from, and links into, this one workspace. */
+export function InWorkspace({
+  ws,
+  children,
+}: {
+  ws: string | null;
+  children: ReactNode;
+}) {
+  return <ScopeCtx.Provider value={ws}>{children}</ScopeCtx.Provider>;
+}
+
+/**
+ * Makes a record link name the workspace it belongs to: the one this part of
+ * the page is in, or (on pages that show only the default workspace) that
+ * one. A record's own workspace, when known, is passed explicitly.
+ */
+export function useScopedHref(): (href: string, ws?: string | null) => string {
+  const { workspace } = useCurrentWorkspace();
+  return (href, ws) => scopedHref(href, ws ?? workspace?.id);
+}
+
+/**
+ * The workspace this part of the page reads from, and the time zone its
+ * times are shown in: the record page's own workspace inside one, else the
+ * default workspace.
+ */
+export function useCurrentWorkspace(): {
+  workspace: Workspace | null;
+  zone: string;
+} {
+  const inside = useContext(ScopeCtx);
+  // Rendered on its own (outside the app's provider), nothing is scoped.
+  const ctx = useContext(Ctx);
+  if (!ctx) return { workspace: null, zone: "UTC" };
+  const workspace =
+    inside === undefined
+      ? ctx.workspace
+      : (ctx.workspaces.find((w) => w.id === inside) ?? null);
+  return {
+    workspace,
+    zone:
+      ctx.zoneChoice === "local"
+        ? ctx.zone
+        : (workspace?.display_time_zone ?? ctx.zone),
+  };
+}
+
+export interface WorkspaceScope {
+  workspace: Workspace | null;
+  /** Its id once resolved; null while loading or when it can't be opened. */
+  wsId: string | null;
+  status: ScopeStatus;
+  /**
+   * Whether this is the default workspace, the one the agent home shows.
+   * Otherwise "back" leads to its own Space.
+   */
+  isDefault: boolean;
+  zone: string;
+}
+
+/**
+ * The workspace a record page's address names, checked against the ones
+ * this person can open. An address without one means the default workspace,
+ * as it always has.
+ */
+export function useScopedWorkspace(): WorkspaceScope {
+  const ctx = useWorkspace();
+  const named = useSearchParams().get(WORKSPACE_PARAM);
+  const { workspace, status } = resolveScope({
+    named,
+    workspaces: ctx.workspaces,
+    fallback: ctx.workspace,
+    loading: ctx.loading,
+    failed: Boolean(ctx.error),
+  });
+  return {
+    workspace,
+    wsId: workspace?.id ?? null,
+    status,
+    isDefault: Boolean(workspace) && workspace?.id === ctx.workspace?.id,
+    zone:
+      ctx.zoneChoice === "local"
+        ? ctx.zone
+        : (workspace?.display_time_zone ?? ctx.zone),
+  };
 }
