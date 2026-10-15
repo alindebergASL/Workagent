@@ -654,16 +654,19 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
   Unreadable work is said plainly. No invented progress or promise.
 - **Work in this project.** Each piece by its own title and kind, when it last
   changed and by whom, and whether a change waits for review. Selecting one
-  (button, `aria-pressed`, keyboard) shows its saved version read-only through
+  (button, `aria-pressed`, keyboard; never pre-selected) shows its saved version read-only through
   `ProductView` / `ReadOnly`, with its real controls a step away ("Open to edit",
   "Review and edit"). A waiting change is summarised from the two saved bodies
   ("It adds a row: Catering."), never from the proposal's model or system reason
-  text. The selection is in the URL (`?work=`), so reload and Back keep it.
+  text. A proposal made for an earlier version is called outdated, never
+  offered to apply. The selection is in the URL (`?work=`), so reload and Back
+  keep it.
 - **One conversation beside it.** `WorkSurface` and `ConversationPeek` in a new
   compact mode: fewer messages, each reply's recorded outcome folded under
   "Details", reply box kept in view.
-  - The reply is about the selected work's exact saved version
-    (`artifact_id`, `revision_id`, `body_hash`), shown as "About: Budget".
+  - The reply is about the work the person selected, at its exact saved
+    version (`artifact_id`, `revision_id`, `body_hash`), shown as
+    "About: Budget". With nothing selected it is "About: the whole project".
   - "Ask about the whole project instead" clears it, and the reply then carries
     `target: null`.
   - The person never chooses between "general chat" and "exact refinement".
@@ -682,9 +685,29 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
   - An ordinary conversation offers "Keep as a project".
   - A work page in a project goes back to the project.
   - Home's lede no longer says "Check each current record before continuing".
-- **Demonstration label.** `NEXT_PUBLIC_WORKAGENT_DEMO=1` shows, on every page,
+- **Demonstration label.** `NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1` shows, on every page,
   "Demonstration. The projects and work shown here are made-up examples…". It
   is off by default and never inferred from content.
+
+**Following Hermes's notes (comments 6182056809 and 6182165171):**
+
+- The flag is `NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1`. It labels example input data,
+  not whether a model was live; per-turn provenance tags are unchanged.
+- **Nothing is chosen for the person.** The work a reply is about is only ever
+  the work they picked (`?work=`). With nothing picked, the page says "Choose
+  one to read it here and to ask about it", and a reply is about the whole
+  project (`target: null`). No first-returned or most-recent default.
+- **Outdated proposals are not offered as changes to apply.** A pending
+  proposal whose base isn't the current saved version reads "made for an
+  earlier version, so it can't be applied as is", with an "Outdated proposal"
+  badge. This is the same rule as the work page's own `outdated`.
+- **Work is re-read from its own records every 20 s while the page is open.** A
+  save or acceptance elsewhere can move it on without changing the
+  conversation. It is also re-read after a send, on a settled turn and on
+  "Refresh".
+- **Every button and button-styled link on the page measures at least 24 px**,
+  checked in layout. No accessible names were changed for their own sake;
+  names, focus and keyboard are exercised in the journey.
 
 **Bugs found and fixed while verifying on the real service:**
 
@@ -717,8 +740,9 @@ only; their checks keep the same intent):
 12 cases, on example projects written beforehand by the real worker with the
 synthetic provider transport (`web/scripts/space_demo_fixture.py`):
 
-- a two-day workshop with a plan, a budget, a proposed catering change and a
-  venue follow-up waiting on a person;
+- a two-day workshop with a plan, a budget, a proposed catering change, a
+  remote-seat proposal outdated by the person's own edit, and a venue
+  follow-up waiting on a person;
 - a monthly newsletter workflow;
 - a plain question answered without a project.
 
@@ -729,7 +753,9 @@ No live model was called. Screenshots are in `evidence/spaces/`. The cases:
 2. The Space opens on its purpose and "A change to “Budget” is waiting for your
    review", with the venue follow-up waiting for a person. No internal wording
    (checked against a list including grant, schema, fixture, Model-selected,
-   "general Space chat").
+   "general Space chat"). Nothing is pre-selected and a reply is about the
+   whole project. The plan's outdated proposal is labelled, not offered to
+   apply. No control is smaller than 24 px.
 3. Keyboard selects work, focus lands on its heading, and the reply is about it.
 4. A typed reply and the selection survive a reload.
 5. A send carries the exact saved version, and the waiting turn shows as
@@ -741,12 +767,30 @@ No live model was called. Screenshots are in `evidence/spaces/`. The cases:
 9. Name and purpose: the draft survives a reload, a stale save is refused with
    the text kept, then the save reads back with origin `human`.
 10. Applying the proposal through the work page's own control updates the
-    Space: the review is gone and the next step moves on.
+    Space: the review is gone and the next step moves on to the outdated
+    proposal.
 11. Phone 390 and 320 have no horizontal scroll; switching panes keeps the
     draft; "Ask about this" focuses the reply about that work.
 12. A plain question shows its answer and "Keep as a project"; an ordinary chat
     or unknown id at a project URL says "This project isn't available to you";
     a project's chat links back to it.
+
+**Other checks on this commit:**
+
+- 256 unit tests; type, lint, format and `git diff --check`.
+- Production builds: natural-admission demo, default domain and mock.
+- 37 DOM regressions, 12 boundary regressions, 9 sandbox regressions and 15
+  mock e2e tests.
+- Real stack:
+  - `backend/space_fixture.py launch`, with the API, browser, terminal client
+    and PTY on a fresh database;
+  - `conversation-hold.mjs` (3 cases);
+  - the conversation journey, whose Home intro check now expects
+    "Here’s where your work stands." (from Hermes's change);
+  - the products, responsibility and responsibility-recording (9) journeys;
+  - the 18 recovery cases;
+  - flexible create/reopen;
+  - `verify_general_integration.py`.
 
 **Observed backend behaviour, for Hermes.** Any new message in a project's
 conversation moves its responsibilities to `active` with

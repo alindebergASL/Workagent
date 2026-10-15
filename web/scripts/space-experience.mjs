@@ -5,7 +5,7 @@
 // (web/scripts/space_demo_fixture.py): no live model, so this proves mechanics
 // and presentation, not agency or usefulness. Run without a worker
 // (sends are admitted and stay queued); the build sets
-// NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1 and NEXT_PUBLIC_WORKAGENT_DEMO=1.
+// NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1 and NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1.
 // Usage: node web/scripts/space-experience.mjs <out-dir> <ids.json>
 import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
@@ -140,17 +140,44 @@ try {
   await expect(page.locator(".space-standing")).toContainText(
     "Waiting for a person",
   );
+  // Nothing is chosen for the person: a reply is about the whole project.
+  await expect(item(budgetId)).toHaveAttribute("aria-pressed", "false");
+  await expect(item(planId)).toHaveAttribute("aria-pressed", "false");
+  await expect(about).toContainText("About: the whole project");
+  await expect(page.getByTestId("choose-work")).toBeVisible();
+  // A proposal made for an earlier version is outdated, not one to apply.
+  await expect(item(planId)).toContainText("Outdated proposal");
+  await expect(item(planId)).not.toContainText("Change to review");
+  await expect(page.locator(".space-standing")).toContainText(
+    "was made for an earlier version, so it can’t be applied as is",
+  );
+  await item(budgetId).click();
   await expect(item(budgetId)).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".space-proposal")).toContainText(
     "It adds a row: Catering.",
   );
   await expect(about).toContainText("About: Budget");
+  await item(planId).click();
+  await expect(page.locator(".space-proposal-outdated")).toContainText(
+    "earlier version of this work",
+  );
+  await expect(page.locator(".space-proposal")).toHaveCount(0);
+  await item(budgetId).click();
+  // Every control is a comfortable target (24px minimum), checked in layout.
+  const small = await page.evaluate(() =>
+    [...document.querySelectorAll(".space-page button, .space-page a.btn")]
+      .filter((el) => el.offsetParent !== null)
+      .map((el) => [el.textContent.trim(), el.getBoundingClientRect()])
+      .filter(([, r]) => r.height < 24 || r.width < 24)
+      .map(([t, r]) => `${t} ${Math.round(r.width)}x${Math.round(r.height)}`),
+  );
+  assert.deepEqual(small, [], "no control smaller than 24px");
   const text = await page.locator("main").innerText();
   assert.ok(!JARGON.test(text), `no internal wording: ${text.match(JARGON)}`);
   await noDuplicateIds(page);
   await shot(page, "02-space-desktop");
   pass(
-    "the Space opens on its purpose, the next step and what needs the person, from saved records, with no internal wording",
+    "the Space opens on its purpose, the next step and what needs the person, from saved records, with no internal wording; nothing is chosen for the person; an outdated proposal isn't offered to apply; every control is at least 24px",
   );
 
   // Keyboard: choose other work; the reply follows it; focus lands on it.
@@ -202,7 +229,7 @@ try {
     .getByRole("button", { name: /Stop replying about Workshop plan/ })
     .click();
   await expect(about).toContainText("About: the whole project");
-  await expect(page).toHaveURL(/work=none/);
+  await expect(page).not.toHaveURL(/work=/);
   await box.fill("What's still undecided?");
   before = posts.length;
   await box.press("Control+Enter");
@@ -334,9 +361,9 @@ try {
   ).toHaveCount(0, { timeout: 15000 });
   await page.getByRole("link", { name: "← Autumn workshop" }).click();
   await page.waitForURL(`**/work/${cid}**`);
-  await expect(next).toContainText(
+  await expect(next).toContainText("earlier version", { timeout: 15000 });
+  await expect(page.locator(".space-standing")).toContainText(
     "Get written confirmation of the venue booking",
-    { timeout: 15000 },
   );
   await expect(item(budgetId)).not.toContainText("Change to review");
   await item(budgetId).click();

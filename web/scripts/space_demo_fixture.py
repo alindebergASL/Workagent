@@ -4,7 +4,7 @@ Real Service, PostgreSQL and GeneralWorker with the backend tests' synthetic
 provider transport (no live model, no network). Each piece of work is written by
 the worker through its own receipt-bound path, from scripted decisions: this
 proves mechanics and presentation, never agency or usefulness. The UI build
-that shows it sets NEXT_PUBLIC_WORKAGENT_DEMO=1, which labels every page.
+that shows it sets NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1, which labels every page.
 
 Usage (repo root, env file sourced so DATABASE_URL and MIGRATION_DATABASE_URL
 are set): backend/.venv/bin/python web/scripts/space_demo_fixture.py <out.json> <state-dir>
@@ -19,7 +19,7 @@ sys.path[:0] = [str(ROOT / 'backend'), str(ROOT / 'backend/tests')]
 
 from workagent.db import Database  # noqa: E402
 from workagent.fixture import seed  # noqa: E402
-from workagent.models import CreateWorkArea, PostMessage  # noqa: E402
+from workagent.models import CreateWorkArea, HumanSave, PostMessage  # noqa: E402
 from workagent.service import Service, Principal  # noqa: E402
 from test_general_alpha_runtime import AlphaProvider  # noqa: E402
 from test_general_responses import worker  # noqa: E402
@@ -150,6 +150,16 @@ runs['catering'] = ask(workshop.id, 'Add catering at €22 per person for both d
                        [publish(BUDGET_WITH_CATERING, budget_target)],
                        'I proposed adding catering; it brings the total to €7,740.',
                        target=budget_target, name='catering')
+# A change proposed to the plan, then the person edits the plan themselves:
+# the proposal was made for an earlier version, so it is outdated.
+plan_target = exact(plan_id)
+REMOTE = {**PLAN, 'blocks': PLAN['blocks'] + [para(8, 'Remote seat: one camera operator on day two only.')]}
+runs['remote'] = ask(workshop.id, 'Add a short section on the remote seat.',
+                     [publish(REMOTE, plan_target)], 'I proposed a short remote-seat section.',
+                     target=plan_target, name='remote')
+EDITED = {**PLAN, 'blocks': [b if b['block_id'] != 'b5' else {**b, 'text': 'Confirm two facilitators for both days (Priya and Tom)'}
+                             for b in PLAN['blocks']]}
+s.human_save(p, ws, plan_id, cmd(HumanSave, expected_current_revision_id=plan_target['revision_id'], body=EDITED))
 runs['venue'] = ask(workshop.id, 'Keep the venue booking moving until they confirm in writing.',
                     [responsibility('Get written confirmation of the venue booking',
                                     ['The venue confirms the dates and deposit in writing'],

@@ -3,7 +3,9 @@ import type { components } from "../../contracts/src/client";
 import type { ConversationDetailView } from "../src/lib/contract/types";
 import type { HoldEntry } from "../src/lib/client/responsibility";
 import {
+  actionable,
   leadWork,
+  outdated,
   proposalSummary,
   spaceStanding,
   workKind,
@@ -57,7 +59,12 @@ const work = (
   } as unknown as S["Artifact"],
   pending: Array.from(
     { length: pending },
-    (_, i) => ({ id: `${id}-p${i}`, status: "pending" }) as S["Proposal"],
+    (_, i) =>
+      ({
+        id: `${id}-p${i}`,
+        status: "pending",
+        base_revision_id: `${id}-r`,
+      }) as S["Proposal"],
   ),
 });
 
@@ -111,6 +118,23 @@ describe("where a project stands", () => {
     );
     expect(s.next.href).toBe("/conversations/cv1/artifacts/b");
     expect(s.needs.map((l) => l.key)).toEqual(["review:b", "hold:h"]);
+  });
+
+  it("a proposal made for an earlier version is outdated, not a change to apply", () => {
+    const item = work("b", "Run sheet", "2026-10-02T10:00:00Z", 1);
+    item.pending[0] = { ...item.pending[0]!, base_revision_id: "older" };
+    const s = spaceStanding({
+      detail: detail({ artifact_ids: ["b"] }),
+      work: [item],
+      holds: {},
+    });
+    expect(s.next.key).toBe("outdated:b");
+    expect(s.next.text).toMatch(
+      /earlier version, so it can’t be applied as is/,
+    );
+    expect(s.needs.some((l) => l.key === "review:b")).toBe(false);
+    expect(actionable(item)).toEqual([]);
+    expect(outdated(item)).toHaveLength(1);
   });
 
   it("responsibilities follow their current lifecycle: waiting needs you, active is held, not running", () => {

@@ -91,7 +91,9 @@ try {
   const aid = area.artifact_ids[0];
   assert.ok(aid);
   const spaceURL = `${fixture.web}/spaces/${ws}/work/${cid}`;
-  await page.goto(spaceURL);
+  // Nothing is selected for the person; these visits open the saved work.
+  const workURL = `${spaceURL}?work=${encodeURIComponent(aid)}`;
+  await page.goto(workURL);
   await expect(
     page.getByRole("heading", {
       name: "Synthetic service launch",
@@ -149,7 +151,7 @@ try {
   const draftText =
     "Human constraints: NEVER offer weekend support. Keep this exact sentence. Unsent editor-only draft.";
   await humanField.fill(draftText);
-  await page.goto(spaceURL);
+  await page.goto(workURL);
   await expect(surface.getByText(/Keep this exact sentence/)).toBeVisible();
   await expect(surface.getByText(/Unsent editor-only draft/)).toHaveCount(0);
   await page
@@ -211,7 +213,7 @@ try {
   assert.equal(follow.receipt.run.state, "queued");
   assert.equal(follow.receipt.message.target.body_hash, saved[2]);
   control("work", follow.receipt.run.id, "one-week");
-  await page.goto(spaceURL);
+  await page.goto(workURL);
   await expect(
     surface.getByText("A proposed change is waiting for your review.", {
       exact: true,
@@ -264,7 +266,7 @@ try {
   // on a phone the work comes first and the conversation is one switch away.
   for (const width of [1440, 320]) {
     await page.setViewportSize({ width, height: 1000 });
-    await page.goto(spaceURL);
+    await page.goto(workURL);
     await expect(
       surface.getByText(/one-week service design pilot/),
     ).toBeVisible();
@@ -327,7 +329,7 @@ try {
   const multiple = cli("show", [cid]);
   assert.equal(multiple.artifact_ids.length, 2);
   const tableId = multiple.artifact_ids.find((id) => id !== aid);
-  await page.goto(spaceURL);
+  await page.goto(workURL);
   await page.locator(`.space-work-item[data-artifact="${tableId}"]`).click();
   const nextAction = surface.getByText(
     "Interview three prospective clients before quoting a fixed fee.",

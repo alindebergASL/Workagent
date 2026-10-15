@@ -21,7 +21,7 @@ import {adaptivePresentation} from '@/lib/adaptive-presentation';
 import {turnProgress} from '@/lib/contract/natural';
 import fixture from '${path.join(web, "test/fixtures/recording-turn.json")}';
 window.mode='absent';window.calls=[];window.scope={ws:'w',ids:['a']};
-window.space={ws:'w',id:'c',artifactIds:['a']};
+window.space={ws:'w',id:'c',artifactIds:['a']};window.searchParams='work=a';
 window.spaceDetail=()=>({conversation:{id:window.space.id,title:'Synthetic project',state:'open',work_version:1,work_area:{title:'Synthetic project',goal:'Synthetic goal',kind:'project',origin:'human'}},messages:[],turns:[],artifact_ids:window.space.artifactIds,assignment_ids:[]});
 window.revision='r1';
 window.item={id:'a',title:'Synthetic venue responsibility',conversation_id:'c',state:'paused',lifecycle:'paused',needs_review_artifact_ids:[],responsibility:null};
@@ -61,7 +61,7 @@ const mocks = {
   "next/link":
     "import React from 'react';export default function Link(p){return React.createElement('a',p);}",
   "next/navigation":
-    "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')},replace:()=>{}});export const usePathname=()=>'/spaces/w/work/c';export const useSearchParams=()=>new URLSearchParams('');",
+    "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')},replace:()=>{}});export const usePathname=()=>'/spaces/w/work/c';export const useSearchParams=()=>new URLSearchParams(window.searchParams||'');",
   "@/components/ConversationPeek": "export const ConversationPeek=()=>null;",
   "@/lib/client/capabilities":
     "export const CAPABILITIES={conversation:true,delegateWithoutContext:false,naturalAdmission:true};",
@@ -207,6 +207,7 @@ try {
       assert.deepEqual(refreshed, { detail: 2, artifacts: 2, proposals: 2 });
       await p.evaluate(() => {
         window.space.artifactIds = ["b"];
+        window.searchParams = "work=b";
       });
       await p.getByRole("button", { name: "Refresh this project" }).click();
       await expect(p.locator('[data-artifact-id="b"]')).toHaveAttribute(
