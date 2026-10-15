@@ -645,6 +645,11 @@ try {
   ).toHaveCount(0, { timeout: 15000 });
   await page.getByRole("link", { name: "← Autumn workshop" }).click();
   await page.waitForURL(`**/work/${cid}**`);
+  // Back on the project, the work the person left is still the chosen one.
+  assert.equal(new URL(page.url()).searchParams.get("work"), budgetId);
+  await expect(item(budgetId)).toHaveAttribute("aria-pressed", "true", {
+    timeout: 15000,
+  });
   await expect(next).toContainText("earlier version", { timeout: 15000 });
   await expect(page.locator(".space-standing")).toContainText(
     "Get written confirmation of the venue booking",
@@ -969,6 +974,31 @@ try {
     await expect(kept.locator("textarea")).toHaveValue(
       "You asked for: under EUR 700, delivered within two weeks.",
     );
+    // Workagent's proposal to the person's own corrected version says exactly
+    // what it would change, beside what's saved, and that it replaces their
+    // edit there; their own correction elsewhere isn't touched.
+    const proposal = page.getByTestId("product-proposal");
+    await expect(proposal).toContainText("A proposed version is ready");
+    await expect(proposal.getByTestId("proposal-changes")).toContainText(
+      "Adds or rewrites 2 parts; takes out or replaces 1 part",
+    );
+    await expect(proposal.getByTestId("proposal-replaces-yours")).toBeVisible();
+    const diff = proposal.locator(".diff");
+    await expect(diff.locator('[data-added="true"]')).toContainText([
+      "Northprint says 10 days is possible for EUR 40 more.",
+      "Decide by Friday so printing can start on Monday.",
+    ]);
+    await expect(diff.locator('[data-removed="true"]')).toContainText([
+      "the others need two to three weeks.",
+    ]);
+    await expect(diff).not.toContainText("late twice last October");
+    await expect(
+      proposal.getByRole("button", { name: "Apply proposed version" }),
+    ).toBeEnabled();
+    await proposal.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: path.join(out, "08b-proposal-against-your-edit.png"),
+    });
     await page.goto(
       `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${sup.findings_id}`,
     );

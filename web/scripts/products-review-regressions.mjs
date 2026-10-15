@@ -2374,6 +2374,65 @@ try {
   );
 
   {
+    // A proposal to a table the person corrected says, value by value, what
+    // it changes, and marks the value they set themselves.
+    const earlier = structuredClone(tableRev);
+    earlier.id = "earlier-rev";
+    earlier.author_kind = "worker";
+    earlier.parent_revision_id = null;
+    earlier.revision_number = 1;
+    const cellOf = (rev, row, key) =>
+      rev.body.rows
+        .find((r) => r.row_id === row)
+        .cells.find((c) => c.field_key === key);
+    cellOf(earlier, "venue-willow-hall", "hire_cost").value = "400.00";
+    const current = structuredClone(tableRev);
+    current.parent_revision_id = earlier.id;
+    current.author_kind = "human";
+    const proposed = structuredClone(current.body);
+    cellOf({ body: proposed }, "venue-willow-hall", "hire_cost").value =
+      "380.00";
+    cellOf({ body: proposed }, "venue-willow-hall", "travel_time").value = 20;
+    await showFlex(
+      flexData(current, {
+        history: [
+          { ...current, artifact_id: "a" },
+          { ...earlier, artifact_id: "a" },
+        ],
+        proposals: [
+          {
+            id: "tp",
+            status: "pending",
+            base_revision_id: current.id,
+            body: proposed,
+            body_hash: "b".repeat(64),
+            reason: "Synthetic proposal under a changed budget",
+          },
+        ],
+      }),
+    );
+    const card = page.getByTestId("product-proposal");
+    await expect(card.getByTestId("proposal-changes")).toHaveText(
+      "2 values changed",
+    );
+    await expect(card.getByTestId("proposal-replaces-yours")).toHaveText(
+      "It changes a value you set yourself. Applying it replaces it.",
+    );
+    const items = card.getByTestId("proposal-cell-changes").locator("li");
+    await expect(items).toHaveCount(2);
+    await expect(items.first()).toHaveText(
+      "Willow Hall · Hire cost (supplied fact) (GBP): 350.00 → 380.00 (your value)",
+    );
+    await expect(items.nth(1)).toHaveText(
+      "Willow Hall · Travel time (supplied fact) (minutes): 15 → 20",
+    );
+  }
+  passed++;
+  console.log(
+    "PASS a proposal to a corrected table lists each value it changes and marks the person's own",
+  );
+
+  {
     // The real model-made view names its exact bound version in its own
     // code, so the shell won't offer to repoint it; it asks for a new view.
     const binding = viewRev.body.bindings[0];

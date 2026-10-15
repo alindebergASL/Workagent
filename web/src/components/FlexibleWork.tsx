@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
-import { DocEdit, DocRead } from "@/components/DocBody";
+import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
+import { countChanges, diffBlocks } from "@/lib/diff";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { SandboxedView, type ViewActions } from "@/components/SandboxedView";
 import {
@@ -17,6 +18,10 @@ import {
 import {
   addRow,
   bindingStates,
+  cellAt,
+  cellAuthors,
+  cellChanges,
+  type CellChange,
   canRemoveRow,
   cellInput,
   cellValue,
@@ -198,6 +203,10 @@ export function FlexibleEditor({
   // note they've added or reworded in this draft.
   const savedNoteAuthors = useMemo(
     () => noteAuthors(artifact.current_revision, history),
+    [artifact.current_revision, history],
+  );
+  const savedCellAuthors = useMemo(
+    () => cellAuthors(artifact.current_revision, history),
     [artifact.current_revision, history],
   );
   const draftNoteAuthors = useMemo(() => {
@@ -414,14 +423,34 @@ export function FlexibleEditor({
             {proposed &&
             flexibleKind(proposed) === "structured_table" &&
             kind === "structured_table" ? (
-              <p className="decision-question" data-testid="proposal-changes">
-                {changeSummary(
-                  tableChanges(
-                    saved as StructuredTable,
-                    proposed as StructuredTable,
-                  ),
+              <>
+                <p className="decision-question" data-testid="proposal-changes">
+                  {changeSummary(
+                    tableChanges(
+                      saved as StructuredTable,
+                      proposed as StructuredTable,
+                    ),
+                  )}
+                </p>
+                {outdated ? null : (
+                  <TableProposalCells
+                    saved={saved as StructuredTable}
+                    proposed={proposed as StructuredTable}
+                    authors={savedCellAuthors}
+                  />
                 )}
-              </p>
+              </>
+            ) : null}
+            {proposed &&
+            !outdated &&
+            flexibleKind(proposed) === "document" &&
+            kind === "document" ? (
+              <DocumentProposal
+                saved={saved as DocumentBody}
+                proposed={proposed as DocumentBody}
+                savedAuthors={savedNoteAuthors}
+                yours={artifact.current_revision.author_kind === "human"}
+              />
             ) : null}
             {proposed &&
             flexibleKind(proposed) === "custom_view" &&
@@ -1193,6 +1222,112 @@ function ViewInput({
         ) : null}
       </div>
     </details>
+  );
+}
+
+/**
+ * Each value a proposed table would change, saved value to proposed one; a
+ * value the person set themselves is marked, and said first.
+ */
+function TableProposalCells({
+  saved,
+  proposed,
+  authors,
+}: {
+  saved: StructuredTable;
+  proposed: StructuredTable;
+  authors: Record<string, "human" | "worker">;
+}) {
+  const changes = cellChanges(saved, proposed);
+  if (!changes.length) return null;
+  const yours = (c: CellChange) => authors[cellAt(c.rowId, c.key)] === "human";
+  const theirs = changes.filter(yours);
+  const shown = [...theirs, ...changes.filter((c) => !yours(c))].slice(0, 12);
+  return (
+    <div className="stack-sm">
+      {theirs.length ? (
+        <p className="small" data-testid="proposal-replaces-yours">
+          {theirs.length === 1
+            ? "It changes a value you set yourself."
+            : `It changes ${theirs.length} values you set yourself.`}{" "}
+          Applying it replaces {theirs.length === 1 ? "it" : "them"}.
+        </p>
+      ) : null}
+      <ul className="small proposal-cells" data-testid="proposal-cell-changes">
+        {shown.map((c) => (
+          <li key={cellAt(c.rowId, c.key)} data-yours={yours(c) || undefined}>
+            {c.row} · {c.field}: {c.before} → <strong>{c.after}</strong>
+            {yours(c) ? <span className="muted"> (your value)</span> : null}
+          </li>
+        ))}
+      </ul>
+      {changes.length > shown.length ? (
+        <p className="small muted">…and {changes.length - shown.length} more</p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * What a proposed version of a document would change in the saved one,
+ * exactly: what it adds and what it takes out, beside each other. When the
+ * saved version is the person's own, it says that applying it replaces it.
+ */
+function DocumentProposal({
+  saved,
+  proposed,
+  savedAuthors,
+  yours,
+}: {
+  saved: DocumentBody;
+  proposed: DocumentBody;
+  savedAuthors: NoteAuthors;
+  yours: boolean;
+}) {
+  const ops = diffBlocks(
+    viewBlocks(saved.blocks, savedAuthors),
+    viewBlocks(
+      proposed.blocks,
+      proposedNoteAuthors(saved, proposed, savedAuthors),
+    ),
+  );
+  const { added, removed } = countChanges(ops);
+  const titleChanged = saved.title !== proposed.title;
+  if (!added && !removed && !titleChanged)
+    return (
+      <p className="small muted" data-testid="proposal-changes">
+        It reads the same as your saved version.
+      </p>
+    );
+  const parts = (n: number) => `${n} part${n === 1 ? "" : "s"}`;
+  return (
+    <div className="stack-sm" data-testid="proposal-doc-changes">
+      <p className="decision-question" data-testid="proposal-changes">
+        {[
+          titleChanged ? `renames it “${readableTitle(proposed.title)}”` : "",
+          added ? `adds or rewrites ${parts(added)}` : "",
+          removed ? `takes out or replaces ${parts(removed)}` : "",
+        ]
+          .filter(Boolean)
+          .join("; ")
+          .replace(/^./, (c) => c.toUpperCase())}
+        .
+      </p>
+      {yours && removed ? (
+        <p className="small" data-testid="proposal-replaces-yours">
+          Your saved version is your own edit. Applying this replaces the parts
+          marked as only in your version.
+        </p>
+      ) : null}
+      <DocDiff
+        ops={ops}
+        labels={{
+          added: "Only in the proposal",
+          removed: "Only in your saved version",
+          tone: "compare",
+        }}
+      />
+    </div>
   );
 }
 

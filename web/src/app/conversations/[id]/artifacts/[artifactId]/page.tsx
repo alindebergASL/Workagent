@@ -196,7 +196,12 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
   return (
     <div className="doc-page product-page">
       {resource.data?.conversation.conversation.work_area && ws ? (
-        <Link className="back-link" href={areaHref(ws, id)}>
+        // Back to the project with this work still chosen, as the person
+        // left it.
+        <Link
+          className="back-link"
+          href={`${areaHref(ws, id)}?work=${encodeURIComponent(artifactId)}`}
+        >
           ← {resource.data.conversation.conversation.work_area.title}
         </Link>
       ) : (
