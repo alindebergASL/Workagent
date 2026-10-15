@@ -1,6 +1,27 @@
 # Current runtime status and execution boundary
 
-## Overnight batch 2 — latest factual handoff
+## Overnight batch3 — latest factual handoff
+
+Application`afab13b`, owner through`133e857`: per-work Space refusal precedence,
+pinned-view regeneration guidance and verified mobile frame content.265 frontend
+tests/type/lint/format and webpack build pass;7 routing/18 real-service Space cases
+pass. Parent viewed desktop390320 screenshots with actual interactive content.
+Frozen actual-React in-place13/retention17/overlay6 plus pinned-guidance probe pass.
+All new decisions controlled; no fresh live model or comparative-parity claim.
+
+Full source-frozen backend:1223pass/1 umask-sensitive fixture failure. Explicit
+unsafe-mode fixture fix passes22 operator cases under077 and022; no post-fix full
+suite green claim. Runtime backend/contracts/migrations unchanged from batch2.
+
+Actual successor installer/one-run helper is implemented/tested but NOT activated.
+Independent review's3 concrete gaps fixed;46 parent+reviewer cases and real readonly
+source/clone gates pass. Changed helper still requires narrow independent follow-up;
+2/2 reviewers joined, no delegation-cap bypass. No actual package/install/grant/new
+encumbrance. Cumulative40, encumbered24.617200/unactivated15.382800; unknowns preserved.
+Local44count/42dispatch/377read vs all-lineage70/68/566;0cancels, sharedreserve8.97056.
+See[batch3 report](OVERNIGHT_20261015_BATCH3.md),`STATUS.md` and batch3 manifest.
+
+## Overnight batch2 — historical handoff
 
 Integrated application `4d2628` includes backend human-wait preservation and sole
 owner's in-place interactive work / immediate refused-card suppression. Parent124

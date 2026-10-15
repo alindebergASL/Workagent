@@ -1,0 +1,150 @@
+{
+  "sha": "28ee7de528b00599df40e41b2c9fcdbc354210ee",
+  "scope": "Actual React SpaceView/FlexibleWork/ViewSurface/SandboxedView and hooks with actual CSS, controlled API mocks, existing owner-authored comparison fixture; no backend or provider calls; not a full Next shell",
+  "cases": [
+    {
+      "name": "canonical action envelope and empty bootstrap data",
+      "pass": true,
+      "calls": [
+        {
+          "ws": "w",
+          "id": "a",
+          "request": {
+            "schema_version": "workagent/v1",
+            "request_id": "a2b90710-89b0-427b-a22f-fd81729d07c4",
+            "view_revision_id": "a-r1",
+            "view_body_hash": "a-hash-1",
+            "access_generation": 7,
+            "action": "read",
+            "payload": {}
+          }
+        }
+      ],
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "hostile payload cannot replace canonical scope or revisions",
+      "pass": true,
+      "result": {
+        "error": "That didn’t work."
+      },
+      "brokerCallsAdded": 0,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "undeclared and prototype actions never reach broker",
+      "pass": true,
+      "results": [
+        "This view can’t do that.",
+        "This view can’t do that.",
+        "This view can’t do that.",
+        "This view can’t do that."
+      ],
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "320px resize retains real content keyboard slider and pane switching",
+      "pass": true,
+      "layout": {
+        "width": 320,
+        "scroll": 320
+      },
+      "frameLayout": {
+        "width": 289,
+        "scroll": 289,
+        "text": "What matters more?  100% price, 0% speed\nBest fit: Quayside Press · €520 · 18 days\nNorthprint · €640 · 12 days\nLark & Co · €715 · 6 days\n\nReading saved version b-r1"
+      },
+      "actionCalls": 1,
+      "sliderAfterResize": "100",
+      "draftRetained": true,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "Reads and Used by keyboard links select in place",
+      "pass": true,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "changed canonical input warns and stale broker read is refused",
+      "pass": true,
+      "result": "That didn’t work.",
+      "retainedFrameText": "What matters more?  50% price, 50% speed\nBest fit: Lark & Co · €715 · 6 days\nNorthprint · €640 · 12 days\nQuayside Press · €520 · 18 days\n\nReading saved version b-r1",
+      "note": "Retained old computation is explicitly marked changed in trusted shell; no claim of clearing old authorized data on ordinary version changes",
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "isolated selected view 401 clears iframe",
+      "pass": true,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "isolated selected view 404 clears iframe",
+      "pass": true,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "denial 401 after same artifact transport failure must clear iframe",
+      "pass": true,
+      "denialDelivered": true,
+      "iframeCount": 0,
+      "retained": "",
+      "trustedText": "NEXT\n\nContinue with “Supplier evidence”, or ask for a change.\n\nOpen Supplier evidence\nWork in this project\nRefresh\n\nSome of this project’s work isn’t available to you any more. It may have been removed, or your access changed.\n\nSupplier evidence\nTable · changed 1 Oct, 10:00 UTC by Workagent\n\nThe work you chose isn’t available to you now. Your draft is kept.",
+      "sendEnabled": false,
+      "sendClicked": false,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "denial 401 after different artifact transport failure must clear iframe",
+      "pass": true,
+      "denialDelivered": true,
+      "iframeCount": 0,
+      "retained": "",
+      "trustedText": "NEXT\n\nContinue with “Supplier evidence”, or ask for a change.\n\nOpen Supplier evidence\nWork in this project\nRefresh\n\nSome of this project’s work isn’t available to you any more. It may have been removed, or your access changed.\n\nShowing the work as last read; can’t re-check it right now.\n\nSupplier evidence\nTable · changed 1 Oct, 10:00 UTC by Workagent\n\nThe work you chose isn’t available to you now. Your draft is kept.",
+      "sendEnabled": false,
+      "sendClicked": false,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "denial 404 after same artifact transport failure must clear iframe",
+      "pass": true,
+      "denialDelivered": true,
+      "iframeCount": 0,
+      "retained": "",
+      "trustedText": "NEXT\n\nContinue with “Supplier evidence”, or ask for a change.\n\nOpen Supplier evidence\nWork in this project\nRefresh\n\nSome of this project’s work isn’t available to you any more. It may have been removed, or your access changed.\n\nSupplier evidence\nTable · changed 1 Oct, 10:00 UTC by Workagent\n\nThe work you chose isn’t available to you now. Your draft is kept.",
+      "sendEnabled": false,
+      "sendClicked": false,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "denial 404 after different artifact transport failure must clear iframe",
+      "pass": true,
+      "denialDelivered": true,
+      "iframeCount": 0,
+      "retained": "",
+      "trustedText": "NEXT\n\nContinue with “Supplier evidence”, or ask for a change.\n\nOpen Supplier evidence\nWork in this project\nRefresh\n\nSome of this project’s work isn’t available to you any more. It may have been removed, or your access changed.\n\nShowing the work as last read; can’t re-check it right now.\n\nSupplier evidence\nTable · changed 1 Oct, 10:00 UTC by Workagent\n\nThe work you chose isn’t available to you now. Your draft is kept.",
+      "sendEnabled": false,
+      "sendClicked": false,
+      "errors": [],
+      "externalRequests": []
+    },
+    {
+      "name": "old action response cannot populate replacement view revision",
+      "pass": true,
+      "newView": "New canonical view",
+      "lateSuccessDelivered": true,
+      "errors": [],
+      "externalRequests": []
+    }
+  ]
+}

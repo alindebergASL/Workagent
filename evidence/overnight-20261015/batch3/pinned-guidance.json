@@ -1,0 +1,5 @@
+{
+  "pass": true,
+  "name": "Exact-version pinned stale in-place view requests regeneration, not unsafe rebind",
+  "provider_calls": 0
+}
