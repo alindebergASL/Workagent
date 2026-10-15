@@ -323,13 +323,146 @@ try {
     revision_id: plan.current_revision_id,
     body_hash: plan.current_revision.body_hash,
   });
+  // No worker runs in this stack: the service's own check says so, and the
+  // waiting message says it's waiting, never that a reply is being written.
   await expect(page.locator(".space-view")).toContainText(
-    /Your latest message is waiting for Workagent|Workagent is replying/,
+    "Your latest message is waiting. Workagent isn’t running right now.",
     { timeout: 15000 },
   );
-  pass(
-    "a reply carries the selected work's exact saved version; the waiting turn shows as underway, not as done",
+  await expect(page.locator(".space-view")).not.toContainText(
+    "Workagent is replying",
   );
+  pass(
+    "a reply carries the selected work's exact saved version; the waiting turn shows as waiting, not as done or as being answered",
+  );
+
+  // What the service says about running work, shown where the work is: the
+  // real check (no worker here), then each state it can report. Drafts and
+  // the chosen work stay put while it's re-read; nothing is disabled by it.
+  {
+    const line = page.getByTestId("execution-line");
+    await expect(line).toHaveAttribute("data-execution", "unavailable");
+    await expect(line).toContainText("You can read and edit your work");
+    const turnSays = page.locator(
+      ".working-agent [data-testid=turn-execution]",
+    );
+    await expect(turnSays.last()).toContainText("isn’t running right now");
+    await expect(page.locator(".working-agent .thread")).not.toContainText(
+      "Replying…",
+    );
+    const runId = (await api(`/conversations/${cid}`)).body.turns.at(-1).run_id;
+    const execUrl = new RegExp(`/workspaces/${ws}/execution$`);
+    let reply = null;
+    await page.route(execUrl, (route) =>
+      reply === "fail"
+        ? route.abort("failed")
+        : route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              workspace_id: ws,
+              checked_at: new Date().toISOString(),
+              last_progress_at: null,
+              ...reply,
+            }),
+          }),
+    );
+    const recheck = () =>
+      page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await box.fill("Draft kept while status changes");
+    const states = [
+      [
+        {
+          state: "awaiting_provider",
+          can_advance_authorized_work: true,
+          runs: [{ run_id: runId, state: "awaiting_provider" }],
+        },
+        "working",
+        "Waiting for the model’s answer.",
+      ],
+      [
+        {
+          state: "recovering",
+          can_advance_authorized_work: true,
+          runs: [{ run_id: runId, state: "recovering" }],
+        },
+        "working",
+        "Picking this up again after an interruption.",
+      ],
+      [
+        {
+          state: "blocked",
+          can_advance_authorized_work: false,
+          runs: [
+            {
+              run_id: runId,
+              state: "blocked",
+              failure_category: "authority_or_budget",
+            },
+          ],
+        },
+        "blocked",
+        "reached the limit it’s allowed for this",
+      ],
+    ];
+    for (const [status, lineState, turnText] of states) {
+      reply = status;
+      await recheck();
+      await expect(line).toHaveAttribute("data-execution", lineState, {
+        timeout: 15000,
+      });
+      await expect(turnSays.last()).toContainText(turnText);
+      await expect(box).toHaveValue("Draft kept while status changes");
+      await expect(about).toContainText("About: Workshop plan");
+    }
+    // Ready, with a result waiting for the person elsewhere: nothing to say,
+    // and nothing stops them.
+    reply = {
+      state: "waiting_for_person",
+      can_advance_authorized_work: true,
+      runs: [],
+    };
+    await recheck();
+    await expect(line).toHaveCount(0, { timeout: 15000 });
+    await expect(send).toBeEnabled();
+    // The check itself failing is said as that, not as running or stopped.
+    reply = "fail";
+    await page.reload();
+    await expect(line).toHaveAttribute("data-execution", "unknown", {
+      timeout: 15000,
+    });
+    await expect(line).toContainText(
+      "Couldn’t check whether Workagent is running",
+    );
+    await page.unroute(execUrl);
+    await recheck();
+    await expect(line).toHaveAttribute("data-execution", "unavailable", {
+      timeout: 15000,
+    });
+    await expect(box).toHaveValue("Draft kept while status changes");
+    // The full conversation says the same.
+    const chosenAt = page.url();
+    await page.goto(`${origin}/conversations/${cid}?workspace=${ws}`);
+    await expect(page.getByTestId("execution-line")).toHaveAttribute(
+      "data-execution",
+      "unavailable",
+      { timeout: 15000 },
+    );
+    await expect(
+      page.locator("[data-testid=turn-execution]").last(),
+    ).toContainText("isn’t running right now");
+    await page.goto(chosenAt);
+    await expect(about).toContainText("About: Workshop plan", {
+      timeout: 15000,
+    });
+    await expect(box).toHaveValue("Draft kept while status changes", {
+      timeout: 15000,
+    });
+    await box.fill("");
+    pass(
+      "what's running is the service's own check: no worker reads as not running, never replying; waiting on the model, recovering and a limit each say so on the waiting turn; a ready service says nothing; a failed check says only that; drafts and the chosen work stay put",
+    );
+  }
 
   // About the whole project: no target.
   await page

@@ -12,21 +12,38 @@ import {
 } from "@/lib/contract/natural";
 import { RichText } from "@/components/RichText";
 import { useScopedHref } from "@/lib/client/workspace";
+import type { TurnExecution } from "@/lib/execution-view";
 
 export function TurnSummary({
   state,
   progress,
   fallback,
+  execution,
 }: {
   state: TurnState;
   progress?: TurnProgress;
   fallback?: string;
+  /** What the service says about this turn's run, while it's unanswered. */
+  execution?: TurnExecution | null;
 }) {
   const view = adaptivePresentation(state, progress);
-  if (!view) return <span>{fallback}</span>;
+  const said = execution ? (
+    <span data-testid="turn-execution">{execution.text}</span>
+  ) : null;
+  if (execution?.replaces) return said;
+  if (!view)
+    return said ? (
+      <span className="stack-sm">
+        <span>{fallback}</span>
+        <span className="hint">{said}</span>
+      </span>
+    ) : (
+      <span>{fallback}</span>
+    );
   return (
     <div className="stack-sm" data-testid="adaptive-summary">
       <span>{view.title}</span>
+      {said ? <span className="hint">{said}</span> : null}
       <span className="hint">{view.note}</span>
       {view.checks ? <span className="hint">{view.checks}</span> : null}
       {view.changedAttempts > 0 ? (

@@ -59,6 +59,10 @@ File.prototype.arrayBuffer = function() {
 };
 `;
 const mocks = {
+  "@/lib/client/execution": `
+export const executionApi = {get: async () => null};
+export const useExecution = () => ({data: null, error: null, loading: false, reconnecting: false, refresh: async () => null});
+`,
   "@/lib/client/real-api": `
 import {ApiError} from '@/lib/contract/errors';
 export const conversationApi = {send: async (ws,cid,payload) => {

@@ -1366,3 +1366,67 @@ The investigation case now repoints the view at the edited quotes in place and r
 - Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
   lint and format checks.
 - Full gate, including the sandbox's 9 checks, and mock e2e 15/15.
+
+## Truthful execution status from `GET /execution` (comment 6198057395, contract 10741ac)
+
+Merged Hermes's `10741ac` with no web conflicts. Wired the generated `ExecutionStatus`/`RunExecution`
+into the existing experience, alongside the canonical turn and work readback. There is no
+client-side ledger: each page reads `/execution` once, and re-reads it every 15 s and on focus.
+
+**Pending turns** (states `queued`, `responding` or `unavailable`), in the full conversation and
+the side pane, take their run's state from the check.
+
+| Run state from `/execution` | What the turn shows |
+| --- | --- |
+| `unavailable` (or a missing or stale heartbeat) | "Workagent isn't running right now. Your message is kept…". This replaces any "Replying…". |
+| `blocked` | One plain reason per failure category (for example, "reached the limit it's allowed for this"). This also replaces the in-progress wording. |
+| `awaiting_provider` | "Waiting for the model's answer.", added to the in-progress wording. |
+| `recovering` | "Picking this up again after an interruption.", added to the in-progress wording. |
+| `working`, `completed`, `idle` | Nothing added; the canonical turn state stays in charge. |
+
+**The Space standing** never says "Workagent is replying" while the check says nothing is running
+the latest message.
+
+**The workspace line** (`data-testid="execution-line"`, `data-execution`) appears on the full
+conversation and the Space.
+
+| Status | Line |
+| --- | --- |
+| `unavailable` | Not running; you can read and edit, and new requests wait. |
+| `blocked` without capacity | Can't take on new work here right now. |
+| `working`, `awaiting_provider`, `recovering` | Working on a request. |
+| A failed check | "Couldn't check whether Workagent is running." Not running, not stopped. |
+| Ready, including `waiting_for_person` | Silent. |
+
+**Unaffected by the check.** It never disables reading, editing, choosing work or asking. A wait
+for human review doesn't block anything. A completed run is never turned into an objective-success
+claim. Mock mode doesn't read `/execution`.
+
+**Tests**
+- Unit (`test/execution-view.test.ts`):
+  - a missing heartbeat reads as not running, never working;
+  - blocked shows its category;
+  - awaiting the provider and recovering are additive;
+  - working, completed and other runs are left alone;
+  - the workspace line covers silent, not running, blocked, a failed check, and another run being
+    blocked.
+- Real stack, a new `space-experience.mjs` case:
+  - With no worker, the real `/execution` reads `unavailable`. The waiting turn and the standing
+    say so, and never "Replying…".
+  - Routed statuses then show the turn's text for `awaiting_provider`, `recovering` and
+    `blocked/authority_or_budget`; the draft and chosen work stay put through each re-read.
+  - With `waiting_for_person`, the line is silent and Send is enabled.
+  - When the check fails, the page says "Couldn't check"; after recovery it reads `unavailable`.
+  - The full conversation shows the same.
+- `conversation-journey.mjs` now expects the truthful not-running text for its worker-less queued
+  turns.
+
+**Results**
+- RED with the previous presentation: the standing read "Your latest message is waiting for
+  Workagent." and said nothing about Workagent not running.
+- GREEN:
+  - routing 7 and Space 20;
+  - 279 unit tests and 37 DOM regressions;
+  - review-boundary 15/15, plus type, lint and format;
+  - the full gate, including the conversation journey and general integration;
+  - mock e2e 15/15.

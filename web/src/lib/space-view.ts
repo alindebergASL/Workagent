@@ -1,3 +1,4 @@
+import { turnExecution, type ExecutionStatus } from "./execution-view";
 import type { ConversationDetailView } from "./contract/types";
 import type { HoldEntry } from "./client/responsibility";
 import { holdGoal } from "./client/responsibility";
@@ -121,11 +122,14 @@ export function spaceStanding({
   work,
   workUnreadable = false,
   holds,
+  execution,
 }: {
   detail: ConversationDetailView;
   work: SpaceWorkItem[] | null;
   workUnreadable?: boolean;
   holds: Record<string, HoldEntry | undefined>;
+  /** The service's check of what's running, when read. */
+  execution?: ExecutionStatus | null;
 }): SpaceStanding {
   const cid = detail.conversation.id;
   const needs: StandingLine[] = [];
@@ -204,15 +208,19 @@ export function spaceStanding({
       text: "Your latest message didn’t complete. The conversation says what happened.",
       tone: "attention",
     });
-  else if (last && waiting(last))
+  else if (last && waiting(last)) {
+    // Never "replying" when the service says nothing is running it.
+    const run = turnExecution(last.run_id, execution);
     underway.push({
       key: `turn:${last.run_id}`,
-      text:
-        last.state === "queued"
+      text: run?.replaces
+        ? `Your latest message is waiting. ${run.text}`
+        : last.state === "queued"
           ? "Your latest message is waiting for Workagent."
           : "Workagent is replying to your latest message.",
-      tone: "working",
+      tone: run?.replaces ? "attention" : "working",
     });
+  }
 
   const lead = work ? leadWork(work) : null;
   const next: StandingLine =
