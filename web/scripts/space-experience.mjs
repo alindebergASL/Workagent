@@ -1513,6 +1513,60 @@ try {
     "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and is pointed at the new quotes in place",
   );
 
+  // From a model view on its own page, what it reads opens in the trusted
+  // editor for that work, and going back returns to the project with that
+  // work chosen. Something it reads that can't be read now is named, not
+  // linked: a link would only lead to "not available".
+  {
+    const prioritiesRead = new RegExp(
+      `/api/domain/v1/workspaces/${sup.workspace}/artifacts/${sup.priorities_id}$`,
+    );
+    await page.route(prioritiesRead, (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({
+            status: 404,
+            json: {
+              code: "not_found_or_not_authorized",
+              message: "Not found.",
+              request_id: "injected",
+            },
+          })
+        : route.continue(),
+    );
+    await page.goto(
+      `${origin}/conversations/${sup.conversation_id}/artifacts/${sup.compare_id}?workspace=${sup.workspace}`,
+    );
+    const gone = page.locator('.view-binding[data-state="unavailable"]');
+    await expect(gone).toContainText("not available", { timeout: 20000 });
+    await expect(gone.getByRole("link")).toHaveCount(0);
+    const source = page
+      .locator('.view-binding:not([data-state="unavailable"])')
+      .getByRole("link", { name: "Supplier evidence" });
+    await expect(source).toHaveAttribute(
+      "href",
+      `/conversations/${sup.conversation_id}/artifacts/${sup.evidence_id}?workspace=${sup.workspace}`,
+    );
+    await page.unroute(prioritiesRead);
+    await source.click();
+    await page.waitForURL(new RegExp(`/artifacts/${sup.evidence_id}`));
+    // The trusted editor for the source, not another view of it.
+    await expect(
+      page.getByRole("region", { name: "Editable table" }),
+    ).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: /^← / }).first().click();
+    await page.waitForURL(
+      new RegExp(
+        `/spaces/${sup.workspace}/work/${sup.conversation_id}\\?work=${sup.evidence_id}`,
+      ),
+    );
+    await expect(
+      page.locator(`.space-work-item[data-artifact="${sup.evidence_id}"]`),
+    ).toHaveAttribute("aria-pressed", "true", { timeout: 15000 });
+    pass(
+      "from a view's own page, what it reads opens in its editor and back returns with that work chosen; an unreadable source is named, not linked",
+    );
+  }
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

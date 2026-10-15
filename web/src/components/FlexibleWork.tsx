@@ -1749,16 +1749,21 @@ function ViewSurface({
               data-state={state}
             >
               {i ? ", " : " · reads "}
-              <Link
-                href={scopedHref(
-                  `/conversations/${cid}/artifacts/${binding.artifact_id}`,
-                  ws,
-                )}
-              >
-                {readableTitle(
-                  bound[binding.artifact_id]?.title ?? "saved work",
-                )}
-              </Link>
+              {state === "unavailable" ? (
+                // Nothing to open: a link would only lead to "not available".
+                readableTitle(bound[binding.artifact_id]?.title ?? "saved work")
+              ) : (
+                <Link
+                  href={scopedHref(
+                    `/conversations/${cid}/artifacts/${binding.artifact_id}`,
+                    ws,
+                  )}
+                >
+                  {readableTitle(
+                    bound[binding.artifact_id]?.title ?? "saved work",
+                  )}
+                </Link>
+              )}
               {state === "current"
                 ? " · current saved version"
                 : state === "changed"
