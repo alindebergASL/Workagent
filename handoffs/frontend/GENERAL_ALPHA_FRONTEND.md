@@ -1156,3 +1156,60 @@ a resize from desktop. In each, it:
 
 Adjusting the view still sends nothing. Captures of interactive views should scroll
 the frame into view, or use an element screenshot, before they are judged.
+
+## Space loader: a refusal of a piece of work wins at once, for that work alone (comment 6186762851)
+
+**P2.** The project page read each piece of work as `Promise.all` over pairs of
+`Promise.all`. A fast transport failure, on the same piece of work or a sibling,
+rejected the whole read before a slower 401 or 404 arrived. The list was then
+kept as last read, so the chosen view's frame kept running and Send stayed
+enabled after a known refusal.
+
+`SpaceView` now reads each piece of work as an `allSettled` pair. The rules:
+- **Refusal recorded at once.** Every read is watched. A refusal from the latest
+  read generation (not aborted) is recorded straight away for that piece of
+  work, keyed `${ws}:${aid}`, without waiting for any other read.
+- **Refused work leaves the list.** It disappears and a note says some work
+  isn't available. If it was the chosen one:
+  - its body, frame and controls are unmounted;
+  - the choice stays in the address and the draft is kept;
+  - sending waits, with a "not available" pause, by button and by keys.
+- **Recovery.** Only a later published complete read of that piece of work ends
+  the refusal.
+- **Ordinary failures.** An ordinary failure on its own still keeps the list as
+  last read, and says so.
+- **Other work.** When some other piece of work is refused, the chosen view keeps
+  running.
+
+**P3.** In `FlexibleWork`, a view whose code pins the version it was made for now
+gives the explanation for that ("ask for an updated view") first, in place too.
+"Open the view to point it at the latest saved versions" is shown only for a view
+that can actually be repointed, and nothing is offered when the bound work is
+missing.
+
+**Regressions.**
+- `space-experience.mjs` has a new real-stack case on the supplier comparison,
+  running in place. It covers:
+  - 401 and 404;
+  - either of the chosen view's two reads refused, with the other failing first
+    or after;
+  - another piece of work's read failing first;
+  - a read that never answers, from the same piece of work or another, with the
+    refusal required within 2 s;
+  - releasing a held read as a failure, which changes nothing;
+  - recovery after each;
+  - another piece of work refused, where the chosen view keeps running and Send
+    stays enabled;
+  - a plain failure, shown as last read.
+
+  RED with the old loader: `chosen-unavailable` never appeared.
+- `products-review-regressions.mjs` mounts `InPlaceView` with a pinned view and
+  with a repointable one. RED with the old ordering: `view-pinned` was not shown.
+
+**Results.** GREEN on a fresh fixture:
+- workspace-routing 7/7;
+- space-experience 18/18;
+- 265 unit tests;
+- 37 DOM regressions;
+- review-boundary 15/15;
+- type, lint and format checks.

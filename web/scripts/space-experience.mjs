@@ -824,6 +824,165 @@ try {
     "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
   );
 
+  // A refusal of the chosen work ends what's shown of it at once: its running
+  // view is removed and sending waits, even when another read of it or of
+  // other work fails first, or never answers. The choice and the draft are
+  // kept; only a fresh complete read brings it back. Another work's refusal
+  // leaves the chosen one running; a failure alone keeps it, said so.
+  {
+    const sup = ids.supplier;
+    const C = sup.compare_id;
+    const E = sup.evidence_id;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(
+      `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${C}`,
+    );
+    const supPosts = [];
+    const onSupPost = (r) => {
+      if (
+        r.method() === "POST" &&
+        r.url().endsWith(`/conversations/${sup.conversation_id}/messages`)
+      )
+        supPosts.push(r.url());
+    };
+    page.on("request", onSupPost);
+    const frame = page.locator(".space-work iframe");
+    const viewList = page.frameLocator(".space-work iframe").locator("#list");
+    await expect(viewList).toContainText("Lark & Co", { timeout: 20000 });
+    const refreshProject = page.getByRole("button", {
+      name: "Refresh this project",
+    });
+    await box.fill("Draft kept through refusals");
+    const read = (aid) => new RegExp(`/artifacts/${aid}(\\?|$)`);
+    const proposals = (aid) => new RegExp(`/artifacts/${aid}/proposals`);
+    const answer =
+      (outcome, delay = 0) =>
+      async (route) => {
+        if (route.request().method() !== "GET") return route.continue();
+        if (delay) await new Promise((r) => setTimeout(r, delay));
+        if (outcome === "fail") return route.abort("failed");
+        return route.fulfill({
+          status: outcome,
+          contentType: "application/json",
+          body: JSON.stringify({
+            code:
+              outcome === 401
+                ? "unauthenticated"
+                : "not_found_or_not_authorized",
+            message: "Refused.",
+            request_id: "synthetic-refusal",
+            next_action: "Check access.",
+            details: {},
+          }),
+        });
+      };
+    const routed = [];
+    const on = async (url, handler) => {
+      routed.push(url);
+      await page.route(url, handler);
+    };
+    const clear = async () => {
+      for (const url of routed.splice(0)) await page.unroute(url);
+    };
+    const chosenRefused = async (timeout = 15000) => {
+      await expect(page.getByTestId("chosen-unavailable")).toBeVisible({
+        timeout,
+      });
+      await expect(frame).toHaveCount(0);
+      await expect(
+        page.locator(".space-work").getByRole("link", { name: "Open to edit" }),
+      ).toHaveCount(0);
+      await expect(page.locator('[data-state="paused"]')).toBeVisible();
+      await expect(send).toBeDisabled();
+      const before = supPosts.length;
+      await box.press("Control+Enter");
+      await page.waitForTimeout(300);
+      assert.equal(supPosts.length, before, "nothing is sent");
+      await expect(box).toHaveValue("Draft kept through refusals");
+      assert.equal(new URL(page.url()).searchParams.get("work"), C);
+    };
+    const chosenBack = async () => {
+      await clear();
+      await refreshProject.click();
+      await expect(viewList).toContainText("Lark & Co", { timeout: 15000 });
+      await expect(page.getByTestId("chosen-unavailable")).toHaveCount(0);
+      await expect(page.getByTestId("space-work-refused")).toHaveCount(0);
+      await expect(send).toBeEnabled();
+    };
+    // The chosen work's own two reads: either refused, the other failing
+    // first or after, for 401 and 404.
+    for (const status of [401, 404])
+      for (const [refusedRead, failedRead] of [
+        [read(C), proposals(C)],
+        [proposals(C), read(C)],
+      ])
+        for (const [refuseDelay, failDelay] of [
+          [300, 0],
+          [0, 300],
+        ]) {
+          await on(refusedRead, answer(status, refuseDelay));
+          await on(failedRead, answer("fail", failDelay));
+          await refreshProject.click();
+          await chosenRefused();
+          await chosenBack();
+        }
+    // Another work's read failing first doesn't hide the chosen one's refusal.
+    for (const status of [401, 404]) {
+      await on(proposals(E), answer("fail"));
+      await on(read(C), answer(status, 300));
+      await refreshProject.click();
+      await chosenRefused();
+      await chosenBack();
+    }
+    // A read that never answers (the chosen work's own, or another's) doesn't
+    // delay the refusal.
+    for (const pending of [proposals(C), proposals(E)]) {
+      const held = [];
+      await on(pending, (route) =>
+        route.request().method() === "GET"
+          ? held.push(route)
+          : route.continue(),
+      );
+      await on(read(C), answer(404));
+      await refreshProject.click();
+      await expect
+        .poll(() => held.length, { timeout: 15000 })
+        .toBeGreaterThan(0);
+      await chosenRefused(2000);
+      await clear();
+      for (const route of held) await route.abort("failed").catch(() => {});
+      await chosenRefused();
+      await chosenBack();
+    }
+    // Another work refused: it goes, with a note; the chosen view keeps running.
+    await on(read(E), answer(404));
+    await refreshProject.click();
+    await expect(page.getByTestId("space-work-refused")).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(item(E)).toHaveCount(0);
+    await expect(viewList).toContainText("Lark & Co");
+    await expect(page.getByTestId("chosen-unavailable")).toHaveCount(0);
+    await expect(send).toBeEnabled();
+    await chosenBack();
+    await expect(item(E)).toBeVisible();
+    // A failure alone keeps the chosen work as last read, and says so.
+    await on(proposals(C), answer("fail"));
+    await refreshProject.click();
+    await expect(
+      page.getByText("Showing the work as last read", { exact: false }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(viewList).toContainText("Lark & Co");
+    await expect(page.getByTestId("chosen-unavailable")).toHaveCount(0);
+    await chosenBack();
+    await box.fill("");
+    page.off("request", onSupPost);
+    assert.deepEqual(supPosts, [], "nothing was sent");
+    pass(
+      "a refusal of the chosen work removes its running view and holds sending at once, for 401 and 404, in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
+    );
+  }
+
   // A materially different project, an investigation: the comparison the
   // agent made runs in place, reading the saved quotes at their exact
   // version; its weighting is the person's to adjust and saves nothing.

@@ -29,10 +29,20 @@ import { InPlaceView, ReadOnly, type Bound } from "./FlexibleWork";
 import { ProductView } from "./ProductView";
 import { SpaceDetails } from "./WorkAreas";
 import { WorkSurface } from "./WorkSurface";
+import { ApiError } from "@/lib/contract/errors";
 import { ErrorNotice } from "./ui";
 import "./SpaceWork.css";
 
 type Turn = ConversationDetailView["turns"][number];
+interface WorkLoad {
+  gen: number;
+  /** The work this read confirmed, in the project's order. */
+  items: SpaceWorkItem[];
+  current: string[];
+}
+const refusal = (e: unknown) =>
+  e instanceof ApiError &&
+  (e.code === "not_found_or_not_authorized" || e.code === "unauthenticated");
 const awaiting = (t: Turn) =>
   t.state === "queued" ||
   t.state === "responding" ||
@@ -62,22 +72,77 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   const idsKey = ids.join(",");
   // Work is re-read from its own records too: a save or an accepted change
   // elsewhere moves a work's version without changing the conversation's.
-  const work = useResource<SpaceWorkItem[]>(
+  // Each read of the set has a generation; only the latest may publish.
+  const generation = useRef(0);
+  // A refusal to read a piece of work (removed, or access withdrawn) is
+  // shown the moment it arrives, for that work alone, whatever its other
+  // reads or its siblings' do: nothing of it stays on screen. It lasts until
+  // a later read of that work succeeds and is published.
+  const [refusedAt, setRefusedAt] = useState<Record<string, number>>({});
+  const work = useResource<WorkLoad>(
     d ? `space-work:${ws}:${id}:${idsKey}` : null,
-    (signal) =>
-      Promise.all(
-        ids.map(async (aid) => {
-          const [artifact, proposals] = await Promise.all([
-            productApi.get(ws, aid, signal),
-            productApi.proposals(ws, aid, signal),
+    async (signal) => {
+      const gen = ++generation.current;
+      const watch = <T,>(at: string, read: Promise<T>) =>
+        read.catch((e: unknown) => {
+          if (refusal(e) && !signal.aborted && gen === generation.current)
+            setRefusedAt((r) => (r[at] === gen ? r : { ...r, [at]: gen }));
+          throw e;
+        });
+      const reads = await Promise.all(
+        ids.map(async (aid): Promise<SpaceWorkItem | null> => {
+          const at = `${ws}:${aid}`;
+          const [artifact, proposals] = await Promise.allSettled([
+            watch(at, productApi.get(ws, aid, signal)),
+            watch(at, productApi.proposals(ws, aid, signal)),
           ]);
-          return {
-            artifact,
-            pending: proposals.filter((p) => p.status === "pending"),
-          };
+          if (
+            artifact.status === "fulfilled" &&
+            proposals.status === "fulfilled"
+          )
+            return {
+              artifact: artifact.value,
+              pending: proposals.value.filter((p) => p.status === "pending"),
+            };
+          const failures = [artifact, proposals].flatMap((r) =>
+            r.status === "rejected" ? [r.reason as unknown] : [],
+          );
+          // Refused work is left out; any other failure keeps the whole list
+          // as last read, said so.
+          if (failures.some(refusal)) return null;
+          throw failures[0];
         }),
-      ),
+      );
+      if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+      const items = reads.filter((i): i is SpaceWorkItem => i !== null);
+      return { gen, items, current: items.map((i) => i.artifact.id) };
+    },
     { pollMs: 20000 },
+  );
+  const published = work.data;
+  // A later read of that work succeeding, once published, ends its refusal.
+  useEffect(() => {
+    if (!published) return;
+    setRefusedAt((r) => {
+      let next = r;
+      for (const aid of published.current) {
+        const at = `${ws}:${aid}`;
+        if (r[at] !== undefined && published.gen > r[at]) {
+          if (next === r) next = { ...r };
+          delete next[at];
+        }
+      }
+      return next;
+    });
+  }, [published, ws]);
+  const refusedNow = new Set(
+    ids.filter((aid) => {
+      const at = refusedAt[`${ws}:${aid}`];
+      return (
+        at !== undefined &&
+        !(published && published.gen > at && published.current.includes(aid))
+      );
+    }),
   );
   const { holds } = useHolds(ws, d?.assignment_ids ?? []);
   const refreshWork = work.refresh;
@@ -87,7 +152,8 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
     [refreshConversation, refreshWork],
   );
 
-  const items = work.data ?? null;
+  const items =
+    published?.items.filter((i) => !refusedNow.has(i.artifact.id)) ?? null;
   // Only the person's own choice names the work a reply is about; nothing
   // is selected for them. With nothing chosen, a reply is about the project.
   const param = search.get("work");
@@ -101,18 +167,18 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   }, [resolved]);
   // A refusal to re-read the work (removed, or access withdrawn) ends what was
   // last shown: nothing of it stays on screen, though the choice is kept.
-  const workDenied =
-    work.error?.code === "not_found_or_not_authorized" ||
-    work.error?.code === "unauthenticated";
+  const workDenied = refusal(work.error);
+  const choiceDenied = Boolean(param) && (workDenied || refusedNow.has(param!));
   const selected =
     resolved ??
-    (param && !workDenied && remembered?.artifact.id === param
+    (param && !choiceDenied && remembered?.artifact.id === param
       ? remembered
       : null);
-  const choiceUnavailable = Boolean(param) && !resolved && workDenied;
+  const choiceUnavailable = !resolved && choiceDenied;
   const choiceChecking =
-    Boolean(param) && !resolved && items === null && !workDenied;
-  const choiceGone = Boolean(param) && !resolved && items !== null;
+    Boolean(param) && !resolved && items === null && !choiceDenied;
+  const choiceGone =
+    Boolean(param) && !resolved && items !== null && !choiceDenied;
   const select = (aid: string | null) => {
     const next = new URLSearchParams(search.toString());
     if (aid) next.set("work", aid);
@@ -222,6 +288,16 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
             >
               Try again
             </button>
+          </p>
+        ) : null}
+        {refusedNow.size && !(work.error && !items) ? (
+          <p
+            role="status"
+            className="notice-line"
+            data-testid="space-work-refused"
+          >
+            Some of this project’s work isn’t available to you any more. It may
+            have been removed, or your access changed.
           </p>
         ) : null}
         {work.reconnecting ? (
