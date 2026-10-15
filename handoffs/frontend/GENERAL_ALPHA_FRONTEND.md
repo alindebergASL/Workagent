@@ -1052,3 +1052,24 @@ Regression: `space-experience.mjs` case 3 checks:
 
 RED on `bb82644`: focus moved to the separate panel's heading. GREEN 15/15,
 routing 7/7, review-boundary 15/15.
+
+### Card freshness on refresh (comment 6185232681)
+
+"Refresh conversation" re-read only the conversation. The cards' work reads
+are keyed by the message count, so an artifact that changed or became
+unreadable without a new message kept its old preview. The button now re-reads
+both. Each card also says how its last re-read went:
+- **unavailable** (a terminal refusal): nothing of the work is shown, and the
+  card says it isn't available to you now;
+- **unconfirmed** (the re-read failed): the card says it couldn't re-check and
+  shows the work as last read.
+
+Regression: `space-experience.mjs` case 14, on the real service with the
+budget's artifact read intercepted and no new message. It checks, in turn:
+1. a changed title shows after Refresh;
+2. a 404 removes the preview and says unavailable;
+3. a read that recovers shows the work again;
+4. a failed read says couldn't re-check and keeps the last read;
+5. the draft is kept throughout.
+
+RED on `3b38d55` (old preview kept). GREEN 16/16, routing 7/7.

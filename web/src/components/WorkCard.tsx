@@ -142,6 +142,7 @@ export function WorkCard({
   link,
   status,
   brief = false,
+  readState = "current",
 }: {
   product: S["ProductResult"];
   now: WorkNow | undefined;
@@ -153,8 +154,14 @@ export function WorkCard({
    * without a preview (which would show today's version, not this one's).
    */
   brief?: boolean;
+  /**
+   * Whether the latest re-read confirmed the work: it couldn't be checked
+   * (shown as last read, said so), or it can't be opened now (nothing of it
+   * is shown).
+   */
+  readState?: "current" | "unconfirmed" | "unavailable";
 }) {
-  const artifact = now?.artifact;
+  const artifact = readState === "unavailable" ? undefined : now?.artifact;
   const pending =
     product.proposal_id && now
       ? (now.proposals.find(
@@ -189,6 +196,17 @@ export function WorkCard({
       {change && !brief ? (
         <p className="small work-card-change">
           <strong>Proposed:</strong> {change}
+        </p>
+      ) : null}
+      {readState === "unavailable" ? (
+        <p className="small" data-testid="work-card-unavailable">
+          This work isn’t available to you now. It may have been removed, or
+          your access changed.
+        </p>
+      ) : null}
+      {readState === "unconfirmed" ? (
+        <p className="small muted" data-testid="work-card-unconfirmed">
+          Couldn’t re-check this work just now; it’s shown as last read.
         </p>
       ) : null}
       {link.note ? <p className="small muted">{link.note}</p> : null}
