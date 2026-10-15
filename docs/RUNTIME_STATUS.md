@@ -1,6 +1,64 @@
 # Current runtime status and execution boundary
 
-## Integrated candidate — changes required
+## Overnight reconciliation — 2026-10-15, batch 1 in progress
+
+Current integration work is isolated at `/home/ubuntu/workagent-overnight-20261015`,
+branch `hermes/overnight-intelligent-work`, starting from `92e76d8`. The old current
+section below is historical, not live status. `STATUS.md` and the external batch
+result are the continuation checkpoints. No default merge or deployment.
+
+The six actual model admissions on `92e76d8` are consumed and preserved, not
+replaced. Plain explanation and return were answered; saved workshop plan,
+comparison view and waiting responsibility were partial. Changed constraints
+were explained but not saved. A 10215-byte saved plan exceeded the 8192-byte
+projection-body limit; the ordinary untargeted follow-up received no editable
+target. This is a real continuity failure, not a prompt-quality excuse.
+The planned human safety note was NEVER saved (editor routing blocked it), so
+historical human-edit preservation is NOT TESTED. Calculator arithmetic matched
+an external oracle; generated controls were not exercised. Project page, desktop
+layout, accessible names and unsent-draft reload were exercised; mobile screenshot
+capture timed out. No general-intelligence or baseline-parity acceptance.
+
+Independent exact-`92e76d8` frontend review required two P2 changes: suppress the
+remembered body/controls on terminal authorization/not-found errors, and avoid
+whole-project scope copy while an explicit selection is checking/missing. These
+are client-retention/misleading-copy findings, not server authz bypass or escaped
+send findings. Owner's routing and fixes through `bb82644` are now integrated for
+fresh verification, including work cards and human-note editing; owner remains
+sole web writer. A third delayed-workspace-list link-scope defect was reproduced
+and routed to the owner. See #9 comment6184636381 (exact readback verified).
+
+Backend `ce7c4d7` adds scoped, immutable-revision indexed reads for bodies omitted
+from the default projection, with a 32768-byte aggregate read budget, retained-read
+edit admission, pending-only proposals and current authority/CAS checks. 26 new
+controlled PostgreSQL tests passed; 156 focused existing tests passed. Independent
+review exposed protected-note omission in proposals and SQL read-receipt forgery
+by a restricted SQL writer. Fix `f0a53e4` passed79 scoped tests; final backend
+candidate `5b3e339` passed39 retrieval tests across documents, structured tables
+and custom views. Final independent follow-up remains pending (one-shot delegation
+cap2/2), not claimed approved. Owner `bb82644` passed265 frontend tests and
+production gates,7 routing/15 Space real-service Chromium cases and6 parent
+controlled retention regressions. Parent found an additional card-refresh
+freshness P2 and routed it to Claude (#9 comment6185232681). See
+[batch1 evidence](OVERNIGHT_20261015_BATCH1.md).
+These results are controlled runtime evidence, NOT new live model outcomes.
+
+Original live review checkout/data/build were not changed. Loopback 3151/8151
+were observed listening during this batch; original old preview remains offline.
+No public app/API listener was created. Review from the user's own device remains
+unverified. Original evidence is retained under original checkout
+`.local/space-evaluation-next/`, including raw GLM5.3 critique/receipt. The critique's
+claim about a saved safety note is false; do not silently rewrite the raw review.
+
+Budget: cumulative authorization remains $40. Historical encumbrance $24.617200,
+unactivated $15.382800; latest handoff reservations $8.97056/$9.762080. Successor
+six admissions exhausted; unused request headroom is not admission authority.
+No new product-model call or spend this batch to date. Historical reported
+$0.452445 is conservative usage, not billing; direct GLM subscription is not
+asserted free. Two unknown count attempts remain quarantined. No successor may
+run before exact-candidate review and live ledger/route/pricing reconciliation.
+
+## Historical integrated candidate — changes required at that checkpoint
 
 `70b4d8cf692355acc137608e0424a026c2c7f0a7` combines Claude04ae36e and
 backend3aa8f3f, preserving both owners' ancestry. Current work projection and safe

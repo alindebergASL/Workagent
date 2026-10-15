@@ -1,0 +1,69 @@
+{
+  "sha": "f0a53e4d7b93585cb91da35439beaa1648d2ff9e",
+  "cases": [
+    {
+      "name": "changed list retains subject; all submit paths held; draft/focus resume; latest exact target",
+      "pass": true,
+      "pausedHint": "Sending waits until the work you chose is confirmed.",
+      "sent": {
+        "command_id": "92ad1973-b981-40d6-8e6b-57abac6ddebf",
+        "expected_work_version": 1,
+        "text": "draft revised",
+        "attachments": [],
+        "target": {
+          "artifact_id": "a",
+          "revision_id": "a-r2",
+          "body_hash": "hash-2"
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "missing chosen target holds; explicit general choice recovers",
+      "pass": true,
+      "state": {
+        "about": "About: Work aAsk about the whole project instead",
+        "hint": "Sending waits until the work you chose is confirmed.",
+        "retained": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "cold missing-target link stays held but must not claim general scope",
+      "pass": true,
+      "about": "About: the work you choseAsk about the whole project instead",
+      "hint": "Sending waits until the work you chose is confirmed.",
+      "chooseWork": "The work you chose isn’t in this project any more. Choose one, or ask about the whole project.",
+      "errors": []
+    },
+    {
+      "name": "current not_found_or_not_authorized terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [
+        "The work you chose isn’t available to you now. Choose again, or ask about the whole project. Your draft is kept."
+      ],
+      "errors": []
+    },
+    {
+      "name": "current unauthenticated terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [
+        "The work you chose isn’t available to you now. Choose again, or ask about the whole project. Your draft is kept."
+      ],
+      "errors": []
+    },
+    {
+      "name": "baseline not_found_or_not_authorized terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [],
+      "errors": []
+    }
+  ],
+  "network": "only private in-memory localhost harness; API methods mocked; no model/service calls"
+}

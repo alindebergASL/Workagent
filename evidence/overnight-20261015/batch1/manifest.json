@@ -1,0 +1,148 @@
+{
+  "backend_candidate": "5b3e339055d53a799370aa4362d1cff93717ee05",
+  "frontend_owner": "bb82644",
+  "evidence_mode": "controlled providers; real PostgreSQL and browser; no product inference",
+  "tests": {
+    "retrieval-final.xml": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "retrieval-fixed.xml": {
+      "tests": 79,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "backend-focused-complete.xml": {
+      "tests": 156,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "frontend_tests": 265,
+  "routing_cases_passed": 7,
+  "space_cases_passed": 15,
+  "retention_cases": [
+    {
+      "name": "changed list retains subject; all submit paths held; draft/focus resume; latest exact target",
+      "pass": true,
+      "pausedHint": "Sending waits until the work you chose is confirmed.",
+      "sent": {
+        "command_id": "92ad1973-b981-40d6-8e6b-57abac6ddebf",
+        "expected_work_version": 1,
+        "text": "draft revised",
+        "attachments": [],
+        "target": {
+          "artifact_id": "a",
+          "revision_id": "a-r2",
+          "body_hash": "hash-2"
+        }
+      },
+      "errors": []
+    },
+    {
+      "name": "missing chosen target holds; explicit general choice recovers",
+      "pass": true,
+      "state": {
+        "about": "About: Work aAsk about the whole project instead",
+        "hint": "Sending waits until the work you chose is confirmed.",
+        "retained": 1
+      },
+      "errors": []
+    },
+    {
+      "name": "cold missing-target link stays held but must not claim general scope",
+      "pass": true,
+      "about": "About: the work you choseAsk about the whole project instead",
+      "hint": "Sending waits until the work you chose is confirmed.",
+      "chooseWork": "The work you chose isn\u2019t in this project any more. Choose one, or ask about the whole project.",
+      "errors": []
+    },
+    {
+      "name": "current not_found_or_not_authorized terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [
+        "The work you chose isn\u2019t available to you now. Choose again, or ask about the whole project. Your draft is kept."
+      ],
+      "errors": []
+    },
+    {
+      "name": "current unauthenticated terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [
+        "The work you chose isn\u2019t available to you now. Choose again, or ask about the whole project. Your draft is kept."
+      ],
+      "errors": []
+    },
+    {
+      "name": "baseline not_found_or_not_authorized terminal artifact read removes protected snapshot",
+      "pass": true,
+      "retained": 0,
+      "body": null,
+      "paused": [],
+      "errors": []
+    }
+  ],
+  "independent_review": "ce7c4d7 changes required; fixes self-verified, final independent follow-up pending",
+  "new_product_calls": 0,
+  "new_product_spend_usd": "0",
+  "files": [
+    {
+      "path": "independent-backend-review.md",
+      "sha256": "8a293fb3f440a0f829373f61bf53c03369ae03cf285b61d99032a1aeb593239b",
+      "bytes": 7540
+    },
+    {
+      "path": "retrieval-final.xml",
+      "sha256": "e3ed91330c362b8a17c4d54e4ac41d5c7f841c731e6bf78a0a579d704f7c91d8",
+      "bytes": 5606
+    },
+    {
+      "path": "retrieval-fixed.xml",
+      "sha256": "3640b9018ec287e49ee68b145d9205537c7aaf62f2020f055cc74b2f3cded6a4",
+      "bytes": 11022
+    },
+    {
+      "path": "backend-focused-complete.xml",
+      "sha256": "30309b2a0ebcea72f7b0031bbd0c8b62b0cf86bf7dfecaf96e9dca77aaa124af",
+      "bytes": 22570
+    },
+    {
+      "path": "retention-retest/report.json",
+      "sha256": "98fb71b047511bfd558621ea62b4c39a2af64aa68fb0e79cdd847ce5dfb0ffd3",
+      "bytes": 2347
+    },
+    {
+      "path": "card-refresh-report.json",
+      "sha256": "2da37b5b864257d6dc6bed35c90bcb16d9c66fc1696bfc68aa68f734d02b3ed5",
+      "bytes": 1926
+    },
+    {
+      "path": "budget-summary.json",
+      "sha256": "4ba4ae5689e20bccecfddc4e6ff25b70fc8e93fa307a69d349dc4a8f125b40a0",
+      "bytes": 4718
+    },
+    {
+      "path": "browser-space/07-conversation-1440.png",
+      "sha256": "a3e8d511fe3957cc99748cca75bc478a23a23c8f49464f5dd53b8c6b7aaa14d3",
+      "bytes": 320703
+    },
+    {
+      "path": "browser-space/04-space-320.png",
+      "sha256": "735b75337f7c6763e8b4108df4ba9dc5b024f30f57bac5b5823014456c17e1c8",
+      "bytes": 112888
+    },
+    {
+      "path": "browser-space/08-document-your-note.png",
+      "sha256": "c6c1c9a4a4aea03c8d47d78ba7b1784dd7468684dec60d7f670d109b13a60a18",
+      "bytes": 252399
+    }
+  ]
+}
