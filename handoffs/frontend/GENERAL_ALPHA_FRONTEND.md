@@ -1456,3 +1456,49 @@ With nothing unsaved, the tab closes without asking.
 - RED with the previous editor: "an unsaved edit asks before closing", actual `false`.
 - GREEN: routing 7 and Space 21, 279 unit tests, 37 DOM regressions, review-boundary 15/15, the
   full gate with 0 failures, and mock e2e 15/15.
+
+## A document proposal says exactly what it changes in the person's version
+
+This prepares Hermes's next verification (comment 6200425047): reviewing a proposal against the
+current version, where that version is the person's own.
+
+**The gap.** On the flexible work page, a proposal for a document showed only the whole proposed
+version, folded away. It didn't show what would change against the saved version, or that applying
+it replaces the person's own edit. Table proposals already got a change summary, and the legacy
+assignment page already had a document diff.
+
+**The fix.** A non-outdated document proposal now shows three things:
+- **A summary line**, for example "Adds or rewrites 2 parts; takes out or replaces 1 part" (or that
+  it reads the same).
+- **A note when the saved version is the person's own** (`author_kind: human`): applying the
+  proposal replaces the parts marked as only in their version.
+- **The exact changes, side by side.** It uses the existing `DocDiff` in compare tone ("Only in the
+  proposal" / "Only in your saved version"), with unchanged runs condensed. Kept notes keep who
+  added them.
+
+The full proposed version stays one click away. Outdated proposals keep their existing explanation.
+
+**Fixture.** The person corrects "Findings so far". Workagent then proposes a change to that
+corrected version:
+- one paragraph is rewritten;
+- a checklist item is added;
+- the kept note is preserved exactly.
+
+This is a live, non-outdated proposal against a human revision. It adds one synthetic run in
+`personal-work`, which now has 8 of its 10.
+
+**Regression.** In `space-experience.mjs`, the findings work page shows:
+- the summary line;
+- the "your own edit" note;
+- the added Northprint text and the Friday item as only in the proposal;
+- the replaced paragraph as only in the saved version;
+- the person's untouched correction absent from the diff;
+- Apply enabled.
+
+**Results.**
+- RED with the previous page: no summary line ("proposal-changes" not found).
+- GREEN:
+  - routing 7 and Space 21;
+  - 279 unit tests, 37 DOM regressions and review-boundary 15/15;
+  - the full gate with 0 failures;
+  - mock e2e 15/15.

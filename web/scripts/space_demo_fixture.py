@@ -295,6 +295,25 @@ compare_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_
                   and getattr(s.get_artifact(p, ws, a).current_revision.body, 'kind', None) == 'custom_view')
 findings_id = next(a for a in supplier_detail.artifact_ids
                    if a not in (evidence_id, compare_id, priorities_id))
+# The person corrects the findings themselves; Workagent then proposes a change
+# to that version: a live proposal against the person's own edit.
+FINDINGS_EDITED = {**FINDINGS, 'blocks': [
+    b if b['block_id'] != 'b3' else
+    {**b, 'text': 'Quayside Press is EUR 195 cheaper than Lark & Co; they were late twice last October.'}
+    for b in FINDINGS['blocks']]}
+findings_first = exact(findings_id)
+s.human_save(p, ws, findings_id, cmd(HumanSave, expected_current_revision_id=findings_first['revision_id'],
+                                     body=FINDINGS_EDITED))
+findings_target = exact(findings_id)
+FINDINGS_PROPOSED = {**FINDINGS_EDITED, 'blocks': [
+    b if b['block_id'] != 'b2' else
+    {**b, 'text': 'Lark & Co can deliver in 6 days; Northprint says 10 days is possible for EUR 40 more.'}
+    for b in FINDINGS_EDITED['blocks']] + [para(6, 'Decide by Friday so printing can start on Monday.',
+                                                'checklist', False)]}
+runs['findings_change'] = ask(supplier.id, 'Northprint can do 10 days for EUR 40 more; update the findings.',
+                              [publish(FINDINGS_PROPOSED, findings_target)],
+                              'I proposed updating the findings with Northprint’s offer.',
+                              target=findings_target, name='findings_change')
 open_detail = s.get_conversation(p, ws, open_day.id)
 second_ids = {'workspace': second, 'conversation_id': open_day.id,
               'artifact_id': open_detail.artifact_ids[0],

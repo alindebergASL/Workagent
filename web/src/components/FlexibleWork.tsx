@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
-import { DocEdit, DocRead } from "@/components/DocBody";
+import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
+import { countChanges, diffBlocks } from "@/lib/diff";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { SandboxedView, type ViewActions } from "@/components/SandboxedView";
 import {
@@ -422,6 +423,17 @@ export function FlexibleEditor({
                   ),
                 )}
               </p>
+            ) : null}
+            {proposed &&
+            !outdated &&
+            flexibleKind(proposed) === "document" &&
+            kind === "document" ? (
+              <DocumentProposal
+                saved={saved as DocumentBody}
+                proposed={proposed as DocumentBody}
+                savedAuthors={savedNoteAuthors}
+                yours={artifact.current_revision.author_kind === "human"}
+              />
             ) : null}
             {proposed &&
             flexibleKind(proposed) === "custom_view" &&
@@ -1193,6 +1205,69 @@ function ViewInput({
         ) : null}
       </div>
     </details>
+  );
+}
+
+/**
+ * What a proposed version of a document would change in the saved one,
+ * exactly: what it adds and what it takes out, beside each other. When the
+ * saved version is the person's own, it says that applying it replaces it.
+ */
+function DocumentProposal({
+  saved,
+  proposed,
+  savedAuthors,
+  yours,
+}: {
+  saved: DocumentBody;
+  proposed: DocumentBody;
+  savedAuthors: NoteAuthors;
+  yours: boolean;
+}) {
+  const ops = diffBlocks(
+    viewBlocks(saved.blocks, savedAuthors),
+    viewBlocks(
+      proposed.blocks,
+      proposedNoteAuthors(saved, proposed, savedAuthors),
+    ),
+  );
+  const { added, removed } = countChanges(ops);
+  const titleChanged = saved.title !== proposed.title;
+  if (!added && !removed && !titleChanged)
+    return (
+      <p className="small muted" data-testid="proposal-changes">
+        It reads the same as your saved version.
+      </p>
+    );
+  const parts = (n: number) => `${n} part${n === 1 ? "" : "s"}`;
+  return (
+    <div className="stack-sm" data-testid="proposal-doc-changes">
+      <p className="decision-question" data-testid="proposal-changes">
+        {[
+          titleChanged ? `renames it “${readableTitle(proposed.title)}”` : "",
+          added ? `adds or rewrites ${parts(added)}` : "",
+          removed ? `takes out or replaces ${parts(removed)}` : "",
+        ]
+          .filter(Boolean)
+          .join("; ")
+          .replace(/^./, (c) => c.toUpperCase())}
+        .
+      </p>
+      {yours && removed ? (
+        <p className="small" data-testid="proposal-replaces-yours">
+          Your saved version is your own edit. Applying this replaces the parts
+          marked as only in your version.
+        </p>
+      ) : null}
+      <DocDiff
+        ops={ops}
+        labels={{
+          added: "Only in the proposal",
+          removed: "Only in your saved version",
+          tone: "compare",
+        }}
+      />
+    </div>
   );
 }
 
