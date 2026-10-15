@@ -136,7 +136,6 @@ class GeneralWorker:
 
     def _responses_work(self,p,ws,run):
         from dataclasses import asdict
-        import time
         from .provider_attempts import ReceiptCapability
         from .service import WorkerCapability,canonical,digest
         from .general_responses import check_pins,POLICY
@@ -156,12 +155,14 @@ class GeneralWorker:
             try:
                 with s.db.transaction() as c: s._check_capability(c,cap)
             except DomainError:
-                if receipt is None: raise
+                # Reclaim only through domain authority: a receipt is required
+                # whenever an attempt exists; an active lease is never renewed.
                 cap=s._claim_run(p,ws,rid,responses_receipt=receipt)
                 saved['worker']=asdict(cap); phases.state.save(ws,rid,saved)
         else:
             cap=s.claim_run(p,ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
+        deadline=phases._visit_deadline(cap)
         context=s.conversation_worker_context(cap)
         from .adaptive import enabled,contract
         from .models import ProviderGrant
@@ -176,7 +177,7 @@ class GeneralWorker:
             saved['receipt']=asdict(receipt); phases.state.save(ws,rid,saved)
         from .responses_recovery import record_successor_use
         record_successor_use(s,receipt,cap)
-        ledger=Ledger(s,receipt); deadline=time.monotonic()+phases.deadline_seconds
+        ledger=Ledger(s,receipt)
         if enabled(config):
             return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
         selection,_=ledger.snapshot('selection',cap)

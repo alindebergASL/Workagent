@@ -186,8 +186,15 @@ except DomainError:print('denied')
     assert worker.run(ws,q.run.id)=='outcome_unknown' and len(fake.calls)==1
 
 
-def test_bounded_read_cancel_counters_survive_restart(context,tmp_path):
+def test_bounded_read_cancel_counters_survive_restart(context,tmp_path,monkeypatch):
     import httpx
+    from types import SimpleNamespace
+    import workagent.responses_worker as module
+    # This test exhausts operation counters, not elapsed lease time. Lease
+    # admission has separate advancing-clock coverage in test_responses_leases.
+    instant=module.now()
+    monkeypatch.setattr(module,'now',lambda:instant)
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:0.0,sleep=lambda _:None))
     from workagent.responses_transport import ResponsesTransport
     from workagent.service import WorkerCapability
     s,p,ws,_,_=context

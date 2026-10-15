@@ -11,7 +11,7 @@ import time
 
 from .broker import Broker
 from .errors import DomainError
-from .models import Command, ProviderResult, ProviderUsage, Run
+from .models import Command, ProviderResult, ProviderUsage, Run, now
 from .provider_attempts import ReceiptCapability
 from .service import Principal, WorkerCapability, canonical, digest, encoded
 from .responses_schema import READ_SCHEMA, FINAL_SCHEMA, scope_registry, to_body
@@ -187,12 +187,14 @@ class ResponsesWorker:
             try:
                 with s.db.transaction() as c: s._check_capability(c,cap)
             except DomainError:
-                if not rc: raise
+                # Domain authority rejects an active lease or an attempt without
+                # its receipt; a crash before attempt preparation can reclaim.
                 cap=s._claim_run(Principal(run.principal_id,'worker'),ws,rid,responses_receipt=rc)
                 saved['worker']=asdict(cap); self.state.save(ws,rid,saved)
         else:
             cap=s.claim_run(Principal(run.principal_id,'worker'),ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; self.state.save(ws,rid,saved)
+        deadline=self._visit_deadline(cap)
         with s.db.transaction() as c:
             from .runtime_config import assemble_context
             context=assemble_context(s,c,cap)
@@ -204,7 +206,6 @@ class ResponsesWorker:
         from .responses_recovery import record_successor_use
         record_successor_use(s,rc,cap)
         ledger=Ledger(s,rc)
-        deadline=time.monotonic()+self.deadline_seconds
         selection,events=ledger.snapshot('selection',cap)
         if selection is None:
             if reconcile_only:raise DomainError('action_unresolved')
@@ -259,6 +260,29 @@ class ResponsesWorker:
             _,run,_=self.service._check_capability(c,cap)
             if run.profile=='general-responses-v1':
                 self.service._general_context(c,cap)
+            return run
+
+    def _visit_deadline(self,cap):
+        # A revisit does not renew the saved lease. This is an I/O admission
+        # deadline, not a hard timeout for an already dispatched HTTP request.
+        started=time.monotonic()
+        run=self._fresh(cap)
+        remaining=(run.lease_expires_at-now()).total_seconds()
+        return started+max(0,min(self.deadline_seconds,remaining-5))
+
+    def _http_ready(self,cap,deadline):
+        if time.monotonic()>=deadline: return False
+        run=self._fresh(cap)
+        # HTTPX timeouts cover individual pool/connect/write/read waits, NOT a
+        # total wall-clock bound. Allow their sum plus a retention/commit margin
+        # rather than assuming the 30s read timeout bounds the whole operation.
+        # Slow streaming/process suspension can still outlive this allowance;
+        # receipt-only retention and fenced publication remain authoritative.
+        timeouts=self.transport._client.timeout.as_dict().values()
+        if any(value is None for value in timeouts): return False
+        allowance=sum(value for value in timeouts if value is not None)+5
+        return (time.monotonic()<deadline and
+                (run.lease_expires_at-now()).total_seconds()>allowance)
 
     def _step(self,ledger,request,cap,deadline,*,reconcile_only=False):
         _,events=ledger.snapshot(request.phase,cap)
@@ -268,24 +292,22 @@ class ResponsesWorker:
             old=events['result']
             if (reconcile_only and request.phase=='final' and old['state']=='malformed' and
                 old['issue']=='invalid_reasoning_item' and old['usage'] is not None and old['output_items']=='[]'):
-                if self.poll_limit==0 or time.monotonic()>=deadline:return None
+                if self.poll_limit==0 or not self._http_ready(cap,deadline):return None
                 # Exactly one bounded GET per invocation; never regenerate or use
                 # an operator-supplied DTO. Only this narrowly identified defect.
                 read_id=ledger.reserve_operation(request,'read',cap)
-                self._fresh(cap)
-                if time.monotonic()>=deadline:return None
+                if not self._http_ready(cap,deadline):return None
                 response=self.transport.retrieve(events['identity']['response_id'],request=request)
                 ledger.corrected_readback(request,response,read_id,cap)
                 return response
             return restore_result(events['result'],request)
         if 'dispatch' not in events:
             if reconcile_only:return None
-            if time.monotonic()>=deadline: return None
+            if not self._http_ready(cap,deadline): return None
             if 'count_result' not in events:
                 if 'count_send' in events: return None  # ambiguous count is never repeated
                 ledger.reserve_operation(request,'count_send',cap)
-                self._fresh(cap)
-                if time.monotonic()>=deadline:return None
+                if not self._http_ready(cap,deadline):return None
                 try:
                     count=self.transport.count(request)
                 except TransportError as error:
@@ -299,11 +321,10 @@ class ResponsesWorker:
                 data=events['count_result']
                 count=self.transport.restore_count(request,input_tokens=data['input_tokens'],
                     count_sha256=data['count_sha256'],provenance=Provenance(**data['provenance']))
-            if time.monotonic()>=deadline:return None
+            if not self._http_ready(cap,deadline):return None
             permit=ledger.reserve_operation(request,'dispatch',cap)
             self._hook('after_predispatch')
-            self._fresh(cap)
-            if time.monotonic()>=deadline:return None
+            if not self._http_ready(cap,deadline):return None
             try:
                 response=self.transport.create(request,count=count,permit=permit,
                     on_accepted=lambda acceptance:ledger.retain(request,'identity',{
@@ -322,10 +343,9 @@ class ResponsesWorker:
             self.service.mark_provider_unknown(ledger.receipt)
             return None
         for _ in range(self.poll_limit):
-            if time.monotonic()>=deadline: break
+            if not self._http_ready(cap,deadline): break
             ledger.reserve_operation(request,'read',cap)
-            self._fresh(cap)
-            if time.monotonic()>=deadline:break
+            if not self._http_ready(cap,deadline):break
             try: response=self.transport.retrieve(identity['response_id'],request=request)
             except TransportError: return None
             if response.state not in ('queued','in_progress'):
@@ -336,6 +356,8 @@ class ResponsesWorker:
 
     def cancel(self,ledger,request,cap):
         _,events=ledger.snapshot(request.phase,cap)
+        deadline=self._visit_deadline(cap)
+        if not self._http_ready(cap,deadline):raise DomainError('action_unresolved')
         ledger.reserve_operation(request,'cancel',cap)
-        self._fresh(cap)
+        if not self._http_ready(cap,deadline):raise DomainError('action_unresolved')
         return self.transport.cancel(events['identity']['response_id'],request=request)
