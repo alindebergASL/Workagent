@@ -25,7 +25,7 @@ import {
   type StandingLine,
 } from "@/lib/space-view";
 import { ConversationPeek } from "./ConversationPeek";
-import { ReadOnly } from "./FlexibleWork";
+import { InPlaceView, ReadOnly, type Bound } from "./FlexibleWork";
 import { ProductView } from "./ProductView";
 import { SpaceDetails } from "./WorkAreas";
 import { WorkSurface } from "./WorkSurface";
@@ -273,8 +273,13 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
                   {on && selected ? (
                     <SelectedWork
                       inline
+                      ws={ws}
                       cid={id}
                       item={selected}
+                      items={items}
+                      open={d.conversation.state === "open"}
+                      refresh={refreshAll}
+                      onSelect={select}
                       onAsk={
                         canAskAbout(selected.artifact)
                           ? () => askAbout(selected.artifact.id)
@@ -318,8 +323,13 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
       {selected &&
       !items?.some((i) => i.artifact.id === selected.artifact.id) ? (
         <SelectedWork
+          ws={ws}
           cid={id}
           item={selected}
+          items={items ?? []}
+          open={d.conversation.state === "open"}
+          refresh={refreshAll}
+          onSelect={select}
           onAsk={
             canAskAbout(selected.artifact)
               ? () => askAbout(selected.artifact.id)
@@ -514,13 +524,25 @@ function Ongoing({ standing }: { standing: ReturnType<typeof spaceStanding> }) {
 
 /** The selected work's current saved version, read-only, with its real controls a step away. */
 function SelectedWork({
+  ws,
   cid,
   item,
+  items,
+  open,
+  refresh,
+  onSelect,
   onAsk,
   inline = false,
 }: {
+  ws: string;
   cid: string;
   item: SpaceWorkItem;
+  /** All of the project's work as last read: what this work reads, or is read by. */
+  items: SpaceWorkItem[];
+  open: boolean;
+  refresh: () => Promise<unknown>;
+  /** Choose another piece of this project's work, in place. */
+  onSelect: (aid: string) => void;
   /** Absent when a reply can't name this kind of work. */
   onAsk?: () => void;
   /**
@@ -546,17 +568,85 @@ function SelectedWork({
   const title = workTitle(item.artifact);
   const ready = actionable(item);
   const old = outdated(item);
+  // An agent-made view reads other work of this project at exact versions;
+  // other work may be read by such views. Both are said, and selectable here.
+  const view =
+    (body as { kind?: string }).kind === "custom_view"
+      ? (body as { bindings?: { artifact_id: string }[] })
+      : null;
+  const byId = new Map(items.map((i) => [i.artifact.id, i]));
+  const reads = (view?.bindings ?? []).map((b) => b.artifact_id);
+  const usedBy = items
+    .filter((i) =>
+      (
+        i.artifact.current_revision.body as {
+          kind?: string;
+          bindings?: { artifact_id: string }[];
+        }
+      ).bindings?.some((b) => b.artifact_id === item.artifact.id),
+    )
+    .map((i) => i.artifact.id);
+  const bound: Bound = Object.fromEntries(
+    reads.map((aid) => {
+      const other = byId.get(aid);
+      return [
+        aid,
+        other
+          ? {
+              revision_id: other.artifact.current_revision_id,
+              body_hash: other.artifact.current_revision.body_hash,
+              title: workTitle(other.artifact),
+            }
+          : null,
+      ];
+    }),
+  );
+  const boundKey = JSON.stringify(bound);
   const preview = useMemo(
     () =>
-      isProduct(body) ? (
+      view ? (
+        <InPlaceView
+          ws={ws}
+          cid={cid}
+          artifact={item.artifact}
+          bound={JSON.parse(boundKey) as Bound}
+          open={open}
+          refresh={refresh}
+        />
+      ) : isProduct(body) ? (
         <ProductView body={body} />
       ) : isFlexible(body) ? (
         <ReadOnly body={body} />
       ) : (
         <p className="muted">This kind of work opens in its own page.</p>
       ),
-    [body],
+    [body, boundKey, open, item.artifact],
   );
+  const related = (label: string, ids: string[]) =>
+    ids.length ? (
+      <p className="small space-related" data-testid={`space-${label}`}>
+        <span className="muted">{label === "reads" ? "Reads" : "Used by"}</span>{" "}
+        {ids.map((aid, i) => {
+          const other = byId.get(aid);
+          return (
+            <span key={aid}>
+              {i ? ", " : ""}
+              {other ? (
+                <button
+                  type="button"
+                  className="link-quiet"
+                  onClick={() => onSelect(aid)}
+                >
+                  {workTitle(other.artifact)}
+                </button>
+              ) : (
+                "work that isn’t in this project"
+              )}
+            </span>
+          );
+        })}
+      </p>
+    ) : null;
   return (
     <article
       id={inline ? "space-selected" : undefined}
@@ -595,6 +685,8 @@ function SelectedWork({
           </button>
         ) : null}
       </div>
+      {related("reads", reads)}
+      {related("used-by", usedBy)}
       {ready.length ? (
         <div className="notice-line space-proposal" role="note">
           <p>

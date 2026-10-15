@@ -112,7 +112,7 @@ try {
     page.getByRole("link", { name: /Monthly newsletter/ }),
   ).toContainText("Ongoing workflow");
   // Each workspace's projects are listed, and each opens in its own workspace.
-  await expect(page.locator(".work-row")).toHaveCount(3);
+  await expect(page.locator(".work-row")).toHaveCount(4);
   await expect(
     page.getByRole("link", { name: /Spring open day/ }),
   ).toHaveAttribute(
@@ -678,6 +678,50 @@ try {
       0,
     );
   }
+  // Within one card's pair of reads: a refusal of either read wins, whatever
+  // order the two finish in, for 401 and 404 alike; the other read failing
+  // first must not keep the old copy.
+  const budgetProposals = new RegExp(`/artifacts/${budgetId}/proposals`);
+  const refuseLater = (status, code) => async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    await new Promise((r) => setTimeout(r, 150));
+    return route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code,
+        message: "Refused.",
+        request_id: "synthetic-refusal",
+        next_action: "Check access.",
+        details: {},
+      }),
+    });
+  };
+  for (const [status, code] of [
+    [401, "unauthenticated"],
+    [404, "not_found_or_not_authorized"],
+  ])
+    for (const [refusedRead, failedRead] of [
+      [budgetRead, budgetProposals],
+      [budgetProposals, budgetRead],
+    ]) {
+      await page.route(refusedRead, refuseLater(status, code));
+      await page.route(failedRead, fail);
+      await refreshBtn.click();
+      await expect(
+        latestBudget.getByTestId("work-card-unavailable"),
+      ).toBeVisible({ timeout: 15000 });
+      await expect(latestBudget).not.toContainText("Venue, two days");
+      await expect(
+        latestBudget.getByTestId("work-card-unconfirmed"),
+      ).toHaveCount(0);
+      await page.unroute(refusedRead);
+      await page.unroute(failedRead);
+      await refreshBtn.click();
+      await expect(latestBudget).toContainText("Venue, two days", {
+        timeout: 15000,
+      });
+    }
   await page.locator("#follow-up").fill("");
   pass(
     "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; a refusal beside a sibling's failed work or proposal read still removes the refused work; all recover; the draft is kept",
@@ -725,6 +769,97 @@ try {
   await shot(page, "08-document-your-note");
   pass(
     "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
+  );
+
+  // A materially different project, an investigation: the comparison the
+  // agent made runs in place, reading the saved quotes at their exact
+  // version; its weighting is the person's to adjust and saves nothing.
+  // What it reads, and what reads a table, are one click away, in place. A
+  // human edit to the quotes leaves the view behind, and it says so here.
+  const sup = ids.supplier;
+  const supBase = `${origin}/api/domain/v1/workspaces/${sup.workspace}`;
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(
+    `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${sup.compare_id}`,
+  );
+  const viewFrame = page.frameLocator(".space-work iframe");
+  await expect(viewFrame.locator("#list")).toContainText("Lark & Co", {
+    timeout: 20000,
+  });
+  await expect(viewFrame.locator("#state")).toContainText(
+    "Reading saved version",
+  );
+  await expect(viewFrame.locator("#list li").first()).toContainText(
+    "Best fit:",
+  );
+  const writesBefore = posts.length;
+  await viewFrame.locator("#weight").fill("100");
+  await expect(viewFrame.locator("#list li").first()).toContainText(
+    "Best fit: Quayside Press",
+  );
+  await viewFrame.locator("#weight").fill("0");
+  await expect(viewFrame.locator("#list li").first()).toContainText(
+    "Best fit: Lark & Co",
+  );
+  assert.equal(posts.length, writesBefore, "adjusting the view sends nothing");
+  await expect(page.getByTestId("space-reads")).toContainText(
+    "Supplier evidence",
+  );
+  await expect(page.getByText("View source")).toHaveCount(0);
+  await shot(page, "09-investigation-view-in-place");
+  await page
+    .getByTestId("space-reads")
+    .getByRole("button", { name: "Supplier evidence" })
+    .click();
+  await expect(
+    page.locator(`.space-work-item[data-artifact="${sup.evidence_id}"]`),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("space-used-by")).toContainText(
+    "Supplier comparison",
+  );
+  await expect(page.locator(".space-work.inline")).toContainText("Lark & Co");
+  // The person changes a quote; the view, made for the earlier version,
+  // says it's behind and where to update it, and offers no save here.
+  const ev = await fetch(`${supBase}/artifacts/${sup.evidence_id}`, {
+    headers,
+  });
+  const evBody = await ev.json();
+  const edited = structuredClone(evBody.current_revision.body);
+  edited.rows[1].cells.find((c) => c.field_key === "price").value = "480.00";
+  const quoteSave = await fetch(
+    `${supBase}/artifacts/${sup.evidence_id}/save`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        schema_version: "workagent/v1",
+        request_id: crypto.randomUUID(),
+        command_id: crypto.randomUUID(),
+        expected_current_revision_id: evBody.current_revision_id,
+        body: edited,
+      }),
+    },
+  );
+  assert.equal(quoteSave.status, 200, await quoteSave.text());
+  await page
+    .getByTestId("space-used-by")
+    .getByRole("button", { name: "Supplier comparison" })
+    .click();
+  await page.getByRole("button", { name: "Refresh this project" }).click();
+  await expect(page.getByTestId("view-update-elsewhere")).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(
+    page.getByRole("button", { name: "Use the latest saved versions" }),
+  ).toHaveCount(0);
+  await expect(page.locator(".space-work .view-binding")).toContainText(
+    "changed since this view was made",
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await noOverflow(page);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  pass(
+    "an investigation's comparison runs in place on the saved quotes; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and where to update it",
   );
 
   // Unavailable and refused reads are said as such.

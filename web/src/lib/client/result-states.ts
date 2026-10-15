@@ -60,29 +60,36 @@ export function useResultStates(
     const entries = await Promise.all(
       ids.map(async (aid): Promise<[string, WorkRead]> => {
         const at = `${ws}:${aid}`;
-        try {
-          const [artifact, proposals] = await Promise.all([
-            productApi.get(ws!, aid, signal),
-            productApi.proposals(ws!, aid, signal),
-          ]);
+        // Both reads settle before deciding: a refusal from either wins,
+        // whatever order they finish in; only a complete pair is kept.
+        const [artifactRead, proposalsRead] = await Promise.allSettled([
+          productApi.get(ws!, aid, signal),
+          productApi.proposals(ws!, aid, signal),
+        ]);
+        if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+        if (
+          artifactRead.status === "fulfilled" &&
+          proposalsRead.status === "fulfilled"
+        ) {
           const now = {
-            current_revision_id: artifact.current_revision_id,
-            proposals,
-            artifact,
+            current_revision_id: artifactRead.value.current_revision_id,
+            proposals: proposalsRead.value,
+            artifact: artifactRead.value,
           };
           lastGood.current[at] = now;
           return [aid, { read: "current", now }];
-        } catch (e) {
-          if (signal.aborted) throw e;
-          if (refused(e)) {
-            delete lastGood.current[at];
-            return [aid, { read: "unavailable", now: null }];
-          }
-          return [
-            aid,
-            { read: "unconfirmed", now: lastGood.current[at] ?? null },
-          ];
         }
+        const failures = [artifactRead, proposalsRead].flatMap((r) =>
+          r.status === "rejected" ? [r.reason] : [],
+        );
+        if (failures.some(refused)) {
+          delete lastGood.current[at];
+          return [aid, { read: "unavailable", now: null }];
+        }
+        return [
+          aid,
+          { read: "unconfirmed", now: lastGood.current[at] ?? null },
+        ];
       }),
     );
     return Object.fromEntries(entries);
