@@ -37,6 +37,7 @@ def test_worker_is_real_shared_dispatcher_and_preserves_state(tmp_path):
     assert cwd==ROOT/'backend'
     assert not any(k in env for k in ('OPENAI_API_KEY','MIGRATION_DATABASE_URL'))
     assert env['DATABASE_URL'].endswith('/retained')
+    assert env['WORKAGENT_FIXTURE_MODE']=='false'
 
 
 def test_web_receives_no_database_credentials(tmp_path):

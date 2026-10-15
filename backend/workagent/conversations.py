@@ -282,6 +282,8 @@ class Conversations:
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
         if 'work_area_context' in context:
             observation['work_area_context']=context['work_area_context']
+        if 'work_context_index' in context:
+            observation['work_context_index']=context['work_context_index']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if previous and previous['data']!=observation:
             raise DomainError('source_changed')
@@ -313,10 +315,11 @@ class Conversations:
             policy,schema=contract(grant.responses)
             context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
                            tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
-            from .composition import enabled as alpha_enabled, discovery
+            from .composition import enabled as alpha_enabled, context_catalog
             if alpha_enabled(config):
                 from .responsibility_action import offer
-                context['composition']=discovery()
+                context['composition']=context_catalog()
+                context['tools']=[{'name':'choose_general_action'}]
                 context['responsibility_offer']=offer(c,run,cv,latest,config)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):
@@ -360,6 +363,11 @@ class Conversations:
             if alpha_enabled(config):
                 from .saved_work import index
                 context['saved_work']=index(self,c,p,run.workspace_id,cv,context['work_area_context'])
+                from .work_context import index as context_index
+                context['work_context_index']=context_index(self,c,p,run,config,
+                    snapshot=previous['data'].get('work_context_index') if previous else None)
+                from .work_context import validate_consumed
+                validate_consumed(self,c,p,run,config)
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             if context.get('responsibility'):
                 from .responsibility_execution import ContinuationContextTooLarge

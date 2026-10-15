@@ -326,8 +326,19 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
-        from .composition import READ_DECISIONS, ReadSavedWork, execute_read
-        if isinstance(operation,ReadSavedWork):
+        from .composition import READ_DECISIONS, ReadSavedWork, SearchWorkContext, execute_read
+        if isinstance(operation,SearchWorkContext):
+            from .work_context import search
+            from .general_responses import check_pins
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                context=self._general_context(c,cap)
+                if 'work_context_index' not in context: raise DomainError('not_found_or_not_authorized')
+                read=search(self,c,current[0],current[1],check_pins(c,current[1]),context,operation)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'capability_result':read}
+        elif isinstance(operation,ReadSavedWork):
             from .saved_work import result as saved_result
             with self.db.transaction() as c:
                 current=resolve_selection(self,c,cap,receipt,phase)

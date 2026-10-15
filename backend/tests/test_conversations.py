@@ -150,7 +150,7 @@ def test_forgery_and_exactly_one_db_owner(context):
 def test_http_admission_same_worker_and_denials(context):
     import secrets
     s,p,ws,_,_=context
-    settings=Settings(s.db.dsn,True,secrets.token_urlsafe(32),p.id)
+    settings=Settings(s.db.dsn,True,secrets.token_urlsafe(32),p.id,fixture_mode=True)
     headers={'Authorization':'Bearer '+settings.local_bearer,'X-Schema-Version':'workagent/v1','X-Request-Id':'b1'}
     with TestClient(create_app(settings)) as client:
         base=f'/v1/workspaces/{ws}/conversations'

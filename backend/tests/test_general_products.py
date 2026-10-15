@@ -190,7 +190,7 @@ def test_human_edit_during_execution_never_overwritten(context,monkeypatch):
 def test_http_download_and_normal_dispatcher_route(context):
     import secrets
     s,p,ws,_,_=context
-    settings=Settings(s.db.dsn,True,secrets.token_urlsafe(32),p.id)
+    settings=Settings(s.db.dsn,True,secrets.token_urlsafe(32),p.id,fixture_mode=True)
     headers={'Authorization':'Bearer '+settings.local_bearer,'X-Schema-Version':'workagent/v1','X-Request-Id':'products'}
     with TestClient(create_app(settings)) as client:
         prefix=f'/v1/workspaces/{ws}'
@@ -353,7 +353,7 @@ def test_real_http_and_controlled_dispatcher_processes(context):
     with socket.socket() as probe:
         probe.bind(('127.0.0.1',0)); port=probe.getsockname()[1]
     token=secrets.token_urlsafe(32)
-    env={**os.environ,'LOCAL_TEST_MODE':'true','LOCAL_BEARER_TOKEN':token,'LOCAL_PRINCIPAL_ID':p.id}
+    env={**os.environ,'LOCAL_TEST_MODE':'true','WORKAGENT_FIXTURE_MODE':'true','LOCAL_BEARER_TOKEN':token,'LOCAL_PRINCIPAL_ID':p.id}
     env.pop('MIGRATION_DATABASE_URL',None)
     for name in list(env):
         if name.endswith('API_KEY') or name in ('ANTHROPIC_AUTH_TOKEN','OPENAI_ACCESS_TOKEN'):

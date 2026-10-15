@@ -367,6 +367,46 @@
   {
     "availability": "available",
     "effects": [
+      "read_context"
+    ],
+    "handler": "search_work_context",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "search_work_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "query",
+        "limit"
+      ],
+      "title": "SearchWorkContext",
+      "type": "object"
+    },
+    "name": "search_work_context",
+    "reason": "Literal-word retrieval; bounded excerpts only, no edit permission or private-account search.",
+    "scope": "Frozen index of granted same-owner source-free conversations; current saved revisions and human messages",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
       "append_answer"
     ],
     "handler": "reply",

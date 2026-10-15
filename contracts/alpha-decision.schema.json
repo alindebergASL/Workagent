@@ -993,6 +993,35 @@
       "title": "ResponsibilityWait",
       "type": "object"
     },
+    "SearchWorkContext": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "search_work_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "query": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "query",
+        "limit"
+      ],
+      "title": "SearchWorkContext",
+      "type": "object"
+    },
     "TableCell": {
       "additionalProperties": false,
       "properties": {
@@ -1217,6 +1246,9 @@
         },
         {
           "$ref": "#/$defs/ReadSavedWork"
+        },
+        {
+          "$ref": "#/$defs/SearchWorkContext"
         },
         {
           "$ref": "#/$defs/RecordResponsibility"

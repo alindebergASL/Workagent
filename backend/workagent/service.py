@@ -64,8 +64,12 @@ from .work_areas import WorkAreas
 
 
 class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAttempts):
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, *, allow_controlled_turns=True):
         self.db = db
+        # Historical controlled harnesses remain usable explicitly by their host.
+        # The supported live HTTP host disables this; missing authority is not a
+        # request for a canned response. This switch never grants model access.
+        self.allow_controlled_turns = allow_controlled_turns
 
     def _scope(self, c, p, ws, write=False):
         lock = 'UPDATE' if write else 'SHARE'

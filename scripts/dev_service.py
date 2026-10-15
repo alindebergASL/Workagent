@@ -73,7 +73,7 @@ def environment(c, component):
     e.update({k:values[k] for k in keys if k in values})
     if len(e.get('LOCAL_BEARER_TOKEN',''))<32 or (component!='web' and not e.get('DATABASE_URL')):
         raise ValueError('runtime credentials missing')
-    e.update(LOCAL_TEST_MODE='true',PYTHONUNBUFFERED='1',
+    e.update(LOCAL_TEST_MODE='true',WORKAGENT_FIXTURE_MODE='false',PYTHONUNBUFFERED='1',
         WORKAGENT_WEB_ORIGIN=f"http://127.0.0.1:{c['web_port']}",
         FRONTEND_ORIGIN=f"http://127.0.0.1:{c['web_port']}",
         WORKAGENT_BACKEND_URL=f"http://127.0.0.1:{c['api_port']}",

@@ -69,4 +69,6 @@ def test_worker_final_keeps_complete_call_and_staged_evidence(context,tmp_path):
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[-1].state=='replied' and detail.turns[-1].adaptive.outcome=='needs_validation'
     assert not detail.turns[-1].adaptive.steps[-1].verification.satisfied
-    assert s.get_artifact(p,ws,detail.artifact_ids[-1]).current_revision.body.title=='Bounded draft'
+    # Artifact IDs are sorted identifiers, not creation order.
+    published=next(r for r in detail.messages[-1].result.results if hasattr(r,'artifact_id'))
+    assert s.get_artifact(p,ws,published.artifact_id).current_revision.body.title=='Bounded draft'

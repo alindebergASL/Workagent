@@ -20,7 +20,7 @@ def consumer_hash():
     from .service import digest
     names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'composition.py','saved_work.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'composition.py','saved_work.py','work_context.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -100,6 +100,7 @@ def admission(service,c,p,ws,cv,cmd):
     rows=c.execute("SELECT data,active FROM provider_grants WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'=%s",(ws,p.id,PROFILE)).fetchall()
     scoped=[r for r in rows if cv.id in r['data']['responses']['conversation_ids']]
     if not scoped:
+        if not service.allow_controlled_turns: raise DomainError('unsupported_operation')
         if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
         return None
     active=[r for r in scoped if r['active']]
@@ -158,7 +159,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
-    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork
+    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork, SearchWorkContext
     decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
@@ -169,6 +170,8 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
         operation=decision
     elif isinstance(decision,READ_DECISIONS):
         if not alpha_enabled(config): raise DomainError('unsupported_operation')
+        if isinstance(decision,SearchWorkContext) and config.get('responsibility'):
+            raise DomainError('unsupported_operation')
         if isinstance(decision,ReadSavedWork):
             from .saved_work import authorize
             authorize(context,message,decision.target)

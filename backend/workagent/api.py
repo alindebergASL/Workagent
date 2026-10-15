@@ -26,12 +26,13 @@ class Settings:
     local_bearer: str
     principal_id: str = 'local-human'
     frontend_origin: str | None = None
+    fixture_mode: bool = False
 
     @classmethod
     def environment(cls):
         return cls(os.environ.get('DATABASE_URL',''),os.environ.get('LOCAL_TEST_MODE')=='true',
                    os.environ.get('LOCAL_BEARER_TOKEN',''),os.environ.get('LOCAL_PRINCIPAL_ID','local-human'),
-                   os.environ.get('FRONTEND_ORIGIN'))
+                   os.environ.get('FRONTEND_ORIGIN'),os.environ.get('WORKAGENT_FIXTURE_MODE')=='true')
 
     def validate(self):
         if not self.local_test_mode or len(self.local_bearer)<32 or not self.database_url:
@@ -46,7 +47,7 @@ security=HTTPBearer(auto_error=False)
 def create_app(settings: Settings | None=None) -> FastAPI:
     # Exporting OpenAPI is offline; startup, not module import, validates credentials.
     settings=settings or Settings.environment()
-    service=Service(Database(settings.database_url)) if settings.database_url else None
+    service=Service(Database(settings.database_url),allow_controlled_turns=settings.fixture_mode) if settings.database_url else None
 
     @asynccontextmanager
     async def lifespan(app):

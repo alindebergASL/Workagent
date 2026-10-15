@@ -347,6 +347,18 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** SearchWorkContext */
+        SearchWorkContext: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "search_work_context";
+            /** Limit */
+            limit: number;
+            /** Query */
+            query: string;
+        };
         /** TableCell */
         TableCell: {
             /** Field Key */
@@ -404,7 +416,7 @@ export interface components {
         /** AlphaDecision */
         AlphaDecision: {
             /** Decision */
-            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["RecordResponsibility"];
+            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["SearchWorkContext"] | components["schemas"]["RecordResponsibility"];
             /** Goal */
             goal: string;
             /** Success Criteria */
