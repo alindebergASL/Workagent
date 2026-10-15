@@ -86,7 +86,7 @@ try {
     /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
   );
   const tableURL = page.url();
-  const tableId = tableURL.split("/").pop();
+  const tableId = new URL(tableURL).pathname.split("/").pop();
   report.table_id = tableId;
   await expect(page.getByTestId("product-verification")).toHaveText(
     "Checked against this saved version.",
@@ -222,7 +222,7 @@ try {
     /\/conversations\/[^/]+\/artifacts\/[^/?]+(?:\?[^#]*)?$/,
   );
   const toolURL = page.url();
-  const toolId = toolURL.split("/").pop();
+  const toolId = new URL(toolURL).pathname.split("/").pop();
   report.tool_id = toolId;
   await expect(page.getByTestId("observed-return")).toHaveText("3750");
   await page
