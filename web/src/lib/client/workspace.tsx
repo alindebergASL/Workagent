@@ -138,8 +138,12 @@ export function InWorkspace({
  * one. A record's own workspace, when known, is passed explicitly.
  */
 export function useScopedHref(): (href: string, ws?: string | null) => string {
+  const inside = useContext(ScopeCtx);
   const { workspace } = useCurrentWorkspace();
-  return (href, ws) => scopedHref(href, ws ?? workspace?.id);
+  // A workspace the route already names scopes links at once, without
+  // waiting for the list of workspaces to load.
+  const current = inside === undefined ? workspace?.id : inside;
+  return (href, ws) => scopedHref(href, ws ?? current);
 }
 
 /**
@@ -178,6 +182,8 @@ export interface WorkspaceScope {
    * Otherwise "back" leads to its own Space.
    */
   isDefault: boolean;
+  /** The workspace the address names, if any, before it's checked. */
+  named: string | null;
   zone: string;
 }
 
@@ -201,6 +207,7 @@ export function useScopedWorkspace(): WorkspaceScope {
     wsId: workspace?.id ?? null,
     status,
     isDefault: Boolean(workspace) && workspace?.id === ctx.workspace?.id,
+    named,
     zone:
       ctx.zoneChoice === "local"
         ? ctx.zone

@@ -99,10 +99,19 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   useEffect(() => {
     if (resolved) setRemembered(resolved);
   }, [resolved]);
+  // A refusal to re-read the work (removed, or access withdrawn) ends what was
+  // last shown: nothing of it stays on screen, though the choice is kept.
+  const workDenied =
+    work.error?.code === "not_found_or_not_authorized" ||
+    work.error?.code === "unauthenticated";
   const selected =
     resolved ??
-    (param && remembered?.artifact.id === param ? remembered : null);
-  const choiceChecking = Boolean(param) && !resolved && items === null;
+    (param && !workDenied && remembered?.artifact.id === param
+      ? remembered
+      : null);
+  const choiceUnavailable = Boolean(param) && !resolved && workDenied;
+  const choiceChecking =
+    Boolean(param) && !resolved && items === null && !workDenied;
   const choiceGone = Boolean(param) && !resolved && items !== null;
   const select = (aid: string | null) => {
     const next = new URLSearchParams(search.toString());
@@ -203,7 +212,9 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
         </div>
         {work.error && !items ? (
           <p role="status" className="notice-line">
-            Couldn’t read this project’s work right now.{" "}
+            {workDenied
+              ? "Some of this project’s work isn’t available to you any more. It may have been removed, or your access changed."
+              : "Couldn’t read this project’s work right now."}{" "}
             <button
               type="button"
               className="link-quiet"
@@ -262,10 +273,15 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
             })}
           </ul>
         ) : null}
-        {items && items.length && !selected ? (
+        {items && items.length && !selected && !param ? (
           <p className="small muted" data-testid="choose-work">
             Choose one to read it here and to ask about it. Until you do, a
             message is about the project as a whole.
+          </p>
+        ) : items && items.length && choiceGone ? (
+          <p className="small muted" data-testid="choose-work">
+            The work you chose isn’t in this project any more. Choose one, or
+            ask about the whole project.
           </p>
         ) : items && !ids.length ? (
           <p className="muted">
@@ -274,6 +290,15 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
           </p>
         ) : null}
       </section>
+      {choiceUnavailable ? (
+        <p
+          role="status"
+          className="notice-line"
+          data-testid="chosen-unavailable"
+        >
+          The work you chose isn’t available to you now. Your draft is kept.
+        </p>
+      ) : null}
       {selected ? (
         <SelectedWork
           cid={id}
@@ -302,15 +327,21 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
       paused={
         choiceChecking
           ? "Checking the work you chose before sending. Your draft is kept."
-          : choiceGone
-            ? "The work you chose isn’t in this project any more. Choose again, or ask about the whole project."
-            : undefined
+          : choiceUnavailable
+            ? "The work you chose isn’t available to you now. Choose again, or ask about the whole project. Your draft is kept."
+            : choiceGone
+              ? "The work you chose isn’t in this project any more. Choose again, or ask about the whole project."
+              : undefined
       }
       placeholder="Ask, or ask for a change…"
       idleHint={
         subject
           ? "Your message is about the selected work’s saved version."
-          : "Your message is about the project as a whole."
+          : param && !resolved
+            ? "Sending waits until the work you chose is confirmed."
+            : resolved
+              ? "This kind of work can’t be a reply’s subject, so your message goes to the project."
+              : "Your message is about the project as a whole."
       }
       about={(pending) => {
         // An unconfirmed send keeps what it was about; show that, not the
@@ -335,7 +366,8 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
             <p>
               <span className="muted">About:</span>{" "}
               <strong>{shown ?? "the whole project"}</strong>
-              {pending === undefined && (subject || choiceGone) ? (
+              {pending === undefined &&
+              (subject || choiceGone || choiceUnavailable) ? (
                 <button
                   type="button"
                   className="link-quiet small"

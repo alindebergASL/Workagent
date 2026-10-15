@@ -510,6 +510,89 @@ try {
     "on a phone the work comes first; switching panes keeps the draft; Ask about this opens the reply box about that work",
   );
 
+  // An answer shows the work it made, with one next step. Earlier mentions
+  // of the same work are one line (a preview there would show today's
+  // version, not that one's). How it ran is one "Details" per answer.
+  for (const [w, h] of [
+    [1440, 1000],
+    [390, 844],
+  ]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto(`${origin}/conversations/${cid}?workspace=${ws}`);
+    const cards = page.locator(".work-card");
+    await expect(cards.first()).toBeVisible({ timeout: 15000 });
+    const budgetCards = page.locator(`.work-card[data-artifact="${budgetId}"]`);
+    const planCards = page.locator(`.work-card[data-artifact="${planId}"]`);
+    await expect(budgetCards.last()).not.toHaveClass(/brief/);
+    await expect(budgetCards.last()).toContainText("Venue, two days");
+    await expect(budgetCards.first()).toHaveClass(/brief/);
+    await expect(budgetCards.first().locator("table")).toHaveCount(0);
+    await expect(planCards.last()).toContainText("Two days, 40 people");
+    await expect(planCards.last()).toContainText("Not checked yet");
+    await expect(planCards.first()).not.toContainText("Not checked yet");
+    // Routine machinery is folded away; the receipt still says what was saved.
+    await expect(page.getByText("At recording, the outcome")).toBeHidden();
+    await expect(page.getByText("The message as recorded")).toHaveCount(0);
+    await expect(
+      page.getByText("Get written confirmation of the venue booking").first(),
+    ).toBeVisible();
+    const replies = page.locator(".msg-agent");
+    const n = await replies.count();
+    for (let i = 0; i < n; i++)
+      await expect(
+        replies.nth(i).locator("summary", { hasText: /./ }),
+      ).toHaveCount(1);
+    await noOverflow(page);
+    await shot(page, `07-conversation-${w}`);
+  }
+  pass(
+    "an answer shows the work it made with one next step; earlier mentions are one line; how it ran is one Details; it fits a phone",
+  );
+
+  // A person can add their own note to a document the agent made, remove a
+  // part they added, and the note is saved as theirs and reads back.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(
+    `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
+  );
+  const adder = page.getByRole("group", { name: "Add to the document" });
+  await expect(adder).toBeVisible({ timeout: 15000 });
+  await adder.getByRole("button", { name: "Paragraph" }).click();
+  await page.keyboard.type("Temporary line");
+  await page
+    .getByRole("button", { name: /^Remove paragraph: Temporary line/ })
+    .click();
+  await expect(page.getByText("Temporary line")).toHaveCount(0);
+  await adder.getByRole("button", { name: "Your note" }).click();
+  const NOTE =
+    "Don’t pay the venue deposit until the refund terms are in writing.";
+  await page.keyboard.type(NOTE);
+  await expect(page.locator(":focus")).toHaveValue(NOTE);
+  await page.getByRole("button", { name: "Save my edits" }).click();
+  await expect(page.getByText("Your edits are saved.")).toBeVisible({
+    timeout: 15000,
+  });
+  const noted = await api(`/artifacts/${planId}`);
+  const blocks = noted.body.current_revision.body.blocks;
+  assert.deepEqual(
+    blocks.filter((b) => b.kind === "protected_note").map((b) => b.text),
+    [NOTE],
+  );
+  assert.equal(
+    blocks.some((b) => b.text === "Temporary line"),
+    false,
+  );
+  assert.equal(noted.body.current_revision.author_kind, "human");
+  await page.reload();
+  const note = page.locator('.doc-editable .doc-block[data-note="true"]');
+  await expect(note).toContainText("Your note");
+  await expect(note.locator("textarea")).toHaveValue(NOTE);
+  await noOverflow(page);
+  await shot(page, "08-document-your-note");
+  pass(
+    "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
+  );
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

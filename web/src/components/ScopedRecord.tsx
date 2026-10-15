@@ -60,5 +60,13 @@ export function ScopedRecord({
         />
       </div>
     );
-  return <InWorkspace ws={scope.wsId}>{children(scope)}</InWorkspace>;
+  // While the list loads, links already carry the workspace the address
+  // names; reads still wait for it to be confirmed.
+  return (
+    <InWorkspace
+      ws={scope.wsId ?? (scope.status === "loading" ? scope.named : null)}
+    >
+      {children(scope)}
+    </InWorkspace>
+  );
 }

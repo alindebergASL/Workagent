@@ -1,5 +1,11 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Block } from "@/lib/contract/types";
 import { condenseDiff, type DiffItem, type DiffOp } from "@/lib/diff";
 
@@ -18,8 +24,12 @@ export function DocRead({
         <div
           className="doc-block"
           data-kind={b.kind}
+          data-note={b.backend_kind === "protected_note" || undefined}
           key={`${idPrefix}-${b.id}`}
         >
+          {b.backend_kind === "protected_note" ? (
+            <span className="doc-note-label">Your note</span>
+          ) : null}
           <div className="doc-text">
             {b.kind === "check_item" ? (
               <input
@@ -70,14 +80,32 @@ function SourceMarks({
   );
 }
 
+const ADDABLE: {
+  kind: Block["kind"];
+  backend: Block["backend_kind"];
+  label: string;
+}[] = [
+  { kind: "paragraph", backend: "paragraph", label: "Paragraph" },
+  { kind: "check_item", backend: "checklist", label: "Checklist item" },
+  { kind: "paragraph", backend: "protected_note", label: "Your note" },
+];
+
+/** A new part's id: unique, and in the saved form's allowed characters. */
+function newBlockId(): string {
+  return `p-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function DocEdit({
   blocks,
   onChange,
   disabled = false,
+  addable = false,
 }: {
   blocks: Block[];
   onChange: (next: Block[]) => void;
   disabled?: boolean;
+  /** The person can add parts (including their own notes) and remove them. */
+  addable?: boolean;
 }) {
   const update = useCallback(
     (id: string, patch: Partial<Block>) => {
@@ -85,10 +113,49 @@ export function DocEdit({
     },
     [blocks, onChange],
   );
+  // A part just added takes the cursor once it's on screen.
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!focusId) return;
+    root.current
+      ?.querySelector<HTMLTextAreaElement>(`[data-block="${focusId}"] textarea`)
+      ?.focus();
+    setFocusId(null);
+  }, [focusId, blocks]);
+  const add = (kind: Block["kind"], backend: Block["backend_kind"]) => {
+    const id = newBlockId();
+    onChange([
+      ...blocks,
+      {
+        id,
+        kind,
+        text: "",
+        backend_kind: backend,
+        ...(backend === "checklist" ? { checked: false } : {}),
+      },
+    ]);
+    setFocusId(id);
+  };
+  const remove = (id: string) => {
+    const i = blocks.findIndex((b) => b.id === id);
+    onChange(blocks.filter((b) => b.id !== id));
+    const next = blocks[i + 1] ?? blocks[i - 1];
+    if (next) setFocusId(next.id);
+  };
   return (
-    <div className="doc">
+    <div className="doc doc-editable" ref={root}>
       {blocks.map((b) => (
-        <div className="doc-block" data-kind={b.kind} key={b.id}>
+        <div
+          className="doc-block"
+          data-kind={b.kind}
+          data-note={b.backend_kind === "protected_note" || undefined}
+          data-block={b.id}
+          key={b.id}
+        >
+          {b.backend_kind === "protected_note" ? (
+            <span className="doc-note-label">Your note</span>
+          ) : null}
           <div className="doc-text">
             {b.kind === "check_item" ? (
               <input
@@ -100,15 +167,46 @@ export function DocEdit({
               />
             ) : null}
             <AutoTextarea
-              label={`${labelFor(b.kind)} ${b.id}`}
+              label={`${b.backend_kind === "protected_note" ? "Your note" : labelFor(b.kind)} ${b.id}`}
               value={b.text}
               disabled={disabled}
               onChange={(text) => update(b.id, { text })}
             />
+            {addable && blocks.length > 1 ? (
+              <button
+                type="button"
+                className="doc-remove"
+                disabled={disabled}
+                aria-label={`Remove ${b.backend_kind === "protected_note" ? "your note" : labelFor(b.kind).toLowerCase()}: ${b.text.slice(0, 40) || "empty"}`}
+                onClick={() => remove(b.id)}
+              >
+                ×
+              </button>
+            ) : null}
           </div>
           <SourceMarks block={b} />
         </div>
       ))}
+      {addable && blocks.length < 200 ? (
+        <div
+          className="doc-add row wrap"
+          role="group"
+          aria-label="Add to the document"
+        >
+          <span className="small muted">Add</span>
+          {ADDABLE.map((a) => (
+            <button
+              key={a.label}
+              type="button"
+              className="btn btn-sm btn-quiet"
+              disabled={disabled}
+              onClick={() => add(a.kind, a.backend)}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

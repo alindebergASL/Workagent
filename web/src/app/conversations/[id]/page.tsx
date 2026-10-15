@@ -27,6 +27,12 @@ import { OperationComposer } from "@/components/OperationComposer";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
+import { WorkCard } from "@/components/WorkCard";
+import {
+  adaptivePresentation,
+  cardStatus,
+  receiptSays,
+} from "@/lib/adaptive-presentation";
 import {
   AgentReply,
   RuntimeRequest,
@@ -238,6 +244,11 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   );
   const uncertainSend = reply.uncertain;
   const endPending = Boolean(endCmd.current) && !ending;
+  // The latest answer to show a piece of work previews it; earlier ones
+  // refer to it in one line.
+  const latestRef = new Map<string, string>();
+  for (const m of d.messages)
+    for (const p of m.products ?? []) latestRef.set(p.artifact_id, m.id);
   const history = (
     <>
       <ol className="thread" aria-label="Conversation">
@@ -262,6 +273,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                 <div className="stack-sm">
                   {m.author === "agent" ? (
                     <AgentReply
+                      recordedInDetails
                       text={m.text}
                       progress={
                         d.turns.find((t) => t.run_id === m.run_id)?.progress
@@ -281,71 +293,69 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                   {m.author === "person" ? (
                     <SentFiles files={m.attachments} />
                   ) : null}
-                  {m.products?.map((product) => {
-                    const link = resultLink(
-                      `/conversations/${id}`,
-                      product,
-                      resultState(results.data, product),
-                      wsId,
-                    );
+                  {(() => {
+                    const replied = m.author === "agent";
+                    const turnNow = d.turns.find((t) => t.run_id === m.run_id);
+                    const view = replied
+                      ? adaptivePresentation(
+                          turnNow?.state ?? "replied",
+                          turnNow?.progress,
+                        )
+                      : null;
+                    // Routine outcomes say how far the work was checked, or
+                    // repeat the receipt: they go on the card or in Details.
+                    // Anything else (stopped, blocked, needs input) stays.
+                    const status = m.products?.length ? cardStatus(view) : null;
+                    const folded =
+                      replied &&
+                      (status !== null || receiptSays(view)) &&
+                      (turnNow?.state ?? "replied") === "replied";
                     return (
-                      <div
-                        key={`${product.artifact_id}:${product.observation_id}`}
-                        className="product-result stack-xs"
-                      >
-                        <Link
-                          className="product-link"
-                          data-kind={product.kind}
-                          href={link.href}
-                        >
-                          <span>{link.label}</span>
-                          <span aria-hidden="true">↗</span>
-                        </Link>
-                        {link.note || link.current ? (
-                          <p className="small muted product-result-note">
-                            {link.note}
-                            {link.current ? (
-                              <>
-                                {" "}
-                                <Link href={link.current.href}>
-                                  {link.current.label}
-                                </Link>
-                              </>
-                            ) : null}
-                          </p>
+                      <>
+                        {m.products?.map((product, i) => (
+                          <WorkCard
+                            brief={latestRef.get(product.artifact_id) !== m.id}
+                            key={`${product.artifact_id}:${product.observation_id}`}
+                            product={product}
+                            now={results.data?.[product.artifact_id]}
+                            link={resultLink(
+                              `/conversations/${id}`,
+                              product,
+                              resultState(results.data, product),
+                              wsId,
+                            )}
+                            status={i === 0 ? status : null}
+                          />
+                        ))}
+                        {replied && !folded ? (
+                          <TurnOutcome
+                            state={turnNow?.state ?? "replied"}
+                            progress={turnNow?.progress}
+                          />
                         ) : null}
-                      </div>
+                        {replied ? (
+                          <RecordingReceipts
+                            progress={turnNow?.progress}
+                            names={names}
+                          />
+                        ) : null}
+                        {replied ? (
+                          <div className="msg-meta row wrap">
+                            {replyTag(m.origin) ? (
+                              <span className="msg-tag">
+                                {replyTag(m.origin)}
+                              </span>
+                            ) : null}
+                            <TurnProgressDetails
+                              progress={turnNow?.progress}
+                              recorded={m.text}
+                              outcome={folded ? view : null}
+                            />
+                          </div>
+                        ) : null}
+                      </>
                     );
-                  })}
-                  {m.author === "agent" ? (
-                    <TurnOutcome
-                      state={
-                        d.turns.find((t) => t.run_id === m.run_id)?.state ??
-                        "replied"
-                      }
-                      progress={
-                        d.turns.find((t) => t.run_id === m.run_id)?.progress
-                      }
-                    />
-                  ) : null}
-                  {m.author === "agent" && replyTag(m.origin) ? (
-                    <span className="msg-tag">{replyTag(m.origin)}</span>
-                  ) : null}
-                  {m.author === "agent" ? (
-                    <RecordingReceipts
-                      progress={
-                        d.turns.find((t) => t.run_id === m.run_id)?.progress
-                      }
-                      names={names}
-                    />
-                  ) : null}
-                  {m.author === "agent" ? (
-                    <TurnProgressDetails
-                      progress={
-                        d.turns.find((t) => t.run_id === m.run_id)?.progress
-                      }
-                    />
-                  ) : null}
+                  })()}
                 </div>
               </div>
               {turn && !hasReply(turn.run_id) ? (

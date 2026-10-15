@@ -118,7 +118,7 @@ function draftProblem(draft: Draft): string {
   if (flexibleKind(b) === "document") {
     const doc = b as DocumentBody;
     if (doc.blocks.some((x) => !x.text.trim()))
-      return "Every part of the document needs some text.";
+      return "Write something in each part, or remove the empty one, before saving.";
     if (doc.blocks.some((x) => x.text.length > LIMITS.blockChars))
       return `Keep each part under ${LIMITS.blockChars.toLocaleString("en")} characters.`;
   }
@@ -336,7 +336,10 @@ export function FlexibleEditor({
 
       {/* A view says who made it and what it reads in its own one line. */}
       {kind === "custom_view" ? null : (
-        <section className="card result-card" aria-labelledby="result-title">
+        <section
+          className={kind === "document" ? "result-line" : "card result-card"}
+          aria-labelledby="result-title"
+        >
           <h2 id="result-title" className="sr-only">
             Status
           </h2>
@@ -494,6 +497,7 @@ export function FlexibleEditor({
             />
           ) : kind === "document" ? (
             <DocEdit
+              addable
               blocks={viewBlocks((draft.body as DocumentBody).blocks)}
               disabled={locked}
               onChange={(blocks) =>
@@ -548,13 +552,15 @@ export function FlexibleEditor({
               Save my edits
             </button>
           ) : null}
-          <button
-            className="btn btn-quiet"
-            disabled={locked}
-            onClick={() => keep(fresh(artifact))}
-          >
-            Discard my changes
-          </button>
+          {dirty || changed ? (
+            <button
+              className="btn btn-quiet"
+              disabled={locked}
+              onClick={() => keep(fresh(artifact))}
+            >
+              Discard my changes
+            </button>
+          ) : null}
         </div>
         <p className="hint">
           {dirty

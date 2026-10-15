@@ -223,8 +223,42 @@ try {
     "from the project page, its work, full conversation and hand-over all open in its workspace",
   );
 
+  // While the list of workspaces is still loading, a project page already
+  // knows its workspace from its address: its links carry it at once.
+  let releaseList;
+  const listHeld = new Promise((r) => (releaseList = r));
+  const isList = (url) => new URL(url).pathname.endsWith("/v1/workspaces");
+  let listSeen = false;
+  await page.route(isList, async (route) => {
+    listSeen = true;
+    await listHeld;
+    await route.continue();
+  });
+  await page.goto(
+    `${origin}/spaces/${second}/work/${projectId}?work=${scheduleId}`,
+  );
+  const openEdit = page.getByRole("link", { name: "Open to edit" });
+  await expect(openEdit).toBeVisible({ timeout: 15000 });
+  assert.ok(listSeen, "the workspace list was requested and is still held");
+  await expect(openEdit).toHaveAttribute(
+    "href",
+    `/conversations/${projectId}/artifacts/${scheduleId}?workspace=${second}`,
+  );
+  await expect(
+    page.getByRole("link", { name: "Open the full conversation" }),
+  ).toHaveAttribute("href", `/conversations/${projectId}?workspace=${second}`);
+  const listDone = page.waitForResponse((r) => isList(r.url()));
+  releaseList();
+  await listDone;
+  await page.unroute(isList);
+  pass(
+    "before the workspace list loads, a project page's links already name its workspace",
+  );
+
   // A workspace this person can't open is not available, and nothing is
   // read from it or from any other workspace instead.
+  // Leave the previous page first, so its own polling can't be counted.
+  await page.goto("about:blank");
   for (const named of ["isolated-workspace", "no-such-workspace"]) {
     got = since();
     await page.goto(`${origin}/conversations/${chatId}?workspace=${named}`);

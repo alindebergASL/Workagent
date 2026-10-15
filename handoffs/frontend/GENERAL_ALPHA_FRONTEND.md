@@ -926,3 +926,107 @@ real UI, API and PostgreSQL. It records the workspace of every record request:
 RED on `b41973e`: links carry no workspace. Following them reads
 `local-workspace`, gets 404 and shows "This item isn’t available to you". GREEN
 with this change.
+
+## Review fixes on the Space selection (comment 6184537730)
+
+1. **Chosen work that becomes unavailable.** When re-reading the project's work
+   is refused (`not_found_or_not_authorized` or `unauthenticated`), the view no
+   longer shows the last-read body, "Open to edit" or "Ask about this", and no
+   longer says "Checking…" indefinitely.
+   - It now says the chosen work isn't available to you.
+   - The reply is paused and says the same.
+   - The choice (`?work=`) and the draft are kept.
+   - A temporary read failure still shows the work as last read.
+2. **Scope wording follows the selection.** While a chosen work is being checked,
+   is missing or is unavailable, neither the work list, the reply hint nor "About"
+   says the message is about the whole project. That wording appears only when
+   nothing is chosen, or after "Ask about the whole project instead".
+
+Regressions (real React in Chromium, `review-boundary.mjs`, 2 new cases):
+- RED on `5685b10`: the last-read work stays on screen after the refusal, and
+  the hint says "about the project as a whole" during a pending choice.
+- GREEN: 15/15.
+
+### Links name their workspace before the list loads (comment 6184636381, P2 3)
+
+`useScopedHref` resolved the page's workspace through the loaded list of
+workspaces, so until that list arrived, "Open to edit" on a project page pointed
+to an address with no workspace. A workspace the route already names
+(`InWorkspace`, and a record page's `?workspace=` while it is being checked) now
+scopes links at once. Reads still wait for the workspace to be confirmed.
+
+Regression: `workspace-routing.mjs` case 5 holds the real `/v1/workspaces`
+response and checks the project page's links while it is held.
+- RED on `e39d0d7`: `/conversations/<c>/artifacts/<a>` with no workspace.
+- GREEN: `?workspace=personal-work`.
+- `workspace-routing` 7/7 and `space-experience` 13/13 on fresh real-stack
+  fixtures; review-boundary 15/15; 37 DOM regressions; 265 unit tests.
+
+## Work-first answers (first slice of coherent work-first interaction)
+
+Asked in 6184636381: let the machinery recede while permission, uncertainty,
+the next useful action and outcomes stay truthful. No contract change.
+
+- **Answers show what they made.** Each result in the full conversation is a
+  card with:
+  - the work's title and kind;
+  - a few lines of the work itself (document parts, the first table rows, a
+    file's opening lines);
+  - what is waiting ("Proposed: it adds a row: Catering");
+  - one next step, which keeps the existing link labels ("Review proposed
+    change to the table", "Open this version").
+
+  The preview comes from the artifact the page already reads for result
+  state, so there are no extra requests.
+- **Earlier mentions are one line.** Only the latest answer that shows a piece
+  of work previews it. Older ones say "Changed since" with links to that version
+  and to the current one: a preview there would show today's version, not
+  theirs.
+- **Routine status is short.** "Result saved — needs review" becomes "Not
+  checked yet: look it over before relying on it" on the card, and verified
+  results say what was checked. The responsibility receipt line replaces
+  "Responsibility recorded. At recording…". Stopped, blocked, needs-input and
+  unconfirmed outcomes still show in full.
+- **One Details per answer.** "The message as recorded", the routine outcome
+  and how the turn ran are now under a single "Details". The side pane does
+  the same. Test and synthetic tags stay visible.
+
+Regression: `space-experience.mjs` case 13, desktop and 390 px. It checks:
+- the latest card previews the work;
+- earlier ones are brief;
+- the status line appears only on the latest card;
+- the routine notices are folded away;
+- each answer has exactly one Details;
+- nothing overflows at 390 px.
+
+RED on `9c6cf08` (no cards). GREEN 14/14, routing 7/7.
+
+## Documents read as documents; a person can add their own note
+
+Hermes reported that a human safety note was never saved because the ordinary
+editor path was inaccessible. In the frontend that was literal: the document
+editor could only change text that already existed. There was no way to add a
+paragraph, a checklist item or a note, or to remove one. The contract's
+`protected_note` block kind was never offered.
+
+- **Add and remove parts.** At the foot of an agent-made document, "Add"
+  offers Paragraph, Checklist item and **Your note** (`protected_note`). A new
+  part takes the cursor. Each part has a remove button: visible on hover or
+  focus, always on touch screens, and labelled with its text. An empty part
+  blocks saving with "Write something in each part, or remove the empty one,
+  before saving."
+- **Notes are visibly the person's own** in both reading and editing: a
+  "Your note" label and a marked edge. The backend treats `protected_note` as a
+  block kind only, so the UI makes no protection claim beyond the existing one:
+  agent changes arrive as proposals the person applies.
+- **Documents read like documents.** Parts are edited in place. An edit box
+  shows its border only on hover and focus, and focus keeps the visible
+  outline. The verification card for documents is a single line. "Discard my
+  changes" appears only when there is something to discard.
+- Drafts, exact replay, proposals and the saved-version check are unchanged.
+
+Regression: `space-experience.mjs` case 13. On the agent's Workshop plan, it
+adds a paragraph and removes it, adds "Your note", types, saves, reads back
+through the API (exactly one `protected_note` with the text, no temporary
+part, `author_kind: human`), reloads and finds the note labelled. RED on
+`0471c53` (no way to add). GREEN 15/15; DOM regressions 37/37.

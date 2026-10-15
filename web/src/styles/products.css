@@ -497,3 +497,163 @@
   text-decoration: line-through;
   color: var(--ink-2);
 }
+
+/* What an answer made or changed, shown in the answer itself. */
+.work-card {
+  align-items: stretch;
+  gap: var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  padding: var(--sp-3);
+  max-width: 100%;
+}
+.work-card p {
+  margin: 0;
+}
+.work-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--sp-2);
+}
+.work-card-doc {
+  display: grid;
+  gap: var(--sp-1);
+  font-size: var(--fs-md);
+  color: var(--ink-2);
+}
+.work-card-heading {
+  font-weight: 600;
+  color: var(--ink);
+}
+.work-card-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.work-card-table table {
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+.work-card-table th,
+.work-card-table td {
+  text-align: left;
+  padding: 2px var(--sp-3) 2px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  max-width: 16em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.work-card-table th {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.work-card-file {
+  margin: 0;
+  font-size: var(--fs-sm);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 5.5em;
+  overflow: hidden;
+}
+.work-card-change {
+  border-left: 3px solid var(--line-strong);
+  padding-left: var(--sp-2);
+}
+.work-card .product-link {
+  min-height: 32px;
+}
+.msg-meta {
+  gap: var(--sp-2);
+  align-items: baseline;
+}
+.work-card.brief {
+  padding: var(--sp-2) var(--sp-3);
+  gap: var(--sp-1);
+}
+/* A reply's column may shrink to the screen; wide previews scroll inside. */
+.msg > .stack-sm {
+  min-width: 0;
+  max-width: 100%;
+}
+.work-card {
+  min-width: 0;
+}
+
+/* A document edited in place: it reads as text, and shows it's editable on
+   hover and focus. Focus keeps the browser's visible outline. */
+.doc-editable .doc-text {
+  position: relative;
+}
+.doc-editable textarea {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 4px 32px 4px 6px;
+  resize: none;
+  line-height: var(--lh-body);
+}
+.doc-editable textarea:hover {
+  border-color: var(--line);
+}
+.doc-editable textarea:focus {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+.doc-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 24px;
+  min-height: 24px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+.doc-block:hover .doc-remove,
+.doc-block:focus-within .doc-remove,
+.doc-remove:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .doc-remove {
+    opacity: 1;
+  }
+}
+.doc-add {
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-2);
+}
+/* A note the person wrote: visibly theirs, in reading and editing alike. */
+.doc-block[data-note] {
+  background: var(--surface-2);
+  border-left: 3px solid var(--attn);
+  border-radius: var(--r-sm);
+  padding: var(--sp-1) var(--sp-2);
+}
+.doc-note-label {
+  grid-column: 1 / -1;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.result-line {
+  margin: 0;
+}
+.doc-editable textarea {
+  min-height: 0;
+}
+.doc-editable {
+  gap: 2px;
+}

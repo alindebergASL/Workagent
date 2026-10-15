@@ -193,3 +193,33 @@ export function adaptivePresentation(
     changedAttempts,
   };
 }
+
+/**
+ * A turn outcome that only says how far its saved work was checked: shown as
+ * a short line on that work's card rather than as a separate notice. Any
+ * other outcome (stopped, blocked, needs input, unconfirmed) stays in view.
+ */
+export function cardStatus(
+  view: ReturnType<typeof adaptivePresentation>,
+): string | null {
+  if (!view) return null;
+  if (view.title === "Requested result verified")
+    return `Independently checked. ${view.checks ?? ""} Later edits aren’t covered.`
+      .replace(/\s+/g, " ")
+      .trim();
+  if (view.title === "Result saved — needs review")
+    return `Not checked yet: look it over before relying on it.${
+      view.checks ? ` ${view.checks}` : ""
+    }`;
+  return null;
+}
+
+/**
+ * Whether an outcome only repeats what a turn's responsibility receipt says
+ * (that it was recorded, and where it stands is on the hand-over itself).
+ */
+export function receiptSays(
+  view: ReturnType<typeof adaptivePresentation>,
+): boolean {
+  return Boolean(view && /responsibilit(y|ies) recorded$/i.test(view.title));
+}
