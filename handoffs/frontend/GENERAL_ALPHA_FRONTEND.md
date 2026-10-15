@@ -1502,3 +1502,40 @@ This is a live, non-outdated proposal against a human revision. It adds one synt
   - 279 unit tests, 37 DOM regressions and review-boundary 15/15;
   - the full gate with 0 failures;
   - mock e2e 15/15.
+
+## A table proposal lists each value it changes and marks the person's own
+
+This covers Hermes's live case: a supply-plan table where a person corrected a price, followed by a
+request for a revised plan.
+
+**Before.** A table proposal on the work page showed only counts, for example "2 values changed".
+It didn't say which values, or whether any of them was one the person had set.
+
+**Now.** A non-outdated table proposal also shows:
+- **Each changed value.** The format is "Row · Field (unit): saved → **proposed**", up to 12 values,
+  then "…and N more".
+- **Which values are the person's own.** These come first and are marked "(your value)". A short
+  line says how many of the person's own values it changes and that applying it replaces them.
+
+**How a value's author is found.** `cellAuthors(current, history)` walks the version history back
+through each version's parent while the cell keeps its current value. The value's author is the
+`author_kind` of the earliest version in that run. If the history that was read doesn't go back far
+enough, the author is unknown and nothing is marked. `cellChanges` covers rows that both versions
+have; added and removed rows stay in the summary counts.
+
+**Tests**
+- **Unit** (`test/cell-authors.test.ts`): who first saved a value, a truncated history, the
+  per-value change list, and added rows.
+- **DOM regression** (`products-review-regressions.mjs`): a worker version, then a human hire-cost
+  correction, then a proposal that changes it and the travel time. The page lists both values, the
+  person's correction first and marked, plus the "replaces it" line.
+
+**Results**
+- RED with the previous page: `proposal-replaces-yours` not found.
+- GREEN:
+  - 283 unit tests;
+  - 38 DOM regressions;
+  - review-boundary 15/15;
+  - routing 7 + Space 21 on the real stack;
+  - full gate with 0 failures;
+  - mock e2e 15/15.

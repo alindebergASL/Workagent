@@ -222,6 +222,84 @@ export function tableChanges(before: StructuredTable, after: StructuredTable) {
   return { added, removed, cells, fields };
 }
 
+/** One value a proposed table changes, in a row both versions have. */
+export interface CellChange {
+  rowId: string;
+  key: string;
+  row: string;
+  field: string;
+  before: string;
+  after: string;
+}
+
+/** Each value the proposed table changes in rows the saved one has. */
+export function cellChanges(
+  before: StructuredTable,
+  after: StructuredTable,
+): CellChange[] {
+  const out: CellChange[] = [];
+  const old = new Map(before.rows.map((r, i) => [r.row_id, { r, i }]));
+  for (const r of after.rows) {
+    const o = old.get(r.row_id);
+    if (!o) continue;
+    for (const f of after.fields) {
+      const was = cellValue(o.r, f.key);
+      const now = cellValue(r, f.key);
+      if (was === now) continue;
+      out.push({
+        rowId: r.row_id,
+        key: f.key,
+        row: rowName(before, o.r, o.i + 1),
+        field: fieldHeading(f),
+        before: formatCell(f, was),
+        after: formatCell(f, now),
+      });
+    }
+  }
+  return out;
+}
+
+/** A cell's key for `cellAuthors`. */
+export const cellAt = (rowId: string, key: string) => `${rowId}\u001f${key}`;
+
+/**
+ * Who set each value of the current table, as far as its history shows: the
+ * author of the earliest version, back along its parents, where the value is
+ * as it is now. Left out when that start is outside the history read.
+ */
+export function cellAuthors(
+  current: S["Revision"] | undefined,
+  history: S["Revision"][],
+): Record<string, "human" | "worker"> {
+  const out: Record<string, "human" | "worker"> = {};
+  const body = current?.body as StructuredTable | undefined;
+  if (!current || body?.kind !== "structured_table") return out;
+  const byId = new Map(history.map((r) => [r.id, r]));
+  const valueIn = (rev: S["Revision"], rowId: string, key: string) => {
+    const b = rev.body as StructuredTable;
+    if (b.kind !== "structured_table") return undefined;
+    const row = b.rows.find((r) => r.row_id === rowId);
+    return row ? JSON.stringify(cellValue(row, key) ?? null) : undefined;
+  };
+  for (const r of body.rows)
+    for (const f of body.fields) {
+      const now = valueIn(current, r.row_id, f.key);
+      let at = current;
+      let known = true;
+      while (at.parent_revision_id) {
+        const parent = byId.get(at.parent_revision_id);
+        if (!parent) {
+          known = false;
+          break;
+        }
+        if (valueIn(parent, r.row_id, f.key) !== now) break;
+        at = parent;
+      }
+      if (known) out[cellAt(r.row_id, f.key)] = at.author_kind;
+    }
+  return out;
+}
+
 export function changeSummary(c: ReturnType<typeof tableChanges>): string {
   const parts = [
     c.cells ? `${c.cells} value${c.cells === 1 ? "" : "s"} changed` : "",

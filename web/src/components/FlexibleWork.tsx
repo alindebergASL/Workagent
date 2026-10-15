@@ -18,6 +18,10 @@ import {
 import {
   addRow,
   bindingStates,
+  cellAt,
+  cellAuthors,
+  cellChanges,
+  type CellChange,
   canRemoveRow,
   cellInput,
   cellValue,
@@ -199,6 +203,10 @@ export function FlexibleEditor({
   // note they've added or reworded in this draft.
   const savedNoteAuthors = useMemo(
     () => noteAuthors(artifact.current_revision, history),
+    [artifact.current_revision, history],
+  );
+  const savedCellAuthors = useMemo(
+    () => cellAuthors(artifact.current_revision, history),
     [artifact.current_revision, history],
   );
   const draftNoteAuthors = useMemo(() => {
@@ -415,14 +423,23 @@ export function FlexibleEditor({
             {proposed &&
             flexibleKind(proposed) === "structured_table" &&
             kind === "structured_table" ? (
-              <p className="decision-question" data-testid="proposal-changes">
-                {changeSummary(
-                  tableChanges(
-                    saved as StructuredTable,
-                    proposed as StructuredTable,
-                  ),
+              <>
+                <p className="decision-question" data-testid="proposal-changes">
+                  {changeSummary(
+                    tableChanges(
+                      saved as StructuredTable,
+                      proposed as StructuredTable,
+                    ),
+                  )}
+                </p>
+                {outdated ? null : (
+                  <TableProposalCells
+                    saved={saved as StructuredTable}
+                    proposed={proposed as StructuredTable}
+                    authors={savedCellAuthors}
+                  />
                 )}
-              </p>
+              </>
             ) : null}
             {proposed &&
             !outdated &&
@@ -1205,6 +1222,49 @@ function ViewInput({
         ) : null}
       </div>
     </details>
+  );
+}
+
+/**
+ * Each value a proposed table would change, saved value to proposed one; a
+ * value the person set themselves is marked, and said first.
+ */
+function TableProposalCells({
+  saved,
+  proposed,
+  authors,
+}: {
+  saved: StructuredTable;
+  proposed: StructuredTable;
+  authors: Record<string, "human" | "worker">;
+}) {
+  const changes = cellChanges(saved, proposed);
+  if (!changes.length) return null;
+  const yours = (c: CellChange) => authors[cellAt(c.rowId, c.key)] === "human";
+  const theirs = changes.filter(yours);
+  const shown = [...theirs, ...changes.filter((c) => !yours(c))].slice(0, 12);
+  return (
+    <div className="stack-sm">
+      {theirs.length ? (
+        <p className="small" data-testid="proposal-replaces-yours">
+          {theirs.length === 1
+            ? "It changes a value you set yourself."
+            : `It changes ${theirs.length} values you set yourself.`}{" "}
+          Applying it replaces {theirs.length === 1 ? "it" : "them"}.
+        </p>
+      ) : null}
+      <ul className="small proposal-cells" data-testid="proposal-cell-changes">
+        {shown.map((c) => (
+          <li key={cellAt(c.rowId, c.key)} data-yours={yours(c) || undefined}>
+            {c.row} · {c.field}: {c.before} → <strong>{c.after}</strong>
+            {yours(c) ? <span className="muted"> (your value)</span> : null}
+          </li>
+        ))}
+      </ul>
+      {changes.length > shown.length ? (
+        <p className="small muted">…and {changes.length - shown.length} more</p>
+      ) : null}
+    </div>
   );
 }
 
