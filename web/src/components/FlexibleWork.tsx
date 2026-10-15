@@ -1144,17 +1144,17 @@ function ViewSurface({
               What this view reads has been saved since it was made, so it can’t
               read it any more.
             </p>
-            {inPlace ? (
-              <p data-testid="view-update-elsewhere">
-                Open the view to point it at the latest saved versions.
-              </p>
-            ) : pinned ? (
+            {pinned ? (
               <p data-testid="view-pinned">
                 This view was written for that earlier version, so it can’t
                 simply be pointed at the new one. Ask in the conversation for an
                 updated view.
               </p>
-            ) : !missing ? (
+            ) : missing ? null : inPlace ? (
+              <p data-testid="view-update-elsewhere">
+                Open the view to point it at the latest saved versions.
+              </p>
+            ) : (
               <div className="row">
                 <button
                   type="button"
@@ -1165,7 +1165,7 @@ function ViewSurface({
                   Use the latest saved versions
                 </button>
               </div>
-            ) : null}
+            )}
           </div>
         ) : null}
         {!open ? (

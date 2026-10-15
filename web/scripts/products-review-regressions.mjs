@@ -16,6 +16,7 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {OperationComposer} from '@/components/OperationComposer';
 import ProductPage from '@/app/conversations/[id]/artifacts/[artifactId]/page';
+import {InPlaceView} from '@/components/FlexibleWork';
 import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
 import {readAttachment} from '@/lib/contract/natural';
@@ -33,7 +34,7 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
   window.scope = {ws,cid};
   root.render(mode === 'operation'
     ? <OperationComposer ws={ws} cid={cid} version={version} refresh={window.refresh}/>
-    : mode === 'product' ? <ProductPage/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
+    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
 };
 window.reads = {};
 const realArrayBuffer = File.prototype.arrayBuffer;
@@ -2449,9 +2450,62 @@ try {
       ],
     });
   }
+  {
+    // Shown in place on a project page, a view whose code pins the old
+    // version still says it needs a new view; only one that can be repointed
+    // is sent to its own page to do that.
+    const binding = viewRev.body.bindings[0];
+    const bound = {
+      [binding.artifact_id]: {
+        revision_id: "newer-table",
+        body_hash: "d".repeat(64),
+        title: tableRev.body.title,
+      },
+    };
+    const loose = structuredClone(viewRev);
+    for (const id of [
+      binding.artifact_id,
+      binding.revision_id,
+      binding.body_hash,
+    ])
+      loose.body.source.js = loose.body.source.js.split(id).join("");
+    for (const [rev, pinned] of [
+      [viewRev, true],
+      [loose, false],
+    ]) {
+      await page.evaluate(() => window.mount("away"));
+      await page.evaluate(
+        ({ rev, bound }) => {
+          window.inPlace = {
+            artifact: {
+              id: "a",
+              workspace_id: "w",
+              conversation_id: "c",
+              assignment_id: null,
+              current_revision_id: rev.id,
+              current_revision: { ...rev, artifact_id: "a" },
+            },
+            bound,
+          };
+          window.mount("inplace");
+        },
+        { rev, bound },
+      );
+      await expect(
+        page.getByTestId(pinned ? "view-pinned" : "view-update-elsewhere"),
+      ).toBeVisible();
+      await expect(
+        page.getByTestId(pinned ? "view-update-elsewhere" : "view-pinned"),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", { name: "Use the latest saved versions" }),
+      ).toHaveCount(0);
+    }
+    await page.evaluate(() => window.mount("away"));
+  }
   passed++;
   console.log(
-    "PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version",
+    "PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version, here or in place",
   );
   await page.unroute("**/v1/workspaces/**");
 
