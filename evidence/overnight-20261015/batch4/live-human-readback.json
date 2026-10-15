@@ -1,0 +1,14 @@
+{
+  "mode": "READ-ONLY continuation; original save succeeded; first harness reload locator matched TWO notes and stopped; no second edit",
+  "cases": [
+    "Canonical saved human revision adds exactly one reviewer note; all original blocks byte-equivalent.",
+    "Exact saved reviewer note remains through navigation and reload.",
+    "390px no document horizontal overflow; exact real saved note visible after scroll.",
+    "320px no document horizontal overflow; exact real saved note visible after scroll."
+  ],
+  "before_revision": "cdd4cb12-8ed7-44cc-bfd3-6077ffca6b64",
+  "after_revision": "64a29304-9045-4e97-81d2-59f426c2f053",
+  "artifact_id": "f9ff3d10-bdb4-43fc-95bb-29795bfc1668",
+  "note": "Reviewer note: treat the release explanation as unconfirmed until dated evidence separates it from the form change.",
+  "errors": []
+}

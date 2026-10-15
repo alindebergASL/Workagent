@@ -1,0 +1,22 @@
+{
+  "provider_calls": "not_performed",
+  "cases": [
+    "work listed in the second workspace opens there, and stays there on reload",
+    "a hand-over in the second workspace opens there; back leads to it",
+    "a conversation in the second workspace opens there; an unconfirmed send replays its exact command there after a reload",
+    "from the project page, its work, full conversation and hand-over all open in its workspace",
+    "before the workspace list loads, a project page's links already name its workspace",
+    "an unopenable workspace is not available and reads nothing; addresses without one still mean the default workspace, whose links now name it",
+    "a shared link to work in the second workspace opens on a phone"
+  ],
+  "ids": {
+    "workspace": "personal-work",
+    "conversation_id": "944b7a0e-8091-420f-b996-72e32319e7f3",
+    "artifact_id": "92913d0b-808f-413b-b668-2f0ee432bc97",
+    "assignment_ids": [
+      "80923a2e-b52a-4c27-955d-c60444481d21"
+    ],
+    "chat_id": "c1d2ea2f-d79e-47d1-b007-5ba66c941db2"
+  },
+  "first": "local-workspace"
+}

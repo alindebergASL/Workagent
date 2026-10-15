@@ -1,0 +1,35 @@
+{
+  "scope": "Actual refusal overlay hook and resource scheduler in Chromium; controlled API methods; no provider/service calls",
+  "cases": [
+    {
+      "name": "recovered refusal is forgotten before subsequent transport failure",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "denied overlay is per work while other work stays pending",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "old denied generation cannot overwrite current successful key",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "old success after key denial cannot resurrect retained snapshot",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "refusal identity is workspace scoped",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "successful pair cannot publish recovery until pending aggregate settles",
+      "pass": true,
+      "errors": []
+    }
+  ]
+}

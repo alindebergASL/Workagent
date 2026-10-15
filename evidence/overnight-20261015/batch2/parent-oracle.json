@@ -1,0 +1,30 @@
+{
+  "mode": "Controlled authored fixture; real Chromium + HTTP + PostgreSQL + shipped sandbox; external Python oracle, no model input or provider calls",
+  "candidate": "4d262889961484187c4ab229b6f7aa222344f0ea",
+  "checks": [
+    {
+      "case": "keyboard End -> price-only ranking",
+      "pass": true,
+      "expected": "Quayside Press",
+      "actual": "Best fit: Quayside Press · €520 · 18 days"
+    },
+    {
+      "case": "keyboard Home -> speed-only ranking",
+      "pass": true,
+      "expected": "Lark & Co",
+      "actual": "Best fit: Lark & Co · €715 · 6 days"
+    },
+    {
+      "case": "320px page and sandbox no horizontal overflow",
+      "pass": true
+    },
+    {
+      "case": "selection returns after reload; unsaved slider resets rather than pretending saved",
+      "pass": true
+    },
+    {
+      "case": "evidence and view canonical revisions byte-identical after interaction/reload",
+      "pass": true
+    }
+  ]
+}

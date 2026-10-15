@@ -1,7 +1,7 @@
 # Spaces reconciliation and experience handoff
 
 Update 2026-10-15: Claude ACKed and integrated `9675daf` on the existing owner
-branch (#9 comment6182049930) and is implementing the redesign. The resume request
+branch (#9 comment6182032666) and is implementing the redesign. The resume request
 below is historical/resolved. Hermes confirmed no recorded accounting changes in a
 fresh read-only snapshot at01:06UTC. The [baseline different-model/persona review](../../docs/SPACE_EXPERIENCE_REVIEW.md)
 is complete with controller adjudication; integrated/live review remains outstanding.

@@ -35,6 +35,15 @@ class Body(Model):
         return self
 
 
+def check_document_model_edit(before,after):
+    """Protected human blocks are immutable to workers, not to the human editor."""
+    if not isinstance(before,Body): return
+    protected=[block for block in before.blocks if block.kind=='protected_note']
+    proposed={block.block_id:block for block in after.blocks} if isinstance(after,Body) else {}
+    if any(proposed.get(block.block_id)!=block for block in protected):
+        raise ValueError('Model revisions must preserve protected notes exactly; only a human edit may change them')
+
+
 FieldKey = Annotated[str,Field(pattern=r'^[a-z][a-z0-9_]{0,47}$')]
 ActionName = Annotated[str,Field(pattern=r'^[a-z][a-z0-9_.-]{0,63}$')]
 Cell = StrictStr | StrictInt | StrictBool | None

@@ -794,6 +794,25 @@
       "title": "ReadContext",
       "type": "object"
     },
+    "ReadSavedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_saved_work",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/DecisionTarget"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "ReadSavedWork",
+      "type": "object"
+    },
     "RecordResponsibility": {
       "additionalProperties": false,
       "properties": {
@@ -1195,6 +1214,9 @@
         },
         {
           "$ref": "#/$defs/ReadContext"
+        },
+        {
+          "$ref": "#/$defs/ReadSavedWork"
         },
         {
           "$ref": "#/$defs/RecordResponsibility"

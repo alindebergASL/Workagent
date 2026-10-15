@@ -280,6 +280,8 @@ class Conversations:
         p,run,cv=self._check_capability(c,cap)
         context,sources=self._materialize_general_context(c,p,run,cv)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
+        if 'work_area_context' in context:
+            observation['work_area_context']=context['work_area_context']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if previous and previous['data']!=observation:
             raise DomainError('source_changed')
@@ -345,6 +347,19 @@ class Conversations:
             # Do not change the canonical historical controlled context shape.
             for message in context['messages']:
                 for field in ('attachments','target','model_receipt'): message.pop(field,None)
+        latest=next(m for m in messages if m.run_id==run.id and m.author_kind in ('human','system'))
+        if latest.author_kind=='human' and run.profile=='general-responses-v1':
+            previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
+                (run.workspace_id,run.id)).fetchone()
+            snapshot=previous['data'].get('work_area_context') if previous else None
+            # Receipt-bound own recording normalizes only its exact version delta;
+            # offer() validates the assignment version/state before doing so.
+            version=context.get('responsibility_offer',{}).get('conversation_work_version',cv.work_version)
+            context['work_area_context']=self._work_area_context(c,p,run.workspace_id,cv,
+                snapshot=snapshot,work_version=version).model_dump(mode='json')
+            if alpha_enabled(config):
+                from .saved_work import index
+                context['saved_work']=index(self,c,p,run.workspace_id,cv,context['work_area_context'])
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             if context.get('responsibility'):
                 from .responsibility_execution import ContinuationContextTooLarge

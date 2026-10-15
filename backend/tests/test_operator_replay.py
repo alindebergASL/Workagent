@@ -98,7 +98,12 @@ def test_untrusted_journal_path_refused(setup,monkeypatch,tmp_path,damage):
     if damage=='symlink': setup.symlink_to(target)
     elif damage=='parent-symlink':
         setup.symlink_to(target); monkeypatch.setenv('WORKAGENT_OPERATOR_JOURNAL',str(setup/'sub'))
-    elif damage=='mode': setup.mkdir(mode=0o755)
+    elif damage=='mode':
+        setup.mkdir(mode=0o755)
+        # mkdir's mode is masked by the caller's umask. Make this deliberately
+        # unsafe fixture explicit even when the test runner uses umask 077.
+        setup.chmod(0o755)
+        assert setup.stat().st_mode & 0o777 == 0o755
     elif damage=='relative': monkeypatch.setenv('WORKAGENT_OPERATOR_JOURNAL','relative')
     else: monkeypatch.setenv('WORKAGENT_OPERATOR_JOURNAL',str(tmp_path/'target/../commands'))
     client=OperatorClient()

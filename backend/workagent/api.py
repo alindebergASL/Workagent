@@ -127,6 +127,12 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def list_workspaces(p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_workspaces(p,cursor,limit)
 
+    from .execution_status import ExecutionStatus, read as execution_status
+
+    @route('/v1/workspaces/{workspace_id}/execution','GET','get_execution_status',ExecutionStatus)
+    def get_execution_status(workspace_id:Id,p:P,meta:Meta):
+        return execution_status(service,p,workspace_id,os.environ.get('WORKAGENT_EXECUTION_STATUS'))
+
     @route('/v1/workspaces/{workspace_id}/sources','GET','list_sources',SourcePage)
     def list_sources(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_sources(p,workspace_id,cursor,limit)
@@ -134,6 +140,12 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     @route('/v1/workspaces/{workspace_id}/sources/{source_id}','GET','get_source',SourceDetail)
     def get_source(workspace_id:Id,source_id:Id,p:P,meta:Meta):
         return service.get_source(p,workspace_id,source_id)
+
+    from .work_area_models import WorkAreaContext
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/work-context','GET','get_work_area_context',WorkAreaContext)
+    def get_work_area_context(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
+        return service.get_work_area_context(p,workspace_id,conversation_id)
 
     @route('/v1/workspaces/{workspace_id}/work-areas','GET','list_work_areas',ConversationPage)
     def list_work_areas(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):

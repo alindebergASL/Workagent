@@ -1,0 +1,21 @@
+{
+  "mode": "Controlled browser response interception; real candidate components and service reads; no model or database mutations",
+  "cases": [
+    {
+      "state": "changed",
+      "artifact_reads_after_explicit_refresh": 0,
+      "old_preview_remains": true,
+      "fresh_title_visible": false,
+      "before": "Budget\nTable\nItem\tCost\tNotes\nVenue, two days\t2400.00\tHolds 50; deposit refundable until 10 Oct\nFacilitators\t3200.00\tTwo people, both days\nMaterials and printing\t380.00\tCards, pens, wall paper\n\n4 rows in all\n\nThis change was applied and is the current version.\n\nNot checked yet: look it over before relying on it.\n\nOpen table",
+      "after": "Budget\nTable\nItem\tCost\tNotes\nVenue, two days\t2400.00\tHolds 50; deposit refundable until 10 Oct\nFacilitators\t3200.00\tTwo people, both days\nMaterials and printing\t380.00\tCards, pens, wall paper\n\n4 rows in all\n\nThis change was applied and is the current version.\n\nNot checked yet: look it over before relying on it.\n\nOpen table"
+    },
+    {
+      "state": "revoked",
+      "artifact_reads_after_explicit_refresh": 0,
+      "old_preview_remains": true,
+      "fresh_title_visible": false,
+      "before": "Budget\nTable\nItem\tCost\tNotes\nVenue, two days\t2400.00\tHolds 50; deposit refundable until 10 Oct\nFacilitators\t3200.00\tTwo people, both days\nMaterials and printing\t380.00\tCards, pens, wall paper\n\n4 rows in all\n\nThis change was applied and is the current version.\n\nNot checked yet: look it over before relying on it.\n\nOpen table",
+      "after": "Budget\nTable\nItem\tCost\tNotes\nVenue, two days\t2400.00\tHolds 50; deposit refundable until 10 Oct\nFacilitators\t3200.00\tTwo people, both days\nMaterials and printing\t380.00\tCards, pens, wall paper\n\n4 rows in all\n\nThis change was applied and is the current version.\n\nNot checked yet: look it over before relying on it.\n\nOpen table"
+    }
+  ]
+}

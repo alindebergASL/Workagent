@@ -1,6 +1,146 @@
 # Current runtime status and execution boundary
 
-## Current reconciliation — 2026-10-15
+## Overnight batch4 — current factual handoff
+
+Reviewed application `4e676b19876d1efac9867efb51c1263faf00ca7e`, frontend owner
+through `a0b756b`. All source changes are on the isolated nondefault branch.
+Independent final review approved exact helper and owner delta; current focused
+backend61, helper47, frontend265/type/lint/format/webpack, real-service7 routing
+and18 Space cases pass. Desktop/390/320 viewed with real content. Full-suite result
+and artifact identities are recorded in [the final report](OVERNIGHT_20261015_BATCH4.md).
+
+Fresh official-model probes: library plan9876bytes staged but NOT published;
+runner stopped on `action_unresolved` around lease expiry, with a known accepted
+final response retained. No retry, replacement or cancellation. Its human-note and
+same-chat follow-up were not performed. Independent investigation saved a7886byte
+document with correct independently checked arithmetic, uncertainty and useful
+continuation criteria. Actual UI reviewer-note save/reload/mobile readback passed;
+later model recall NOT tested. The live model chose a document, not an interactive
+view. General intelligence/useful autonomy/parity remain unproven.
+
+Successor installed/read back: allocation0.791520 within40; encumbered25.408720,
+unactivated14.591280. New4count/4generation/18read/0cancel, reserve0.527680; known
+calculated portion0.122085 plus one unknown-usage accepted final, not billed total.
+Shared reserve9.498240 against9.762080cap. Both old unknown counts unchanged.
+Original checkout/data/build/six admissions and3151/8151 services left intact.
+No replacement preview, public listener, default merge, host Hermes change or
+continuous product worker. See `STATUS.md` and batch4 manifest for final closure.
+
+## Overnight batch3 — historical handoff
+
+Application`afab13b`, owner through`133e857`: per-work Space refusal precedence,
+pinned-view regeneration guidance and verified mobile frame content.265 frontend
+tests/type/lint/format and webpack build pass;7 routing/18 real-service Space cases
+pass. Parent viewed desktop390320 screenshots with actual interactive content.
+Frozen actual-React in-place13/retention17/overlay6 plus pinned-guidance probe pass.
+All new decisions controlled; no fresh live model or comparative-parity claim.
+
+Full source-frozen backend:1223pass/1 umask-sensitive fixture failure. Explicit
+unsafe-mode fixture fix passes22 operator cases under077 and022; no post-fix full
+suite green claim. Runtime backend/contracts/migrations unchanged from batch2.
+
+Actual successor installer/one-run helper is implemented/tested but NOT activated.
+Independent review's3 concrete gaps fixed;46 parent+reviewer cases and real readonly
+source/clone gates pass. Changed helper still requires narrow independent follow-up;
+2/2 reviewers joined, no delegation-cap bypass. No actual package/install/grant/new
+encumbrance. Cumulative40, encumbered24.617200/unactivated15.382800; unknowns preserved.
+Local44count/42dispatch/377read vs all-lineage70/68/566;0cancels, sharedreserve8.97056.
+See[batch3 report](OVERNIGHT_20261015_BATCH3.md),`STATUS.md` and batch3 manifest.
+
+## Overnight batch2 — historical handoff
+
+Integrated application `4d2628` includes backend human-wait preservation and sole
+owner's in-place interactive work / immediate refused-card suppression. Parent124
+responsibility and54 exact-backend tests pass; independent backend55 pass (overlap).
+Final frontend265 tests plus production gates,7 routing/17 real-service Space cases,
+17 controlled retention cases and5 independent oracle/control checks pass. All new
+provider decisions are controlled; no new product-model call or parity claim.
+Full backend run finished with failures in a mixed-source window, not final green;
+see parsed manifest and retained failures. New view/final refusal-overlay independent
+review remains pending. A320px supplier screenshot captured an empty iframe after
+resize; no mobile-interactive acceptance claim despite later reload assertions.
+
+An independently reviewed preparation-only full-history clone is inert with all
+grants inactive. Original data/build/listeners and six consumed live admissions
+remain untouched; original grant remains ACTIVE but exhausted, not fenced.
+No successor installed, no new funds encumbered:40 total authorization,
+24.617200 encumbered /15.382800 unactivated. Unknown counts unchanged/quarantined.
+Direct GLM5.3 critique completed and explicitly adjudicated, not human acceptance.
+See `STATUS.md`, [batch2 report](OVERNIGHT_20261015_BATCH2.md), and
+`evidence/overnight-20261015/batch2/manifest.json` for exact evidence and next gates.
+
+## Prior batch reconciliation (historical at this checkpoint)
+
+Current integration work is isolated at `/home/ubuntu/workagent-overnight-20261015`,
+branch `hermes/overnight-intelligent-work`, starting from `92e76d8`. The old current
+section below is historical, not live status. `STATUS.md` and the external batch
+result are the continuation checkpoints. No default merge or deployment.
+
+The six actual model admissions on `92e76d8` are consumed and preserved, not
+replaced. Plain explanation and return were answered; saved workshop plan,
+comparison view and waiting responsibility were partial. Changed constraints
+were explained but not saved. A 10215-byte saved plan exceeded the 8192-byte
+projection-body limit; the ordinary untargeted follow-up received no editable
+target. This is a real continuity failure, not a prompt-quality excuse.
+The planned human safety note was NEVER saved (editor routing blocked it), so
+historical human-edit preservation is NOT TESTED. Calculator arithmetic matched
+an external oracle; generated controls were not exercised. Project page, desktop
+layout, accessible names and unsent-draft reload were exercised; mobile screenshot
+capture timed out. No general-intelligence or baseline-parity acceptance.
+
+Independent exact-`92e76d8` frontend review required two P2 changes: suppress the
+remembered body/controls on terminal authorization/not-found errors, and avoid
+whole-project scope copy while an explicit selection is checking/missing. These
+are client-retention/misleading-copy findings, not server authz bypass or escaped
+send findings. Owner's routing and fixes through `bb82644` are now integrated for
+fresh verification, including work cards and human-note editing; owner remains
+sole web writer. A third delayed-workspace-list link-scope defect was reproduced
+and routed to the owner. See #9 comment6184636381 (exact readback verified).
+
+Backend `ce7c4d7` adds scoped, immutable-revision indexed reads for bodies omitted
+from the default projection, with a 32768-byte aggregate read budget, retained-read
+edit admission, pending-only proposals and current authority/CAS checks. 26 new
+controlled PostgreSQL tests passed; 156 focused existing tests passed. Independent
+review exposed protected-note omission in proposals and SQL read-receipt forgery
+by a restricted SQL writer. Fix `f0a53e4` passed79 scoped tests; final backend
+candidate `5b3e339` passed39 retrieval tests across documents, structured tables
+and custom views. Final independent follow-up remains pending (one-shot delegation
+cap2/2), not claimed approved. Owner `bb82644` passed265 frontend tests and
+production gates,7 routing/15 Space real-service Chromium cases and6 parent
+controlled retention regressions. Parent found an additional card-refresh
+freshness P2 and routed it to Claude (#9 comment6185232681). See
+[batch1 evidence](OVERNIGHT_20261015_BATCH1.md).
+These results are controlled runtime evidence, NOT new live model outcomes.
+
+Original live review checkout/data/build were not changed. Loopback 3151/8151
+were observed listening during this batch; original old preview remains offline.
+No public app/API listener was created. Review from the user's own device remains
+unverified. Original evidence is retained under original checkout
+`.local/space-evaluation-next/`, including raw GLM5.3 critique/receipt. The critique's
+claim about a saved safety note is false; do not silently rewrite the raw review.
+
+Budget: cumulative authorization remains $40. Historical encumbrance $24.617200,
+unactivated $15.382800; latest handoff reservations $8.97056/$9.762080. Successor
+six admissions exhausted; unused request headroom is not admission authority.
+No new product-model call or spend this batch to date. Historical reported
+$0.452445 is conservative usage, not billing; direct GLM subscription is not
+asserted free. Two unknown count attempts remain quarantined. No successor may
+run before exact-candidate review and live ledger/route/pricing reconciliation.
+
+## Historical integrated candidate — changes required at that checkpoint
+
+`70b4d8cf692355acc137608e0424a026c2c7f0a7` combines Claude04ae36e and
+backend3aa8f3f, preserving both owners' ancestry. Current work projection and safe
+inferred targeting are implemented; the coherent Space view is integrated.
+255frontend tests, type/lint/format and production build pass. Independent review
+found no new backend blocker but identified three frontend issues; the real-service
+journey passed8 cases then exposed a purpose-save recovery failure. See
+[the concrete review](SPACE_INTEGRATION_REVIEW.md). Claude owns the focused fixes.
+No live grant is installed for this candidate; no product-model calls occurred.
+The full backend suite is still running; authenticated user review is not yet
+claimed ready. Baseline distinct-model critique is complete, not user acceptance.
+
+## Historical reconciliation — preserved Spaces checkpoint
 
 Application `5854e9f2a1b2778e034ba189aba01c39cae9ccb9` is published on
 `hermes/spaces-continuity-checkpoint` (tree `6cfec3fa31a2a91561eebb688e9e7da368d1578d`).
@@ -16,7 +156,7 @@ and actual live Spaces usefulness, integrated-candidate multi-model review and
 broader continuity/ongoing ownership remain unproven. No new product-model call this checkpoint.
 
 Existing Claude Cloud owns web and has ACKed integration of `9675daf` on its
-existing branch (2026-10-15 #9 comment6182049930); the coherent Space redesign is
+existing branch (2026-10-15 #9 comment6182032666); the coherent Space redesign is
 underway there. No substitute frontend owner was created. The prior resume request
 is resolved; do not ask the user to resume again. Hermes continues backend/integration.
 

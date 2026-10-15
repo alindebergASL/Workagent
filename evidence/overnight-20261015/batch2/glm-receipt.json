@@ -1,0 +1,21 @@
+{
+  "http_status": 200,
+  "response_model": "glm-5.3",
+  "id": "20261015143221f07eee0990da4b27",
+  "finish_reason": "stop",
+  "usage": {
+    "completion_tokens": 1097,
+    "completion_tokens_details": {
+      "reasoning_tokens": 34
+    },
+    "prompt_tokens": 910,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 2007
+  },
+  "complete": true,
+  "response_sha256": "0a92753dc5aa3d9a2e75ee615cdd3dd2cbb91f3245bc6f7fa8b57294b14e45f9",
+  "billing": "subscription coding-plan route; not assertedzero or productspend",
+  "finished_at": "2026-10-15T06:32:47.361414+00:00"
+}

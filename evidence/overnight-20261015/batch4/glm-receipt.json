@@ -1,0 +1,21 @@
+{
+  "http_status": 200,
+  "model": "glm-5.3",
+  "id": "20261015170412c313c43e8b1741bb",
+  "finish_reason": "stop",
+  "usage": {
+    "completion_tokens": 857,
+    "completion_tokens_details": {
+      "reasoning_tokens": 37
+    },
+    "prompt_tokens": 4377,
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    },
+    "total_tokens": 5234
+  },
+  "complete": true,
+  "sha256": "cf9c47cfb489745b4330d865ebd2986afd89513e9851ae3a34cfdb8a50b33815",
+  "billing": "direct subscription endpoint; not asserted zero or product inference",
+  "finished_at": "2026-10-15T09:04:33.538842+00:00"
+}

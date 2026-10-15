@@ -92,6 +92,10 @@ class Responsibilities(ResponsibilityExecution):
             return
         if life.blocker:
             life.state = 'blocked'
+        elif life.wait is not None and life.wait.kind == 'person':
+            # Changed context can require human review, but cannot supply the
+            # decision this responsibility explicitly waits for.
+            life.state = 'waiting_person'
         elif life.review_required or life.check_in_due or life.wait is None:
             life.state = 'active'
         else:
@@ -161,6 +165,8 @@ class Responsibilities(ResponsibilityExecution):
 
     def _queue_responsibility_wake(self, c, p, a, life):
         self._retire_responsibility_wake(c, a.workspace_id, life)
+        if life.wait is not None and life.wait.kind == 'person':
+            return
         if not (life.state == 'active' or (life.state == 'blocked' and life.review_required
                 and life.blocker in ('grant_required', 'tool_required'))):
             return
@@ -327,8 +333,11 @@ class Responsibilities(ResponsibilityExecution):
         due = bool(life.next_check_in_at and life.next_check_in_at <= now())
         old_blocker = life.blocker
         self._responsibility_grant_blocker(c, p, a, life)
-        changed = (observations != life.observations or cv.work_version != life.conversation_work_version
-                   or due != life.check_in_due or old_blocker != life.blocker)
+        context_changed = observations != life.observations
+        due_changed = due != life.check_in_due
+        blocker_changed = old_blocker != life.blocker
+        changed = (context_changed or cv.work_version != life.conversation_work_version
+                   or due_changed or blocker_changed)
         if not changed:
             return False
         key = digest({'observations': [o.model_dump() for o in observations],
@@ -342,10 +351,16 @@ class Responsibilities(ResponsibilityExecution):
         life.observations = observations
         life.conversation_work_version = cv.work_version
         life.check_in_due = due
-        life.review_required = True
-        life.outcome_status = 'needs_review'
-        life.next_action = ResponsibilityNextAction(kind='review_dependency',
-            description='Review changed saved context or the due check-in before continuing.')
+        person_wait = life.wait is not None and life.wait.kind == 'person'
+        if not person_wait or context_changed or due_changed or blocker_changed or cv.state != 'open':
+            life.review_required = True
+            life.outcome_status = 'needs_review'
+        if not person_wait:
+            life.next_action = ResponsibilityNextAction(kind='review_dependency',
+                description='Review changed saved context or the due check-in before continuing.')
+        # Retain an explicit human wait and its next action verbatim. Ordinary
+        # messages only advance the fenced conversation version; evidence/check-in
+        # changes may flag review, never silently authorize a continuation.
         self._responsibility_grant_blocker(c, p, a, life)
         if cv.state != 'open':
             life.blocker = 'conversation_closed'

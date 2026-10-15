@@ -1,0 +1,72 @@
+{
+  "provider_calls": "not_performed",
+  "cases": [
+    "Spaces lists each project by name, purpose and kind; an ordinary chat isn't listed; the demonstration label shows",
+    "the Space opens on its purpose, the next step and what needs the person, from saved records, with no internal wording; nothing is chosen for the person; an outdated proposal isn't offered to apply; every control is at least 24px",
+    "keyboard selects work; it opens once, in place under its entry, and focus stays there; the reply is now about it",
+    "a typed reply and the selected work survive a reload",
+    "a background change to the work list while the chosen work is re-read keeps the choice: sending waits by button and keys, never falls back to the whole project",
+    "a reply carries the selected work's exact saved version; the waiting turn shows as underway, not as done",
+    "clearing the selection makes the reply about the whole project; Ctrl+Enter sends it with no target",
+    "an unconfirmed send shows and replays exactly what it was about, though the selection moved",
+    "while the project can't be re-read, sending is held by button and keys; reconnecting sends nothing by itself",
+    "the purpose is the person's to edit; a draft survives reload; a stale save is refused with the text kept; saving waits for a slow re-read even across cancel and reopen, then lands once; the saved goal reads back",
+    "applying the change through the work's own control updates the Space: the review is gone and the next step moves on",
+    "on a phone the work comes first; switching panes keeps the draft; Ask about this opens the reply box about that work",
+    "an answer shows the work it made with one next step; earlier mentions are one line; how it ran is one Details; it fits a phone",
+    "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; a refusal beside a sibling's failed work or proposal read still removes the refused work; all recover; the draft is kept",
+    "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
+    "a refusal of the chosen work removes its running view and holds sending at once, for 401 and 404, in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
+    "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and where to update it",
+    "a plain question gets its answer without becoming a project; an ordinary chat or unknown id isn't shown as one; a chat can be kept as one; a project's chat links back"
+  ],
+  "ids": {
+    "mode": "real_service_postgresql_worker_with_synthetic_provider_transport",
+    "live_provider_calls": 0,
+    "workspace": "local-workspace",
+    "workshop": {
+      "conversation_id": "110374d3-c748-4ec4-af6e-66b55f04b441",
+      "plan_id": "d081d528-d19d-4aab-a755-0f8d70af5f2a",
+      "budget_id": "a7ab7954-71e4-4f58-92f1-03b7d66d80cb",
+      "assignment_ids": [
+        "7f85a96f-679d-48c8-a577-9fe47d86439a"
+      ]
+    },
+    "newsletter": {
+      "conversation_id": "42f7a39f-70a3-47bc-a7b4-52bacbf4b1f3"
+    },
+    "plain": {
+      "conversation_id": "9af92fcb-1ac0-418d-90e6-3c5f09469b3a"
+    },
+    "second": {
+      "workspace": "personal-work",
+      "conversation_id": "e2e641b7-863a-4fa8-9f71-ef6ee55d58ca",
+      "artifact_id": "e9d1ab09-0e9f-4fdb-a389-4b31828c5773",
+      "assignment_ids": [
+        "17453e2e-cb75-4321-94c1-956df74d2765"
+      ],
+      "chat_id": "aef53345-5a29-4777-a4a3-28020e3899ac"
+    },
+    "supplier": {
+      "workspace": "personal-work",
+      "conversation_id": "c4033756-180b-4570-b55e-0568c41f90bc",
+      "evidence_id": "987ee619-909b-4ab7-a4fb-75400b3cb31c",
+      "compare_id": "8d6415c6-9b18-4779-ab1f-93338dfc259d"
+    },
+    "worker_states": {
+      "plan": "partial",
+      "budget": "partial",
+      "catering": "partial",
+      "remote": "partial",
+      "venue": "partial",
+      "plain": "ready",
+      "newsletter": "partial",
+      "open_day": "partial",
+      "open_day_handover": "partial",
+      "chat": "ready",
+      "evidence": "partial",
+      "compare": "partial",
+      "findings": "partial"
+    }
+  }
+}

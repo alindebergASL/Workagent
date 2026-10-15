@@ -1,0 +1,168 @@
+{
+  "created_at": "2026-10-15T08:09:33.327901+00:00",
+  "application_commit": "afab13babd54a14ed3da5404677265b74b11ce73",
+  "owner_commit": "133e857287cab0204a6c210bd1951b539860ec15",
+  "runtime_backend_unchanged_from": "a719f28",
+  "full_backend_source_start": "aedc130",
+  "tests": {
+    "full_backend_before_test_fixture_fix": {
+      "tests": 1224,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1223,
+      "failed_cases": [
+        "tests.test_operator_replay::test_untrusted_journal_path_refused[mode]"
+      ]
+    },
+    "operator_after_fixture_fix_umask077": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 22,
+      "failed_cases": []
+    },
+    "operator_after_fixture_fix_umask022": {
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 22,
+      "failed_cases": []
+    },
+    "successor_helper": {
+      "tests": 46,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 46,
+      "failed_cases": []
+    },
+    "frontend_units": 265,
+    "frontend_gates": "type/lint/format pass; webpack production build pass; default Turbopack rejected external dependency symlink, retained",
+    "routing_cases": 7,
+    "space_cases": 18,
+    "inplace": {
+      "total": 13,
+      "passed": 13
+    },
+    "retention": {
+      "total": 17,
+      "passed": 17
+    },
+    "overlay": {
+      "total": 6,
+      "passed": 6
+    },
+    "pinned_guidance": {
+      "pass": true,
+      "name": "Exact-version pinned stale in-place view requests regeneration, not unsafe rebind",
+      "provider_calls": 0
+    }
+  },
+  "review": {
+    "initial_frontend": "required changes; P2/P3 closed by owner133e857 plus parent frozen repros and real-service cases",
+    "initial_successor": "required changes: reader allowlist, intra-visit STOP, account freshness",
+    "successor_fixes": "parent46 controlled tests pass (includes31 reviewer cases), actual read-only inventory/source gate passes; final independent review of changed helper bytes NOT done",
+    "delegation": "2 bounded Astra reviewers joined; follow-up invocation refused by one-shot2/2 cap; no bypass"
+  },
+  "modes": "All new product decisions synthetic/controlled. Screenshots actual Next/API/PostgreSQL; authored fixture shapes not model intelligence. Suites overlap, do not sum.",
+  "spend": {
+    "new_product_requests": 0,
+    "new_product_spend_usd": "0.000000",
+    "cumulative_authorized_usd": "40.000000",
+    "encumbered_usd": "24.617200",
+    "unactivated_usd": "15.382800",
+    "reserved_liability_usd": "8.97056",
+    "local_counts": {
+      "count": 44,
+      "generation": 42,
+      "read": 377,
+      "cancel": 0
+    },
+    "deduplicated_all_lineage_counts": {
+      "count": 70,
+      "generation": 68,
+      "read": 566,
+      "cancel": 0
+    },
+    "unknowns": "two historical count attempts quarantined unchanged",
+    "billing": "No billed-cost assertion; reservation, reported usage and mission encumbrance are different quantities"
+  },
+  "successor": {
+    "helper_sha256": "81cfd85a6134a44636d7c4ca22b6aa1a0e15ae31e8a04eb20be6dd8d31162174",
+    "parent_tests_sha256": "7282a001c9efaf1aa1b904e2220720a95a5a49ad7e1fa7d1b2575ee43f58808e",
+    "protocol_sha256": "e4a2e9f22bb7b1da85e66e475f9bcbb504d92c6b6a2b40c10468ac49f11542a6",
+    "installed": false,
+    "package_created": false,
+    "all_clone_grants_inactive": true,
+    "source_exhausted_not_fenced": true,
+    "future_max_admissions": 3,
+    "future_new_shared_generation_and_count_slots": 6,
+    "future_new_cost_allocation_usd": "0.791520",
+    "future_aggregate_if_installed_usd": "25.408720",
+    "future_unactivated_if_installed_usd": "14.591280",
+    "preparation_change": "3 instead of2 admissions; SAME6 request slots and money/token/read ceilings; not activated"
+  },
+  "limitations": [
+    "No fresh live model usefulness, large-body follow-up or generated-view acceptance in batch3.",
+    "Human memory correction and real initiative remain live-evaluation gaps.",
+    "Full suite1223pass/1 umask-sensitive fixture failure, subsequently22operator cases pass under077 and022; no post-fix full-suite green claim.",
+    "New helper changed bytes still require independent review before live activation.",
+    "Screenshots viewed desktop390320; scrolled mobile view only, not physical mobile device acceptance.",
+    "Repeated provenance/version text and narrow desktop conversation remain UX limitations.",
+    "No comparator parity/superiority evidence."
+  ],
+  "public_files": {
+    "supplier-desktop.png": {
+      "sha256": "5952b06cc4f8dc30b7ff652da7bce1f039c559b088ff06e6079f6128dbb21e0f",
+      "source": ".local/overnight-batch3/browser-space/09-investigation-view-in-place.png"
+    },
+    "supplier-390.png": {
+      "sha256": "f4da5e436d32039ed7449dcf9c79bd5d4b72ed74b2f796fef863d9d696d00df2",
+      "source": ".local/overnight-batch3/browser-space/09-investigation-view-390.png"
+    },
+    "supplier-320.png": {
+      "sha256": "728d2cadc55c503918df55b638b74d0cabcf009484ea01fc11e236e4eada96ea",
+      "source": ".local/overnight-batch3/browser-space/09-investigation-view-320.png"
+    },
+    "routing.json": {
+      "sha256": "cca1cd7687b6990d9d2d3149ae90727fc1674238e432bc8c7895db278930b427",
+      "source": ".local/overnight-batch3/browser-routing/workspace-routing.json"
+    },
+    "space.json": {
+      "sha256": "d4e4693b840bad11d4093e4e240d855487a64f774d4da964095cd851af5af19c",
+      "source": ".local/overnight-batch3/browser-space/space-experience.json"
+    },
+    "inplace-retest.json": {
+      "sha256": "45ca4aa525dba50191fefb647da1970e13c8477c88faf5d2b93a15a9cdf15a30",
+      "source": ".local/overnight-batch3/frontend-retest/inplace-report.json"
+    },
+    "retention-retest.json": {
+      "sha256": "315dce14d9feb6532e96d4e5e747f39bb3aedac5397c6d7b21fabc3828b9a276",
+      "source": ".local/overnight-batch3/frontend-retest/stalled-report.json"
+    },
+    "overlay-retest.json": {
+      "sha256": "13c03c53b82bc8eaa81133af9dec60dc0014a85d1e9b532dfa066ac39958c0c9",
+      "source": ".local/overnight-batch3/frontend-retest/overlay-report.json"
+    },
+    "pinned-guidance.json": {
+      "sha256": "0e931975193f6ebdbe658350a3a7155590428b0c6a7916118a658512b72bbbb4",
+      "source": ".local/overnight-batch3/pinned-guidance.json"
+    },
+    "frontend-independent-review.md": {
+      "sha256": "ae419fad5c7db8e682989910cc7a5aa61a70ee1508a49c373d6d4fd847269031",
+      "source": ".local/overnight-batch3/frontend-review/review.md"
+    },
+    "successor-independent-review.md": {
+      "sha256": "1dcdb7a84fad8be749d7d3e549b1aa517aece898a48cf9d54e792bd04981bd4d",
+      "source": ".local/overnight-batch3/successor-review/REVIEW.md"
+    },
+    "real-source-gate.json": {
+      "sha256": "4b0840c2803b99abdc0aee112a52d4d7560eab9e34b359bd1b765f9a6770951b",
+      "source": ".local/overnight-batch3/helper-real-source-gate.json"
+    }
+  },
+  "private_evidence_root": "/home/ubuntu/workagent-overnight-20261015/.local/overnight-batch3"
+}

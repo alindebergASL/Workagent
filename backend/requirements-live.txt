@@ -1,0 +1,3 @@
+-r requirements.txt
+# Reviewed sandbox engine; the runtime rejects other versions or host fallback.
+wasmtime==49.0.0

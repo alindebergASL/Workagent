@@ -282,6 +282,15 @@ export interface components {
              */
             section: "messages" | "target" | "attachments";
         };
+        /** ReadSavedWork */
+        ReadSavedWork: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "read_saved_work";
+            target: components["schemas"]["DecisionTarget"];
+        };
         /** RecordResponsibility */
         RecordResponsibility: {
             /** Completion Criteria */
@@ -395,7 +404,7 @@ export interface components {
         /** AlphaDecision */
         AlphaDecision: {
             /** Decision */
-            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["RecordResponsibility"];
+            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["RecordResponsibility"];
             /** Goal */
             goal: string;
             /** Success Criteria */

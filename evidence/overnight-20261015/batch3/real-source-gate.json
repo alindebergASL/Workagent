@@ -1,0 +1,9 @@
+{
+  "source_stable_gate": true,
+  "source_tables": 33,
+  "clone_tables": 33,
+  "all_manifests_unchanged": true,
+  "no_other_worker_gate": true,
+  "new_provider_calls": 0,
+  "helper_sha256": "81cfd85a6134a44636d7c4ca22b6aa1a0e15ae31e8a04eb20be6dd8d31162174"
+}

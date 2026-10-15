@@ -1,6 +1,50 @@
 # Andrew's general-model testing authorization
 
-## Current execution boundary — cumulative authority retained
+## Current execution boundary — private-alpha development
+
+The user's October 15 implementation instruction authorizes Hermes to select,
+configure and run bounded synthetic development evaluations on the existing
+approved model route within the remaining reconciled portion of the existing
+**$40 cumulative ceiling**. This is not another $40. Routine implementation,
+refactoring, testing, development-service operation, integration and feature-branch
+publication do not require incremental approval. A finished narrow evaluation is
+not a project-wide stop.
+
+Enforce per-run and aggregate accounting before execution; preserve historical
+usage, reservations, unknown liabilities and grant/attempt bindings. Frozen
+failures stay frozen; clearly identified post-fix development tests are permitted.
+Never silently replace a failed result or repeat an unknown external request.
+New paid routes, broader private-account/data access, external business effects,
+default-branch merging and production replacement remain outside this authority.
+
+Current candidate, services, accounting reconciliation and work status live only
+in [STATUS.md](../STATUS.md). Historical sections below are evidence, not competing
+current launch instructions or balances.
+
+## Prior execution boundary — overnight exact-candidate evaluation
+
+Cumulative authorization remains **$40**. Reviewed successor
+`workagent-overnight-20261015-03` was installed/read back on an isolated full-history
+clone for application `4e676b19876d1efac9867efb51c1263faf00ca7e` after actual
+account/model, pricing, source/lineage and exact-helper review gates. New allocation
+**$0.791520**; cumulative encumbered **$25.408720**, unactivated **$14.591280**.
+This allocation is not actual billing. Shared reservation cap remains **$9.762080**.
+
+Two of at most three admissions were used, with **4 counts / 4 generations /
+18 reads / 0 cancels**. New reservations **$0.527680**. Known reported usage is
+31566 input / 4317 output; known calculated portion **$0.122085**, not total cost:
+one accepted library final response still has unknown usage. Shared reserved
+liability **$9.498240**. No release/refund/reset/replacement. Both older ambiguous
+counts remain quarantined; this additional accepted-response uncertainty is separate.
+
+The library run remains unresolved; its same-conversation correction was NOT
+admitted. The independent investigation saved a document, canonical state PARTIAL.
+No remaining headroom authorizes rerunning a failed admission. Original six-turn
+evaluation and grant pins are unchanged. Same official gpt-6.1-sol medium/background,
+synthetic-only route; no external accounts, main merge or deployment. No continuous
+product worker is left running. See [exact report](OVERNIGHT_20261015_BATCH4.md).
+
+## Prior execution boundary — historical, not current balances
 
 Latest user instruction continues broad development and ordinary-path model testing
 under the latest recorded authority, not a new allowance or reset. Publication and
@@ -16,6 +60,30 @@ Hermes must reconcile current accounting and enforce the next exact-candidate sc
 before paid execution. No child/frontend independent spend, unknown retry or refund.
 [Reconciliation](../handoffs/backend/SPACE-DELIVERY.md) distinguishes actual activation,
 live evidence, current work and outstanding gates.
+
+Current cumulative authority is **$40**, not available spend. Fresh read-only
+ledger verification on2026-10-15 retained54 dispatches,56 counts,466 reads,28 runs
+and **$7.12368 reserved**. Original$20 plus first$1.978800 remain encumbered;
+two unresolved final-count attempts remain quarantined. Reservations are not billing.
+
+The prepared successor is **NOT INSTALLED**: at most **6 runs**, **4 selection
+steps + one final response per run**, **20 generation requests**, **20 token-count
+requests**, **200 same-ID retrievals**, **400,000 input / 163,840 output** tokens,
+**zero cancels**, and **$2.638400 additional reservation ceiling**. These are
+independent enforced bounds, not a promise that all six probes fit. If installed
+against the unchanged baseline, the product cap is$9.762080; aggregate operator
+encumbrance$24.617200 and unactivated$15.382800. The proposed30-call increment was
+rejected by existing SQL/model ceilings; those ceilings are not raised or reset.
+
+Before installation: parent must recheck actual ledger/source fences and exact
+candidate deterministic checks/review, and fresh route/account/pricing verification.
+Same official OpenAI gpt-6.1-sol medium/default, acknowledged `store:true` and
+synthetic-only context; no fallback or new paid route. Failed attempts count;
+no silent replacement generation, unknown retry, historical grant repinning or
+refund. No child or frontend handoff may spend independently. No external
+account/business actions, expanded private-data access, default merge or
+production replacement are authorized. An isolated authenticated review is
+requested; it does not authorize a public app/API exposure.
 
 ## Historical added-budget approval — retained verbatim
 

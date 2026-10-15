@@ -176,7 +176,8 @@ class Products:
         # Same bounded kernels for controlled and model-selected operations.
         if isinstance(operation,PublishArtifact):
             # Only validate/retain inert data; NEVER evaluate generated source.
-            from .flexible_models import StructuredTableBody,check_table_edit
+            from .flexible_models import StructuredTableBody,check_table_edit,check_document_model_edit
+            if base: check_document_model_edit(base.body,operation.body)
             if base and isinstance(base.body,StructuredTableBody) and isinstance(operation.body,StructuredTableBody):
                 # In-scope invalid edits are local input rejections, not lost
                 # authority. Keep their observation in the ordinary recovery loop.
@@ -234,7 +235,7 @@ class Products:
                   'Controlled CSV calculation observed: reported '+observed.reported_sum+'; calculated '+observed.expected_sum+'.' if isinstance(observed,CSVObservation)
                   else f'Controlled import-free Wasm execution observed return: {observed.value}.')
             if base:
-                text+=' Change proposed, not accepted; saved human notes retained.'
+                text+=' Change proposed, not accepted.'
             results=self._publish_product(c,p,run,cv,operation,base,body,file,observed,text,
                                           unresolved=text if isinstance(observed,DraftObservation) else None)
         # Exact authorized durable readback, not just a write receipt.
@@ -250,6 +251,9 @@ class Products:
         if isinstance(operation,PublishArtifact) and base:
             # Publication remains strict even if a staged body were forged.
             self._validate_flexible_edit(base.body,body)
+            from .flexible_models import check_document_model_edit
+            try: check_document_model_edit(base.body,body)
+            except ValueError as exc: raise DomainError('unsupported_operation') from exc
         operation_hash=digest(operation)
         results=[]
         # Initial product creates a typed editable body plus exact download file.
@@ -261,8 +265,8 @@ class Products:
                 proposal=Proposal(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,
                     artifact_id=aid,base_revision_id=base.id,base_work_version=cv.work_version,
                     body=material,body_hash=digest(material),source_dependencies=cv.selected_source_refs,
-                    reason=('Model-selected local result; saved human notes retained. Review before acceptance.' if binding else
-                            'Controlled local recalculation/execution; exact saved human notes retained. Review before acceptance.'))
+                    reason=('Model-selected proposed revision. Review before acceptance.' if binding else
+                            'Controlled local proposed revision. Review before acceptance.'))
                 c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data) VALUES (%s,%s,%s,%s,%s)',
                     (run.workspace_id,proposal.id,aid,base.id,encoded(proposal)))
                 pid=proposal.id; run.proposal_id=pid; run.artifact_id=aid; run.base_revision_id=base.id
@@ -311,8 +315,16 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
-        from .composition import READ_DECISIONS, execute_read
-        if isinstance(operation,READ_DECISIONS):
+        from .composition import READ_DECISIONS, ReadSavedWork, execute_read
+        if isinstance(operation,ReadSavedWork):
+            from .saved_work import result as saved_result
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'capability_result':read}
+        elif isinstance(operation,READ_DECISIONS):
             context=self.conversation_worker_context(cap)
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_read(operation,context)}

@@ -1,8 +1,31 @@
 # Product acceptance
 
-## Current delivery state — reconciled Spaces checkpoint
+## Current delivery state — overnight reviewed slice
 
-Integrated application candidate: `5854e9f2a1b2778e034ba189aba01c39cae9ccb9`
+Latest integrated candidate: application `4e676b19876d1efac9867efb51c1263faf00ca7e` integrates sole frontend
+owner through `a0b756b`. Independent engineering reviews and fresh controlled
+browser checks approve the bounded changes, not general-product acceptance.
+Live investigation arithmetic/caution and actual human note save/reload verified;
+library run unresolved, so natural large-work correction/follow-up NOT TESTED.
+Live model-selected interactive adaptation and useful autonomous initiative remain
+unproven. No competitor parity or reversal of the user's prior UX judgment.
+See [overnight report](OVERNIGHT_20261015_BATCH4.md) and [runtime status](RUNTIME_STATUS.md).
+
+The #15 bar remains general agency + extensible skills/tools + scoped context/memory
++ durable continuity + authorized initiative + optional Spaces + Intelligent UI.
+Controlled engineering does not establish broad product readiness. Historical
+reports retain their original scope, failures and verdicts. Budget headroom is
+never independent authority: no default merge/deployment, external business actions
+or expanded account/private-data access. [Authorization](GENERAL_MODEL_AUTHORIZATION.md)
+and [runtime status](RUNTIME_STATUS.md) govern actual execution, not historical balances.
+
+## Historical Spaces checkpoint — retained context
+
+Latest integrated candidate: `70b4d8c`, with frontend fixes required by
+[the exact integration review](SPACE_INTEGRATION_REVIEW.md). See
+[runtime status](RUNTIME_STATUS.md) for fresh execution and current readiness.
+
+Preserved starting checkpoint: `5854e9f2a1b2778e034ba189aba01c39cae9ccb9`
 on `hermes/spaces-continuity-checkpoint`, directly above Claude's `cdea2a0`.
 The formerly local 45-file Spaces/TUI implementation is now committed and published;
 Claude retains frontend ownership and must integrate/review its inherited web delta.
@@ -11,7 +34,11 @@ Claude retains frontend ownership and must integrate/review its inherited web de
 Preserve the complete direction: **general agency + extensible skills/tools +
 scoped context/memory + durable continuity + authorized initiative + optional
 Spaces + Intelligent UI**. These capabilities must form one useful experience.
-Small increments control risk, not product ambition. GTD and demonstrations are
+Small increments control risk, not product ambition.
+Historical reports retain their original scope, failures and verdicts; this
+checkpoint does not establish broad product readiness. Preserve the existing #15
+research findings. Budget headroom is never independent authority: no default
+merge/deployment, external business actions or expanded account/private-data access. GTD and demonstrations are
 optional examples, never workflow routing. Completed nanoMuse research and existing
 contracts remain useful; no additional vision reset or harness comparison.
 
@@ -252,9 +279,11 @@ before those results and independent verdicts are concrete.
 Historical grants/counters remain unchanged. Routine development, deterministic
 tests and compatible non-default integration continue. Development-checkpoint and
 Claude-handoff publication is now explicitly authorized; default merge and
-deployment remain prohibited. The additional +$20 alpha evaluation budget is
-**APPROVED, NOT INSTALLED** by this file, for $40 total authorization.
-Earlier alpha live attempts require reconciliation; their absence is not claimed.
+deployment remain prohibited. The first added-budget slice was installed and used; the
+exact-candidate successor alpha evaluation is **APPROVED FOR PREPARATION, NOT
+INSTALLED**. $40 remains the cumulative authority, not a fresh balance. Current
+accounting and successor limits are in GENERAL_MODEL_AUTHORIZATION.md; older
+amounts below are historical and must not replace the actual ledger.
 Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and the actual ledger and
 activate only after exact-candidate deterministic checks and review pass,
 fresh route/account/pricing verification, and enforcement of durable per-run and
