@@ -11,6 +11,27 @@ from .models import TextResult, TurnResult
 from .service import Principal
 
 
+def final_tool_output(staged,selection):
+    """Avoid a second copy of the exact draft already in the tool-call history.
+
+    All provider output/reasoning items and the initial context remain intact.
+    Only identical publish_artifact bodies are referenced, never calculated
+    outputs, differing normalized bodies, human notes or verification evidence.
+    This is a projection for a NEW final request, not a journal/stage rewrite.
+    """
+    from .service import canonical,digest
+    value=selection.value.model_dump(mode='json') if selection.value is not None else {}
+    decision=value.get('decision',{})
+    body=staged.get('body')
+    if (staged.get('status')=='observed' and body is not None
+            and decision.get('kind')=='publish_artifact'
+            and canonical(decision.get('body'))==canonical(body)):
+        staged={**staged,'body':None,'body_reference':{
+            'source':'preceding_choose_general_action_arguments.decision.body',
+            'sha256':digest(body),'reason':'identical_body_already_present_in_full_function_call'}}
+    return canonical(staged)
+
+
 class ControlledTransport:
     mode = 'controlled'
 
@@ -194,7 +215,7 @@ class GeneralWorker:
             phases._hook('after_tool_result')
             final,_=ledger.snapshot('final',cap)
             if final is None:
-                final=build_final(selection_request=selection,selection=selected,tool_output=canonical(staged),
+                final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(staged,selected),
                     instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                     metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
                 ledger.prepare(final,cap)
@@ -252,7 +273,7 @@ class GeneralWorker:
                 if staged['terminal_outcome']=='continue': continue
                 final,_=ledger.snapshot('final',cap)
                 if final is None:
-                    final=build_final(selection_request=selection,selection=selected,tool_output=canonical(for_model(staged)),
+                    final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(for_model(staged),selected),
                         instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
                     ledger.prepare(final,cap)

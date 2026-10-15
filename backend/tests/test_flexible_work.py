@@ -188,6 +188,9 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
     obs=s.get_product_observation(p,ws,item.observation_id).observation
     assert obs.output.goal_status=='needs_validation' and obs.output.generated_code_executed is False
     assert obs.model_selection and detail.turns[-1].retained_local_result.published
+    assert detail.turns[-1].state=='replied'
+    assert detail.turns[-1].provider_observation=='received'
+    assert detail.turns[-1].explanation.published
     if adaptive:
         assert detail.turns[-1].adaptive.outcome=='needs_validation'
         assert detail.turns[-1].adaptive.steps[-1].verification.satisfied is False
@@ -200,6 +203,7 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
     saved=s.human_save(p,ws,art.id,cmd(HumanSave,expected_current_revision_id=art.current_revision_id,body=saved_body))
     q2=post(context,detail.conversation,'Suggest a revised draft without accepting it.',target=target(saved))
     assert worker(context,fake,tmp_path).work(p,ws,q2.run.id).state=='partial'
+    assert s.get_conversation(p,ws,cv.id).turns[-1].state=='replied'
     proposal=s.proposals(p,ws,art.id).items[0]
     assert proposal.status=='pending' and s.get_artifact(p,ws,art.id).current_revision.body.title=='Human title'
     assert not detail.messages[-1].text.startswith('Verified')

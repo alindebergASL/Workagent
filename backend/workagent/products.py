@@ -106,6 +106,16 @@ def turn_state(run,c=None):
                     (run.workspace_id,run.id,encoded(data['binding']))).fetchone())
                 retained=RetainedLocalResult(status=data['status'],published=published,
                     binding=data['binding'],body=data['body'],output=output,reason=data.get('reason'))
+        explanation=explanation_readback(c,run,attempt)
+        # Publication success and goal verification are different dimensions.
+        # A delivered draft/proposal is a reply awaiting human validation, not
+        # a failed execution. Never promote a merely staged or rejected body.
+        if (run.state=='partial' and run.stop_reason is None and observation=='received'
+                and not any(s.state in ('invalid','count_unknown','outcome_unknown') for s in steps)
+                and explanation and explanation.published and retained and retained.published
+                and retained.status=='observed' and isinstance(retained.output,DraftObservation)):
+            state='replied'
+            reason='Draft or proposed revision delivered. Only its shape was checked; the goal remains unverified and proposed changes require human acceptance.'
         from .responsibility_action import recording, RECORDING_REASON
         ownership=recording(c,run) if c else None
         if ownership:
@@ -116,7 +126,7 @@ def turn_state(run,c=None):
                 ' The recording succeeded and is retained; the explanation is unfinished. '+reason)
         return TurnState(responsibility_recording=ownership['result'] if ownership else None,run_id=run.id,state=state,reason=reason,profile=run.profile,
             evidence_origin=run.execution.evidence_origin,provider_observation=observation,response_steps=steps,
-            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation_readback(c,run,attempt),
+            retained_local_result=retained,adaptive=adaptive_readback(c,run,attempt),explanation=explanation,
             responsibility_origin=(next((m['data'].get('responsibility_origin') for m in c.execute(
                 "SELECT data FROM conversation_messages WHERE workspace_id=%s AND run_id=%s AND author_kind='system'",
                 (run.workspace_id,run.id)).fetchall()),None) if c else None))
