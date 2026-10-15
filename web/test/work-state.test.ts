@@ -55,7 +55,9 @@ describe("work phases from the authoritative summary", () => {
         needs_review_artifact_ids: ["plan"],
       }),
     ]);
-    expect(attention?.href).toBe("/assignments/b/artifacts/plan?workspace=local-workspace");
+    expect(attention?.href).toBe(
+      "/assignments/b/artifacts/plan?workspace=local-workspace",
+    );
     expect(attention?.action).toBe("Review the change");
   });
 
@@ -178,7 +180,9 @@ describe("responsibility outcome from the backend projection", () => {
     expect(decisionArtifactId(a)).toBe("plan-1");
     const card = workAttention([a]);
     expect(card?.body).toMatch(/Nothing is applied until you decide/);
-    expect(card?.href).toBe("/assignments/assignment-a/artifacts/plan-1?workspace=local-workspace");
+    expect(card?.href).toBe(
+      "/assignments/assignment-a/artifacts/plan-1?workspace=local-workspace",
+    );
   });
 
   it("keeps a stale base a decision without claiming the proposal applies", () => {
