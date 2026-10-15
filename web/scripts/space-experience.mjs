@@ -623,9 +623,64 @@ try {
   await expect(page.locator("#follow-up")).toHaveValue(
     "Draft kept through refreshes",
   );
+  // Mixed outcomes: one card's work is refused while a sibling's read (its
+  // work, or its proposals) fails. The refused one shows nothing of itself;
+  // the other stays as last read, said so. Both recover.
+  const latestPlan = page
+    .locator(`.work-card[data-artifact="${planId}"]`)
+    .last();
+  const deny = (route) =>
+    route.request().method() === "GET"
+      ? route.fulfill({
+          status: 404,
+          contentType: "application/json",
+          body: JSON.stringify({
+            code: "not_found_or_not_authorized",
+            message: "Not found.",
+            request_id: "synthetic-denial",
+            next_action: "Check access.",
+            details: {},
+          }),
+        })
+      : route.continue();
+  const fail = (route) =>
+    route.request().method() === "GET"
+      ? route.abort("failed")
+      : route.continue();
+  for (const sibling of [
+    new RegExp(`/artifacts/${planId}(\\?|$)`),
+    new RegExp(`/artifacts/${planId}/proposals`),
+  ]) {
+    await page.route(budgetRead, deny);
+    await page.route(sibling, fail);
+    await refreshBtn.click();
+    await expect(latestBudget.getByTestId("work-card-unavailable")).toBeVisible(
+      { timeout: 15000 },
+    );
+    await expect(latestBudget.locator("table")).toHaveCount(0);
+    await expect(latestBudget).not.toContainText("Venue, two days");
+    await expect(latestBudget).not.toContainText("Proposed:");
+    await expect(latestBudget.getByTestId("work-card-unconfirmed")).toHaveCount(
+      0,
+    );
+    await expect(latestPlan.getByTestId("work-card-unconfirmed")).toBeVisible();
+    await expect(latestPlan).toContainText("Two days, 40 people");
+    await page.unroute(budgetRead);
+    await page.unroute(sibling);
+    await refreshBtn.click();
+    await expect(latestBudget).toContainText("Venue, two days", {
+      timeout: 15000,
+    });
+    await expect(latestBudget.getByTestId("work-card-unavailable")).toHaveCount(
+      0,
+    );
+    await expect(latestPlan.getByTestId("work-card-unconfirmed")).toHaveCount(
+      0,
+    );
+  }
   await page.locator("#follow-up").fill("");
   pass(
-    "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; the draft is kept",
+    "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; a refusal beside a sibling's failed work or proposal read still removes the refused work; all recover; the draft is kept",
   );
 
   // A person can add their own note to a document the agent made, remove a

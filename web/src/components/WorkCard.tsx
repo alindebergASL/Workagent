@@ -206,7 +206,9 @@ export function WorkCard({
       ) : null}
       {readState === "unconfirmed" ? (
         <p className="small muted" data-testid="work-card-unconfirmed">
-          Couldn’t re-check this work just now; it’s shown as last read.
+          {now
+            ? "Couldn’t re-check this work just now; it’s shown as last read."
+            : "Couldn’t read this work just now."}
         </p>
       ) : null}
       {link.note ? <p className="small muted">{link.note}</p> : null}

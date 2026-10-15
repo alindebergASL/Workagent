@@ -1073,3 +1073,22 @@ budget's artifact read intercepted and no new message. It checks, in turn:
 5. the draft is kept throughout.
 
 RED on `3b38d55` (old preview kept). GREEN 16/16, routing 7/7.
+
+### Per-work read outcomes on refresh (comment 6185505696)
+
+A refusal for one card's work and a failed read for a sibling's (work or
+proposals) rejected the whole read, so the old map stayed: both cards said
+"unconfirmed" and the refused work stayed visible. `useResultStates` now
+returns each work's own outcome:
+- `current`, with the fresh read;
+- `unavailable`, on a terminal refusal: nothing of it is kept, not even the
+  previous read;
+- `unconfirmed`, on any other failure: the previous read, said so.
+
+One work's failure never decides another's.
+
+Regression: `space-experience.mjs` case 14. A 404 for the budget is paired
+first with a failed plan read, then with a failed plan proposals read. Each
+time the budget shows nothing of itself and says unavailable, the plan stays
+as last read and says so, and both recover on the next refresh. RED on
+`fa54552`. GREEN 16/16, routing 7/7.
