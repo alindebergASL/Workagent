@@ -318,6 +318,14 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                             key={`${product.artifact_id}:${product.observation_id}`}
                             product={product}
                             now={results.data?.[product.artifact_id]}
+                            readState={
+                              results.reconnecting
+                                ? "unconfirmed"
+                                : results.data &&
+                                    !results.data[product.artifact_id]
+                                  ? "unavailable"
+                                  : "current"
+                            }
                             link={resultLink(
                               `/conversations/${id}`,
                               product,
@@ -407,7 +415,10 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         </p>
       ) : null}
       <div className="row">
-        <button className="link-quiet small" onClick={() => void res.refresh()}>
+        <button
+          className="link-quiet small"
+          onClick={() => void Promise.all([res.refresh(), results.refresh()])}
+        >
           Refresh conversation
         </button>
       </div>

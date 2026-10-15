@@ -195,13 +195,29 @@ try {
   await page.keyboard.press("Enter");
   await expect(item(planId)).toHaveAttribute("aria-pressed", "true");
   await expect(page).toHaveURL(new RegExp(`work=${planId}`));
-  await expect(page.locator("#space-selected-heading")).toBeFocused();
-  await expect(page.locator("#space-selected-heading")).toHaveText(
-    "Workshop plan",
+  // The chosen work opens in place under its own entry, once: focus stays on
+  // the entry the person chose, which names the opened content.
+  await expect(item(planId)).toBeFocused();
+  await expect(item(planId)).toHaveAttribute("aria-controls", "space-selected");
+  const opened = page.locator("#space-selected");
+  await expect(opened).toBeVisible();
+  await expect(opened).toHaveAttribute(
+    "aria-labelledby",
+    `space-item-${planId}`,
   );
+  await expect(
+    page
+      .locator("li")
+      .filter({ has: item(planId) })
+      .locator("#space-selected"),
+  ).toHaveCount(1);
+  await expect(page.locator(".space-work.card")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Workshop plan" }),
+  ).toHaveCount(0);
   await expect(about).toContainText("About: Workshop plan");
   pass(
-    "keyboard selects work; its heading takes focus; the reply is now about it",
+    "keyboard selects work; it opens once, in place under its entry, and focus stays there; the reply is now about it",
   );
 
   // A draft and the selection survive a reload.
@@ -547,6 +563,69 @@ try {
   }
   pass(
     "an answer shows the work it made with one next step; earlier mentions are one line; how it ran is one Details; it fits a phone",
+  );
+
+  // "Refresh conversation" re-reads the work the cards show, not only the
+  // messages: a changed version, a refusal and a failed re-check each show,
+  // with no new message, and the draft is kept.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${origin}/conversations/${cid}?workspace=${ws}`);
+  const latestBudget = page
+    .locator(`.work-card[data-artifact="${budgetId}"]`)
+    .last();
+  await expect(latestBudget).toContainText("Venue, two days", {
+    timeout: 15000,
+  });
+  await page.locator("#follow-up").fill("Draft kept through refreshes");
+  const budgetRead = new RegExp(`/artifacts/${budgetId}(\\?|$)`);
+  let mode = "changed";
+  let budgetReads = 0;
+  await page.route(budgetRead, async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    budgetReads++;
+    if (mode === "failed") return route.abort("failed");
+    if (mode === "denied")
+      return route.fulfill({
+        status: 404,
+        contentType: "application/json",
+        body: JSON.stringify({
+          code: "not_found_or_not_authorized",
+          message: "Not found.",
+          request_id: "synthetic-denial",
+          next_action: "Check access.",
+          details: {},
+        }),
+      });
+    const r = await route.fetch();
+    const body = await r.json();
+    body.current_revision.body.title = "Budget (revised elsewhere)";
+    return route.fulfill({ response: r, json: body });
+  });
+  const refreshBtn = page.getByRole("button", { name: "Refresh conversation" });
+  await refreshBtn.click();
+  await expect(latestBudget).toContainText("Budget (revised elsewhere)");
+  assert.ok(budgetReads > 0, "an explicit refresh re-reads the work");
+  mode = "denied";
+  await refreshBtn.click();
+  await expect(latestBudget.getByTestId("work-card-unavailable")).toBeVisible();
+  await expect(latestBudget.locator("table")).toHaveCount(0);
+  await expect(latestBudget).not.toContainText("Venue, two days");
+  mode = "changed";
+  await refreshBtn.click();
+  await expect(latestBudget).toContainText("Venue, two days");
+  mode = "failed";
+  await refreshBtn.click();
+  await expect(latestBudget.getByTestId("work-card-unconfirmed")).toBeVisible({
+    timeout: 15000,
+  });
+  await expect(latestBudget).toContainText("Venue, two days");
+  await page.unroute(budgetRead);
+  await expect(page.locator("#follow-up")).toHaveValue(
+    "Draft kept through refreshes",
+  );
+  await page.locator("#follow-up").fill("");
+  pass(
+    "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; the draft is kept",
   );
 
   // A person can add their own note to a document the agent made, remove a

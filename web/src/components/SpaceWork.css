@@ -172,3 +172,16 @@
   display: inline-flex;
   align-items: center;
 }
+/* The chosen work opens in place: its entry and its content read as one card. */
+.space-work-item[aria-pressed="true"]:has(+ .space-work.inline) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.space-work.inline {
+  border: 1px solid var(--accent);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  box-shadow: inset 3px 0 0 var(--accent);
+  padding: 10px 12px 12px 15px;
+  background: var(--surface, transparent);
+}

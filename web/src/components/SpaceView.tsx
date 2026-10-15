@@ -243,7 +243,9 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
                   <button
                     type="button"
                     className="space-work-item"
+                    id={`space-item-${item.artifact.id}`}
                     aria-pressed={on}
+                    aria-controls={on ? "space-selected" : undefined}
                     data-artifact={item.artifact.id}
                     onClick={() => select(item.artifact.id)}
                   >
@@ -268,6 +270,18 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
                       <span className="badge">Outdated proposal</span>
                     ) : null}
                   </button>
+                  {on && selected ? (
+                    <SelectedWork
+                      inline
+                      cid={id}
+                      item={selected}
+                      onAsk={
+                        canAskAbout(selected.artifact)
+                          ? () => askAbout(selected.artifact.id)
+                          : undefined
+                      }
+                    />
+                  ) : null}
                 </li>
               );
             })}
@@ -299,7 +313,10 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
           The work you chose isn’t available to you now. Your draft is kept.
         </p>
       ) : null}
-      {selected ? (
+      {/* Shown on its own only while the list is being re-read (the choice
+          is kept, as last read); otherwise it opens in place in the list. */}
+      {selected &&
+      !items?.some((i) => i.artifact.id === selected.artifact.id) ? (
         <SelectedWork
           cid={id}
           item={selected}
@@ -500,11 +517,17 @@ function SelectedWork({
   cid,
   item,
   onAsk,
+  inline = false,
 }: {
   cid: string;
   item: SpaceWorkItem;
   /** Absent when a reply can't name this kind of work. */
   onAsk?: () => void;
+  /**
+   * Opened in place under its own entry in the list, which already names it:
+   * no second title, and focus stays where the person chose it.
+   */
+  inline?: boolean;
 }) {
   const inScope = useScopedHref();
   const body = item.artifact.current_revision.body;
@@ -514,12 +537,12 @@ function SelectedWork({
   // Moving to another piece of work announces it to assistive technology
   // without stealing focus on the first render.
   useEffect(() => {
-    if (first.current) {
+    if (first.current || inline) {
       first.current = false;
       return;
     }
     headingRef.current?.focus({ preventScroll: true });
-  }, [shownId]);
+  }, [shownId, inline]);
   const title = workTitle(item.artifact);
   const ready = actionable(item);
   const old = outdated(item);
@@ -536,18 +559,25 @@ function SelectedWork({
   );
   return (
     <article
-      className="card stack-sm space-work"
-      aria-labelledby="space-selected-heading"
+      id={inline ? "space-selected" : undefined}
+      className={`stack-sm space-work${inline ? " inline" : " card"}`}
+      aria-labelledby={
+        inline ? `space-item-${item.artifact.id}` : "space-selected-heading"
+      }
       data-artifact-id={item.artifact.id}
       data-revision-id={item.artifact.current_revision_id}
     >
-      <h2 id="space-selected-heading" tabIndex={-1} ref={headingRef}>
-        {title}
-      </h2>
-      <p className="small muted">
-        {workKind(item.artifact)} · saved version{" "}
-        {item.artifact.current_revision.revision_number}
-      </p>
+      {inline ? null : (
+        <>
+          <h2 id="space-selected-heading" tabIndex={-1} ref={headingRef}>
+            {title}
+          </h2>
+          <p className="small muted">
+            {workKind(item.artifact)} · saved version{" "}
+            {item.artifact.current_revision.revision_number}
+          </p>
+        </>
+      )}
       <div className="row wrap">
         <Link
           className="btn btn-sm"
