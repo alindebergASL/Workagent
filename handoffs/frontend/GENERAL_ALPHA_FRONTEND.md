@@ -1701,3 +1701,20 @@ hasn’t been resolved", with no promise of progress. There is no retry button.
 - 38 DOM regressions;
 - full gate with 0 failures;
 - mock e2e 15/15.
+
+## A table's notes read whole too
+
+Follow-up to Hermes 6203726958, which said "Notes still scroll inside their field".
+
+**Fix.** The notes box ("Notes (one per line)") is as tall as its notes, using the same fit as long
+step cells, and refits on width changes.
+
+**Regression.** The long-steps case types five notes, then checks that nothing scrolls inside the
+box, that save and reopen keep them, and that they reopen whole.
+
+**Results.**
+- RED with the old box: "notes scroll inside their box".
+- GREEN:
+  - routing 7 + Space 23 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions.
