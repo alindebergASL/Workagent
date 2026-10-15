@@ -27,9 +27,12 @@ function Mark() {
 
 /**
  * A build that shows example content says so on every page. Set explicitly
- * (NEXT_PUBLIC_WORKAGENT_DEMO=1); never inferred from what's on screen.
+ * (NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1); never inferred from what's on screen.
  */
-const DEMONSTRATION = process.env["NEXT_PUBLIC_WORKAGENT_DEMO"] === "1";
+// NEXT_PUBLIC_WORKAGENT_DEMO is the earlier name of the same flag.
+const DEMONSTRATION =
+  process.env["NEXT_PUBLIC_WORKAGENT_DEMO_MODE"] === "1" ||
+  process.env["NEXT_PUBLIC_WORKAGENT_DEMO"] === "1";
 
 export function Shell({ children }: { children: ReactNode }) {
   const { workspace, workspaces, zoneChoice, setZoneChoice } = useWorkspace();

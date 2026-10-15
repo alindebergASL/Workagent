@@ -13,7 +13,8 @@ import type { ExactTarget } from "@/lib/contract/natural";
 import { isFlexible } from "@/lib/flexible";
 import { formatTime } from "@/lib/time";
 import {
-  leadWork,
+  actionable,
+  outdated,
   proposalSummary,
   spaceStanding,
   workHref,
@@ -37,8 +38,7 @@ const awaiting = (t: Turn) =>
   t.state === "unavailable" ||
   t.state === "outcome_unknown";
 
-/** `?work=` names the selected work; `none` means the project as a whole. */
-const NONE = "none";
+/** `?work=` names the work the person chose; absent, the project as a whole. */
 
 /**
  * A project or workflow Space: what it is for, where it stands, its work,
@@ -59,6 +59,8 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   const d = res.data;
   const ids = d?.artifact_ids ?? [];
   const idsKey = ids.join(",");
+  // Work is re-read from its own records too: a save or an accepted change
+  // elsewhere moves a work's version without changing the conversation's.
   const work = useResource<SpaceWorkItem[]>(
     d ? `space-work:${ws}:${id}:${idsKey}` : null,
     (signal) =>
@@ -74,6 +76,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
           };
         }),
       ),
+    { pollMs: 20000 },
   );
   const { holds } = useHolds(ws, d?.assignment_ids ?? []);
   const refreshWork = work.refresh;
@@ -84,16 +87,18 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   );
 
   const items = work.data ?? null;
+  // Only the person's own choice names the work a reply is about; nothing
+  // is selected for them. With nothing chosen, a reply is about the project.
   const param = search.get("work");
-  const lead = items ? leadWork(items) : null;
-  const selected =
-    param === NONE
-      ? null
-      : ((items ?? []).find((i) => i.artifact.id === param) ?? lead);
+  const selected = (items ?? []).find((i) => i.artifact.id === param) ?? null;
   const select = (aid: string | null) => {
     const next = new URLSearchParams(search.toString());
-    next.set("work", aid ?? NONE);
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    if (aid) next.set("work", aid);
+    else next.delete("work");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   };
   const [focusAgent, setFocusAgent] = useState(0);
 
@@ -226,18 +231,26 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
                         ? " by you"
                         : " by Workagent"}
                     </span>
-                    {item.pending.length ? (
+                    {actionable(item).length ? (
                       <span className="badge status-attention">
-                        {item.pending.length === 1
+                        {actionable(item).length === 1
                           ? "Change to review"
-                          : `${item.pending.length} changes to review`}
+                          : `${actionable(item).length} changes to review`}
                       </span>
+                    ) : outdated(item).length ? (
+                      <span className="badge">Outdated proposal</span>
                     ) : null}
                   </button>
                 </li>
               );
             })}
           </ul>
+        ) : null}
+        {items && items.length && !selected ? (
+          <p className="small muted" data-testid="choose-work">
+            Choose one to read it here and to ask about it. Until you do, a
+            message is about the project as a whole.
+          </p>
         ) : items && !ids.length ? (
           <p className="muted">
             Nothing saved yet. What Workagent makes for this project shows up
@@ -424,6 +437,8 @@ function SelectedWork({
     headingRef.current?.focus({ preventScroll: true });
   }, [shownId]);
   const title = workTitle(item.artifact);
+  const ready = actionable(item);
+  const old = outdated(item);
   const preview = useMemo(
     () =>
       isProduct(body) ? (
@@ -457,24 +472,34 @@ function SelectedWork({
           Ask about this
         </button>
       </div>
-      {item.pending.length ? (
+      {ready.length ? (
         <div className="notice-line space-proposal" role="note">
           <p>
             <strong>
-              {item.pending.length === 1
+              {ready.length === 1
                 ? "A proposed change is waiting for your review."
-                : `${item.pending.length} proposed changes are waiting for your review.`}
+                : `${ready.length} proposed changes are waiting for your review.`}
             </strong>{" "}
-            {item.pending.length === 1
+            {ready.length === 1
               ? proposalSummary(
                   item.artifact.current_revision.body,
-                  item.pending[0]!.body,
+                  ready[0]!.body,
                 )
               : null}
           </p>
           <p className="small muted">
             Shown below is the saved version; the change applies only if you
             accept it.
+          </p>
+        </div>
+      ) : null}
+      {old.length ? (
+        <div className="notice-line space-proposal-outdated" role="note">
+          <p>
+            {old.length === 1
+              ? "A proposed change was made for an earlier version of this work, so it can’t be applied as is."
+              : `${old.length} proposed changes were made for an earlier version of this work, so they can’t be applied as is.`}{" "}
+            Open the work to dismiss it, or ask for the change again.
           </p>
         </div>
       ) : null}

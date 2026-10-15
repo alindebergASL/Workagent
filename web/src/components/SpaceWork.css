@@ -160,3 +160,11 @@
   font-weight: 600;
   font-size: 0.9rem;
 }
+/* Small text controls still get a comfortable target (WCAG 2.5.8). */
+.space-page button.link-quiet,
+.space-page .reply-about .link-quiet {
+  min-height: 24px;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+}

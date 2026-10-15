@@ -15,6 +15,20 @@ export interface SpaceWorkItem {
 
 export type Tone = "attention" | "working" | "quiet";
 
+/**
+ * Proposed changes made from the current saved version: they can be applied.
+ * One made from an earlier version is outdated; it can only be dismissed
+ * (or remade), never applied as is.
+ */
+export const actionable = (item: SpaceWorkItem) =>
+  item.pending.filter(
+    (p) => p.base_revision_id === item.artifact.current_revision_id,
+  );
+export const outdated = (item: SpaceWorkItem) =>
+  item.pending.filter(
+    (p) => p.base_revision_id !== item.artifact.current_revision_id,
+  );
+
 /** Something about the project worth saying, with where to act on it. */
 export interface StandingLine {
   key: string;
@@ -78,7 +92,7 @@ export function leadWork(items: SpaceWorkItem[]): SpaceWorkItem | null {
   return (
     [...items].sort(
       (a, b) =>
-        Number(b.pending.length > 0) - Number(a.pending.length > 0) ||
+        Number(actionable(b).length > 0) - Number(actionable(a).length > 0) ||
         changed(b) - changed(a),
     )[0] ?? null
   );
@@ -106,17 +120,34 @@ export function spaceStanding({
   const underway: StandingLine[] = [];
 
   for (const item of work ?? []) {
-    if (!item.pending.length) continue;
+    const ready = actionable(item).length;
+    if (!ready) continue;
     const title = workTitle(item.artifact);
     needs.push({
       key: `review:${item.artifact.id}`,
       text:
-        item.pending.length === 1
+        ready === 1
           ? `A change to “${title}” is waiting for your review.`
-          : `${item.pending.length} changes to “${title}” are waiting for your review.`,
+          : `${ready} changes to “${title}” are waiting for your review.`,
       tone: "attention",
       href: workHref(cid, item.artifact.id),
       action: `Review the change to ${title}`,
+    });
+  }
+  for (const item of work ?? []) {
+    const old = outdated(item).length;
+    if (!old) continue;
+    const title = workTitle(item.artifact);
+    needs.push({
+      key: `outdated:${item.artifact.id}`,
+      text:
+        old === 1
+          ? `A proposed change to “${title}” was made for an earlier version, so it can’t be applied as is.`
+          : `${old} proposed changes to “${title}” were made for an earlier version, so they can’t be applied as is.`,
+      detail: "You can dismiss it, or ask for the change again.",
+      tone: "attention",
+      href: workHref(cid, item.artifact.id),
+      action: `Look at the change to ${title}`,
     });
   }
 
