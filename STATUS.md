@@ -9,9 +9,8 @@ not a product pivot. User authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
 Integration branch: hermes/overnight-intelligent-work. Published launch10741ac;
 lease fix e091c50 merged a80634e; development bounds 5255ef0 (additive migration
-027) is the current local candidate awaiting push/review. Claude cf3c49e integrated;
-owner branch advanced to ed5cd7e (execution-view contract consumed, not yet
-merged). Hermes owns backend/runtime/contracts/integration; existing Claude
+027) plus owner merge ff0cce7 (ed5cd7e execution views integrated, frontend279
+PASS + webpack PASS, in-browser verified on the live turn). Hermes owns backend/runtime/contracts/integration; existing Claude
 session owns web. No default-branch merge or production replacement.
 
 ## Current execution / observed progress
