@@ -192,6 +192,8 @@ export interface Block {
   checked?: boolean;
   /** Canonical kind retained through editing; display kind is presentation only. */
   backend_kind?: "heading" | "paragraph" | "checklist" | "protected_note";
+  /** Who added a kept note, where the saved history shows it. Display only. */
+  note_by?: "human" | "worker";
 }
 
 export interface Author {

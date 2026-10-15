@@ -820,8 +820,32 @@ try {
   await expect(note.locator("textarea")).toHaveValue(NOTE);
   await noOverflow(page);
   await shot(page, "08-document-your-note");
+  // A note Workagent kept (quoting the person) isn't shown as theirs: on the
+  // work page, where history shows who added it, it says Workagent; beside
+  // the project, where that isn't read, it says only "Note".
+  {
+    const sup = ids.supplier;
+    await page.goto(
+      `${origin}/conversations/${sup.conversation_id}/artifacts/${sup.findings_id}?workspace=${sup.workspace}`,
+    );
+    const kept = page.locator('.doc-editable .doc-block[data-note="true"]');
+    await expect(kept).toContainText("Note from Workagent", {
+      timeout: 15000,
+    });
+    await expect(kept).not.toContainText("Your note");
+    await expect(kept.locator("textarea")).toHaveValue(
+      "You asked for: under EUR 700, delivered within two weeks.",
+    );
+    await page.goto(
+      `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${sup.findings_id}`,
+    );
+    const inline = page.locator('.space-work .doc-block[data-note="true"]');
+    await expect(inline.locator(".doc-note-label")).toHaveText("Note", {
+      timeout: 15000,
+    });
+  }
   pass(
-    "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
+    "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs; a note Workagent kept is never shown as the person's",
   );
 
   // A refusal of the chosen work ends what's shown of it at once: its running

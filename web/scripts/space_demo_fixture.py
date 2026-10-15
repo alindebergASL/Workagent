@@ -268,12 +268,15 @@ FINDINGS = {'title': 'Findings so far', 'blocks': [
     para(2, 'Lark & Co can deliver in 6 days; the others need two to three weeks.'),
     para(3, 'Quayside Press is EUR 195 cheaper than Lark & Co but has been slow in October before.'),
     para(4, 'Ask Northprint whether they can match a 10-day delivery.', 'checklist', False),
+    # Workagent keeps the person's constraints as a note; it quotes them but isn't theirs.
+    para(5, 'You asked for: under EUR 700, delivered within two weeks.', 'protected_note'),
 ]}
 runs['findings'] = ask(supplier.id, 'Write down what we know so far.', [publish(FINDINGS)],
                        'I wrote up what the quotes show and the open question.', name='findings')
 supplier_detail = s.get_conversation(p, ws, supplier.id)
 compare_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id,)
                   and getattr(s.get_artifact(p, ws, a).current_revision.body, 'kind', None) == 'custom_view')
+findings_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id, compare_id))
 open_detail = s.get_conversation(p, ws, open_day.id)
 second_ids = {'workspace': second, 'conversation_id': open_day.id,
               'artifact_id': open_detail.artifact_ids[0],
@@ -290,7 +293,7 @@ result = {
     'plain': {'conversation_id': plain.id},
     'second': second_ids,
     'supplier': {'workspace': second, 'conversation_id': supplier.id, 'evidence_id': evidence_id,
-                 'compare_id': compare_id},
+                 'compare_id': compare_id, 'findings_id': findings_id},
     'worker_states': {k: v[1] for k, v in runs.items()},
 }
 out.write_text(json.dumps(result, indent=2))

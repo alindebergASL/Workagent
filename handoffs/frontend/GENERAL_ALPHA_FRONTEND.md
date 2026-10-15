@@ -1242,3 +1242,43 @@ two-pane pages use `minmax(280px, 1fr) minmax(0, 1.8fr)`.
 without repeating "Supplier evidence". GREEN 25/25 on a fresh fixture: routing 7
 plus experience 18. Also passing: 265 unit tests, 37 DOM regressions,
 review-boundary 15/15, type, lint and format checks.
+
+## A kept note says who added it (comment 6188739191)
+
+Hermes reported that a protected note created by the model, quoting the person's
+constraints, was labelled "Your note", the same as a correction the person wrote
+themselves. Blocks carry no author in the contract, so the frontend derives one
+from the saved history.
+
+**How the author is found.** `noteAuthors(current, history)` follows parent
+revisions back for as long as the note is present with the same ID and the same
+text. The note's author is `author_kind` of the earliest revision in that run. If
+the run leaves the history that was read, the author is unknown.
+
+**Labels.**
+- "Your note": added by a person.
+- "Note from Workagent": added by the worker.
+- "Note": author unknown, for example in the Space's inline read, which doesn't
+  read history.
+
+**Where it applies.**
+- In the editor, a note the person adds or rewords in the draft is theirs.
+- In the saved-history list, each version is labelled from its own parents.
+- In a proposal, a new or reworded note is Workagent's; an unchanged one keeps its
+  saved author.
+- Nothing about this is saved: `note_by` is for display only, and `savedBody`
+  never sends it.
+
+**Tests.**
+- Unit tests in `test/note-authors.test.ts`: first saver, a worker keeping a
+  person's note, rewording, a truncated history, and display only.
+- The fixture's "Findings so far" now includes a note kept by Workagent.
+- In `space-experience.mjs`, the work page shows "Note from Workagent" and never
+  "Your note", and the Space inline shows "Note". The person's own note still
+  reads back as "Your note".
+
+**Results.**
+- RED with the old labels: "Your note" was received.
+- GREEN on a fresh fixture: routing 7 plus experience 18.
+- Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
+  lint and format checks.

@@ -28,7 +28,7 @@ export function DocRead({
           key={`${idPrefix}-${b.id}`}
         >
           {b.backend_kind === "protected_note" ? (
-            <span className="doc-note-label">Your note</span>
+            <span className="doc-note-label">{noteLabel(b)}</span>
           ) : null}
           <div className="doc-text">
             {b.kind === "check_item" ? (
@@ -78,6 +78,18 @@ function SourceMarks({
       )}
     </div>
   );
+}
+
+/**
+ * A kept note says who added it only where the saved history shows that: the
+ * person's own, or Workagent's (which may quote the person but isn't theirs).
+ */
+export function noteLabel(b: Block): string {
+  return b.note_by === "human"
+    ? "Your note"
+    : b.note_by === "worker"
+      ? "Note from Workagent"
+      : "Note";
 }
 
 const ADDABLE: {
@@ -133,6 +145,7 @@ export function DocEdit({
         text: "",
         backend_kind: backend,
         ...(backend === "checklist" ? { checked: false } : {}),
+        ...(backend === "protected_note" ? { note_by: "human" as const } : {}),
       },
     ]);
     setFocusId(id);
@@ -154,7 +167,7 @@ export function DocEdit({
           key={b.id}
         >
           {b.backend_kind === "protected_note" ? (
-            <span className="doc-note-label">Your note</span>
+            <span className="doc-note-label">{noteLabel(b)}</span>
           ) : null}
           <div className="doc-text">
             {b.kind === "check_item" ? (
@@ -167,7 +180,7 @@ export function DocEdit({
               />
             ) : null}
             <AutoTextarea
-              label={`${b.backend_kind === "protected_note" ? "Your note" : labelFor(b.kind)} ${b.id}`}
+              label={`${b.backend_kind === "protected_note" ? noteLabel(b) : labelFor(b.kind)} ${b.id}`}
               value={b.text}
               disabled={disabled}
               onChange={(text) => update(b.id, { text })}
@@ -177,7 +190,7 @@ export function DocEdit({
                 type="button"
                 className="doc-remove"
                 disabled={disabled}
-                aria-label={`Remove ${b.backend_kind === "protected_note" ? "your note" : labelFor(b.kind).toLowerCase()}: ${b.text.slice(0, 40) || "empty"}`}
+                aria-label={`Remove ${b.backend_kind === "protected_note" ? noteLabel(b).replace(/^Your/, "your").replace(/^Note/, "note") : labelFor(b.kind).toLowerCase()}: ${b.text.slice(0, 40) || "empty"}`}
                 onClick={() => remove(b.id)}
               >
                 ×
