@@ -946,3 +946,18 @@ Regressions (real React in Chromium, `review-boundary.mjs`, 2 new cases):
 - RED on `5685b10`: the last-read work stays on screen after the refusal, and
   the hint says "about the project as a whole" during a pending choice.
 - GREEN: 15/15.
+
+### Links name their workspace before the list loads (comment 6184636381, P2 3)
+
+`useScopedHref` resolved the page's workspace through the loaded list of
+workspaces, so until that list arrived, "Open to edit" on a project page pointed
+to an address with no workspace. A workspace the route already names
+(`InWorkspace`, and a record page's `?workspace=` while it is being checked) now
+scopes links at once. Reads still wait for the workspace to be confirmed.
+
+Regression: `workspace-routing.mjs` case 5 holds the real `/v1/workspaces`
+response and checks the project page's links while it is held.
+- RED on `e39d0d7`: `/conversations/<c>/artifacts/<a>` with no workspace.
+- GREEN: `?workspace=personal-work`.
+- `workspace-routing` 7/7 and `space-experience` 13/13 on fresh real-stack
+  fixtures; review-boundary 15/15; 37 DOM regressions; 265 unit tests.
