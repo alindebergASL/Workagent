@@ -1,13 +1,18 @@
 "use client";
 import Link from "next/link";
 import { scopedHref } from "@/lib/scope";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { ApiError } from "@/lib/contract/errors";
 import { DocEdit, DocRead } from "@/components/DocBody";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { SandboxedView, type ViewActions } from "@/components/SandboxedView";
-import { savedBody, viewBlocks } from "@/lib/document-blocks";
+import {
+  noteAuthors,
+  savedBody,
+  viewBlocks,
+  type NoteAuthors,
+} from "@/lib/document-blocks";
 import {
   addRow,
   bindingStates,
@@ -188,6 +193,26 @@ export function FlexibleEditor({
     Boolean(draft.raw && Object.keys(draft.raw).length && problem) ||
     JSON.stringify(normal(draft.body)) !== JSON.stringify(normal(saved));
   const changed = draft.base !== artifact.current_revision_id;
+  // Who added each kept note: from the saved history, and the person for a
+  // note they've added or reworded in this draft.
+  const savedNoteAuthors = useMemo(
+    () => noteAuthors(artifact.current_revision, history),
+    [artifact.current_revision, history],
+  );
+  const draftNoteAuthors = useMemo(() => {
+    if (kind !== "document") return savedNoteAuthors;
+    const saved = new Map(
+      (artifact.current_revision.body as DocumentBody).blocks.map((b) => [
+        b.block_id,
+        b.text,
+      ]),
+    );
+    const out = { ...savedNoteAuthors };
+    for (const b of (draft.body as DocumentBody).blocks)
+      if (b.kind === "protected_note" && saved.get(b.block_id) !== b.text)
+        out[b.block_id] = "human";
+    return out;
+  }, [kind, savedNoteAuthors, draft.body, artifact.current_revision.body]);
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
 
   function keep(next: Draft) {
@@ -407,7 +432,14 @@ export function FlexibleEditor({
             ) : proposed ? (
               <details className="ids-details">
                 <summary>See the proposed version</summary>
-                <ReadOnly body={proposed} />
+                <ReadOnly
+                  body={proposed}
+                  authors={proposedNoteAuthors(
+                    saved,
+                    proposed,
+                    savedNoteAuthors,
+                  )}
+                />
               </details>
             ) : null}
             <div className="row">
@@ -498,7 +530,10 @@ export function FlexibleEditor({
           ) : kind === "document" ? (
             <DocEdit
               addable
-              blocks={viewBlocks((draft.body as DocumentBody).blocks)}
+              blocks={viewBlocks(
+                (draft.body as DocumentBody).blocks,
+                draftNoteAuthors,
+              )}
               disabled={locked}
               onChange={(blocks) =>
                 keep({
@@ -605,7 +640,9 @@ export function FlexibleEditor({
                 Version {r.revision_number} · {versionAuthor(r, proposals)}
                 {r.id === artifact.current_revision_id ? " · current" : ""}
               </summary>
-              {isFlexible(r.body) ? <ReadOnly body={r.body} /> : null}
+              {isFlexible(r.body) ? (
+                <ReadOnly body={r.body} authors={noteAuthors(r, history)} />
+              ) : null}
               <p className="ids">
                 {r.id} · {r.body_hash}
               </p>
@@ -762,12 +799,46 @@ export function InPlaceView({
   );
 }
 
-export function ReadOnly({ body }: { body: FlexibleBody }) {
+/**
+ * In a proposed version, a kept note as saved keeps who added it; a new or
+ * reworded one is the proposer's (Workagent's).
+ */
+function proposedNoteAuthors(
+  saved: FlexibleBody,
+  proposed: FlexibleBody,
+  savedAuthors: NoteAuthors,
+): NoteAuthors | undefined {
+  if (flexibleKind(proposed) !== "document") return undefined;
+  const before = new Map(
+    flexibleKind(saved) === "document"
+      ? (saved as DocumentBody).blocks.map((b) => [b.block_id, b.text])
+      : [],
+  );
+  const out: NoteAuthors = {};
+  for (const b of (proposed as DocumentBody).blocks) {
+    if (b.kind !== "protected_note") continue;
+    if (before.get(b.block_id) !== b.text) out[b.block_id] = "worker";
+    else if (savedAuthors[b.block_id])
+      out[b.block_id] = savedAuthors[b.block_id]!;
+  }
+  return out;
+}
+
+export function ReadOnly({
+  body,
+  authors,
+}: {
+  body: FlexibleBody;
+  /** Who added each kept note, where known. */
+  authors?: NoteAuthors;
+}) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
     return <TableRead body={body as StructuredTable} />;
   if (kind === "document")
-    return <DocRead blocks={viewBlocks((body as DocumentBody).blocks)} />;
+    return (
+      <DocRead blocks={viewBlocks((body as DocumentBody).blocks, authors)} />
+    );
   return <p className="view-fallback">{(body as CustomView).fallback}</p>;
 }
 
