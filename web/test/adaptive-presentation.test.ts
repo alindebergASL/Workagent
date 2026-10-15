@@ -229,6 +229,24 @@ describe("honest adaptive presentation", () => {
       "Trying another approach",
     );
   });
+  it("orders every selection phase the service reports, past the fourth", () => {
+    const p = progress();
+    p.adaptive!.outcome = "continue";
+    const last = p.adaptive!.steps![0]!;
+    last.status = "rejected";
+    last.phase = "selection_4";
+    // Earlier or same phases aren't a retry after the fourth failed.
+    p.response_steps = [
+      { phase: "selection", state: "accepted" },
+      { phase: "selection_4", state: "accepted" },
+    ];
+    expect(adaptivePresentation("responding", p)).toBeNull();
+    // The service now allows up to eight: a fifth is the next attempt.
+    p.response_steps.push({ phase: "selection_5", state: "accepted" });
+    expect(adaptivePresentation("responding", p)?.title).toBe(
+      "Trying another approach",
+    );
+  });
 });
 
 describe("model examples: none, passed or failed", () => {

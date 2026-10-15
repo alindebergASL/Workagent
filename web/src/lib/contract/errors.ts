@@ -42,6 +42,48 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Copy for a refused message send. The service answers a send it won't admit
+ * with a generic refusal; what it means depends on whether model answers are
+ * turned on for the conversation. Every refusal here is definite: nothing
+ * was sent and the draft stays.
+ */
+export function describeSendError(
+  err: unknown,
+  activation?: "disabled" | "active" | "revoked",
+): { title: string; nextAction: string } {
+  if (err instanceof ApiError) {
+    const turnedOff =
+      activation === "revoked" &&
+      (err.code === "unsupported_operation" ||
+        err.code === "action_unresolved");
+    if (turnedOff)
+      return {
+        title: "Answers are turned off for this conversation",
+        nextAction:
+          "Nothing was sent, and your message is kept here. What’s already in this conversation stays as it is.",
+      };
+    if (err.code === "unsupported_operation")
+      return activation === "active"
+        ? {
+            title: "This message can’t be sent in this conversation",
+            nextAction: "Nothing was sent, and your message is kept here.",
+          }
+        : {
+            title: "Workagent isn’t set up to answer here yet",
+            nextAction:
+              "Nothing was sent, and your message is kept here. It can be sent once answers are turned on.",
+          };
+    if (err.code === "action_unresolved")
+      return {
+        title: "An earlier message here is still being settled",
+        nextAction:
+          "Nothing new was sent, and your message is kept here. Send it once the earlier one is answered or stopped.",
+      };
+  }
+  return describeError(err);
+}
+
 /** Plain-language copy for each contract error. Never reveals existence of a protected record. */
 export function describeError(err: unknown): {
   title: string;

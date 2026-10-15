@@ -45,6 +45,17 @@ export function hasProductOutput(
 }
 
 /** Presentation only. Never changes a run's authority or promotes examples to proof. */
+/**
+ * A selection phase's place in the turn: "selection" is the first and
+ * "selection_N" the Nth, however many the service allows. Anything else
+ * (the final phase, or one not recognised) never counts as a later attempt.
+ */
+function selectionOrder(phase: string): number {
+  if (phase === "selection") return 1;
+  const m = /^selection_(\d+)$/.exec(phase);
+  return m ? Number(m[1]) : -Infinity;
+}
+
 export function adaptivePresentation(
   state: TurnState,
   progress?: TurnProgress,
@@ -121,13 +132,12 @@ export function adaptivePresentation(
         ? "Model examples passed — not independent checks."
         : null;
   if (state === "queued" || state === "responding") {
-    const order = ["selection", "selection_2", "selection_3", "selection_4"];
     const nextObserved =
       last &&
       failed(last) &&
       progress.response_steps?.some(
         (s) =>
-          order.indexOf(s.phase) > order.indexOf(last.phase) &&
+          selectionOrder(s.phase) > selectionOrder(last.phase) &&
           ["accepted", "received"].includes(s.state),
       );
     return nextObserved

@@ -6,7 +6,7 @@ import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
-import { ApiError } from "@/lib/contract/errors";
+import { ApiError, describeSendError } from "@/lib/contract/errors";
 import type {
   CreateAssignmentCommand,
   SourceDetail,
@@ -126,7 +126,11 @@ export function Composer({
       title: string;
       context_ids: { id: string; version: string }[];
     };
-    conversation: { id: string; work_version: number } | null;
+    conversation: {
+      id: string;
+      work_version: number;
+      activation?: "disabled" | "active" | "revoked";
+    } | null;
     send: {
       command_id: string;
       expected_work_version: number;
@@ -355,7 +359,11 @@ export function Composer({
       if (!c.conversation) {
         saveCommands();
         const created = await conversationApi.create(c.workspace, c.create);
-        c.conversation = { id: created.id, work_version: created.work_version };
+        c.conversation = {
+          id: created.id,
+          work_version: created.work_version,
+          activation: created.model_activation,
+        };
       }
       if (!c.send) {
         // A fresh send (first, or after a definite refusal) carries what the
@@ -400,6 +408,7 @@ export function Composer({
               c.conversation.id,
             );
             c.conversation.work_version = now.conversation.work_version;
+            c.conversation.activation = now.conversation.model_activation;
           } catch {
             /* the next attempt re-reads it */
           }
@@ -457,6 +466,14 @@ export function Composer({
     ? `${contextLabel} · ${selected.length} source${selected.length === 1 ? "" : "s"}`
     : contextLabel;
   const ambiguous = (Boolean(pending.current) || chatUncertain) && !submitting;
+  const sendRefused =
+    Boolean(chat.current?.conversation) &&
+    submitError instanceof ApiError &&
+    !submitError.isAmbiguousWrite;
+  const unanswerable =
+    sendRefused &&
+    submitError instanceof ApiError &&
+    submitError.code === "unsupported_operation";
 
   return (
     <div className="composer-wrap">
@@ -653,8 +670,16 @@ export function Composer({
       {submitError ? (
         <ErrorNotice
           error={submitError}
+          // A refused first message in a conversation that now exists: the
+          // service won't answer there, and resending won't change that.
+          describe={
+            sendRefused
+              ? (e) =>
+                  describeSendError(e, chat.current?.conversation?.activation)
+              : undefined
+          }
           actions={
-            ambiguous ? undefined : (
+            ambiguous || unanswerable ? undefined : (
               <button
                 type="button"
                 className="btn btn-sm"

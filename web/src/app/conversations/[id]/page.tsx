@@ -19,7 +19,7 @@ import { holdGoal, useHolds } from "@/lib/client/responsibility";
 import { holdStatus } from "@/lib/hold-view";
 import { recordedResponsibilities } from "@/lib/contract/natural";
 import { shortTitle } from "@/lib/work-state";
-import { ApiError } from "@/lib/contract/errors";
+import { ApiError, describeSendError } from "@/lib/contract/errors";
 import type {
   ChatMessage,
   ConversationDetailView,
@@ -106,7 +106,10 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     // before the first read, or once the conversation has ended. Drafting
     // and attaching go on; nothing is sent when it reconnects.
     held:
-      res.reconnecting || !res.data || res.data.conversation.state !== "open",
+      res.reconnecting ||
+      !res.data ||
+      res.data.conversation.state !== "open" ||
+      res.data.conversation.model_activation === "revoked",
   });
   const { text, setText, sending, send } = reply;
   const sendError = reply.error;
@@ -530,6 +533,12 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
 
       {history}
 
+      {open && d.conversation.model_activation === "revoked" ? (
+        <p className="notice-line" role="status" data-testid="answers-off">
+          Answers are turned off for this conversation. What’s here stays as it
+          is; new messages can’t be sent, and your draft is kept.
+        </p>
+      ) : null}
       {open ? (
         <form
           className="ask conversation-ask"
@@ -571,7 +580,12 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
               send it again to add it after what’s new.
             </p>
           ) : sendError ? (
-            <ErrorNotice error={sendError} />
+            <ErrorNotice
+              error={sendError}
+              describe={(e) =>
+                describeSendError(e, d.conversation.model_activation)
+              }
+            />
           ) : null}
           <div className="ask-bar">
             <span className="hint">
@@ -613,7 +627,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
           cid={id}
           version={d.conversation.work_version}
           refresh={res.refresh}
-          held={res.reconnecting}
+          held={
+            res.reconnecting || d.conversation.model_activation === "revoked"
+          }
         />
       ) : null}
 
