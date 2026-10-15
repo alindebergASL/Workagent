@@ -1,5 +1,38 @@
 # Current runtime status and execution boundary
 
+## Current reconciliation — 2026-10-15
+
+Application `5854e9f2a1b2778e034ba189aba01c39cae9ccb9` is published on
+`hermes/spaces-continuity-checkpoint` (tree `6cfec3fa31a2a91561eebb688e9e7da368d1578d`).
+It preserves Claude cdea2a0 and the formerly uncommitted Spaces/TUI delta.
+See [SPACE-DELIVERY](../handoffs/backend/SPACE-DELIVERY.md) for exact provenance,
+failed commands, carried versus fresh evidence and actionable Claude handoff.
+
+Fresh publication checks: 239 frontend tests, type/lint/format, 32 operator tests
+and staged diff checks pass. Earlier 179 scoped backend/12 Chromium/real API+TUI
+journey evidence is carried by verified source identity, not newly claimed execution.
+Engineering is bounded; experience needs correction (user screenshot rejection),
+and actual live Spaces usefulness, genuinely different-model/persona review and
+broader continuity/ongoing ownership remain unproven. No new live call this checkpoint.
+
+Existing Claude Cloud owns web. Latest owner remote is cdea2a0; no active local
+Claude process observed. Comment publication does not resume the Cloud task.
+Hermes continues permitted backend/integration work while that owner resumes.
+
+The first bounded allowance WAS activated, then one ordinary-browser live turn ran
+on cdea2a0. Historical statements below saying 'not installed' are not current.
+Last recorded product reservations $7.12368; original $20 encumbrance plus full
+$1.978800 first-slice encumbrance; $18.021200 remains unactivated. This is not
+billing or a fresh balance. Two unknown count attempts remain quarantined.
+Current ledger readback and changed-schema compatibility must precede new inference.
+
+Review access: no new running experience claimed at publication. Host readback
+showed no application listener, nginx or Caddy; older saved preview data is preserved,
+not claimed online. Existing SSH-authenticated review access is being reconciled.
+No public app/API exposure, production replacement or default merge.
+
+## Historical responsibility checkpoint — superseded as current status
+
 ## General alpha (#15) — verified backend checkpoint; combined QA pending
 
 Local candidate: `/home/ubuntu/workagent-alpha-qa-integration`, detached HEAD

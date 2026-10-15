@@ -1,6 +1,26 @@
 # Andrew's general-model testing authorization
 
-## Current execution boundary — NEW +$20 approved; runtime reconciliation pending
+## Current execution boundary — cumulative authority retained
+
+Latest user instruction continues broad development and ordinary-path model testing
+under the latest recorded authority, not a new allowance or reset. Publication and
+an authenticated isolated review experience are requested; default merge and
+production replacement remain outside scope. Preserve prior liabilities/protections.
+
+The first $1.978800 slice of the added $20 WAS installed, and one live turn on
+cdea2a0 consumed $0.26384 in reservations. Last recorded remaining slice room was
+$1.714960, 5 runs, 13 dispatches/counts and 115 response reads. These are historical
+receipts, not a fresh balance. The Spaces candidate changes pinned schema/consumer
+hashes; never repin the historical grant or reinterpret headroom as fresh counters.
+Hermes must reconcile current accounting and enforce the next exact-candidate scope
+before paid execution. No child/frontend independent spend, unknown retry or refund.
+[Reconciliation](../handoffs/backend/SPACE-DELIVERY.md) distinguishes actual activation,
+live evidence, current work and outstanding gates.
+
+## Historical added-budget approval — retained verbatim
+
+The following opening statements describe their original checkpoint, not the
+absence of the later activation and one live turn.
 
 Latest direct approval (verbatim):
 

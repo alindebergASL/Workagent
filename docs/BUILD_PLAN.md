@@ -1,38 +1,34 @@
 # Build plan: independent work through a seamless experience
 
-## Current delivery state — general-alpha mandate (#15)
+## Current delivery state — reconciled Spaces checkpoint
 
-[Issue #15](https://github.com/alindebergASL/Workagent/issues/15) is incorporated
-in this existing contract, not a separate vision or new routine approval gate.
-The verified backend responsibility-recording checkpoint is tree
-`81243ea9a03375f815c04559ae469ccac3a5491e` over HEAD
-`571d0d13df5062dc8f29d795252e2489f24537bc`: 1116 passed, zero errors/skips,
-with independent R1–R6 and test-fixture correction review. This exact tree is
-published at `367279b2f4cb9c782082f692e31a0aa3f09f36a7` on
-`hermes/responsibility-recording-checkpoint`; remote commit/tree readback matches.
-It does not establish broad product readiness.
-Existing Claude Cloud frontend `90ba73bd497d63cfc558855f2156c309dc00a0e2`
-has separate owner checks. Their combined local candidate is not an integrated
-PASS; exact combined verification and the pre-demonstration QA gate remain open.
-See [current runtime state](RUNTIME_STATUS.md) and the
-[precise owner handoff](../handoffs/backend/RESPONSIBILITY_RECORDING_CHECKPOINT.md).
-Historical reports retain their original scope, failures and verdicts.
+Integrated application candidate: `5854e9f2a1b2778e034ba189aba01c39cae9ccb9`
+on `hermes/spaces-continuity-checkpoint`, directly above Claude's `cdea2a0`.
+The formerly local 45-file Spaces/TUI implementation is now committed and published;
+Claude retains frontend ownership and must integrate/review its inherited web delta.
+[Exact reconciliation, evidence and actionable owner handoff](../handoffs/backend/SPACE-DELIVERY.md).
 
-The prior live allowance is exhausted only as a historical native-run statement;
-later alpha attempts require ledger reconciliation, not an assumption of no use.
-Andrew approved a NEW +$20 allowance, raising total authorization to $40.
-This additional allowance is **not yet activated** by this documentation.
-See [exact scope and bounds](GENERAL_MODEL_AUTHORIZATION.md).
-Budget headroom is never independent authority. Routine implementation and
-deterministic checks continue; no default merge/deployment, external business
-effects or expanded account/private-data access. Andrew subsequently authorized
-publication of the verified development checkpoint and Claude handoff:
+Preserve the complete direction: **general agency + extensible skills/tools +
+scoped context/memory + durable continuity + authorized initiative + optional
+Spaces + Intelligent UI**. These capabilities must form one useful experience.
+Small increments control risk, not product ambition. GTD and demonstrations are
+optional examples, never workflow routing. Completed nanoMuse research and existing
+contracts remain useful; no additional vision reset or harness comparison.
 
-> Yes — publish a development checkpoint and Claude handoff; no merge or deployment
+The user rejected the Space screenshot's comprehensibility. Controlled engineering
+checks do not reverse that verdict. Claude owns coherent, contextual work interaction;
+Hermes owns runtime/domain/contracts, integration, actual model testing and evidence.
+The next review must show understandable current work, useful next action and
+continuity without internal routing choices, while preserving edits and authority.
+Different-model/persona review and ordinary-path varied live response testing remain
+open. No claim of live Spaces quality, broad ownership or private-alpha readiness.
 
-This supersedes the earlier local-only publication restriction, not the
-engineering/QA gates or effect boundaries. Preserve production and SQL001–024 bytes.
-
+Read [runtime status](RUNTIME_STATUS.md) and [authorization](GENERAL_MODEL_AUTHORIZATION.md)
+for evidence and execution boundaries. $40 is a cumulative authority ceiling;
+old liabilities/counters remain. Local activation and one later live turn occurred;
+older 'not installed' statements below describe history, not zero usage. No default
+merge, production replacement, new paid route or private-data expansion is authorized.
+An authenticated isolated review environment is requested; preserve older saved work.
 
 Direction: [product behavior and experience](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6018834683)
 and [goal-directed agency and coordination](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6019150121).
