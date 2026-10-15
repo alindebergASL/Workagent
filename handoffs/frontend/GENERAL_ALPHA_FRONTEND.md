@@ -1625,3 +1625,19 @@ Hermes asked for a check of source-work links from model views to trusted editor
 - the view's own page names it without a link;
 - the other source links to its editor (an editable table);
 - back returns with that source `aria-pressed`.
+
+**Results for the three fixes above.**
+- RED:
+  - Home showed "Operation cannot proceed. Review current state and authority before
+    retrying." with "Try again";
+  - the phase unit test failed: no retry shown at `selection_5`;
+  - the view's unreadable source had one link where 0 were expected.
+- GREEN:
+  - refusal 4/4 + routing 7 + Space 22 on the real stack;
+  - 289 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+- Gate note: since f83090e the legacy controlled journeys run ungranted turns. They need
+  `WORKAGENT_FIXTURE_MODE=true`, now set explicitly in the local gate. This includes
+  `scripts/verify_general_integration.py`.
