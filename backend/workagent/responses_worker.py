@@ -4,6 +4,7 @@ from dataclasses import asdict
 import fcntl
 from hashlib import sha256
 import json
+import logging
 import os
 from pathlib import Path
 import stat
@@ -28,6 +29,21 @@ def consumer_hash():
            'broker.py','provider_attempts.py','runtime_config.py','service.py','models.py','outcomes.py',
            'responses_dispatcher.py','responses_recovery.py','tool_registry.py')
     return digest({name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in names})
+
+
+def dispatch_diagnostic(request,error):
+    """Safe operator evidence only: no body/header/exception/credential strings.
+
+    A status code is not proof the provider did nothing. This adds no retry,
+    receipt, reservation release or recovery authority to the canonical ledger.
+    """
+    codes={'network_outcome_unknown','http_error','malformed_response'}
+    result={'event':'provider_dispatch_problem','run_id':request.metadata.request_id,
+            'attempt_id':request.metadata.attempt_id,'phase':request.phase,
+            'code':error.code if error.code in codes else 'dispatch_response_unavailable'}
+    if error.code=='http_error' and type(error.http_status) is int and 100<=error.http_status<=599:
+        result['http_status']=error.http_status
+    return result
 
 
 def instructions(config,kind):
@@ -330,7 +346,8 @@ class ResponsesWorker:
                     on_accepted=lambda acceptance:ledger.retain(request,'identity',{
                         'response_id':acceptance.response_id,'request_sha256':acceptance.request_sha256,
                         'metadata':acceptance.metadata.model_dump(),'provenance':asdict(acceptance.provenance)}))
-            except TransportError:
+            except TransportError as error:
+                logging.getLogger(__name__).warning('%s',json.dumps(dispatch_diagnostic(request,error)))
                 self.service.mark_provider_unknown(ledger.receipt)
                 return None
             self._hook('after_response')

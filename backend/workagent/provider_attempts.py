@@ -19,7 +19,7 @@ def _owner(c):
         raise BundleDenied('migration identity required')
 
 
-def configure_grant(db,grant,*,route_record=None,predecessor_id=None):
+def configure_grant(db,grant,*,route_record=None,predecessor_id=None,context_conversation_ids=None):
     """Operator only; scoped to one principal/workspace and explicit run bounds.
 
     Does not approve task effects, override source grants, or install a consumer.
@@ -30,6 +30,11 @@ def configure_grant(db,grant,*,route_record=None,predecessor_id=None):
     from .service import encoded
     from .runtime_config import BundleDenied
     grant=ProviderGrant.model_validate(grant)
+    if context_conversation_ids is not None:
+        context_conversation_ids=TypeAdapter(list[Id]).validate_python(context_conversation_ids,strict=True)
+        if (not 1<=len(context_conversation_ids)<=10 or len(set(context_conversation_ids))!=len(context_conversation_ids)
+                or grant.profile!='general-responses-v1' or getattr(grant.responses,'runtime_extension',None)!='general-alpha-v1'):
+            raise BundleDenied('bounded explicit alpha context scope required')
     if predecessor_id is not None and (grant.profile!='general-responses-v1'
             or getattr(grant.responses,'runtime_extension',None)!='general-alpha-v1'):
         raise BundleDenied('alpha successor required')
@@ -55,6 +60,9 @@ def configure_grant(db,grant,*,route_record=None,predecessor_id=None):
             c.execute('UPDATE provider_grants SET active=false WHERE id=%s AND active',(predecessor_id,))
         c.execute('INSERT INTO provider_grants(id,workspace_id,principal_id,data) VALUES (%s,%s,%s,%s)',
                   (grant.id,grant.workspace_id,grant.principal_id,encoded(grant)))
+        if context_conversation_ids is not None:
+            c.execute('INSERT INTO general_context_scopes(grant_id,conversation_ids) VALUES (%s,%s)',
+                      (grant.id,encoded(context_conversation_ids)))
     with db.transaction() as c:
         return ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(grant.id,)).fetchone()['data'])
 

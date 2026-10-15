@@ -10,7 +10,9 @@ client, not a terminal pivot. Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 Integration branch hermes/overnight-intelligent-work. Backend slice adds bounded
 search of explicitly granted prior conversations/Spaces, optional context-grounded
 skill, consumed-context publication fences, and managed HTTP admission without a
-controlled fallback. Additive029;001–028 and historical grants/attempts unchanged.
+controlled fallback. Additive029/030;001–028 and historical grants/attempts unchanged.
+030 separates immutable explicit prior read scopes from fresh execution scopes;
+old blocked/unknown conversations are readable, not retryable or newly executable.
 Claude owner5087437 integrated: precise document/table proposal differences,
 human-set value warnings, and returning to the selected work in a Space. Hermes
 owns backend/runtime/contracts/integration; the existing Claude session owns web.
@@ -22,19 +24,23 @@ Supported launch: scripts/dev_service.py build/install/start/stop/restart/status
 Build supplies compile-time natural-admission flags without credentials. Private
 config /home/ubuntu/workagent-private-alpha/service.json; retained DB47b87fe3b82e
 and private worker state unchanged. API8152/web3152 have remained running; worker
-STOPPED pending compatible new bounded authority. Readiness FALSE is truthful.
-New browser build completed; service restart/readback remains for deployment.
+STOPPED after the new unknown dispatch, pending compatible fresh authority07.
+Readiness FALSE is truthful. Feature-enabled browser build/restart was completed.
 Older3151/8151 data/evidence preserved; scheduled retirement is not data deletion.
 
-Initial iteration3 READ-ONLY reconciliation:86generations/89counts/633reads/0cancels;
-11.345120 shared reservation incl3.429920carry. Nonrefundable operator encumbrance
-30.685520 of40; unactivated9.314480. Grant05 remains installed; new consumer bytes
-require new authority, never rebinding old runs. Prepared installer06 is NOT YET
-EXECUTED. It requires clean candidate, passing retained suites and unchanged
-union before encumbering20generation slots/6admissions/8steps. No new paid calls.
+After one new live turn:89generations/92counts/637reads/0cancels union;
+11.740880 shared reservation incl3.429920carry. Nonrefundable operator encumbrance
+33.323920 of40; unactivated6.676080. Grant06 installed/read back; grant05 revoked
+without changing bindings. Prepared07 is NOT YET installed:16generation slots,
+6admissions,8selection steps;2.110720 additional nonrefundable encumbrance.
+030 is verified on disposable PostgreSQL, not yet applied to the retained DB.
 Two historical count_unknown attempts stay frozen. Final5467a40d is a known
 21143/20000 count refusal (received=true), not an unknown; no final generation.
 Malformed63e52832 remains frozen, no published artifacts or replacement retry.
+New attempt7769bbfb/run26296550: selection_3 dispatched, no response identity;
+unknown liability retained, no resend. Existing evidence lacks transport cause;
+new safe operator diagnostics capture only allowlisted code/status/run/attempt/phase.
+These diagnostics grant no retry, receipt, refund or recovery authority.
 
 ## Implemented slice and limits
 
@@ -42,7 +48,7 @@ Malformed63e52832 remains frozen, no published artifacts or replacement retry.
   message/run created. Explicit fixture mode retains historical harnesses and
   exact old command replay. Supported live launcher forces fixture mode OFF.
 - search_work_context is a receipt-bound broker capability, not a new agent loop.
-  Literal-word search, max6 bounded excerpts, explicit same-grant/same-owner,
+  Literal-word search, max6 bounded excerpts, explicit grant scope/same-owner,
   source-free open conversations only. Current human revisions and later human
   corrections retain provenance. No unauthorized titles/counts/content; no
   cross-conversation edit authority. Responsibility scope is not widened.
@@ -53,6 +59,10 @@ Malformed63e52832 remains frozen, no published artifacts or replacement retry.
   no-skill paths remain. Full tool schema remains provider-enforced; redundant
   descriptor schemas are removed only from initial context, available on discovery.
 - Controlled tests prove these seams, NOT live selection/relevance/usefulness.
+- Separate context scopes are owner-installed before any admission, immutable,
+  typed and bounded; same workspace lock as admission closes the install race.
+  SQL guards and Python both consume this permission. Prior sources do not become
+  new execution targets, and grant/attempt/response bindings are not rewritten.
 
 ## Existing live evidence and remaining product work
 
@@ -65,8 +75,13 @@ custom view but failed final count; frozen, NOT recovered or replaced. New clear
 identified post-fix tests are authorized. Draft diagnostics/deduplicated final
 request fix b9c5b50 is retained; live post-fix publication is still untested.
 
-Next permitted work: finish integrated runtime regressions; publish/install
-compatible bounded06, resume canonical worker; varied live cross-conversation
+New browser-submitted live turn independently chose search_work_context and the
+context-grounded-response skill; it retrieved current human revisions/messages.
+Third generation became unknown before producing a final artifact. Selection and
+composition are demonstrated, NOT delivered usefulness. No repeated request.
+
+Next permitted work: publish/install compatible fresh bounded07, resume canonical
+worker for distinct new work with explicit prior read scopes; live cross-conversation
 skill/no-skill and due/state-triggered advancement beside explicit human holds;
 model-chosen useful browser representation and meaningful canonical interaction,
 reopen/correction/continuation. Do not stop at this engineering checkpoint.
@@ -80,11 +95,19 @@ Independent Astra reproduced1P1 SQL-publication gap and1P2 unrelated-context
 interference; integrator fixed both and tested restricted-role publication denial
 and no-search concurrency. This is NOT a second independent PASS. Prior failed,
 setup-error and timeout invocations retained, not counted as PASS.
-Integrated runtime regression is running; no total/pass claimed before JUnit.
+Prior integrated runtime165PASS in a separate invocation. Detached-context63PASS;
+additional runtime/status/responsibility94PASS separately. Latest diagnostic/context
+suite70PASS includes unknown dispatch no-retry, secret-free logging, migration and
+scope/publication fences. Synthetic transports + real restricted PostgreSQL are
+engineering evidence, not live usefulness. No combined-suite sum claimed.
 Owner frontend283PASS, TypeScriptPASS, feature-enabled webpackPASS; contracts
 generate/checkPASS. No new browser journey evidence for owner changes yet.
-Existing direct subscription GLM5.3 multi-persona critique remains scoped to prior
-milestone; new live evidence requires updated review. No comparative parity claim.
+New direct subscription GLM5.3 critique completed (finish_reason=stop); reliability,
+practical-work and continuity personas. Usefulness NOT ACCEPTED; experience weak/
+unverified. Review mistakes: old count_unknowns are not selection_3 failures;
+there is no new scope UI to have inspected; PostgreSQL tests are not a fixture DB.
+Its broader migration/permission/read-truncation concerns remain useful, not an
+independent full-candidate PASS. No comparative parity claim.
 
 Authenticated SSH/server-side forwarding previously verified at16.148.68.248;
 user-device access NOT TESTED; host/access must be rechecked for a new review.

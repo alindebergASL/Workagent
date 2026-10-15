@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 import json
 import shutil
+import pytest
 from test_domain import context
 from test_conversations import conversation,post
 from test_general_alpha_runtime import activate,AlphaProvider
@@ -34,14 +35,15 @@ def test_actual_request_keeps_full_tool_schema_without_duplicate_in_context(cont
     assert offered['messages'][0]['text']=='Explain a reversible decision.'
 
 
-def test_028_prefix_upgrade_preserves_authority_and_history(tmp_path,monkeypatch):
+@pytest.mark.parametrize('cutoff',['029','030'])
+def test_prefix_upgrade_preserves_authority_and_history(tmp_path,monkeypatch,cutoff):
     from dev_db import provision
     from test_domain import context as fixture
     from test_alpha_budget import prepared,count,reserve
     root=Path(__file__).resolve().parents[1]
     prefix=tmp_path/'prefix';(prefix/'workagent').mkdir(parents=True);(prefix/'migrations').mkdir()
     for source in sorted((root/'migrations').glob('*.sql')):
-        if source.name<'029':shutil.copyfile(source,prefix/'migrations'/source.name)
+        if source.name<cutoff:shutil.copyfile(source,prefix/'migrations'/source.name)
     def old_migrate(dsn):
         with patch('workagent.db.__file__',str(prefix/'workagent/db.py')):migrate(dsn)
     env=tmp_path/'upgrade.env'

@@ -14,6 +14,16 @@ MAX_ARTIFACTS=8
 MAX_EXCERPT=2000
 
 
+def permitted_conversations(c,config):
+    result=set(config['responses']['conversation_ids'])
+    # Older migration-prefix tests keep exactly their original execution scope.
+    # Absence of the additive authority table cannot confer context access.
+    if c.execute("SELECT to_regclass('public.general_context_scopes') IS NOT NULL installed").fetchone()['installed']:
+        row=c.execute('SELECT conversation_ids FROM general_context_scopes WHERE grant_id=%s',(config['grant_id'],)).fetchone()
+        if row: result.update(row['conversation_ids'])
+    return result
+
+
 def _eligible(service,c,p,ws,cid):
     cv=service._conversation(c,p,ws,cid,True)
     # Source-bearing work needs a separate explicit context-sharing contract.
@@ -41,7 +51,7 @@ def _material(service,c,p,ws,cv,kind,record_id):
 
 def index(service,c,p,run,config,*,snapshot=None):
     """No workspace-wide discovery or unauthorized counts/titles in this index."""
-    permitted=set(config['responses']['conversation_ids'])-{run.conversation_id}
+    permitted=permitted_conversations(c,config)-{run.conversation_id}
     if config.get('responsibility'): permitted=set()
     items=[]
     if snapshot is not None:
@@ -120,7 +130,7 @@ def validate_consumed(service,c,p,run,config):
     for row in rows:
         for hit in row['matches']:
             source=hit['source']
-            if source['conversation_id'] not in config['responses']['conversation_ids']:
+            if source['conversation_id'] not in permitted_conversations(c,config):
                 raise DomainError('not_found_or_not_authorized')
             cv=_eligible(service,c,p,run.workspace_id,source['conversation_id'])
             text,revision,author,created=_material(service,c,p,run.workspace_id,cv,source['kind'],source['record_id'])
