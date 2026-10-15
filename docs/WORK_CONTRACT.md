@@ -15,7 +15,11 @@ Claude retains frontend ownership and must integrate/review its inherited web de
 Preserve the complete direction: **general agency + extensible skills/tools +
 scoped context/memory + durable continuity + authorized initiative + optional
 Spaces + Intelligent UI**. These capabilities must form one useful experience.
-Small increments control risk, not product ambition. GTD and demonstrations are
+Small increments control risk, not product ambition.
+Historical reports retain their original scope, failures and verdicts; this
+checkpoint does not establish broad product readiness. Preserve the existing #15
+research findings. Budget headroom is never independent authority: no default
+merge/deployment, external business actions or expanded account/private-data access. GTD and demonstrations are
 optional examples, never workflow routing. Completed nanoMuse research and existing
 contracts remain useful; no additional vision reset or harness comparison.
 

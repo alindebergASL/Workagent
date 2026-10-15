@@ -17,6 +17,30 @@ before paid execution. No child/frontend independent spend, unknown retry or ref
 [Reconciliation](../handoffs/backend/SPACE-DELIVERY.md) distinguishes actual activation,
 live evidence, current work and outstanding gates.
 
+Current cumulative authority is **$40**, not available spend. Fresh read-only
+ledger verification on2026-10-15 retained54 dispatches,56 counts,466 reads,28 runs
+and **$7.12368 reserved**. Original$20 plus first$1.978800 remain encumbered;
+two unresolved final-count attempts remain quarantined. Reservations are not billing.
+
+The prepared successor is **NOT INSTALLED**: at most **6 runs**, **4 selection
+steps + one final response per run**, **20 generation requests**, **20 token-count
+requests**, **200 same-ID retrievals**, **400,000 input / 163,840 output** tokens,
+**zero cancels**, and **$2.638400 additional reservation ceiling**. These are
+independent enforced bounds, not a promise that all six probes fit. If installed
+against the unchanged baseline, the product cap is$9.762080; aggregate operator
+encumbrance$24.617200 and unactivated$15.382800. The proposed30-call increment was
+rejected by existing SQL/model ceilings; those ceilings are not raised or reset.
+
+Before installation: parent must recheck actual ledger/source fences and exact
+candidate deterministic checks/review, and fresh route/account/pricing verification.
+Same official OpenAI gpt-6.1-sol medium/default, acknowledged `store:true` and
+synthetic-only context; no fallback or new paid route. Failed attempts count;
+no silent replacement generation, unknown retry, historical grant repinning or
+refund. No child or frontend handoff may spend independently. No external
+account/business actions, expanded private-data access, default merge or
+production replacement are authorized. An isolated authenticated review is
+requested; it does not authorize a public app/API exposure.
+
 ## Historical added-budget approval — retained verbatim
 
 The following opening statements describe their original checkpoint, not the

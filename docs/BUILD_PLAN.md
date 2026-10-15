@@ -15,7 +15,11 @@ Claude retains frontend ownership and must integrate/review its inherited web de
 Preserve the complete direction: **general agency + extensible skills/tools +
 scoped context/memory + durable continuity + authorized initiative + optional
 Spaces + Intelligent UI**. These capabilities must form one useful experience.
-Small increments control risk, not product ambition. GTD and demonstrations are
+Small increments control risk, not product ambition.
+Historical reports retain their original scope, failures and verdicts; this
+checkpoint does not establish broad product readiness. Preserve the existing #15
+research findings. Budget headroom is never independent authority: no default
+merge/deployment, external business actions or expanded account/private-data access. GTD and demonstrations are
 optional examples, never workflow routing. Completed nanoMuse research and existing
 contracts remain useful; no additional vision reset or harness comparison.
 
@@ -244,8 +248,11 @@ inputs, reset accounting or authorize replacement evaluation calls.
 
 Routine implementation, fixes, tests and compatible non-default integration
 continue; publication of the verified development checkpoint and Claude handoff
-is already approved; no merge or deployment. The additional
-+$20 alpha evaluation budget is **APPROVED, NOT INSTALLED** by this file.
+is already approved; no merge or deployment. The first added-budget slice was installed and used; the
+exact-candidate successor alpha evaluation is **APPROVED FOR PREPARATION, NOT
+INSTALLED**. $40 remains the cumulative authority, not a fresh balance. Current
+accounting and successor limits are in GENERAL_MODEL_AUTHORIZATION.md; older
+amounts below are historical and must not replace the actual ledger.
 Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and the actual ledger;
 activate only after exact-candidate deterministic checks and review pass,
 fresh route/account/pricing verification, and enforcement of durable per-run and

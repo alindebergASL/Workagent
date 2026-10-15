@@ -15,7 +15,11 @@ Claude retains frontend ownership and must integrate/review its inherited web de
 Preserve the complete direction: **general agency + extensible skills/tools +
 scoped context/memory + durable continuity + authorized initiative + optional
 Spaces + Intelligent UI**. These capabilities must form one useful experience.
-Small increments control risk, not product ambition. GTD and demonstrations are
+Small increments control risk, not product ambition.
+Historical reports retain their original scope, failures and verdicts; this
+checkpoint does not establish broad product readiness. Preserve the existing #15
+research findings. Budget headroom is never independent authority: no default
+merge/deployment, external business actions or expanded account/private-data access. GTD and demonstrations are
 optional examples, never workflow routing. Completed nanoMuse research and existing
 contracts remain useful; no additional vision reset or harness comparison.
 
@@ -256,9 +260,11 @@ before those results and independent verdicts are concrete.
 Historical grants/counters remain unchanged. Routine development, deterministic
 tests and compatible non-default integration continue. Development-checkpoint and
 Claude-handoff publication is now explicitly authorized; default merge and
-deployment remain prohibited. The additional +$20 alpha evaluation budget is
-**APPROVED, NOT INSTALLED** by this file, for $40 total authorization.
-Earlier alpha live attempts require reconciliation; their absence is not claimed.
+deployment remain prohibited. The first added-budget slice was installed and used; the
+exact-candidate successor alpha evaluation is **APPROVED FOR PREPARATION, NOT
+INSTALLED**. $40 remains the cumulative authority, not a fresh balance. Current
+accounting and successor limits are in GENERAL_MODEL_AUTHORIZATION.md; older
+amounts below are historical and must not replace the actual ledger.
 Parent must read back `GENERAL_MODEL_AUTHORIZATION.md` and the actual ledger and
 activate only after exact-candidate deterministic checks and review pass,
 fresh route/account/pricing verification, and enforcement of durable per-run and
