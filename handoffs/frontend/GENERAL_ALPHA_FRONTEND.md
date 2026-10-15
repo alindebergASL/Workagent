@@ -624,3 +624,142 @@ to `9a0c0d1`, and `web/` started from `90ba73b`. The five seam findings:
   decisions, so usefulness and agency are NOT TESTED here.
 - No screen-reader pass beyond role, name and keyboard checks.
 - The multi-model and multi-persona QA gate is Hermes's next step.
+
+## A coherent project Space (comment 6181993717, `SPACE-DELIVERY.md`)
+
+Integrated `hermes/spaces-continuity-checkpoint` by fast-forward to `9675daf`
+and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
+`handoffs/frontend/` is byte-identical to `9675daf`.
+
+**What a person sees on `/spaces/{workspace}/work/{conversation}`**
+(`web/src/components/SpaceView.tsx`, logic in `web/src/lib/space-view.ts`):
+
+- **What it's for.** Kind ("Project" / "Ongoing workflow"), name and purpose,
+  editable by the person ("Edit name and purpose"). The save is a
+  compare-and-swap on the version where editing began. A refused save keeps the
+  typed text, re-reads the project and says so. A save whose outcome is unknown is
+  only replayed exactly. The draft survives reloads. When Workagent named the
+  project, one quiet line says so ("Change it if it isn't right"); no "Agent
+  identified" or "Human saved" chips.
+- **Next.** One next step, then anything else that needs the person, all from
+  saved records:
+  - proposals waiting for review, from the proposal records;
+  - responsibilities by their current lifecycle via `useHolds`, never the
+    recording receipt. Active is "held, nothing runs"; a responsibility marked
+    for review says "Needs your review before it continues";
+  - the latest request's turn: waiting, replying, not picked up, outcome unknown.
+    A failed turn is "didn't complete" only when it kept no result.
+
+  While work is still being read it says "Checking…", never "get started".
+  Unreadable work is said plainly. No invented progress or promise.
+- **Work in this project.** Each piece by its own title and kind, when it last
+  changed and by whom, and whether a change waits for review. Selecting one
+  (button, `aria-pressed`, keyboard) shows its saved version read-only through
+  `ProductView` / `ReadOnly`, with its real controls a step away ("Open to edit",
+  "Review and edit"). A waiting change is summarised from the two saved bodies
+  ("It adds a row: Catering."), never from the proposal's model or system reason
+  text. The selection is in the URL (`?work=`), so reload and Back keep it.
+- **One conversation beside it.** `WorkSurface` and `ConversationPeek` in a new
+  compact mode: fewer messages, each reply's recorded outcome folded under
+  "Details", reply box kept in view.
+  - The reply is about the selected work's exact saved version
+    (`artifact_id`, `revision_id`, `body_hash`), shown as "About: Budget".
+  - "Ask about the whole project instead" clears it, and the reply then carries
+    `target: null`.
+  - The person never chooses between "general chat" and "exact refinement".
+  - An unconfirmed send shows, and replays, exactly what it was about even if
+    the selection has since moved (`pendingTarget` from the reply controller).
+  - Builds without exact targets keep the explicit "Send without linking this
+    version" protection.
+  - While the project itself can't be re-read, sending is held by button, keys
+    and submit (`held` from the page), drafting continues, and reconnecting
+    sends nothing.
+- **Phone.** Work first; Work/Conversation switch keeps drafts. "Ask about
+  this" opens the reply box about that work and focuses it.
+- **Elsewhere.**
+  - Spaces lists "Projects and workflows", then "Workspaces".
+  - A project's conversation shows "Part of <name> · Open the project".
+  - An ordinary conversation offers "Keep as a project".
+  - A work page in a project goes back to the project.
+  - Home's lede no longer says "Check each current record before continuing".
+- **Demonstration label.** `NEXT_PUBLIC_WORKAGENT_DEMO=1` shows, on every page,
+  "Demonstration. The projects and work shown here are made-up examples…". It
+  is off by default and never inferred from content.
+
+**Bugs found and fixed while verifying on the real service:**
+
+1. The Space's status went stale after a send. Only the pane re-read; it now
+   refreshes the page too.
+2. Send stayed enabled in the pane while the project couldn't be re-read. The
+   pane reads a different endpoint; the page's read state now holds it.
+3. After a refused name/purpose save, the next deliberate save was refused
+   again. The form now follows the re-read version.
+4. "Next" said "get started" while work was still loading.
+5. A responsibility marked for review read "carry forward".
+6. A proposal's system reason ("Model-selected local result…") was shown as if
+   it described the change.
+7. Phone focus for "Ask about this" was lost on the pane switch.
+8. The 320px "Next" button didn't wrap.
+9. A textarea nested in its label had an accessible name that included its
+   value.
+
+**Hermes-owned scripts I changed because they test this UI** (selectors
+only; their checks keep the same intent):
+
+- `web/scripts/space-journey.mjs`, run by `backend/space_fixture.py launch`.
+  It passed end to end on a fresh database (real HTTP command replay, browser,
+  terminal client and PTY), plus an optional `PLAYWRIGHT_CHROMIUM_PATH`.
+- `web/scripts/review-boundary.mjs`. The `SpaceWork` case is now a `SpaceView`
+  case: an idle project doesn't reread, and a refresh or new scope rereads,
+  bounded. 12/12 pass.
+
+**Evidence (real UI, API and PostgreSQL)** — `web/scripts/space-experience.mjs`,
+12 cases, on example projects written beforehand by the real worker with the
+synthetic provider transport (`web/scripts/space_demo_fixture.py`):
+
+- a two-day workshop with a plan, a budget, a proposed catering change and a
+  venue follow-up waiting on a person;
+- a monthly newsletter workflow;
+- a plain question answered without a project.
+
+No live model was called. Screenshots are in `evidence/spaces/`. The cases:
+
+1. Spaces lists both projects by purpose and kind; the plain chat isn't listed;
+   the demonstration label shows.
+2. The Space opens on its purpose and "A change to “Budget” is waiting for your
+   review", with the venue follow-up waiting for a person. No internal wording
+   (checked against a list including grant, schema, fixture, Model-selected,
+   "general Space chat").
+3. Keyboard selects work, focus lands on its heading, and the reply is about it.
+4. A typed reply and the selection survive a reload.
+5. A send carries the exact saved version, and the waiting turn shows as
+   underway.
+6. "Whole project": Ctrl+Enter sends with `target: null`.
+7. A lost acknowledgement replays the same `command_id` and target after the
+   selection moved.
+8. A dropped read holds sending by button and keys; reconnecting sends nothing.
+9. Name and purpose: the draft survives a reload, a stale save is refused with
+   the text kept, then the save reads back with origin `human`.
+10. Applying the proposal through the work page's own control updates the
+    Space: the review is gone and the next step moves on.
+11. Phone 390 and 320 have no horizontal scroll; switching panes keeps the
+    draft; "Ask about this" focuses the reply about that work.
+12. A plain question shows its answer and "Keep as a project"; an ordinary chat
+    or unknown id at a project URL says "This project isn't available to you";
+    a project's chat links back to it.
+
+**Observed backend behaviour, for Hermes.** Any new message in a project's
+conversation moves its responsibilities to `active` with
+`review_required: true` ("Review changed saved context…"). That includes a
+responsibility waiting on an outside person, for a message unrelated to it. The
+UI now says it needs review, but the lifecycle change looks broader than
+intended. Your call.
+
+**Limits:**
+
+- Mechanics and presentation only. With scripted decisions, agency,
+  usefulness and the probes' "useful work" are NOT TESTED.
+- No screen-reader pass beyond role, name, focus and keyboard checks.
+- A Space doesn't poll while idle. Changes made in another tab show on
+  "Refresh", reload or any turn activity.
+- Multi-model and persona QA and live evaluation remain Hermes's.

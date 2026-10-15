@@ -27,9 +27,14 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
     case "ready": {
       const life = entry.detail.lifecycle;
       const view = responsibilityView(life);
+      const review =
+        !view.closed &&
+        (life.review_required || life.outcome_status === "needs_review");
       const note = view.closed
         ? view.execution
-        : `${RUN[life.execution_status]} Outcome not verified.`;
+        : review
+          ? `Needs your review before it continues. ${RUN[life.execution_status]}`
+          : `${RUN[life.execution_status]} Outcome not verified.`;
       return {
         label: view.state,
         note: entry.stale

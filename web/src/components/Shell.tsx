@@ -25,6 +25,12 @@ function Mark() {
   );
 }
 
+/**
+ * A build that shows example content says so on every page. Set explicitly
+ * (NEXT_PUBLIC_WORKAGENT_DEMO=1); never inferred from what's on screen.
+ */
+const DEMONSTRATION = process.env["NEXT_PUBLIC_WORKAGENT_DEMO"] === "1";
+
 export function Shell({ children }: { children: ReactNode }) {
   const { workspace, workspaces, zoneChoice, setZoneChoice } = useWorkspace();
   const pathname = usePathname();
@@ -91,7 +97,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <ul className="nav-links">{nav}</ul>
         {workspaces.length ? (
           <div className="rail-spaces">
-            <h2 className="rail-heading">Workspace context</h2>
+            <h2 className="rail-heading">Workspaces</h2>
             <ul className="nav-links">
               {workspaces.map((w) => {
                 const href = `/spaces/${encodeURIComponent(w.id)}`;
@@ -147,6 +153,12 @@ export function Shell({ children }: { children: ReactNode }) {
           </details>
         </header>
         <main className="main" id="main">
+          {DEMONSTRATION ? (
+            <p className="demo-banner" role="note" data-testid="demo-banner">
+              <strong>Demonstration.</strong> The projects and work shown here
+              are made-up examples, not anyone’s real work.
+            </p>
+          ) : null}
           <div className="content">{children}</div>
         </main>
         <footer className="mode-line" aria-label="How work runs here">

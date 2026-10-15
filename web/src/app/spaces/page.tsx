@@ -17,8 +17,8 @@ export default function SpacesPage() {
         <div className="stack">
           <h1 id="spaces-title">Spaces</h1>
           <p className="lede">
-            Optional places to keep related work, conversations and records
-            together. You don’t need one to begin.
+            Projects keep related work and its conversation together, so you can
+            pick up where you left off. You don’t need one to begin.
           </p>
         </div>
       </header>
@@ -26,7 +26,7 @@ export default function SpacesPage() {
       {workspaces.map((w) => (
         <WorkAreaList key={w.id} ws={w.id} />
       ))}
-      <h2>Workspace context</h2>
+      <h2>Workspaces</h2>
       <div className="space-grid">
         {workspaces.map((w) => (
           <Link
@@ -49,8 +49,8 @@ export default function SpacesPage() {
         ))}
       </div>
       <p className="hint">
-        Projects stay inside their authorized workspace. Shared invitations are
-        not available yet.
+        Every project belongs to one of your workspaces and is only visible to
+        you. Shared workspaces and invitations aren’t available yet.
       </p>
     </section>
   );
