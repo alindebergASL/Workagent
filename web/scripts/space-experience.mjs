@@ -510,6 +510,45 @@ try {
     "on a phone the work comes first; switching panes keeps the draft; Ask about this opens the reply box about that work",
   );
 
+  // An answer shows the work it made, with one next step. Earlier mentions
+  // of the same work are one line (a preview there would show today's
+  // version, not that one's). How it ran is one "Details" per answer.
+  for (const [w, h] of [
+    [1440, 1000],
+    [390, 844],
+  ]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto(`${origin}/conversations/${cid}?workspace=${ws}`);
+    const cards = page.locator(".work-card");
+    await expect(cards.first()).toBeVisible({ timeout: 15000 });
+    const budgetCards = page.locator(`.work-card[data-artifact="${budgetId}"]`);
+    const planCards = page.locator(`.work-card[data-artifact="${planId}"]`);
+    await expect(budgetCards.last()).not.toHaveClass(/brief/);
+    await expect(budgetCards.last()).toContainText("Venue, two days");
+    await expect(budgetCards.first()).toHaveClass(/brief/);
+    await expect(budgetCards.first().locator("table")).toHaveCount(0);
+    await expect(planCards.last()).toContainText("Two days, 40 people");
+    await expect(planCards.last()).toContainText("Not checked yet");
+    await expect(planCards.first()).not.toContainText("Not checked yet");
+    // Routine machinery is folded away; the receipt still says what was saved.
+    await expect(page.getByText("At recording, the outcome")).toBeHidden();
+    await expect(page.getByText("The message as recorded")).toHaveCount(0);
+    await expect(
+      page.getByText("Get written confirmation of the venue booking").first(),
+    ).toBeVisible();
+    const replies = page.locator(".msg-agent");
+    const n = await replies.count();
+    for (let i = 0; i < n; i++)
+      await expect(
+        replies.nth(i).locator("summary", { hasText: /./ }),
+      ).toHaveCount(1);
+    await noOverflow(page);
+    await shot(page, `07-conversation-${w}`);
+  }
+  pass(
+    "an answer shows the work it made with one next step; earlier mentions are one line; how it ran is one Details; it fits a phone",
+  );
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

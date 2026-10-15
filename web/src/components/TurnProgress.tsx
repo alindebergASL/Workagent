@@ -64,17 +64,20 @@ export function AgentReply({
   text,
   progress,
   budget,
+  recordedInDetails = false,
 }: {
   text: string;
   progress?: TurnProgress;
   budget?: number;
+  /** The recorded message is shown under the turn's Details instead. */
+  recordedInDetails?: boolean;
 }) {
   const reply = replyText(text, progress);
   return (
     <div className="msg-body">
       <span className="sr-only">Agent: </span>
       <RichText text={reply.body} budget={budget} />
-      {reply.explanation ? (
+      {reply.explanation && !recordedInDetails ? (
         <details className="ids-details">
           <summary>The message as recorded</summary>
           <p className="small muted">
@@ -183,12 +186,38 @@ function modelExamplesText(v: Parameters<typeof modelExamples>[0]): string {
 }
 
 /** How a turn ran, one click away. Nothing here is work or a saved result. */
-export function TurnProgressDetails({ progress }: { progress?: TurnProgress }) {
+export function TurnProgressDetails({
+  progress,
+  recorded,
+  outcome,
+}: {
+  progress?: TurnProgress;
+  /** The message exactly as recorded, when the answer shown is the retained explanation. */
+  recorded?: string;
+  /** A routine outcome note folded in here rather than shown inline. */
+  outcome?: { title: string; note: string } | null;
+}) {
   if (!progress) return null;
   const local = progress.retained_local_result;
+  const showRecorded =
+    recorded !== undefined && replyText(recorded, progress).explanation;
   return (
     <details className="ids-details">
-      <summary>How this ran</summary>
+      <summary>Details</summary>
+      {outcome ? (
+        <p className="small" data-testid="turn-outcome">
+          <strong>{outcome.title}.</strong> {outcome.note}
+        </p>
+      ) : null}
+      {showRecorded ? (
+        <div className="stack-xs">
+          <p className="small muted">
+            The answer above is the model’s retained explanation, not a
+            verification. The message exactly as recorded, with its status:
+          </p>
+          <RichText text={recorded} />
+        </div>
+      ) : null}
       <ul className="ids">
         {progress.provider_observation ? (
           <li>{RESPONSE[progress.provider_observation]}</li>

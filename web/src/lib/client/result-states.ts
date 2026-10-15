@@ -11,6 +11,8 @@ type S = components["schemas"];
 export interface WorkNow {
   current_revision_id: string;
   proposals: S["Proposal"][];
+  /** The work itself, as last read: what a reply's card previews. */
+  artifact: S["Artifact"];
 }
 
 /**
@@ -44,7 +46,11 @@ export function useResultStates(
           ]);
           return [
             aid,
-            { current_revision_id: artifact.current_revision_id, proposals },
+            {
+              current_revision_id: artifact.current_revision_id,
+              proposals,
+              artifact,
+            },
           ] as const;
         } catch (e) {
           // Unreadable work claims nothing; a lost connection is retried.

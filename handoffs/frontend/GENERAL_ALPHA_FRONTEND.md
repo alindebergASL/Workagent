@@ -961,3 +961,42 @@ response and checks the project page's links while it is held.
 - GREEN: `?workspace=personal-work`.
 - `workspace-routing` 7/7 and `space-experience` 13/13 on fresh real-stack
   fixtures; review-boundary 15/15; 37 DOM regressions; 265 unit tests.
+
+## Work-first answers (first slice of coherent work-first interaction)
+
+Asked in 6184636381: let the machinery recede while permission, uncertainty,
+the next useful action and outcomes stay truthful. No contract change.
+
+- **Answers show what they made.** Each result in the full conversation is a
+  card with:
+  - the work's title and kind;
+  - a few lines of the work itself (document parts, the first table rows, a
+    file's opening lines);
+  - what is waiting ("Proposed: it adds a row: Catering");
+  - one next step, which keeps the existing link labels ("Review proposed
+    change to the table", "Open this version").
+
+  The preview comes from the artifact the page already reads for result
+  state, so there are no extra requests.
+- **Earlier mentions are one line.** Only the latest answer that shows a piece
+  of work previews it. Older ones say "Changed since" with links to that version
+  and to the current one: a preview there would show today's version, not
+  theirs.
+- **Routine status is short.** "Result saved — needs review" becomes "Not
+  checked yet: look it over before relying on it" on the card, and verified
+  results say what was checked. The responsibility receipt line replaces
+  "Responsibility recorded. At recording…". Stopped, blocked, needs-input and
+  unconfirmed outcomes still show in full.
+- **One Details per answer.** "The message as recorded", the routine outcome
+  and how the turn ran are now under a single "Details". The side pane does
+  the same. Test and synthetic tags stay visible.
+
+Regression: `space-experience.mjs` case 13, desktop and 390 px. It checks:
+- the latest card previews the work;
+- earlier ones are brief;
+- the status line appears only on the latest card;
+- the routine notices are folded away;
+- each answer has exactly one Details;
+- nothing overflows at 390 px.
+
+RED on `9c6cf08` (no cards). GREEN 14/14, routing 7/7.

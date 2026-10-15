@@ -13,6 +13,11 @@ import {
 } from "@/lib/contract/natural";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
 import { shortTitle } from "@/lib/work-state";
+import {
+  adaptivePresentation,
+  cardStatus,
+  receiptSays,
+} from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import {
@@ -261,6 +266,7 @@ export function ConversationPeek({
             <div className="stack-sm">
               {m.author === "agent" ? (
                 <AgentReply
+                  recordedInDetails
                   text={m.text}
                   budget={280}
                   progress={
@@ -281,59 +287,44 @@ export function ConversationPeek({
               {m.author === "person" ? (
                 <SentFiles files={m.attachments} />
               ) : null}
-              {m.author === "agent" && !compact ? (
-                <TurnOutcome
-                  state={
-                    d.turns.find((t) => t.run_id === m.run_id)?.state ??
-                    "replied"
-                  }
-                  progress={
-                    d.turns.find((t) => t.run_id === m.run_id)?.progress
-                  }
-                />
-              ) : null}
-              {artifactId &&
-              m.products?.some((p) => p.artifact_id === artifactId) ? (
-                <span className="msg-tag">This work</span>
-              ) : null}
-              {m.author === "agent" ? (
-                <>
-                  {replyTag(m.origin) ? (
-                    <span className="msg-tag">{replyTag(m.origin)}</span>
-                  ) : null}
-                  <RecordingReceipts
-                    progress={
-                      d.turns.find((t) => t.run_id === m.run_id)?.progress
-                    }
-                    names={names}
-                  />
-                  {compact ? (
-                    <details className="ids-details">
-                      <summary>Details</summary>
-                      <TurnOutcome
-                        state={
-                          d.turns.find((t) => t.run_id === m.run_id)?.state ??
-                          "replied"
-                        }
-                        progress={
-                          d.turns.find((t) => t.run_id === m.run_id)?.progress
-                        }
-                      />
-                      <TurnProgressDetails
-                        progress={
-                          d.turns.find((t) => t.run_id === m.run_id)?.progress
-                        }
-                      />
-                    </details>
-                  ) : (
-                    <TurnProgressDetails
-                      progress={
-                        d.turns.find((t) => t.run_id === m.run_id)?.progress
-                      }
+              {(() => {
+                if (m.author !== "agent") return null;
+                const turnNow = d.turns.find((t) => t.run_id === m.run_id);
+                const state = turnNow?.state ?? "replied";
+                const view = adaptivePresentation(state, turnNow?.progress);
+                // Beside the work, how far it was checked and what was
+                // recorded are routine: they sit under Details. Anything
+                // else (stopped, blocked, needs input) stays in view.
+                const routine =
+                  state === "replied" &&
+                  (cardStatus(view) !== null || receiptSays(view));
+                const inline = !compact && !routine;
+                return (
+                  <>
+                    {inline ? (
+                      <TurnOutcome state={state} progress={turnNow?.progress} />
+                    ) : null}
+                    {artifactId &&
+                    m.products?.some((p) => p.artifact_id === artifactId) ? (
+                      <span className="msg-tag">This work</span>
+                    ) : null}
+                    <RecordingReceipts
+                      progress={turnNow?.progress}
+                      names={names}
                     />
-                  )}
-                </>
-              ) : null}
+                    <div className="msg-meta row wrap">
+                      {replyTag(m.origin) ? (
+                        <span className="msg-tag">{replyTag(m.origin)}</span>
+                      ) : null}
+                      <TurnProgressDetails
+                        progress={turnNow?.progress}
+                        recorded={m.text}
+                        outcome={inline ? null : view}
+                      />
+                    </div>
+                  </>
+                );
+              })()}
               {(() => {
                 const turn = turnOf(m);
                 return turn ? (
