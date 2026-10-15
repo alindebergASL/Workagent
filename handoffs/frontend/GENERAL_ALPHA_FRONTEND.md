@@ -1430,3 +1430,29 @@ claim. Mock mode doesn't read `/execution`.
   - review-boundary 15/15, plus type, lint and format;
   - the full gate, including the conversation journey and general integration;
   - mock e2e 15/15.
+
+## Editor reliability: unsaved work asks before the tab closes
+
+**What the audit found.** The work page keeps unsaved edits in this tab's `sessionStorage`. That
+storage survives moving around and reloading within the tab, but not closing it. Until now, closing
+or leaving the tab dropped an unsaved edit without asking. The older assignment page already asked;
+the main work page and the new view-input controls did not.
+
+**What changed.** A shared `useLeaveGuard(active)` hook (`lib/client/leave-guard.ts`) registers
+`beforeunload` while the tab holds something that exists nowhere else. Three places use it:
+- the work editor, while it has an unsaved edit or an unconfirmed save, accept or dismiss;
+- each table control beside a view, while it has a change or an unconfirmed save;
+- the view's own update, while an unconfirmed rebind is waiting.
+
+With nothing unsaved, the tab closes without asking.
+
+**Regression** (a new real-stack case in its own browser context):
+- An unsaved paragraph on a work page triggers exactly one `beforeunload`. The dialog is dismissed
+  and the tab stays open.
+- An unsaved change beside a view asks as well.
+- After discarding, the tab closes without asking.
+
+**Results.**
+- RED with the previous editor: "an unsaved edit asks before closing", actual `false`.
+- GREEN: routing 7 and Space 21, 279 unit tests, 37 DOM regressions, review-boundary 15/15, the
+  full gate with 0 failures, and mock e2e 15/15.

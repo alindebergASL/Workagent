@@ -1281,6 +1281,61 @@ try {
     );
   }
 
+  // Something only this tab holds (an unsaved edit on a work page, or a
+  // change beside a view) is asked about before the tab closes; with nothing
+  // unsaved, it closes without asking.
+  {
+    const sup = ids.supplier;
+    const tabContext = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const tab = await tabContext.newPage();
+    const asked = [];
+    tab.on("dialog", (d) => {
+      asked.push(d.type());
+      return d.dismiss();
+    });
+    const tryClose = async () => {
+      const before = asked.length;
+      await tab.close({ runBeforeUnload: true });
+      await expect
+        .poll(() => asked.length > before || tab.isClosed())
+        .toBe(true);
+      return asked.length > before;
+    };
+    await tab.goto(
+      `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
+    );
+    const adder = tab.getByRole("group", { name: "Add to the document" });
+    await expect(adder).toBeVisible({ timeout: 15000 });
+    await adder.getByRole("button", { name: "Paragraph" }).click();
+    await tab.keyboard.type("Not saved yet");
+    assert.equal(await tryClose(), true, "an unsaved edit asks before closing");
+    assert.deepEqual(asked, ["beforeunload"]);
+    assert.equal(tab.isClosed(), false);
+    await tab
+      .getByRole("button", { name: /^Remove paragraph: Not saved yet/ })
+      .click();
+    await tab.goto(
+      `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${sup.compare_id}`,
+    );
+    const weight = tab.getByTestId("view-inputs").getByLabel(/Weight on price/);
+    await expect(weight).toBeVisible({ timeout: 15000 });
+    const was = await weight.inputValue();
+    await weight.fill(was === "40" ? "45" : "40");
+    assert.equal(await tryClose(), true, "a change beside a view asks too");
+    await tab
+      .getByTestId("view-inputs")
+      .getByRole("button", { name: "Discard my change" })
+      .click();
+    assert.equal(await tryClose(), false, "nothing unsaved: it just closes");
+    assert.equal(tab.isClosed(), true);
+    await tabContext.close();
+    pass(
+      "an unsaved edit on a work page or beside a view asks before the tab closes; with nothing unsaved it closes without asking",
+    );
+  }
+
   // A materially different project, an investigation: the comparison the
   // agent made runs in place, reading the saved quotes at their exact
   // version; its weighting is the person's to adjust and saves nothing.
