@@ -1,4 +1,20 @@
-# Overnight integrator status — batch1 handoff
+# Overnight integrator status — batch2 in progress
+
+Checkpoint2026-10-15T06:09Z: owner a5a87c8 integrated at9962732. Independent
+follow-up verified both prior backend fixes (39 committed +5 independent tests);
+found mixed-sibling card refresh retention P2, owner fixed it, parent retest pending.
+New backend TDD work preserves human waits rather than treating unrelated chat,
+dependency changes or due check-ins as human permission; five new red regressions
+reproduced, scoped positive/release/resume suite running. Full backend suite running
+separately against pre-fix ccf4108; no full-green claim. Fresh browser fixtures use
+new DB, no original preview changes. See .local/overnight-batch2/.
+Account metadata200 for exact gpt-6.1-sol; official standard pricing rechecked.
+Read-only shared counters44count/42generation/377read, reservations$8.97056 unchanged.
+Fresh successor draft only (2 admissions/6 calls/$0.791520 NEW encumbrance if installed),
+no clone or grant installed, no product calls. Independent review of safe isolation
+is still required; old unused allowance is never reused/refunded. STOP absent.
+
+## Previous batch handoff (preserved)
 
 Status: CONTINUE. Useful implementation delivered; no parity or mission-complete claim.
 Started2026-10-15T04:41:18Z; batch limit90min. Sole integrator, isolated branch
