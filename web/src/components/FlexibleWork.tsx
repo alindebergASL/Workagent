@@ -1430,9 +1430,37 @@ function TableRead({ body }: { body: StructuredTable }) {
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
 /**
- * A long text value, edited where it can be read whole: the box grows with
- * its text (and with its width) instead of scrolling inside a cell. It stays
- * one value; Enter doesn't start a new line.
+ * Keeps a text box as tall as its text, so it reads whole instead of
+ * scrolling inside itself. Refits when the text changes or the box's width
+ * does (a resize, a phone's card layout); its own height change isn't a
+ * reason to measure again.
+ */
+function useFitHeight(
+  ref: React.RefObject<HTMLTextAreaElement | null>,
+  value: string,
+) {
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+    };
+    fit();
+    let width = el.clientWidth;
+    const seen = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      fit();
+    });
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, [ref, value]);
+}
+
+/**
+ * A long text value, edited where it can be read whole. It stays one value;
+ * Enter doesn't start a new line.
  */
 function LongTextCell({
   value,
@@ -1445,25 +1473,7 @@ function LongTextCell({
   "aria-invalid"?: boolean;
 }) {
   const ref = useRef<HTMLTextAreaElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fit = () => {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
-    };
-    fit();
-    // Refit when the width changes (a resize, a phone's card layout); its own
-    // height change isn't a reason to measure again.
-    let width = el.clientWidth;
-    const seen = new ResizeObserver(() => {
-      if (el.clientWidth === width) return;
-      width = el.clientWidth;
-      fit();
-    });
-    seen.observe(el);
-    return () => seen.disconnect();
-  }, [value]);
+  useFitHeight(ref, value);
   return (
     <textarea
       {...rest}
@@ -1474,6 +1484,28 @@ function LongTextCell({
         if (e.key === "Enter") e.preventDefault();
       }}
       onChange={(e) => onChange(e.target.value.replace(/[\r\n]+/g, " "))}
+    />
+  );
+}
+
+/** A table's notes, one per line, in a box as tall as they are. */
+function NotesField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (text: string) => void;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useFitHeight(ref, value);
+  return (
+    <textarea
+      ref={ref}
+      className="fit-text"
+      rows={2}
+      aria-label="Notes (one per line)"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
     />
   );
 }
@@ -1686,10 +1718,9 @@ function TableEditor({
           </div>
           <label className="field">
             <span className="field-label">Notes (one per line)</span>
-            <textarea
-              aria-label="Notes (one per line)"
+            <NotesField
               value={notesText ?? (body.notes ?? []).join("\n")}
-              onChange={(e) => updateNotes(e.target.value)}
+              onChange={updateNotes}
             />
           </label>
         </>

@@ -318,6 +318,12 @@
   background: var(--surface);
   color: var(--ink);
 }
+/* A box as tall as its text (sized by script): nothing scrolls inside. */
+textarea.fit-text {
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+}
 .flex-table select {
   font: inherit;
   border: 1px solid var(--line);

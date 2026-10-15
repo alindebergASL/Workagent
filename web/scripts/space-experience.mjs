@@ -1620,6 +1620,20 @@ try {
     await step2.fill(longer);
     m = await fits();
     assert.ok(m.steps[1].hidden <= 1, "an edited step grows to stay readable");
+    // Notes, one per line, read whole too.
+    const notesBox = page.getByLabel("Notes (one per line)", { exact: true });
+    const notes = [
+      "Paper sheets are in the top drawer of the welcome desk.",
+      "Use a blue pen so the entries are easy to read later.",
+      "The studio manager keeps the spare laptop charger.",
+      "Ask the second volunteer to count the totals.",
+      "Shred the sheet once the entries are checked.",
+    ].join("\n");
+    await notesBox.fill(notes);
+    assert.ok(
+      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
+      "notes scroll inside their box",
+    );
     await page
       .getByRole("button", { name: "Save my edits", exact: true })
       .click();
@@ -1628,6 +1642,11 @@ try {
     });
     await page.reload();
     await expect(step2).toHaveValue(longer, { timeout: 15000 });
+    await expect(notesBox).toHaveValue(notes);
+    assert.ok(
+      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
+      "saved notes reopen whole",
+    );
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
     m = await fits();
@@ -1645,7 +1664,7 @@ try {
     await shot(page, "12-long-steps-phone");
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
-      "a table of long steps reads whole where it's edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
+      "a table of long steps and its notes read whole where they're edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
     );
   }
 
