@@ -304,6 +304,69 @@
   {
     "availability": "available",
     "effects": [
+      "read_context"
+    ],
+    "handler": "read_saved_work",
+    "input_schema": {
+      "$defs": {
+        "DecisionTarget": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "DecisionTarget",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_saved_work",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/DecisionTarget"
+        }
+      },
+      "required": [
+        "kind",
+        "target"
+      ],
+      "title": "ReadSavedWork",
+      "type": "object"
+    },
+    "name": "read_saved_work",
+    "reason": "No arbitrary IDs; omitted/unread bodies cannot be revised.",
+    "scope": "Exact indexed current revision in the human conversation; bounded complete body",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
       "append_answer"
     ],
     "handler": "reply",

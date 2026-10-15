@@ -43,15 +43,21 @@ def general_dispatch_status(run, observation):
 
 
 class ResponsesDispatcher:
-    def __init__(self,worker,*,workspace,grant_id):
+    def __init__(self,worker,*,workspace,grant_id,status_path=None):
         self.worker=worker; self.workspace=workspace; self.grant_id=grant_id
+        self.status_path=status_path
         # Same durable outbox and existing local worker. This cursor is only a
         # fairness hint; restart safely scans again, never a second work ledger.
         self.cursor=0
         from .dispatcher import Dispatcher
         self.local_dispatcher=Dispatcher(worker.service,workspace=workspace,general_controlled=True)
 
+    def progress(self,authorized=True,run_id=None,status=None):
+        from .execution_status import publish
+        publish(self.status_path,self.workspace,self.grant_id,authorized=authorized,run_id=run_id,status=status)
+
     def once(self,*,model_authorized=True):
+        self.progress(authorized=model_authorized)
         service=self.worker.service
         local=self.local_dispatcher.once()
         if not model_authorized:
@@ -73,6 +79,7 @@ class ResponsesDispatcher:
         self.cursor=rows[-1]['cursor'] if len(rows)==100 else 0
         results=[]
         for row in rows:
+            self.progress(run_id=row['run_id'],status='visiting')
             observation=None
             try:
                 status=self._blocked_status(row)
@@ -94,6 +101,7 @@ class ResponsesDispatcher:
             # Detailed evidence belongs in authenticated canonical readback,
             # never stdout of a continuous operator process.
             results.append(result)
+            self.progress(run_id=row['run_id'],status=status)
         return {'mode':self.worker.transport.provenance.mode,'local':local,'results':results}
 
     def _blocked_status(self,row):
@@ -262,7 +270,7 @@ def main():
                 with db.transaction() as c:budget=summary(c,grant.id)
                 print(json.dumps({'status':status,'run_id':args.reconcile_run,'grant_id':grant.id,'budget':budget}))
             else:
-                dispatcher=ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id)
+                dispatcher=ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id,status_path=os.environ.get('WORKAGENT_EXECUTION_STATUS'))
                 if args.serve:
                     def verify():
                         from .general_responses import verify_route_record

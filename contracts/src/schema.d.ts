@@ -364,6 +364,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/execution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Execution Status */
+        get: operations["get_execution_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/observations/{observation_id}": {
         parameters: {
             query?: never;
@@ -1492,6 +1509,33 @@ export interface components {
              */
             provider_observation: "not_observed" | "received";
         };
+        /** ExecutionStatus */
+        ExecutionStatus: {
+            /** Can Advance Authorized Work */
+            can_advance_authorized_work: boolean;
+            /**
+             * Checked At
+             * Format: date-time
+             */
+            checked_at: string;
+            /**
+             * Last Progress At
+             * @description Last verified dispatcher visit, not evidence of objective completion.
+             */
+            last_progress_at?: string | null;
+            /**
+             * Runs
+             * @description Up to 40 most recent accessible conversation runs; not a complete history.
+             */
+            runs: components["schemas"]["RunExecution"][];
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "working" | "awaiting_provider" | "recovering" | "waiting_for_person" | "blocked" | "unavailable" | "idle" | "completed" | "cancelled";
+            /** Workspace Id */
+            workspace_id: string;
+        };
         /**
          * ExplanationReadback
          * @description Typed retained prose only, never raw reasoning or transport.
@@ -2267,6 +2311,22 @@ export interface components {
             used_units: number;
             /** Workspace Id */
             workspace_id: string;
+        };
+        /** RunExecution */
+        RunExecution: {
+            /** Failure Category */
+            failure_category?: ("unknown_external_outcome" | "invalid_response" | "authority_or_budget" | "internal_error" | "worker_unavailable" | "work_blocked") | null;
+            /** Last Progress At */
+            last_progress_at?: string | null;
+            /** Phase */
+            phase?: string | null;
+            /** Run Id */
+            run_id: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "working" | "awaiting_provider" | "recovering" | "waiting_for_person" | "blocked" | "unavailable" | "idle" | "completed" | "cancelled";
         };
         /** RunOutcome */
         RunOutcome: {
@@ -5487,6 +5547,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkAreaContext"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_execution_status: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutionStatus"];
                 };
             };
             /** @description Missing or invalid local authentication */

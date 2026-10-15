@@ -34,28 +34,23 @@ def test_each_canonical_contract_preserves_current_authority_and_evidence_scope(
     assert "Latest integrated candidate" in current
 
 
-def test_current_authorization_retains_every_independent_bound_and_activation_gate():
+def test_current_authorization_preserves_cumulative_authority_not_old_slice_ceiling():
     current = normalized(section(
         "docs/GENERAL_MODEL_AUTHORIZATION.md", "## Current execution boundary",
-        "## Historical added-budget approval",
+        "## Prior execution boundary",
     ))
     for boundary in [
-        "$40", "$1.978800", "WAS installed", "$0.26384", "$7.12368 reserved",
-        "two unresolved final-count attempts remain quarantined", "NOT INSTALLED",
-        "6 runs", "4 selection steps + one final response per run",
-        "20 generation requests", "20 token-count requests", "200 same-ID retrievals",
-        "400,000 input / 163,840 output", "zero cancels",
-        "$2.638400 additional reservation ceiling", "$9.762080", "$24.617200", "$15.382800",
-        "Failed attempts count", "no silent replacement generation", "store:true",
-        "deterministic checks/review", "fresh route/account/pricing verification",
-        "No child or frontend handoff may spend", "account/business",
-        "expanded private-data access", "default merge", "production replacement",
-        "historical grant repinning", "Reservations are not billing",
+        "$40 cumulative ceiling", "not another $40", "bounded synthetic development",
+        "existing approved model route", "per-run and aggregate accounting",
+        "historical usage, reservations, unknown liabilities", "grant/attempt bindings",
+        "Frozen failures stay frozen", "post-fix development tests are permitted",
+        "Never silently replace", "repeat an unknown external request",
+        "New paid routes", "private-account/data access", "external business effects",
+        "default-branch merging", "production replacement", "STATUS.md",
+        "not a project-wide stop",
     ]:
         assert boundary in current, boundary
-    # Passing because an obsolete historical section happens to mention a gate
-    # would hide drift in today's authority. Only the current section is tested.
-    assert "Historical approvals" not in current
+    assert "NOT INSTALLED" not in current
 
 
 @pytest.mark.parametrize(

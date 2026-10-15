@@ -1,6 +1,27 @@
 # Andrew's general-model testing authorization
 
-## Current execution boundary — overnight exact-candidate evaluation
+## Current execution boundary — private-alpha development
+
+The user's October 15 implementation instruction authorizes Hermes to select,
+configure and run bounded synthetic development evaluations on the existing
+approved model route within the remaining reconciled portion of the existing
+**$40 cumulative ceiling**. This is not another $40. Routine implementation,
+refactoring, testing, development-service operation, integration and feature-branch
+publication do not require incremental approval. A finished narrow evaluation is
+not a project-wide stop.
+
+Enforce per-run and aggregate accounting before execution; preserve historical
+usage, reservations, unknown liabilities and grant/attempt bindings. Frozen
+failures stay frozen; clearly identified post-fix development tests are permitted.
+Never silently replace a failed result or repeat an unknown external request.
+New paid routes, broader private-account/data access, external business effects,
+default-branch merging and production replacement remain outside this authority.
+
+Current candidate, services, accounting reconciliation and work status live only
+in [STATUS.md](../STATUS.md). Historical sections below are evidence, not competing
+current launch instructions or balances.
+
+## Prior execution boundary — overnight exact-candidate evaluation
 
 Cumulative authorization remains **$40**. Reviewed successor
 `workagent-overnight-20261015-03` was installed/read back on an isolated full-history
