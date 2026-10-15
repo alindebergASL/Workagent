@@ -1130,3 +1130,29 @@ Regression: `space-experience.mjs` case 16, on the real service. It checks:
 
 RED on `a5a87c8` (the view showed as text only). GREEN 17/17, routing 7/7,
 37 DOM regressions, review-boundary 15/15.
+
+## Interactive view at 320px after a resize (batch 2 limitation, comment 6186378720)
+
+Batch 2 captured an empty supplier view at 320px straight after a resize. Re-run
+on the real stack: no product defect. The frame keeps its document and data through
+the resize: same element, no reload, content present. It is painted as soon as it is
+on screen, whether opened fresh at 320 or resized there.
+
+The empty box came from the capture. Chromium does not paint a cross-origin
+(opaque-origin `srcdoc`) frame that is below the fold, and a full-page screenshot
+does not scroll to it.
+- Negative control, 320×700 after a resize: the frame's top was at 953 px. A
+  full-page capture clipped to the frame was 0.0% dark pixels.
+- After scrolling it into view, an element capture was 6.0%.
+
+`space-experience.mjs` (the investigation case) now covers this at 390 and 320 after
+a resize from desktop. In each, it:
+- scrolls the view into view;
+- requires it to be at least 90% in the viewport, with its content;
+- weighs the comparison by keyboard (End → Quayside Press, Home → Lark & Co);
+- requires painted pixels in the frame's own capture (more than 1% dark);
+- requires no page overflow;
+- saves a viewport screenshot (`09-investigation-view-{390,320}.png`).
+
+Adjusting the view still sends nothing. Captures of interactive views should scroll
+the frame into view, or use an element screenshot, before they are judged.
