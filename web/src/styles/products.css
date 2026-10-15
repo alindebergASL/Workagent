@@ -288,6 +288,22 @@
   max-width: none;
   min-width: 160px;
 }
+/* A wide table scrolls inside its own region: nothing in it (such as a
+   visually hidden heading) may widen the page. Its row actions stay in view
+   at the right edge however far it scrolls. */
+.flex-table {
+  position: relative;
+}
+.flex-table th.row-actions,
+.flex-table td.row-actions {
+  position: sticky;
+  right: 0;
+  background: var(--surface);
+  box-shadow: -1px 0 0 var(--line);
+}
+.scroll-cue.on {
+  display: inline;
+}
 /* Long text reads whole where it's edited: its column takes the room the
    work has, and the box grows with the text instead of scrolling inside. */
 .flex-table table.has-long {
@@ -298,6 +314,17 @@
   width: 100%;
   min-width: 16rem;
   max-width: none;
+}
+.flex-table table.many th[data-long="true"],
+.flex-table table.many td[data-long="true"] {
+  min-width: 13rem;
+}
+/* Beside a long column, short text needs less room than on its own. */
+.flex-table table.many td[data-type="text"]:not([data-long]) {
+  min-width: 0;
+}
+.flex-table table.many td[data-type="text"]:not([data-long]) input {
+  min-width: 7rem;
 }
 .flex-table td[data-long="true"] {
   white-space: normal;
@@ -396,6 +423,12 @@ textarea.fit-text {
     padding: 4px var(--sp-3);
     max-width: none;
     min-width: 0;
+  }
+  .flex-table th.row-actions,
+  .flex-table td.row-actions {
+    position: static;
+    box-shadow: none;
+    background: transparent;
   }
   /* A long value goes under its label, across the card. */
   .flex-table td[data-long="true"] {
