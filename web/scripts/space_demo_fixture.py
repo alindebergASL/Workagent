@@ -234,6 +234,15 @@ runs['evidence'] = ask(supplier.id, 'Collect the three supplier quotes into a ta
                        'I put the three quotes side by side.', name='evidence')
 evidence_id = s.get_conversation(p, ws, supplier.id).artifact_ids[0]
 evidence = s.get_artifact(p, ws, evidence_id)
+# What matters most, saved: the person's assumption the comparison reads.
+PRIORITIES = {'kind': 'structured_table', 'version': 'structured-table/v1', 'title': 'Priorities',
+              'notes': ['How much price counts against delivery time, as a share.'],
+              'fields': [field('weight', 'Weight on price', 'integer', '%')],
+              'rows': [{'row_id': 'weights', 'cells': [{'field_key': 'weight', 'value': 50}]}]}
+runs['priorities'] = ask(supplier.id, 'Keep how much price matters as a saved setting.', [publish(PRIORITIES)],
+                         'I saved price and speed as equally important for now.', name='priorities')
+priorities_id = next(a for a in s.get_conversation(p, ws, supplier.id).artifact_ids if a != evidence_id)
+priorities = s.get_artifact(p, ws, priorities_id)
 generation = next(w.access_generation for w in s.list_workspaces(p).items if w.id == ws)
 COMPARE_JS = (
     'const $=(id)=>document.getElementById(id);let rows=[];'
@@ -244,22 +253,30 @@ COMPARE_JS = (
     '$("list").replaceChildren(...scored.map((r,i)=>{const li=document.createElement("li");'
     'li.textContent=(i===0?"Best fit: ":"")+r.supplier+" \u00b7 \u20ac"+r.price.toFixed(0)+" \u00b7 "+r.days+" days";return li;}));}'
     'async function load(){try{const r=await workagent.request("read",{});'
+    'const pr=await workagent.request("read_priorities",{});'
+    'const saved=Number(pr.body.rows[0].cells.find(x=>x.field_key==="weight").value);'
+    '$("weight").value=String(saved);$("saved").textContent="Saved priority: "+saved+"% on price.";'
     'rows=r.body.rows.map(row=>{const c=Object.fromEntries(row.cells.map(x=>[x.field_key,x.value]));'
     'return {supplier:c.supplier,price:Number(c.price),days:Number(c.days)};});'
     '$("state").textContent="Using the saved quotes.";render();}'
     'catch(e){$("state").textContent="Couldn\u2019t read the saved quotes.";}}'
     '$("weight").addEventListener("input",render);workagent.ready().then(load);')
 COMPARE = {'kind': 'custom_view', 'version': 'custom-view/v1', 'title': 'Supplier comparison',
-           'source': {'html': '<main><label>What matters more? <input id="weight" type="range" min="0" max="100" value="50"></label>'
+           'source': {'html': '<main><p id="saved"></p><label>Try another weighting (not saved) <input id="weight" type="range" min="0" max="100" value="50"></label>'
                               ' <span id="weightLabel"></span><ol id="list"></ol><p id="state">Reading saved quotes.</p></main>',
-                      'css': 'main{padding:12px;font:15px system-ui}li{margin:4px 0}#state{color:#666;font-size:13px}',
+                      'css': 'main{padding:12px;font:15px system-ui}li{margin:4px 0}#state,#saved{color:#666;font-size:13px}',
                       'js': COMPARE_JS},
            'fallback': 'Lark & Co is fastest (6 days, EUR 715); Quayside Press is cheapest (EUR 520, 18 days); '
                        'Northprint sits between (EUR 640, 12 days).',
            'access_generation': generation,
            'bindings': [{'name': 'quotes', 'artifact_id': evidence.id, 'revision_id': evidence.current_revision_id,
-                         'body_hash': evidence.current_revision.body_hash}],
+                         'body_hash': evidence.current_revision.body_hash},
+                        {'name': 'priorities', 'artifact_id': priorities.id,
+                         'revision_id': priorities.current_revision_id,
+                         'body_hash': priorities.current_revision.body_hash}],
            'actions': [{'name': 'read', 'kind': 'read_binding', 'binding': 'quotes',
+                        'payload_schema': {'type': 'object', 'properties': {}, 'additionalProperties': False}},
+                       {'name': 'read_priorities', 'kind': 'read_binding', 'binding': 'priorities',
                         'payload_schema': {'type': 'object', 'properties': {}, 'additionalProperties': False}}]}
 runs['compare'] = ask(supplier.id, 'Help me weigh price against speed.', [publish(COMPARE)],
                       'Here is a comparison you can weigh yourself; it reads the saved quotes.', name='compare')
@@ -274,9 +291,10 @@ FINDINGS = {'title': 'Findings so far', 'blocks': [
 runs['findings'] = ask(supplier.id, 'Write down what we know so far.', [publish(FINDINGS)],
                        'I wrote up what the quotes show and the open question.', name='findings')
 supplier_detail = s.get_conversation(p, ws, supplier.id)
-compare_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id,)
+compare_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id, priorities_id)
                   and getattr(s.get_artifact(p, ws, a).current_revision.body, 'kind', None) == 'custom_view')
-findings_id = next(a for a in supplier_detail.artifact_ids if a not in (evidence_id, compare_id))
+findings_id = next(a for a in supplier_detail.artifact_ids
+                   if a not in (evidence_id, compare_id, priorities_id))
 open_detail = s.get_conversation(p, ws, open_day.id)
 second_ids = {'workspace': second, 'conversation_id': open_day.id,
               'artifact_id': open_detail.artifact_ids[0],
@@ -293,7 +311,8 @@ result = {
     'plain': {'conversation_id': plain.id},
     'second': second_ids,
     'supplier': {'workspace': second, 'conversation_id': supplier.id, 'evidence_id': evidence_id,
-                 'compare_id': compare_id, 'findings_id': findings_id},
+                 'compare_id': compare_id, 'findings_id': findings_id,
+                 'priorities_id': priorities_id},
     'worker_states': {k: v[1] for k, v in runs.items()},
 }
 out.write_text(json.dumps(result, indent=2))

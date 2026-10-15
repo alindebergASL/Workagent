@@ -1282,3 +1282,87 @@ the run leaves the history that was read, the author is unknown.
 - GREEN on a fresh fixture: routing 7 plus experience 18.
 - Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
   lint and format checks.
+
+## Trusted controls beside a view: change what it reads, and the view reads it (comment 6197276516)
+
+This milestone is about real interaction: a change made through a trusted control
+persists, survives reopening, and reaches the conversation through the same work.
+A temporary filter is not enough.
+
+**What the person sees.** On a project page, a custom view running in place now has
+a "Change <table>" section beside it for each structured table it reads. The section
+uses the existing governed table editor in values-only mode:
+- typed inputs;
+- read-only fields stay locked;
+- invalid values are kept as typed and never saved;
+- no rows can be added or removed, and there is no notes box.
+
+Small tables open ready to edit; larger ones open on request, or whenever they hold
+a change.
+
+**"Save and update the view".** This runs two steps:
+1. A human save of the table: CAS on the draft's base, with the exact command
+   journaled in the draft's `pending` and replayed by "Try saving again".
+2. Unless the view's code pins its versions, a human save of the view with that
+   binding moved to the new table revision. The command is journaled under
+   `workagent:view-rebind:…` and replayed by "Update the view again" after a lost
+   acknowledgement.
+
+The frame is keyed by the view's revision, so a new version is a new frame. It
+re-reads through the existing version-bound `read_binding`. The generated frame gets
+no new authority.
+
+**Drafts.** Drafts use the same storage key as the work's own page, so a change
+survives switching selection, reloading or leaving the page. A draft the person
+hasn't touched follows a newer saved version.
+
+**Reply target.** The Space's reply target is the view's exact current revision, so
+the conversation sees what the person changed.
+
+**Other outcomes:**
+- **Pinned view:** the button says "Save my change", and the page says the view needs
+  an updated version. Nothing is rebound.
+- **Partial result:** if the table saved but the view update was refused, the page
+  says exactly that.
+- **Stale draft:** if the table was saved elsewhere since the draft started, the save
+  is refused (409), the draft is kept, and "Discard my change" shows the saved
+  values.
+
+**In-place rebind.** When what a view reads has moved on (a human edit, or a change
+made elsewhere), the same section offers "Use the latest saved versions" in place,
+with the same journaling. The in-place notice no longer sends the person to another
+page. Pinned views still say they need a new view.
+
+**Frame height.** The frame now measures its content's own height rather than the
+page's scroll height. The scroll height is never less than the frame, so a frame made
+taller once could never shrink. This has no failing-first test: the tall frame was
+seen once on desktop but didn't reproduce in later runs. A new check requires the
+frame to fit its content (under 360 px) at full width after the phone-width resizes;
+it passes with the old measurement too, so it guards the change rather than proving
+it.
+
+**Fixture.** The "Supplier choice" project gets a saved "Priorities" table (weight on
+price, %), published by its own synthetic run. The comparison reads both tables. Its
+slider is now "Try another weighting (not saved)", and it starts from the saved
+priority.
+
+**Real-stack regression** (`space-experience.mjs`, a new case):
+- the change survives switching work;
+- a lost acknowledgement on the view update is replayed with the same `command_id`
+  and body;
+- the view reads 100% → "Best fit: Quayside Press";
+- the readback shows a human table revision, and the view's binding is that revision;
+- after reopening, it is still Quayside, the control shows 100, and the reply is
+  about the view's new revision;
+- a change made elsewhere is refused (409) with the draft kept, then discarded;
+- in-place "Use the latest saved versions" then reads 70%;
+- 390 px has no overflow.
+
+The investigation case now repoints the view at the edited quotes in place and reads
+€480.
+
+**Results:**
+- GREEN on a fresh fixture: routing 7 plus experience 19.
+- Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
+  lint and format checks.
+- Full gate, including the sandbox's 9 checks, and mock e2e 15/15.

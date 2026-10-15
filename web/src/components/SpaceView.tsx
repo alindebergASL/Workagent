@@ -25,7 +25,7 @@ import {
   type StandingLine,
 } from "@/lib/space-view";
 import { ConversationPeek } from "./ConversationPeek";
-import { InPlaceView, ReadOnly, type Bound } from "./FlexibleWork";
+import { InPlaceView, ReadOnly, ViewInputs, type Bound } from "./FlexibleWork";
 import { ProductView } from "./ProductView";
 import { SpaceDetails } from "./WorkAreas";
 import { WorkSurface } from "./WorkSurface";
@@ -681,7 +681,10 @@ function SelectedWork({
   const preview = useMemo(
     () =>
       view ? (
+        // A new saved version of the view is a new frame, which reads its
+        // (possibly newly bound) work again.
         <InPlaceView
+          key={item.artifact.current_revision_id}
           ws={ws}
           cid={cid}
           artifact={item.artifact}
@@ -795,6 +798,29 @@ function SelectedWork({
         </div>
       ) : null}
       {preview}
+      {view ? (
+        <ViewInputs
+          ws={ws}
+          cid={cid}
+          view={item.artifact}
+          tables={reads
+            .map((aid) => byId.get(aid)?.artifact)
+            .filter(
+              (a): a is SpaceWorkItem["artifact"] =>
+                Boolean(a) &&
+                (a!.current_revision.body as { kind?: string }).kind ===
+                  "structured_table" &&
+                (
+                  a!.current_revision.body as {
+                    fields: { editable: boolean }[];
+                  }
+                ).fields.some((f) => f.editable),
+            )}
+          bound={JSON.parse(boundKey) as Bound}
+          open={open}
+          refresh={refresh}
+        />
+      ) : null}
     </article>
   );
 }

@@ -1007,6 +1007,147 @@ try {
     );
   }
 
+  // What a view reads is changed with the app's own controls beside it, not
+  // through the view: the saved priority is a person's version of the table,
+  // the view is pointed at it and reads it, and both survive reopening; the
+  // reply is about the view's new version. A lost acknowledgement replays the
+  // same command; a change made elsewhere meanwhile is refused, not overwritten.
+  {
+    const sup = ids.supplier;
+    const P = sup.priorities_id;
+    const C = sup.compare_id;
+    const supApi = `${origin}/api/domain/v1/workspaces/${sup.workspace}`;
+    const read = async (aid) =>
+      (await fetch(`${supApi}/artifacts/${aid}`, { headers })).json();
+    const spaceAt = `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${C}`;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(spaceAt);
+    const viewFrame = page.frameLocator(".space-work iframe");
+    const best = viewFrame.locator("#list li").first();
+    await expect(best).toContainText("Best fit: Lark & Co", { timeout: 20000 });
+    await expect(viewFrame.locator("#saved")).toContainText("50% on price");
+    const inputs = page.getByTestId("view-inputs");
+    const weight = () => inputs.getByLabel(/Weight on price/);
+    await expect(weight()).toHaveValue("50");
+    const saves = [];
+    const onSave = (r) => {
+      if (r.method() === "POST" && /\/artifacts\/[^/]+\/save$/.test(r.url()))
+        saves.push({ url: r.url(), body: r.postDataJSON() });
+    };
+    page.on("request", onSave);
+    // The change is kept while the person looks at other work.
+    await weight().fill("100");
+    await item(sup.evidence_id).click();
+    await item(C).click();
+    await expect(weight()).toHaveValue("100");
+    // Saving the table lands; the view's update loses its acknowledgement.
+    const viewSave = new RegExp(`/artifacts/${C}/save$`);
+    await page.route(viewSave, async (route) => {
+      const r = await route.fetch();
+      assert.ok(r.ok(), "the view update itself landed");
+      return route.abort("failed");
+    });
+    await inputs
+      .getByRole("button", { name: "Save and update the view" })
+      .click();
+    const outcome = page.getByTestId("view-inputs-outcome");
+    await expect(outcome).toContainText("Updating the view wasn’t confirmed", {
+      timeout: 15000,
+    });
+    await page.unroute(viewSave);
+    await page.reload();
+    await inputs.getByRole("button", { name: "Update the view again" }).click();
+    await expect(outcome).toContainText("The view now reads", {
+      timeout: 15000,
+    });
+    const viewSaves = saves.filter((x) => viewSave.test(x.url));
+    assert.equal(viewSaves.length, 2, "one update, replayed once");
+    assert.equal(viewSaves[0].body.command_id, viewSaves[1].body.command_id);
+    // The same command and body; only the per-attempt request id differs.
+    const sameUpdate = (b) => ({ ...b, request_id: undefined });
+    assert.deepEqual(
+      sameUpdate(viewSaves[0].body),
+      sameUpdate(viewSaves[1].body),
+    );
+    await expect(best).toContainText("Best fit: Quayside Press", {
+      timeout: 15000,
+    });
+    await expect(viewFrame.locator("#saved")).toContainText("100% on price");
+    // The records: a person's version of the table, and the view reading it.
+    const pr = await read(P);
+    assert.equal(pr.current_revision.author_kind, "human");
+    assert.equal(pr.current_revision.body.rows[0].cells[0].value, 100);
+    const cv = await read(C);
+    const binding = cv.current_revision.body.bindings.find(
+      (b) => b.artifact_id === P,
+    );
+    assert.equal(binding.revision_id, pr.current_revision_id);
+    assert.equal(
+      saves.filter((x) => x.url.endsWith(`/artifacts/${P}/save`)).length,
+      1,
+    );
+    // Reopened, it still reads the saved priority; a reply is about the
+    // view's new version.
+    await page.goto(spaceAt);
+    await expect(best).toContainText("Best fit: Quayside Press", {
+      timeout: 20000,
+    });
+    await expect(weight()).toHaveValue("100");
+    await expect(
+      page.locator(`.space-work[data-artifact-id="${C}"]`),
+    ).toHaveAttribute("data-revision-id", cv.current_revision_id);
+    await expect(about).toContainText("About: Supplier comparison");
+    await shot(page, "10-view-inputs-saved");
+    // Changed elsewhere meanwhile: the save is refused and the change kept.
+    await weight().fill("20");
+    const elsewhere = structuredClone(pr.current_revision.body);
+    elsewhere.rows[0].cells[0].value = 70;
+    const other = await fetch(`${supApi}/artifacts/${P}/save`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        schema_version: "workagent/v1",
+        request_id: crypto.randomUUID(),
+        command_id: crypto.randomUUID(),
+        expected_current_revision_id: pr.current_revision_id,
+        body: elsewhere,
+      }),
+    });
+    assert.equal(other.status, 200, await other.text());
+    await inputs
+      .getByRole("button", { name: "Save and update the view" })
+      .click();
+    await expect(outcome).toContainText("changed elsewhere", {
+      timeout: 15000,
+    });
+    await expect(weight()).toHaveValue("20");
+    assert.equal(
+      (await read(P)).current_revision.body.rows[0].cells[0].value,
+      70,
+    );
+    await inputs.getByRole("button", { name: "Discard my change" }).click();
+    await expect(weight()).toHaveValue("70");
+    // The view now reads an older priority; it's pointed at the saved one here.
+    await page.getByRole("button", { name: "Refresh this project" }).click();
+    await inputs
+      .getByRole("button", { name: "Use the latest saved versions" })
+      .click();
+    await expect(viewFrame.locator("#saved")).toContainText("70% on price", {
+      timeout: 15000,
+    });
+    // On a phone the control fits and works the same way.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await weight().scrollIntoViewIfNeeded();
+    await expect(weight()).toBeInViewport();
+    await noOverflow(page);
+    await shot(page, "10-view-inputs-390");
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    page.off("request", onSave);
+    pass(
+      "beside a view, the app's own control changes what it reads: the change survives switching work, a lost acknowledgement replays the same update, the view reads the saved value, it survives reopening and the reply is about the new version; a change made elsewhere is refused with the draft kept",
+    );
+  }
+
   // A materially different project, an investigation: the comparison the
   // agent made runs in place, reading the saved quotes at their exact
   // version; its weighting is the person's to adjust and saves nothing.
@@ -1082,6 +1223,15 @@ try {
   }
   assert.equal(posts.length, writesBefore, "adjusting the view sends nothing");
   await page.setViewportSize({ width: 1440, height: 1000 });
+  // Back at full width, the frame fits its content again: a view made tall
+  // on a phone doesn't stay tall.
+  await expect
+    .poll(
+      async () =>
+        (await page.locator(".space-work iframe").boundingBox())?.height ?? 0,
+      { timeout: 10000 },
+    )
+    .toBeLessThan(360);
   await page
     .getByTestId("space-reads")
     .getByRole("button", { name: "Supplier evidence" })
@@ -1121,20 +1271,28 @@ try {
     .getByRole("button", { name: "Supplier comparison" })
     .click();
   await page.getByRole("button", { name: "Refresh this project" }).click();
-  await expect(page.getByTestId("view-update-elsewhere")).toBeVisible({
-    timeout: 15000,
-  });
-  await expect(
-    page.getByRole("button", { name: "Use the latest saved versions" }),
-  ).toHaveCount(0);
   await expect(page.locator(".space-work .view-binding")).toContainText(
     "changed since this view was made",
+    { timeout: 15000 },
   );
+  // It's pointed at the edited quotes right here, through the app's own
+  // control, and reads them.
+  await page
+    .getByTestId("view-inputs")
+    .getByRole("button", { name: "Use the latest saved versions" })
+    .click();
+  await expect(page.getByTestId("view-inputs-outcome")).toContainText(
+    "The view now reads the latest saved versions.",
+    { timeout: 15000 },
+  );
+  await expect(
+    page.frameLocator(".space-work iframe").locator("#list"),
+  ).toContainText("€480", { timeout: 15000 });
   await page.setViewportSize({ width: 390, height: 844 });
   await noOverflow(page);
   await page.setViewportSize({ width: 1440, height: 1000 });
   pass(
-    "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and where to update it",
+    "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and is pointed at the new quotes in place",
   );
 
   // Unavailable and refused reads are said as such.

@@ -799,6 +799,399 @@ export function InPlaceView({
   );
 }
 
+const draftKey = (ws: string, cid: string, aid: string) =>
+  `workagent:product:${ws}:${cid}:${aid}`;
+const rebindKey = (ws: string, cid: string, aid: string) =>
+  `workagent:view-rebind:${ws}:${cid}:${aid}`;
+type Exact = { id: string; base: string; body: FlexibleBody };
+const unconfirmed = (e: unknown) =>
+  (e instanceof ApiError && e.isAmbiguousWrite) || e instanceof TypeError;
+function store(key: string, value: unknown) {
+  try {
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
+function stored<T>(key: string): T | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Beside a view running in place: the saved tables it reads, changed through
+ * the app's own table editor, never through the view. "Save and update the
+ * view" saves the table (a person's version, checked against the version it
+ * was based on) and then points the view at it, so the view reads the new
+ * values; each step is replayed exactly if its answer is lost. Drafts are the
+ * same ones the work's own page keeps.
+ */
+export function ViewInputs({
+  ws,
+  cid,
+  view,
+  tables,
+  bound,
+  open,
+  refresh,
+}: {
+  ws: string;
+  cid: string;
+  /** The view, as last read. */
+  view: S["Artifact"];
+  /** What it reads, at the versions saved now. */
+  bound: Bound;
+  /** The structured tables it reads, as last read, that have editable values. */
+  tables: S["Artifact"][];
+  open: boolean;
+  refresh: () => Promise<unknown>;
+}) {
+  const vKey = rebindKey(ws, cid, view.id);
+  const [rebinding, setRebinding] = useState<Exact | null>(() =>
+    stored<Exact>(vKey),
+  );
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<{
+    tone: "done" | "problem";
+    text: string;
+  } | null>(null);
+  const viewBody = view.current_revision.body as CustomView;
+  const pinned = pinsVersions(viewBody);
+  const states = bindingStates(viewBody, bound);
+  const behind = states.some((x) => x.state === "changed");
+  const missing = states.some((x) => x.state === "unavailable");
+
+  /** Point the view at a newly saved table; replayed exactly if unconfirmed. */
+  async function rebindView(
+    exact: Exact,
+    done = "The view now reads the latest saved versions.",
+  ) {
+    store(vKey, exact);
+    setRebinding(exact);
+    try {
+      await productApi.save(ws, view.id, exact.id, exact.base, exact.body);
+      store(vKey, null);
+      setRebinding(null);
+      setOutcome({ tone: "done", text: done });
+    } catch (e) {
+      if (!unconfirmed(e)) {
+        store(vKey, null);
+        setRebinding(null);
+      }
+      setOutcome({
+        tone: "problem",
+        text: unconfirmed(e)
+          ? "Your change is saved. Updating the view wasn’t confirmed; try again, and the same update is sent."
+          : `Your change is saved, but the view couldn’t be updated${
+              e instanceof Error && e.message ? `: ${e.message}` : "."
+            } Open the view to point it at the latest saved versions.`,
+      });
+    }
+  }
+
+  async function saved(table: S["Artifact"]) {
+    if (pinned) {
+      setOutcome({
+        tone: "done",
+        text: "Saved. This view was written for the earlier version, so it can’t read the new one; ask in the conversation for an updated view.",
+      });
+      return;
+    }
+    await rebindView(
+      {
+        id: crypto.randomUUID(),
+        base: view.current_revision_id,
+        body: rebind(viewBody, {
+          [table.id]: {
+            revision_id: table.current_revision_id,
+            body_hash: table.current_revision.body_hash,
+          },
+        }),
+      },
+      "Saved. The view now reads your change.",
+    );
+  }
+
+  if (!tables.length && !(behind && !pinned && !missing && !rebinding))
+    return null;
+  return (
+    <section
+      className="stack-sm view-inputs"
+      aria-label="Change what this view reads"
+      data-testid="view-inputs"
+    >
+      {pinned ? (
+        <p className="small muted" data-testid="view-inputs-pinned">
+          This view was written for the versions it reads now, so a change saved
+          here won’t show in it until you ask for an updated view.
+        </p>
+      ) : null}
+      {tables.map((t) => (
+        <ViewInput
+          key={t.id}
+          ws={ws}
+          cid={cid}
+          table={t}
+          open={open}
+          busy={busy || Boolean(rebinding)}
+          setBusy={setBusy}
+          onStart={() => setOutcome(null)}
+          onSaved={saved}
+          onProblem={(text) => setOutcome({ tone: "problem", text })}
+          refresh={refresh}
+          label={pinned ? "Save my change" : "Save and update the view"}
+        />
+      ))}
+      {behind && !pinned && !missing && !rebinding ? (
+        <div className="row wrap">
+          <button
+            type="button"
+            className="btn btn-sm"
+            disabled={busy || !open}
+            onClick={async () => {
+              setBusy(true);
+              setOutcome(null);
+              await rebindView({
+                id: crypto.randomUUID(),
+                base: view.current_revision_id,
+                body: rebind(viewBody, bound),
+              });
+              await refresh();
+              setBusy(false);
+            }}
+          >
+            Use the latest saved versions
+          </button>
+        </div>
+      ) : null}
+      {rebinding ? (
+        <button
+          type="button"
+          className="btn btn-sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            setOutcome(null);
+            await rebindView(rebinding);
+            await refresh();
+            setBusy(false);
+          }}
+        >
+          Update the view again
+        </button>
+      ) : null}
+      {outcome ? (
+        <p
+          role={outcome.tone === "problem" ? "alert" : "status"}
+          className="notice-line small"
+          data-testid="view-inputs-outcome"
+        >
+          {outcome.text}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function ViewInput({
+  ws,
+  cid,
+  table,
+  open,
+  busy,
+  setBusy,
+  onStart,
+  onSaved,
+  onProblem,
+  refresh,
+  label,
+}: {
+  ws: string;
+  cid: string;
+  table: S["Artifact"];
+  label: string;
+  open: boolean;
+  busy: boolean;
+  setBusy: (b: boolean) => void;
+  onStart: () => void;
+  onSaved: (table: S["Artifact"]) => Promise<void>;
+  onProblem: (text: string) => void;
+  refresh: () => Promise<unknown>;
+}) {
+  const key = draftKey(ws, cid, table.id);
+  const saved = table.current_revision.body as StructuredTable;
+  const [draft, setDraft] = useState<Draft>(() => readDraft(key, table));
+  const problem = draftProblem(draft);
+  const dirty =
+    Boolean(draft.raw && Object.keys(draft.raw).length && problem) ||
+    JSON.stringify(normal(draft.body)) !== JSON.stringify(normal(saved));
+  const changed = draft.base !== table.current_revision_id;
+  function keep(next: Draft) {
+    setDraft(next);
+    store(key, next);
+  }
+  const fresh = (a: S["Artifact"]): Draft => ({
+    base: a.current_revision_id,
+    body: structuredClone(a.current_revision.body as FlexibleBody),
+    pending: null,
+  });
+  // The values as saved at the draft's base, when known: a draft the person
+  // hasn't touched follows a newer saved version instead of standing in for it.
+  const [untouched, setUntouched] = useState<string | null>(() =>
+    draft.base === table.current_revision_id
+      ? JSON.stringify(normal(saved))
+      : null,
+  );
+  useEffect(() => {
+    if (draft.base === table.current_revision_id || draft.pending) return;
+    if (
+      untouched !== null &&
+      !Object.keys(draft.raw ?? {}).length &&
+      JSON.stringify(normal(draft.body)) === untouched
+    ) {
+      keep(fresh(table));
+      setUntouched(JSON.stringify(normal(saved)));
+    }
+    // Only a newly read version can make an untouched draft out of date.
+  }, [table.current_revision_id]);
+  async function save() {
+    if (busy || (!draft.pending && problem)) return;
+    const exact =
+      draft.pending?.kind === "save"
+        ? draft.pending
+        : {
+            kind: "save" as const,
+            id: crypto.randomUUID(),
+            base: draft.base,
+            body: structuredClone(draft.body),
+          };
+    keep({ ...draft, pending: exact });
+    setBusy(true);
+    onStart();
+    try {
+      const next = await productApi.save(
+        ws,
+        table.id,
+        exact.id,
+        exact.base,
+        exact.body,
+      );
+      keep(fresh(next));
+      setUntouched(
+        JSON.stringify(normal(next.current_revision.body as FlexibleBody)),
+      );
+      await onSaved(next);
+    } catch (e) {
+      if (!unconfirmed(e)) keep({ ...draft, pending: null });
+      onProblem(
+        unconfirmed(e)
+          ? "Saving wasn’t confirmed. Your change is kept; try again, and the same save is sent."
+          : e instanceof ApiError && e.status === 409
+            ? "This was changed elsewhere since you started. Your change is kept; discard it to see the new values."
+            : `Couldn’t save${e instanceof Error && e.message ? `: ${e.message}` : "."} Your change is kept.`,
+      );
+    } finally {
+      await refresh();
+      setBusy(false);
+    }
+  }
+  const title = readableTitle(saved.title);
+  // A few values are shown ready to change; a bigger table opens on request,
+  // or is open while it holds a change.
+  const cells =
+    saved.rows.length * saved.fields.filter((f) => f.editable).length;
+  const [openNow, setOpenNow] = useState(
+    () => cells <= 4 || dirty || Boolean(draft.pending),
+  );
+  return (
+    <details
+      className="stack-sm view-input"
+      data-artifact={table.id}
+      open={openNow || dirty || Boolean(draft.pending)}
+      onToggle={(e) => setOpenNow(e.currentTarget.open)}
+    >
+      <summary className="small">
+        <strong>Change {title}</strong>
+      </summary>
+      {changed ? (
+        <p role="status" className="small muted">
+          {title} was saved again since you started; your change is kept.
+        </p>
+      ) : null}
+      <fieldset
+        disabled={busy || !open || Boolean(draft.pending)}
+        className="stack-sm"
+      >
+        <legend className="sr-only">Change {title}</legend>
+        <TableEditor
+          valuesOnly
+          saved={saved}
+          body={draft.body as StructuredTable}
+          raw={draft.raw ?? {}}
+          update={(body, raw) => keep({ ...draft, body, raw })}
+          notesText={draft.notesText}
+          updateNotes={() => {}}
+        />
+      </fieldset>
+      {problem && dirty ? (
+        <p role="alert" className="small">
+          {problem}
+        </p>
+      ) : null}
+      <div className="row wrap">
+        {draft.pending && draft.pending.kind !== "save" ? (
+          <p className="small muted">
+            A change on this work’s own page is waiting to be confirmed; open it
+            there to finish.
+          </p>
+        ) : draft.pending ? (
+          <button
+            type="button"
+            className="btn btn-sm btn-primary"
+            disabled={busy || !open}
+            onClick={() => void save()}
+          >
+            Try saving again
+          </button>
+        ) : dirty ? (
+          <>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary"
+              disabled={busy || !open || Boolean(problem)}
+              onClick={() => void save()}
+            >
+              {label}
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm btn-quiet"
+              disabled={busy}
+              onClick={() => keep(fresh(table))}
+            >
+              Discard my change
+            </button>
+          </>
+        ) : changed ? (
+          <button
+            type="button"
+            className="btn btn-sm btn-quiet"
+            onClick={() => keep(fresh(table))}
+          >
+            Show the saved values
+          </button>
+        ) : null}
+      </div>
+    </details>
+  );
+}
+
 /**
  * In a proposed version, a kept note as saved keeps who added it; a new or
  * reworded one is the proposer's (Workagent's).
@@ -895,6 +1288,7 @@ function TableEditor({
   update,
   notesText,
   updateNotes,
+  valuesOnly = false,
 }: {
   saved: StructuredTable;
   body: StructuredTable;
@@ -902,6 +1296,8 @@ function TableEditor({
   update: (body: StructuredTable, raw: Record<string, RawCell>) => void;
   notesText: string | undefined;
   updateNotes: (text: string) => void;
+  /** Only the values can change here: no rows added or removed, no notes. */
+  valuesOnly?: boolean;
 }) {
   const savedRows = new Set(saved.rows.map((r) => r.row_id));
   const readOnly = body.fields.some((f) => !f.editable);
@@ -922,7 +1318,9 @@ function TableEditor({
   return (
     <>
       <p className="hint table-hint">
-        Edit any value, then save.
+        {valuesOnly
+          ? "Change a value, then save."
+          : "Edit any value, then save."}
         {readOnly ? " Shaded columns can’t be edited." : ""}
         <span className="scroll-cue" aria-hidden="true">
           {" "}
@@ -1035,7 +1433,7 @@ function TableEditor({
                     );
                   })}
                   <td data-label="">
-                    {canRemoveRow(saved, body, r.row_id) ? (
+                    {!valuesOnly && canRemoveRow(saved, body, r.row_id) ? (
                       <button
                         type="button"
                         className="btn btn-sm btn-quiet"
@@ -1072,26 +1470,30 @@ function TableEditor({
           })}
         </ul>
       ) : null}
-      <div className="row">
-        <button
-          type="button"
-          className="btn btn-sm"
-          disabled={body.rows.length >= 200}
-          onClick={() =>
-            update(addRow(body, `row-${crypto.randomUUID()}`), raw)
-          }
-        >
-          Add a row
-        </button>
-      </div>
-      <label className="field">
-        <span className="field-label">Notes (one per line)</span>
-        <textarea
-          aria-label="Notes (one per line)"
-          value={notesText ?? (body.notes ?? []).join("\n")}
-          onChange={(e) => updateNotes(e.target.value)}
-        />
-      </label>
+      {valuesOnly ? null : (
+        <>
+          <div className="row">
+            <button
+              type="button"
+              className="btn btn-sm"
+              disabled={body.rows.length >= 200}
+              onClick={() =>
+                update(addRow(body, `row-${crypto.randomUUID()}`), raw)
+              }
+            >
+              Add a row
+            </button>
+          </div>
+          <label className="field">
+            <span className="field-label">Notes (one per line)</span>
+            <textarea
+              aria-label="Notes (one per line)"
+              value={notesText ?? (body.notes ?? []).join("\n")}
+              onChange={(e) => updateNotes(e.target.value)}
+            />
+          </label>
+        </>
+      )}
     </>
   );
 }
@@ -1239,11 +1641,7 @@ function ViewSurface({
                 simply be pointed at the new one. Ask in the conversation for an
                 updated view.
               </p>
-            ) : missing ? null : inPlace ? (
-              <p data-testid="view-update-elsewhere">
-                Open the view to point it at the latest saved versions.
-              </p>
-            ) : (
+            ) : missing || inPlace ? null : (
               <div className="row">
                 <button
                   type="button"

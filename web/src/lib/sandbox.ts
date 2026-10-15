@@ -97,9 +97,14 @@ function inlineSafe(text: string, tag: "script" | "style"): string {
 const BOOTSTRAP = `(() => {
   let port = null, data = null, seq = 0;
   const pending = new Map(), waiting = [];
+  // The content's own height: the page's scroll height is never less than
+  // the frame, so a view made taller once could never be made shorter.
   const report = () => port && port.postMessage({
     type: "resize",
-    height: Math.ceil(document.documentElement.scrollHeight),
+    height: Math.ceil(Math.max(
+      document.documentElement.getBoundingClientRect().height,
+      document.body ? document.body.getBoundingClientRect().bottom : 0,
+    )),
   });
   addEventListener("message", (e) => {
     if (port || !e.data || e.data.type !== "workagent:init" || !e.ports || !e.ports[0]) return;
