@@ -2,6 +2,7 @@
 import type { components } from "../../../../contracts/src/client";
 import type { ChatMessage } from "@/lib/contract/types";
 import type { ResultState } from "@/lib/result-links";
+import { useRef } from "react";
 import { useResource } from "./hooks";
 import { productApi } from "./products";
 import { ApiError } from "@/lib/contract/errors";
@@ -15,10 +16,28 @@ export interface WorkNow {
   artifact: S["Artifact"];
 }
 
+/** How the latest read of one piece of work went. */
+export type ReadOutcome = "current" | "unconfirmed" | "unavailable";
+
+export interface WorkRead {
+  read: ReadOutcome;
+  /**
+   * The work as last read: current, or (when the latest read couldn't
+   * confirm it) the previous read, said so. Never kept once access is
+   * refused or the work is gone.
+   */
+  now: WorkNow | null;
+}
+
+const refused = (e: unknown) =>
+  e instanceof ApiError &&
+  (e.code === "not_found_or_not_authorized" || e.code === "unauthenticated");
+
 /**
  * Where each piece of work a conversation's messages link to stands now: its
- * current saved version and its proposals. Read only; work this caller can't
- * read is simply absent, and its links then claim nothing.
+ * current saved version and its proposals. Read only. Each piece of work has
+ * its own outcome, so one that's refused is dropped even when a sibling's read
+ * fails, and one that can't be re-checked keeps its last read, marked as such.
  */
 export function useResultStates(
   ws: string | null,
@@ -36,39 +55,46 @@ export function useResultStates(
     ws && ids.length
       ? `result-states:${ws}:${ids.join(",")}:${messages?.length ?? 0}`
       : null;
-  return useResource<Record<string, WorkNow>>(key, async (signal) => {
+  const lastGood = useRef<Record<string, WorkNow>>({});
+  return useResource<Record<string, WorkRead>>(key, async (signal) => {
     const entries = await Promise.all(
-      ids.map(async (aid) => {
+      ids.map(async (aid): Promise<[string, WorkRead]> => {
+        const at = `${ws}:${aid}`;
         try {
           const [artifact, proposals] = await Promise.all([
             productApi.get(ws!, aid, signal),
             productApi.proposals(ws!, aid, signal),
           ]);
+          const now = {
+            current_revision_id: artifact.current_revision_id,
+            proposals,
+            artifact,
+          };
+          lastGood.current[at] = now;
+          return [aid, { read: "current", now }];
+        } catch (e) {
+          if (signal.aborted) throw e;
+          if (refused(e)) {
+            delete lastGood.current[at];
+            return [aid, { read: "unavailable", now: null }];
+          }
           return [
             aid,
-            {
-              current_revision_id: artifact.current_revision_id,
-              proposals,
-              artifact,
-            },
-          ] as const;
-        } catch (e) {
-          // Unreadable work claims nothing; a lost connection is retried.
-          if (e instanceof ApiError && e.code !== "transport") return null;
-          throw e;
+            { read: "unconfirmed", now: lastGood.current[at] ?? null },
+          ];
         }
       }),
     );
-    return Object.fromEntries(entries.filter((e) => e !== null));
+    return Object.fromEntries(entries);
   });
 }
 
 /** The state one message's result link needs, from what was read. */
 export function resultState(
-  now: Record<string, WorkNow> | null,
+  reads: Record<string, WorkRead> | null,
   product: Pick<S["ProductResult"], "artifact_id" | "proposal_id">,
 ): ResultState | null {
-  const work = now?.[product.artifact_id];
+  const work = reads?.[product.artifact_id]?.now;
   if (!work) return null;
   return {
     current_revision_id: work.current_revision_id,

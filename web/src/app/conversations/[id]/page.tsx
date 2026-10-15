@@ -317,14 +317,13 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                             brief={latestRef.get(product.artifact_id) !== m.id}
                             key={`${product.artifact_id}:${product.observation_id}`}
                             product={product}
-                            now={results.data?.[product.artifact_id]}
+                            now={
+                              results.data?.[product.artifact_id]?.now ??
+                              undefined
+                            }
                             readState={
-                              results.reconnecting
-                                ? "unconfirmed"
-                                : results.data &&
-                                    !results.data[product.artifact_id]
-                                  ? "unavailable"
-                                  : "current"
+                              results.data?.[product.artifact_id]?.read ??
+                              (results.reconnecting ? "unconfirmed" : "current")
                             }
                             link={resultLink(
                               `/conversations/${id}`,
