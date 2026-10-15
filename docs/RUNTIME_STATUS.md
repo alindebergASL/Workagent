@@ -12,12 +12,19 @@ Fresh publication checks: 239 frontend tests, type/lint/format, 32 operator test
 and staged diff checks pass. Earlier 179 scoped backend/12 Chromium/real API+TUI
 journey evidence is carried by verified source identity, not newly claimed execution.
 Engineering is bounded; experience needs correction (user screenshot rejection),
-and actual live Spaces usefulness, genuinely different-model/persona review and
-broader continuity/ongoing ownership remain unproven. No new live call this checkpoint.
+and actual live Spaces usefulness, integrated-candidate multi-model review and
+broader continuity/ongoing ownership remain unproven. No new product-model call this checkpoint.
 
-Existing Claude Cloud owns web. Latest owner remote is cdea2a0; no active local
-Claude process observed. Comment publication does not resume the Cloud task.
-Hermes continues permitted backend/integration work while that owner resumes.
+Existing Claude Cloud owns web and has ACKed integration of `9675daf` on its
+existing branch (2026-10-15 #9 comment6182049930); the coherent Space redesign is
+underway there. No substitute frontend owner was created. The prior resume request
+is resolved; do not ask the user to resume again. Hermes continues backend/integration.
+
+[Baseline multi-model/persona review](SPACE_EXPERIENCE_REVIEW.md) is now complete:
+Astra inspected Chromium/screenshots/computed accessibility names; direct GLM5.3
+returned a complete three-perspective critique after two retained truncated attempts.
+GLM's unsupported agency/ownership conclusions and false missing-label inference
+are explicitly adjudicated. This is not integrated-candidate/live/user acceptance.
 
 The first bounded allowance WAS activated, then one ordinary-browser live turn ran
 on cdea2a0. Historical statements below saying 'not installed' are not current.
