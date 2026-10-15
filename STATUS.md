@@ -1,4 +1,16 @@
-# Overnight integrator status — batch2 handoff
+# Overnight integrator status — batch3 in progress
+
+Batch3 checkpoint: integrated owner1810fea mobile-content checks and133e857 Space
+refusal race/pinned guidance fix; no integrator web edits. Parent frozen actual-React
+repro now13/13 in-place,17/17 retention and6/6 overlay pass. New private installer/
+one-run helper implemented, not activated. Independent review found reader allowlist,
+mid-visit STOP and account timestamp gaps; fixed,46 parent+independent controlled tests
+pass, actual read-only inventory gate passes. Follow-up review and full real-service
+mobile checks underway. No new product inference/encumbrance; inert clone unchanged.
+Full source-frozen backend run still underway; at least one failure observed, do not
+claim full green. Original services/data/admissions and both unknowns preserved.
+
+Previous batch handoff (historical):
 
 CONTINUE. Backend a719f28, integrated application4d262889961484187c4ab229b6f7aa222344f0ea;
 owner through078fddd. Original92e76d8 checkout/data/build/six live admissions unchanged.
