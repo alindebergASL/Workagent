@@ -338,6 +338,36 @@ second_ids = {'workspace': second, 'conversation_id': open_day.id,
               'checklist_id': checklist_id,
               'assignment_ids': open_detail.assignment_ids,
               'chat_id': chat.id}
+# A third workspace with its own synthetic grant (one per workspace and
+# person), so the wide table below doesn't use up another project's runs.
+third = 'studio-kit'
+with Database(admin).transaction() as c:
+    w = Workspace(id=third, name='Studio kit', owner_id=p.id)
+    c.execute('INSERT INTO workspaces(id,data) VALUES (%s,%s)', (w.id, encoded(w)))
+    c.execute("INSERT INTO memberships(workspace_id,principal_id,role) VALUES (%s,%s,'owner')", (w.id, p.id))
+ws, me = third, (service, p, third, [], admin)
+kit = area('Open day kit', 'Lend out the studio kit for the open day and get it all back.', 'project')
+activate_many(me, [kit])
+# A wide table: six typed columns, one of them a long note. It has to fit
+# the work pane, with every column (and its editor) reachable.
+F = lambda key, label, type_, **kw: {'key': key, 'label': label, 'type': type_, 'editable': True,
+                                     'unit': kw.get('unit'), 'scale': kw.get('scale'), 'enum': kw.get('enum')}
+LOANS = {'kind': 'structured_table', 'version': 'structured-table/v1', 'title': 'Lending desk', 'notes': [],
+         'fields': [F('item', 'Item', 'text'), F('borrower', 'Borrower', 'text'),
+                    F('days', 'Loan', 'integer', unit='days'), F('deposit', 'Deposit', 'decimal', unit='EUR', scale=2),
+                    F('approved', 'Approved', 'boolean'), F('notes', 'Notes', 'text')],
+         'rows': [{'row_id': rid, 'cells': [{'field_key': k, 'value': v} for k, v in zip(
+             ['item', 'borrower', 'days', 'deposit', 'approved', 'notes'], vals)]} for rid, vals in [
+             ('lantern', ['Lantern', 'Studio 4', 3, '20.00', False, 'Check the battery pack before it goes out.']),
+             ('repair', ['Repair bag', 'Front desk', 7, '35.00', True,
+                         'Hold for the open day: the tools stay at the desk until the last tour has finished, '
+                         'then go back to the workshop cupboard and are counted against the inventory list.']),
+             ('stand', ['Display stand', 'Gallery', 14, '50.00', True, 'Needs two people to carry.'])]]}
+runs['loans'] = ask(kit.id, 'Set up a lending desk table for the open day kit.', [publish(LOANS)],
+                    'I set up the lending desk.', name='loans')
+assert runs['loans'][1] in ('ready', 'partial'), runs['loans']
+kit_ids = {'workspace': third, 'conversation_id': kit.id,
+           'loans_id': s.get_conversation(p, ws, kit.id).artifact_ids[0]}
 ws, me = first_ws, first_me
 result = {
     'mode': 'real_service_postgresql_worker_with_synthetic_provider_transport',
@@ -348,6 +378,7 @@ result = {
     'newsletter': {'conversation_id': newsletter.id},
     'plain': {'conversation_id': plain.id},
     'second': second_ids,
+    'kit': kit_ids,
     'supplier': {'workspace': second, 'conversation_id': supplier.id, 'evidence_id': evidence_id,
                  'compare_id': compare_id, 'findings_id': findings_id,
                  'priorities_id': priorities_id},

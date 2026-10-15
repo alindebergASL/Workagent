@@ -1718,3 +1718,49 @@ box, that save and reopen keep them, and that they reopen whole.
   - routing 7 + Space 23 + refusal 4;
   - 292 unit tests;
   - 38 DOM regressions.
+
+## A wide table stays inside the work pane
+
+Hermes 6203855351 reported a live six-column lending-desk table at 1440px with page-level sideways
+scroll, and the Notes column (and the row controls) off-screen.
+
+**Causes.**
+1. The visually hidden "Row actions" heading (`.sr-only`, `position: absolute`) had no containing
+   block inside the table's scroll region. It escaped the region's `overflow: auto` and widened the
+   whole page.
+2. Six columns with 160px text inputs plus a 16rem long column outgrew the 819px pane. The
+   rightmost columns, including each row's Remove, sat off-screen with no cue on desktop.
+
+**Fix.**
+- The table region is the containing block (`position: relative`), so nothing in it widens the
+  page.
+- The row-actions column sticks to the right edge, so every row's Remove stays in view. On a phone
+  it stays in the card as before.
+- "Scroll sideways for more columns →" shows whenever the region is actually wider inside than it
+  shows, measured as it resizes, not only on narrow screens.
+- In tables of four or more columns with a long column, short text needs less room (7rem inputs)
+  and the long column 13rem. At 1440 the six-column table's Notes now reads whole in view.
+- Explicit save and human-field tracking are unchanged.
+
+**Regression.**
+- The fixture adds a "Studio kit" workspace with its own synthetic grant, so no other project's
+  runs are used. Its "Open day kit" project holds the six-column "Lending desk" table, whose
+  "Repair bag" note is long.
+- A new `space-experience.mjs` case checks that:
+  - at 1440 the page doesn't scroll sideways;
+  - each row's Remove is inside the visible table;
+  - the cue shows exactly when the table overflows;
+  - the long note can be brought into view, edited, saved and reopened;
+  - the project page doesn't scroll sideways either;
+  - nor does the page at 390.
+- The Spaces project count is now 5.
+- Separately, the "change beside a view asks before closing" case now clicks the field (the browser
+  only asks after a user gesture since load) and waits for the unsaved state before closing. It
+  failed once on an earlier run, then passed 3/3.
+
+**Results.**
+- RED with the old table: "the page scrolls sideways at 1440".
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions.

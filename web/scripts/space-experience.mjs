@@ -136,7 +136,7 @@ try {
     page.getByRole("link", { name: /Monthly newsletter/ }),
   ).toContainText("Ongoing workflow");
   // Each workspace's projects are listed, and each opens in its own workspace.
-  await expect(page.locator(".work-row")).toHaveCount(4);
+  await expect(page.locator(".work-row")).toHaveCount(5);
   await expect(
     page.getByRole("link", { name: /Spring open day/ }),
   ).toHaveAttribute(
@@ -1352,7 +1352,16 @@ try {
     const weight = tab.getByTestId("view-inputs").getByLabel(/Weight on price/);
     await expect(weight).toBeVisible({ timeout: 15000 });
     const was = await weight.inputValue();
+    // A real click first: the browser only asks before closing a page the
+    // person has interacted with since it loaded. Then wait until the change
+    // is shown as unsaved, so the guard is in place before closing.
+    await weight.click();
     await weight.fill(was === "40" ? "45" : "40");
+    await expect(
+      tab
+        .getByTestId("view-inputs")
+        .getByRole("button", { name: "Discard my change" }),
+    ).toBeVisible();
     assert.equal(await tryClose(), true, "a change beside a view asks too");
     await tab
       .getByTestId("view-inputs")
@@ -1665,6 +1674,71 @@ try {
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a table of long steps and its notes read whole where they're edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
+    );
+  }
+
+  // A wide table (six typed columns, one a long note) stays inside the work
+  // pane: the page never scrolls sideways, each row's own controls stay in
+  // view, the table says when columns are out of view, and the last column
+  // can be reached, edited and saved.
+  {
+    const sec = ids.kit;
+    const loansUrl = `${origin}/conversations/${sec.conversation_id}/artifacts/${sec.loans_id}?workspace=${sec.workspace}`;
+    const noPageScroll = () =>
+      page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(loansUrl);
+    const grid = page.getByRole("region", { name: "Editable table" });
+    await expect(grid).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(300);
+    assert.ok(await noPageScroll(), "the page scrolls sideways at 1440");
+    const inView = async (loc) => {
+      const [g, b] = await Promise.all([grid.boundingBox(), loc.boundingBox()]);
+      return b.x >= g.x - 1 && b.x + b.width <= g.x + g.width + 1;
+    };
+    for (const name of ["Lantern", "Repair bag", "Display stand"])
+      assert.ok(
+        await inView(grid.getByRole("button", { name: `Remove ${name}` })),
+        `${name}'s Remove is out of view`,
+      );
+    const overflows = await grid.evaluate(
+      (el) => el.scrollWidth > el.clientWidth + 1,
+    );
+    await expect(page.getByTestId("table-scroll-cue")).toHaveCount(
+      overflows ? 1 : 0,
+    );
+    await shot(page, "13-wide-table-desktop");
+    const note = grid.getByLabel("Repair bag Notes", { exact: true });
+    await note.scrollIntoViewIfNeeded();
+    assert.ok(await inView(note), "the last column can't be brought into view");
+    const kept = `${await note.inputValue()} Count the screwdrivers twice.`;
+    await note.fill(kept);
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect(page.getByText("Your edits are saved.")).toBeVisible({
+      timeout: 15000,
+    });
+    await page.reload();
+    await expect(note).toHaveValue(kept, { timeout: 15000 });
+    assert.ok(await noPageScroll(), "the saved wide table widens the page");
+    await page.goto(
+      `${origin}/spaces/${sec.workspace}/work/${sec.conversation_id}?work=${sec.loans_id}`,
+    );
+    await expect(page.locator(".space-work .flex-table")).toBeVisible({
+      timeout: 15000,
+    });
+    assert.ok(await noPageScroll(), "the project page scrolls sideways");
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(loansUrl);
+    await expect(grid).toBeVisible({ timeout: 15000 });
+    await page.waitForTimeout(300);
+    assert.ok(await noPageScroll(), "the page scrolls sideways at 390");
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    pass(
+      "a wide table stays inside the work pane: no sideways page scroll, row controls in view, out-of-view columns said, the last column edited and saved",
     );
   }
 

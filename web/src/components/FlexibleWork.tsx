@@ -1384,7 +1384,7 @@ function TableRead({ body }: { body: StructuredTable }) {
       role="region"
       aria-label={body.title}
     >
-      <table className={longText.size ? "has-long" : undefined}>
+      <table className={tableClass(longText, body.fields.length)}>
         <thead>
           <tr>
             {body.fields.map((f) => (
@@ -1428,6 +1428,32 @@ function TableRead({ body }: { body: StructuredTable }) {
 }
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+/** A table's layout class: long text takes the room; many columns share it. */
+const tableClass = (long: Set<string>, columns: number) =>
+  long.size ? (columns >= 4 ? "has-long many" : "has-long") : undefined;
+
+/**
+ * Whether a scrolling region is wider inside than it shows, re-measured as
+ * it or its content resizes. While it is, some columns are out of view.
+ */
+function useOverflows(
+  ref: React.RefObject<HTMLElement | null>,
+  content: unknown,
+): boolean {
+  const [over, setOver] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setOver(el.scrollWidth > el.clientWidth + 1);
+    measure();
+    const seen = new ResizeObserver(measure);
+    seen.observe(el);
+    if (el.firstElementChild) seen.observe(el.firstElementChild);
+    return () => seen.disconnect();
+  }, [ref, content]);
+  return over;
+}
 
 /**
  * Keeps a text box as tall as its text, so it reads whole instead of
@@ -1538,6 +1564,8 @@ function TableEditor({
   const errors = Object.entries(raw).filter(([, c]) => c.error);
   const longText = longTextFields(saved);
   const nameKey = rowNameField(body)?.key;
+  const regionRef = useRef<HTMLDivElement>(null);
+  const overflows = useOverflows(regionRef, body);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
     const parsed = parseCell(field, text);
@@ -1557,18 +1585,24 @@ function TableEditor({
           ? "Change a value, then save."
           : "Edit any value, then save."}
         {readOnly ? " Shaded columns can’t be edited." : ""}
-        <span className="scroll-cue" aria-hidden="true">
-          {" "}
-          Scroll sideways for more columns →
-        </span>
+        {overflows ? (
+          // Said whenever the table is wider than the space it has, not only
+          // on narrow screens: some columns are out of view.
+          <span className="scroll-cue on" data-testid="table-scroll-cue">
+            {" "}
+            Scroll sideways for more columns →
+          </span>
+        ) : null}
       </p>
       <div
         className="product-scroll flex-table"
         tabIndex={0}
         role="region"
         aria-label="Editable table"
+        ref={regionRef}
+        data-overflow={overflows ? "true" : undefined}
       >
-        <table className={longText.size ? "has-long" : undefined}>
+        <table className={tableClass(longText, body.fields.length)}>
           <thead>
             <tr>
               {body.fields.map((f) => (
@@ -1582,7 +1616,7 @@ function TableEditor({
                   {fieldHeading(f)}
                 </th>
               ))}
-              <th scope="col">
+              <th scope="col" className="row-actions">
                 <span className="sr-only">Row actions</span>
               </th>
             </tr>
@@ -1664,7 +1698,7 @@ function TableEditor({
                       </td>
                     );
                   })}
-                  <td data-label="">
+                  <td data-label="" className="row-actions">
                     {!valuesOnly && canRemoveRow(saved, body, r.row_id) ? (
                       <button
                         type="button"
