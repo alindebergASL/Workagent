@@ -225,6 +225,8 @@ try {
 
   // A workspace this person can't open is not available, and nothing is
   // read from it or from any other workspace instead.
+  // Leave the previous page first, so its own polling can't be counted.
+  await page.goto("about:blank");
   for (const named of ["isolated-workspace", "no-such-workspace"]) {
     got = since();
     await page.goto(`${origin}/conversations/${chatId}?workspace=${named}`);

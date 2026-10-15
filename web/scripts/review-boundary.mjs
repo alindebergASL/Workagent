@@ -36,6 +36,8 @@ const mocks = {
   "@/lib/client/real-api": `import {ApiError} from '@/lib/contract/errors';
  export const client={GET:async(path,options)=>{window.calls.push({method:'GET',path,ws:options.params.path.workspace_id,aid:options.params.path.artifact_id});
  if(path.includes('/artifacts/')){
+ if(window.artifactMode==='denied')throw new ApiError({code:'not_found_or_not_authorized',status:404,message:'Synthetic removal'});
+ if(window.artifactMode==='hang')return new Promise(()=>{});
  if(path.endsWith('/proposals'))return {items:[],next_cursor:null};
  const id=options.params.path.artifact_id;
  return {id,current_revision_id:window.revision,current_revision:{body_hash:'h-'+window.revision,body:window.bodyKind==='table'?{kind:'table',title:'Saved '+id,columns:['Item'],rows:[{Item:'Row'}]}:{kind:'file',title:'Saved '+id,content:'Content '+window.revision}}};}
@@ -63,7 +65,7 @@ const mocks = {
   "next/navigation":
     "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')},replace:()=>{}});export const usePathname=()=>'/spaces/w/work/c';export const useSearchParams=()=>new URLSearchParams(window.searchParams||'');",
   "@/components/ConversationPeek":
-    "export const ConversationPeek=(p)=>{window.peek={target:p.target,about:p.about?String(p.about(undefined)):null};return null;};",
+    "import {renderToStaticMarkup} from 'react-dom/server';export const ConversationPeek=(p)=>{const a=p.about?p.about(undefined):null;window.peek={target:p.target,about:a?renderToStaticMarkup(a):null,paused:p.paused??null,idleHint:p.idleHint??null};return null;};",
   "@/lib/client/capabilities":
     "export const CAPABILITIES={conversation:true,delegateWithoutContext:false,naturalAdmission:true};",
 };
@@ -271,6 +273,92 @@ try {
         await p.evaluate(() => window.peek.target.body_hash),
         await p.evaluate(() => "h-" + window.revision),
       );
+    },
+  );
+  await run(
+    "chosen work that stops being available leaves nothing of it on screen; the choice and draft stay",
+    async (p) => {
+      await p.evaluate(() => {
+        window.searchParams = "work=a";
+        window.space = { ws: "w", id: "c", artifactIds: ["a"] };
+        window.bodyKind = "table";
+        window.artifactMode = undefined;
+        window.mount("space");
+      });
+      await expect(p.locator('[data-artifact-id="a"]')).toBeVisible();
+      await expect(
+        p.getByRole("button", { name: "Ask about this" }),
+      ).toBeVisible();
+      await p.evaluate(() => {
+        window.artifactMode = "denied";
+      });
+      await p.getByRole("button", { name: "Refresh this project" }).click();
+      await expect(
+        p.locator(".notice-line").filter({ hasText: /this project’s work/ }),
+      ).toBeVisible();
+      await expect(p.locator('[data-artifact-id="a"]')).toHaveCount(0);
+      await expect(p.getByTestId("chosen-unavailable")).toBeVisible();
+      for (const name of ["Ask about this", "Open to edit", "Review and edit"])
+        await expect(p.getByRole("button", { name })).toHaveCount(0);
+      await expect(p.getByRole("link", { name: "Open to edit" })).toHaveCount(
+        0,
+      );
+      await expect(p.getByText("Checking", { exact: false })).toHaveCount(0);
+      const peek = await p.evaluate(() => window.peek);
+      assert.match(peek.paused, /isn’t available to you now/);
+      assert.doesNotMatch(peek.about, /the whole project</);
+      assert.match(peek.about, /the work you chose/);
+      assert.doesNotMatch(peek.idleHint, /project as a whole/);
+      assert.equal(await p.evaluate(() => window.searchParams), "work=a");
+      await p.evaluate(() => {
+        window.artifactMode = undefined;
+      });
+    },
+  );
+  await run(
+    "while the chosen work is checked or missing, nothing says the reply is about the whole project",
+    async (p) => {
+      await p.evaluate(() => {
+        window.searchParams = "work=a";
+        window.space = { ws: "w", id: "c", artifactIds: ["a"] };
+        window.bodyKind = "table";
+        window.artifactMode = "hang";
+        window.mount("space");
+      });
+      await expect
+        .poll(() => p.evaluate(() => window.peek?.paused))
+        .toMatch(/Checking the work you chose/);
+      let peek = await p.evaluate(() => window.peek);
+      assert.doesNotMatch(peek.idleHint, /project as a whole/);
+      assert.doesNotMatch(peek.about, /the whole project</);
+      await p.evaluate(() => window.unmount());
+      await delay(100);
+      await p.evaluate(() => {
+        window.artifactMode = undefined;
+        window.searchParams = "work=gone";
+        window.mount("space");
+      });
+      await expect(p.getByTestId("choose-work")).toContainText(
+        "isn’t in this project any more",
+      );
+      await expect(p.getByTestId("choose-work")).not.toContainText(
+        "project as a whole",
+      );
+      peek = await p.evaluate(() => window.peek);
+      assert.match(peek.paused, /isn’t in this project any more/);
+      assert.doesNotMatch(peek.idleHint, /project as a whole/);
+      await p.evaluate(() => window.unmount());
+      await delay(100);
+      await p.evaluate(() => {
+        window.searchParams = "";
+        window.mount("space");
+      });
+      await expect(p.getByTestId("choose-work")).toContainText(
+        "project as a whole",
+      );
+      peek = await p.evaluate(() => window.peek);
+      assert.match(peek.idleHint, /project as a whole/);
+      assert.equal(peek.paused, null);
     },
   );
   await run(

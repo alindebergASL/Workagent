@@ -926,3 +926,23 @@ real UI, API and PostgreSQL. It records the workspace of every record request:
 RED on `b41973e`: links carry no workspace. Following them reads
 `local-workspace`, gets 404 and shows "This item isn’t available to you". GREEN
 with this change.
+
+## Review fixes on the Space selection (comment 6184537730)
+
+1. **Chosen work that becomes unavailable.** When re-reading the project's work
+   is refused (`not_found_or_not_authorized` or `unauthenticated`), the view no
+   longer shows the last-read body, "Open to edit" or "Ask about this", and no
+   longer says "Checking…" indefinitely.
+   - It now says the chosen work isn't available to you.
+   - The reply is paused and says the same.
+   - The choice (`?work=`) and the draft are kept.
+   - A temporary read failure still shows the work as last read.
+2. **Scope wording follows the selection.** While a chosen work is being checked,
+   is missing or is unavailable, neither the work list, the reply hint nor "About"
+   says the message is about the whole project. That wording appears only when
+   nothing is chosen, or after "Ask about the whole project instead".
+
+Regressions (real React in Chromium, `review-boundary.mjs`, 2 new cases):
+- RED on `5685b10`: the last-read work stays on screen after the refusal, and
+  the hint says "about the project as a whole" during a pending choice.
+- GREEN: 15/15.
