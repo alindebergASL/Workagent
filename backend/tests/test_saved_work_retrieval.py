@@ -181,7 +181,7 @@ def test_resume_after_retained_read_does_not_repeat_read(context,tmp_path):
     assert proposal.body.blocks==a.current_revision.body.blocks
 
 
-@pytest.mark.parametrize('mutation',['body','target','bytes','limit','remaining','provenance','author','base','completion'])
+@pytest.mark.parametrize('mutation',['body','target','bytes','limit','remaining','provenance','author','base','completion','receipt_rehashed','receipt_without_automatic','null_terminal','attempt_id','request_hash','decision_hash','operation_hash'])
 def test_sql_refuses_forged_saved_read_evidence(context,tmp_path,monkeypatch,mutation):
     import psycopg
     from workagent.responses_ledger import Ledger
@@ -208,9 +208,38 @@ def test_sql_refuses_forged_saved_read_evidence(context,tmp_path,monkeypatch,mut
     elif mutation=='provenance': result['provenance']='model_guess'
     elif mutation=='author': result['author_kind']='worker'
     elif mutation=='base': value['binding']['base_hash']='0'*64
+    elif mutation in ('receipt_rehashed','receipt_without_automatic','attempt_id','request_hash','decision_hash','operation_hash'):
+        from workagent.service import digest
+        key={'attempt_id':'attempt_id','request_hash':'selection_request_sha256','decision_hash':'decision_sha256','operation_hash':'operation_hash'}.get(mutation,'selection_response_id')
+        value['binding'][key]='f'*64
+        if mutation=='receipt_without_automatic': value['verification'].pop('automatic',None)
+        else: value['verification']['automatic']['staged_sha256']=digest({k:value[k] for k in ('status','body','file','output','binding')})
+    elif mutation=='null_terminal': value['terminal_outcome']=None
     else: value['verification']['satisfied']=True
     with pytest.raises(psycopg.errors.RaiseException):
         with s.db.transaction() as c:
             c.execute('INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,%s,%s,%s)',
                 (new_id(),captured['attempt'],captured['phase'],'tool_result',encoded(value)))
     assert not s.proposals(p,ws,a.id).items
+
+
+@pytest.mark.parametrize('mutation',['omit','change','rename','unprotect'])
+def test_model_cannot_remove_or_change_protected_human_note(context,tmp_path,mutation):
+    s,p,ws,_,_=context
+    cv,a=large_work(context); activate(context,cv)
+    q=s.post_message(p,ws,cv.id,cmd(PostMessage,expected_work_version=cv.work_version,text='Shorten the first section; keep my note'))
+    def revise(ctx):
+        result=ctx['adaptive']['observations'][0]['capability_result']['result']
+        body=copy.deepcopy(result['body'])
+        if mutation=='omit': body['blocks']=body['blocks'][:-1]
+        elif mutation=='change': body['blocks'][-1]['text']='Changed note'
+        elif mutation=='rename': body['blocks'][-1]['block_id']='another-id'
+        else: body['blocks'][-1]['kind']='paragraph'
+        return {'kind':'publish_artifact','target':result['target'],'body':body}
+    def recover(ctx):
+        assert ctx['adaptive']['observations'][-1]['status']=='rejected'
+        return {'kind':'stop','outcome':'blocked','text':'The proposed change did not preserve your protected note; no revision was proposed.'}
+    fake=CheckedProvider([read_choice,revise,recover]); outcome=worker(context,fake,tmp_path).work(p,ws,q.run.id)
+    if fake.failures: raise fake.failures[0]
+    assert not s.proposals(p,ws,a.id).items
+    assert s.get_artifact(p,ws,a.id).current_revision_id==a.current_revision_id
