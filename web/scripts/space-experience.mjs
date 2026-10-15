@@ -195,13 +195,29 @@ try {
   await page.keyboard.press("Enter");
   await expect(item(planId)).toHaveAttribute("aria-pressed", "true");
   await expect(page).toHaveURL(new RegExp(`work=${planId}`));
-  await expect(page.locator("#space-selected-heading")).toBeFocused();
-  await expect(page.locator("#space-selected-heading")).toHaveText(
-    "Workshop plan",
+  // The chosen work opens in place under its own entry, once: focus stays on
+  // the entry the person chose, which names the opened content.
+  await expect(item(planId)).toBeFocused();
+  await expect(item(planId)).toHaveAttribute("aria-controls", "space-selected");
+  const opened = page.locator("#space-selected");
+  await expect(opened).toBeVisible();
+  await expect(opened).toHaveAttribute(
+    "aria-labelledby",
+    `space-item-${planId}`,
   );
+  await expect(
+    page
+      .locator("li")
+      .filter({ has: item(planId) })
+      .locator("#space-selected"),
+  ).toHaveCount(1);
+  await expect(page.locator(".space-work.card")).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "Workshop plan" }),
+  ).toHaveCount(0);
   await expect(about).toContainText("About: Workshop plan");
   pass(
-    "keyboard selects work; its heading takes focus; the reply is now about it",
+    "keyboard selects work; it opens once, in place under its entry, and focus stays there; the reply is now about it",
   );
 
   // A draft and the selection survive a reload.

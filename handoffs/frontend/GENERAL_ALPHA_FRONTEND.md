@@ -1030,3 +1030,25 @@ adds a paragraph and removes it, adds "Your note", types, saves, reads back
 through the API (exactly one `protected_note` with the text, no temporary
 part, `author_kind: human`), reloads and finds the note labelled. RED on
 `0471c53` (no way to add). GREEN 15/15; DOM regressions 37/37.
+
+## The chosen work opens once, in place
+
+The project page showed the chosen work twice: as its list entry, then again as
+a separate panel below the list with the same title. It now opens under its own
+entry, as one card.
+- The entry (`aria-pressed`, `aria-controls="space-selected"`) is the
+  heading, and the opened content is labelled by it.
+- Focus stays on the entry the person chose, as in an expanding list. Before,
+  it jumped to a second heading further down.
+- While the work list is being re-read and the choice is shown as last read,
+  that content still stands on its own, as before.
+- The selection, the draft, the exact target and pausing while a choice is
+  checked are unchanged.
+
+Regression: `space-experience.mjs` case 3 checks:
+- the entry stays focused and controls the opened content;
+- that content sits inside the entry's own list item;
+- there is no separate panel and no second "Workshop plan" heading.
+
+RED on `bb82644`: focus moved to the separate panel's heading. GREEN 15/15,
+routing 7/7, review-boundary 15/15.
