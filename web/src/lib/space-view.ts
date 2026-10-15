@@ -78,6 +78,18 @@ export function workKind(artifact: S["Artifact"]): string {
         : "Work";
 }
 
+/**
+ * Whether a reply can name this work as its subject: the kinds the service
+ * accepts as an exact target (tables, tools and self-describing work). A
+ * saved file can be read and opened, but a reply about it goes to the project.
+ */
+export function canAskAbout(artifact: S["Artifact"]): boolean {
+  const body = artifact.current_revision.body;
+  if (isFlexible(body)) return true;
+  const kind = (body as { kind?: string }).kind;
+  return kind === "table" || kind === "tool";
+}
+
 export const workHref = (cid: string, aid: string) =>
   `/conversations/${encodeURIComponent(cid)}/artifacts/${encodeURIComponent(aid)}`;
 

@@ -305,11 +305,9 @@ try {
     .fill(
       "Run a two-day workshop for 40 people in Leeds, under €9,000, with a remote seat if affordable.",
     );
-  await page.reload();
-  await expect(page.getByLabel("What it’s for", { exact: true })).toHaveValue(
-    /remote seat if affordable/,
-    { timeout: 15000 },
-  );
+  // The project changes elsewhere while the draft is open, and only then
+  // does the page reload: the restored draft must still be checked against
+  // the version it started from, not the one read after the reload.
   const now = (await api(`/work-areas/${cid}`)).body.conversation;
   const meanwhile = await api(`/work-areas/${cid}`, {
     schema_version: "workagent/v1",
@@ -320,6 +318,11 @@ try {
     goal: now.work_area.goal,
     kind: "project",
   });
+  await page.reload();
+  await expect(page.getByLabel("What it’s for", { exact: true })).toHaveValue(
+    /remote seat if affordable/,
+    { timeout: 15000 },
+  );
   assert.equal(meanwhile.status, 200, JSON.stringify(meanwhile.body));
   // The re-read after the refusal is slow (held until released here), and the
   // person cancels, reopens and tries to save before it lands. That save must

@@ -14,6 +14,7 @@ import { isFlexible } from "@/lib/flexible";
 import { formatTime } from "@/lib/time";
 import {
   actionable,
+  canAskAbout,
   outdated,
   proposalSummary,
   spaceStanding,
@@ -156,12 +157,15 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
     workUnreadable: Boolean(work.error),
     holds,
   });
+  // A reply names only work the person chose and the service accepts as a
+  // subject; anything else (a saved file) leaves it about the project.
+  const subject = selected && canAskAbout(selected.artifact) ? selected : null;
   const target: ExactTarget | null | undefined = CAPABILITIES.naturalAdmission
-    ? selected
+    ? subject
       ? {
-          artifact_id: selected.artifact.id,
-          revision_id: selected.artifact.current_revision_id,
-          body_hash: selected.artifact.current_revision.body_hash,
+          artifact_id: subject.artifact.id,
+          revision_id: subject.artifact.current_revision_id,
+          body_hash: subject.artifact.current_revision.body_hash,
         }
       : null
     : undefined;
@@ -262,7 +266,11 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
         <SelectedWork
           cid={id}
           item={selected}
-          onAsk={() => askAbout(selected.artifact.id)}
+          onAsk={
+            canAskAbout(selected.artifact)
+              ? () => askAbout(selected.artifact.id)
+              : undefined
+          }
         />
       ) : null}
       <Ongoing standing={standing} />
@@ -281,7 +289,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
       held={res.reconnecting || Boolean(res.error)}
       placeholder="Ask, or ask for a change…"
       idleHint={
-        selected
+        subject
           ? "Your message is about the selected work’s saved version."
           : "Your message is about the project as a whole."
       }
@@ -295,25 +303,34 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
               : null
             : target === undefined
               ? undefined
-              : selected
-                ? workTitle(selected.artifact)
+              : subject
+                ? workTitle(subject.artifact)
                 : null;
         if (shown === undefined) return null;
         return (
-          <p className="reply-about small" data-testid="reply-about">
-            <span className="muted">About:</span>{" "}
-            <strong>{shown ?? "the whole project"}</strong>
-            {pending === undefined && selected ? (
-              <button
-                type="button"
-                className="link-quiet small"
-                aria-label={`Stop replying about ${workTitle(selected.artifact)}`}
-                onClick={() => select(null)}
-              >
-                Ask about the whole project instead
-              </button>
+          <div className="reply-about small" data-testid="reply-about">
+            <p>
+              <span className="muted">About:</span>{" "}
+              <strong>{shown ?? "the whole project"}</strong>
+              {pending === undefined && subject ? (
+                <button
+                  type="button"
+                  className="link-quiet small"
+                  aria-label={`Stop replying about ${workTitle(subject.artifact)}`}
+                  onClick={() => select(null)}
+                >
+                  Ask about the whole project instead
+                </button>
+              ) : null}
+            </p>
+            {pending === undefined && selected && !subject ? (
+              <p className="muted" data-testid="reply-about-file">
+                A reply can’t point at a saved file like “
+                {workTitle(selected.artifact)}”, so it goes to the project; name
+                the file in your message.
+              </p>
             ) : null}
-          </p>
+          </div>
         );
       }}
     />
@@ -421,7 +438,8 @@ function SelectedWork({
 }: {
   cid: string;
   item: SpaceWorkItem;
-  onAsk: () => void;
+  /** Absent when a reply can't name this kind of work. */
+  onAsk?: () => void;
 }) {
   const body = item.artifact.current_revision.body;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -468,9 +486,15 @@ function SelectedWork({
         <Link className="btn btn-sm" href={workHref(cid, item.artifact.id)}>
           {item.pending.length ? "Review and edit" : "Open to edit"}
         </Link>
-        <button type="button" className="btn btn-sm btn-quiet" onClick={onAsk}>
-          Ask about this
-        </button>
+        {onAsk ? (
+          <button
+            type="button"
+            className="btn btn-sm btn-quiet"
+            onClick={onAsk}
+          >
+            Ask about this
+          </button>
+        ) : null}
       </div>
       {ready.length ? (
         <div className="notice-line space-proposal" role="note">

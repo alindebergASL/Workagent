@@ -38,7 +38,7 @@ const mocks = {
  if(path.includes('/artifacts/')){
  if(path.endsWith('/proposals'))return {items:[],next_cursor:null};
  const id=options.params.path.artifact_id;
- return {id,current_revision_id:window.revision,current_revision:{body:{kind:'file',title:'Saved '+id,content:'Content '+window.revision}}};}
+ return {id,current_revision_id:window.revision,current_revision:{body_hash:'h-'+window.revision,body:window.bodyKind==='table'?{kind:'table',title:'Saved '+id,columns:['Item'],rows:[{Item:'Row'}]}:{kind:'file',title:'Saved '+id,content:'Content '+window.revision}}};}
  if(window.mode==='absent')throw new ApiError({code:'unsupported_operation',status:409,message:'Synthetic absence'});
  if(window.mode==='denied')throw new ApiError({code:'not_found_or_not_authorized',status:404,message:'Synthetic denial'});
  if(window.mode==='error')throw new ApiError({code:'transport',status:0,message:'Synthetic outage'});
@@ -62,7 +62,8 @@ const mocks = {
     "import React from 'react';export default function Link(p){return React.createElement('a',p);}",
   "next/navigation":
     "export const useRouter=()=>({push:()=>{throw new Error('Unexpected navigation')},replace:()=>{}});export const usePathname=()=>'/spaces/w/work/c';export const useSearchParams=()=>new URLSearchParams(window.searchParams||'');",
-  "@/components/ConversationPeek": "export const ConversationPeek=()=>null;",
+  "@/components/ConversationPeek":
+    "export const ConversationPeek=(p)=>{window.peek={target:p.target,about:p.about?String(p.about(undefined)):null};return null;};",
   "@/lib/client/capabilities":
     "export const CAPABILITIES={conversation:true,delegateWithoutContext:false,naturalAdmission:true};",
 };
@@ -237,6 +238,39 @@ try {
       const stopped = await counts();
       await delay(300);
       assert.deepEqual(await counts(), stopped);
+    },
+  );
+  await run(
+    "a selected file is shown but never becomes a reply's exact subject; a table does",
+    async (p) => {
+      await p.evaluate(() => {
+        window.searchParams = "work=a";
+        window.space = { ws: "w", id: "c", artifactIds: ["a"] };
+        window.bodyKind = "file";
+        window.mount("space");
+      });
+      await expect(p.locator('[data-artifact-id="a"]')).toBeVisible();
+      await expect(
+        p.getByRole("button", { name: "Ask about this" }),
+      ).toHaveCount(0);
+      assert.equal(await p.evaluate(() => window.peek.target), null);
+      // Separate commits, so the view really remounts and re-reads.
+      await p.evaluate(() => window.unmount());
+      await delay(100);
+      await p.evaluate(() => {
+        window.bodyKind = "table";
+        window.mount("space");
+      });
+      await expect(
+        p.getByRole("button", { name: "Ask about this" }),
+      ).toBeVisible();
+      await expect
+        .poll(() => p.evaluate(() => window.peek.target?.artifact_id))
+        .toBe("a");
+      assert.equal(
+        await p.evaluate(() => window.peek.target.body_hash),
+        await p.evaluate(() => "h-" + window.revision),
+      );
     },
   );
   await run(

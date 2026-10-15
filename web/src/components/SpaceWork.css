@@ -98,6 +98,10 @@
   justify-self: start;
 }
 .reply-about {
+  display: grid;
+  gap: 4px;
+}
+.reply-about p {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
