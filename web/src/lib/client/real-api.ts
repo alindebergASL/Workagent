@@ -814,6 +814,7 @@ export const realApi = {
 
 function toConversation(c: S["Conversation"]): V.ConversationSummary {
   return {
+    work_area: c.work_area ?? null,
     id: c.id,
     title: c.title,
     state: c.state,
@@ -960,11 +961,13 @@ export const conversationApi = {
     );
     return items.map(toConversation);
   },
-  async get(ws: string, id: string, signal?: AbortSignal) {
+  async get(ws: string, id: string, signal?: AbortSignal, workArea = false) {
     return conversationDetail(
       await unwrap(
         client.GET(
-          "/v1/workspaces/{workspace_id}/conversations/{conversation_id}",
+          workArea
+            ? "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}"
+            : "/v1/workspaces/{workspace_id}/conversations/{conversation_id}",
           {
             params: {
               path: { workspace_id: ws, conversation_id: id },

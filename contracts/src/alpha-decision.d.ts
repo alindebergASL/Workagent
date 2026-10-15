@@ -27,6 +27,41 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** AreaIdentification */
+        AreaIdentification: {
+            /** Goal */
+            goal: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "project" | "workflow";
+            /** Title */
+            title: string;
+        };
+        /** AreaPublish */
+        AreaPublish: {
+            /** Body */
+            body: components["schemas"]["DraftDocument"] | components["schemas"]["DraftTable"] | components["schemas"]["DraftView"];
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "publish_artifact";
+            target: components["schemas"]["DecisionTarget"] | null;
+            work_area: components["schemas"]["AreaIdentification"];
+        };
+        /** AreaReply */
+        AreaReply: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "reply";
+            /** Text */
+            text: string;
+            work_area: components["schemas"]["AreaIdentification"];
+        };
         /** AttachmentRef */
         AttachmentRef: {
             /** Ref */
@@ -360,7 +395,7 @@ export interface components {
         /** AlphaDecision */
         AlphaDecision: {
             /** Decision */
-            decision: components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["RecordResponsibility"];
+            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["RecordResponsibility"];
             /** Goal */
             goal: string;
             /** Success Criteria */

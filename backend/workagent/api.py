@@ -135,6 +135,22 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def get_source(workspace_id:Id,source_id:Id,p:P,meta:Meta):
         return service.get_source(p,workspace_id,source_id)
 
+    @route('/v1/workspaces/{workspace_id}/work-areas','GET','list_work_areas',ConversationPage)
+    def list_work_areas(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
+        return service.list_work_areas(p,workspace_id,cursor,limit)
+
+    @route('/v1/workspaces/{workspace_id}/work-areas','POST','create_work_area',Conversation,201)
+    def create_work_area(workspace_id:Id,body:CreateWorkArea,p:P):
+        return service.create_work_area(p,workspace_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/work-areas/{conversation_id}','GET','get_work_area',ConversationDetail)
+    def get_work_area(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
+        return service.get_work_area(p,workspace_id,conversation_id)
+
+    @route('/v1/workspaces/{workspace_id}/work-areas/{conversation_id}','POST','promote_work_area',Conversation)
+    def promote_work_area(workspace_id:Id,conversation_id:Id,body:PromoteWorkArea,p:P):
+        return service.promote_work_area(p,workspace_id,conversation_id,body)
+
     @route('/v1/workspaces/{workspace_id}/conversations','GET','list_conversations',ConversationPage)
     def list_conversations(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_conversations(p,workspace_id,cursor,limit)

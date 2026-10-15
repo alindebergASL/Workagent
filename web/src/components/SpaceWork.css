@@ -1,0 +1,42 @@
+/* Space previews reuse the canonical read-only renderers. Keep all table
+   fields (especially next actions) readable without a sideways mobile hunt. */
+.space-work {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.space-work .row {
+  justify-content: flex-start;
+}
+.space-work select {
+  max-width: 100%;
+}
+@media (max-width: 600px) {
+  .space-work .product-scroll {
+    overflow: visible;
+  }
+  .space-work table,
+  .space-work tbody,
+  .space-work tr,
+  .space-work td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .space-work thead {
+    display: none;
+  }
+  .space-work tr {
+    margin-block: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .space-work td {
+    box-sizing: border-box;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .space-work td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+  }
+}

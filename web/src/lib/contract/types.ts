@@ -349,6 +349,9 @@ export type TurnState =
   | "outcome_unknown";
 
 export interface ConversationSummary {
+  work_area?:
+    | import("../../../../contracts/src/client").components["schemas"]["WorkAreaMetadata"]
+    | null;
   id: string;
   title: string;
   state: "open" | "cancelled";

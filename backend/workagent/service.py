@@ -60,7 +60,10 @@ class WorkerCapability:
 from .flexible_work import FlexibleWork
 
 
-class ServiceCore(FlexibleWork, Products, Conversations, ProviderAttempts):
+from .work_areas import WorkAreas
+
+
+class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAttempts):
     def __init__(self, db: Database):
         self.db = db
 

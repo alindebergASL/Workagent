@@ -427,7 +427,29 @@ class CreateConversation(Command):
         return self
 
 
+class WorkAreaIdentification(Model):
+    """Bounded descriptive output, never authority or a second work ledger."""
+    title: Annotated[str, Field(min_length=1, max_length=240)]
+    goal: Annotated[str, Field(min_length=1, max_length=2000)]
+    kind: Literal['project', 'workflow']
+
+
+class WorkAreaMetadata(WorkAreaIdentification):
+    origin: Literal['human', 'agent']
+    identified_by_run_id: Id | None = None
+
+
+class CreateWorkArea(CreateConversation):
+    goal: Annotated[str, Field(min_length=1, max_length=2000)]
+    kind: Literal['project', 'workflow']
+
+
+class PromoteWorkArea(Command, WorkAreaIdentification):
+    expected_work_version: Version
+
+
 class Conversation(Model):
+    work_area: WorkAreaMetadata | None = None
     # List/detail projections derived from the immutable message ledger.
     updated_at: AwareDatetime | None = None
     last_message_preview: Annotated[str, Field(max_length=240)] | None = None
@@ -486,6 +508,14 @@ class TurnResult(Model):
     # Extend this typed result family when a broker-backed operation is implemented.
     # No opaque dicts, simulated files/tools, or authority/acceptance fields.
     results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
+    work_area: WorkAreaIdentification | None = None
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_result(self, handler):
+        data=handler(self)
+        if self.work_area is None:
+            data.pop('work_area',None)
+        return data
 
 
 from .general_alpha_models import ResponsibilityOrigin

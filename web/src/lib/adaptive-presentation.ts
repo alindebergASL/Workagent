@@ -102,7 +102,7 @@ export function adaptivePresentation(
         recorded.length === 1
           ? "Responsibility recorded"
           : `${recorded.length} responsibilities recorded`,
-      note: "Saved as a hand-over Workagent holds. Its outcome isn’t verified, and nothing runs for it yet.",
+      note: "At recording, the outcome wasn’t verified and no execution was admitted. Open the current responsibility for its latest status.",
       checks: null,
       changedAttempts: 0,
     };
@@ -157,7 +157,7 @@ export function adaptivePresentation(
   )
     return {
       title: "Requested result verified",
-      note: "The recorded result passed an independent check within the stated scope. Proposed changes still need your approval; later edits are not covered.",
+      note: "The recorded result passed an independent check within the stated scope. Any pending proposals still need your approval; later edits are not covered.",
       checks: automatic.row_count
         ? `Checked every supplied row (${automatic.row_count}).`
         : `Checked the complete supported input range (${automatic.case_count ?? 0} combinations).`,
@@ -170,7 +170,7 @@ export function adaptivePresentation(
   )
     return {
       title: "Result saved — needs review",
-      note: "Your request is not yet verified. Proposed changes still need your approval.",
+      note: "Your request is not yet verified. Open the saved work to inspect its current version and any pending proposals.",
       checks,
       changedAttempts,
     };

@@ -54,6 +54,109 @@
       "title": "AlphaStop",
       "type": "object"
     },
+    "AreaIdentification": {
+      "additionalProperties": false,
+      "properties": {
+        "goal": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "project",
+            "workflow"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "goal",
+        "kind"
+      ],
+      "title": "AreaIdentification",
+      "type": "object"
+    },
+    "AreaPublish": {
+      "additionalProperties": false,
+      "properties": {
+        "body": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DraftDocument"
+            },
+            {
+              "$ref": "#/$defs/DraftTable"
+            },
+            {
+              "$ref": "#/$defs/DraftView"
+            }
+          ],
+          "title": "Body"
+        },
+        "kind": {
+          "const": "publish_artifact",
+          "title": "Kind",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DecisionTarget"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "work_area": {
+          "$ref": "#/$defs/AreaIdentification"
+        }
+      },
+      "required": [
+        "kind",
+        "target",
+        "body",
+        "work_area"
+      ],
+      "title": "AreaPublish",
+      "type": "object"
+    },
+    "AreaReply": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reply",
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "work_area": {
+          "$ref": "#/$defs/AreaIdentification"
+        }
+      },
+      "required": [
+        "kind",
+        "text",
+        "work_area"
+      ],
+      "title": "AreaReply",
+      "type": "object"
+    },
     "AttachmentRef": {
       "additionalProperties": false,
       "properties": {
@@ -1063,6 +1166,12 @@
   "properties": {
     "decision": {
       "anyOf": [
+        {
+          "$ref": "#/$defs/AreaReply"
+        },
+        {
+          "$ref": "#/$defs/AreaPublish"
+        },
         {
           "$ref": "#/$defs/AlphaReply"
         },

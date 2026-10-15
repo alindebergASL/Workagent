@@ -412,6 +412,9 @@ class Products:
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome or 'Local verification failed.') ]
                 acknowledge(c,run.workspace_id,run.id)
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
+            if alpha and staged.get('decision',{}).get('work_area') is not None:
+                from .models import WorkAreaIdentification
+                self._identify_work_area(c,p,run,cv,WorkAreaIdentification.model_validate(staged['decision']['work_area']))
             # Two immutable phase receipts are the model evidence. No domain Body is
             # synthesized into the historical intake ProviderResult family.
             bound,attempt,_=self._receipt_binding(c,receipt)

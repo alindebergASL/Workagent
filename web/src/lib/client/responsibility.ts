@@ -266,7 +266,9 @@ export function useHolds(ws: string | null, ids: string[]) {
         Boolean(d) &&
         Object.values(d!).some(
           (e) =>
-            e.kind === "unknown" || (e.kind === "ready" && !isClosed(e.detail)),
+            e.kind === "unknown" ||
+            (e.kind === "absent" && Boolean(e.assignment.conversation_id)) ||
+            (e.kind === "ready" && !isClosed(e.detail)),
         ),
     },
   );

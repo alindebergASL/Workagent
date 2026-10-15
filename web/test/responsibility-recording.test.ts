@@ -77,7 +77,9 @@ describe("a recording is not a calculation", () => {
     const view = adaptivePresentation("replied", progress)!;
     expect(view.title).toBe("Responsibility recorded");
     expect(view.note).not.toMatch(/calculat|not saved as work/i);
-    expect(view.note).toMatch(/outcome isn’t verified/);
+    expect(view.note).toMatch(/At recording, the outcome wasn’t verified/);
+    expect(view.note).toMatch(/current responsibility/);
+    expect(view.note).not.toMatch(/Workagent holds|nothing runs for it yet/);
   });
   it("still says so when the final explanation never arrived", () => {
     const progress = turnProgress({ ...turn, explanation: null })!;

@@ -715,7 +715,7 @@ function ViewProposal({
 }
 
 /** Any version, read-only. A view reads as its readable version here. */
-function ReadOnly({ body }: { body: FlexibleBody }) {
+export function ReadOnly({ body }: { body: FlexibleBody }) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
     return <TableRead body={body as StructuredTable} />;

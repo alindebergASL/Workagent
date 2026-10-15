@@ -47,7 +47,7 @@ def profile(name=PROFILE):
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
+        for name in ('composition.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):
@@ -298,6 +298,8 @@ class Conversations:
                  'messages':[m.model_dump(mode='json',exclude={'acceptance_checks','operation'} if run.profile==PROFILE else {'acceptance_checks'}) for m in messages],
                  'sources':[{'id':r['id'],'content':r['content']} for r in sources],
                  'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
+        if cv.work_area is not None:
+            context['work_area']=cv.work_area.model_dump(mode='json')
         if run.profile=='general-responses-v1':
             from .general_responses import exact_target
             from .adaptive import contract
@@ -377,6 +379,7 @@ class Conversations:
                 author_id='general-worker',author_kind='assistant',text=result.results[0].text,
                 result=result,evidence_origin='controlled_transport')
             self._append_message(c,run.workspace_id,message)
+            self._identify_work_area(c,p,run,cv,result.work_area)
             run.state='ready'; run.used_units+=1; run.lease_expires_at=None
             self._store_run(c,run)
             self._event(c,p,run.workspace_id,'complete_run',run.id)

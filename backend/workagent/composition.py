@@ -42,6 +42,20 @@ class AlphaReply(Reply):
     text: str = Field(min_length=1,max_length=10000)
 
 
+class AreaIdentification(Closed):
+    title: str = Field(min_length=1,max_length=240)
+    goal: str = Field(min_length=1,max_length=2000)
+    kind: Literal['project','workflow']
+
+
+class AreaReply(AlphaReply):
+    work_area: AreaIdentification
+
+
+class AreaPublish(PublishDecision):
+    work_area: AreaIdentification
+
+
 class AlphaStop(Stop):
     text: str = Field(min_length=1,max_length=10000)
 
@@ -70,7 +84,7 @@ class RecordResponsibility(Closed, Model):
 class AlphaDecision(Closed):
     goal: str = Field(min_length=1,max_length=2000)
     success_criteria: list[WasmCheck | CSVCheck] = Field(max_length=8)
-    decision: AlphaReply | CSVDecision | WasmDecision | PublishDecision | AlphaStop | DiscoverCapabilities | LoadSkill | ReadContext | RecordResponsibility
+    decision: AreaReply | AreaPublish | AlphaReply | CSVDecision | WasmDecision | PublishDecision | AlphaStop | DiscoverCapabilities | LoadSkill | ReadContext | RecordResponsibility
 
 
 class CapabilityDescriptor(Closed):
@@ -91,6 +105,9 @@ After observation, explain the actual result and its limitations. Never claim in
 from .flexible_policy import FLEXIBLE_POLICY
 POLICY += FLEXIBLE_POLICY
 POLICY += ''' You may record_responsibility for an ordinary human request to keep track of local work. Use only responsibility_offer.dependencies verbatim. Supply a bounded goal, completion_criteria and plan; never supply an owner, principal, grant, state, acceptance or completion. If awaiting a person without a connector, use wait.kind=person, next_action.kind=await_event, next_check_in_at=null and no invented dependency. This records local ownership, not external monitoring, bookings or messages. Future continuation requires separate existing grant and budget checks. A simple reply remains valid. Do not record responsibilities recursively from system continuations.'''
+POLICY += ''' For substantial ongoing project/workflow work, choose the reply or publish_artifact variant with work_area: a concise title, goal and project|workflow kind. This identifies a persistent Space in this conversation, not a new tenant, permission, plan checklist or promise of completion. Ordinary answers should use the variant without work_area. Existing Space metadata is preserved; do not attempt to rename human work. Explain the useful output and rationale, not hidden reasoning.'''
+# New additive schema bytes are gated by the existing exact policy/schema/consumer
+# pins. Historical manifests stay frozen; no retained grant is repinned.
 DECISION_SCHEMA=FrozenSchema.freeze(AlphaDecision.model_json_schema(),AlphaDecision)
 
 

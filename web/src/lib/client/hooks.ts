@@ -152,13 +152,17 @@ export function useResource<T>(
     };
   }, [key, load]);
 
+  // Stable for dependent effects; the ref follows the current key's scheduler
+  // (and becomes a no-op on cleanup), without capturing a stale fetcher.
+  const refresh = useCallback(() => refreshRef.current(), []);
+
   return {
     data,
     error,
     loading,
     reconnecting,
     observedAt,
-    refresh: () => refreshRef.current(),
+    refresh,
     set: (next) => {
       generation.current += 1; // An older in-flight response cannot replace a mutation result.
       dataRef.current = next;

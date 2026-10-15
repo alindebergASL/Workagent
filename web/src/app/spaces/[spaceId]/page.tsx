@@ -15,6 +15,7 @@ import { formatTime } from "@/lib/time";
 import { Composer } from "@/components/Composer";
 import { ConversationRow } from "@/components/ConversationRow";
 import { ErrorNotice } from "@/components/ui";
+import { WorkAreaList } from "@/components/WorkAreas";
 import { WorkRow } from "@/components/WorkRow";
 import { useHolds } from "@/lib/client/responsibility";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
@@ -28,7 +29,7 @@ export default function SpacePage() {
   const space = workspaces.find((w) => w.id === id) ?? null;
   const [tab, setTab] = useState<Tab>("work");
   const overview = useWorkOverview(space ? space.id : null);
-  // A Space is exactly its workspace; conversation-owned work joins on that.
+  // Workspace authorization boundary; project Spaces are canonical conversations.
   const made = useConversationWork(space ? space.id : null);
   // Where conversation hand-overs stand now, from their own records.
   const { holds } = useHolds(
@@ -88,6 +89,7 @@ export default function SpacePage() {
           in one place.
         </p>
       </header>
+      {space ? <WorkAreaList ws={space.id} /> : null}
       <Composer
         wsId={space?.id ?? null}
         contextLabel={space?.name ?? "This space"}

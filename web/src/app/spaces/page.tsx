@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useWorkspace } from "@/lib/client/workspace";
+import { WorkAreaList } from "@/components/WorkAreas";
 import { ErrorNotice } from "@/components/ui";
 
 export default function SpacesPage() {
@@ -22,6 +23,10 @@ export default function SpacesPage() {
         </div>
       </header>
       {loading ? <p role="status">Loading your spaces…</p> : null}
+      {workspaces.map((w) => (
+        <WorkAreaList key={w.id} ws={w.id} />
+      ))}
+      <h2>Workspace context</h2>
       <div className="space-grid">
         {workspaces.map((w) => (
           <Link
@@ -44,8 +49,8 @@ export default function SpacesPage() {
         ))}
       </div>
       <p className="hint">
-        This build has one private space. Shared spaces and invitations are not
-        available yet.
+        Projects stay inside their authorized workspace. Shared invitations are
+        not available yet.
       </p>
     </section>
   );

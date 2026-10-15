@@ -27,6 +27,10 @@ function lede(
   made: ConversationWork[],
   holding = 0,
 ): string {
+  // A conversation's coarse assignment cannot establish current ownership
+  // or execution. Let the canonical, freshness-labelled rows make those claims.
+  if (items.some((i) => i.conversation_id))
+    return "Here’s where your work stands. Check each current record before continuing.";
   const phases = items.map(phaseOf);
   // The timely card below carries the exact action; the lede only orients.
   if (

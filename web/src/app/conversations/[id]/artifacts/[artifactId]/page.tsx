@@ -21,6 +21,7 @@ import { ErrorNotice } from "@/components/ui";
 import { ConversationPeek } from "@/components/ConversationPeek";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { WorkSurface } from "@/components/WorkSurface";
+import { ProductView } from "@/components/ProductView";
 import { FlexibleEditor, type Bound } from "@/components/FlexibleWork";
 import { flexibleKind, isFlexible, type CustomView } from "@/lib/flexible";
 import type { ConversationDetailView } from "@/lib/contract/types";
@@ -119,41 +120,6 @@ function readDraft(key: string, artifact: S["Artifact"]): Draft {
     body: structuredClone(body),
     pending: null,
   };
-}
-function ProductView({ body }: { body: ProductBody }) {
-  if (body.kind === "table")
-    return (
-      <div
-        className="product-scroll"
-        tabIndex={0}
-        role="region"
-        aria-label="Table"
-      >
-        <table>
-          <thead>
-            <tr>
-              {body.columns.map((c) => (
-                <th key={c}>{c}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {body.rows.map((row, i) => (
-              <tr key={i}>
-                {body.columns.map((c) => (
-                  <td key={c}>{row[c]}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  return (
-    <pre className="product-code">
-      {body.kind === "tool" ? body.code : body.content}
-    </pre>
-  );
 }
 export default function ProductPage() {
   const { id, artifactId } = useParams<{ id: string; artifactId: string }>();

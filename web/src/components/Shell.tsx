@@ -91,7 +91,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <ul className="nav-links">{nav}</ul>
         {workspaces.length ? (
           <div className="rail-spaces">
-            <h2 className="rail-heading">Your spaces</h2>
+            <h2 className="rail-heading">Workspace context</h2>
             <ul className="nav-links">
               {workspaces.map((w) => {
                 const href = `/spaces/${encodeURIComponent(w.id)}`;
