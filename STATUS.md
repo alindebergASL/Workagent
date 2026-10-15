@@ -7,13 +7,13 @@ not a product pivot. User authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
 ## Candidate and owners
 
-Integration branch: hermes/overnight-intelligent-work, starting at 74331e0;
-Claude cf3c49e provenance correction integrated. Hermes owns backend/runtime,
+Integration branch: hermes/overnight-intelligent-work. Published launch10741ac;
+lease implementation e091c50 merged at a80634e. Claude cf3c49e integrated. Hermes owns backend/runtime,
 contracts and integration; existing Claude session owns web. Active coordination:
 https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6197276516
-Posting is not proof the Cloud session resumed. Lease-coherence implementation is
-running in an isolated backend worktree; parent is implementing supervised launch,
-scoped diagnostics and readiness. No default-branch merge or production replacement.
+Posting is not proof the Cloud session resumed. Lease-coherent visits are integrated
+and parent-verified; supervised launch/scoped readiness are published. Continued
+implementation is owned by the single private-alpha continuation runner. No default-branch merge or production replacement.
 
 ## Current execution / observed progress
 
@@ -32,7 +32,8 @@ was published or regenerated. Original failure evidence and grant package hashes
 unchanged. This failed frozen probe is not silently replaced and does not block
 other development. The prior support document/human note remains available.
 
-Verified: focused backend75PASS after independent-review fixes; frontend270PASS,
+Verified: integrated lease/runtime114PASS in one invocation (earlier300s invocation
+timed out; not counted as PASS). Focused backend75PASS after review fixes; frontend270PASS,
 webpack buildPASS, generated OpenAPI/TypeScript drift and type checksPASS. Independent
 review found three P2 readiness errors (quarantined-only admission, retained-count
 capacity, blocked-vs-human-wait); parent reproduced all three as failing tests and
@@ -52,9 +53,10 @@ are NOT billed cost; no refunds inferred. Historical union72generations/74counts
 585reads/0cancels after same-ID recovery; reservation9.498240 unchanged. Two old
 ambiguous count attempts stay quarantined. No new development envelope installed yet.
 
-Next: integrate/review lease-coherent worker; verify supervised crash/restart and
-unrelated-request progress; install enforceable new development allowance within
-remaining authority; complete natural human correction/changed-requirement loop.
+Next: install enforceable new development allowance within
+remaining authority and activate continuous worker; complete natural human
+correction/changed-requirement loop. Controlled regressions prove same-ID recovery
+and unrelated-request progress; live continuity proof is still required.
 Then reusable tool/skill growth, permitted cross-conversation context, due-condition
 follow-through and browser-persistent Intelligent UI. Different-model/multi-persona
 milestone review and authenticated usable-alpha access remain acceptance work.
