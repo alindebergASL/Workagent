@@ -1,6 +1,28 @@
 # Current runtime status and execution boundary
 
-## Overnight reconciliation — 2026-10-15, batch 1 in progress
+## Overnight batch 2 — latest factual handoff
+
+Integrated application `4d2628` includes backend human-wait preservation and sole
+owner's in-place interactive work / immediate refused-card suppression. Parent124
+responsibility and54 exact-backend tests pass; independent backend55 pass (overlap).
+Final frontend265 tests plus production gates,7 routing/17 real-service Space cases,
+17 controlled retention cases and5 independent oracle/control checks pass. All new
+provider decisions are controlled; no new product-model call or parity claim.
+Full backend run finished with failures in a mixed-source window, not final green;
+see parsed manifest and retained failures. New view/final refusal-overlay independent
+review remains pending. A320px supplier screenshot captured an empty iframe after
+resize; no mobile-interactive acceptance claim despite later reload assertions.
+
+An independently reviewed preparation-only full-history clone is inert with all
+grants inactive. Original data/build/listeners and six consumed live admissions
+remain untouched; original grant remains ACTIVE but exhausted, not fenced.
+No successor installed, no new funds encumbered:40 total authorization,
+24.617200 encumbered /15.382800 unactivated. Unknown counts unchanged/quarantined.
+Direct GLM5.3 critique completed and explicitly adjudicated, not human acceptance.
+See `STATUS.md`, [batch2 report](OVERNIGHT_20261015_BATCH2.md), and
+`evidence/overnight-20261015/batch2/manifest.json` for exact evidence and next gates.
+
+## Prior batch reconciliation (historical at this checkpoint)
 
 Current integration work is isolated at `/home/ubuntu/workagent-overnight-20261015`,
 branch `hermes/overnight-intelligent-work`, starting from `92e76d8`. The old current

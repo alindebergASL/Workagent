@@ -1,0 +1,140 @@
+{
+  "application_commit": "4d262889961484187c4ab229b6f7aa222344f0ea",
+  "backend_commit": "a719f28d3404a491aea874e46c8850bbbbd831a0",
+  "owner_commit": "078fddd",
+  "created_at": "2026-10-15T06:55:23.602331+00:00",
+  "tests": {
+    "responsibility": {
+      "tests": 124,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 124,
+      "failed_cases": []
+    },
+    "exact_backend": {
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 54,
+      "failed_cases": []
+    },
+    "mixed_window_full_backend": {
+      "tests": 1219,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 1217,
+      "failed_cases": [
+        "tests.test_adaptive_guards::test_shared_budget_successor_grants_stop_preserving_local_work",
+        "tests.test_bounded_completion::test_bounded_completion_download_dto_and_rounding_repair"
+      ]
+    },
+    "frontend_passed": 265,
+    "frontend_gates": "type/lint/format/build pass",
+    "routing_cases": 7,
+    "space_cases": 17,
+    "controlled_retention": {
+      "passed": 17,
+      "total": 17
+    },
+    "parent_oracle": {
+      "passed": 5,
+      "total": 5
+    }
+  },
+  "modes": "All new product decisions controlled; no new product inference. Suites overlap; do not sum.",
+  "limitations": [
+    "Full backend run spans source edits; not exact-final green. Failed traces retained; final54 scoped rerun includes both failures.",
+    "New in-place view/final refusal overlay still need focused independent review.",
+    "320px supplier screenshot captured empty iframe after resize; no mobile interactive acceptance. Later reload/content pass is narrower.",
+    "Authored supplier demo is not natural model representation-selection evidence.",
+    "No comparator parity or complete memory/autonomy acceptance."
+  ],
+  "spend": {
+    "new_product_requests": 0,
+    "new_product_spend_usd": "0.000000",
+    "authorization_usd": "40.000000",
+    "encumbered_usd": "24.617200",
+    "unactivated_usd": "15.382800",
+    "union_reservations_usd": "8.97056",
+    "counts": {
+      "count": 44,
+      "dispatch": 42,
+      "read": 377,
+      "cancel": 0
+    },
+    "unknowns": "quarantined unchanged"
+  },
+  "successor": {
+    "clone_prepared": true,
+    "all_clone_grants_inactive": true,
+    "installed": false,
+    "new_encumbrance_usd": "0",
+    "source_active_but_admissions_exhausted": true,
+    "source_fenced": false,
+    "future_draft_allocation_usd": "0.791520",
+    "independent_approval": "preparation only; no installer or runner approval"
+  },
+  "glm": {
+    "http_status": 200,
+    "response_model": "glm-5.3",
+    "id": "20261015143221f07eee0990da4b27",
+    "finish_reason": "stop",
+    "usage": {
+      "completion_tokens": 1097,
+      "completion_tokens_details": {
+        "reasoning_tokens": 34
+      },
+      "prompt_tokens": 910,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "total_tokens": 2007
+    },
+    "complete": true,
+    "response_sha256": "0a92753dc5aa3d9a2e75ee615cdd3dd2cbb91f3245bc6f7fa8b57294b14e45f9",
+    "billing": "subscription coding-plan route; not assertedzero or productspend",
+    "finished_at": "2026-10-15T06:32:47.361414+00:00"
+  },
+  "private_evidence_root": "/home/ubuntu/workagent-overnight-20261015/.local/overnight-batch2",
+  "public_files": {
+    "supplier-desktop.png": {
+      "sha256": "0ed513a8ce1d4e4e2f2284eaf728906d752c9664d723e5efc7c570a3d6e19e29",
+      "source": ".local/overnight-batch2/supplier-parent-verified-desktop.png"
+    },
+    "supplier-320-capture-limitation.png": {
+      "sha256": "28ee16301bbc2f6f42be6b1de8ee31d0cfc4fe8263a95e4250d2adf60676f096",
+      "source": ".local/overnight-batch2/supplier-parent-verified-320.png"
+    },
+    "human-note-editor.png": {
+      "sha256": "c6c1c9a4a4aea03c8d47d78ba7b1784dd7468684dec60d7f670d109b13a60a18",
+      "source": ".local/overnight-batch2/browser-current-space/08-document-your-note.png"
+    },
+    "glm-review-raw.md": {
+      "sha256": "09f6907d6cbd32aa83554d941b906905aae9d7166fc574abba6c6701ef79c2b3",
+      "source": ".local/overnight-batch2/glm-review.md"
+    },
+    "glm-receipt.json": {
+      "sha256": "6af20c81bd549fe9abdb4f524abb145a3bb5c8ddefe6ff69ca4525d97472edb8",
+      "source": ".local/overnight-batch2/glm-receipt.json"
+    },
+    "routing.json": {
+      "sha256": "610c7d6dbd7015969ce5d23e5084927518ba3ed4a71e33b69bbdfdfcc1a25eea",
+      "source": ".local/overnight-batch2/browser-current-routing/workspace-routing.json"
+    },
+    "space.json": {
+      "sha256": "c8fa593d6e41803af31d0992458c7fcbff60578a20ca6405d830fd75060895a3",
+      "source": ".local/overnight-batch2/browser-current-space/space-experience.json"
+    },
+    "controlled-retention.json": {
+      "sha256": "590492590d3619d885aae89814cfefae9937e93a3cc6bedd9037f9647f962086",
+      "source": ".local/overnight-batch2/current-retest/stalled-report.json"
+    },
+    "parent-oracle.json": {
+      "sha256": "db9337413b9adbe5e0071c0925645c64c2e5b3a4651d7263639d61403f466e8e",
+      "source": ".local/overnight-batch2/supplier-parent-verified-report.json"
+    }
+  }
+}

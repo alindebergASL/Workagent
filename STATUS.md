@@ -1,94 +1,97 @@
-# Overnight integrator status — batch2 in progress
+# Overnight integrator status — batch2 handoff
 
-Checkpoint2026-10-15T06:09Z: owner a5a87c8 integrated at9962732. Independent
-follow-up verified both prior backend fixes (39 committed +5 independent tests);
-found mixed-sibling card refresh retention P2, owner fixed it, parent retest pending.
-New backend TDD work preserves human waits rather than treating unrelated chat,
-dependency changes or due check-ins as human permission; five new red regressions
-reproduced, scoped positive/release/resume suite running. Full backend suite running
-separately against pre-fix ccf4108; no full-green claim. Fresh browser fixtures use
-new DB, no original preview changes. See .local/overnight-batch2/.
-Account metadata200 for exact gpt-6.1-sol; official standard pricing rechecked.
-Read-only shared counters44count/42generation/377read, reservations$8.97056 unchanged.
-Fresh successor draft only (2 admissions/6 calls/$0.791520 NEW encumbrance if installed),
-no clone or grant installed, no product calls. Independent review of safe isolation
-is still required; old unused allowance is never reused/refunded. STOP absent.
+CONTINUE. Backend a719f28, integrated application4d262889961484187c4ab229b6f7aa222344f0ea;
+owner through078fddd. Original92e76d8 checkout/data/build/six live admissions unchanged.
+No integrator web/ edits, no main merge/deployment, no new product inference.
 
-## Previous batch handoff (preserved)
+## Delivered and checked
 
-Status: CONTINUE. Useful implementation delivered; no parity or mission-complete claim.
-Started2026-10-15T04:41:18Z; batch limit90min. Sole integrator, isolated branch
-`hermes/overnight-intelligent-work`; original live review checkout/data/build untouched.
-No `web/` authored by integrator. Owner ancestry through `bb82644` integrated.
-Owner later `3b38d55` fetched but NOT integrated/reviewed; inspect next batch.
+Human waits retain exact decision/action/outcome through unrelated chat, evidence
+changes, check-ins, restart and pause/resume. Explicit human release permits one
+controlled continuation, never objective-completion assertion. Parent124 scoped
+responsibility tests pass; independent55 pass; final54 retrieval/format/wait/scope/
+previous-failure tests pass. Suites overlap. Prior protected-note and receipt fixes
+independently verified39+5 cases; unchanged review reused.
 
-## Delivered
+Owner's generic in-place interactive work and Reads/Used-by links integrated.
+Controlled event-planning and supplier-investigation surfaces exercised; no claim
+that these authored fixture shapes demonstrate natural model intelligence.
+Frontend265 tests+type/lint/format/build pass at4d2628. Final7 routing+17 Space
+real-service cases pass, including actual human-note save/reload, stale input
+invalidation, keyboard/form holds, multi-workspace links and controlled view actions.
+17 frozen+extended actual-React retention probes pass after owner fixes.5 independent
+parent oracle/control/readback checks pass (corrected harness excludes only response
+observed_at metadata; original failed assertion preserved).
 
-Backend `ce7c4d7`: bounded, scoped read_saved_work for omitted current revisions on
-ordinary untargeted follow-up, read-receipt gated edit admission, pending-only CAS.
-`f0a53e4`: independent-review fixes enforcing protected human notes and SQL receipt
-identity. `5b3e339`: cross-format tests and policy clarification. SQL001–024 unchanged;
-new025/026 only; no API contract regeneration needed; old grants fail closed.
-Frontend owner: workspace routing, terminal-error body suppression, truthful held
-scope, work cards, human document-part/note editing. Actual human note save/readback
-and reload exercised on disposable controlled fixture, not old live evaluation.
+Actual desktop screenshot viewed. The320px supplier screenshot was captured with
+an EMPTY iframe after resize, although later reload/content assertions passed.
+Do NOT claim mobile interactive rendering acceptance from no overflow; next batch
+must wait for and exercise actual frame content after resize and capture it.
+Original blank screenshot and all earlier failures retained. Other320px project
+and note-editor screenshots were viewed. No broad polish/UX acceptance claim.
 
-## Verified / limitations
+Full backend suite finished with failures; its source window spans backend edits,
+so NOT exact-final full green. Machine manifest contains parsed totals and failures.
+Two observed failures were shared-budget successor guard and bounded-completion
+rounding repair; both passed in final54 fresh-DB run. Intermediate unknown-send
+failure retained. Do not erase or invent a root cause from a later pass.
 
--156 focused existing backend tests passed on first implementation.
--79 retrieval/alpha/flexible tests passed after reviewer fixes.
--39 final retrieval tests pass on `5b3e339`: document/table/custom-view, revocation,
- concurrent saves, unread publication denial, bounds, restart, SQL receipt forgery,
- protected-note omission/change/rename/unprotect rejection. Suites overlap; do not sum.
--265 Vitest pass +type/lint/format/production build on exact owner `bb82644` mirror.
--7 real-service workspace-routing and15 Space Chromium cases pass.
--6 parent-controlled retention probes pass, including401/404 and keyboard/form holds.
--Desktop,320px and human-note screenshots actually viewed. Browser Use screenshot
- capture timed out; separate Playwright captures succeeded, retained and viewed.
--Full backend suite NOT newly run/green. Historical1176pass/4obsolete docguards remains
- historical. No live model/provider call this batch; all new decisions controlled.
+## Reviews and money
 
-Independent review `independent-backend-review.md` at `ce7c4d7` found two blockers;
-parent reproduced/fixed/tested them. Follow-up independent review could not launch:
-one-shot delegation limit2/2. Final independent reapproval remains pending.
+Independent follow-up passed new human-wait backend and earlier fixes. Parent
+closed reported frontend failures with exact retained probes. New in-place view
+and final refusal-overlay delta still need focused independent review. Reuse
+unchanged backend review. Two bounded Astra reviewers joined this batch.
+Direct GLM5.3 subscription critique completed, stop,910prompt/1097completion;
+raw input/output/receipt retained. Adjudication corrects reversed wait semantics,
+“generation absent,” overclaim of live repair and suggested targeted replay.
+Critic did not see screenshots or the full real-service report. Not user acceptance.
 
-NEW parent frontend P2: full conversation Refresh does not reread work cards when
-message count unchanged. Controlled changed-title/next-read404 probes each produced
-zero artifact reads and retained old preview. Not a server authz bypass. Routed to
-sole owner, comment6185232681 exact readback verified. Earlier comment6184636381 also
-verified. Do not create a substitute frontend writer; comment alone isn't resume.
+Product requests/spend NEW0. Cumulative40; encumbered24.617200/unactivated15.382800.
+Read-only source counters44count/42dispatch/377read/0cancel, unionreserved8.97056.
+Exact-model metadata200 and current official standard pricing verified; not billing.
+Both unknown counts remain quarantined, unchanged, never retried/refunded/released.
 
-## Evidence and runtime
+## Successor preparation: actual inert clone, NOT installed
 
-Detailed report: `docs/OVERNIGHT_20261015_BATCH1.md`.
-Private evidence: `.local/overnight-batch1/` (all failures retained).
-Fresh tests DB env `test-v3.env`; never print values. Repo Python command from backend:
-`env -u PYTHONPATH -u PYTHONHOME /home/ubuntu/workagent-adaptive-execution/.venv/bin/python`.
-Browser fixture: `browser.env`, `browser-ids.json`, `browser-fixture-retry.txt`.
-Build mirror: `.local/overnight-batch1/frontend-v2/web` exact owner bytes; dependency
-symlinks only there, not source web/. New test API/web ports8152/3152 were stopped
-and verified closed at batch exit. Original3151/8151 were verified still listening;
-the original review checkout remains untouched. No new candidate preview is left running.
-Original six-admission live evidence under original checkout `.local/space-evaluation-next`
-remains authoritative; no human safety note saved there, no repaired replacement runs.
+.local/overnight-batch2/prepare_successor.py and successor/ contain independently
+reviewed preparation-only helper, draft, source manifest, parent gate, target and
+prepared receipts. Clone is fresh/full-history; all historical rows/counters equal,
+only cloned predecessor active flag changed; migrations/least-privilege role verified.
+All clone grants INACTIVE. Original source remains ACTIVE but6admissions exhausted,
+all runs terminal/dispatches resolved; source is not fenced. Source exact manifest
+read back unchanged. Do not infer execution approval from preparation approval.
 
-Read-only budget reconciliation2026-10-15T05:24:17Z: union reservations$8.97056;
-exhausted successor14dispatch/14count/100read,$1.84688reserved. Authorization$40,
-encumbered$24.617200,unactivated$15.382800. NEW product spend/calls0. Billing/route/
-current pricing not newly reconciled. Two unknown counts remain quarantined.
+Draft2admissions/6generation+count/100reads/$0.791520 is NEW encumbrance if installed,
+not transfer/reuse of old remaining allowance. None activated. Aggregate IF installed
+25.408720, unactivated14.591280. No installer or product runner implemented/reviewed yet.
+Never run old exhausted helpers. Add new clone explicitly to read-only ledger
+inventory and dedupe copied events; old inventory alone misses future new events.
 
-## Next batch, mechanically
+## Next batch mechanically
 
-1. Check STOP, batch-result.json, git exact SHA/status. Fetch owner once; inspect
-   any card-refresh fix and `3b38d55` before integration. Keep sole ownership.
-2. Obtain ONE focused independent exact-candidate follow-up review of f0a53e4
-   receipt/note fixes and owner changes; reuse unchanged review. Recheck required
-   negative browser cases; no full broad review restart.
-3. Establish safe fresh exact-candidate successor only after review and actual
-   ledger/pricing/route reconciliation inside existing$40. Never reuse old admissions,
-   repin historical hashes, resolve unknown counts, or alter original live state.
-4. Run bounded held-out natural tasks/follow-ups across materially different work,
-   actual human correction, preservation, resume and evolving representations.
-   Keep every failure; no coaching/replacements. DirectGLM5.3 critique if safe route.
-5. Finalize useful morning evidence/gaps; feature branch only, remote SHA/readback
-   verification. Broad intelligent UI/initiative/memory/baseline parity remain OPEN.
+1. Check STOP, batch-result/history, exact Git SHA/status. Read batch2 report,
+   manifest, reviews, GLM adjudication. No new broad baseline research needed.
+2. Review final owner delta (in-place sandbox consumer + refusal overlay), reusing
+   prior work. Verify mobile iframe content/control after resize, not only overflow.
+   Existing owner remains sole web writer. Route real findings; no takeover.
+3. Implement/test/review actual exact-candidate successor installer+single-run
+   execution gates against the prepared inert clone, source stability, full carried
+   ledger, NEW bounded authorization and immutable request ceilings. Zero resets,
+   no old-grant repinning, no unknown resolution/cancels, no original-service changes.
+4. Only when sound, fresh bounded natural UNTARGETED same-conversation large-work
+   revision with actual protected human correction, plus materially different task.
+   No coaching/forced targets/replacements. Keep pending proposal/current distinction.
+5. Frozen-source full-suite validation remains open. Publish final evidence/commit
+   and concise user report; no parity/superiority without comparative evidence.
+
+## Evidence/runtime
+
+Detailed docs/OVERNIGHT_20261015_BATCH2.md and GLM_ADJUDICATION companion.
+Private .local/overnight-batch2/ includes all raw failed/passed probes and receipts.
+Public evidence/overnight-20261015/batch2/ contains safe summary/screenshots/critique.
+Python: env -u PYTHONPATH -u PYTHONHOME repo-shared
+/home/ubuntu/workagent-adaptive-execution/.venv/bin/python from backend/.
+Never print env/secret values. Candidate loopback servers stopped at batch exit;
+original3151/8151 preserved, web200/proxy200 with required X-Workagent-Client header.
+User's device untested. No candidate preview should be advertised as running.

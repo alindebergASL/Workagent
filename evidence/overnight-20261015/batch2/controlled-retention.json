@@ -1,0 +1,111 @@
+{
+  "sha": "4d262889961484187c4ab229b6f7aa222344f0ea",
+  "cases": [
+    {
+      "name": "space opens once inline and keyboard focus stays on selection",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "space terminal 401 clears inline protected body and holds sending",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "space terminal 404 clears inline protected body and holds sending",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards changed revision refreshes with constant message length",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards terminal 401 removes previous preview",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards terminal 404 removes previous preview",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards transport failure explicitly marks retained preview",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards mixed 401 and other artifact get transport failure",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards mixed 401 and other artifact proposals transport failure",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards mixed 404 and other artifact get transport failure",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards mixed 404 and other artifact proposals transport failure",
+      "pass": true,
+      "errors": []
+    },
+    {
+      "name": "cards same artifact delayed get 401 with faster sibling transport",
+      "pass": true,
+      "read": "unavailable",
+      "retained": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "denialDelivered": true,
+      "errors": []
+    },
+    {
+      "name": "cards same artifact delayed proposals 401 with faster sibling transport",
+      "pass": true,
+      "read": "unavailable",
+      "retained": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "denialDelivered": true,
+      "errors": []
+    },
+    {
+      "name": "cards same artifact delayed get 404 with faster sibling transport",
+      "pass": true,
+      "read": "unavailable",
+      "retained": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "denialDelivered": true,
+      "errors": []
+    },
+    {
+      "name": "cards same artifact delayed proposals 404 with faster sibling transport",
+      "pass": true,
+      "read": "unavailable",
+      "retained": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "denialDelivered": true,
+      "errors": []
+    },
+    {
+      "name": "cards explicit denial while same sibling remains pending",
+      "pass": true,
+      "denialDelivered": true,
+      "siblingStillPendingWhenCaptured": true,
+      "during": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "clearsAfterSiblingSettles": true,
+      "errors": []
+    },
+    {
+      "name": "cards explicit denial while other sibling remains pending",
+      "pass": true,
+      "denialDelivered": true,
+      "siblingStillPendingWhenCaptured": true,
+      "during": "A document\n\nThis work isn’t available to you now. It may have been removed, or your access changed.\n\nOpen work",
+      "clearsAfterSiblingSettles": true,
+      "errors": []
+    }
+  ],
+  "scope": "Actual React source and hooks in Chromium; API methods mocked; no service/provider calls; no full Next application"
+}
