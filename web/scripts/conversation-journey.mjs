@@ -140,8 +140,9 @@ try {
   await expect(
     page.locator('[data-state="queued"]').filter({
       hasText:
-        // Plain words lead; the service's exact reason stays under "Why".
-        "Waiting for a reply. Nothing has been answered yet.",
+        // No worker runs yet: the service's own check says so, in plain
+        // words; it never reads as being answered.
+        "Workagent isn’t running right now. Your message is kept",
     }),
   ).toBeVisible();
   await expect(page.locator(".msg-agent")).toHaveCount(0);
@@ -177,8 +178,9 @@ try {
   await expect(
     page.locator('[data-state="queued"]').filter({
       hasText:
-        // Plain words lead; the service's exact reason stays under "Why".
-        "Waiting for a reply. Nothing has been answered yet.",
+        // No worker runs yet: the service's own check says so, in plain
+        // words; it never reads as being answered.
+        "Workagent isn’t running right now. Your message is kept",
     }),
   ).toBeVisible();
   await expect(

@@ -10,6 +10,9 @@ import { conversationApi } from "@/lib/client/real-api";
 import type { WorkspaceScope } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
 import { backTo, ScopedRecord } from "@/components/ScopedRecord";
+import { useExecution } from "@/lib/client/execution";
+import { turnExecution } from "@/lib/execution-view";
+import { ExecutionLine } from "@/components/ExecutionLine";
 import { resultState, useResultStates } from "@/lib/client/result-states";
 import { resultLink } from "@/lib/result-links";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
@@ -89,6 +92,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   );
   const d = res.data;
   const results = useResultStates(wsId, d?.messages);
+  const execution = useExecution(wsId);
   const { holds } = useHolds(wsId, d?.assignment_ids ?? []);
 
   // ---- follow-up composer ----
@@ -378,6 +382,13 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                     state={turn.state}
                     progress={turn.progress}
                     fallback={PENDING[turn.state]}
+                    execution={
+                      turn.state === "queued" ||
+                      turn.state === "responding" ||
+                      turn.state === "unavailable"
+                        ? turnExecution(turn.run_id, execution.data)
+                        : null
+                    }
                   />
                   {/* The service's exact reason explains a failure or what to
                       do next; it stays one click away, not in primary copy. */}
@@ -404,6 +415,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         })}
       </ol>
 
+      <ExecutionLine execution={execution} />
       {res.reconnecting ? (
         <p role="status" data-state="reconnecting">
           Connection lost. Showing what was last read; sending waits until it

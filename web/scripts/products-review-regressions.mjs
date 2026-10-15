@@ -59,6 +59,10 @@ File.prototype.arrayBuffer = function() {
 };
 `;
 const mocks = {
+  "@/lib/client/execution": `
+export const executionApi = {get: async () => null};
+export const useExecution = () => ({data: null, error: null, loading: false, reconnecting: false, refresh: async () => null});
+`,
   "@/lib/client/real-api": `
 import {ApiError} from '@/lib/contract/errors';
 export const conversationApi = {send: async (ws,cid,payload) => {
@@ -2491,12 +2495,12 @@ try {
         },
         { rev, bound },
       );
+      // In place, a view that can be repointed is repointed by the control
+      // beside it, not sent elsewhere; a pinned one says it needs a new view.
+      await expect(page.getByTestId("view-pinned")).toHaveCount(pinned ? 1 : 0);
       await expect(
-        page.getByTestId(pinned ? "view-pinned" : "view-update-elsewhere"),
+        page.getByText("has been saved since it was made"),
       ).toBeVisible();
-      await expect(
-        page.getByTestId(pinned ? "view-update-elsewhere" : "view-pinned"),
-      ).toHaveCount(0);
       await expect(
         page.getByRole("button", { name: "Use the latest saved versions" }),
       ).toHaveCount(0);

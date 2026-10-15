@@ -25,12 +25,14 @@ import {
   type StandingLine,
 } from "@/lib/space-view";
 import { ConversationPeek } from "./ConversationPeek";
-import { InPlaceView, ReadOnly, type Bound } from "./FlexibleWork";
+import { InPlaceView, ReadOnly, ViewInputs, type Bound } from "./FlexibleWork";
 import { ProductView } from "./ProductView";
 import { SpaceDetails } from "./WorkAreas";
 import { WorkSurface } from "./WorkSurface";
 import { ApiError } from "@/lib/contract/errors";
 import { ErrorNotice } from "./ui";
+import { ExecutionLine } from "./ExecutionLine";
+import { useExecution } from "@/lib/client/execution";
 import "./SpaceWork.css";
 
 type Turn = ConversationDetailView["turns"][number];
@@ -145,6 +147,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
     }),
   );
   const { holds } = useHolds(ws, d?.assignment_ids ?? []);
+  const execution = useExecution(ws);
   const refreshWork = work.refresh;
   const refreshConversation = res.refresh;
   const refreshAll = useCallback(
@@ -243,6 +246,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
     work: items,
     workUnreadable: Boolean(work.error),
     holds,
+    execution: execution.data,
   });
   // A reply names only work the person chose and the service accepts as a
   // subject; anything else (a saved file) leaves it about the project.
@@ -512,6 +516,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
         open={d.conversation.state === "open"}
         refresh={res.refresh}
       />
+      <ExecutionLine execution={execution} />
       {res.reconnecting || (res.error && !revoked) ? (
         <p className="notice-line" role="status" data-state="reconnecting">
           Can’t reach the project right now. Showing what was last read; sending
@@ -681,7 +686,10 @@ function SelectedWork({
   const preview = useMemo(
     () =>
       view ? (
+        // A new saved version of the view is a new frame, which reads its
+        // (possibly newly bound) work again.
         <InPlaceView
+          key={item.artifact.current_revision_id}
           ws={ws}
           cid={cid}
           artifact={item.artifact}
@@ -795,6 +803,29 @@ function SelectedWork({
         </div>
       ) : null}
       {preview}
+      {view ? (
+        <ViewInputs
+          ws={ws}
+          cid={cid}
+          view={item.artifact}
+          tables={reads
+            .map((aid) => byId.get(aid)?.artifact)
+            .filter(
+              (a): a is SpaceWorkItem["artifact"] =>
+                Boolean(a) &&
+                (a!.current_revision.body as { kind?: string }).kind ===
+                  "structured_table" &&
+                (
+                  a!.current_revision.body as {
+                    fields: { editable: boolean }[];
+                  }
+                ).fields.some((f) => f.editable),
+            )}
+          bound={JSON.parse(boundKey) as Bound}
+          open={open}
+          refresh={refresh}
+        />
+      ) : null}
     </article>
   );
 }

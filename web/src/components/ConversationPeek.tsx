@@ -19,6 +19,8 @@ import {
   receiptSays,
 } from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
+import { useExecution } from "@/lib/client/execution";
+import { turnExecution, type ExecutionStatus } from "@/lib/execution-view";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import {
   AgentReply,
@@ -42,6 +44,8 @@ const TURN_TEXT: Partial<Record<string, string>> = {
 };
 
 type Turn = ConversationDetailView["turns"][number];
+/** Turns still waiting to be answered, which the service's check can explain. */
+const pendingStates = new Set(["queued", "responding", "unavailable"]);
 
 /** How an unresolved turn reads when its request is outside the pane. */
 const EARLIER: Partial<Record<string, string>> = {
@@ -55,7 +59,13 @@ const EARLIER: Partial<Record<string, string>> = {
 };
 
 /** One request's unresolved turn: its state and, when given, why. */
-function PendingTurn({ turn }: { turn: Turn }) {
+function PendingTurn({
+  turn,
+  execution,
+}: {
+  turn: Turn;
+  execution?: ExecutionStatus | null;
+}) {
   return (
     <div className="msg-pending" data-state={turn.state}>
       {turn.responsibility_origin ? (
@@ -65,6 +75,11 @@ function PendingTurn({ turn }: { turn: Turn }) {
         state={turn.state}
         progress={turn.progress}
         fallback={TURN_TEXT[turn.state]}
+        execution={
+          pendingStates.has(turn.state)
+            ? turnExecution(turn.run_id, execution)
+            : null
+        }
       />
       {turn.reason &&
       (turn.state === "failed" ||
@@ -146,6 +161,7 @@ export function ConversationPeek({
   paused?: string;
 }) {
   const cid = initial.conversation.id;
+  const execution = useExecution(wsId);
   const res = useResource<ConversationDetailView>(
     `peek:${wsId}:${cid}`,
     (signal) => conversationApi.get(wsId, cid, signal),
@@ -329,7 +345,9 @@ export function ConversationPeek({
                 const turn = turnOf(m);
                 return turn ? (
                   <>
-                    {unresolved(turn) ? <PendingTurn turn={turn} /> : null}
+                    {unresolved(turn) ? (
+                      <PendingTurn turn={turn} execution={execution.data} />
+                    ) : null}
                     {/* With no reply (yet, or ever), the receipt shows here. */}
                     {!d.messages.some(
                       (x) => x.author === "agent" && x.run_id === turn.run_id,
@@ -369,7 +387,9 @@ export function ConversationPeek({
           sending waits until it reconnects.
         </p>
       ) : null}
-      {lastUnanchored ? <PendingTurn turn={lastUnanchored} /> : null}
+      {lastUnanchored ? (
+        <PendingTurn turn={lastUnanchored} execution={execution.data} />
+      ) : null}
       {paused && !staleRead ? (
         <p className="msg-pending" role="status" data-state="paused">
           {paused}

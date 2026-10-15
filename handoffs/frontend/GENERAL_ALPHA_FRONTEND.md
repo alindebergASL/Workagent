@@ -1282,3 +1282,151 @@ the run leaves the history that was read, the author is unknown.
 - GREEN on a fresh fixture: routing 7 plus experience 18.
 - Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
   lint and format checks.
+
+## Trusted controls beside a view: change what it reads, and the view reads it (comment 6197276516)
+
+This milestone is about real interaction: a change made through a trusted control
+persists, survives reopening, and reaches the conversation through the same work.
+A temporary filter is not enough.
+
+**What the person sees.** On a project page, a custom view running in place now has
+a "Change <table>" section beside it for each structured table it reads. The section
+uses the existing governed table editor in values-only mode:
+- typed inputs;
+- read-only fields stay locked;
+- invalid values are kept as typed and never saved;
+- no rows can be added or removed, and there is no notes box.
+
+Small tables open ready to edit; larger ones open on request, or whenever they hold
+a change.
+
+**"Save and update the view".** This runs two steps:
+1. A human save of the table: CAS on the draft's base, with the exact command
+   journaled in the draft's `pending` and replayed by "Try saving again".
+2. Unless the view's code pins its versions, a human save of the view with that
+   binding moved to the new table revision. The command is journaled under
+   `workagent:view-rebind:…` and replayed by "Update the view again" after a lost
+   acknowledgement.
+
+The frame is keyed by the view's revision, so a new version is a new frame. It
+re-reads through the existing version-bound `read_binding`. The generated frame gets
+no new authority.
+
+**Drafts.** Drafts use the same storage key as the work's own page, so a change
+survives switching selection, reloading or leaving the page. A draft the person
+hasn't touched follows a newer saved version.
+
+**Reply target.** The Space's reply target is the view's exact current revision, so
+the conversation sees what the person changed.
+
+**Other outcomes:**
+- **Pinned view:** the button says "Save my change", and the page says the view needs
+  an updated version. Nothing is rebound.
+- **Partial result:** if the table saved but the view update was refused, the page
+  says exactly that.
+- **Stale draft:** if the table was saved elsewhere since the draft started, the save
+  is refused (409), the draft is kept, and "Discard my change" shows the saved
+  values.
+
+**In-place rebind.** When what a view reads has moved on (a human edit, or a change
+made elsewhere), the same section offers "Use the latest saved versions" in place,
+with the same journaling. The in-place notice no longer sends the person to another
+page. Pinned views still say they need a new view.
+
+**Frame height.** The frame now measures its content's own height rather than the
+page's scroll height. The scroll height is never less than the frame, so a frame made
+taller once could never shrink. This has no failing-first test: the tall frame was
+seen once on desktop but didn't reproduce in later runs. A new check requires the
+frame to fit its content (under 360 px) at full width after the phone-width resizes;
+it passes with the old measurement too, so it guards the change rather than proving
+it.
+
+**Fixture.** The "Supplier choice" project gets a saved "Priorities" table (weight on
+price, %), published by its own synthetic run. The comparison reads both tables. Its
+slider is now "Try another weighting (not saved)", and it starts from the saved
+priority.
+
+**Real-stack regression** (`space-experience.mjs`, a new case):
+- the change survives switching work;
+- a lost acknowledgement on the view update is replayed with the same `command_id`
+  and body;
+- the view reads 100% → "Best fit: Quayside Press";
+- the readback shows a human table revision, and the view's binding is that revision;
+- after reopening, it is still Quayside, the control shows 100, and the reply is
+  about the view's new revision;
+- a change made elsewhere is refused (409) with the draft kept, then discarded;
+- in-place "Use the latest saved versions" then reads 70%;
+- 390 px has no overflow.
+
+The investigation case now repoints the view at the edited quotes in place and reads
+€480.
+
+**Results:**
+- GREEN on a fresh fixture: routing 7 plus experience 19.
+- Also passing: 270 unit tests, 37 DOM regressions, review-boundary 15/15, type,
+  lint and format checks.
+- Full gate, including the sandbox's 9 checks, and mock e2e 15/15.
+
+## Truthful execution status from `GET /execution` (comment 6198057395, contract 10741ac)
+
+Merged Hermes's `10741ac` with no web conflicts. Wired the generated `ExecutionStatus`/`RunExecution`
+into the existing experience, alongside the canonical turn and work readback. There is no
+client-side ledger: each page reads `/execution` once, and re-reads it every 15 s and on focus.
+
+**Pending turns** (states `queued`, `responding` or `unavailable`), in the full conversation and
+the side pane, take their run's state from the check.
+
+| Run state from `/execution` | What the turn shows |
+| --- | --- |
+| `unavailable` (or a missing or stale heartbeat) | "Workagent isn't running right now. Your message is kept…". This replaces any "Replying…". |
+| `blocked` | One plain reason per failure category (for example, "reached the limit it's allowed for this"). This also replaces the in-progress wording. |
+| `awaiting_provider` | "Waiting for the model's answer.", added to the in-progress wording. |
+| `recovering` | "Picking this up again after an interruption.", added to the in-progress wording. |
+| `working`, `completed`, `idle` | Nothing added; the canonical turn state stays in charge. |
+
+**The Space standing** never says "Workagent is replying" while the check says nothing is running
+the latest message.
+
+**The workspace line** (`data-testid="execution-line"`, `data-execution`) appears on the full
+conversation and the Space.
+
+| Status | Line |
+| --- | --- |
+| `unavailable` | Not running; you can read and edit, and new requests wait. |
+| `blocked` without capacity | Can't take on new work here right now. |
+| `working`, `awaiting_provider`, `recovering` | Working on a request. |
+| A failed check | "Couldn't check whether Workagent is running." Not running, not stopped. |
+| Ready, including `waiting_for_person` | Silent. |
+
+**Unaffected by the check.** It never disables reading, editing, choosing work or asking. A wait
+for human review doesn't block anything. A completed run is never turned into an objective-success
+claim. Mock mode doesn't read `/execution`.
+
+**Tests**
+- Unit (`test/execution-view.test.ts`):
+  - a missing heartbeat reads as not running, never working;
+  - blocked shows its category;
+  - awaiting the provider and recovering are additive;
+  - working, completed and other runs are left alone;
+  - the workspace line covers silent, not running, blocked, a failed check, and another run being
+    blocked.
+- Real stack, a new `space-experience.mjs` case:
+  - With no worker, the real `/execution` reads `unavailable`. The waiting turn and the standing
+    say so, and never "Replying…".
+  - Routed statuses then show the turn's text for `awaiting_provider`, `recovering` and
+    `blocked/authority_or_budget`; the draft and chosen work stay put through each re-read.
+  - With `waiting_for_person`, the line is silent and Send is enabled.
+  - When the check fails, the page says "Couldn't check"; after recovery it reads `unavailable`.
+  - The full conversation shows the same.
+- `conversation-journey.mjs` now expects the truthful not-running text for its worker-less queued
+  turns.
+
+**Results**
+- RED with the previous presentation: the standing read "Your latest message is waiting for
+  Workagent." and said nothing about Workagent not running.
+- GREEN:
+  - routing 7 and Space 20;
+  - 279 unit tests and 37 DOM regressions;
+  - review-boundary 15/15, plus type, lint and format;
+  - the full gate, including the conversation journey and general integration;
+  - mock e2e 15/15.
