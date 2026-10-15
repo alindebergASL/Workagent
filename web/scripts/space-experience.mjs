@@ -1706,9 +1706,24 @@ try {
     const overflows = await grid.evaluate(
       (el) => el.scrollWidth > el.clientWidth + 1,
     );
-    await expect(page.getByTestId("table-scroll-cue")).toHaveCount(
-      overflows ? 1 : 0,
+    // Every column fits: the long notes go on their own line under each row.
+    assert.equal(overflows, false, "some columns are out of view at 1440");
+    await expect(page.getByTestId("table-scroll-cue")).toHaveCount(0);
+    for (const name of ["Lantern", "Repair bag", "Display stand"]) {
+      const n = grid.getByLabel(`${name} Notes`, { exact: true });
+      assert.ok(await inView(n), `${name}'s note is out of view`);
+      assert.ok(
+        (await n.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
+        `${name}'s note scrolls inside`,
+      );
+    }
+    // Short values show whole in their boxes, not cut off at a fixed width.
+    const clipped = await grid.evaluate((el) =>
+      [...el.querySelectorAll('td[data-type="text"]:not([data-long]) input')]
+        .filter((i) => i.scrollWidth > i.clientWidth + 1)
+        .map((i) => i.value),
     );
+    assert.deepEqual(clipped, [], "short values are cut off in their boxes");
     await shot(page, "13-wide-table-desktop");
     const note = grid.getByLabel("Repair bag Notes", { exact: true });
     await note.scrollIntoViewIfNeeded();
@@ -1736,6 +1751,7 @@ try {
     await expect(grid).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(300);
     assert.ok(await noPageScroll(), "the page scrolls sideways at 390");
+    await shot(page, "13-wide-table-phone");
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a wide table stays inside the work pane: no sideways page scroll, row controls in view, out-of-view columns said, the last column edited and saved",

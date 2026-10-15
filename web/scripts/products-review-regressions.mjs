@@ -2031,16 +2031,38 @@ try {
   {
     const table = tableRev.body;
     await showFlex(flexData(tableRev));
-    // Headings come from each field's own label and unit.
-    for (const f of table.fields)
-      await expect(
-        page
-          .getByRole("region", { name: "Editable table" })
-          .getByRole("columnheader", {
-            name: f.unit ? `${f.label} (${f.unit})` : f.label,
-            exact: true,
-          }),
-      ).toBeVisible();
+    // Headings come from each field's own label and unit. With many columns
+    // a long text field reads on its own line under each row, named there.
+    const longKeys = new Set(
+      table.fields.length >= 4
+        ? table.fields
+            .filter(
+              (f) =>
+                f.type === "text" &&
+                table.rows.some((r) =>
+                  r.cells.some(
+                    (c) =>
+                      c.field_key === f.key &&
+                      typeof c.value === "string" &&
+                      c.value.length > 40,
+                  ),
+                ),
+            )
+            .map((f) => f.key)
+        : [],
+    );
+    const region = page.getByRole("region", { name: "Editable table" });
+    for (const f of table.fields) {
+      const heading = f.unit ? `${f.label} (${f.unit})` : f.label;
+      if (longKeys.has(f.key))
+        await expect(
+          region.locator(".long-label", { hasText: heading }).first(),
+        ).toBeVisible();
+      else
+        await expect(
+          region.getByRole("columnheader", { name: heading, exact: true }),
+        ).toBeVisible();
+    }
     await expect(page.getByTestId("product-verification")).toHaveText(
       "Saved by you. Nothing checks this automatically.",
     );
