@@ -1539,3 +1539,27 @@ have; added and removed rows stay in the summary counts.
   - routing 7 + Space 21 on the real stack;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Navigation: going back to the project keeps the chosen work
+
+Editor and navigation audit, second fix.
+
+**What was wrong.** On a project's work page, "← <project>" returned to the project with nothing
+chosen, so the person lost their place. The browser's Back button kept it, but the page's own link
+did not.
+
+**Fix.** The link now carries `?work=<artifact>`. The project opens with that work chosen and shown
+in place.
+
+**Regression.** In `space-experience.mjs`, review the budget change, apply it, then follow the back
+link. The URL carries `work=<budget>`, and the budget entry is `aria-pressed`.
+
+**Results.**
+- RED with the old link: `work` was `null`.
+- GREEN:
+  - routing 7 + Space 21;
+  - 283 unit tests;
+  - 38 DOM regressions;
+  - review-boundary 15/15;
+  - full gate with 0 failures;
+  - mock e2e 15/15.

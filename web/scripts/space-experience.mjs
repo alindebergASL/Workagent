@@ -645,6 +645,11 @@ try {
   ).toHaveCount(0, { timeout: 15000 });
   await page.getByRole("link", { name: "← Autumn workshop" }).click();
   await page.waitForURL(`**/work/${cid}**`);
+  // Back on the project, the work the person left is still the chosen one.
+  assert.equal(new URL(page.url()).searchParams.get("work"), budgetId);
+  await expect(item(budgetId)).toHaveAttribute("aria-pressed", "true", {
+    timeout: 15000,
+  });
   await expect(next).toContainText("earlier version", { timeout: 15000 });
   await expect(page.locator(".space-standing")).toContainText(
     "Get written confirmation of the venue booking",
