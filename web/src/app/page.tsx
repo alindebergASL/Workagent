@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { scopedHref } from "@/lib/scope";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useWorkOverview } from "@/lib/client/overview";
 import {
@@ -221,7 +222,10 @@ export default function AgentHome() {
           </p>
           <Link
             className="btn btn-on-soft"
-            href={`/conversations/${leadDecision.conversation_id}/artifacts/${leadDecision.artifact_id}`}
+            href={scopedHref(
+              `/conversations/${leadDecision.conversation_id}/artifacts/${leadDecision.artifact_id}`,
+              leadDecision.workspace_id,
+            )}
           >
             Review the proposal
           </Link>

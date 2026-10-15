@@ -1,4 +1,5 @@
 import type { components } from "../../../contracts/src/client";
+import { scopedHref } from "./scope";
 
 type S = components["schemas"];
 
@@ -36,8 +37,33 @@ export interface ResultLink {
  * applied or dismissed, and saved work can have been edited since. An
  * earlier version opens in the work's saved history, never as if current.
  * Who changed the work is shown there, from the revisions themselves.
+ * Links name the workspace the work lives in, when given.
  */
 export function resultLink(
+  base: string,
+  product: Pick<
+    S["ProductResult"],
+    "artifact_id" | "kind" | "proposal_id" | "revision_id"
+  >,
+  state: ResultState | null | undefined,
+  ws?: string | null,
+): ResultLink {
+  const link = unscopedLink(base, product, state);
+  return {
+    ...link,
+    href: scopedHref(link.href, ws),
+    ...(link.current
+      ? {
+          current: {
+            ...link.current,
+            href: scopedHref(link.current.href, ws),
+          },
+        }
+      : {}),
+  };
+}
+
+function unscopedLink(
   base: string,
   product: Pick<
     S["ProductResult"],

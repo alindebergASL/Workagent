@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { scopedHref } from "@/lib/scope";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useConversationReply } from "@/lib/client/conversation-reply";
 import { useResource } from "@/lib/client/hooks";
@@ -362,7 +363,9 @@ export function ConversationPeek({
                 ? "An earlier hand-over continuation"
                 : "An earlier request"}{" "}
               {EARLIER[t.state]}{" "}
-              <Link href={`/conversations/${cid}#run-${t.run_id}`}>
+              <Link
+                href={scopedHref(`/conversations/${cid}#run-${t.run_id}`, wsId)}
+              >
                 See it in the conversation
               </Link>
             </li>
@@ -472,7 +475,10 @@ export function ConversationPeek({
           This conversation has ended. Its history is kept.
         </p>
       )}
-      <Link className="link-quiet small" href={`/conversations/${cid}`}>
+      <Link
+        className="link-quiet small"
+        href={scopedHref(`/conversations/${cid}`, wsId)}
+      >
         Open the full conversation
       </Link>
     </div>

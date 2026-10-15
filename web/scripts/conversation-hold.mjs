@@ -36,14 +36,14 @@ try {
   await page.getByLabel("Message your agent").fill("Plan the volunteer rota.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.waitForURL(/\/conversations\/[^/?]+$/);
-  const cid = page.url().split("/").pop();
+  const cid = new URL(page.url()).pathname.split("/").pop();
   const readURL = `**/api/domain/**/conversations/${cid}`;
   const postURL = `**/api/domain/**/conversations/${cid}/messages`;
   const posts = [];
   page.on("request", (r) => {
     if (
       r.method() === "POST" &&
-      r.url().endsWith(`/conversations/${cid}/messages`)
+      new URL(r.url()).pathname.endsWith(`/conversations/${cid}/messages`)
     )
       posts.push(r.postDataJSON());
   });

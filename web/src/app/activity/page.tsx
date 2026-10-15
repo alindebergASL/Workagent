@@ -20,7 +20,11 @@ export default function ActivityPage() {
   );
   const ready =
     Boolean(work.data) && (!CAPABILITIES.conversation || conversations.data);
-  const items = activityFrom(work.data ?? [], conversations.data ?? []);
+  const items = activityFrom(
+    work.data ?? [],
+    conversations.data ?? [],
+    workspace?.id,
+  );
   const days: { label: string; items: typeof items }[] = [];
   for (const item of items) {
     const label = dayLabel(item.at, zone);

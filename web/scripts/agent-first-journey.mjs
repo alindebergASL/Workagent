@@ -178,7 +178,7 @@ try {
     await p.waitForURL(/\/assignments\/[^/]+$/);
     expect(sent).toHaveLength(2);
     expect(sent[1]).toEqual(sent[0]);
-    const assignmentId = p.url().split("/").pop();
+    const assignmentId = new URL(p.url()).pathname.split("/").pop();
     expect(assignmentId).toBe(receipt.assignment.id);
     let assignment = await api("/assignments/" + assignmentId);
     expect(assignment.state).toBe("queued");
@@ -190,7 +190,7 @@ try {
     await p.getByRole("link", { name: "Open plan", exact: true }).click();
     await p.waitForURL(/\/artifacts\/[^/]+$/);
     const artifactUrl = new URL(p.url()).pathname,
-      artifactId = p.url().split("/").pop();
+      artifactId = new URL(p.url()).pathname.split("/").pop();
     await expect(p.getByText(/4 of 8 usable personal cases/)).toBeVisible();
     await screenshot("02-artifact-desktop");
     const before = await api("/artifacts/" + artifactId);

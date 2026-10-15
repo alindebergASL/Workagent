@@ -221,7 +221,7 @@ try {
       .fill("Help me organise Saturday's volunteers.");
     await page.getByRole("button", { name: "Send", exact: true }).click();
     await page.waitForURL(/\/conversations\/[^/?]+$/);
-    const cid = page.url().split("/").pop();
+    const cid = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
     ids.cid = cid;
 
@@ -399,7 +399,10 @@ try {
     await expect(docResult).toContainText("Changed since.");
     await expect(
       docResult.getByRole("link", { name: "Open current document" }),
-    ).toHaveAttribute("href", `/conversations/${cid}/artifacts/${ids.doc}`);
+    ).toHaveAttribute(
+      "href",
+      `/conversations/${cid}/artifacts/${ids.doc}?workspace=local-workspace`,
+    );
     await docResult.getByRole("link", { name: "Open this version" }).click();
     await page.waitForURL(/\?revision=/);
     const earlier = page.getByTestId("earlier-version");

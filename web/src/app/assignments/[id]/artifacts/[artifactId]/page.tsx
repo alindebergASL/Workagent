@@ -5,7 +5,9 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
-import { useWorkspace } from "@/lib/client/workspace";
+import type { WorkspaceScope } from "@/lib/client/workspace";
+import { scopedHref } from "@/lib/scope";
+import { ScopedRecord } from "@/components/ScopedRecord";
 import { ApiError } from "@/lib/contract/errors";
 import type {
   Artifact,
@@ -54,14 +56,19 @@ const KIND_LABEL: Record<Artifact["kind"], string> = {
 };
 
 export default function ArtifactPage() {
+  return (
+    <ScopedRecord>{(scope) => <ArtifactView scope={scope} />}</ScopedRecord>
+  );
+}
+
+function ArtifactView({ scope }: { scope: WorkspaceScope }) {
   const params = useParams<{ id: string; artifactId: string }>();
   const assignmentId = params.id;
   const artifactId = params.artifactId;
   const search = useSearchParams();
   const router = useRouter();
   const viewingRevision = search.get("revision_id");
-  const { workspace, zone } = useWorkspace();
-  const wsId = workspace?.id ?? null;
+  const { wsId, zone } = scope;
 
   const res = useResource<Artifact>(
     wsId
@@ -528,7 +535,10 @@ export default function ArtifactPage() {
   // ---------- rendering ----------
 
   const back = (
-    <Link className="back-link" href={`/assignments/${assignmentId}`}>
+    <Link
+      className="back-link"
+      href={scopedHref(`/assignments/${assignmentId}`, wsId)}
+    >
       ← Back to the assignment
     </Link>
   );
@@ -651,9 +661,12 @@ export default function ArtifactPage() {
         onView={(rid) => {
           setHistoryOpen(false);
           router.push(
-            rid
-              ? `/assignments/${assignmentId}/artifacts/${art.id}?revision_id=${encodeURIComponent(rid)}`
-              : `/assignments/${assignmentId}/artifacts/${art.id}`,
+            scopedHref(
+              rid
+                ? `/assignments/${assignmentId}/artifacts/${art.id}?revision_id=${encodeURIComponent(rid)}`
+                : `/assignments/${assignmentId}/artifacts/${art.id}`,
+              wsId,
+            ),
           );
         }}
       />
@@ -690,7 +703,10 @@ export default function ArtifactPage() {
           actions={
             <Link
               className="btn btn-sm"
-              href={`/assignments/${assignmentId}/artifacts/${art.id}`}
+              href={scopedHref(
+                `/assignments/${assignmentId}/artifacts/${art.id}`,
+                wsId,
+              )}
             >
               Show current version
             </Link>

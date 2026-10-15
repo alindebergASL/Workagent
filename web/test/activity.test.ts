@@ -47,7 +47,7 @@ describe("activity from recorded state", () => {
     expect(items[0]).toMatchObject({
       title: "Work b",
       status: "Ready for review",
-      href: "/assignments/b",
+      href: "/assignments/b?workspace=w",
     });
     expect(items[1]).toMatchObject({
       status: "Conversation ended",
@@ -68,7 +68,7 @@ describe("activity from recorded state", () => {
     );
     expect(i).toMatchObject({
       status: "Decision needed",
-      href: "/assignments/d/artifacts/art",
+      href: "/assignments/d/artifacts/art?workspace=w",
     });
   });
 

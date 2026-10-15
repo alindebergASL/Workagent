@@ -5,6 +5,7 @@ import { api, newCommandId } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
+import { scopedHref } from "@/lib/scope";
 import { ApiError } from "@/lib/contract/errors";
 import type {
   CreateAssignmentCommand,
@@ -291,14 +292,12 @@ export function Composer({
         };
       }
       saveCommands();
-      const result = await api.createAssignment(
-        pending.current.workspace,
-        pending.current.command,
-      );
+      const into = pending.current.workspace;
+      const result = await api.createAssignment(into, pending.current.command);
       pending.current = null;
       saveCommands();
       writeDraft(draftScope, "");
-      router.push(`/assignments/${result.assignment_id}`);
+      router.push(scopedHref(`/assignments/${result.assignment_id}`, into));
     } catch (e) {
       setSubmitError(e);
       // Only an ambiguous outcome keeps the frozen command; anything definite starts fresh.
@@ -378,7 +377,12 @@ export function Composer({
       writeDraft(draftScope, "");
       writeDraftFiles(draftScope, []);
       setFiles([]);
-      router.push(`/conversations/${id}${goHandover ? "?handover=1" : ""}`);
+      router.push(
+        scopedHref(
+          `/conversations/${id}${goHandover ? "?handover=1" : ""}`,
+          c.workspace,
+        ),
+      );
     } catch (e) {
       setSubmitError(e);
       const c = chat.current;

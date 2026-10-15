@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { SourceDetail } from "@/lib/contract/types";
 import { api } from "@/lib/client/api";
 import { ApiError } from "@/lib/contract/errors";
-import { useWorkspace } from "@/lib/client/workspace";
+import { useCurrentWorkspace } from "@/lib/client/workspace";
 import { formatTime } from "@/lib/time";
 import { Drawer, ErrorNotice } from "./ui";
 
@@ -22,7 +22,7 @@ export function SourcesDrawer({
   artifactTitles: Record<string, string>;
   returnFocusTo?: React.RefObject<HTMLElement | null>;
 }) {
-  const { workspace, zone } = useWorkspace();
+  const { workspace, zone } = useCurrentWorkspace();
   const [items, setItems] = useState<SourceDetail[] | null>(null);
   const [error, setError] = useState<unknown>(null);
 

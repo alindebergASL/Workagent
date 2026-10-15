@@ -50,7 +50,7 @@ const mocks = {
   "@/lib/client/api":
     "export const API_MODE='real';export const newCommandId=()=>crypto.randomUUID();",
   "@/lib/client/workspace":
-    "export const useWorkspace=()=>({workspace:{id:window.scope.ws},zone:'UTC'});",
+    "import React from 'react';import {scopedHref} from '@/lib/scope';export const useWorkspace=()=>({workspace:{id:window.scope.ws},workspaces:[{id:window.scope.ws}],loading:false,error:null,zone:'UTC'});export const useCurrentWorkspace=()=>({workspace:{id:window.scope.ws},zone:'UTC'});export const useScopedHref=()=>(h,ws)=>scopedHref(h,ws??window.scope.ws);export const InWorkspace=({children})=>React.createElement(React.Fragment,null,children);",
   "@/lib/client/overview":
     "export const useWorkOverview=()=>({data:[window.item],loading:false});",
   "@/lib/client/conversation-work":

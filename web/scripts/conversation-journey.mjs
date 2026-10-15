@@ -129,7 +129,7 @@ try {
   await page.getByLabel("Message your agent").fill(first);
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.waitForURL(/\/conversations\/[^/?]+$/, { timeout: 15000 });
-  const cid = page.url().split("/").pop();
+  const cid = new URL(page.url()).pathname.split("/").pop();
   record.conversation_id = cid;
   const thread = page.getByRole("list", { name: "Conversation" });
   await expect(thread.locator(".msg-person").first()).toHaveText(
@@ -294,7 +294,7 @@ try {
   await expect(page.getByRole("button", { name: "Resume" })).toHaveCount(0);
   await expect(
     page.getByRole("link", { name: "From a conversation ↗" }),
-  ).toHaveAttribute("href", `/conversations/${cid}`);
+  ).toHaveAttribute("href", `/conversations/${cid}?workspace=local-workspace`);
   await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible();
   await shot(page, "05-handover-assignment-desktop");
 
@@ -465,7 +465,7 @@ try {
   await noScroll(phone);
   await shot(phone, "13-home-narrow");
   await activity.click();
-  await phone.waitForURL(/\/activity$/);
+  await phone.waitForURL(/\/activity(?:\?[^#]*)?$/);
   await expect(phone.getByRole("heading", { name: "Activity" })).toBeVisible();
   await expect(phone.locator(".topbar-more")).not.toHaveAttribute("open", "");
 
@@ -486,7 +486,7 @@ try {
   await homeBox.fill(editedText);
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.waitForURL(/\/conversations\/[^/?]+$/, { timeout: 15000 });
-  const refusedCid = page.url().split("/").pop();
+  const refusedCid = new URL(page.url()).pathname.split("/").pop();
   expect((await api("/conversations")).body.items.length).toBe(listBefore + 1);
   const humanTexts = (await api(`/conversations/${refusedCid}`)).body.messages
     .filter((m) => m.author_kind === "human")

@@ -4,6 +4,7 @@ import type { ConversationWork } from "@/lib/client/conversation-work";
 import { formatTime } from "@/lib/time";
 import { StatusBadge } from "@/components/ui";
 import { readableTitle } from "@/lib/titles";
+import { scopedHref } from "@/lib/scope";
 
 const KIND: Record<ConversationWork["kind"], string> = {
   table: "Table",
@@ -39,7 +40,10 @@ export function ConversationWorkRow({
     <li>
       <Link
         className="work-row"
-        href={`/conversations/${w.conversation_id}/artifacts/${w.artifact_id}`}
+        href={scopedHref(
+          `/conversations/${w.conversation_id}/artifacts/${w.artifact_id}`,
+          w.workspace_id,
+        )}
         data-artifact={w.artifact_id}
         data-decision={
           w.decision ? (w.decision.fresh ? "pending" : "stale") : "none"

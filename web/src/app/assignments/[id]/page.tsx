@@ -6,7 +6,9 @@ import { api } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useResponsibility } from "@/lib/client/responsibility";
 import { ResponsibilityPanel } from "@/components/ResponsibilityPanel";
-import { useWorkspace } from "@/lib/client/workspace";
+import type { WorkspaceScope } from "@/lib/client/workspace";
+import { scopedHref } from "@/lib/scope";
+import { backTo, ScopedRecord } from "@/components/ScopedRecord";
 import type { Assignment } from "@/lib/contract/types";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
@@ -27,10 +29,15 @@ import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
 export default function AssignmentPage() {
+  return (
+    <ScopedRecord>{(scope) => <AssignmentView scope={scope} />}</ScopedRecord>
+  );
+}
+
+function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const { workspace, zone } = useWorkspace();
-  const wsId = workspace?.id ?? null;
+  const { wsId, zone } = scope;
   const res = useResource<Assignment>(
     wsId ? `assignment:${wsId}:${id}` : null,
     (signal) => api.getAssignment(wsId!, id, signal),
@@ -71,8 +78,8 @@ export default function AssignmentPage() {
   );
 
   const back = (
-    <Link className="back-link" href="/">
-      ← Back to agent
+    <Link className="back-link" href={backTo(scope).href}>
+      {backTo(scope).label}
     </Link>
   );
 
@@ -237,7 +244,7 @@ export default function AssignmentPage() {
           {a.conversation_id ? (
             <Link
               className="link-quiet small"
-              href={`/conversations/${a.conversation_id}`}
+              href={scopedHref(`/conversations/${a.conversation_id}`, wsId)}
             >
               From a conversation ↗
             </Link>
@@ -280,7 +287,7 @@ export default function AssignmentPage() {
           </p>
           <Link
             className="btn btn-on-soft"
-            href={`/assignments/${a.id}/artifacts/${review}`}
+            href={scopedHref(`/assignments/${a.id}/artifacts/${review}`, wsId)}
           >
             Review the change
           </Link>
@@ -317,7 +324,10 @@ export default function AssignmentPage() {
             <div className="row">
               <Link
                 className="btn btn-primary"
-                href={`/assignments/${a.id}/artifacts/${plan.id}`}
+                href={scopedHref(
+                  `/assignments/${a.id}/artifacts/${plan.id}`,
+                  wsId,
+                )}
               >
                 Open plan
               </Link>
@@ -407,7 +417,10 @@ export default function AssignmentPage() {
                 <li key={x.id}>
                   <Link
                     className="work-row"
-                    href={`/assignments/${a.id}/artifacts/${x.id}`}
+                    href={scopedHref(
+                      `/assignments/${a.id}/artifacts/${x.id}`,
+                      wsId,
+                    )}
                     data-phase={
                       x.state === "needs_review" ? "decision" : "completed"
                     }

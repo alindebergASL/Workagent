@@ -145,7 +145,7 @@ try {
   });
   await expect(link).toHaveAttribute(
     "href",
-    `/assignments/${waiting.assignment_id}`,
+    `/assignments/${waiting.assignment_id}?workspace=local-workspace`,
   );
   await expect(rcpt).toContainText("Recorded as waiting for a person");
   await expect(page.getByTestId("turn-outcome")).toContainText(
@@ -175,7 +175,7 @@ try {
   await link.focus();
   await expect(link).toBeFocused();
   await page.keyboard.press("Enter");
-  await page.waitForURL(`**/assignments/${waiting.assignment_id}`);
+  await page.waitForURL(`**/assignments/${waiting.assignment_id}**`);
   pass(
     "the conversation shows a named receipt link, the recording (not a calculation), and the turn it came from; keyboard opens it",
   );

@@ -179,7 +179,7 @@ try {
       .getByRole("button", { name: "Take it from here", exact: true })
       .click();
     await page.waitForURL(/\/assignments\/[^/]+$/, { timeout: 20000 });
-    const assignmentId = page.url().split("/").pop();
+    const assignmentId = new URL(page.url()).pathname.split("/").pop();
     let assignment = await api("/assignments/" + assignmentId);
     expect(
       assignment.selected_source_refs.map((r) => r.source_id).sort(),
@@ -193,7 +193,7 @@ try {
     await page.getByRole("link", { name: "Open plan", exact: true }).click();
     await page.waitForURL(/\/artifacts\/[^/]+$/);
     const artifactUrl = new URL(page.url()).pathname;
-    const artifactId = page.url().split("/").pop();
+    const artifactId = new URL(page.url()).pathname.split("/").pop();
     await expect(page.getByText(note, { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Sources", exact: true }).click();
     await expect(

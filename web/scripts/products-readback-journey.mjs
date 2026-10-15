@@ -24,7 +24,7 @@ try {
     );
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.waitForURL(/\/conversations\/[^/?]+$/);
-  const cid = page.url().split("/").pop();
+  const cid = new URL(page.url()).pathname.split("/").pop();
   await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
   const endpoint = `${origin}/api/domain/v1/workspaces/local-workspace/conversations/${cid}/messages`;
   const payloads = [];
@@ -92,7 +92,7 @@ try {
   await page
     .getByRole("button", { name: "Run saved tool", exact: true })
     .click();
-  await page.waitForURL(new RegExp(`/conversations/${cid}$`));
+  await page.waitForURL(new RegExp(`/conversations/${cid}(?:\\?[^#]*)?$`));
   await page
     .getByRole("link", {
       name: "Review proposed change to the tool",

@@ -7,7 +7,7 @@ import { useResource } from "@/lib/client/hooks";
 import { productApi, isProduct } from "@/lib/client/products";
 import { conversationApi } from "@/lib/client/real-api";
 import { useHolds } from "@/lib/client/responsibility";
-import { useWorkspace } from "@/lib/client/workspace";
+import { useCurrentWorkspace, useScopedHref } from "@/lib/client/workspace";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import type { ExactTarget } from "@/lib/contract/natural";
 import { isFlexible } from "@/lib/flexible";
@@ -51,7 +51,7 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
-  const { zone } = useWorkspace();
+  const { zone } = useCurrentWorkspace();
   const res = useResource<ConversationDetailView>(
     `space:${ws}:${id}`,
     (signal) => conversationApi.get(ws, id, signal, true),
@@ -389,17 +389,23 @@ export function SpaceView({ ws, id }: { ws: string; id: string }) {
 }
 
 function Line({ line }: { line: StandingLine }) {
+  const inScope = useScopedHref();
   return (
     <li data-tone={line.tone}>
-      {line.href ? <Link href={line.href}>{line.text}</Link> : line.text}
+      {line.href ? (
+        <Link href={inScope(line.href)}>{line.text}</Link>
+      ) : (
+        line.text
+      )}
       {line.detail ? <span className="small muted"> {line.detail}</span> : null}
     </li>
   );
 }
 
 function LineAction({ line }: { line: StandingLine }) {
+  const inScope = useScopedHref();
   return line.href ? (
-    <Link className="btn btn-sm" href={line.href}>
+    <Link className="btn btn-sm" href={inScope(line.href)}>
       {line.action ?? "Open"}
     </Link>
   ) : null;
@@ -468,6 +474,7 @@ function SelectedWork({
   /** Absent when a reply can't name this kind of work. */
   onAsk?: () => void;
 }) {
+  const inScope = useScopedHref();
   const body = item.artifact.current_revision.body;
   const headingRef = useRef<HTMLHeadingElement>(null);
   const shownId = item.artifact.id;
@@ -510,7 +517,10 @@ function SelectedWork({
         {item.artifact.current_revision.revision_number}
       </p>
       <div className="row wrap">
-        <Link className="btn btn-sm" href={workHref(cid, item.artifact.id)}>
+        <Link
+          className="btn btn-sm"
+          href={inScope(workHref(cid, item.artifact.id))}
+        >
           {item.pending.length ? "Review and edit" : "Open to edit"}
         </Link>
         {onAsk ? (

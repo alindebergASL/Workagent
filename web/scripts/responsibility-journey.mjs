@@ -61,7 +61,7 @@ try {
     .fill("Help me run the volunteer briefing.");
   await page.getByRole("button", { name: "Send", exact: true }).click();
   await page.waitForURL(/\/conversations\/[^/?]+$/);
-  const cid = page.url().split("/").pop();
+  const cid = new URL(page.url()).pathname.split("/").pop();
   await expect(page.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
   await page.getByRole("button", { name: "Record a hand-over" }).click();
   await page.getByLabel("Done when").fill("The briefing is ready to send");
