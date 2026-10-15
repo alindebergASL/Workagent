@@ -2,7 +2,7 @@
 import type { components } from "../../../../contracts/src/client";
 import type { ChatMessage } from "@/lib/contract/types";
 import type { ResultState } from "@/lib/result-links";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useResource } from "./hooks";
 import { productApi } from "./products";
 import { ApiError } from "@/lib/contract/errors";
@@ -56,15 +56,33 @@ export function useResultStates(
       ? `result-states:${ws}:${ids.join(",")}:${messages?.length ?? 0}`
       : null;
   const lastGood = useRef<Record<string, WorkNow>>({});
-  return useResource<Record<string, WorkRead>>(key, async (signal) => {
+  // Each read of the set has a generation; only the latest may publish.
+  const generation = useRef(0);
+  // A refusal is shown the moment it arrives, for that work alone, without
+  // waiting for any other read. It lasts until a later read of that work
+  // succeeds and is published.
+  const [refusedAt, setRefusedAt] = useState<Record<string, number>>({});
+  const resource = useResource<{
+    gen: number;
+    reads: Record<string, WorkRead>;
+  }>(key, async (signal) => {
+    const gen = ++generation.current;
+    const watch = <T>(at: string, read: Promise<T>) =>
+      read.catch((e: unknown) => {
+        if (refused(e) && !signal.aborted && gen === generation.current) {
+          delete lastGood.current[at];
+          setRefusedAt((r) => (r[at] === gen ? r : { ...r, [at]: gen }));
+        }
+        throw e;
+      });
     const entries = await Promise.all(
       ids.map(async (aid): Promise<[string, WorkRead]> => {
         const at = `${ws}:${aid}`;
         // Both reads settle before deciding: a refusal from either wins,
         // whatever order they finish in; only a complete pair is kept.
         const [artifactRead, proposalsRead] = await Promise.allSettled([
-          productApi.get(ws!, aid, signal),
-          productApi.proposals(ws!, aid, signal),
+          watch(at, productApi.get(ws!, aid, signal)),
+          watch(at, productApi.proposals(ws!, aid, signal)),
         ]);
         if (signal.aborted) throw new DOMException("Aborted", "AbortError");
         if (
@@ -92,8 +110,42 @@ export function useResultStates(
         ];
       }),
     );
-    return Object.fromEntries(entries);
+    return { gen, reads: Object.fromEntries(entries) };
   });
+  const published = resource.data;
+  // A later read of that work succeeding, once published, ends its refusal
+  // for good; a later ordinary failure is then said as such, not as refused.
+  useEffect(() => {
+    if (!published) return;
+    setRefusedAt((r) => {
+      let next = r;
+      for (const [aid, read] of Object.entries(published.reads)) {
+        const at = `${ws}:${aid}`;
+        if (
+          read.read === "current" &&
+          r[at] !== undefined &&
+          published.gen > r[at]
+        ) {
+          if (next === r) next = { ...r };
+          delete next[at];
+        }
+      }
+      return next;
+    });
+  }, [published, ws]);
+  let data: Record<string, WorkRead> | null = published?.reads ?? null;
+  for (const aid of ids) {
+    const at = `${ws}:${aid}`;
+    const refusal = refusedAt[at];
+    if (refusal === undefined) continue;
+    const recovered =
+      published &&
+      published.gen > refusal &&
+      published.reads[aid]?.read === "current";
+    if (!recovered)
+      data = { ...(data ?? {}), [aid]: { read: "unavailable", now: null } };
+  }
+  return { ...resource, data };
 }
 
 /** The state one message's result link needs, from what was read. */
