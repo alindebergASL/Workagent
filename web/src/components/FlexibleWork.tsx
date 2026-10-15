@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { scopedHref } from "@/lib/scope";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
@@ -28,6 +28,7 @@ import {
   changeSummary,
   fieldHeading,
   longTextFields,
+  rowNameField,
   flexibleKind,
   formatCell,
   isEmptyPayload,
@@ -381,8 +382,8 @@ export function FlexibleEditor({
           </h2>
           {kind === "structured_table" ? (
             <p className="result-headline">
-              {(saved as StructuredTable).rows.length} rows ·{" "}
-              {(saved as StructuredTable).fields.length} columns
+              {plural((saved as StructuredTable).rows.length, "row")} ·{" "}
+              {plural((saved as StructuredTable).fields.length, "column")}
             </p>
           ) : null}
           <p className="result-status" data-verified="false">
@@ -1375,6 +1376,7 @@ export function ReadOnly({
 }
 
 function TableRead({ body }: { body: StructuredTable }) {
+  const longText = longTextFields(body);
   return (
     <div
       className="product-scroll flex-table"
@@ -1382,11 +1384,16 @@ function TableRead({ body }: { body: StructuredTable }) {
       role="region"
       aria-label={body.title}
     >
-      <table>
+      <table className={longText.size ? "has-long" : undefined}>
         <thead>
           <tr>
             {body.fields.map((f) => (
-              <th key={f.key} scope="col" data-type={f.type}>
+              <th
+                key={f.key}
+                scope="col"
+                data-type={f.type}
+                data-long={longText.has(f.key) ? "true" : undefined}
+              >
                 {fieldHeading(f)}
               </th>
             ))}
@@ -1396,7 +1403,12 @@ function TableRead({ body }: { body: StructuredTable }) {
           {body.rows.map((r) => (
             <tr key={r.row_id}>
               {body.fields.map((f) => (
-                <td key={f.key} data-type={f.type} data-label={fieldHeading(f)}>
+                <td
+                  key={f.key}
+                  data-type={f.type}
+                  data-label={fieldHeading(f)}
+                  data-long={longText.has(f.key) ? "true" : undefined}
+                >
                   {formatCell(f, cellValue(r, f.key))}
                 </td>
               ))}
@@ -1412,6 +1424,57 @@ function TableRead({ body }: { body: StructuredTable }) {
         </ul>
       ) : null}
     </div>
+  );
+}
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+/**
+ * A long text value, edited where it can be read whole: the box grows with
+ * its text (and with its width) instead of scrolling inside a cell. It stays
+ * one value; Enter doesn't start a new line.
+ */
+function LongTextCell({
+  value,
+  onChange,
+  ...rest
+}: {
+  value: string;
+  onChange: (text: string) => void;
+  "aria-label": string;
+  "aria-invalid"?: boolean;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+    };
+    fit();
+    // Refit when the width changes (a resize, a phone's card layout); its own
+    // height change isn't a reason to measure again.
+    let width = el.clientWidth;
+    const seen = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      fit();
+    });
+    seen.observe(el);
+    return () => seen.disconnect();
+  }, [value]);
+  return (
+    <textarea
+      {...rest}
+      ref={ref}
+      rows={1}
+      value={value}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.preventDefault();
+      }}
+      onChange={(e) => onChange(e.target.value.replace(/[\r\n]+/g, " "))}
+    />
   );
 }
 
@@ -1442,6 +1505,7 @@ function TableEditor({
   const readOnly = body.fields.some((f) => !f.editable);
   const errors = Object.entries(raw).filter(([, c]) => c.error);
   const longText = longTextFields(saved);
+  const nameKey = rowNameField(body)?.key;
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
     const parsed = parseCell(field, text);
@@ -1472,7 +1536,7 @@ function TableEditor({
         role="region"
         aria-label="Editable table"
       >
-        <table>
+        <table className={longText.size ? "has-long" : undefined}>
           <thead>
             <tr>
               {body.fields.map((f) => (
@@ -1481,6 +1545,7 @@ function TableEditor({
                   scope="col"
                   data-type={f.type}
                   data-derived={f.editable ? undefined : "true"}
+                  data-long={longText.has(f.key) ? "true" : undefined}
                 >
                   {fieldHeading(f)}
                 </th>
@@ -1499,7 +1564,12 @@ function TableEditor({
                     const value = cellValue(r, f.key);
                     const k = cellKey(r.row_id, f.key);
                     const typed = raw[k];
-                    const label = `${name} ${f.label}`;
+                    // The cell that names its row is labelled by position:
+                    // its own text would rename it while the person types.
+                    const label =
+                      f.key === nameKey
+                        ? `Row ${i + 1} ${f.label}`
+                        : `${name} ${f.label}`;
                     const locked = !f.editable && savedRows.has(r.row_id);
                     const inputProps = {
                       "aria-label": label,
@@ -1512,6 +1582,7 @@ function TableEditor({
                         data-type={f.type}
                         data-label={fieldHeading(f)}
                         data-derived={f.editable ? undefined : "true"}
+                        data-long={longText.has(f.key) ? "true" : undefined}
                       >
                         {locked ? (
                           formatCell(f, value)
@@ -1539,19 +1610,9 @@ function TableEditor({
                         ) : longText.has(f.key) ? (
                           // Long text wraps where it can be read, but stays
                           // one value: Enter doesn't start a new line.
-                          <textarea
+                          <LongTextCell
                             {...inputProps}
-                            rows={2}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") e.preventDefault();
-                            }}
-                            onChange={(e) =>
-                              edit(
-                                r.row_id,
-                                f.key,
-                                e.target.value.replace(/[\r\n]+/g, " "),
-                              )
-                            }
+                            onChange={(text) => edit(r.row_id, f.key, text)}
                           />
                         ) : (
                           <input
@@ -1749,16 +1810,21 @@ function ViewSurface({
               data-state={state}
             >
               {i ? ", " : " · reads "}
-              <Link
-                href={scopedHref(
-                  `/conversations/${cid}/artifacts/${binding.artifact_id}`,
-                  ws,
-                )}
-              >
-                {readableTitle(
-                  bound[binding.artifact_id]?.title ?? "saved work",
-                )}
-              </Link>
+              {state === "unavailable" ? (
+                // Nothing to open: a link would only lead to "not available".
+                readableTitle(bound[binding.artifact_id]?.title ?? "saved work")
+              ) : (
+                <Link
+                  href={scopedHref(
+                    `/conversations/${cid}/artifacts/${binding.artifact_id}`,
+                    ws,
+                  )}
+                >
+                  {readableTitle(
+                    bound[binding.artifact_id]?.title ?? "saved work",
+                  )}
+                </Link>
+              )}
               {state === "current"
                 ? " · current saved version"
                 : state === "changed"

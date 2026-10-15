@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { useConversationReply } from "@/lib/client/conversation-reply";
 import { useResource } from "@/lib/client/hooks";
 import { conversationApi } from "@/lib/client/real-api";
-import { ApiError } from "@/lib/contract/errors";
+import { ApiError, describeSendError } from "@/lib/contract/errors";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import {
   recordedResponsibilities,
@@ -17,6 +17,8 @@ import {
   adaptivePresentation,
   cardStatus,
   receiptSays,
+  lastStopped,
+  STOPPED_HINT,
 } from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
 import { useExecution } from "@/lib/client/execution";
@@ -39,7 +41,7 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   failed: "This didn’t complete.",
   unavailable: "Nothing has picked this up yet.",
   outcome_unknown:
-    "Couldn’t confirm whether this finished. Check the work before asking again.",
+    "Couldn’t confirm whether this finished. It won’t be sent again on its own; your saved work and edits are unchanged.",
   no_reply: "No reply was recorded.",
 };
 
@@ -177,6 +179,8 @@ export function ConversationPeek({
     heldByPage || res.reconnecting || Boolean(res.error && !res.data);
   const d = res.data ?? initial;
   const open = d.conversation.state === "open";
+  // A turned-off activation never falls back: every send would be refused.
+  const answersOff = d.conversation.model_activation === "revoked";
   // After a send, the work beside this pane is re-read too: a project's
   // standing depends on the new turn.
   const refreshConversation = res.refresh;
@@ -193,7 +197,7 @@ export function ConversationPeek({
     // Files go with a reply only where a reply names its exact version.
     attach: target !== undefined,
     // Admission, not just the button: no key or retry sends while held.
-    held: revoked || staleRead || !open || Boolean(paused),
+    held: revoked || staleRead || !open || answersOff || Boolean(paused),
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -437,7 +441,18 @@ export function ConversationPeek({
               send it again to add it after what’s new.
             </p>
           ) : reply.error ? (
-            <ErrorNotice error={reply.error} />
+            <ErrorNotice
+              error={reply.error}
+              describe={(e) =>
+                describeSendError(e, d.conversation.model_activation)
+              }
+            />
+          ) : null}
+          {answersOff ? (
+            <p className="notice-line small" data-testid="peek-answers-off">
+              Answers are turned off for this conversation. New messages can’t
+              be sent; your draft is kept.
+            </p>
           ) : null}
           {unlinked ? (
             <p className="notice-line small" data-testid="peek-unlinked">
@@ -455,7 +470,9 @@ export function ConversationPeek({
                   ? "Your unsaved edits aren’t included. Replies work from your saved version."
                   : unlinked
                     ? "Nothing is sent until you choose to."
-                    : idleHint}
+                    : lastStopped(d.turns)
+                      ? STOPPED_HINT
+                      : idleHint}
             </span>
             {unlinked ? (
               <button

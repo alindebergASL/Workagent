@@ -194,10 +194,16 @@ export function removeRow(
  * A short name for a row, from its first editable text value (people name
  * things in columns they can edit; read-only text is usually a reference).
  */
-export function rowName(body: StructuredTable, row: S["TableRow"], n: number) {
-  const first =
+/** The field whose text names each row, if any. */
+export function rowNameField(body: StructuredTable) {
+  return (
     body.fields.find((f) => f.type === "text" && f.editable) ??
-    body.fields.find((f) => f.type === "text");
+    body.fields.find((f) => f.type === "text")
+  );
+}
+
+export function rowName(body: StructuredTable, row: S["TableRow"], n: number) {
+  const first = rowNameField(body);
   const v = first ? cellValue(row, first.key) : null;
   return typeof v === "string" && v.trim() ? v.trim().slice(0, 60) : `Row ${n}`;
 }

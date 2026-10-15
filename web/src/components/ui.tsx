@@ -54,11 +54,14 @@ export function Notice({
 export function ErrorNotice({
   error,
   actions,
+  describe = describeError,
 }: {
   error: unknown;
   actions?: ReactNode;
+  /** Context-specific copy, e.g. for a refused send. */
+  describe?: (error: unknown) => { title: string; nextAction: string };
 }) {
-  const d = describeError(error);
+  const d = describe(error);
   const requestId = error instanceof ApiError ? error.requestId : null;
   return (
     <Notice tone="notice-error" title={d.title} role="alert" actions={actions}>

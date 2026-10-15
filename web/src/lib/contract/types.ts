@@ -362,6 +362,12 @@ export interface ConversationSummary {
   context_count: number;
   updated_at?: string;
   last_message_preview?: string | null;
+  /**
+   * Whether model answers are turned on for this conversation. "disabled"
+   * says no scoped activation exists; "revoked" says one was turned off and
+   * sends never fall back. Absent where the service doesn't report it.
+   */
+  model_activation?: "disabled" | "active" | "revoked";
 }
 
 /** Why the runtime asked for a continuation: a recorded hand-over's wake. */

@@ -823,6 +823,7 @@ function toConversation(c: S["Conversation"]): V.ConversationSummary {
     context_count: c.selected_source_refs?.length ?? 0,
     updated_at: c.updated_at ?? c.created_at ?? "",
     last_message_preview: c.last_message_preview ?? null,
+    model_activation: c.model_activation,
   };
 }
 

@@ -1513,6 +1513,142 @@ try {
     "an investigation's comparison runs in place on the saved quotes; after a resize to 390 and 320 it is painted where the person scrolls to it and weighs by keyboard; weighing it saves nothing; what it reads and what reads a table are one click away; after a human edit it says it's behind and is pointed at the new quotes in place",
   );
 
+  // From a model view on its own page, what it reads opens in the trusted
+  // editor for that work, and going back returns to the project with that
+  // work chosen. Something it reads that can't be read now is named, not
+  // linked: a link would only lead to "not available".
+  {
+    const prioritiesRead = new RegExp(
+      `/api/domain/v1/workspaces/${sup.workspace}/artifacts/${sup.priorities_id}$`,
+    );
+    await page.route(prioritiesRead, (route) =>
+      route.request().method() === "GET"
+        ? route.fulfill({
+            status: 404,
+            json: {
+              code: "not_found_or_not_authorized",
+              message: "Not found.",
+              request_id: "injected",
+            },
+          })
+        : route.continue(),
+    );
+    await page.goto(
+      `${origin}/conversations/${sup.conversation_id}/artifacts/${sup.compare_id}?workspace=${sup.workspace}`,
+    );
+    const gone = page.locator('.view-binding[data-state="unavailable"]');
+    await expect(gone).toContainText("not available", { timeout: 20000 });
+    await expect(gone.getByRole("link")).toHaveCount(0);
+    const source = page
+      .locator('.view-binding:not([data-state="unavailable"])')
+      .getByRole("link", { name: "Supplier evidence" });
+    await expect(source).toHaveAttribute(
+      "href",
+      `/conversations/${sup.conversation_id}/artifacts/${sup.evidence_id}?workspace=${sup.workspace}`,
+    );
+    await page.unroute(prioritiesRead);
+    await source.click();
+    await page.waitForURL(new RegExp(`/artifacts/${sup.evidence_id}`));
+    // The trusted editor for the source, not another view of it.
+    await expect(
+      page.getByRole("region", { name: "Editable table" }),
+    ).toBeVisible({ timeout: 15000 });
+    await page.getByRole("link", { name: /^← / }).first().click();
+    await page.waitForURL(
+      new RegExp(
+        `/spaces/${sup.workspace}/work/${sup.conversation_id}\\?work=${sup.evidence_id}`,
+      ),
+    );
+    await expect(
+      page.locator(`.space-work-item[data-artifact="${sup.evidence_id}"]`),
+    ).toHaveAttribute("aria-pressed", "true", { timeout: 15000 });
+    pass(
+      "from a view's own page, what it reads opens in its editor and back returns with that work chosen; an unreadable source is named, not linked",
+    );
+  }
+
+  // A one-column table of long steps reads where it's edited: each step
+  // shows whole, as wide as the work allows, with no scrolling inside a
+  // cell, on desktop and on a phone. Editing one still saves explicitly and
+  // the saved step comes back whole.
+  {
+    const sec = ids.second;
+    const checklistUrl = `${origin}/conversations/${sec.conversation_id}/artifacts/${sec.checklist_id}?workspace=${sec.workspace}`;
+    const fits = () =>
+      page.evaluate(() => {
+        const region = document.querySelector(
+          '[role="region"][aria-label="Editable table"]',
+        );
+        const boxes = [...region.querySelectorAll("textarea")];
+        return {
+          region: region.getBoundingClientRect().width,
+          steps: boxes.map((t) => ({
+            width: t.getBoundingClientRect().width,
+            hidden: t.scrollHeight - t.clientHeight,
+          })),
+        };
+      });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(checklistUrl);
+    const step2 = page
+      .getByRole("region", { name: "Editable table" })
+      .locator("textarea")
+      .nth(1);
+    await expect(step2).toBeVisible({ timeout: 15000 });
+    let m = await fits();
+    assert.equal(m.steps.length, 3);
+    for (const st of m.steps) {
+      assert.ok(
+        st.hidden <= 1,
+        `a step scrolls inside its cell: ${st.hidden}px hidden`,
+      );
+      assert.ok(
+        st.width >= m.region * 0.6,
+        `a step uses ${Math.round(st.width)}px of ${Math.round(m.region)}px`,
+      );
+    }
+    await shot(page, "12-long-steps-desktop");
+    // A step is named by its place, not by its own text, which would change
+    // its name while the person types.
+    await expect(step2).toHaveAttribute("aria-label", "Row 2 Step");
+    await expect(page.locator(".result-headline")).toHaveText(
+      "3 rows · 1 column",
+    );
+    const longer =
+      (await step2.inputValue()) +
+      " If the totals differ, note the difference on the sheet and tell the studio manager the same day.";
+    await step2.fill(longer);
+    m = await fits();
+    assert.ok(m.steps[1].hidden <= 1, "an edited step grows to stay readable");
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect(page.getByText("Your edits are saved.")).toBeVisible({
+      timeout: 15000,
+    });
+    await page.reload();
+    await expect(step2).toHaveValue(longer, { timeout: 15000 });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.waitForTimeout(300);
+    m = await fits();
+    for (const st of m.steps)
+      assert.ok(
+        st.hidden <= 1,
+        `on a phone a step scrolls inside: ${st.hidden}px`,
+      );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      "no sideways scroll on a phone",
+    );
+    await shot(page, "12-long-steps-phone");
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    pass(
+      "a table of long steps reads whole where it's edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
+    );
+  }
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

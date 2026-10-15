@@ -9,6 +9,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   adaptivePresentation,
+  lastStopped,
   modelExamples,
 } from "../src/lib/adaptive-presentation";
 import {
@@ -183,6 +184,18 @@ describe("honest adaptive presentation", () => {
           ?.title,
       ).not.toContain("saved");
     });
+  for (const provider_observation of ["outcome_unknown", "invalid"] as const)
+    it(`${provider_observation} explains the stop, not asking again as the way out`, () => {
+      const v = adaptivePresentation("failed", {
+        ...progress(),
+        provider_observation,
+      })!;
+      const text = `${v.title} ${v.note}`;
+      expect(text).not.toMatch(/ask(ing)? again|try again|retry it/i);
+      expect(v.title).toMatch(/stopped/i);
+      expect(v.note).toMatch(/won’t be (retried|sent again) on its own/);
+      expect(v.note).toMatch(/your edits, is unchanged/);
+    });
   for (const outcome of [
     "step_limit",
     "budget_limit",
@@ -225,6 +238,24 @@ describe("honest adaptive presentation", () => {
     p.adaptive!.steps![0]!.status = "rejected";
     expect(adaptivePresentation("responding", p)).toBeNull();
     p.response_steps = [{ phase: "selection_2", state: "accepted" }];
+    expect(adaptivePresentation("responding", p)?.title).toBe(
+      "Trying another approach",
+    );
+  });
+  it("orders every selection phase the service reports, past the fourth", () => {
+    const p = progress();
+    p.adaptive!.outcome = "continue";
+    const last = p.adaptive!.steps![0]!;
+    last.status = "rejected";
+    last.phase = "selection_4";
+    // Earlier or same phases aren't a retry after the fourth failed.
+    p.response_steps = [
+      { phase: "selection", state: "accepted" },
+      { phase: "selection_4", state: "accepted" },
+    ];
+    expect(adaptivePresentation("responding", p)).toBeNull();
+    // The service now allows up to eight: a fifth is the next attempt.
+    p.response_steps.push({ phase: "selection_5", state: "accepted" });
     expect(adaptivePresentation("responding", p)?.title).toBe(
       "Trying another approach",
     );
@@ -383,5 +414,26 @@ describe("general alpha: answers and retained explanations", () => {
     expect(text(alpha("answered", null))).toContain(
       "Used guidance (version 1). This reads information; it isn’t a permission or an action.",
     );
+  });
+});
+
+describe("lastStopped", () => {
+  it("is true only when the latest request stopped and is kept as it is", () => {
+    expect(lastStopped([])).toBe(false);
+    expect(lastStopped([{ state: "replied" }])).toBe(false);
+    expect(lastStopped([{ state: "outcome_unknown" }])).toBe(true);
+    for (const provider_observation of ["invalid", "outcome_unknown"] as const)
+      expect(
+        lastStopped([
+          {
+            state: "failed",
+            progress: { ...progress(), provider_observation },
+          },
+        ]),
+      ).toBe(true);
+    // An earlier stop with a later answer is history, not the current state.
+    expect(
+      lastStopped([{ state: "outcome_unknown" }, { state: "replied" }]),
+    ).toBe(false);
   });
 });

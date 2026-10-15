@@ -176,14 +176,14 @@ describe("where a project stands", () => {
     expect(s.underway[0]!.text).toMatch(/replying to your latest message/);
   });
 
-  it("an unconfirmed outcome asks the person to check before asking again", () => {
+  it("an unconfirmed outcome says it isn’t resent, not to ask again", () => {
     const s = spaceStanding({
       detail: detail({ turns: [turn("outcome_unknown")] }),
       work: [],
       holds: {},
     });
     expect(s.next.tone).toBe("attention");
-    expect(s.next.text).toMatch(/Check the work before asking again/);
+    expect(s.next.text).toMatch(/won’t be sent again on its own/);
   });
 
   it("a turn that kept a result isn't called incomplete; one that didn't is", () => {

@@ -1563,3 +1563,141 @@ link. The URL carries `work=<budget>`, and the budget entry is `aria-pressed`.
   - review-boundary 15/15;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Sends that the service won't answer: plain refusal, draft kept
+
+Hermes asked (6202177917) for a check of error presentation for ungranted legacy conversations.
+
+**What was wrong.** Since f83090e, managed HTTP refuses a turn in a conversation that has no
+scoped activation: `422 unsupported_operation`, unless `WORKAGENT_FIXTURE_MODE=true`. The web
+showed the service's generic text, "Operation cannot proceed. Review current state and authority
+before retrying." This happened on the full conversation, in the pane beside the work, and on Home.
+On Home it also offered a "Try again" that could never succeed. A conversation whose activation was
+revoked accepted typing and a send, then failed with "The result is not verified."
+
+**Fix.**
+- `describeSendError(err, activation)` gives send-specific copy from the conversation's
+  `model_activation`, which is now carried into the view model:
+  - not turned on: "Workagent isn’t set up to answer here yet". Nothing was sent, the message is
+    kept, and it can be sent once answers are turned on;
+  - turned off: "Answers are turned off for this conversation";
+  - an unresolved earlier request: "An earlier request here hasn’t been resolved".
+
+  Every other error keeps the general copy.
+- `ErrorNotice` takes the mapping via `describe`. The full conversation, the pane and Home use it.
+  Home drops "Try again" for this refusal, and a second send reuses the conversation already
+  made: no new one.
+- `model_activation === "revoked"` holds every send path before anything is typed: the button,
+  Ctrl/Cmd+Enter, form submit and saved-code runs. A plain notice explains it, and drafts and
+  files stay. "Disabled" can't be decided before sending, because fixture mode admits controlled
+  turns, so it is reported only on refusal.
+
+**Regression.** `web/scripts/conversation-refusal.mjs` runs against the real UI, API and
+PostgreSQL with the service's default admission, so the 422s are real. It covers four cases:
+- Home: the refusal is shown and there is no futile retry.
+- The full conversation: the refusal is shown.
+- The pane beside a project: the refusal is shown.
+- A turned-off activation: the only injected part is the conversation read's
+  `model_activation`.
+
+In every case it asserts that the draft is kept, no raw service text appears, and nothing else
+was sent.
+
+## Selection phases past the fourth
+
+f83090e raised the response steps to `selection_8`. The "Trying another approach" check ordered
+phases from a fixed list of four, so a retry at the fifth to eighth phase was never shown. Phases
+are now ordered by their number. Unit regression in `test/adaptive-presentation.test.ts`.
+
+## From a model view to the trusted editor of what it reads
+
+Hermes asked for a check of source-work links from model views to trusted editors.
+- **In place, on the project page:** "Reads …" selects the source work there.
+- **On the view's own page:** each source links to its own work page, which is the trusted
+  editor. That page's back link returns to the project with the source chosen. A view's bindings
+  are always in its own conversation (`flexible_work._view_bindings`), so the link's conversation
+  is right.
+- **Fix:** a source that can't be read now was still a link that led to "not available". It is
+  now named, not linked.
+
+**Regression.** A new `space-experience.mjs` case covers it:
+- the source's read is refused (404 injected);
+- the view's own page names it without a link;
+- the other source links to its editor (an editable table);
+- back returns with that source `aria-pressed`.
+
+**Results for the three fixes above.**
+- RED:
+  - Home showed "Operation cannot proceed. Review current state and authority before
+    retrying." with "Try again";
+  - the phase unit test failed: no retry shown at `selection_5`;
+  - the view's unreadable source had one link where 0 were expected.
+- GREEN:
+  - refusal 4/4 + routing 7 + Space 22 on the real stack;
+  - 289 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+- Gate note: since f83090e the legacy controlled journeys run ungranted turns. They need
+  `WORKAGENT_FIXTURE_MODE=true`, now set explicitly in the local gate. This includes
+  `scripts/verify_general_integration.py`.
+
+## Long text in a table reads whole where it's edited
+
+Hermes finding 6202897574 (1).
+
+**What was wrong.** A one-column table of long steps put each step in a two-line textarea capped at
+320px wide, while the work pane stayed mostly empty. Every step had to be scrolled inside its cell.
+Each step's accessible name was also its own text, so its name changed as the person typed.
+
+**Fix.**
+- Long-text columns (`data-long`) take the table's width.
+- The textarea grows with its text, and with its width on resize. It stays one value: Enter
+  doesn't add a line.
+- On a phone the step goes under its label, across the card.
+- The cell that names its row is labelled by position ("Row 2 Step").
+- Saving is unchanged and explicit, as is human-field tracking.
+- Read-only tables use the same widths.
+- The headline says "1 column", not "1 columns".
+
+**Regression.**
+- The Space fixture gains an "If the sign-up laptop goes offline" table: one text column with
+  three long steps.
+- A new `space-experience.mjs` case checks the following:
+  - at 1280px, no step hides any text inside its cell, and each uses at least 60% of the table;
+  - an edited step grows, saves through "Save my edits" and comes back whole;
+  - at 390px, no step scrolls inside and the page doesn't scroll sideways.
+- RED with the old table: "a step scrolls inside its cell: 35px hidden".
+
+## A stopped request isn't offered as something to ask again
+
+Hermes finding 6202897574 (2).
+
+**What was wrong.** When a response couldn't be used, or its outcome was unknown, the page said
+"Inspect it before asking again", and the normal composer stayed beside it as if re-asking were the
+way out. For a quarantined attempt that's wrong: it is kept as it is and isn't resent.
+
+**Fix.** The stopped turn now says what stopped:
+- "This request stopped: its answer couldn’t be used";
+- or "This request stopped: whether it went through is unknown".
+
+It also says that it won't be retried or sent again on its own, that anything already saved,
+including your edits, is unchanged, and that this isn't a completed result.
+
+The composer beside a stopped request says: "The stopped request isn’t sent again. A new message
+starts a new request." The same wording is used for an unconfirmed outcome in the pane and on the
+project page. A send refused for an unresolved earlier request reads "An earlier request here
+hasn’t been resolved", with no promise of progress. There is no retry button.
+
+**Regression.**
+- Unit tests: no "ask again", "try again" or "retry it" wording; "stopped" plus no automatic
+  retry plus edits unchanged, for both stop kinds; and `lastStopped` holds only for the latest
+  turn.
+- RED: both stop kinds failed on the old copy.
+
+**Results for both fixes.**
+- real stack: routing 7 + Space 23 + refusal 4;
+- 292 unit tests;
+- 38 DOM regressions;
+- full gate with 0 failures;
+- mock e2e 15/15.

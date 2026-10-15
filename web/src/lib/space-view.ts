@@ -194,7 +194,7 @@ export function spaceStanding({
       text:
         last.state === "unavailable"
           ? "Your latest message hasn’t been picked up yet."
-          : "Couldn’t confirm whether your latest message finished. Check the work before asking again.",
+          : "Couldn’t confirm whether your latest message finished. It won’t be sent again on its own; your saved work is unchanged.",
       tone: "attention",
     });
   else if (

@@ -200,6 +200,24 @@ OPEN_DAY = {'title': 'Open day schedule', 'blocks': [
 ]}
 runs['open_day'] = ask(open_day.id, 'Draft a schedule for the open day.', [publish(OPEN_DAY)],
                        'Here’s a first schedule; the talks are the fixed points.', name='open_day')
+# A one-column table of long steps, as a model makes for a checklist: each
+# step is a sentence or two and has to be readable where it's edited.
+before = set(s.get_conversation(p, ws, open_day.id).artifact_ids)
+CHECKLIST = {'kind': 'structured_table', 'version': 'structured-table/v1',
+             'title': 'If the sign-up laptop goes offline', 'notes': [],
+             'fields': [{'key': 'step', 'label': 'Step', 'type': 'text', 'editable': True, 'unit': None,
+                         'scale': None, 'enum': None}],
+             'rows': [{'row_id': f's{i}', 'cells': [{'field_key': 'step', 'value': v}]} for i, v in enumerate([
+                 'Keep taking names on the paper sign-up sheet at the welcome desk, one visitor per line, '
+                 'with an email address only if they offer it.',
+                 'When the laptop is back online, open the saved sign-up notes and add the paper entries in '
+                 'the order they were written, marking each line on the sheet once it is typed in.',
+                 'Before closing for the day, count the lines on the sheet against the new entries, and keep '
+                 'the sheet in the studio office until the totals have been checked by a second person.'], 1)]}
+runs['checklist'] = ask(open_day.id, 'Write a short checklist for when the sign-up laptop goes offline.',
+                        [publish(CHECKLIST)], 'I wrote a three-step checklist.', name='checklist')
+assert runs['checklist'][1] in ('ready', 'partial'), runs['checklist']
+checklist_id = next(a for a in s.get_conversation(p, ws, open_day.id).artifact_ids if a not in before)
 runs['open_day_handover'] = ask(
     open_day.id, 'Keep track of the volunteer sign-ups until two have confirmed.',
     [responsibility('Get two volunteers for the welcome desk', ['Two volunteers have confirmed'],
@@ -316,7 +334,8 @@ runs['findings_change'] = ask(supplier.id, 'Northprint can do 10 days for EUR 40
                               target=findings_target, name='findings_change')
 open_detail = s.get_conversation(p, ws, open_day.id)
 second_ids = {'workspace': second, 'conversation_id': open_day.id,
-              'artifact_id': open_detail.artifact_ids[0],
+              'artifact_id': next(a for a in open_detail.artifact_ids if a != checklist_id),
+              'checklist_id': checklist_id,
               'assignment_ids': open_detail.assignment_ids,
               'chat_id': chat.id}
 ws, me = first_ws, first_me
