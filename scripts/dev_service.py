@@ -77,7 +77,8 @@ def environment(c, component):
         WORKAGENT_WEB_ORIGIN=f"http://127.0.0.1:{c['web_port']}",
         FRONTEND_ORIGIN=f"http://127.0.0.1:{c['web_port']}",
         WORKAGENT_BACKEND_URL=f"http://127.0.0.1:{c['api_port']}",
-        NEXT_PUBLIC_WORKAGENT_API_BASE='/api/domain')
+        NEXT_PUBLIC_WORKAGENT_API_BASE='/api/domain',
+        NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION='1')
     if component!='web':
         e['WORKAGENT_EXECUTION_STATUS']=str(Path(c['state_dir'])/'execution.json')
     return e
@@ -96,6 +97,19 @@ def command(c, component, once=False):
         argv=[c['node'],str(root/'web/node_modules/next/dist/bin/next'),'start','--hostname','127.0.0.1','--port',str(c['web_port'])]
     else:raise ValueError('unknown component')
     return argv,root/('web' if component=='web' else 'backend'),environment(c,component)
+
+
+def build_command(c):
+    """Next public capabilities are compile-time, not start-time settings.
+
+    Compile the owner's existing frontend against the real domain contract.
+    Neither database, human bearer nor provider credentials belong in a build.
+    """
+    root=Path(c['root'])
+    allowed=('PATH','HOME','LANG','TZ','NEXT_PUBLIC_WORKAGENT_API_BASE',
+             'NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION')
+    env={k:v for k,v in environment(c,'web').items() if k in allowed}
+    return [c['node'],str(root/'web/node_modules/next/dist/bin/next'),'build','--webpack'],root/'web',env
 
 
 def units(c, path):
@@ -134,12 +148,15 @@ def status(c):
 def main():
     os.umask(0o077)
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('action',choices=['install','start','stop','restart','status','run'])
+    p.add_argument('action',choices=['build','install','start','stop','restart','status','run'])
     p.add_argument('--config',type=Path,required=True)
     p.add_argument('--component',choices=COMPONENTS)
     p.add_argument('--once',action='store_true',help='One canonical worker visit for diagnosis; no alternate executor')
     a=p.parse_args(); path=absolute(a.config); c=load_config(path)
-    if a.action=='run':
+    if a.action=='build':
+        argv,cwd,env=build_command(c)
+        subprocess.run(argv,cwd=cwd,env=env,check=True)
+    elif a.action=='run':
         if not a.component or (a.once and a.component!='worker'):raise ValueError('component required')
         argv,cwd,env=command(c,a.component,a.once)
         os.chdir(cwd);os.execvpe(argv[0],argv,env)

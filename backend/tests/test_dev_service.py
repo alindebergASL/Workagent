@@ -47,6 +47,18 @@ def test_web_receives_no_database_credentials(tmp_path):
     assert env['WORKAGENT_BACKEND_URL']=='http://127.0.0.1:8152'
 
 
+def test_build_enables_real_natural_controls_without_credentials(tmp_path,monkeypatch):
+    m=module(); c=m.load_config(config(tmp_path))
+    monkeypatch.setenv('NEXT_PUBLIC_WORKAGENT_API_BASE','/api/mock')
+    monkeypatch.setenv('NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION','0')
+    monkeypatch.setenv('OPENAI_API_KEY','ambient-secret')
+    argv,cwd,env=m.build_command(c)
+    assert argv[-2:]==['build','--webpack'] and cwd==ROOT/'web'
+    assert env['NEXT_PUBLIC_WORKAGENT_API_BASE']=='/api/domain'
+    assert env['NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION']=='1'
+    assert not any(k in env for k in ('DATABASE_URL','MIGRATION_DATABASE_URL','OPENAI_API_KEY','LOCAL_BEARER_TOKEN'))
+
+
 def test_supervision_keeps_resources_and_restarts_components(tmp_path):
     m=module(); path=config(tmp_path); c=m.load_config(path)
     units=m.units(c,path)
