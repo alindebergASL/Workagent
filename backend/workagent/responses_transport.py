@@ -150,7 +150,7 @@ class FrozenSchema:
 class PreparedRequest:
     body: bytes = field(repr=False)
     metadata: RequestMetadata
-    phase: Literal['selection', 'selection_2', 'selection_3', 'selection_4', 'final']
+    phase: Literal['selection', 'selection_2', 'selection_3', 'selection_4', 'selection_5', 'selection_6', 'selection_7', 'selection_8', 'final']
     schema: FrozenSchema = field(repr=False)
     policy: Literal['intake-v1','general-responses-v1','adaptive-local-v1'] = 'intake-v1'
 
@@ -216,6 +216,7 @@ def build_final(*, selection_request: PreparedRequest, selection: ParsedResponse
 
 
 def _validate_request(request: PreparedRequest) -> dict:
+    alpha=False
     if request.policy not in ('intake-v1','general-responses-v1','adaptive-local-v1'):
         raise TransportError('invalid_request_policy')
     if request.policy in ('general-responses-v1','adaptive-local-v1'):
@@ -223,7 +224,9 @@ def _validate_request(request: PreparedRequest) -> dict:
         if request.policy=='adaptive-local-v1':
             from .adaptive import DECISION_SCHEMA
             from .composition import DECISION_SCHEMA as ALPHA_SCHEMA
-            if request.schema==ALPHA_SCHEMA: DECISION_SCHEMA=ALPHA_SCHEMA
+            if request.schema==ALPHA_SCHEMA:
+                DECISION_SCHEMA=ALPHA_SCHEMA
+                alpha=True
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA
         if request.schema!=expected:
             raise TransportError('schema_validator_mismatch')
@@ -231,8 +234,12 @@ def _validate_request(request: PreparedRequest) -> dict:
     allowed = set(_FIXED) | {'instructions', 'input', 'metadata', 'tools', 'tool_choice'}
     if request.phase == 'final':
         allowed.add('text')
-    elif request.phase != 'selection' and not (request.policy=='adaptive-local-v1' and request.phase in ('selection_2','selection_3','selection_4')):
-        raise TransportError('invalid_request_policy')
+    elif request.phase != 'selection':
+        phases=('selection_2','selection_3','selection_4')
+        if alpha:
+            phases+=('selection_5','selection_6','selection_7','selection_8')
+        if request.policy!='adaptive-local-v1' or request.phase not in phases:
+            raise TransportError('invalid_request_policy')
     if (not isinstance(payload, dict) or set(payload) != allowed or
             any(_canonical(payload.get(k)) != _canonical(v) for k, v in _FIXED.items()) or
             payload.get('metadata') != request.metadata.model_dump() or

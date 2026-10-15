@@ -560,7 +560,7 @@
             "title": "Goal"
           },
           "max_steps": {
-            "maximum": 4.0,
+            "maximum": 8.0,
             "minimum": 1.0,
             "title": "Max Steps",
             "type": "integer"
@@ -587,8 +587,7 @@
             "type": "string"
           },
           "shared_cost_limit_usd": {
-            "const": "20.00",
-            "default": "20.00",
+            "pattern": "^(0|[1-9][0-9]?)(\\.[0-9]{1,6})?$",
             "title": "Shared Cost Limit Usd",
             "type": "string"
           },
@@ -600,7 +599,7 @@
             "items": {
               "$ref": "#/components/schemas/AlphaStep"
             },
-            "maxItems": 4,
+            "maxItems": 8,
             "title": "Steps",
             "type": "array"
           },
@@ -618,7 +617,8 @@
           "runtime_extension",
           "max_steps",
           "outcome",
-          "shared_reserved_cost_usd"
+          "shared_reserved_cost_usd",
+          "shared_cost_limit_usd"
         ],
         "title": "AlphaExecution",
         "type": "object"
@@ -679,7 +679,11 @@
               "selection",
               "selection_2",
               "selection_3",
-              "selection_4"
+              "selection_4",
+              "selection_5",
+              "selection_6",
+              "selection_7",
+              "selection_8"
             ],
             "title": "Phase",
             "type": "string"
@@ -4336,6 +4340,10 @@
               "selection_2",
               "selection_3",
               "selection_4",
+              "selection_5",
+              "selection_6",
+              "selection_7",
+              "selection_8",
               "final"
             ],
             "title": "Phase",
@@ -6578,7 +6586,7 @@
             "items": {
               "$ref": "#/components/schemas/ResponseStepObservation"
             },
-            "maxItems": 5,
+            "maxItems": 9,
             "title": "Response Steps",
             "type": "array"
           },
@@ -9410,7 +9418,7 @@
                     "provider_turn_id": null,
                     "state": "queued",
                     "stop_reason": null,
-                    "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
+                    "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -12706,7 +12714,7 @@
                   "provider_turn_id": null,
                   "state": "running",
                   "stop_reason": null,
-                  "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
+                  "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

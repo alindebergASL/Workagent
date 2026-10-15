@@ -227,7 +227,7 @@ class ObservationReadback(Model):
         return ProductObservationResponse.model_validate(data)
 
 class ResponseStepObservation(Model):
-    phase: Literal['selection','selection_2','selection_3','selection_4','final']
+    phase: Literal['selection','selection_2','selection_3','selection_4','selection_5','selection_6','selection_7','selection_8','final']
     state: Literal['prepared','count_unknown','counted','outcome_unknown','accepted','received','invalid']
     response_id: str | None = None
     reported_input_tokens: int | None = None

@@ -61,6 +61,7 @@ def adaptive_readback(c,run,attempt):
     return execution_model(**({'runtime_extension':'general-alpha-v1'} if alpha else {}),goal=value.get('goal'),success_criteria=value.get('success_criteria',[]),
         max_steps=data['responses']['max_steps'],outcome=outcome,
         shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
+        shared_cost_limit_usd=data['responses']['cost_limit_usd'],
         steps=[step_model(**({'capability_result':o.get('capability_result'),'mutation_result':o.get('mutation_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
             reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
 

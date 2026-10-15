@@ -28,7 +28,7 @@ class _Binding(Closed):
 class _Recording(Closed):
     run_id: Id
     attempt_id: Id
-    phase: Literal['selection','selection_2','selection_3','selection_4']
+    phase: Literal['selection','selection_2','selection_3','selection_4','selection_5','selection_6','selection_7','selection_8']
     binding: _Binding
     request: _Request
     decision_sha256: Hash

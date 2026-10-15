@@ -755,12 +755,8 @@ export interface components {
              * @constant
              */
             runtime_extension: "general-alpha-v1";
-            /**
-             * Shared Cost Limit Usd
-             * @default 20.00
-             * @constant
-             */
-            shared_cost_limit_usd: "20.00";
+            /** Shared Cost Limit Usd */
+            shared_cost_limit_usd: string;
             /** Shared Reserved Cost Usd */
             shared_reserved_cost_usd: string;
             /** Steps */
@@ -788,7 +784,7 @@ export interface components {
              * Phase
              * @enum {string}
              */
-            phase: "selection" | "selection_2" | "selection_3" | "selection_4";
+            phase: "selection" | "selection_2" | "selection_3" | "selection_4" | "selection_5" | "selection_6" | "selection_7" | "selection_8";
             /** Reason */
             reason?: string | null;
             /**
@@ -1976,7 +1972,7 @@ export interface components {
              * Phase
              * @enum {string}
              */
-            phase: "selection" | "selection_2" | "selection_3" | "selection_4" | "final";
+            phase: "selection" | "selection_2" | "selection_3" | "selection_4" | "selection_5" | "selection_6" | "selection_7" | "selection_8" | "final";
             /** Reported Input Tokens */
             reported_input_tokens?: number | null;
             /** Reported Output Tokens */
@@ -4070,7 +4066,7 @@ export interface operations {
                      *         "provider_turn_id": null,
                      *         "state": "queued",
                      *         "stop_reason": null,
-                     *         "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
+                     *         "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -5998,7 +5994,7 @@ export interface operations {
                      *       "provider_turn_id": null,
                      *       "state": "running",
                      *       "stop_reason": null,
-                     *       "tool_registry_hash": "5c842a98aca059af0b0f7222eb01c5993126baf6d45bbd4ad210721774f678be",
+                     *       "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

@@ -20,6 +20,7 @@ from workagent.service import encoded
 from workagent.responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
 
 CAPS=dict(generation_limit=50,count_limit=50,read_limit=500,input_limit=1000000,output_limit=409600,cost_limit_usd='20.00')
+CEILINGS=dict(generation_limit=256,count_limit=256,read_limit=4096,input_limit=5120000,output_limit=2097152,cost_limit_usd='20.00')
 
 
 def binding(cvs, project, **limits):
@@ -93,11 +94,11 @@ def test_each_limit_python_and_direct_sql(context,tmp_path,field,value,kind):
 
 
 @pytest.mark.parametrize('field',list(CAPS))
-def test_alpha_caps_explicit_and_tightening_only(field):
+def test_alpha_caps_explicit_and_bounded(field):
     data=binding([], 'proj_model'); data['conversation_ids']=['cv']
     missing=dict(data); missing.pop(field)
     with pytest.raises(ValidationError): GeneralAlphaResponsesBinding(**missing)
-    oversized=dict(data); oversized[field]=21 if field=='cost_limit_usd' else CAPS[field]+1
+    oversized=dict(data); oversized[field]=21 if field=='cost_limit_usd' else CEILINGS[field]+1
     if field=='cost_limit_usd': oversized[field]='20.000001'
     with pytest.raises(ValidationError): GeneralAlphaResponsesBinding(**oversized)
     for value in (None,True,1.5,'1' if field!='cost_limit_usd' else 'NaN'):
@@ -118,7 +119,7 @@ def test_conversations_explicit_unique_ten_and_historical_literals():
 
 
 @pytest.mark.parametrize('field,value',[(f,v) for f in CAPS for v in ('missing',None,True)] + [
-    ('generation_limit',51),('read_limit',501),('input_limit',1000001),('output_limit',409601),
+    ('generation_limit',257),('read_limit',4097),('input_limit',5120001),('output_limit',2097153),
     ('count_limit','50'),('cost_limit_usd','20.000001'),('cost_limit_usd','NaN'),
     ('max_steps','4'),('synthetic_data_only','true'),('conversation_ids',['duplicate','duplicate']),
     ('runtime_extension','unknown')])

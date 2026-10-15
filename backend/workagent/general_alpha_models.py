@@ -18,7 +18,7 @@ class ResponsibilityMutationResult(Model):
 
 
 class AlphaStep(Model):
-    phase: Literal['selection','selection_2','selection_3','selection_4']
+    phase: Literal['selection','selection_2','selection_3','selection_4','selection_5','selection_6','selection_7','selection_8']
     status: Literal['reply','observed','rejected']
     operation_hash: Hash | None = None
     reason: str | None = None
@@ -33,11 +33,11 @@ class AlphaExecution(Model):
     capability: Literal['adaptive-local-v1'] = 'adaptive-local-v1'
     goal: str | None = None
     success_criteria: list[dict] = Field(default_factory=list,max_length=8)
-    max_steps: int = Field(ge=1,le=4)
+    max_steps: int = Field(ge=1,le=8)
     outcome: Literal['pending','continue','answered','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation','cancelled']
-    steps: list[AlphaStep] = Field(default_factory=list,max_length=4)
+    steps: list[AlphaStep] = Field(default_factory=list,max_length=8)
     shared_reserved_cost_usd: str
-    shared_cost_limit_usd: Literal['20.00'] = '20.00'
+    shared_cost_limit_usd: str = Field(pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     cost_basis: Literal['worst_case_reservations_not_billing'] = 'worst_case_reservations_not_billing'
 
 
@@ -64,7 +64,7 @@ class TurnState(Model):
     reason: str
     evidence_origin: Literal['controlled_transport','unverified','synthetic_provider_receipt','live_provider_receipt'] = 'controlled_transport'
     provider_observation: Literal['not_observed','pending','received','outcome_unknown','invalid'] = 'not_observed'
-    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=5)
+    response_steps: list[ResponseStepObservation] = Field(default_factory=list,max_length=9)
     adaptive: AlphaExecution | AdaptiveExecution | None = None
     retained_local_result: RetainedLocalResult | None = None
     explanation: ExplanationReadback | None = None

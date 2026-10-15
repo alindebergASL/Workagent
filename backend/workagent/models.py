@@ -246,17 +246,18 @@ class AdaptiveResponsesBinding(Model):
 
 
 class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
-    """Explicit cumulative project caps; alpha may tighten, never expand them.
+    """Explicit cumulative project caps, independent of historical probe limits.
 
     Persisted historical alpha bindings already contain these fields. No defaults
     are supplied for new authority: omitting a reviewed cap must fail closed.
     """
     runtime_extension: Literal['general-alpha-v1']
-    generation_limit: int = Field(strict=True, ge=0, le=50)
-    count_limit: int = Field(strict=True, ge=0, le=50)
-    read_limit: int = Field(strict=True, ge=0, le=500)
-    input_limit: int = Field(strict=True, ge=0, le=1000000)
-    output_limit: int = Field(strict=True, ge=0, le=409600)
+    max_steps: int = Field(default=4, strict=True, ge=1, le=8)
+    generation_limit: int = Field(strict=True, ge=0, le=256)
+    count_limit: int = Field(strict=True, ge=0, le=256)
+    read_limit: int = Field(strict=True, ge=0, le=4096)
+    input_limit: int = Field(strict=True, ge=0, le=5120000)
+    output_limit: int = Field(strict=True, ge=0, le=2097152)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
 
