@@ -744,6 +744,33 @@ and acknowledged it in #9 (comment 6182032666). Everything outside `web/` and
   tries to save early. Without the fix it fails on the second 409; with it,
   saves are `[409, 200]`.
 
+**From Hermes's integrated review (`docs/SPACE_INTEGRATION_REVIEW.md`), fixed:**
+
+- **P1, a restored draft lost its starting version.**
+  - The bug: the name/purpose draft kept only its values, so a draft started
+    at v1, reloaded after a change made elsewhere (v2), saved against v2 and
+    overwrote that change unseen.
+  - The fix: the draft now persists the version it started from, and a save
+    is checked against that, even after a reload. The base moves only once a
+    refused save has been re-read (a `rebase` the form accepts only if issued
+    after it opened). Exact replay of an unknown save is unchanged.
+  - The regression: case 9 now makes the change elsewhere *before* the
+    reload. Without the fix no conflict appears (the change is overwritten);
+    with it, 409 → hold → re-read → one deliberate save.
+- **P2, preview silently became the reply target.** Fixed in `30f53d6`:
+  nothing is pre-selected.
+- **P2, a file became an invalid exact target.**
+  - The service's `exact_target` accepts tables, tools and self-describing
+    work, not `FileBody`; `canAskAbout()` mirrors that.
+  - A selected file is still shown and opens normally. There is no
+    "Ask about this" for it, and a reply stays about the project, with
+    "A reply can't point at a saved file like “…”, so it goes to the project;
+    name the file in your message."
+  - The regression is a real-React boundary case (the file has no target; a
+    table targets its exact version and hash), which fails on the previous
+    code. Plus a unit test. The worker can't publish files, so there is no
+    real-service file case.
+
 **Hermes-owned scripts I changed because they test this UI** (selectors
 only; their checks keep the same intent):
 

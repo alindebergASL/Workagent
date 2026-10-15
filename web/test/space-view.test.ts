@@ -4,6 +4,7 @@ import type { ConversationDetailView } from "../src/lib/contract/types";
 import type { HoldEntry } from "../src/lib/client/responsibility";
 import {
   actionable,
+  canAskAbout,
   leadWork,
   outdated,
   proposalSummary,
@@ -329,5 +330,20 @@ describe("what a proposed change does", () => {
       ),
     ).toBe("It rewrites 1 part and adds 1 part.");
     expect(proposalSummary(doc([["1", "a"]]), tbl([]))).toBeNull();
+  });
+});
+
+describe("what a reply can name as its subject", () => {
+  it("accepts the kinds the service targets, never a saved file", () => {
+    const of = (body: Record<string, unknown>) =>
+      work("x", "T", "x", 0, body).artifact;
+    expect(canAskAbout(of({ blocks: [] }))).toBe(true);
+    expect(canAskAbout(of({ kind: "structured_table", rows: [] }))).toBe(true);
+    expect(canAskAbout(of({ kind: "custom_view" }))).toBe(true);
+    expect(canAskAbout(of({ kind: "table", columns: [], rows: [] }))).toBe(
+      true,
+    );
+    expect(canAskAbout(of({ kind: "tool", code: "" }))).toBe(true);
+    expect(canAskAbout(of({ kind: "file", content: "x" }))).toBe(false);
   });
 });

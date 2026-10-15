@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { API_MODE, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { usePendingCommand } from "@/lib/client/pending-command";
@@ -19,15 +19,18 @@ const KIND: Record<AreaInput["kind"], string> = {
   workflow: "Ongoing workflow",
 };
 
-function readKept(key: string): AreaInput | null {
+/** What's typed, and the project version the edit started from. */
+type Draft = AreaInput & { base?: number };
+
+function readKept(key: string): Draft | null {
   try {
     const raw = sessionStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as AreaInput) : null;
+    return raw ? (JSON.parse(raw) as Draft) : null;
   } catch {
     return null;
   }
 }
-function keep(key: string, value: AreaInput | null) {
+function keep(key: string, value: Draft | null) {
   try {
     if (value) sessionStorage.setItem(key, JSON.stringify(value));
     else sessionStorage.removeItem(key);
@@ -40,8 +43,12 @@ type Attempt = AreaInput & { command_id: string; expected?: number };
 
 /**
  * A project's name, goal and kind. What's typed is kept across reloads until
- * it's saved. A save whose outcome is unknown is only ever replayed exactly
- * (same command, same version); a definite refusal frees the form.
+ * it's saved, together with the version the edit started from: a save is
+ * checked against that version even after a reload, so a change made
+ * meanwhile is never overwritten unseen. The base moves only when a refused
+ * save has been re-read (`rebase`). A save whose outcome is unknown is only
+ * ever replayed exactly (same command, same version); a definite refusal
+ * frees the form.
  */
 function AreaForm({
   draftKey,
@@ -52,11 +59,14 @@ function AreaForm({
   onCancel,
   onConflict,
   held = false,
+  rebase = null,
 }: {
   draftKey: string;
   initial?: AreaInput;
-  /** The version the edit started from (compare-and-swap); none for a new project. */
+  /** The project's version when a new draft starts; none for a new project. */
   version?: number;
+  /** After a refused save is re-read: the version to check the next save against. */
+  rebase?: { to: number; id: number } | null;
   submit: (attempt: Attempt) => Promise<void>;
   label: string;
   onCancel?: () => void;
@@ -68,18 +78,28 @@ function AreaForm({
    */
   held?: boolean;
 }) {
-  const [value, setValue] = useState<AreaInput>(
-    () =>
-      readKept(draftKey) ?? {
-        title: initial?.title ?? "",
-        goal: initial?.goal ?? "",
-        kind: initial?.kind ?? "project",
-      },
-  );
+  const [value, setValue] = useState<Draft>(() => {
+    const kept = readKept(draftKey);
+    if (kept) return { ...kept, base: kept.base ?? version };
+    return {
+      title: initial?.title ?? "",
+      goal: initial?.goal ?? "",
+      kind: initial?.kind ?? "project",
+      base: version,
+    };
+  });
   useEffect(() => keep(draftKey, value), [draftKey, value]);
+  // Only a rebase issued after this form opened applies to it.
+  const seen = useRef(rebase?.id);
+  useEffect(() => {
+    if (!rebase || rebase.id === seen.current) return;
+    seen.current = rebase.id;
+    setValue((v) => ({ ...v, base: rebase.to }));
+  }, [rebase]);
   const pending = usePendingCommand<Attempt>(`${draftKey}:pending`);
   useEffect(() => {
-    if (pending.restored && pending.current) setValue(pending.current);
+    if (pending.restored && pending.current)
+      setValue({ ...pending.current, base: pending.current.expected });
   }, [pending.restored, pending.current]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -95,7 +115,7 @@ function AreaForm({
         if (busy || held) return;
         const attempt: Attempt = pending.current ?? {
           command_id: newCommandId(),
-          expected: version,
+          expected: value.base,
           title: value.title.trim(),
           goal: value.goal.trim(),
           kind: value.kind,
@@ -220,23 +240,26 @@ export function SpaceDetails({
 }) {
   const draftKey = `workagent:space-edit:${ws}:${id}`;
   const [editing, setEditing] = useState(false);
-  const [from, setFrom] = useState(version);
   // After a refused save, saving is held until the project has been re-read;
-  // the next deliberate save is then checked against that version, the one
-  // now on screen. A cancel and reopen meanwhile doesn't release the hold.
+  // the draft's base then moves to that version, the one now on screen. A
+  // cancel and reopen meanwhile doesn't release the hold.
   const [conflicted, setConflicted] = useState(false);
+  const [rebase, setRebase] = useState<{ to: number; id: number } | null>(null);
+  const settle = (to: number) => {
+    setRebase((r) => ({ to, id: (r?.id ?? 0) + 1 }));
+    setConflicted(false);
+  };
+  const lastVersion = useRef(version);
   useEffect(() => {
-    if (conflicted && version !== from) {
-      setFrom(version);
-      setConflicted(false);
-    }
-  }, [conflicted, version, from]);
+    // A later read that lands first releases the hold just the same.
+    if (conflicted && version !== lastVersion.current) settle(version);
+    lastVersion.current = version;
+  }, [conflicted, version]);
   const conflict = () => {
     setConflicted(true);
     void refresh().then((fresh) => {
-      if (!fresh) return; // Unread: stay held; a later read releases it.
-      setFrom(fresh.conversation.work_version);
-      setConflicted(false);
+      if (fresh) settle(fresh.conversation.work_version);
+      // Unread: stay held; a later read releases it.
     });
   };
   // A draft or unconfirmed save survives a reload: reopen the editor for it.
@@ -273,16 +296,17 @@ export function SpaceDetails({
           <AreaForm
             draftKey={draftKey}
             initial={area ?? undefined}
-            version={from}
+            version={version}
             label="Save"
             onCancel={() => setEditing(false)}
             onConflict={conflict}
             held={conflicted}
+            rebase={rebase}
             submit={async (attempt) => {
               await workAreas.promote(
                 ws,
                 id,
-                attempt.expected ?? from,
+                attempt.expected ?? version,
                 {
                   title: attempt.title,
                   goal: attempt.goal,
@@ -301,7 +325,6 @@ export function SpaceDetails({
             type="button"
             className="btn btn-sm btn-quiet"
             onClick={() => {
-              if (!conflicted) setFrom(version);
               setEditing(true);
             }}
           >
@@ -397,23 +420,26 @@ export function WorkAreaHeader({
 }) {
   const draftKey = `workagent:space-edit:${ws}:${id}`;
   const [editing, setEditing] = useState(false);
-  const [from, setFrom] = useState(version);
   // After a refused save, saving is held until the project has been re-read;
-  // the next deliberate save is then checked against that version, the one
-  // now on screen. A cancel and reopen meanwhile doesn't release the hold.
+  // the draft's base then moves to that version, the one now on screen. A
+  // cancel and reopen meanwhile doesn't release the hold.
   const [conflicted, setConflicted] = useState(false);
+  const [rebase, setRebase] = useState<{ to: number; id: number } | null>(null);
+  const settle = (to: number) => {
+    setRebase((r) => ({ to, id: (r?.id ?? 0) + 1 }));
+    setConflicted(false);
+  };
+  const lastVersion = useRef(version);
   useEffect(() => {
-    if (conflicted && version !== from) {
-      setFrom(version);
-      setConflicted(false);
-    }
-  }, [conflicted, version, from]);
+    // A later read that lands first releases the hold just the same.
+    if (conflicted && version !== lastVersion.current) settle(version);
+    lastVersion.current = version;
+  }, [conflicted, version]);
   const conflict = () => {
     setConflicted(true);
     void refresh().then((fresh) => {
-      if (!fresh) return; // Unread: stay held; a later read releases it.
-      setFrom(fresh.conversation.work_version);
-      setConflicted(false);
+      if (fresh) settle(fresh.conversation.work_version);
+      // Unread: stay held; a later read releases it.
     });
   };
   if (area)
@@ -433,16 +459,17 @@ export function WorkAreaHeader({
           </p>
           <AreaForm
             draftKey={draftKey}
-            version={from}
+            version={version}
             label="Keep as a project"
             onCancel={() => setEditing(false)}
             onConflict={conflict}
             held={conflicted}
+            rebase={rebase}
             submit={async (attempt) => {
               await workAreas.promote(
                 ws,
                 id,
-                attempt.expected ?? from,
+                attempt.expected ?? version,
                 {
                   title: attempt.title,
                   goal: attempt.goal,
@@ -460,7 +487,6 @@ export function WorkAreaHeader({
           type="button"
           className="btn btn-sm btn-quiet"
           onClick={() => {
-            if (!conflicted) setFrom(version);
             setEditing(true);
           }}
         >
