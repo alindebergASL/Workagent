@@ -678,6 +678,50 @@ try {
       0,
     );
   }
+  // Within one card's pair of reads: a refusal of either read wins, whatever
+  // order the two finish in, for 401 and 404 alike; the other read failing
+  // first must not keep the old copy.
+  const budgetProposals = new RegExp(`/artifacts/${budgetId}/proposals`);
+  const refuseLater = (status, code) => async (route) => {
+    if (route.request().method() !== "GET") return route.continue();
+    await new Promise((r) => setTimeout(r, 150));
+    return route.fulfill({
+      status,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code,
+        message: "Refused.",
+        request_id: "synthetic-refusal",
+        next_action: "Check access.",
+        details: {},
+      }),
+    });
+  };
+  for (const [status, code] of [
+    [401, "unauthenticated"],
+    [404, "not_found_or_not_authorized"],
+  ])
+    for (const [refusedRead, failedRead] of [
+      [budgetRead, budgetProposals],
+      [budgetProposals, budgetRead],
+    ]) {
+      await page.route(refusedRead, refuseLater(status, code));
+      await page.route(failedRead, fail);
+      await refreshBtn.click();
+      await expect(
+        latestBudget.getByTestId("work-card-unavailable"),
+      ).toBeVisible({ timeout: 15000 });
+      await expect(latestBudget).not.toContainText("Venue, two days");
+      await expect(
+        latestBudget.getByTestId("work-card-unconfirmed"),
+      ).toHaveCount(0);
+      await page.unroute(refusedRead);
+      await page.unroute(failedRead);
+      await refreshBtn.click();
+      await expect(latestBudget).toContainText("Venue, two days", {
+        timeout: 15000,
+      });
+    }
   await page.locator("#follow-up").fill("");
   pass(
     "refreshing the conversation re-reads its work: a changed version, a refusal and a failed re-check each show, with no new message; a refusal beside a sibling's failed work or proposal read still removes the refused work; all recover; the draft is kept",
