@@ -1112,7 +1112,25 @@ function ViewSurface({
             and what it can't do. */}
         <p className="small view-trust-line" data-testid="product-verification">
           Made by Workagent
-          {states.map(({ binding, state }, i) => (
+          {inPlace ? (
+            // Beside other work, what it reads is named once, above, with
+            // links that open it in place; here only whether that's current.
+            <span
+              className="view-binding"
+              data-state={
+                behind ? "changed" : missing ? "unavailable" : "current"
+              }
+            >
+              {behind
+                ? " · what it reads changed since this view was made"
+                : missing
+                  ? " · something it reads isn’t available"
+                  : states.length
+                    ? " · reads the current saved version"
+                    : ""}
+            </span>
+          ) : null}
+          {(inPlace ? [] : states).map(({ binding, state }, i) => (
             <span
               key={binding.name}
               className="view-binding"

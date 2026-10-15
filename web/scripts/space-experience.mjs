@@ -999,7 +999,7 @@ try {
     timeout: 20000,
   });
   await expect(viewFrame.locator("#state")).toContainText(
-    "Reading saved version",
+    "Using the saved quotes.",
   );
   await expect(viewFrame.locator("#list li").first()).toContainText(
     "Best fit:",
@@ -1018,6 +1018,14 @@ try {
     "Supplier evidence",
   );
   await expect(page.getByText("View source")).toHaveCount(0);
+  // What it reads is named once, beside the work; the view's own line only
+  // says whether that's current.
+  await expect(page.locator(".space-work .view-trust-line")).toContainText(
+    "reads the current saved version",
+  );
+  await expect(page.locator(".space-work .view-trust-line")).not.toContainText(
+    "Supplier evidence",
+  );
   await shot(page, "09-investigation-view-in-place");
   // On a phone, after a resize from desktop, the same view is drawn and
   // usable where the person scrolls to it: its pixels are painted (not just
