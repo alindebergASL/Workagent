@@ -549,6 +549,50 @@ try {
     "an answer shows the work it made with one next step; earlier mentions are one line; how it ran is one Details; it fits a phone",
   );
 
+  // A person can add their own note to a document the agent made, remove a
+  // part they added, and the note is saved as theirs and reads back.
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(
+    `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
+  );
+  const adder = page.getByRole("group", { name: "Add to the document" });
+  await expect(adder).toBeVisible({ timeout: 15000 });
+  await adder.getByRole("button", { name: "Paragraph" }).click();
+  await page.keyboard.type("Temporary line");
+  await page
+    .getByRole("button", { name: /^Remove paragraph: Temporary line/ })
+    .click();
+  await expect(page.getByText("Temporary line")).toHaveCount(0);
+  await adder.getByRole("button", { name: "Your note" }).click();
+  const NOTE =
+    "Don’t pay the venue deposit until the refund terms are in writing.";
+  await page.keyboard.type(NOTE);
+  await expect(page.locator(":focus")).toHaveValue(NOTE);
+  await page.getByRole("button", { name: "Save my edits" }).click();
+  await expect(page.getByText("Your edits are saved.")).toBeVisible({
+    timeout: 15000,
+  });
+  const noted = await api(`/artifacts/${planId}`);
+  const blocks = noted.body.current_revision.body.blocks;
+  assert.deepEqual(
+    blocks.filter((b) => b.kind === "protected_note").map((b) => b.text),
+    [NOTE],
+  );
+  assert.equal(
+    blocks.some((b) => b.text === "Temporary line"),
+    false,
+  );
+  assert.equal(noted.body.current_revision.author_kind, "human");
+  await page.reload();
+  const note = page.locator('.doc-editable .doc-block[data-note="true"]');
+  await expect(note).toContainText("Your note");
+  await expect(note.locator("textarea")).toHaveValue(NOTE);
+  await noOverflow(page);
+  await shot(page, "08-document-your-note");
+  pass(
+    "a person adds their own note to the agent's document, removes a part they added, saves, and the note reads back as theirs",
+  );
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

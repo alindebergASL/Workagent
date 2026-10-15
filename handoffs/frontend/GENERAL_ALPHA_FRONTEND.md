@@ -1000,3 +1000,33 @@ Regression: `space-experience.mjs` case 13, desktop and 390 px. It checks:
 - nothing overflows at 390 px.
 
 RED on `9c6cf08` (no cards). GREEN 14/14, routing 7/7.
+
+## Documents read as documents; a person can add their own note
+
+Hermes reported that a human safety note was never saved because the ordinary
+editor path was inaccessible. In the frontend that was literal: the document
+editor could only change text that already existed. There was no way to add a
+paragraph, a checklist item or a note, or to remove one. The contract's
+`protected_note` block kind was never offered.
+
+- **Add and remove parts.** At the foot of an agent-made document, "Add"
+  offers Paragraph, Checklist item and **Your note** (`protected_note`). A new
+  part takes the cursor. Each part has a remove button: visible on hover or
+  focus, always on touch screens, and labelled with its text. An empty part
+  blocks saving with "Write something in each part, or remove the empty one,
+  before saving."
+- **Notes are visibly the person's own** in both reading and editing: a
+  "Your note" label and a marked edge. The backend treats `protected_note` as a
+  block kind only, so the UI makes no protection claim beyond the existing one:
+  agent changes arrive as proposals the person applies.
+- **Documents read like documents.** Parts are edited in place. An edit box
+  shows its border only on hover and focus, and focus keeps the visible
+  outline. The verification card for documents is a single line. "Discard my
+  changes" appears only when there is something to discard.
+- Drafts, exact replay, proposals and the saved-version check are unchanged.
+
+Regression: `space-experience.mjs` case 13. On the agent's Workshop plan, it
+adds a paragraph and removes it, adds "Your note", types, saves, reads back
+through the API (exactly one `protected_note` with the text, no temporary
+part, `author_kind: human`), reloads and finds the note labelled. RED on
+`0471c53` (no way to add). GREEN 15/15; DOM regressions 37/37.

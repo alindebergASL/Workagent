@@ -580,3 +580,80 @@
 .work-card {
   min-width: 0;
 }
+
+/* A document edited in place: it reads as text, and shows it's editable on
+   hover and focus. Focus keeps the browser's visible outline. */
+.doc-editable .doc-text {
+  position: relative;
+}
+.doc-editable textarea {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  padding: 4px 32px 4px 6px;
+  resize: none;
+  line-height: var(--lh-body);
+}
+.doc-editable textarea:hover {
+  border-color: var(--line);
+}
+.doc-editable textarea:focus {
+  border-color: var(--line-strong);
+  background: var(--surface);
+}
+.doc-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 24px;
+  min-height: 24px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-lg);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+}
+.doc-block:hover .doc-remove,
+.doc-block:focus-within .doc-remove,
+.doc-remove:focus-visible {
+  opacity: 1;
+}
+@media (hover: none) {
+  .doc-remove {
+    opacity: 1;
+  }
+}
+.doc-add {
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-2);
+}
+/* A note the person wrote: visibly theirs, in reading and editing alike. */
+.doc-block[data-note] {
+  background: var(--surface-2);
+  border-left: 3px solid var(--attn);
+  border-radius: var(--r-sm);
+  padding: var(--sp-1) var(--sp-2);
+}
+.doc-note-label {
+  grid-column: 1 / -1;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.result-line {
+  margin: 0;
+}
+.doc-editable textarea {
+  min-height: 0;
+}
+.doc-editable {
+  gap: 2px;
+}
