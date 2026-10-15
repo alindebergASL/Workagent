@@ -1581,7 +1581,7 @@ revoked accepted typing and a send, then failed with "The result is not verified
   - not turned on: "Workagent isn’t set up to answer here yet". Nothing was sent, the message is
     kept, and it can be sent once answers are turned on;
   - turned off: "Answers are turned off for this conversation";
-  - an unsettled earlier send: "An earlier message here is still being settled".
+  - an unresolved earlier request: "An earlier request here hasn’t been resolved".
 
   Every other error keeps the general copy.
 - `ErrorNotice` takes the mapping via `describe`. The full conversation, the pane and Home use it.
@@ -1641,3 +1641,61 @@ Hermes asked for a check of source-work links from model views to trusted editor
 - Gate note: since f83090e the legacy controlled journeys run ungranted turns. They need
   `WORKAGENT_FIXTURE_MODE=true`, now set explicitly in the local gate. This includes
   `scripts/verify_general_integration.py`.
+
+## Long text in a table reads whole where it's edited
+
+Hermes finding 6202897574 (1).
+
+**What was wrong.** A one-column table of long steps put each step in a two-line textarea capped at
+320px wide, while the work pane stayed mostly empty. Every step had to be scrolled inside its cell.
+Each step's accessible name was also its own text, so its name changed as the person typed.
+
+**Fix.**
+- Long-text columns (`data-long`) take the table's width.
+- The textarea grows with its text, and with its width on resize. It stays one value: Enter
+  doesn't add a line.
+- On a phone the step goes under its label, across the card.
+- The cell that names its row is labelled by position ("Row 2 Step").
+- Saving is unchanged and explicit, as is human-field tracking.
+- Read-only tables use the same widths.
+- The headline says "1 column", not "1 columns".
+
+**Regression.**
+- The Space fixture gains an "If the sign-up laptop goes offline" table: one text column with
+  three long steps.
+- A new `space-experience.mjs` case checks the following:
+  - at 1280px, no step hides any text inside its cell, and each uses at least 60% of the table;
+  - an edited step grows, saves through "Save my edits" and comes back whole;
+  - at 390px, no step scrolls inside and the page doesn't scroll sideways.
+- RED with the old table: "a step scrolls inside its cell: 35px hidden".
+
+## A stopped request isn't offered as something to ask again
+
+Hermes finding 6202897574 (2).
+
+**What was wrong.** When a response couldn't be used, or its outcome was unknown, the page said
+"Inspect it before asking again", and the normal composer stayed beside it as if re-asking were the
+way out. For a quarantined attempt that's wrong: it is kept as it is and isn't resent.
+
+**Fix.** The stopped turn now says what stopped:
+- "This request stopped: its answer couldn’t be used";
+- or "This request stopped: whether it went through is unknown".
+
+It also says that it won't be retried or sent again on its own, that anything already saved,
+including your edits, is unchanged, and that this isn't a completed result.
+
+The composer beside a stopped request says: "The stopped request isn’t sent again. A new message
+starts a new request." The same wording is used for an unconfirmed outcome in the pane and on the
+project page. A send refused for an unresolved earlier request reads "An earlier request here
+hasn’t been resolved", with no promise of progress. There is no retry button.
+
+**Regression.**
+- Unit tests: no "ask again", "try again" or "retry it" wording; "stopped" plus no automatic
+  retry plus edits unchanged, for both stop kinds; and `lastStopped` holds only for the latest
+  turn.
+- RED: both stop kinds failed on the old copy.
+
+**Results for both fixes.**
+- real stack: routing 7 + Space 23 + refusal 4;
+- 292 unit tests;
+- 38 DOM regressions.

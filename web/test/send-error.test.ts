@@ -29,7 +29,7 @@ describe("describeSendError", () => {
 
   it("names an unsettled earlier send rather than the raw service text", () => {
     const d = describeSendError(err("action_unresolved"), "active");
-    expect(d.title).toBe("An earlier message here is still being settled");
+    expect(d.title).toBe("An earlier request here hasn’t been resolved");
   });
 
   it("leaves every other error to the general copy", () => {

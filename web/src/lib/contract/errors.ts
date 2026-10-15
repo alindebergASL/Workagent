@@ -76,9 +76,9 @@ export function describeSendError(
           };
     if (err.code === "action_unresolved")
       return {
-        title: "An earlier message here is still being settled",
+        title: "An earlier request here hasn’t been resolved",
         nextAction:
-          "Nothing new was sent, and your message is kept here. Send it once the earlier one is answered or stopped.",
+          "Nothing new was sent, and your message is kept here. A new message can be added once that request is resolved.",
       };
   }
   return describeError(err);

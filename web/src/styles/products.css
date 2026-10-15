@@ -288,6 +288,36 @@
   max-width: none;
   min-width: 160px;
 }
+/* Long text reads whole where it's edited: its column takes the room the
+   work has, and the box grows with the text instead of scrolling inside. */
+.flex-table table.has-long {
+  width: 100%;
+}
+.flex-table th[data-long="true"],
+.flex-table td[data-long="true"] {
+  width: 100%;
+  min-width: 16rem;
+  max-width: none;
+}
+.flex-table td[data-long="true"] {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+.flex-table td[data-long="true"] textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.5;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
 .flex-table select {
   font: inherit;
   border: 1px solid var(--line);
@@ -360,6 +390,12 @@
     padding: 4px var(--sp-3);
     max-width: none;
     min-width: 0;
+  }
+  /* A long value goes under its label, across the card. */
+  .flex-table td[data-long="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    width: 100%;
   }
   .flex-table td::before {
     content: attr(data-label);

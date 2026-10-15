@@ -17,6 +17,8 @@ import {
   adaptivePresentation,
   cardStatus,
   receiptSays,
+  lastStopped,
+  STOPPED_HINT,
 } from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
 import { useExecution } from "@/lib/client/execution";
@@ -39,7 +41,7 @@ const TURN_TEXT: Partial<Record<string, string>> = {
   failed: "This didn’t complete.",
   unavailable: "Nothing has picked this up yet.",
   outcome_unknown:
-    "Couldn’t confirm whether this finished. Check the work before asking again.",
+    "Couldn’t confirm whether this finished. It won’t be sent again on its own; your saved work and edits are unchanged.",
   no_reply: "No reply was recorded.",
 };
 
@@ -468,7 +470,9 @@ export function ConversationPeek({
                   ? "Your unsaved edits aren’t included. Replies work from your saved version."
                   : unlinked
                     ? "Nothing is sent until you choose to."
-                    : idleHint}
+                    : lastStopped(d.turns)
+                      ? STOPPED_HINT
+                      : idleHint}
             </span>
             {unlinked ? (
               <button

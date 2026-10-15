@@ -35,6 +35,8 @@ import {
   adaptivePresentation,
   cardStatus,
   receiptSays,
+  lastStopped,
+  STOPPED_HINT,
 } from "@/lib/adaptive-presentation";
 import {
   AgentReply,
@@ -593,7 +595,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
                 : inFlight
                   ? "Sending now replaces the reply in progress; your earlier messages stay."
-                  : "Ask, steer, or add detail."}
+                  : lastStopped(d.turns)
+                    ? STOPPED_HINT
+                    : "Ask, steer, or add detail."}
             </span>
             <button
               type="button"

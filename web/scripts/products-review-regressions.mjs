@@ -1164,7 +1164,7 @@ try {
   await expect(
     page.locator('.agent-pane [data-state="outcome_unknown"] > span'),
   ).toHaveText(
-    "Couldn’t confirm whether this finished. Check the work before asking again.",
+    "Couldn’t confirm whether this finished. It won’t be sent again on its own; your saved work and edits are unchanged.",
   );
   await expect(
     page.locator('.agent-pane [data-state="reconnecting"]'),

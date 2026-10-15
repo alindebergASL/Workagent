@@ -73,11 +73,16 @@ export function adaptivePresentation(
     progress.provider_observation === "invalid"
   )
     return {
+      // A stopped attempt is kept as it is: never offered as something to
+      // ask again, which could duplicate or bypass what's known about it.
       title:
         progress.provider_observation === "invalid"
-          ? "The model response could not be used"
-          : "Couldn’t confirm the model response",
-      note: "Any local work is retained. Inspect it before asking again; this is not a confirmed completion.",
+          ? "This request stopped: its answer couldn’t be used"
+          : "This request stopped: whether it went through is unknown",
+      note:
+        progress.provider_observation === "invalid"
+          ? "That answer wasn’t used and won’t be retried on its own. Anything already saved, including your edits, is unchanged. This isn’t a completed result."
+          : "It won’t be sent again on its own, so nothing is duplicated. Anything already saved, including your edits, is unchanged. This isn’t a completed result.",
       checks: null,
       changedAttempts: 0,
     };
@@ -232,4 +237,23 @@ export function receiptSays(
   view: ReturnType<typeof adaptivePresentation>,
 ): boolean {
   return Boolean(view && /responsibilit(y|ies) recorded$/i.test(view.title));
+}
+
+/** Said beside the composer when the latest request stopped and is kept as it is. */
+export const STOPPED_HINT =
+  "The stopped request isn’t sent again. A new message starts a new request.";
+
+/**
+ * Whether the latest request stopped in a way that is kept as it is: its
+ * answer couldn't be used, or whether it went through is unknown. Such a
+ * request is never resent, so the composer isn't a way to retry it.
+ */
+export function lastStopped(
+  turns: readonly { state: TurnState; progress?: TurnProgress }[],
+): boolean {
+  const last = turns.at(-1);
+  if (!last) return false;
+  if (last.state === "outcome_unknown") return true;
+  const seen = last.progress?.provider_observation;
+  return seen === "invalid" || seen === "outcome_unknown";
 }

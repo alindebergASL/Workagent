@@ -9,6 +9,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   adaptivePresentation,
+  lastStopped,
   modelExamples,
 } from "../src/lib/adaptive-presentation";
 import {
@@ -182,6 +183,18 @@ describe("honest adaptive presentation", () => {
         adaptivePresentation("failed", { ...progress(), provider_observation })
           ?.title,
       ).not.toContain("saved");
+    });
+  for (const provider_observation of ["outcome_unknown", "invalid"] as const)
+    it(`${provider_observation} explains the stop, not asking again as the way out`, () => {
+      const v = adaptivePresentation("failed", {
+        ...progress(),
+        provider_observation,
+      })!;
+      const text = `${v.title} ${v.note}`;
+      expect(text).not.toMatch(/ask(ing)? again|try again|retry it/i);
+      expect(v.title).toMatch(/stopped/i);
+      expect(v.note).toMatch(/won’t be (retried|sent again) on its own/);
+      expect(v.note).toMatch(/your edits, is unchanged/);
     });
   for (const outcome of [
     "step_limit",
@@ -401,5 +414,26 @@ describe("general alpha: answers and retained explanations", () => {
     expect(text(alpha("answered", null))).toContain(
       "Used guidance (version 1). This reads information; it isn’t a permission or an action.",
     );
+  });
+});
+
+describe("lastStopped", () => {
+  it("is true only when the latest request stopped and is kept as it is", () => {
+    expect(lastStopped([])).toBe(false);
+    expect(lastStopped([{ state: "replied" }])).toBe(false);
+    expect(lastStopped([{ state: "outcome_unknown" }])).toBe(true);
+    for (const provider_observation of ["invalid", "outcome_unknown"] as const)
+      expect(
+        lastStopped([
+          {
+            state: "failed",
+            progress: { ...progress(), provider_observation },
+          },
+        ]),
+      ).toBe(true);
+    // An earlier stop with a later answer is history, not the current state.
+    expect(
+      lastStopped([{ state: "outcome_unknown" }, { state: "replied" }]),
+    ).toBe(false);
   });
 });
