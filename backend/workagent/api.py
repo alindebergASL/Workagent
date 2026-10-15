@@ -135,6 +135,12 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def get_source(workspace_id:Id,source_id:Id,p:P,meta:Meta):
         return service.get_source(p,workspace_id,source_id)
 
+    from .work_area_models import WorkAreaContext
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/work-context','GET','get_work_area_context',WorkAreaContext)
+    def get_work_area_context(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
+        return service.get_work_area_context(p,workspace_id,conversation_id)
+
     @route('/v1/workspaces/{workspace_id}/work-areas','GET','list_work_areas',ConversationPage)
     def list_work_areas(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_work_areas(p,workspace_id,cursor,limit)

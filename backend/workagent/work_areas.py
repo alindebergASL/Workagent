@@ -8,6 +8,93 @@ from .errors import deny
 
 
 class WorkAreas:
+    def get_work_area_context(self,p,ws,cid):
+        with self.db.transaction() as c:
+            self._scope(c,p,ws)
+            cv=self._conversation(c,p,ws,cid)
+            return self._work_area_context(c,p,ws,cv)
+
+    def _work_area_context(self,c,p,ws,cv,*,snapshot=None,work_version=None):
+        """Project current canonical records after enumerating scoped identifiers.
+
+        A run's first projection fixes its read set. Revalidation reads those same
+        records, never expands the snapshot because this run recorded a new
+        responsibility. Existing records must still match exactly. API reads have
+        no snapshot and always show current work, including new records.
+        """
+        from .work_area_models import (WorkAreaContext, WorkAreaArtifact,
+            WorkAreaProposal, WorkAreaResponsibility, WorkAreaOmissions)
+        from .models import ExactTarget
+        from .product_models import TableBody,ToolBody
+        from .flexible_models import Body,StructuredTableBody,CustomViewBody
+        from .service import canonical,digest
+        from .errors import DomainError
+
+        def identifiers(table,key,limit,extra='',name=None):
+            name=name or table
+            selected=[item[key] for item in snapshot[name]] if snapshot else None
+            # Only identifiers/counts, scoped BEFORE body/lifecycle materialization.
+            scope=('artifact_id IN (SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s)'
+                   if table=='proposals' else 'conversation_id=%s')
+            params=(ws,ws,cv.id) if table=='proposals' else (ws,cv.id)
+            rows=c.execute(f'SELECT id,count(*) OVER () AS total FROM {table} '
+                'WHERE workspace_id=%s AND '+scope+extra+
+                (' AND id=ANY(%s)' if selected is not None else '')+
+                ' ORDER BY id LIMIT %s',
+                (*params,*([selected] if selected is not None else []),limit)).fetchall()
+            if selected is not None and {r['id'] for r in rows}!=set(selected):
+                raise DomainError('source_changed')
+            omitted=(snapshot['omissions'][name] if snapshot else
+                     (rows[0]['total']-len(rows) if rows else 0))
+            return [r['id'] for r in rows],omitted
+
+        artifact_ids,omitted_artifacts=identifiers('artifacts','artifact_id',12)
+        proposal_ids,omitted_proposals=identifiers('proposals','proposal_id',20)
+        assignment_ids,omitted_responsibilities=identifiers('assignments','assignment_id',8,
+            ' AND responsibility_lifecycle IS NOT NULL',name='responsibilities')
+
+        artifacts=[]; proposals=[]; responsibilities=[]; targets=[]
+        remaining=32768
+        def bounded(value):
+            nonlocal remaining
+            size=len(canonical(value).encode())
+            if size>8192 or size>remaining: return None
+            remaining-=size
+            return value
+
+        for aid in artifact_ids:
+            row,scope=self._artifact(c,p,ws,aid)
+            rev=self._revision(c,p,ws,row,scope)
+            body=bounded(rev.body)
+            artifacts.append(WorkAreaArtifact(artifact_id=aid,revision_id=rev.id,
+                revision_number=rev.revision_number,body_hash=rev.body_hash,
+                author_id=rev.author_id,author_kind=rev.author_kind,body=body,body_omitted=body is None))
+            if body is not None and isinstance(body,(TableBody,ToolBody,Body,StructuredTableBody,CustomViewBody)):
+                targets.append(ExactTarget(artifact_id=aid,revision_id=rev.id,body_hash=rev.body_hash))
+        for pid in proposal_ids:
+            proposal,row,_=self._proposal(c,p,ws,pid)
+            # Defend the canonical conversation boundary even for malformed joins.
+            if row.get('conversation_id')!=cv.id: deny()
+            same=proposal.base_revision_id==row['current_revision_id']
+            proposals.append(WorkAreaProposal(proposal_id=pid,artifact_id=proposal.artifact_id,
+                base_revision_id=proposal.base_revision_id,base_work_version=proposal.base_work_version,
+                body_hash=proposal.body_hash,status=proposal.status,accepted_revision_id=proposal.accepted_revision_id,
+                base_is_current=same,stale=proposal.status=='pending' and not same))
+        for aid in assignment_ids:
+            a,_=self._responsibility_assignment(c,p,ws,aid)
+            life=self._lifecycle(c,ws,aid)
+            self._responsibility_observations(c,p,a,life.dependencies)
+            material=bounded(life)
+            responsibilities.append(WorkAreaResponsibility(assignment_id=aid,work_version=a.work_version,
+                owner_id=a.owner_id,lifecycle_sha256=digest(life),lifecycle=material,lifecycle_omitted=material is None))
+        omissions=WorkAreaOmissions(artifacts=omitted_artifacts,proposals=omitted_proposals,
+            responsibilities=omitted_responsibilities,saved_bodies=sum(a.body_omitted for a in artifacts),
+            lifecycles=sum(a.lifecycle_omitted for a in responsibilities))
+        return WorkAreaContext(conversation_id=cv.id,conversation_work_version=work_version or cv.work_version,
+            purpose=cv.work_area,artifacts=artifacts,proposals=proposals,responsibilities=responsibilities,
+            offered_targets=targets,omissions=omissions,truncated=any((omitted_artifacts,omitted_proposals,
+                omitted_responsibilities,omissions.saved_bodies,omissions.lifecycles)))
+
     def create_work_area(self,p,ws,cmd):
         from .service import encoded
         def auth(c):
