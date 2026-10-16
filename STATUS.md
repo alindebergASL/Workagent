@@ -5,7 +5,34 @@ extensible tools/skills, scoped memory, continuity, authorized initiative, optio
 Spaces and Intelligent UI mission remains. No parity or user-acceptance claim.
 Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
-## Candidate, owners and service state
+## Current operating checkpoint — October16,22:24UTC
+
+Application candidate `41a373965fd6aed6fdd6d55599a265515017cd9e` is published and
+served from a separate frozen directory. Sole integration owner: current attended
+CLI session; Claude remains sole web owner. The failed dispatcher card remains
+blocked, its two unknown admissions preserved and compute interpreters gone.
+No automatic restart or duplicate owner was admitted.
+
+API/web/worker started21:36:28UTC; build `S3q1X0z3unkcQp8UaAsyV`. Installed grant
+`workagent-alpha-recovery-20261016-01` is compatible and unchanged. Cumulative
+authority$50; at22:09UTC allocated$43.086/unactivated$6.914; shared reservations
+$15.43464 including carry$3.42992,2unknown usage steps. Not billing.
+
+Scoped backend1+94+168 and activation2 PASS are reused matching-runtime evidence,
+not a full suite. Combined frontend308/lint/types/format/contracts/webpack PASS.
+Local ordinary-product evaluation has begun under existing allowance; usefulness,
+latency, phone and authenticated external review remain unaccepted.
+
+Current handoff: [RECOVERY_DELIVERY_20261016](docs/RECOVERY_DELIVERY_20261016.md).
+Sanitized report hashes/results: [evidence](docs/evidence/RECOVERY_CHECKPOINT_20261016.json).
+
+## Historical checkpoint below — superseded, retained for provenance
+
+The original owner/grant12/stopped-worker/unfinished-test statements below describe
+the earlier checkpoint, NOT current launch instructions or authority. Do not
+reinstall an allowance or restart a legacy owner from these historical sections.
+
+### Previous candidate, owners and service state
 
 Sole integration/backend writer: durable Kanban task `t_19606c3d`, branch
 `hermes/overnight-intelligent-work`, recovering from published `c0f3624`.
