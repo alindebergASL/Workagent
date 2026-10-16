@@ -609,7 +609,16 @@ export function FlexibleEditor({
             {problem}
           </p>
         ) : null}
-        <div className="row product-actions">
+        <div
+          className={`row product-actions${dirty ? " unsaved-bar" : ""}`}
+          data-testid={dirty ? "unsaved-bar" : undefined}
+        >
+          {dirty ? (
+            // Kept in view while anything is unsaved, however long the work.
+            <span className="small unsaved-note" role="status">
+              Your changes are not saved yet.
+            </span>
+          ) : null}
           {dirty ? (
             <button
               className="btn btn-primary"

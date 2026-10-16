@@ -762,3 +762,19 @@ textarea.fit-text {
 .doc-editable {
   gap: 2px;
 }
+
+/* While edits are unsaved, their save stays in view at the bottom of the
+   screen, however far the person has scrolled through the work. */
+.product-actions.unsaved-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  align-items: center;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: var(--sp-2) 0;
+}
+.unsaved-note {
+  margin-right: auto;
+  color: var(--ink-2);
+}

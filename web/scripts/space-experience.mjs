@@ -1671,6 +1671,35 @@ try {
       "no sideways scroll on a phone",
     );
     await shot(page, "12-long-steps-phone");
+    // An edit at the top of a long editor keeps its save in view: the
+    // person never has to hunt below the fold to keep what they changed.
+    const step1 = page
+      .getByRole("region", { name: "Editable table" })
+      .locator("textarea")
+      .first();
+    await step1.scrollIntoViewIfNeeded();
+    await step1.fill(`${await step1.inputValue()} Use a pen, not pencil.`);
+    const saveNow = page.getByRole("button", {
+      name: "Save my edits",
+      exact: true,
+    });
+    await expect(saveNow).toBeVisible();
+    assert.ok(
+      await saveNow.evaluate((b) => {
+        const r = b.getBoundingClientRect();
+        return r.top >= 0 && r.bottom <= window.innerHeight;
+      }),
+      "the save is out of view after an edit at the top",
+    );
+    await expect(page.getByTestId("unsaved-bar")).toContainText(
+      "not saved yet",
+    );
+    // The viewport as the person sees it (a full-page capture unsticks it).
+    await page.screenshot({ path: path.join(out, "12-unsaved-bar-phone.png") });
+    await page
+      .getByRole("button", { name: "Discard my changes", exact: true })
+      .click();
+    await expect(saveNow).toHaveCount(0);
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a table of long steps and its notes read whole where they're edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",

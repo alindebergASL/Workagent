@@ -1802,3 +1802,26 @@ sticky row controls.
   - 38 DOM regressions;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Editor audit: an unsaved edit keeps its save in view
+
+Editor and navigation audit, third fix.
+
+**What was wrong.** "Save my edits" and "Discard my changes" appear only once there's an edit, below
+the whole table (or document) and its notes. On a phone, or in any long piece of work, an edit near
+the top left them off-screen, with nothing in view saying the change wasn't kept.
+
+**Fix.** While anything is unsaved, the action row sticks to the bottom of the screen. It shows
+"Your changes are not saved yet.", "Save my edits" and "Discard my changes". Nothing else about
+saving changes: it stays explicit, and discarding still returns to the saved version.
+
+**Regression.** The long-steps case, at 390, edits the first step and asserts that "Save my edits"
+is inside the viewport and that the bar says the changes aren't saved. It then discards, and the
+save goes away.
+
+**Results.**
+- RED with the old layout: "the save is out of view after an edit at the top".
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions.
