@@ -150,11 +150,26 @@ export function DocEdit({
     ]);
     setFocusId(id);
   };
+  // The last part removed, so one click puts it back where it was.
+  const [removed, setRemoved] = useState<{ block: Block; at: number } | null>(
+    null,
+  );
   const remove = (id: string) => {
     const i = blocks.findIndex((b) => b.id === id);
+    if (i >= 0) setRemoved({ block: blocks[i]!, at: i });
     onChange(blocks.filter((b) => b.id !== id));
     const next = blocks[i + 1] ?? blocks[i - 1];
     if (next) setFocusId(next.id);
+  };
+  const undo = () => {
+    if (!removed || blocks.some((b) => b.id === removed.block.id)) {
+      setRemoved(null);
+      return;
+    }
+    const at = Math.min(removed.at, blocks.length);
+    onChange([...blocks.slice(0, at), removed.block, ...blocks.slice(at)]);
+    setFocusId(removed.block.id);
+    setRemoved(null);
   };
   return (
     <div className="doc doc-editable" ref={root}>
@@ -200,6 +215,19 @@ export function DocEdit({
           <SourceMarks block={b} />
         </div>
       ))}
+      {removed && !blocks.some((b) => b.id === removed.block.id) ? (
+        <p className="small undo-line" role="status" data-testid="undo-remove">
+          Removed “{removed.block.text.slice(0, 40) || "an empty part"}”.{" "}
+          <button
+            type="button"
+            className="link-quiet"
+            disabled={disabled}
+            onClick={undo}
+          >
+            Undo
+          </button>
+        </p>
+      ) : null}
       {addable && blocks.length < 200 ? (
         <div
           className="doc-add row wrap"

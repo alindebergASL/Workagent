@@ -931,7 +931,15 @@ try {
   await page
     .getByRole("button", { name: /^Remove paragraph: Temporary line/ })
     .click();
-  await expect(page.getByText("Temporary line")).toHaveCount(0);
+  // Gone from the document; only the offer to undo names it.
+  await expect
+    .poll(() =>
+      page
+        .locator(".doc-editable textarea")
+        .evaluateAll((els) => els.some((e) => e.value === "Temporary line")),
+    )
+    .toBe(false);
+  await expect(page.getByTestId("undo-remove")).toContainText("Temporary line");
   await adder.getByRole("button", { name: "Your note" }).click();
   const NOTE =
     "Don’t pay the venue deposit until the refund terms are in writing.";
@@ -1789,6 +1797,66 @@ try {
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a wide table stays inside the work pane: no sideways page scroll, row controls in view, out-of-view columns said, the last column edited and saved",
+    );
+  }
+
+  // Removing a row or a part of a document can be undone in one click: it
+  // comes back where it was, and nothing is left unsaved.
+  {
+    const kit = ids.kit;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(
+      `${origin}/conversations/${kit.conversation_id}/artifacts/${kit.loans_id}?workspace=${kit.workspace}`,
+    );
+    const grid = page.getByRole("region", { name: "Editable table" });
+    const items = () =>
+      grid
+        .locator('input[aria-label$=" Item"]')
+        .evaluateAll((els) => els.map((e) => e.value));
+    await expect(grid).toBeVisible({ timeout: 15000 });
+    const rows = await items();
+    await grid.getByRole("button", { name: "Remove Repair bag" }).click();
+    await expect(page.getByTestId("undo-remove")).toContainText("Repair bag");
+    assert.deepEqual(
+      await items(),
+      rows.filter((x) => x !== "Repair bag"),
+    );
+    await page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo" })
+      .click();
+    assert.deepEqual(await items(), rows);
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toHaveCount(0);
+
+    await page.goto(
+      `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
+    );
+    const parts = () =>
+      page
+        .locator(".doc-editable textarea")
+        .evaluateAll((els) => els.map((e) => e.value));
+    await expect(page.locator(".doc-editable textarea").first()).toBeVisible({
+      timeout: 15000,
+    });
+    const before = await parts();
+    assert.ok(before.length >= 2);
+    await page.locator(".doc-editable .doc-remove").nth(1).click();
+    await expect(page.getByTestId("undo-remove")).toContainText(
+      before[1].slice(0, 20),
+    );
+    assert.equal((await parts()).length, before.length - 1);
+    await page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo" })
+      .click();
+    assert.deepEqual(await parts(), before);
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toHaveCount(0);
+    pass(
+      "a removed row or part comes back where it was with one Undo, leaving nothing unsaved",
     );
   }
 

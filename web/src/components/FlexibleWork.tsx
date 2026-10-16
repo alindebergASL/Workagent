@@ -199,6 +199,9 @@ export function FlexibleEditor({
   const saved = artifact.current_revision.body as FlexibleBody;
   const kind = flexibleKind(saved)!;
   const [draft, setDraft] = useState<Draft>(() => readDraft(key, artifact));
+  // A draft must be for this kind of work. If the editor is shown other
+  // work without remounting, re-read before anything renders with it.
+  if (flexibleKind(draft.body) !== kind) setDraft(readDraft(key, artifact));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -1617,6 +1620,34 @@ function TableEditor({
   const longText = longTextFields(saved);
   const nameKey = rowNameField(body)?.key;
   const regionRef = useRef<HTMLDivElement>(null);
+  // The last row removed, so one click puts it back where it was, with what
+  // the person had typed in it.
+  const [removedRow, setRemovedRow] = useState<{
+    row: S["TableRow"];
+    at: number;
+    name: string;
+    typed: typeof raw;
+  } | null>(null);
+  const restorable =
+    removedRow && !body.rows.some((r) => r.row_id === removedRow.row.row_id)
+      ? removedRow
+      : null;
+  const undoRemove = () => {
+    if (!restorable) return;
+    const at = Math.min(restorable.at, body.rows.length);
+    update(
+      {
+        ...body,
+        rows: [
+          ...body.rows.slice(0, at),
+          restorable.row,
+          ...body.rows.slice(at),
+        ],
+      },
+      { ...raw, ...restorable.typed },
+    );
+    setRemovedRow(null);
+  };
   const overflows = useOverflows(regionRef, body);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
@@ -1789,8 +1820,13 @@ function TableEditor({
                           aria-label={`Remove ${name}`}
                           onClick={() => {
                             const next = { ...raw };
-                            for (const f of body.fields)
-                              delete next[cellKey(r.row_id, f.key)];
+                            const typed: typeof raw = {};
+                            for (const f of body.fields) {
+                              const k = cellKey(r.row_id, f.key);
+                              if (raw[k]) typed[k] = raw[k];
+                              delete next[k];
+                            }
+                            setRemovedRow({ row: r, at: i, name, typed });
                             update(removeRow(body, r.row_id), next);
                           }}
                         >
@@ -1812,6 +1848,14 @@ function TableEditor({
           </tbody>
         </table>
       </div>
+      {restorable ? (
+        <p className="small undo-line" role="status" data-testid="undo-remove">
+          Removed “{restorable.name}”.{" "}
+          <button type="button" className="link-quiet" onClick={undoRemove}>
+            Undo
+          </button>
+        </p>
+      ) : null}
       {errors.length ? (
         <ul className="small cell-errors" role="alert">
           {errors.map(([k, c]) => {

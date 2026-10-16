@@ -1851,3 +1851,34 @@ edits are saved.", reloads, and finds the edit kept.
   - 38 DOM regressions;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Editor audit: undo a removal; drafts always match their work
+
+Editor and navigation audit, fifth fix, plus a root-caused intermittent DOM failure.
+
+**Undo a removal.** Removing a table row, or a part of a document, was instant and could only be
+reversed by "Discard my changes", which also dropped every other unsaved edit.
+- Removing now shows "Removed “…”. Undo".
+- One click puts the row or part back where it was. For a row, that includes any values typed into
+  it that weren't valid yet.
+- If nothing else changed, nothing is left unsaved.
+- Regression: a new `space-experience.mjs` case removes the middle row of the lending table, and a
+  part of the workshop plan, and undoes each. The order is restored and no save is pending.
+- RED on the previous build: no undo offered.
+- The "Temporary line" check in the leave-guard case now asserts the part is gone from the
+  document. Only the undo offer names it.
+
+**Drafts always match their work.** `products-review-regressions.mjs` failed intermittently (34/38,
+in about 3 of 4 runs, on the previous commit too). The cause was `TableEditor` crashing on "reading
+'some' of undefined". The harness reuses one artifact id, so the editor could keep a document draft
+while being shown a table without remounting. Drafts were only checked for kind on first load.
+- `FlexibleEditor` now re-reads its draft whenever the draft isn't for this kind of work, before
+  anything renders with it, falling back to the saved version.
+- This also guards against a mismatched or corrupt stored draft.
+- After the fix: 6/6 consecutive runs at 38/38.
+
+**Results.**
+- GREEN:
+  - routing 7 + Space 25 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions (6/6 runs).
