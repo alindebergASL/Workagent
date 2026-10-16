@@ -2223,3 +2223,38 @@ review-boundary fixture's assignment gains the `workspace_id` that real summarie
   - 38 DOM regressions;
   - full gate at `e7d1f12` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Proposal review: ask for a different change (concept 04)
+
+**Problem.** Concept 04 puts "Ask for a change…" right beside Apply/Keep. Asking for something else
+meant finding the Conversation switch and its reply box.
+
+**Change** (`FlexibleWork.tsx`, the work page). The proposal card has "Ask for a different change"
+after Apply and Keep. It:
+- brings the conversation beside the work forward (on a phone, it switches panes);
+- puts the cursor in the reply box, which is already about this work's saved version.
+
+Nothing is sent. The saved version and the proposal stay as they are until the person decides.
+
+**Regression** (findings proposal at 390×844):
+- the button opens the conversation pane with the reply box focused;
+- no POST is made;
+- switching back shows the proposal's Apply control.
+
+**Results.**
+- RED without the change: no button.
+- GREEN:
+  - routing 7 + Space 27;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `a2394fa` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Deferred: a bottom tab bar on phones.** On phones, several controls already stick to the bottom
+of the screen:
+- the unsaved-changes bar;
+- table row controls;
+- the reply box beside the work.
+
+A fixed tab bar would overlap them and the keyboard, which concept 04 itself warns against. The top
+tabs fit at 320 and 390. Revisit with a layout that reserves space for both.
