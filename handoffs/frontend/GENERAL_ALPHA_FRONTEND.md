@@ -1979,4 +1979,6 @@ contract change.
   - routing 7 + Space 26;
   - 293 unit tests;
   - 38 DOM regressions;
-  - lint and typecheck clean.
+  - lint and typecheck clean;
+  - full gate at `f4f3da5` with 0 failures (same as baseline);
+  - mock e2e 15/15.
