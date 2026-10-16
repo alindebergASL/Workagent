@@ -9,6 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from hashlib import sha256
 import json
+import logging
 import re
 from threading import Lock
 from typing import Callable, Literal, TypedDict
@@ -401,6 +402,24 @@ def _output_shape(output, *, continuation=True, stored=False, tool_name=READ_TOO
     return calls
 
 
+def _output_shape_counts(document):
+    """Fixed counts only: never retain provider text, arguments or arbitrary types."""
+    counts=dict(messages=0,function_calls=0,reasoning=0,other_items=0,
+                text_parts=0,refusal_parts=0,other_parts=0)
+    output=document.get('output') if isinstance(document,dict) else None
+    if not isinstance(output,list): return counts
+    for item in output:
+        kind=item.get('type') if isinstance(item,dict) else None
+        key=('messages' if kind=='message' else 'function_calls' if kind=='function_call'
+             else 'reasoning' if kind=='reasoning' else 'other_items')
+        counts[key]+=1
+        if kind=='message' and isinstance(item.get('content'),list):
+            for part in item['content']:
+                typ=part.get('type') if isinstance(part,dict) else None
+                counts['text_parts' if typ=='output_text' else 'refusal_parts' if typ=='refusal' else 'other_parts']+=1
+    return counts
+
+
 def parse_response(document: object, request: PreparedRequest, provenance: Provenance, *, require_correlation=False) -> ParsedResponse:
     """Pure parsing: never executes calls, repairs JSON, retries or resumes a model."""
     rid = _response_id(document.get('id')) if isinstance(document, dict) else None
@@ -439,11 +458,18 @@ def parse_response(document: object, request: PreparedRequest, provenance: Prove
             value = request.schema.validate(calls[0]['arguments'])
             return ParsedResponse(**base, state='function_call', usage=usage, value=value,
                                   call_id=calls[0]['call_id'], output_items=_canonical(output))
-        if calls or len(parts) != 1 or parts[0]['type'] != 'output_text':
+        if calls or not parts or any(part['type']!='output_text' for part in parts):
             raise TransportError('expected_structured_output')
-        value = request.schema.validate(parts[0]['text'])
+        # Match the official SDK's output_text projection: concatenate in wire
+        # order, then validate ONE complete JSON value. No separators, selection
+        # of a convenient message, JSON repair or weakened schema validation.
+        value = request.schema.validate(''.join(part['text'] for part in parts))
         return ParsedResponse(**base, state='completed', usage=usage, value=value)
     except TransportError as error:
+        logging.getLogger(__name__).warning('%s',json.dumps({
+            'event':'provider_response_rejected','request_id':request.metadata.request_id,
+            'attempt_id':request.metadata.attempt_id,'phase':request.phase,
+            'code':error.code,'shape':_output_shape_counts(document)}))
         return ParsedResponse(**base, state='malformed', usage=usage, issue=error.code)
 
 

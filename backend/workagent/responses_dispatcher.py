@@ -1,6 +1,7 @@
 """Local-only explicit Responses dispatcher/operator CLI. Never creates a grant on run."""
 import argparse
 import json
+import logging
 import os
 from pathlib import Path
 from .db import Database
@@ -40,6 +41,25 @@ def general_dispatch_status(run, observation):
             return observation.adaptive.outcome
         return 'local_tool_rejected'
     return 'provider_pending' if run.state=='running' else run.state
+
+
+def runtime_failure_diagnostic(error,run_id):
+    """No exception text, SQL, stack values, provider payload or private state."""
+    import psycopg
+    category=('database_timeout' if isinstance(error,psycopg.errors.QueryCanceled) else
+              'database_conflict' if isinstance(error,psycopg.errors.DeadlockDetected) else
+              'database_unavailable' if isinstance(error,psycopg.OperationalError) else 'runtime_failure')
+    stages={'_fresh':'authority_recheck','_materialize_general_context':'context_validation',
+            'count':'provider_count','_send':'provider_http','retain':'receipt_retention',
+            'count_problem':'count_problem_retention','_reserve_http':'reservation'}
+    files={'responses_worker.py','responses_transport.py','responses_ledger.py','conversations.py'}
+    stage='runtime'; tb=error.__traceback__
+    while tb is not None:
+        code=tb.tb_frame.f_code; path=Path(code.co_filename)
+        if path.name in files and path==Path(__file__).with_name(path.name) and code.co_name in stages:
+            stage=stages[code.co_name]
+        tb=tb.tb_next
+    return {'event':'runtime_operation_failed','run_id':run_id,'category':category,'stage':stage}
 
 
 class ResponsesDispatcher:
@@ -93,9 +113,10 @@ class ResponsesDispatcher:
                     status=general_dispatch_status(run,observation)
                 else: status=self.worker.run(self.workspace,row['run_id'])
             except (DomainError,BundleDenied,TransportError,BlockingIOError): status='denied_or_deferred'
-            except Exception:
+            except Exception as error:
                 # CLI reporting boundary: never render DB/private-state/model values.
                 # Direct worker tests still expose programmer failures to the test runner.
+                logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,row['run_id'])))
                 status='internal_error'
             result={'run_id':row['run_id'],'status':status}
             # Detailed evidence belongs in authenticated canonical readback,

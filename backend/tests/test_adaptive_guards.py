@@ -4,7 +4,7 @@ import pytest
 import psycopg
 from test_domain import context, cmd, raises
 from test_conversations import conversation, post
-from test_adaptive_execution import activate, AdaptiveProvider, setup
+from test_adaptive_execution import activate, AdaptiveProvider, setup, finish_safe_visits
 from test_general_responses import worker
 from test_general_products import wasmop
 from test_runtime import expire
@@ -133,7 +133,8 @@ def test_shared_budget_successor_grants_stop_preserving_local_work(context,tmp_p
         cv=conversation(context); g=activate(context,cv,project_id=project)
         for _ in range(5):
             q=post(context,cv,'Exercise bounded failure')
-            assert worker(context,AdaptiveProvider(always_bad=True),tmp_path).work(p,ws,q.run.id).state=='partial'
+            w=worker(context,AdaptiveProvider(always_bad=True),tmp_path)
+            assert finish_safe_visits(context,w,q.run.id).state=='partial'
             cv=s.get_conversation(p,ws,cv.id).conversation
         revoke_grant(Database(context[4]),g.id)
     cv=conversation(context); successor=activate(context,cv,project_id=project)

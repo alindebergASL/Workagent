@@ -71,6 +71,30 @@ def setup(ctx,tmp_path,**kwargs):
     return cv,grant,fake,q,worker(ctx,fake,tmp_path)
 
 
+def finish_safe_visits(ctx,w,run_id):
+    """A bounded run may need several leases, even with immediate mock HTTP.
+
+    Only expire a synthetic lease after proving there is no unmatched I/O.
+    Reuse the same worker state/attempt; the callers assert exact total requests.
+    Lease timing itself is covered by test_responses_leases with a controlled clock.
+    """
+    s,p,ws,_,_=ctx
+    for _ in range(6):
+        result=w.work(p,ws,run_id)
+        if result.state!='running': return result
+        with s.db.transaction() as c:
+            rows=c.execute('SELECT e.phase,e.kind FROM responses_events e '
+                'JOIN provider_attempts a ON a.id=e.attempt_id '
+                'WHERE a.workspace_id=%s AND a.run_id=%s',(ws,run_id)).fetchall()
+        phases={row['phase'] for row in rows}
+        for phase in phases:
+            kinds={row['kind'] for row in rows if row['phase']==phase}
+            assert 'count_send' not in kinds or 'count_result' in kinds
+            assert 'dispatch' not in kinds or 'result' in kinds
+        expire(ctx,run_id)
+    pytest.fail('Synthetic run did not finish within six safe lease visits')
+
+
 def test_obstacle_real_failure_repair_verification_one_human_turn(context,tmp_path,monkeypatch):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path)
@@ -118,12 +142,31 @@ def test_restart_retains_obstacle_and_correction(context,tmp_path,monkeypatch,fa
 def test_honest_limits_wait_and_unsupported_success(context,tmp_path,mode,expected,steps):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,**{mode:True})
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[0].adaptive.outcome==expected
     assert len(detail.turns[0].adaptive.steps)==steps
     assert not detail.artifact_ids
     assert totals(s,g)['request_counts']['dispatch']==steps+1
+
+
+def test_step_limit_continues_same_attempt_after_safe_visit_yield(context,tmp_path,monkeypatch):
+    s,p,ws,_,_=context
+    cv,g,fake,q,w=setup(context,tmp_path,always_bad=True)
+    original=w.phases._step; yielded=[]
+    def defer_once(ledger,request,cap,deadline,**kwargs):
+        if request.phase=='selection_2' and not yielded:
+            yielded.append(ledger.receipt.attempt_id)
+            return None  # A closed admission window, before count/reservation.
+        return original(ledger,request,cap,deadline,**kwargs)
+    monkeypatch.setattr(w.phases,'_step',defer_once)
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
+    with s.db.transaction() as c:
+        attempts=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',
+                           (ws,q.run.id)).fetchall()
+    assert attempts==[{'id':yielded[0]}]
+    assert totals(s,g)['request_counts']=={'count_send':5,'dispatch':5,'read':0,'cancel':0}
+    assert s.get_conversation(p,ws,cv.id).turns[0].adaptive.outcome=='step_limit'
 
 
 @pytest.mark.parametrize('change',['revoke','cancel','membership'])

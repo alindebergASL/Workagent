@@ -295,6 +295,40 @@ def test_final_typed_output_and_refusal():
     assert refused.state == 'refused' and refused.value is None
 
 
+@pytest.mark.parametrize('separate_messages',[False,True])
+def test_final_aggregates_exact_text_fragments_before_schema_validation(separate_messages):
+    parts=[{'type':'output_text','text':text} for text in ('{"ti','tle":"Artifact"}')]
+    output=[message(part) for part in parts] if separate_messages else [
+        {**message(parts[0]),'content':parts}]
+    parsed=parse_response(response(output=output),final_request(),SYNTHETIC)
+    assert parsed.state=='completed' and parsed.value==Artifact(title='Artifact')
+
+
+@pytest.mark.parametrize('texts',[
+    ['Commentary:','{"title":"Artifact"}'],
+    ['{"title":"one"}','{"title":"two"}'],
+    ['{"title":"one",','"title":"two"}'],
+    ['{"title":','4}'],
+])
+def test_final_fragment_aggregation_is_not_repair_or_schema_bypass(texts):
+    output=[message({'type':'output_text','text':text}) for text in texts]
+    parsed=parse_response(response(output=output),final_request(),SYNTHETIC)
+    assert parsed.state=='malformed' and parsed.value is None
+
+
+def test_malformed_final_shape_diagnostic_excludes_content(caplog):
+    doc=response(output=[message({'type':'output_text','text':'SECRET provider content'}),
+                         response()['output'][1]])
+    parsed=parse_response(doc,final_request(),SYNTHETIC)
+    assert parsed.issue=='expected_structured_output'
+    records=[json.loads(r.message) for r in caplog.records if r.name=='workagent.responses_transport']
+    assert records==[{'event':'provider_response_rejected','request_id':'request-1',
+        'attempt_id':'attempt-1','phase':'final','code':'expected_structured_output',
+        'shape':{'messages':1,'function_calls':1,'reasoning':0,
+                 'other_items':0,'text_parts':1,'refusal_parts':0,'other_parts':0}}]
+    assert 'SECRET' not in caplog.text and 'arguments' not in caplog.text
+
+
 @pytest.mark.parametrize('text', ['{}', '{"title":4}', '{"title":"ok","extra":1}',
                                    '{"title":"one","title":"two"}', 'NaN', 'null'])
 def test_malformed_final_output(text):

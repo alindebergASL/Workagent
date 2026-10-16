@@ -7,37 +7,43 @@ Authority: docs/GENERAL_MODEL_AUTHORIZATION.md. No parity claim.
 
 ## Candidate, ownership and services
 
-Branch hermes/overnight-intelligent-work. Iteration5 is the sole active integrator.
+Branch hermes/overnight-intelligent-work. Iteration6 is the sole active integrator.
 Older iteration4 explicitly yielded; overlap handoff and retained failed runs:
 /home/ubuntu/workagent-private-alpha/continuation/iteration-4-overlap-handoff.json.
-Reviewed candidate now includes the reservation handoff and context-efficiency fix;
-compatible runtime authority is not yet installed. Integrated owner104beac in b8a7fca.
+Published runtime67903fd includes the reservation handoff/context-efficiency fix.
+Bounded09 was installed and exercised. Additional output/diagnostic fix passed281
+selected integrated tests; do not run it against09. Ownerceac131 design assets and
+verification notes merged; five asset hashes verified, not product screenshots.
 Hermes owns backend/runtime/integration; the existing Claude Cloud
 session exclusively owns web. No default merge or production replacement.
 Supported path: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 ACTIVE;
-API8152 temporarily STOPPED for low-contention regression verification; worker
-STOPPED pending compatible authority. Readiness is false. New owner build is serving.
+Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 active;
+API/worker stopped for verification and compatible authority. Before these edits,
+supported start gave canonical readiness TRUE and advanced both new conversations
+independently; both subsequently failed (below). No older run retried.
 Retained DB47b87fe3b82e and private worker state preserved. Full stack restart
 preserved canonical revisions and produced no new provider operations.
 Older3151/8151 preview/data/evidence preserved; scheduled retirement is not deletion.
 
-Runtime identity3c0e7f875154f708e772fdc3c8917c17958db9ac0c2e385188cd9723b065f8d3
-was verified unchanged across the actual frontend-only owner merge. It includes
+Published runtime identity44c4c401d384f968b0c3dfa6b8633d80978652b6cf3ccf4036f16dc62b8d1850;
+working-tree runtime is awaiting exact final verification and new authority.
+Prior runtime identity was unchanged across the frontend-only owner merge. It includes
 Python/migrations/runtime dependencies/canonical schemas, not npm-installed tools,
 illustrative examples, docs or frontend commits. Identity is evidence, not a grant.
 
 ## Authority and accounting
 
-08 installed/read back on08568f3;07 revoked without modifying bindings. 031 is
-installed. Migrations001–031 are now retained history; use additive migrations.
-08 executes onlyca201a3a/cb72892b; four explicit prior conversations are read-only.
-Current union108generations/111counts/682reads/0cancels; shared82/85/493/0.
-Shared reservation14.247360 includes3.429920carry. Operator cumulative encumbrance
-37.545360 of40; unactivated2.454640. No refund/reset inferred from known usage.
-08 has6generation slots and0.791520 reservation room, not another allowance;
-configured per-run bound is8selection steps+final, further constrained by aggregate
-remaining capacity. Two admissions remain; ca201a3a is blocked by an unknown final.
+09 installed/read back on67903fd;08 revoked without changing historical bindings.
+Migrations001–031 retained unchanged. New scope: c5f21d89/17a4144d only, six explicit
+prior conversations read-only. Operator encumbrance39.128400 of40; unactivated
+0.871600. New allocation1.583040 is12 generation slots, not a refund of08 headroom.
+Per-run bound5selection steps+final; shared/project limits94generations/97counts/
+589reads,15.83040 reserved-cost ceiling including3.429920carry. No cap reset.
+Latest union112generations/116counts/688reads/0cancels; shared86/90/499/0,
+reserved14.775040. All slots/unknowns remain charged. New museum run7db11ff2
+is frozen at selection_3 count_unknown after an unclassified internal error.
+Separate validator run28d40ece is frozen at final expected_structured_output.
+Neither produced a published artifact. No retry, fresh GET or repair of either.
 
 Frozen: count_unknown48a1a403-eb54-4d65-9d31-4fa3dfa7476f and
 14a54941-e1e5-41da-931f-7b63a1bf0b03; known final-count refusal5467a40d;
@@ -142,14 +148,43 @@ input hashes and exact response retained. Existing same-model independent review
 covered the prior transaction fix, not the later margin/efficiency change.
 The historical unknown's cause remains unestablished and it stays frozen.
 
-Next: publish the verified boundary fix, install compatible bounded09 authority
-and restore API/worker service; then execute
-new clearly identified development work, not a retry of frozen results. Two fresh
-unactivated conversations exist, including same-command local recovery of a
-QueryCanceled creation; no model admissions or provider events added.
+Two new distinct live tests failed under09. Offline rematerialization of museum
+context and exact stored count projection succeeded without network or state writes;
+this does NOT establish whether its count was sent. Missing exception detail is
+fixed prospectively with closed category/stage diagnostics. Final response parsing
+now follows official SDK output_text aggregation, then applies unchanged strict
+single-JSON/schema/duplicate-key validation. It never picks a convenient fragment,
+ignores commentary, repairs JSON or re-parses old results. Original malformed shape
+was not retained: this compatibility fix is NOT an established cause/fix of the
+live validator failure. Rejected future responses report only IDs, codes and shape
+counts, never payloads. Three new RED assertions preceded151 focused PASS.
+GLM5.3 reviewed the exact patch, completed(stop), and raised three P2 concerns.
+Labels/metadata ID semantics and exact diagnostic assertions were corrected;
+automatic repeated-malformed-polling concern is excluded by terminal retention and
+dispatcher quarantine. Parent verified exact review-plus-declared corrections,
+not a second independent PASS. First broader run was invalidated by editing pinned
+runtime bytes during execution, then interrupted at a watcher fixture; retained
+2fail/270pass is NOT integrated PASS. Iteration6 parsed the inherited final JUnit:
+280tests,278pass/2fail, not PASS. The two one-visit assertions are now bounded
+same-attempt continuation tests with unmatched-I/O rejection and exact request
+totals; a forced safe-yield regression additionally checks one retained attempt.
+Focused rerun4PASS. No production lease/budget margin was weakened. Fresh combined
+regression281PASS/0fail/0error/0skip in627.83s. Collection and exact reviewed-runtime
+hashes verified in iteration6-output-verification.json; not all backend tests or
+live acceptance. Lease114/hash and historical event hashes reverified in
+iteration6-initial-observation.json; no new authority or provider I/O yet.
+
+Next: publish this verified runtime checkpoint, add bounded reusable supplied-JSON
+inspection through the existing broker, then verify and install fresh authority
+before any new paid work. Prepared10 installer allocates six slots0.791520, preserving
+all39.128400 prior encumbrance; projected total39.919920, unactivated0.080080.
+It is NOT installed yet. A distinct fresh document/correction/revision journey
+must not reuse the frozen museum/validator requests. A real unactivated admission was
+refused with422 unsupported_operation and no message/run or controlled substitute.
+Same-command recovery of a local QueryCanceled creation was separately verified.
 Continue practical reusable capabilities and the changed-requirements journey.
-Any runtime/policy changes need compatible new bounded authority within2.454640
-unactivated funds; old08 liabilities and all frozen attempts remain unchanged.
+Any later runtime/policy changes need compatible new bounded authority within0.871600
+unactivated funds; all prior encumbrance and frozen attempts remain unchanged.
 Evidence: /home/ubuntu/workagent-private-alpha/iteration4-live-final.json,
 iteration4-engineering-verified.json, iteration4-independent-review.json,
 iteration4-new-unknown.json, iteration4-*-restart.json and inspected PNGs;
@@ -158,4 +193,8 @@ Current evidence: iteration5-initial-observation.json, iteration5-browser.json a
 inspected PNGs, iteration5-boundary-efficiency-{red,green}.xml,
 iteration5-handoff-fixture.xml, iteration5-review-{intent,receipt}.json,
 iteration5-review.md, iteration5-pending-tests-checkpoint.json and
-iteration5-ssh-access.json. All paths under /home/ubuntu/workagent-private-alpha/.
+iteration5-ssh-access.json. New evidence: iteration5-new-count-unknown.json,
+iteration5-validator-progress-1.json, iteration5-count-offline-projection.json,
+iteration5-output-{red,green,integrated,final}.xml and
+iteration5-output-review{,-receipt,-resolution}.*.
+All paths under /home/ubuntu/workagent-private-alpha/.

@@ -326,6 +326,9 @@ class ResponsesWorker:
         except DomainError:
             report('authority_changed')
             raise
+        except Exception:
+            report('pre_io_check_error')
+            raise
         if not ready:report('http_window_closed')
         return ready
 
