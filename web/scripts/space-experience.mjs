@@ -991,6 +991,16 @@ try {
       "Renames it “Findings so far: the 10-day option”; adds or rewrites 2 parts; takes out or replaces 1 part",
     );
     await expect(proposal.getByTestId("proposal-replaces-yours")).toBeVisible();
+    // What changed, item by item, quoting the proposal (read from the two
+    // saved bodies, not the proposer's account of itself). The note it keeps
+    // is Workagent's, so nothing claims the person's notes are kept.
+    await expect(
+      proposal.getByTestId("proposal-items").locator("li"),
+    ).toHaveText([
+      "Rewrites a part as “Lark & Co can deliver in 6 days; Northprint says 10 days is possible for EUR 40 more.”",
+      "Adds “Decide by Friday so printing can start on Monday.”",
+    ]);
+    await expect(proposal.getByTestId("proposal-your-notes")).toHaveCount(0);
     // The decision comes first: what's proposed, by name, a one-line summary
     // and Apply/Keep, in one phone screen; the full comparison is a step away.
     // The saved version keeps its own title until the proposal is applied.

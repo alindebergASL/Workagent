@@ -1,5 +1,10 @@
 "use client";
 import Link from "next/link";
+import {
+  changeItems,
+  yourNotes,
+  type ChangeItem,
+} from "@/lib/proposal-changes";
 import { scopedHref } from "@/lib/scope";
 import {
   Fragment,
@@ -1395,6 +1400,26 @@ export function TableProposalCells({
  * replaces the person's own edit) for the decision, and the full comparison
  * for whoever wants it, kept apart so the decision stays near the top.
  */
+const SHOWN_ITEMS = 4;
+const clip = (t: string, n = 90) =>
+  t.length > n ? `${t.slice(0, n - 1).trimEnd()}…` : t;
+
+/** One change, in plain words, quoting what the proposal says. */
+function changeLine(it: ChangeItem): string {
+  switch (it.kind) {
+    case "added":
+      return `Adds “${clip(it.text)}”`;
+    case "removed":
+      return `Takes out “${clip(it.text)}”`;
+    case "rewritten":
+      return `Rewrites a part as “${clip(it.text)}”`;
+    case "checked":
+      return `Marks “${clip(it.text)}” done`;
+    case "unchecked":
+      return `Marks “${clip(it.text)}” not done`;
+  }
+}
+
 function documentProposalParts(
   saved: DocumentBody,
   proposed: DocumentBody,
@@ -1420,6 +1445,8 @@ function documentProposalParts(
       diff: null,
     };
   const parts = (n: number) => `${n} part${n === 1 ? "" : "s"}`;
+  const items = changeItems(ops);
+  const notes = yourNotes(saved.blocks, proposed.blocks, savedAuthors);
   return {
     summary: (
       <div className="stack-sm" data-testid="proposal-doc-changes">
@@ -1434,6 +1461,32 @@ function documentProposalParts(
             .replace(/^./, (c) => c.toUpperCase())}
           .
         </p>
+        {items.length ? (
+          <ul className="proposal-items" data-testid="proposal-items">
+            {items.slice(0, SHOWN_ITEMS).map((it, i) => (
+              <li key={i} data-kind={it.kind}>
+                {changeLine(it)}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {items.length > SHOWN_ITEMS ? (
+          <p className="small muted">
+            {items.length - SHOWN_ITEMS === 1
+              ? "1 more change"
+              : `${items.length - SHOWN_ITEMS} more changes`}{" "}
+            in the full comparison.
+          </p>
+        ) : null}
+        {notes.total ? (
+          <p className="small" data-testid="proposal-your-notes">
+            {notes.kept === notes.total
+              ? notes.total === 1
+                ? "Your note is kept as you wrote it."
+                : "Your notes are kept as you wrote them."
+              : `Applying this changes ${notes.total - notes.kept} of your notes.`}
+          </p>
+        ) : null}
         {yours && removed ? (
           <p className="small" data-testid="proposal-replaces-yours">
             Your saved version is your own edit. Applying this replaces the
