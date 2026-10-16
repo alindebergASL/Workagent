@@ -62,3 +62,46 @@ export function later(next: string | null, prev: string | null): boolean {
   const p = time(prev);
   return p === null || n > p;
 }
+
+const COUNT = ["No", "One", "Two", "Three", "Four", "Five"];
+const count = (n: number) => COUNT[n] ?? String(n);
+
+/**
+ * Home's one-line orientation, from counts taken from current records: what
+ * needs the person and what Workagent saved since they left. Null when
+ * there's nothing to say, so the usual greeting line stands. It never says
+ * work is done or accepted.
+ */
+export function homeSummary({
+  needs,
+  savedSince,
+}: {
+  needs: number;
+  savedSince: number;
+}): string | null {
+  const parts: string[] = [];
+  if (needs)
+    parts.push(
+      needs === 1 ? "One thing needs you." : `${count(needs)} things need you.`,
+    );
+  if (savedSince)
+    parts.push(
+      savedSince === 1
+        ? "Workagent saved a new version of one piece of work since you left."
+        : `Workagent saved new versions of ${count(savedSince).toLowerCase()} pieces of work since you left.`,
+    );
+  return parts.length ? parts.join(" ") : null;
+}
+
+/**
+ * The most recently changed work, for "Pick up where you left off": newest
+ * first by its latest saved version or proposal.
+ */
+export function recentWork(
+  made: ConversationWork[],
+  limit = 3,
+): ConversationWork[] {
+  const at = (w: ConversationWork) =>
+    Math.max(time(w.updated_at) ?? 0, time(w.decision?.created_at) ?? 0);
+  return [...made].sort((a, b) => at(b) - at(a)).slice(0, limit);
+}

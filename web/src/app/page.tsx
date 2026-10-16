@@ -23,7 +23,12 @@ import { useHolds } from "@/lib/client/responsibility";
 import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 import { useSinceMarker } from "@/lib/client/since-marker";
-import { sinceYouLeft, type SinceEntry } from "@/lib/since-you-left";
+import {
+  homeSummary,
+  recentWork,
+  sinceYouLeft,
+  type SinceEntry,
+} from "@/lib/since-you-left";
 import { readableTitle } from "@/lib/titles";
 import { formatTime } from "@/lib/time";
 
@@ -183,6 +188,17 @@ export default function AgentHome() {
         zone={zone}
       />
     ));
+  // One line that orients: what needs the person, what changed. Counted
+  // from current records only (fresh proposals, the decision shown, read
+  // responsibilities that need them), never from a coarse assignment state.
+  const summary = homeSummary({
+    needs:
+      (attention ? 1 : 0) +
+      made.filter((w) => w.decision?.fresh).length +
+      others.filter((i) => groupOf(i) === "attention").length,
+    savedSince: changed.filter((e) => e.what === "saved").length,
+  });
+  const recent = recentWork(made);
   const groups = [
     {
       key: "handling",
@@ -246,9 +262,11 @@ export default function AgentHome() {
         <p className="lede" aria-live="polite">
           {overview.loading && !overview.data
             ? "Checking on your work…"
-            : lede(items, made, holding.length)}
+            : (summary ?? lede(items, made, holding.length))}
         </p>
       </section>
+
+      <Composer wsId={wsId} />
 
       {changed.length ? (
         <SinceYouLeft entries={changed} zone={zone} onSeen={marker.seenAll} />
@@ -301,8 +319,6 @@ export default function AgentHome() {
         </section>
       ) : null}
 
-      <Composer wsId={wsId} />
-
       {overview.error && !overview.data ? (
         <ErrorNotice
           error={overview.error}
@@ -338,6 +354,34 @@ export default function AgentHome() {
             </details>
           ))}
         </div>
+      ) : null}
+
+      {recent.length ? (
+        <section
+          className="pick-up"
+          aria-labelledby="pick-up-title"
+          data-testid="pick-up"
+        >
+          <h2 id="pick-up-title" className="eyebrow-caps">
+            Pick up where you left off
+          </h2>
+          <ul>
+            {recent.map((w) => (
+              <li key={`${w.workspace_id}:${w.artifact_id}`}>
+                <Link
+                  href={scopedHref(
+                    `/conversations/${w.conversation_id}/artifacts/${w.artifact_id}`,
+                    w.workspace_id,
+                  )}
+                  data-artifact={w.artifact_id}
+                >
+                  <span className="clamp-2">{readableTitle(w.title)}</span>
+                  <span aria-hidden="true">↗</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
     </div>
   );

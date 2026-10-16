@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ConversationWork } from "../src/lib/client/conversation-work";
-import { highWater, later, sinceYouLeft } from "../src/lib/since-you-left";
+import {
+  highWater,
+  homeSummary,
+  later,
+  recentWork,
+  sinceYouLeft,
+} from "../src/lib/since-you-left";
 
 const work = (over: Partial<ConversationWork> = {}): ConversationWork => ({
   workspace_id: "ws",
@@ -104,5 +110,42 @@ describe("since you left", () => {
     );
     expect(later("2026-10-15T10:00:00Z", null)).toBe(true);
     expect(later(null, null)).toBe(false);
+  });
+
+  it("orients in one line from counts, or leaves the greeting alone", () => {
+    expect(homeSummary({ needs: 0, savedSince: 0 })).toBeNull();
+    expect(homeSummary({ needs: 1, savedSince: 0 })).toBe(
+      "One thing needs you.",
+    );
+    expect(homeSummary({ needs: 2, savedSince: 1 })).toBe(
+      "Two things need you. Workagent saved a new version of one piece of work since you left.",
+    );
+    expect(homeSummary({ needs: 0, savedSince: 7 })).toBe(
+      "Workagent saved new versions of 7 pieces of work since you left.",
+    );
+    expect(homeSummary({ needs: 3, savedSince: 2 })).not.toMatch(
+      /done|accepted|ready to use/i,
+    );
+  });
+
+  it("picks up the most recently changed work first", () => {
+    const got = recentWork(
+      [
+        work({ artifact_id: "old", updated_at: "2026-10-15T09:00:00Z" }),
+        work({
+          artifact_id: "proposed",
+          updated_at: "2026-10-15T08:00:00Z",
+          decision: {
+            proposal_id: "p",
+            fresh: true,
+            created_at: "2026-10-15T12:00:00Z",
+          },
+        }),
+        work({ artifact_id: "new", updated_at: "2026-10-15T11:00:00Z" }),
+        work({ artifact_id: "older", updated_at: "2026-10-15T07:00:00Z" }),
+      ],
+      3,
+    );
+    expect(got.map((w) => w.artifact_id)).toEqual(["proposed", "new", "old"]);
   });
 });

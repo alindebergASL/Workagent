@@ -2069,6 +2069,38 @@ try {
       else assert.ok(note.includes("Decision needed"), e.text);
     }
     await expect(since).not.toContainText(/accepted|is ready to use|now fits/i);
+    // The greeting says, in one line, what changed and what needs the
+    // person; the entry comes first; recent work is one step away.
+    const saved = entries.filter((e) =>
+      e.text.startsWith("Workagent saved"),
+    ).length;
+    const lede = tab.locator(".lede");
+    if (saved)
+      await expect(lede).toContainText(
+        saved === 1
+          ? "Workagent saved a new version of one piece of work since you left."
+          : "since you left.",
+      );
+    await expect(lede).not.toContainText(/done|accepted|ready to use/i);
+    assert.ok(
+      await tab.evaluate(
+        () =>
+          document
+            .querySelector(".composer, form")
+            .compareDocumentPosition(
+              document.querySelector('[data-testid="since-you-left"]'),
+            ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+      "the entry comes before what changed",
+    );
+    const pick = tab.getByTestId("pick-up").locator("a");
+    const picks = await pick.count();
+    assert.ok(picks >= 1 && picks <= 3, `pick-up shows ${picks}`);
+    for (let i = 0; i < picks; i++)
+      assert.match(
+        await pick.nth(i).getAttribute("href"),
+        /\/conversations\/[^/]+\/artifacts\/[^/?]+/,
+      );
     await shot(tab, "10-since-you-left");
 
     // A reload keeps the list; the work opens from it.
@@ -2091,6 +2123,7 @@ try {
     // "Got it" clears it in this tab and the next.
     await since.getByRole("button", { name: "Got it" }).click();
     await expect(since).toHaveCount(0);
+    await expect(tab.locator(".lede")).not.toContainText("since you left");
     await tab.reload();
     await expect(rows.first()).toBeAttached({ timeout: 15000 });
     await expect(since).toHaveCount(0);
@@ -2103,7 +2136,7 @@ try {
     assert.deepEqual(homeErrors, []);
     await home.close();
     pass(
-      "Home says what changed since this device last showed it: a proposal waiting or work Workagent saved, each opening the work; the person's own saves and the decision shown in full aren't repeated; a first visit says nothing; it survives a reload, fits a phone, and Got it clears it",
+      "Home says what changed since this device last showed it, in its greeting line and a short list: a proposal waiting or work Workagent saved, each opening the work; the entry comes first and recent work is one step away; the person's own saves and the decision shown in full aren't repeated; a first visit says nothing; it survives a reload, fits a phone, and Got it clears it",
     );
   }
 
