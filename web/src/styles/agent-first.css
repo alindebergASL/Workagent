@@ -1063,6 +1063,12 @@ details.disclosure.card {
   font-size: 0.8125rem;
   color: var(--muted);
 }
+/* What a held responsibility is waiting on or does next: the substance. */
+.work-row-next {
+  font-size: 0.875rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
 
 /* Intake outcome: the exact question, document checks and run provenance. */
 .decision-question {

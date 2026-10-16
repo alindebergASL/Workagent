@@ -114,6 +114,10 @@ try {
   await expect(row(page, waiting.assignment_id)).toContainText(
     "Nothing runs for it right now. Outcome not verified.",
   );
+  // Each says what it's waiting on, or what it does next, from its record.
+  await expect(
+    row(page, waiting.assignment_id).getByTestId("hold-next"),
+  ).toHaveText("The venue has not replied.");
   const holding = page.locator(".since-holding");
   await holding.locator("summary").click();
   await expect(
@@ -122,6 +126,11 @@ try {
   await expect(
     holding.locator(`[data-assignment="${active.assignment_id}"]`),
   ).not.toContainText(/Running|Working/);
+  await expect(
+    holding
+      .locator(`[data-assignment="${active.assignment_id}"]`)
+      .getByTestId("hold-next"),
+  ).toHaveText("Next: Draft the first rota.");
   await expect(page.getByText("Track the other team budget")).toHaveCount(0);
   await noDuplicateIds(page);
   await shot(page, "01-home-desktop");
@@ -157,6 +166,9 @@ try {
   );
   await expect(handed).toContainText("Keep the venue hand-off current");
   await expect(handed).toContainText("Waiting for a person");
+  await expect(handed.getByTestId("hold-next")).toHaveText(
+    "The venue has not replied.",
+  );
   await expect(
     page.getByRole("link", {
       name: "Where it was recorded in this conversation",

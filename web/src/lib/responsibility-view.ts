@@ -14,7 +14,7 @@ const STATE: Record<Lifecycle["state"], string> = {
   taken_over: "You took this back",
 };
 
-const BLOCKER: Record<NonNullable<Lifecycle["blocker"]>, string> = {
+export const BLOCKER: Record<NonNullable<Lifecycle["blocker"]>, string> = {
   grant_required: "It needs a permission that hasn’t been granted.",
   tool_required: "It needs a tool that isn’t available.",
   authority_unavailable: "The authority it relies on isn’t available.",

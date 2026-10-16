@@ -71,6 +71,11 @@ export function WorkRow({
           <span className="work-row-title clamp-2">
             {shortTitle(item.title)}
           </span>
+          {held?.next ? (
+            <span className="work-row-next clamp-2" data-testid="hold-next">
+              {held.next}
+            </span>
+          ) : null}
           <span className="work-row-status">
             <StatusBadge label={status.label} tone={status.tone} />
             {note ? <span className="work-row-note">{note}</span> : null}

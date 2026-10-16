@@ -150,6 +150,35 @@ describe("where a hand-over stands, on every list", () => {
       /in progress; not done/,
     );
   });
+  it("says what it waits on, else what comes next, never once closed", () => {
+    expect(holdStatus(ready({}))!.next).toBe("Next: Draft.");
+    expect(
+      holdStatus(
+        ready({
+          state: "waiting_person",
+          wait: { kind: "person", reason: "The venue has not replied." },
+        }),
+      )!.next,
+    ).toBe("The venue has not replied.");
+    expect(
+      holdStatus(ready({ state: "blocked", blocker: "grant_required" }))!.next,
+    ).toBe("It needs a permission that hasn’t been granted.");
+    expect(
+      holdStatus(
+        ready({
+          observations: [{ changed: true } as never],
+        }),
+      )!.next,
+    ).toMatch(/depends on has changed/);
+    // Its review comes before its next step.
+    expect(holdStatus(ready({ review_required: true }))!.next).toBeNull();
+    expect(
+      holdStatus(ready({ outcome_status: "needs_review" }))!.next,
+    ).toBeNull();
+    expect(holdStatus(ready({ state: "taken_over" }))!.next).toBeNull();
+    expect(holdStatus(ready({ state: "cancelled" }))!.next).toBeNull();
+    expect(holdStatus({ kind: "denied" })!.next).toBeUndefined();
+  });
   it("waiting for a person needs attention; closed is closed", () => {
     expect(holdGroup(ready({ state: "waiting_person" }))).toBe("attention");
     expect(holdGroup(ready({ state: "taken_over" }))).toBe("closed");

@@ -471,6 +471,14 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                       <span className="work-row-title clamp-2">
                         {goal ? shortTitle(goal) : "A recorded hand-over"}
                       </span>
+                      {status?.next ? (
+                        <span
+                          className="work-row-next clamp-2"
+                          data-testid="hold-next"
+                        >
+                          {status.next}
+                        </span>
+                      ) : null}
                       <span className="work-row-status">
                         {status ? (
                           <StatusBadge

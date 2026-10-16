@@ -1,5 +1,10 @@
 import type { HoldEntry } from "./client/responsibility";
-import { responsibilityView } from "./responsibility-view";
+
+type HoldDetailLifecycle = Extract<
+  HoldEntry,
+  { kind: "ready" }
+>["detail"]["lifecycle"];
+import { BLOCKER, responsibilityView } from "./responsibility-view";
 
 /**
  * Where a piece of handed-over work stands, in the same words on every list
@@ -11,6 +16,25 @@ export interface HoldStatus {
   label: string;
   note: string;
   tone: string;
+  /**
+   * What it's waiting on or what comes next, from the current record, so a
+   * list says what is being handled rather than only that something is.
+   * Null when it's closed or nothing was read.
+   */
+  next?: string | null;
+}
+
+/** The one line that says what is being handled: its wait, else its next step. */
+function nextLine(life: HoldDetailLifecycle): string | null {
+  if (life.wait?.reason) return life.wait.reason;
+  if (life.blocker) return BLOCKER[life.blocker];
+  if ((life.observations ?? []).some((o) => o.changed))
+    return "Something it depends on has changed since it was recorded.";
+  // When it needs the person's review, that review is what comes next.
+  if (life.review_required || life.outcome_status === "needs_review")
+    return null;
+  const next = life.next_action.description.trim();
+  return next ? `Next: ${next}` : null;
 }
 
 const RUN: Record<string, string> = {
@@ -37,6 +61,7 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
           : `${RUN[life.execution_status]} Outcome not verified.`;
       return {
         label: view.state,
+        next: view.closed ? null : nextLine(life),
         note: entry.stale
           ? `Last read only; can’t re-check right now. ${note}`
           : note,
