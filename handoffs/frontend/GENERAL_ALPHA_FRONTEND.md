@@ -1896,4 +1896,5 @@ Following Hermes `d802155` (`inspect_json`), integrated by fast-forward. The tur
 - `.json` attachments were already accepted, because the web reads the generated attachment
   contract's extensions.
 - Unit regression in `test/adaptive-presentation.test.ts`. RED: the internal names were shown.
-- GREEN: 293 unit tests; 38 DOM regressions.
+- GREEN: 293 unit tests; 38 DOM regressions; full gate (on the merged `d802155` backend) with 0
+  failures; mock e2e 15/15.
