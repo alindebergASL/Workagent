@@ -1827,3 +1827,25 @@ save goes away.
   - 38 DOM regressions;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Editor audit: Ctrl/Cmd+S saves unsaved edits
+
+Editor and navigation audit, fourth fix.
+
+**What was wrong.** In the trusted editor, Ctrl/Cmd+S opened the browser's "Save page" dialog. It
+didn't save the person's edits.
+
+**Fix.**
+- While anything is unsaved, Ctrl/Cmd+S runs the same explicit save as "Save my edits".
+- It respects the same holds: no save while locked, stale, pending or invalid.
+- The button advertises the shortcut through `aria-keyshortcuts` and its title.
+
+**Regression.** The long-steps case, at 390, edits the first step, presses Control+S, sees "Your
+edits are saved.", reloads, and finds the edit kept.
+
+**Results.**
+- RED on the previous build: no "Your edits are saved." after Control+S.
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions.

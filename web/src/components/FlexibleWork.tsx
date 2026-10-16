@@ -309,6 +309,36 @@ export function FlexibleEditor({
     }
   }
   const locked = busy || Boolean(draft.pending) || stale;
+  // Ctrl/Cmd+S saves unsaved edits, the same explicit save as the button,
+  // instead of the browser's "save page".
+  const saveRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    saveRef.current = () => {
+      if (!dirty || locked || problem) return;
+      void submit({
+        kind: "save",
+        id: crypto.randomUUID(),
+        base: draft.base,
+        body: structuredClone(draft.body),
+      });
+    };
+  });
+  useEffect(() => {
+    if (!dirty) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "s"
+      ) {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dirty]);
   const pendingProposals = proposals.filter((p) => p.status === "pending");
   const byWorkagent = artifact.current_revision.author_kind !== "human";
   return (
@@ -623,6 +653,8 @@ export function FlexibleEditor({
             <button
               className="btn btn-primary"
               disabled={locked || Boolean(problem)}
+              aria-keyshortcuts="Control+S Meta+S"
+              title="Save my edits (Ctrl+S or ⌘S)"
               onClick={() =>
                 void submit({
                   kind: "save",

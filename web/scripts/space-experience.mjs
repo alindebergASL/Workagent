@@ -1696,10 +1696,15 @@ try {
     );
     // The viewport as the person sees it (a full-page capture unsticks it).
     await page.screenshot({ path: path.join(out, "12-unsaved-bar-phone.png") });
-    await page
-      .getByRole("button", { name: "Discard my changes", exact: true })
-      .click();
+    // Ctrl/Cmd+S saves, the same explicit save as the button.
+    const pen = await step1.inputValue();
+    await step1.press("Control+s");
+    await expect(page.getByText("Your edits are saved.")).toBeVisible({
+      timeout: 15000,
+    });
     await expect(saveNow).toHaveCount(0);
+    await page.reload();
+    await expect(step1).toHaveValue(pen, { timeout: 15000 });
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a table of long steps and its notes read whole where they're edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
