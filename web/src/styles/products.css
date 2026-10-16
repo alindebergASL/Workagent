@@ -805,3 +805,12 @@ textarea.fit-text {
   margin: 0;
   font-size: 1.0625rem;
 }
+
+/* What a proposed version changes, item by item, quoting it. */
+.proposal-items {
+  margin: 0;
+  padding-left: 1.1em;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}

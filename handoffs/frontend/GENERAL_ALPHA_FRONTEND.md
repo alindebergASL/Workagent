@@ -2064,3 +2064,95 @@ Unit tests cover the wait, blocker, changed-dependency, review-first and closed 
 
 **Not done yet.** Steering beside each responsibility on Home. Pause, resume and take back stay on
 the work page, where their journaled controls are.
+
+## Home: one line of what needs you, the entry first, recent work, and steering (concept 02)
+
+**Problem.** Concept 02 opens with a one-line orientation, the request box, then what changed,
+what is being handled (with steering beside each item) and where to pick up. Home instead opened
+with a generic line, put the decision card above the request box, and its rows only opened the
+work.
+
+**Change.**
+- **Greeting line** (`since-you-left.ts` `homeSummary`). Counted from current records only:
+  - what needs the person: the decision shown, fresh proposals, and responsibilities whose current
+    record needs them;
+  - what Workagent saved since they left.
+
+  For example: "One thing needs you. Workagent saved a new version of one piece of work since you
+  left." It never says done or accepted, and falls back to the previous line when there is
+  nothing to count. Coarse assignment states are never counted, so review-boundary R3 is still
+  respected.
+- **Order.** The request box comes straight after the greeting.
+- **Pick up where you left off** (`recentWork`). The three most recently changed pieces of work,
+  each opening it.
+- **Steer beside each held responsibility** (`WorkRow.tsx`). Responsibilities that came from a
+  conversation and aren't closed get two controls:
+  - **Steer** opens the conversation with the reply box focused. Nothing is sent and any draft is
+    kept.
+  - **Pause or stop…** (or **Resume or stop…** when paused) opens its page at the in-view
+    controls, under the existing compare-and-swap, confirmation and exact-replay rules. There is
+    no new write path.
+  - Taken-back and stopped responsibilities show neither.
+
+**Regressions.**
+- Space-experience Home case:
+  - the greeting names what was saved since the earlier visit, and stops after "Got it";
+  - the entry comes before what changed;
+  - pick-up links open work.
+- Responsibility journey:
+  - both steering controls appear beside the waiting and held rows;
+  - Steer lands focused in the reply box with no message sent;
+  - "Pause or stop…" lands on the controls, in view;
+  - after taking a responsibility back, no steering is offered.
+
+**Results.**
+- RED on each without its change.
+- GREEN:
+  - routing 7 + Space 27;
+  - responsibility journey 9/9;
+  - 301 unit tests;
+  - 38 DOM regressions;
+  - full gates at `61f9050` and `03130d3` with 0 failures (the only difference is the renamed case
+    title);
+  - mock e2e 15/15.
+
+## Proposal review: what changed, item by item (concept 04)
+
+**Problem.** Concept 04 names each change above the full comparison. The card gave only counts
+("adds or rewrites 2 parts").
+
+**Change** (`proposal-changes.ts`, `FlexibleWork.tsx`). Under the count line, the card lists up to
+four changes in reading order, quoting the proposed text:
+- "Rewrites a part as “…”";
+- "Adds “…”";
+- "Takes out “…”";
+- "Marks “…” done" / "not done".
+
+Any remaining changes are counted, with a pointer to the full comparison. Items come from the diff
+of the two saved bodies, never from the proposer's account of itself.
+
+**Your notes.** When the saved version has notes the person added, the card says whether the
+proposal keeps them word for word, or how many it would change. A note Workagent added is never
+counted as theirs.
+
+**Regression** (space-experience findings proposal):
+- the two items quote the rewritten and the added part;
+- there is no "your notes" line for Workagent's note;
+- Apply stays within one phone screen.
+
+Unit tests cover rewrites, additions, removals, check/uncheck and note counting.
+
+**Results.**
+- RED on the previous card: no items.
+- GREEN:
+  - routing 7 + Space 27;
+  - 305 unit tests;
+  - 38 DOM regressions;
+  - full gate at `1fe3abe` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Still open from concept 04.**
+- "Ask for a change" on the review page.
+- A pinned Apply/Keep bar on phones (less needed now the card fits one screen).
+- A bottom tab bar on phones.
+- Written change descriptions ("Added a clear return-time step") need Hermes (B).
