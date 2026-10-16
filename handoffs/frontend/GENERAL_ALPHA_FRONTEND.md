@@ -2194,3 +2194,32 @@ unreadable workspaces, and total failure. The review-boundary stub gains the new
   - 38 DOM regressions;
   - full gate at `78c2087` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Home's responsibilities come from every space too
+
+**Problem.** After `78c2087`, Home's conversation work spanned every space, but its handed-over
+work still came from the personal workspace alone. That covered "I'm handling", "Ready for you",
+held responsibilities and the attention card.
+
+**Change** (`overview.ts` `useHomeOverview`, `responsibility.ts` `useHoldsIn`, `app/page.tsx`).
+- Home reads each workspace's assignments and joins them, newest change first.
+- A workspace that can't be read is counted, using the same "couldn't be read just now" line. The
+  read fails only when no workspace can be read.
+- Each responsibility is read in the workspace that holds it. `useHolds(ws, ids)` is now a thin
+  call into `useHoldsIn`, so its stale/unknown rules are unchanged for every other list.
+- New requests still start in the personal workspace.
+
+**Regression** (space-experience Home case). Home opened for the local workspace shows the
+hand-over held in personal-work, linking into it, with its current record read. The
+review-boundary fixture's assignment gains the `workspace_id` that real summaries carry.
+
+**Results.**
+- RED without the change: absent.
+- GREEN:
+  - routing 7 + Space 27;
+  - responsibility journey 9/9;
+  - review-boundary 15/15;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `e7d1f12` with 0 failures (same as baseline);
+  - mock e2e 15/15.
