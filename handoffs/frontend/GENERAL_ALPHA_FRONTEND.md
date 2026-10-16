@@ -2115,3 +2115,44 @@ work.
   - full gates at `61f9050` and `03130d3` with 0 failures (the only difference is the renamed case
     title);
   - mock e2e 15/15.
+
+## Proposal review: what changed, item by item (concept 04)
+
+**Problem.** Concept 04 names each change above the full comparison. The card gave only counts
+("adds or rewrites 2 parts").
+
+**Change** (`proposal-changes.ts`, `FlexibleWork.tsx`). Under the count line, the card lists up to
+four changes in reading order, quoting the proposed text:
+- "Rewrites a part as “…”";
+- "Adds “…”";
+- "Takes out “…”";
+- "Marks “…” done" / "not done".
+
+Any remaining changes are counted, with a pointer to the full comparison. Items come from the diff
+of the two saved bodies, never from the proposer's account of itself.
+
+**Your notes.** When the saved version has notes the person added, the card says whether the
+proposal keeps them word for word, or how many it would change. A note Workagent added is never
+counted as theirs.
+
+**Regression** (space-experience findings proposal):
+- the two items quote the rewritten and the added part;
+- there is no "your notes" line for Workagent's note;
+- Apply stays within one phone screen.
+
+Unit tests cover rewrites, additions, removals, check/uncheck and note counting.
+
+**Results.**
+- RED on the previous card: no items.
+- GREEN:
+  - routing 7 + Space 27;
+  - 305 unit tests;
+  - 38 DOM regressions;
+  - full gate at `1fe3abe` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Still open from concept 04.**
+- "Ask for a change" on the review page.
+- A pinned Apply/Keep bar on phones (less needed now the card fits one screen).
+- A bottom tab bar on phones.
+- Written change descriptions ("Added a clear return-time step") need Hermes (B).
