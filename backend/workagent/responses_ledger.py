@@ -323,7 +323,17 @@ def observations(c,attempt_id):
 
 def summary(c,grant_id,*,shared=False):
     predicate='s.grant_id IN (SELECT responses_budget_grants(%s))' if shared else 's.grant_id=%s'
-    rows=c.execute('SELECT e.kind,e.data FROM responses_events e JOIN responses_steps s USING(attempt_id,phase) WHERE '+predicate,(grant_id,)).fetchall()
+    # Accounting needs reservations and usage, never retained response/tool bodies.
+    # Keep the scope predicate and exact Decimal calculation below unchanged.
+    rows=c.execute('''SELECT e.kind, CASE e.kind
+        WHEN 'dispatch' THEN jsonb_build_object(
+            'reserved_input_tokens',e.data->'reserved_input_tokens',
+            'reserved_output_tokens',e.data->'reserved_output_tokens',
+            'reserved_cost_usd',e.data->'reserved_cost_usd')
+        WHEN 'result' THEN jsonb_build_object('usage',e.data->'usage')
+        ELSE '{}'::jsonb END AS data
+        FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
+        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchall()
     counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
     reservations=[r['data'] for r in rows if r['kind']=='dispatch']
     receipts=[r['data'] for r in rows if r['kind']=='result']

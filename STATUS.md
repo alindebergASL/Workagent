@@ -26,10 +26,14 @@ Installed grant11 workagent-alpha-dev-20261015-11 (zero-additional-capacity
 successor) pins commit64cf6d4 runtime identity above; grant10 is retired.
 
 Supported launcher: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152, API8152
-and worker are ACTIVE under grant11 (started 2026-10-16 04:01 UTC; worker MainPID
-2147334). Post-fix idle observation: worker ~4% CPU (was ~43% pre-fix), zero
-error/backoff/lock lines in journal, no idle crash. Execution truthfully reports
+Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 is active;
+API8152 and worker are stopped for accounting-projection candidate verification
+and compatible successor installation. Grant11 remains installed, not rebound.
+Before maintenance, worker MainPID2147334 had no restarts. Bounded post-fix
+observation: worker ~4% CPU, zero
+error/backoff/lock lines in journal, no reproduced idle crash. The earlier43%
+sample was the API, NOT a worker baseline; no CPU reduction is established.
+Execution truthfully reports
 blocked/can_advance=false because grant11 carries zero inference headroom.
 Retained DB47b87fe3b82e/private worker state remain intact. Earlier3151/8151 data
 and evidence remain; scheduled preview retirement is not deletion.
@@ -142,13 +146,30 @@ existing30-second expiry is deliberately preserved after uncertain local failure
 controlled recovery proves exactly one admission. No unsafe early lease release.
 Reviewer saw code/evidence, not pixels; no second independent PASS is claimed.
 
-Current broader resilience regression is IN PROGRESS WITH FAILURES, NOT PASS.
-The first invocation had missing DATABASE_URL in its background environment
-(44pass/168setup errors); retained, not acceptance. The properly configured rerun
-also currently has failures; investigate actual final JUnit before publication or
-install. Ten earlier focused checks and the separate zero-headroom test passed;
-these do not replace the failed broader scope. Background test commands must load
-the private test env explicitly; foreground shell exports did not carry into them.
+Final resilience regression:217 passed/0 failed/0 skipped on a fresh isolated DB;
+exact collection and hashes verified in iteration6-resilience-verification.json.
+Earlier environment/setup failures and the213-pass/4-fail run remain retained.
+The latter exposed test-side one-visit assumptions; deliberate safe-yield probes
+now reach the intended fault before asserting non-retry. Production timing margins
+are unchanged. These scopes do not establish private-alpha readiness.
+
+Read-only post-install profile (iteration6-read-profile.json): execution GETs took
+7.44/3.33/1.58s. One instrumented status read issued506 SQL statements, including23
+ledger summaries; summary deserializes full event payloads repeatedly. The same
+sample measured API73.1%, worker3.9% of one core under existing traffic plus probes;
+this is not idle or a controlled before/after comparison. Ledger, frozen records,
+accepted revision and runtime hashes verified unchanged; no provider requests.
+
+New narrow candidate changes only the summary SELECT projection: accounting
+receives reservation/usage fields instead of retained response/tool bodies. No
+caching, arithmetic, scope predicates, migrations or write paths changed. On
+retained data,18 grant/shared-mode comparisons were exactly equal; JSON transfer
+fell1,268,169→44,565 bytes, and four alternating function samples had median
+0.090→0.022s. This is function-level evidence, not deployed/end-to-end improvement.
+Direct GLM5.3 exact-source review completed(stop), no P1/P2 findings; scoped
+139-case regression passed in780.13s; exact collection/source/JUnit hashes checked
+by iteration6-ledger-projection-verification.json. New zero-capacity successor12
+is prepared but NOT installed; no additional inference capacity is authorized.
 
 ## Next permitted work / gates
 
