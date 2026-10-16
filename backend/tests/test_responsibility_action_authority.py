@@ -9,6 +9,7 @@ from test_domain import context, cmd, raises
 from test_responsibility_action import record
 from test_general_alpha_runtime import launch, AlphaProvider, activate
 from test_general_responses import worker, totals
+from test_adaptive_execution import finish_safe_visits
 from test_conversations import conversation, post
 from test_runtime import expire
 from workagent.composition import AlphaDecision, RecordResponsibility
@@ -56,7 +57,7 @@ def test_atomic_rollback_no_orphan_and_receipt_replay(context,tmp_path,monkeypat
     assert first==s.stage_general_product(cap,receipt)
     assert len(s.get_conversation(p,ws,cv.id).assignment_ids)==1
     assert totals(s,g)['request_counts']['dispatch']==1
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='partial'
 
 
 @pytest.mark.parametrize('bad',['actor','workspace','closed','revoked','cas'])
@@ -96,19 +97,28 @@ def test_unoffered_dependency_denied_through_worker(context,tmp_path):
     assert s.get_conversation(p,ws,cv.id).assignment_ids==[]
 
 
-def test_final_count_failure_retains_success_not_a_published_artifact(context,tmp_path):
+def test_final_count_failure_retains_success_not_a_published_artifact(context,tmp_path,monkeypatch):
     s,p,ws,_,_=context
     class FailedFinalCount(AlphaProvider):
+        failed_final_count=False
         def handle(self,request):
             body=json.loads(request.content) if request.content else {}
             if request.url.path.endswith('/input_tokens') and body.get('tool_choice')=='none':
                 self.calls.append(('POST',request.url.path))
+                self.failed_final_count=True
                 return httpx.Response(500,json={'error':{'message':'synthetic count failure'}})
             return super().handle(request)
     cv=conversation(context); activate(context,cv)
     q=post(context,cv,'Keep track locally; wait for a person to update this conversation.')
     fake=FailedFinalCount([record,{'kind':'reply','text':'Locally retained.'}]); w=worker(context,fake,tmp_path)
-    assert w.work(p,ws,q.run.id).state=='running'
+    original=w.phases._step;yielded=[]
+    def safe_yield(ledger,request,*args,**kwargs):
+        if request.phase=='final' and not yielded:
+            yielded.append(True);return None
+        return original(ledger,request,*args,**kwargs)
+    monkeypatch.setattr(w.phases,'_step',safe_yield)
+    assert finish_safe_visits(context,w,q.run.id,stop_when=lambda:fake.failed_final_count).state=='running'
+    assert yielded==[True] and fake.failed_final_count  # Reach the fault before testing non-retry.
     detail=s.get_conversation(p,ws,cv.id)
     assert len(detail.assignment_ids)==1 and not detail.artifact_ids
     turn=detail.turns[0]
@@ -134,7 +144,7 @@ def test_recorded_dependency_and_local_message_reconcile_existing_lifecycle(cont
         return d
     fake=AlphaProvider([dependency,{'kind':'reply','text':'Local ownership retained.'}])
     w=worker(context,fake,tmp_path)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id); aid=detail.assignment_ids[0]
     before=s.get_responsibility(p,ws,aid)
     saved=edit(context,artifact,'Human-authored constraint survives; review this change.')

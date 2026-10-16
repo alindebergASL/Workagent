@@ -102,7 +102,7 @@ def read(service, p, ws, path):
     checked=datetime.now(timezone.utc); available=False; capacity=False; rows=[]
     with service.db.transaction() as c:
         service._scope(c,p,ws)
-        if h and h.get('authorized') is True:
+        if h and h.get('authorized') is True and h.get('status')!='runtime_error':
             row=c.execute('SELECT data,active FROM provider_grants WHERE workspace_id=%s AND id=%s',(ws,h.get('grant_id'))).fetchone()
             if row and row['active'] and row['data']['principal_id']==p.id:
                 grant=ProviderGrant.model_validate(row['data'])

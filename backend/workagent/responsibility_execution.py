@@ -171,7 +171,10 @@ class ResponsibilityExecution:
             if not grant or grant['data']['responses'].get('runtime_extension') != 'general-alpha-v1':
                 return
             p = Principal(grant['principal_id'], 'worker')
-            self._scope(c, p, ws, write=True)
+            # This transaction only discovers candidates. Do not contend with
+            # every reader when no responsibility can advance. Each reconcile,
+            # claim and admission below rechecks write authority under its lock.
+            self._scope(c, p, ws)
             rows = c.execute("SELECT id FROM assignments WHERE workspace_id=%s AND data->>'owner_id'=%s "
                 "AND conversation_id=ANY(%s) AND responsibility_lifecycle IS NOT NULL "
                 "AND responsibility_lifecycle->>'state' NOT IN ('cancelled','taken_over') "

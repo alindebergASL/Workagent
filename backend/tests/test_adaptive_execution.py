@@ -71,17 +71,19 @@ def setup(ctx,tmp_path,**kwargs):
     return cv,grant,fake,q,worker(ctx,fake,tmp_path)
 
 
-def finish_safe_visits(ctx,w,run_id):
+def finish_safe_visits(ctx,w,run_id,*,stop_when=None):
     """A bounded run may need several leases, even with immediate mock HTTP.
 
     Only expire a synthetic lease after proving there is no unmatched I/O.
     Reuse the same worker state/attempt; the callers assert exact total requests.
     Lease timing itself is covered by test_responses_leases with a controlled clock.
+    A failure probe may stop on its expected retained unknown; never expire that
+    unknown merely to force the probe to finish.
     """
     s,p,ws,_,_=ctx
     for _ in range(6):
         result=w.work(p,ws,run_id)
-        if result.state!='running': return result
+        if result.state!='running' or (stop_when is not None and stop_when()): return result
         with s.db.transaction() as c:
             rows=c.execute('SELECT e.phase,e.kind FROM responses_events e '
                 'JOIN provider_attempts a ON a.id=e.attempt_id '

@@ -1,217 +1,166 @@
 # WorkAgent — authoritative implementation status
 
-Private alpha IN PROGRESS, NOT READY for acceptance. General agency, extensible
-skills/tools, scoped memory, continuity, authorized initiative, optional Spaces
-and Intelligent UI remain the mission. Runtime-first is not a terminal pivot.
-Authority: docs/GENERAL_MODEL_AUTHORIZATION.md. No parity claim.
+Private alpha IN PROGRESS, NOT READY for acceptance. The full general-agent,
+extensible tools/skills, scoped memory, continuity, authorized initiative, optional
+Spaces and Intelligent UI mission remains. No parity or user-acceptance claim.
+Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
-## Candidate, ownership and services
+## Candidate, owners and service state
 
-Branch hermes/overnight-intelligent-work. Iteration6 is the sole active integrator.
-Older iteration4 explicitly yielded; overlap handoff and retained failed runs:
-/home/ubuntu/workagent-private-alpha/continuation/iteration-4-overlap-handoff.json.
-Published d60b8e0 includes the output/diagnostic fix and281 selected integrated
-tests. The new supplied-JSON capability passed155 integrated tests plus10 review/
-migration probes; fresh compatible authority is still pending. Do not run against09.
-Ownerceac131 design assets and
-verification notes merged; five asset hashes verified, not product screenshots.
-Hermes owns backend/runtime/integration; the existing Claude Cloud
-session exclusively owns web. No default merge or production replacement.
-Supported path: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 active;
-API/worker stopped for verification and compatible authority. Before these edits,
-supported start gave canonical readiness TRUE and advanced both new conversations
-independently; both subsequently failed (below). No older run retried.
-Retained DB47b87fe3b82e and private worker state preserved. Full stack restart
-preserved canonical revisions and produced no new provider operations.
-Older3151/8151 preview/data/evidence preserved; scheduled retirement is not deletion.
+Single continuing integrator, branch hermes/overnight-intelligent-work. Published
+backend d802155 contains inspect_json; prior d60b8e0 contains strict structured-text
+aggregation and safe failure diagnostics. Local merge05064b7 integrates sole web
+owner f1838a1, including work facets, plain capability labels and decision-first
+proposal review. Hermes owns backend/runtime/integration; existing Claude Cloud
+session owns web. No replacement owner, default merge or production replacement.
 
-Verified candidate runtime identity5104a3bbfa7d7e3d54d746ec9c5a05c2526c9787b3f0a1d6dd1aca2da27f300a;
-publication and new compatible authority are next.
-Prior runtime identity was unchanged across the frontend-only owner merge. It includes
-Python/migrations/runtime dependencies/canonical schemas, not npm-installed tools,
-illustrative examples, docs or frontend commits. Identity is evidence, not a grant.
+Uncommitted runtime-resilience candidate identity:
+14bf0d19241dbdea66e2eede1cacea039a932574917a6608ca712e7dd27c6a6f.
+Installed grant10 still pins the prior reviewed runtime:
+5104a3bbfa7d7e3d54d746ec9c5a05c2526c9787b3f0a1d6dd1aca2da27f300a.
+Do not run paid work against incompatible authority. Runtime identity excludes
+docs/frontend-only commits; it is evidence, not authority.
+
+Supported launcher: scripts/dev_service.py build/install/start/stop/restart/status.
+Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 is active;
+API8152 and worker are temporarily stopped for exact-candidate verification and
+compatible authority. The API was consuming43% of one CPU in a sampled idle period
+with old review tabs open; performance is not resolved by pausing it for tests.
+Retained DB47b87fe3b82e/private worker state remain intact. Earlier3151/8151 data
+and evidence remain; scheduled preview retirement is not deletion. Review waits
+are not a reason to stop the service; this is runtime-maintenance gating.
 
 ## Authority and accounting
 
-09 installed/read back on67903fd;08 revoked without changing historical bindings.
-Migrations001–031 retained unchanged. New scope: c5f21d89/17a4144d only, six explicit
-prior conversations read-only. Operator encumbrance39.128400 of40; unactivated
-0.871600. New allocation1.583040 is12 generation slots, not a refund of08 headroom.
-Per-run bound5selection steps+final; shared/project limits94generations/97counts/
-589reads,15.83040 reserved-cost ceiling including3.429920carry. No cap reset.
-Latest union112generations/116counts/688reads/0cancels; shared86/90/499/0,
-reserved14.775040. All slots/unknowns remain charged. New museum run7db11ff2
-is frozen at selection_3 count_unknown after an unclassified internal error.
-Separate validator run28d40ece is frozen at final expected_structured_output.
-Neither produced a published artifact. No retry, fresh GET or repair of either.
+Grant10 workagent-alpha-dev-20261015-10 was installed for two distinct studio turns,
+six generation slots/$0.791520. Both admissions are now terminal; five generations
+were used. Operator encumbrance is $39.919920 of the existing $40 ceiling;
+unactivated $0.080080. No refund or reuse of unused older allocations is inferred.
+Latest canonical shared ledger:91 generations/95 counts/509 reads/0 cancels,
+$15.434640 reserved including $3.429920 carry. These are reservations, NOT billing.
+Historical records/events are unchanged; failed and unknown liabilities remain.
 
-Frozen: count_unknown48a1a403-eb54-4d65-9d31-4fa3dfa7476f and
-14a54941-e1e5-41da-931f-7b63a1bf0b03; known final-count refusal5467a40d;
-malformed63e52832 and1f8d91cf; unknown generation7769bbfb/run26296550;
-old target-deniedbe27354e. All historical event hashes unchanged across new work.
-NEW unknown: run34bef8e4-3d6c-453e-b137-9573ad65ba69,
-attempt147dd006-f00c-489c-b712-47a28be24f94, final dispatch has no response ID.
-Its selection/local proposed body is retained, but no proposal/final was published
-or accepted. Freeze it; NO resend, replacement generation, rebinding or inferred
-refund. Its event hash also survived restart unchanged.
+Prepared, NOT INSTALLED: operational successor11 for the new runtime, with ZERO
+additional spending or provider-operation capacity. Its cumulative caps equal
+already-consumed totals; it retains all prior encumbrance, scopes and bindings.
+It can support service/review operation, not another live evaluation. A typed
+request may be retained and canonically budget-blocked; that is not inference
+capacity. Controlled PostgreSQL test proves no count/generation/read occurs.
+No new paid evaluation fits the remaining unactivated allowance under the present
+bounded request policy. Provider-free implementation/integration can continue.
 
-## Implemented boundaries
+Frozen, never retry/rebind/replace or reinterpret as refunds:
+- count_unknown48a1a403-eb54-4d65-9d31-4fa3dfa7476f and
+  14a54941-e1e5-41da-931f-7b63a1bf0b03; final-count refusal5467a40d.
+- malformed63e52832 and1f8d91cf; unknown generation7769bbfb/run26296550;
+  old target-deniedbe27354e.
+- run34bef8e4-3d6c-453e-b137-9573ad65ba69,
+  attempt147dd006-f00c-489c-b712-47a28be24f94: final dispatch without response ID;
+  local proposal was NOT published/accepted.
+- museum7db11ff2: selection_3 count_unknown; validator28d40ece: final malformed
+  expected_structured_output. Neither published an artifact. No repair or GET retry.
 
-- Live launcher disables fixture fallback; ungranted managed HTTP turns are refused
-  without creating a message/run. Explicit historical fixture paths stay separate.
-- Receipt-bound search_work_context/read_saved_work and optional reusable skills
-  share the existing loop. Explicit same-owner/source-free scopes; bounded excerpts
-  and provenance; current human revisions/corrections; no unauthorized metadata or
-  cross-conversation edit authority. SQL and Python recheck consumed context.
-- Owner-installed immutable prior read scopes are distinct from fresh execution
-  scopes. No grant/attempt rebinding. Unrelated unconsumed context does not block work.
-- Companion creation is alpha-human only: new custom_view with null mutation target,
-  every binding exactly the explicit current source. 031 SQL/Python require the
-  reviewed policy hash. Source edits/revocation fence staging and publication.
-- Generated views have read_binding only in an opaque-origin no-network sandbox.
-  Trusted source editors and explicit human rebinding save canonical revisions.
-  Old target-denied selections are read-only classified as blocked/unavailable,
-  never silently upgraded into execution under the new policy.
-- Broader public-source retrieval and working-file/shell tools remain unavailable.
-  Adding those capabilities remains permitted implementation work, not a new loop.
-- New inspect_json reads only an exact current human .json attachment through the
-  existing broker. Literal paths, exact decimal JSON text, bounded structure/output;
-  no shell, network or filesystem access. Additive032 independently checks source,
-  selected value/bytes, aliases and scope in PostgreSQL. Errors yield no partial
-  value or completion claim. Optional inspect-structured-evidence guidance composes
-  with existing reply/publication; no-skill, resume and revoked-scope paths tested.
+## Implemented boundaries and live usefulness
 
-## Actual live usefulness and browser evidence
+- Live HTTP disables fixture fallback. Ungranted managed turns are refused without
+  silently creating controlled replies. Historical explicit fixture paths remain.
+- Scoped search_work_context/read_saved_work and optional reusable skills share
+  the existing loop; current human corrections, exact source/scope checks and
+  bounded provenance. Earlier permitted context is not cross-conversation edit
+  authority. SQL and Python recheck consumed context.
+- Generated companions have read_binding only in opaque-origin, no-network
+  sandboxes. Trusted editors/rebinding mutate canonical records with exact fences.
+- inspect_json reads an exact current human .json attachment through the broker:
+  literal paths, exact decimal text, bounded input/depth/nodes/output; no shell,
+  filesystem or network. Additive032 checks source/value/bytes and scope in SQL.
+  Optional inspect-structured-evidence guidance composes with existing tools;
+  selection/composition, no-skill and revoked-scope paths have controlled tests.
+- Broader public-source retrieval and scoped working-file/shell capabilities remain
+  unimplemented, not outside the permitted product architecture.
 
-Iteration4: live agent searched prior phone-only context and delivered lending
-record4901fa50 (runaabb206d), without user-supplied internal IDs. It then chose and
-built custom viewbe80486c (run3e516cf4), bound to the human-edited source.
-Browser source edit changed approvalyes→no and preserved the exact hold/correction.
-The stale view refused its old read; explicit trusted rebind created human view
-revision036c9d62 reading source131f7b9c. Reopen changed displayed approvals1→0.
-Generated code never had write privileges. Desktop/phone screenshots inspected;
-no view console errors or phone page overflow. Full restart preserved these values.
-This is meaningful governed interaction, not a calculator or temporary filter.
+New actual official-route synthetic journey, not fixture prose:
+- run5a4ba476 chose inspect_json, then published editable studio brief98729a11.
+- A trusted browser edit saved the exact correction: Nia declined access handover;
+  Mira leaves at minute8; keep the studio open until a confirmed holder accepts.
+- Supported full-stack restart preserved the human revision and provider events.
+- Natural browser follow-up9798d4d9 supplied no internal ID/target, requested a
+  12-minute sequence, and used the saved correction in a pending proposed revision.
+  No intermediate staged proposal was exposed; current human revision stayed put.
+- Explicit trusted UI acceptance produced c7255e58-fe7c-41f8-98ef-f478a551dae8.
+  Actual reopen after owner integration preserved the exact note and12-minute title.
+  This is synthetic human-control verification, NOT actual user product acceptance.
 
-Separate live coding answer60a1333f selected no skill, correctly explained mutable
-Python defaults, and did not claim execution. Integrator separately executed its
-four assertions successfully; that is not product-runtime execution evidence.
-The subsequent10-minute requirement reached local proposal staging but its final
-became unknown (above). New changed-requirements delivery/acceptance FAILED.
-Source and companion still represent the human-saved20-minute record; do not call the
-staged10-minute revision accepted or the broader objective complete.
+Usefulness is mixed: the schedule/availability correction is relevant and durable,
+but the requested shorter brief grew from7 to11 rows (phone3007→3900px). Both
+responses took over8 minutes. Journal gaps include lease/dispatcher/authority
+work; they are NOT isolated provider latency. No claim these delays are fixed.
 
-Reused earlier live evidence: iteration2 editable workshop price correction,
-no-ID changed-budget proposal and explicit acceptance/restart; iteration3 real
-due-time checklist delivery beside an explicit human hold, phone-only correction,
-model-proposed revision preserving human edits, exact acceptance and restart.
-Optional skill selection/composition occurred live in prior failed runs; that alone
-is not delivered usefulness. Current delivery adds successful scoped retrieval and
-no-skill behavior, not full general-agent acceptance.
+Reused distinct live evidence, unchanged in scope:
+- Iteration4 prior-context retrieval delivered lending record4901fa50, then the
+  agent chose companionbe80486c. Human approvalyes→no, explicit stale-source rebind,
+  reopen and restart changed visible approvals1→0; generated code never wrote.
+- No-skill coding answer60a1333f correctly explained Python defaults. Integrator
+  separately executed four assertions; not product-runtime execution evidence.
+- Its10-minute follow-up remained unknown/frozen; never call it accepted.
+- Iteration2 workshop correction/no-ID proposal/acceptance/restart; iteration3
+  real due-time delivery beside a human hold, correction/revision/acceptance.
+These do not establish broad general-agent completion.
 
-## Verification, reviews and next useful work
+## Verification and review
 
-Original lease JUnit reverified114PASS/hash unchanged. Prior integrated controlled
-transport + restricted PostgreSQL invocation159PASS/0fail/0skip (825.06s); separate
-migration-prefix5 and runtime-identity3 PASS. Independent Astra found a P2 historical
-policy SQL bypass; integrator reproduced RED, fixed it and tested the actual bypass.
-Not a second independent PASS. Setup-error/timeout/failed evidence remains retained.
-Owner104beac frontend292PASS, TypeScriptPASS, supported feature-enabled webpackPASS
-rerun by iteration5. Contracts check rerun PASS. Owner377738e notes fully readable
-on desktop/390px (scrollHeight equals clientHeight). Six-column containment and
-sticky row controls from104beac are integrated and inspected in actual browser
-at1440/390px: no page overflow, reachable row controls, corrected approval/no and
-human note preserved. Owner notified/readback PR9#issuecomment-6204636720.
-Generated view is long/caveat-heavy and its hold badge uses note wording;
-static20-minute presentation cannot be assumed to adapt to future requirements.
+Prior exact scopes retained, not added together as unique/all-backend totals:
+- Original lease114PASS/hash reverified. Output/diagnostic checkpoint281PASS.
+- JSON capability155 integrated PASS plus10 review/migration probes. Fresh031→032
+  preserved human work/history/ACLs;001–031 unchanged. Direct GLM5.3 completed(stop);
+  findings dispositioned with actual SQL/adversarial tests, not a second review PASS.
+- Owner f1838a1: fresh293 unit PASS, TypeScript/webpack PASS; contracts check PASS.
+  Pending-card layout independently exercised as READ-ONLY RENDER REPLAY of retained
+  real proposal records at1440 and390×844: named proposed version, both Apply/Keep
+  controls visible, expandable comparison, no overflow/errors, all writes blocked.
+  Screenshots inspected. Accepted-work reopen was separately LIVE canonical readback.
+  PR9 feedback/readback6206756267 and owner-result/readback6207368703. Cloud browser
+  access itself timed out behind Just a moment; actual owner commits did arrive.
 
-Fresh direct GLM5.3 critique completed with finish_reason=stop: reliability/security,
-practical-user and continuity/accessibility personas in one response. It credits
-the real governed interaction but finds usefulness narrow and experience verbose;
-NOT acceptance. It had evidence/code, not live app access or screenshot pixels.
-Its suspected multi-message ambiguity is excluded by020's unique origin-per-run
-index, verified in the retained DB. Its request to commission itself is stale;
-a structured hold column would not require a database migration. Main engineer
-remains Astra. Exact review and these resolutions are retained privately.
-Authenticated SSH/server-side forwarding at16.148.68.248 reverified; all app/API
-listeners loopback-only. User-device access NOT TESTED; no key contents inspected.
+New runtime failure found during actual idle service operation: repeated
+QueryCanceled at advance_responsibilities→_scope; canonical bounded serve probe
+reproduced it after17 visits/111.62s, with unchanged provider budget. Candidate
+changes the read-only discovery scan from exclusive to shared scope lock; mutation
+paths retain write checks. Scheduler failures are isolated, fixed-shape errors
+reported, transient database failures back off, structural failures exit, and
+runtime-error readiness is unavailable without falsely revoking authority.
 
-Iteration5 reproduced a remaining postcommit admission race on all three profiles
-and four real controlled product regressions. Uncommitted reservations now roll
-back when the window closes; a5s handoff margin precedes the unchanged full
-postcommit authority check. Committed slots still never refund/retry. Removed
-discarded schema generation, not authority checks or context fields. Six new RED
-regressions plus the four product failures now pass in one10-test run. A three-case
-elapsed-time fixture was adjusted for the stricter margin and separately passed.
-Final serial integrated invocation:129PASS/0fail/0error/0skip in599.06s against
-fresh disposable PostgreSQL. JUnit and exact reviewed-runtime hashes independently
-parsed in iteration5-verification.json. This is the selected runtime/authority/
-continuation suite, not all backend tests. Earlier interrupted/failed wider runs
-are retained; stale wrapper signatures and timing fixtures were fixed, and
-one-visit timing failures under two-CPU contention are not relabeled PASS.
-Direct GLM5.3 incremental review completed (stop), no medium/high findings; review
-input hashes and exact response retained. Existing same-model independent review
-covered the prior transaction fix, not the later margin/efficiency change.
-The historical unknown's cause remains unestablished and it stays frozen.
+Direct GLM5.3 incremental/multi-persona review completed(stop), no P1, four P2
+concerns. Integrator addressed authority/readiness distinction, explicit failed
+subsystem status, bounded transient backoff/structural exit. A claimed wake's
+existing30-second expiry is deliberately preserved after uncertain local failure;
+controlled recovery proves exactly one admission. No unsafe early lease release.
+Reviewer saw code/evidence, not pixels; no second independent PASS is claimed.
 
-Two new distinct live tests failed under09. Offline rematerialization of museum
-context and exact stored count projection succeeded without network or state writes;
-this does NOT establish whether its count was sent. Missing exception detail is
-fixed prospectively with closed category/stage diagnostics. Final response parsing
-now follows official SDK output_text aggregation, then applies unchanged strict
-single-JSON/schema/duplicate-key validation. It never picks a convenient fragment,
-ignores commentary, repairs JSON or re-parses old results. Original malformed shape
-was not retained: this compatibility fix is NOT an established cause/fix of the
-live validator failure. Rejected future responses report only IDs, codes and shape
-counts, never payloads. Three new RED assertions preceded151 focused PASS.
-GLM5.3 reviewed the exact patch, completed(stop), and raised three P2 concerns.
-Labels/metadata ID semantics and exact diagnostic assertions were corrected;
-automatic repeated-malformed-polling concern is excluded by terminal retention and
-dispatcher quarantine. Parent verified exact review-plus-declared corrections,
-not a second independent PASS. First broader run was invalidated by editing pinned
-runtime bytes during execution, then interrupted at a watcher fixture; retained
-2fail/270pass is NOT integrated PASS. Iteration6 parsed the inherited final JUnit:
-280tests,278pass/2fail, not PASS. The two one-visit assertions are now bounded
-same-attempt continuation tests with unmatched-I/O rejection and exact request
-totals; a forced safe-yield regression additionally checks one retained attempt.
-Focused rerun4PASS. No production lease/budget margin was weakened. Fresh combined
-regression281PASS/0fail/0error/0skip in627.83s. Collection and exact reviewed-runtime
-hashes verified in iteration6-output-verification.json; not all backend tests or
-live acceptance. Lease114/hash and historical event hashes reverified in
-iteration6-initial-observation.json; no new authority or provider I/O yet.
+Current broader resilience regression is IN PROGRESS WITH FAILURES, NOT PASS.
+The first invocation had missing DATABASE_URL in its background environment
+(44pass/168setup errors); retained, not acceptance. The properly configured rerun
+also currently has failures; investigate actual final JUnit before publication or
+install. Ten earlier focused checks and the separate zero-headroom test passed;
+these do not replace the failed broader scope. Background test commands must load
+the private test env explicitly; foreground shell exports did not carry into them.
 
-New capability:155 selected integrated PASS/0fail/0skip in502.89s;10 separate
-review/prefix-upgrade probes PASS. Fresh031→032 migration preserved saved human
-work, prior journals and runtime ACLs; repeated migrate passed. All001–031 hashes
-unchanged. Direct GLM5.3 review completed(stop); its conditional key-order concern
-was disproved by013's explicit C ordering and actual SQL vectors. Hash/null/unique
-result invariants were inspected and adversarially tested; responsibility denial
-added. Findings dispositioned by integrator, not a second independent PASS. Exact
-reviewed code hashes and test collection verified in iteration6-json-verification.
-Frontend292PASS, TypeScriptPASS, supported feature-enabled webpack buildPASS;
-contracts generate/checkPASS. New tool has no live usefulness proof yet.
+## Next permitted work / gates
 
-Next: publish this verified tool increment, then install fresh authority before
-any new paid work. Prepared10 installer allocates six slots0.791520, preserving
-all39.128400 prior encumbrance; projected total39.919920, unactivated0.080080.
-It is NOT installed yet. A distinct fresh document/correction/revision journey
-must not reuse the frozen museum/validator requests. A real unactivated admission was
-refused with422 unsupported_operation and no message/run or controlled substitute.
-Same-command recovery of a local QueryCanceled creation was separately verified.
-Continue practical reusable capabilities and the changed-requirements journey.
-Any later runtime/policy changes need compatible new bounded authority within0.871600
-unactivated funds; all prior encumbrance and frozen attempts remain unchanged.
-Evidence: /home/ubuntu/workagent-private-alpha/iteration4-live-final.json,
-iteration4-engineering-verified.json, iteration4-independent-review.json,
-iteration4-new-unknown.json, iteration4-*-restart.json and inspected PNGs;
-prior iteration2/3 files and runtime-lease-verification.json remain available.
-Current evidence: iteration5-initial-observation.json, iteration5-browser.json and
-inspected PNGs, iteration5-boundary-efficiency-{red,green}.xml,
-iteration5-handoff-fixture.xml, iteration5-review-{intent,receipt}.json,
-iteration5-review.md, iteration5-pending-tests-checkpoint.json and
-iteration5-ssh-access.json. New evidence: iteration5-new-count-unknown.json,
-iteration5-validator-progress-1.json, iteration5-count-offline-projection.json,
-iteration5-output-{red,green,integrated,final}.xml and
-iteration5-output-review{,-receipt,-resolution}.*.
-All paths under /home/ubuntu/workagent-private-alpha/.
+1. Resolve current regression failures without weakening production lease/I/O
+   margins or treating partial dots as PASS; verify exact collection/code hashes.
+2. Publish reviewed runtime changes and install/read back zero-additional-capacity
+   successor11 only after those gates. Restart via supported launcher; verify
+   stable service PID, truthful no-capacity readiness, unchanged ledger/human work.
+3. Continue provider-free latency/HTTP admission investigation and broader reusable
+   tooling. New paid usefulness checks need adequate reconciled authority; no
+   recycling frozen requests, old allocations or billable uncertainty.
+4. Keep owner integration and actual/replay/human evidence distinct. User-device
+   authenticated access remains untested; server-side strict SSH/loopback forwarding
+   was verified in iteration6-access.json. No key contents were inspected.
+
+Evidence directory: /home/ubuntu/workagent-private-alpha. Key files:
+iteration6-{initial-observation,installed,live-final,human-save,accepted-reopened}.json;
+iteration6-{restart,timing-final,decision-browser,idle-serve-diagnostic}.json;
+iteration6-integrated-review{,-receipt,-intent}.*; iteration6-resilience-*.xml;
+iteration6-zero-headroom-*.xml; iteration6-decision-web.xml and inspected PNGs.
+Earlier iteration2–5 failures, reviews, source hashes and screenshots remain intact.

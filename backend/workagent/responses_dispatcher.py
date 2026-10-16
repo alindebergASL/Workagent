@@ -51,8 +51,10 @@ def runtime_failure_diagnostic(error,run_id):
               'database_unavailable' if isinstance(error,psycopg.OperationalError) else 'runtime_failure')
     stages={'_fresh':'authority_recheck','_materialize_general_context':'context_validation',
             'count':'provider_count','_send':'provider_http','retain':'receipt_retention',
-            'count_problem':'count_problem_retention','_reserve_http':'reservation'}
-    files={'responses_worker.py','responses_transport.py','responses_ledger.py','conversations.py'}
+            'count_problem':'count_problem_retention','_reserve_http':'reservation',
+            'advance_responsibilities':'responsibility_scan'}
+    files={'responses_worker.py','responses_transport.py','responses_ledger.py','conversations.py',
+           'responsibility_execution.py'}
     stage='runtime'; tb=error.__traceback__
     while tb is not None:
         code=tb.tb_frame.f_code; path=Path(code.co_filename)
@@ -79,15 +81,26 @@ class ResponsesDispatcher:
     def once(self,*,model_authorized=True):
         self.progress(authorized=model_authorized)
         service=self.worker.service
-        local=self.local_dispatcher.once()
+        health={}
+        try:
+            local=self.local_dispatcher.once()
+        except Exception as error:
+            logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,None)))
+            # No invented completed/deferred totals for a partially failed sweep.
+            # The independent managed path still uses its normal journal gates.
+            local={}
+            health['local_status']='runtime_error'
         if not model_authorized:
             return {'mode':self.worker.transport.provenance.mode,'local':local,
-                    'results':[],'model_status':'authority_unavailable'}
+                    'results':[],'model_status':'authority_unavailable',**health}
         if getattr(self.worker, 'phases', None) is not None:
             try:
                 service.advance_responsibilities(self.workspace, self.grant_id)
             except (DomainError,BundleDenied):
                 pass  # Revoked owner authority must not terminate the serving loop.
+            except Exception as error:
+                logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,None)))
+                health['responsibility_status']='runtime_error'
         with service.db.transaction() as c:
             rows=c.execute('''SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
@@ -123,7 +136,7 @@ class ResponsesDispatcher:
             # never stdout of a continuous operator process.
             results.append(result)
             self.progress(run_id=row['run_id'],status=status)
-        return {'mode':self.worker.transport.provenance.mode,'local':local,'results':results}
+        return {'mode':self.worker.transport.provenance.mode,'local':local,'results':results,**health}
 
     def _blocked_status(self,row):
         if not row['active']:
@@ -177,20 +190,36 @@ def general_status(db,workspace,grant_id):
 def serve(dispatcher,verify,interval):
     """Continue independent admitted work; journal gates unknown provider actions."""
     import time
+    import psycopg
     if not 0.1<=interval<=60:
         raise ValueError('interval must be between 0.1 and 60 seconds')
-    previous=None
+    previous=None; delay=interval
     while True:
-        authorized=True
+        authorized=False
         try:
-            verify()
-        except (TransportError,DomainError,BundleDenied):
-            authorized=False
-        result=dispatcher.once() if authorized else dispatcher.once(model_authorized=False)
-        if result!=previous and (result['results'] or result.get('model_status') or any(result.get('local',{}).values())):
-            print(json.dumps(result),flush=True)
-        previous=result
-        time.sleep(interval)
+            try:
+                verify()
+                authorized=True
+            except (TransportError,DomainError,BundleDenied):
+                authorized=False
+            result=dispatcher.once() if authorized else dispatcher.once(model_authorized=False)
+            if result!=previous and (result['results'] or result.get('model_status') or result.get('local_status')
+                                    or result.get('responsibility_status') or any(result.get('local',{}).values())):
+                print(json.dumps(result),flush=True)
+            previous=result; delay=interval
+        except Exception as error:
+            # A failed visit isn't a new request or permission to resend. The
+            # next visit rechecks authority and the same immutable I/O journal.
+            logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,None)))
+            try:
+                dispatcher.progress(authorized=authorized,status='runtime_error')
+            except Exception as heartbeat_error:
+                logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(heartbeat_error,None)))
+                raise  # Do not keep a live PID behind a misleading old heartbeat.
+            if not isinstance(error,psycopg.OperationalError):
+                raise  # Structural/configuration errors need repair, not a hot loop.
+            delay=min(60,delay*2)
+        time.sleep(delay)
 
 
 def main():
