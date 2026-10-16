@@ -1881,4 +1881,6 @@ while being shown a table without remounting. Drafts were only checked for kind 
 - GREEN:
   - routing 7 + Space 25 + refusal 4;
   - 292 unit tests;
-  - 38 DOM regressions (6/6 runs).
+  - 38 DOM regressions (6/6 runs);
+  - full gate with 0 failures;
+  - mock e2e 15/15.
