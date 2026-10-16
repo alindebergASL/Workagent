@@ -49,6 +49,104 @@ def test_http_admission_uses_configured_phase_timeouts(tmp_path, monkeypatch, ti
     assert w._http_ready(None, module.time.monotonic() + 90) is allowed
 
 
+@pytest.mark.parametrize('family', ['intake', 'general', 'adaptive'])
+@pytest.mark.parametrize('operation', ['count_send', 'dispatch'])
+def test_reservation_delay_rolls_back_unsent_slot(context, tmp_path, monkeypatch, family, operation):
+    import workagent.responses_worker as module
+    import workagent.service as service_module
+    from workagent.responses_ledger import Ledger
+    grant, queued, fake, w, phases = setup_family(context, tmp_path, family)
+    clock = [0.0]
+    origin = now()
+    monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
+    monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    original = Ledger.event
+    def delayed(self, c, phase, kind, data):
+        result = original(self, c, phase, kind, data)
+        if kind == operation:
+            clock[0] += 30  # Window closes during SQL, before the reservation commits.
+        return result
+    monkeypatch.setattr(Ledger, 'event', delayed)
+    visit(context, w, queued.run.id)
+    counts = totals(context[0], grant)['request_counts']
+    assert counts == {'count_send': int(operation == 'dispatch'), 'dispatch': 0, 'read': 0, 'cancel': 0}
+    assert len(fake.calls) == int(operation == 'dispatch')
+    with context[0].db.transaction() as c:
+        attempt = c.execute("SELECT data->>'state' state FROM provider_attempts WHERE run_id=%s", (queued.run.id,)).fetchone()
+    assert attempt['state'] == 'prepared', 'Rollback must also undo the dispatched attempt transition'
+    monkeypatch.setattr(Ledger, 'event', original)
+    expire(context, queued.run.id)
+    visit(context, w, queued.run.id)
+    assert context[0].get_run(context[1], context[2], queued.run.id).state in ('ready', 'partial')
+    assert totals(context[0], grant)['request_counts']['count_send'] == 2
+
+
+@pytest.mark.parametrize('family', ['intake', 'general', 'adaptive'])
+def test_window_closing_after_commit_is_logged_without_retry(context, tmp_path, monkeypatch, caplog, family):
+    import workagent.responses_worker as module
+    import workagent.service as service_module
+    grant, queued, fake, w, phases = setup_family(context, tmp_path, family)
+    clock = [0.0]
+    origin = now()
+    monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
+    monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    phases.hook = lambda name: clock.__setitem__(0, 30) if name == 'after_predispatch' else None
+    visit(context, w, queued.run.id)
+    messages = [json.loads(r.message) for r in caplog.records if r.name == module.__name__]
+    assert len(messages) == 1
+    assert messages[0] == {'event': 'provider_io_not_started', 'run_id': queued.run.id,
+                           'attempt_id': phases.state.load(context[2], queued.run.id)['receipt']['attempt_id'],
+                           'phase': 'selection', 'operation': 'dispatch', 'reason': 'http_window_closed',
+                           'reservation_committed': True}
+    before = totals(context[0], grant)
+    assert before['request_counts'] == {'count_send': 1, 'dispatch': 1, 'read': 0, 'cancel': 0}
+    assert len(fake.calls) == 1
+    expire(context, queued.run.id)
+    phases.hook = None
+    visit(context, w, queued.run.id)
+    assert totals(context[0], grant) == before and len(fake.calls) == 1
+
+
+@pytest.mark.parametrize('operation', ['read', 'cancel'])
+def test_reservation_delay_rolls_back_observation_slot(context, tmp_path, monkeypatch, operation):
+    import workagent.responses_worker as module
+    import workagent.service as service_module
+    from workagent.provider_attempts import ReceiptCapability
+    from workagent.responses_ledger import Ledger
+    from test_responses_worker import setup
+    grant, queued, fake, w = setup(context, tmp_path, queued=True)
+    w.poll_limit = 0
+    assert w.run(context[2], queued.run.id) == 'provider_pending'
+    saved = w.state.load(context[2], queued.run.id)
+    cap = WorkerCapability(**saved['worker'])
+    ledger = Ledger(context[0], ReceiptCapability(**saved['receipt']))
+    request, events = ledger.snapshot('selection', cap)
+    before = totals(context[0], grant)
+    calls = list(fake.calls)
+    clock = [0.0]
+    origin = now()
+    monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
+    monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    original = Ledger.event
+    def delayed(self, c, phase, kind, data):
+        result = original(self, c, phase, kind, data)
+        if kind == operation:clock[0] += 30
+        return result
+    monkeypatch.setattr(Ledger, 'event', delayed)
+    if operation == 'cancel':
+        with pytest.raises(DomainError) as caught:
+            w.cancel(ledger, request, cap)
+        assert caught.value.code.value == 'action_unresolved'
+    else:
+        w.poll_limit = 1
+        assert w.run(context[2], queued.run.id) == 'provider_pending'
+    assert totals(context[0], grant) == before and fake.calls == calls
+    assert ledger.snapshot('selection', cap)[1]['identity'] == events['identity']
+
+
 def remaining(context, rid, seconds):
     with Database(context[4]).transaction() as c:
         c.execute("UPDATE runs SET data=jsonb_set(data,'{lease_expires_at}',to_jsonb(%s::text)) "
@@ -192,15 +290,16 @@ def test_in_visit_elapsed_http_time_stops_before_next_reservation(context, tmp_p
     original = fake.handle
     def slow(request):
         response = original(request)
-        clock[0] += 15
+        clock[0] += 14
         return response
     transport = ResponsesTransport.synthetic(httpx.MockTransport(slow))
     phases.transport = transport
     if hasattr(w, 'phases'):
         w.transport = transport
     visit(context, w, queued.run.id)
-    # The client has 5s connect + 30s pool/write/read timeouts. Once 30s
-    # elapsed, another full nominal HTTP allowance no longer fits this lease.
+    # The client has 5s connect + 30s pool/write/read timeouts. After the first
+    # 14s response the HTTP allowance plus 5s handoff still fits; after two
+    # responses (28s), another reservation cannot fit either allowance.
     assert len(fake.calls) == 2
     assert totals(context[0], grant)['request_counts'] == {
         'count_send': 1, 'dispatch': 1, 'read': 0, 'cancel': 0}

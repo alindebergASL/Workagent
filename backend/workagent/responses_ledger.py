@@ -13,6 +13,10 @@ RESERVED_INPUT=20000
 RESERVED_OUTPUT=8192
 RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal('2.5')+Decimal(RESERVED_OUTPUT)*Decimal('10'))/Decimal(1000000)
 
+class ReservationDeferred(Exception):
+    """The uncommitted reservation was rolled back before any external I/O."""
+
+
 class Ledger:
     def __init__(self,service,receipt):
         self.service=service
@@ -81,7 +85,7 @@ class Ledger:
                       (attempt.id,request.phase,attempt.grant_id,request.body.decode(),request.sha256,count.decode(),
                        sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
 
-    def reserve_operation(self,request,kind,cap):
+    def reserve_operation(self,request,kind,cap,*,ready=None):
         if kind not in ('count_send','dispatch','read','cancel'):
             raise ValueError('invalid operation')
         with self.service.db.transaction() as c:
@@ -138,6 +142,12 @@ class Ledger:
                     attempt.state='dispatched'
                     self.service._store_attempt(c,attempt)
             event_id=self.event(c,request.phase,kind,data)
+            # SQL guards/lock waits can consume the remaining HTTP window. Check
+            # at the last transactional boundary: a refusal rolls back both the
+            # event and attempt transition, never refunds a committed reservation.
+            # The caller must still reauthorize immediately before external I/O.
+            if ready is not None and not ready(run):
+                raise ReservationDeferred()
             if kind=='dispatch':
                 return DispatchPermit(metadata=request.metadata,request_sha256=request.sha256,
                     input_tokens=events['count_result']['input_tokens'],model=MODEL,service_tier='default',

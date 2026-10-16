@@ -62,11 +62,11 @@ def test_snapshot_provider_reservation_denied(context,tmp_path,monkeypatch,isola
     grant,fake,w,q,art,edit=revision_turn(context,tmp_path)
     if kind=='read': queue_final(w,monkeypatch)
     reserve=Ledger.reserve_operation; captured=[]
-    def stop(ledger,request,operation,cap):
+    def stop(ledger,request,operation,cap,**kwargs):
         if request.phase=='final' and operation==kind:
             captured.append(ledger.receipt.attempt_id)
             raise RuntimeError('stop before reservation')
-        return reserve(ledger,request,operation,cap)
+        return reserve(ledger,request,operation,cap,**kwargs)
     monkeypatch.setattr(Ledger,'reserve_operation',stop)
     with pytest.raises(RuntimeError,match='stop before reservation'): w.work(p,ws,q.run.id)
     before=events(s,q.run.id); calls=len(fake.calls)

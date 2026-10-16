@@ -301,7 +301,9 @@ class Conversations:
         context={'profile':run.profile,'conversation_id':cv.id,'run_id':run.id,
                  'messages':[m.model_dump(mode='json',exclude={'acceptance_checks','operation'} if run.profile==PROFILE else {'acceptance_checks'}) for m in messages],
                  'sources':[{'id':r['id'],'content':r['content']} for r in sources],
-                 'tools':[] if run.profile==PROFILE else self.local_tool_registry()}
+                 # Live profiles replace this field below. Do not regenerate a
+                 # discarded local registry on every authority recheck.
+                 'tools':self.local_tool_registry() if run.profile==PRODUCT_PROFILE else []}
         if cv.work_area is not None:
             context['work_area']=cv.work_area.model_dump(mode='json')
         if run.profile=='general-responses-v1':
@@ -313,13 +315,14 @@ class Conversations:
             config=check_general_pins(c,run)
             grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
             policy,schema=contract(grant.responses)
-            context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
-                           tools=[{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
             from .composition import enabled as alpha_enabled, context_catalog
-            if alpha_enabled(config):
+            alpha=alpha_enabled(config)
+            context.update(instructions=policy,target_body=base.model_dump(mode='json') if base else None,
+                           tools=[{'name':'choose_general_action'}] if alpha else
+                           [{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
+            if alpha:
                 from .responsibility_action import offer
                 context['composition']=context_catalog()
-                context['tools']=[{'name':'choose_general_action'}]
                 context['responsibility_offer']=offer(c,run,cv,latest,config)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):

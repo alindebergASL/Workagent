@@ -109,10 +109,10 @@ def test_budget_stop_never_abandons_a_sent_attempt(context,tmp_path,monkeypatch)
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,first_good=True)
     original=Ledger.reserve_operation
-    def exhausted(ledger,request,kind,cap):
+    def exhausted(ledger,request,kind,cap,**kwargs):
         if request.phase=='final' and kind=='dispatch':
             raise DomainError('budget_exhausted')
-        return original(ledger,request,kind,cap)
+        return original(ledger,request,kind,cap,**kwargs)
     monkeypatch.setattr(Ledger,'reserve_operation',exhausted)
     run=w.work(p,ws,q.run.id)
     assert run.state=='partial' and run.stop_reason=='budget_limit'

@@ -108,8 +108,8 @@ def unresolved_count(context,tmp_path,monkeypatch):
     s,p,ws,_,_=context;cv=conversation(context);g=activate(context,[cv])
     q=post(context,cv,'A bounded count isolation regression.')
     reserve=Ledger.reserve_operation
-    def stop_after_count_send(ledger,request,kind,cap):
-        result=reserve(ledger,request,kind,cap)
+    def stop_after_count_send(ledger,request,kind,cap,**kwargs):
+        result=reserve(ledger,request,kind,cap,**kwargs)
         if kind=='count_send':
             raise RuntimeError('stop after durable count send')
         return result

@@ -71,8 +71,8 @@ def test_exact_target_rechecked_after_committed_slot_before_io(context,tmp_path,
     s,p,ws,_,_=context; g,fake,w,q,art,edit=revision_turn(context,tmp_path)
     if kind=='read':queue_final(w,monkeypatch)
     reserve=Ledger.reserve_operation; checkpoint=[]
-    def intercept(ledger,request,operation,cap):
-        result=reserve(ledger,request,operation,cap)
+    def intercept(ledger,request,operation,cap,**kwargs):
+        result=reserve(ledger,request,operation,cap,**kwargs)
         if request.phase=='final' and operation==kind:
             edit(); checkpoint.append((len(fake.calls),events(s,q.run.id),totals(s,g)['request_counts']))
         return result
@@ -89,11 +89,11 @@ def test_raw_sql_stale_target_reservation_rejected(context,tmp_path,monkeypatch,
     s,p,ws,_,_=context; g,fake,w,q,art,edit=revision_turn(context,tmp_path)
     if kind=='read':queue_final(w,monkeypatch)
     reserve=Ledger.reserve_operation; captured=[]
-    def stop(ledger,request,operation,cap):
+    def stop(ledger,request,operation,cap,**kwargs):
         if request.phase=='final' and operation==kind:
             captured.append(ledger.receipt.attempt_id)
             raise RuntimeError('stop before requested reservation')
-        return reserve(ledger,request,operation,cap)
+        return reserve(ledger,request,operation,cap,**kwargs)
     monkeypatch.setattr(Ledger,'reserve_operation',stop)
     with pytest.raises(RuntimeError,match='stop before'):w.work(p,ws,q.run.id)
     edit(); before=events(s,q.run.id); calls=len(fake.calls)

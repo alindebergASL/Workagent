@@ -7,12 +7,17 @@ Authority: docs/GENERAL_MODEL_AUTHORIZATION.md. No parity claim.
 
 ## Candidate, ownership and services
 
-Branch hermes/overnight-intelligent-work. Runtime08568f3; integrated owner377738e
-in c3b73cbb. Hermes owns backend/runtime/integration; the existing Claude Cloud
+Branch hermes/overnight-intelligent-work. Iteration5 is the sole active integrator.
+Older iteration4 explicitly yielded; overlap handoff and retained failed runs:
+/home/ubuntu/workagent-private-alpha/continuation/iteration-4-overlap-handoff.json.
+Reviewed candidate now includes the reservation handoff and context-efficiency fix;
+compatible runtime authority is not yet installed. Integrated owner104beac in b8a7fca.
+Hermes owns backend/runtime/integration; the existing Claude Cloud
 session exclusively owns web. No default merge or production replacement.
 Supported path: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. API8152,
-web3152 and worker ACTIVE; canonical readiness TRUE beside quarantined failures.
+Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 ACTIVE;
+API8152 temporarily STOPPED for low-contention regression verification; worker
+STOPPED pending compatible authority. Readiness is false. New owner build is serving.
 Retained DB47b87fe3b82e and private worker state preserved. Full stack restart
 preserved canonical revisions and produced no new provider operations.
 Older3151/8151 preview/data/evidence preserved; scheduled retirement is not deletion.
@@ -94,15 +99,18 @@ no-skill behavior, not full general-agent acceptance.
 
 ## Verification, reviews and next useful work
 
-Original lease JUnit reverified114PASS/hash unchanged. Current integrated controlled
+Original lease JUnit reverified114PASS/hash unchanged. Prior integrated controlled
 transport + restricted PostgreSQL invocation159PASS/0fail/0skip (825.06s); separate
 migration-prefix5 and runtime-identity3 PASS. Independent Astra found a P2 historical
 policy SQL bypass; integrator reproduced RED, fixed it and tested the actual bypass.
 Not a second independent PASS. Setup-error/timeout/failed evidence remains retained.
-Owner frontend292PASS, TypeScriptPASS, feature-enabled webpackPASS; contracts
-checked. Owner377738e notes now fully readable on desktop/390px (scrollHeight equals
-clientHeight). Six-column desktop page overflow remains with owner, PR9 comment
-6203855351. Generated view is long/caveat-heavy and its hold badge uses note wording;
+Owner104beac frontend292PASS, TypeScriptPASS, supported feature-enabled webpackPASS
+rerun by iteration5. Contracts check rerun PASS. Owner377738e notes fully readable
+on desktop/390px (scrollHeight equals clientHeight). Six-column containment and
+sticky row controls from104beac are integrated and inspected in actual browser
+at1440/390px: no page overflow, reachable row controls, corrected approval/no and
+human note preserved. Owner notified/readback PR9#issuecomment-6204636720.
+Generated view is long/caveat-heavy and its hold badge uses note wording;
 static20-minute presentation cannot be assumed to adapt to future requirements.
 
 Fresh direct GLM5.3 critique completed with finish_reason=stop: reliability/security,
@@ -116,14 +124,38 @@ remains Astra. Exact review and these resolutions are retained privately.
 Authenticated SSH/server-side forwarding at16.148.68.248 reverified; all app/API
 listeners loopback-only. User-device access NOT TESTED; no key contents inspected.
 
-Next: investigate pre-reservation/post-reservation HTTP-admission boundary with
-controlled tests and safe diagnostics; the current unknown's cause is NOT established.
-A post-reservation gate can theoretically leave a reservation without I/O; do not
-infer that this request was unsent or retry it. Continue unrelated permitted work,
-finish owner overflow integration, and extend practical reusable capabilities.
+Iteration5 reproduced a remaining postcommit admission race on all three profiles
+and four real controlled product regressions. Uncommitted reservations now roll
+back when the window closes; a5s handoff margin precedes the unchanged full
+postcommit authority check. Committed slots still never refund/retry. Removed
+discarded schema generation, not authority checks or context fields. Six new RED
+regressions plus the four product failures now pass in one10-test run. A three-case
+elapsed-time fixture was adjusted for the stricter margin and separately passed.
+Final serial integrated invocation:129PASS/0fail/0error/0skip in599.06s against
+fresh disposable PostgreSQL. JUnit and exact reviewed-runtime hashes independently
+parsed in iteration5-verification.json. This is the selected runtime/authority/
+continuation suite, not all backend tests. Earlier interrupted/failed wider runs
+are retained; stale wrapper signatures and timing fixtures were fixed, and
+one-visit timing failures under two-CPU contention are not relabeled PASS.
+Direct GLM5.3 incremental review completed (stop), no medium/high findings; review
+input hashes and exact response retained. Existing same-model independent review
+covered the prior transaction fix, not the later margin/efficiency change.
+The historical unknown's cause remains unestablished and it stays frozen.
+
+Next: publish the verified boundary fix, install compatible bounded09 authority
+and restore API/worker service; then execute
+new clearly identified development work, not a retry of frozen results. Two fresh
+unactivated conversations exist, including same-command local recovery of a
+QueryCanceled creation; no model admissions or provider events added.
+Continue practical reusable capabilities and the changed-requirements journey.
 Any runtime/policy changes need compatible new bounded authority within2.454640
 unactivated funds; old08 liabilities and all frozen attempts remain unchanged.
 Evidence: /home/ubuntu/workagent-private-alpha/iteration4-live-final.json,
 iteration4-engineering-verified.json, iteration4-independent-review.json,
 iteration4-new-unknown.json, iteration4-*-restart.json and inspected PNGs;
 prior iteration2/3 files and runtime-lease-verification.json remain available.
+Current evidence: iteration5-initial-observation.json, iteration5-browser.json and
+inspected PNGs, iteration5-boundary-efficiency-{red,green}.xml,
+iteration5-handoff-fixture.xml, iteration5-review-{intent,receipt}.json,
+iteration5-review.md, iteration5-pending-tests-checkpoint.json and
+iteration5-ssh-access.json. All paths under /home/ubuntu/workagent-private-alpha/.
