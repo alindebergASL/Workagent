@@ -1,7 +1,14 @@
 "use client";
 import Link from "next/link";
 import { scopedHref } from "@/lib/scope";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
@@ -192,6 +199,9 @@ export function FlexibleEditor({
   const saved = artifact.current_revision.body as FlexibleBody;
   const kind = flexibleKind(saved)!;
   const [draft, setDraft] = useState<Draft>(() => readDraft(key, artifact));
+  // A draft must be for this kind of work. If the editor is shown other
+  // work without remounting, re-read before anything renders with it.
+  if (flexibleKind(draft.body) !== kind) setDraft(readDraft(key, artifact));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -302,6 +312,36 @@ export function FlexibleEditor({
     }
   }
   const locked = busy || Boolean(draft.pending) || stale;
+  // Ctrl/Cmd+S saves unsaved edits, the same explicit save as the button,
+  // instead of the browser's "save page".
+  const saveRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    saveRef.current = () => {
+      if (!dirty || locked || problem) return;
+      void submit({
+        kind: "save",
+        id: crypto.randomUUID(),
+        base: draft.base,
+        body: structuredClone(draft.body),
+      });
+    };
+  });
+  useEffect(() => {
+    if (!dirty) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.altKey &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "s"
+      ) {
+        e.preventDefault();
+        saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dirty]);
   const pendingProposals = proposals.filter((p) => p.status === "pending");
   const byWorkagent = artifact.current_revision.author_kind !== "human";
   return (
@@ -602,11 +642,22 @@ export function FlexibleEditor({
             {problem}
           </p>
         ) : null}
-        <div className="row product-actions">
+        <div
+          className={`row product-actions${dirty ? " unsaved-bar" : ""}`}
+          data-testid={dirty ? "unsaved-bar" : undefined}
+        >
+          {dirty ? (
+            // Kept in view while anything is unsaved, however long the work.
+            <span className="small unsaved-note" role="status">
+              Your changes are not saved yet.
+            </span>
+          ) : null}
           {dirty ? (
             <button
               className="btn btn-primary"
               disabled={locked || Boolean(problem)}
+              aria-keyshortcuts="Control+S Meta+S"
+              title="Save my edits (Ctrl+S or ⌘S)"
               onClick={() =>
                 void submit({
                   kind: "save",
@@ -1429,6 +1480,10 @@ function TableRead({ body }: { body: StructuredTable }) {
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
+/** Whether a table's long fields go on their own line under each row. */
+const splitLong = (long: Set<string>, columns: number) =>
+  long.size > 0 && columns >= 4;
+
 /** A table's layout class: long text takes the room; many columns share it. */
 const tableClass = (long: Set<string>, columns: number) =>
   long.size ? (columns >= 4 ? "has-long many" : "has-long") : undefined;
@@ -1565,6 +1620,34 @@ function TableEditor({
   const longText = longTextFields(saved);
   const nameKey = rowNameField(body)?.key;
   const regionRef = useRef<HTMLDivElement>(null);
+  // The last row removed, so one click puts it back where it was, with what
+  // the person had typed in it.
+  const [removedRow, setRemovedRow] = useState<{
+    row: S["TableRow"];
+    at: number;
+    name: string;
+    typed: typeof raw;
+  } | null>(null);
+  const restorable =
+    removedRow && !body.rows.some((r) => r.row_id === removedRow.row.row_id)
+      ? removedRow
+      : null;
+  const undoRemove = () => {
+    if (!restorable) return;
+    const at = Math.min(restorable.at, body.rows.length);
+    update(
+      {
+        ...body,
+        rows: [
+          ...body.rows.slice(0, at),
+          restorable.row,
+          ...body.rows.slice(at),
+        ],
+      },
+      { ...raw, ...restorable.typed },
+    );
+    setRemovedRow(null);
+  };
   const overflows = useOverflows(regionRef, body);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
@@ -1577,7 +1660,108 @@ function TableEditor({
         ...raw,
         [k]: { text },
       });
+  } // With many columns, a long field goes on its own full-width line under
+  // its row: every column fits and the long text reads whole.
+  const below = splitLong(longText, body.fields.length)
+    ? body.fields.filter((f) => longText.has(f.key))
+    : [];
+  const inline = body.fields.filter((f) => !below.includes(f));
+  const columnSize = (key: string) =>
+    Math.min(
+      32,
+      Math.max(
+        10,
+        ...body.rows.map((r) => {
+          const typed = raw[cellKey(r.row_id, key)]?.text;
+          return (typed ?? cellInput(cellValue(r, key))).length + 2;
+        }),
+      ),
+    );
+  /** One editable cell of a row; `wide` spans a long field under the row. */
+  function cellFor(
+    r: S["TableRow"],
+    i: number,
+    name: string,
+    f: StructuredTable["fields"][number],
+    wide?: number,
+  ) {
+    const value = cellValue(r, f.key);
+    const k = cellKey(r.row_id, f.key);
+    const typed = raw[k];
+    // The cell that names its row is labelled by position:
+    // its own text would rename it while the person types.
+    const label =
+      f.key === nameKey ? `Row ${i + 1} ${f.label}` : `${name} ${f.label}`;
+    const locked = !f.editable && savedRows.has(r.row_id);
+    const inputProps = {
+      "aria-label": label,
+      "aria-invalid": typed?.error ? true : undefined,
+      value: typed?.text ?? cellInput(value),
+    };
+    return (
+      <td
+        key={f.key}
+        data-type={f.type}
+        data-label={fieldHeading(f)}
+        data-derived={f.editable ? undefined : "true"}
+        data-long={longText.has(f.key) ? "true" : undefined}
+        colSpan={wide}
+      >
+        {wide ? (
+          // Under its row there's no column heading: name it here. An
+          // editable box already carries the name; a read-only value doesn't.
+          <span className="long-label" aria-hidden={locked ? undefined : true}>
+            {fieldHeading(f)}
+          </span>
+        ) : null}
+        {locked ? (
+          formatCell(f, value)
+        ) : f.type === "boolean" || f.type === "enum" ? (
+          <select
+            aria-label={label}
+            value={cellInput(value)}
+            onChange={(e) => edit(r.row_id, f.key, e.target.value)}
+          >
+            <option value="">—</option>
+            {(f.type === "boolean"
+              ? [
+                  ["yes", "Yes"],
+                  ["no", "No"],
+                ]
+              : (f.enum ?? []).map((x) => [x, x])
+            ).map(([v, t]) => (
+              <option key={v} value={v}>
+                {t}
+              </option>
+            ))}
+          </select>
+        ) : longText.has(f.key) ? (
+          // Long text wraps where it can be read, but stays
+          // one value: Enter doesn't start a new line.
+          <LongTextCell
+            {...inputProps}
+            onChange={(text) => edit(r.row_id, f.key, text)}
+          />
+        ) : (
+          <input
+            {...inputProps}
+            // Short text is as wide as its column's longest value
+            // (within bounds), the same on every row.
+            size={f.type === "text" ? columnSize(f.key) : undefined}
+            inputMode={
+              f.type === "integer"
+                ? "numeric"
+                : f.type === "decimal"
+                  ? "decimal"
+                  : undefined
+            }
+            onChange={(e) => edit(r.row_id, f.key, e.target.value)}
+          />
+        )}
+      </td>
+    );
   }
+
   return (
     <>
       <p className="hint table-hint">
@@ -1605,7 +1789,7 @@ function TableEditor({
         <table className={tableClass(longText, body.fields.length)}>
           <thead>
             <tr>
-              {body.fields.map((f) => (
+              {inline.map((f) => (
                 <th
                   key={f.key}
                   scope="col"
@@ -1625,102 +1809,53 @@ function TableEditor({
             {body.rows.map((r, i) => {
               const name = rowName(body, r, i + 1);
               return (
-                <tr key={r.row_id}>
-                  {body.fields.map((f) => {
-                    const value = cellValue(r, f.key);
-                    const k = cellKey(r.row_id, f.key);
-                    const typed = raw[k];
-                    // The cell that names its row is labelled by position:
-                    // its own text would rename it while the person types.
-                    const label =
-                      f.key === nameKey
-                        ? `Row ${i + 1} ${f.label}`
-                        : `${name} ${f.label}`;
-                    const locked = !f.editable && savedRows.has(r.row_id);
-                    const inputProps = {
-                      "aria-label": label,
-                      "aria-invalid": typed?.error ? true : undefined,
-                      value: typed?.text ?? cellInput(value),
-                    };
-                    return (
-                      <td
-                        key={f.key}
-                        data-type={f.type}
-                        data-label={fieldHeading(f)}
-                        data-derived={f.editable ? undefined : "true"}
-                        data-long={longText.has(f.key) ? "true" : undefined}
-                      >
-                        {locked ? (
-                          formatCell(f, value)
-                        ) : f.type === "boolean" || f.type === "enum" ? (
-                          <select
-                            aria-label={label}
-                            value={cellInput(value)}
-                            onChange={(e) =>
-                              edit(r.row_id, f.key, e.target.value)
+                <Fragment key={r.row_id}>
+                  <tr className={below.length ? "has-below" : undefined}>
+                    {inline.map((f) => cellFor(r, i, name, f))}
+                    <td data-label="" className="row-actions">
+                      {!valuesOnly && canRemoveRow(saved, body, r.row_id) ? (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-quiet"
+                          aria-label={`Remove ${name}`}
+                          onClick={() => {
+                            const next = { ...raw };
+                            const typed: typeof raw = {};
+                            for (const f of body.fields) {
+                              const k = cellKey(r.row_id, f.key);
+                              if (raw[k]) typed[k] = raw[k];
+                              delete next[k];
                             }
-                          >
-                            <option value="">—</option>
-                            {(f.type === "boolean"
-                              ? [
-                                  ["yes", "Yes"],
-                                  ["no", "No"],
-                                ]
-                              : (f.enum ?? []).map((x) => [x, x])
-                            ).map(([v, t]) => (
-                              <option key={v} value={v}>
-                                {t}
-                              </option>
-                            ))}
-                          </select>
-                        ) : longText.has(f.key) ? (
-                          // Long text wraps where it can be read, but stays
-                          // one value: Enter doesn't start a new line.
-                          <LongTextCell
-                            {...inputProps}
-                            onChange={(text) => edit(r.row_id, f.key, text)}
-                          />
-                        ) : (
-                          <input
-                            {...inputProps}
-                            inputMode={
-                              f.type === "integer"
-                                ? "numeric"
-                                : f.type === "decimal"
-                                  ? "decimal"
-                                  : undefined
-                            }
-                            onChange={(e) =>
-                              edit(r.row_id, f.key, e.target.value)
-                            }
-                          />
-                        )}
-                      </td>
-                    );
-                  })}
-                  <td data-label="" className="row-actions">
-                    {!valuesOnly && canRemoveRow(saved, body, r.row_id) ? (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-quiet"
-                        aria-label={`Remove ${name}`}
-                        onClick={() => {
-                          const next = { ...raw };
-                          for (const f of body.fields)
-                            delete next[cellKey(r.row_id, f.key)];
-                          update(removeRow(body, r.row_id), next);
-                        }}
-                      >
-                        Remove
-                      </button>
-                    ) : null}
-                  </td>
-                </tr>
+                            setRemovedRow({ row: r, at: i, name, typed });
+                            update(removeRow(body, r.row_id), next);
+                          }}
+                        >
+                          Remove
+                        </button>
+                      ) : null}
+                    </td>
+                  </tr>
+                  {below.length ? (
+                    <tr className="long-row">
+                      {below.map((f) =>
+                        cellFor(r, i, name, f, inline.length + 1),
+                      )}
+                    </tr>
+                  ) : null}
+                </Fragment>
               );
             })}
           </tbody>
         </table>
       </div>
+      {restorable ? (
+        <p className="small undo-line" role="status" data-testid="undo-remove">
+          Removed “{restorable.name}”.{" "}
+          <button type="button" className="link-quiet" onClick={undoRemove}>
+            Undo
+          </button>
+        </p>
+      ) : null}
       {errors.length ? (
         <ul className="small cell-errors" role="alert">
           {errors.map(([k, c]) => {

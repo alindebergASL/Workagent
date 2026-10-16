@@ -362,7 +362,7 @@ LOANS = {'kind': 'structured_table', 'version': 'structured-table/v1', 'title': 
              ('repair', ['Repair bag', 'Front desk', 7, '35.00', True,
                          'Hold for the open day: the tools stay at the desk until the last tour has finished, '
                          'then go back to the workshop cupboard and are counted against the inventory list.']),
-             ('stand', ['Display stand', 'Gallery', 14, '50.00', True, 'Needs two people to carry.'])]]}
+             ('stand', ['Display stand', 'Gallery front room', 14, '50.00', True, 'Needs two people to carry.'])]]}
 runs['loans'] = ask(kit.id, 'Set up a lending desk table for the open day kit.', [publish(LOANS)],
                     'I set up the lending desk.', name='loans')
 assert runs['loans'][1] in ('ready', 'partial'), runs['loans']

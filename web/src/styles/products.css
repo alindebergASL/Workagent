@@ -319,12 +319,28 @@
 .flex-table table.many td[data-long="true"] {
   min-width: 13rem;
 }
+/* With many columns, a long field reads on its own line under its row. */
+.flex-table tr.has-below > td {
+  border-bottom: 0;
+  padding-bottom: 4px;
+}
+.flex-table tr.long-row > td {
+  padding-top: 0;
+}
+.flex-table .long-label {
+  display: block;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  margin-bottom: 2px;
+}
 /* Beside a long column, short text needs less room than on its own. */
 .flex-table table.many td[data-type="text"]:not([data-long]) {
   min-width: 0;
 }
 .flex-table table.many td[data-type="text"]:not([data-long]) input {
+  width: auto;
   min-width: 7rem;
+  max-width: 16rem;
 }
 .flex-table td[data-long="true"] {
   white-space: normal;
@@ -429,6 +445,20 @@ textarea.fit-text {
     position: static;
     box-shadow: none;
     background: transparent;
+  }
+  .flex-table tr.has-below {
+    border-bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+  }
+  .flex-table tr.long-row {
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+  .flex-table .long-label {
+    display: none;
   }
   /* A long value goes under its label, across the card. */
   .flex-table td[data-long="true"] {
@@ -731,4 +761,20 @@ textarea.fit-text {
 }
 .doc-editable {
   gap: 2px;
+}
+
+/* While edits are unsaved, their save stays in view at the bottom of the
+   screen, however far the person has scrolled through the work. */
+.product-actions.unsaved-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  align-items: center;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: var(--sp-2) 0;
+}
+.unsaved-note {
+  margin-right: auto;
+  color: var(--ink-2);
 }

@@ -931,7 +931,15 @@ try {
   await page
     .getByRole("button", { name: /^Remove paragraph: Temporary line/ })
     .click();
-  await expect(page.getByText("Temporary line")).toHaveCount(0);
+  // Gone from the document; only the offer to undo names it.
+  await expect
+    .poll(() =>
+      page
+        .locator(".doc-editable textarea")
+        .evaluateAll((els) => els.some((e) => e.value === "Temporary line")),
+    )
+    .toBe(false);
+  await expect(page.getByTestId("undo-remove")).toContainText("Temporary line");
   await adder.getByRole("button", { name: "Your note" }).click();
   const NOTE =
     "Don’t pay the venue deposit until the refund terms are in writing.";
@@ -1671,6 +1679,40 @@ try {
       "no sideways scroll on a phone",
     );
     await shot(page, "12-long-steps-phone");
+    // An edit at the top of a long editor keeps its save in view: the
+    // person never has to hunt below the fold to keep what they changed.
+    const step1 = page
+      .getByRole("region", { name: "Editable table" })
+      .locator("textarea")
+      .first();
+    await step1.scrollIntoViewIfNeeded();
+    await step1.fill(`${await step1.inputValue()} Use a pen, not pencil.`);
+    const saveNow = page.getByRole("button", {
+      name: "Save my edits",
+      exact: true,
+    });
+    await expect(saveNow).toBeVisible();
+    assert.ok(
+      await saveNow.evaluate((b) => {
+        const r = b.getBoundingClientRect();
+        return r.top >= 0 && r.bottom <= window.innerHeight;
+      }),
+      "the save is out of view after an edit at the top",
+    );
+    await expect(page.getByTestId("unsaved-bar")).toContainText(
+      "not saved yet",
+    );
+    // The viewport as the person sees it (a full-page capture unsticks it).
+    await page.screenshot({ path: path.join(out, "12-unsaved-bar-phone.png") });
+    // Ctrl/Cmd+S saves, the same explicit save as the button.
+    const pen = await step1.inputValue();
+    await step1.press("Control+s");
+    await expect(page.getByText("Your edits are saved.")).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(saveNow).toHaveCount(0);
+    await page.reload();
+    await expect(step1).toHaveValue(pen, { timeout: 15000 });
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a table of long steps and its notes read whole where they're edited, on desktop and phone; an edited step grows, saves explicitly and comes back whole",
@@ -1706,9 +1748,24 @@ try {
     const overflows = await grid.evaluate(
       (el) => el.scrollWidth > el.clientWidth + 1,
     );
-    await expect(page.getByTestId("table-scroll-cue")).toHaveCount(
-      overflows ? 1 : 0,
+    // Every column fits: the long notes go on their own line under each row.
+    assert.equal(overflows, false, "some columns are out of view at 1440");
+    await expect(page.getByTestId("table-scroll-cue")).toHaveCount(0);
+    for (const name of ["Lantern", "Repair bag", "Display stand"]) {
+      const n = grid.getByLabel(`${name} Notes`, { exact: true });
+      assert.ok(await inView(n), `${name}'s note is out of view`);
+      assert.ok(
+        (await n.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
+        `${name}'s note scrolls inside`,
+      );
+    }
+    // Short values show whole in their boxes, not cut off at a fixed width.
+    const clipped = await grid.evaluate((el) =>
+      [...el.querySelectorAll('td[data-type="text"]:not([data-long]) input')]
+        .filter((i) => i.scrollWidth > i.clientWidth + 1)
+        .map((i) => i.value),
     );
+    assert.deepEqual(clipped, [], "short values are cut off in their boxes");
     await shot(page, "13-wide-table-desktop");
     const note = grid.getByLabel("Repair bag Notes", { exact: true });
     await note.scrollIntoViewIfNeeded();
@@ -1736,9 +1793,70 @@ try {
     await expect(grid).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(300);
     assert.ok(await noPageScroll(), "the page scrolls sideways at 390");
+    await shot(page, "13-wide-table-phone");
     await page.setViewportSize({ width: 1440, height: 1000 });
     pass(
       "a wide table stays inside the work pane: no sideways page scroll, row controls in view, out-of-view columns said, the last column edited and saved",
+    );
+  }
+
+  // Removing a row or a part of a document can be undone in one click: it
+  // comes back where it was, and nothing is left unsaved.
+  {
+    const kit = ids.kit;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(
+      `${origin}/conversations/${kit.conversation_id}/artifacts/${kit.loans_id}?workspace=${kit.workspace}`,
+    );
+    const grid = page.getByRole("region", { name: "Editable table" });
+    const items = () =>
+      grid
+        .locator('input[aria-label$=" Item"]')
+        .evaluateAll((els) => els.map((e) => e.value));
+    await expect(grid).toBeVisible({ timeout: 15000 });
+    const rows = await items();
+    await grid.getByRole("button", { name: "Remove Repair bag" }).click();
+    await expect(page.getByTestId("undo-remove")).toContainText("Repair bag");
+    assert.deepEqual(
+      await items(),
+      rows.filter((x) => x !== "Repair bag"),
+    );
+    await page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo" })
+      .click();
+    assert.deepEqual(await items(), rows);
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toHaveCount(0);
+
+    await page.goto(
+      `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
+    );
+    const parts = () =>
+      page
+        .locator(".doc-editable textarea")
+        .evaluateAll((els) => els.map((e) => e.value));
+    await expect(page.locator(".doc-editable textarea").first()).toBeVisible({
+      timeout: 15000,
+    });
+    const before = await parts();
+    assert.ok(before.length >= 2);
+    await page.locator(".doc-editable .doc-remove").nth(1).click();
+    await expect(page.getByTestId("undo-remove")).toContainText(
+      before[1].slice(0, 20),
+    );
+    assert.equal((await parts()).length, before.length - 1);
+    await page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo" })
+      .click();
+    assert.deepEqual(await parts(), before);
+    await expect(
+      page.getByRole("button", { name: "Save my edits", exact: true }),
+    ).toHaveCount(0);
+    pass(
+      "a removed row or part comes back where it was with one Undo, leaving nothing unsaved",
     );
   }
 

@@ -1763,4 +1763,122 @@ scroll, and the Notes column (and the row controls) off-screen.
 - GREEN:
   - routing 7 + Space 24 + refusal 4;
   - 292 unit tests;
-  - 38 DOM regressions.
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+
+## Wide tables: long fields on their own line, short values whole
+
+Follow-up to Hermes 6204636720, which noted "narrow desktop field inputs".
+
+**What was wrong.** After `104beac`, short text inputs in wide tables were a fixed 7rem, so a value
+like "Gallery front room" was cut off. Widening them pushed the long Notes column back under the
+sticky row controls.
+
+**Fix.**
+- In tables of four or more columns with a long-text field, the long field goes on its own
+  full-width line under each row's short fields.
+  - On desktop it is named there by its label. On a phone it joins its row's card.
+  - Every column then fits the work pane at 1440, with no sideways scroll and no cue.
+- Short text boxes are as wide as their column's longest value (10–32 characters), the same on
+  every row.
+- A read-only long value keeps an accessible label; an editable box already carries its name.
+- Explicit save and human-field tracking are unchanged.
+
+**Regression.**
+- In the `space-experience.mjs` wide-table case, at 1440:
+  - no short value is cut off;
+  - no column is out of view and there is no cue;
+  - each row's note is fully in view and scrolls nothing inside.
+- The fixture's "Display stand" borrower is now "Gallery front room".
+- In `products-review-regressions.mjs`, long fields in many-column tables are expected as labelled
+  lines under each row, not as column headers.
+
+**Results.**
+- RED with `104beac`: "short values are cut off in their boxes: Gallery front room".
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+
+## Editor audit: an unsaved edit keeps its save in view
+
+Editor and navigation audit, third fix.
+
+**What was wrong.** "Save my edits" and "Discard my changes" appear only once there's an edit, below
+the whole table (or document) and its notes. On a phone, or in any long piece of work, an edit near
+the top left them off-screen, with nothing in view saying the change wasn't kept.
+
+**Fix.** While anything is unsaved, the action row sticks to the bottom of the screen. It shows
+"Your changes are not saved yet.", "Save my edits" and "Discard my changes". Nothing else about
+saving changes: it stays explicit, and discarding still returns to the saved version.
+
+**Regression.** The long-steps case, at 390, edits the first step and asserts that "Save my edits"
+is inside the viewport and that the bar says the changes aren't saved. It then discards, and the
+save goes away.
+
+**Results.**
+- RED with the old layout: "the save is out of view after an edit at the top".
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+
+## Editor audit: Ctrl/Cmd+S saves unsaved edits
+
+Editor and navigation audit, fourth fix.
+
+**What was wrong.** In the trusted editor, Ctrl/Cmd+S opened the browser's "Save page" dialog. It
+didn't save the person's edits.
+
+**Fix.**
+- While anything is unsaved, Ctrl/Cmd+S runs the same explicit save as "Save my edits".
+- It respects the same holds: no save while locked, stale, pending or invalid.
+- The button advertises the shortcut through `aria-keyshortcuts` and its title.
+
+**Regression.** The long-steps case, at 390, edits the first step, presses Control+S, sees "Your
+edits are saved.", reloads, and finds the edit kept.
+
+**Results.**
+- RED on the previous build: no "Your edits are saved." after Control+S.
+- GREEN:
+  - routing 7 + Space 24 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
+
+## Editor audit: undo a removal; drafts always match their work
+
+Editor and navigation audit, fifth fix, plus a root-caused intermittent DOM failure.
+
+**Undo a removal.** Removing a table row, or a part of a document, was instant and could only be
+reversed by "Discard my changes", which also dropped every other unsaved edit.
+- Removing now shows "Removed “…”. Undo".
+- One click puts the row or part back where it was. For a row, that includes any values typed into
+  it that weren't valid yet.
+- If nothing else changed, nothing is left unsaved.
+- Regression: a new `space-experience.mjs` case removes the middle row of the lending table, and a
+  part of the workshop plan, and undoes each. The order is restored and no save is pending.
+- RED on the previous build: no undo offered.
+- The "Temporary line" check in the leave-guard case now asserts the part is gone from the
+  document. Only the undo offer names it.
+
+**Drafts always match their work.** `products-review-regressions.mjs` failed intermittently (34/38,
+in about 3 of 4 runs, on the previous commit too). The cause was `TableEditor` crashing on "reading
+'some' of undefined". The harness reuses one artifact id, so the editor could keep a document draft
+while being shown a table without remounting. Drafts were only checked for kind on first load.
+- `FlexibleEditor` now re-reads its draft whenever the draft isn't for this kind of work, before
+  anything renders with it, falling back to the saved version.
+- This also guards against a mismatched or corrupt stored draft.
+- After the fix: 6/6 consecutive runs at 38/38.
+
+**Results.**
+- GREEN:
+  - routing 7 + Space 25 + refusal 4;
+  - 292 unit tests;
+  - 38 DOM regressions (6/6 runs).
