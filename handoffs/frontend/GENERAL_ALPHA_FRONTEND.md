@@ -1940,4 +1940,6 @@ This is the first implementation step recommended in the concepts handoff (#9, 6
 - GREEN:
   - routing 7 + Space 26 + refusal 4;
   - 293 unit tests;
-  - 38 DOM regressions.
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
