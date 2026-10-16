@@ -126,6 +126,18 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     el.style.height = `${Math.max(el.scrollHeight, 56)}px`;
   }, [text]);
 
+  // Arriving from "Steer" on Home puts the cursor in the reply box once it
+  // exists, with any draft kept.
+  const steerFocused = useRef(false);
+  useEffect(() => {
+    if (steerFocused.current || location.hash !== "#follow-up") return;
+    const el = boxRef.current;
+    if (!el) return;
+    steerFocused.current = true;
+    el.focus();
+    el.scrollIntoView({ block: "center" });
+  });
+
   // ---- explicit hand-over ----
   const [handoverOpen, setHandoverOpen] = useState(
     search.get("handover") === "1",

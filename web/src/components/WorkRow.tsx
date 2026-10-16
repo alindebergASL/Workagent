@@ -11,6 +11,7 @@ import {
 import type { AssignmentSummary } from "@/lib/contract/types";
 import type { HoldEntry } from "@/lib/client/responsibility";
 import { holdStatus } from "@/lib/hold-view";
+import { responsibilityView } from "@/lib/responsibility-view";
 import { scopedHref } from "@/lib/scope";
 import { StatusBadge } from "./ui";
 
@@ -58,8 +59,17 @@ export function WorkRow({
                   : phase === "approved"
                     ? (item.latest_result ?? "")
                     : (item.next_step ?? item.latest_result ?? "");
+  // Steering sits beside a responsibility that is still held: say what to
+  // change in its conversation, or pause, resume or stop it on its page.
+  const steerable =
+    hold?.kind === "ready" &&
+    !responsibilityView(hold.detail.lifecycle).closed &&
+    Boolean(item.conversation_id);
+  const paused =
+    hold?.kind === "ready" && hold.detail.lifecycle.state === "paused";
+  const title = shortTitle(item.title);
   return (
-    <li>
+    <li className={steerable ? "work-row-steerable" : undefined}>
       <Link
         className="work-row"
         href={href}
@@ -68,9 +78,7 @@ export function WorkRow({
         data-hold={hold?.kind}
       >
         <span className="work-row-main">
-          <span className="work-row-title clamp-2">
-            {shortTitle(item.title)}
-          </span>
+          <span className="work-row-title clamp-2">{title}</span>
           {held?.next ? (
             <span className="work-row-next clamp-2" data-testid="hold-next">
               {held.next}
@@ -85,6 +93,30 @@ export function WorkRow({
           ↗
         </span>
       </Link>
+      {steerable ? (
+        <div className="work-row-steer" data-testid="steer">
+          <Link
+            className="btn btn-sm"
+            href={scopedHref(
+              `/conversations/${item.conversation_id}#follow-up`,
+              item.workspace_id,
+            )}
+            aria-label={`Steer “${title}” in its conversation`}
+          >
+            Steer
+          </Link>
+          <Link
+            className="btn btn-sm btn-quiet"
+            href={scopedHref(
+              `/assignments/${item.id}#responsibility`,
+              item.workspace_id,
+            )}
+            aria-label={`${paused ? "Resume" : "Pause"} or stop “${title}”`}
+          >
+            {paused ? "Resume or stop…" : "Pause or stop…"}
+          </Link>
+        </div>
+      ) : null}
     </li>
   );
 }

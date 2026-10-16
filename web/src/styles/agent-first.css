@@ -1098,6 +1098,13 @@ details.disclosure.card {
   font-size: 0.8125rem;
   color: var(--muted);
 }
+/* Steering beside a held responsibility, under its row. */
+.work-row-steer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 12px;
+}
 /* What a held responsibility is waiting on or does next: the substance. */
 .work-row-next {
   font-size: 0.875rem;

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import {
@@ -137,11 +137,19 @@ export function ResponsibilityPanel({
     if (!ok) setNote("Couldn’t re-read its current state. Try again shortly.");
   }
 
+  // Arriving from "Pause or stop…" on Home brings the controls into view
+  // once they exist (the address's anchor resolves before they load).
+  useEffect(() => {
+    if (location.hash === "#responsibility")
+      document.getElementById("responsibility")?.scrollIntoView();
+  }, []);
+
   // Steering needs a current read and no command in doubt.
   const steerable = !stale && !unresolved && !shown.fromReply && !busy;
 
   return (
     <section
+      id="responsibility"
       className="card card-quiet responsibility stack-sm"
       aria-labelledby="responsibility-title"
       data-testid="responsibility"
