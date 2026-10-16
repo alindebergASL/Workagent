@@ -282,6 +282,34 @@ export default function AgentHome() {
 
       <Composer wsId={wsId} />
 
+      {/* Each feed says its own state: the work conversations made is read
+          separately from handed-over work, and either can fail alone. */}
+      {conversationWork.error && !conversationWork.data ? (
+        <div data-testid="home-work-error">
+          <ErrorNotice
+            error={conversationWork.error}
+            describe={() => ({
+              title: "Work from your conversations couldn’t be read",
+              nextAction:
+                "It isn’t shown here, including any proposal waiting for you. Nothing was changed.",
+            })}
+            actions={
+              <button
+                className="btn btn-sm"
+                onClick={() => void conversationWork.refresh()}
+              >
+                Try again
+              </button>
+            }
+          />
+        </div>
+      ) : conversationWork.reconnecting ? (
+        <p className="hint" role="status" data-testid="home-work-stale">
+          Couldn’t re-check work from your conversations. It’s shown as last
+          read, so a proposal may have changed since.
+        </p>
+      ) : null}
+
       {changed.length ? (
         <SinceYouLeft entries={changed} zone={zone} onSeen={marker.seenAll} />
       ) : null}

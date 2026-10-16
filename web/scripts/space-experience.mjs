@@ -2198,6 +2198,76 @@ try {
     );
   }
 
+  // Home reads the work conversations made separately from handed-over work,
+  // and either can fail alone. When the conversation feed can't be read at
+  // first, Home says so (handed-over work still shows) and Try again reads
+  // it; when a later re-read fails, what's shown is labelled as last read.
+  {
+    const ctx = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const tab = await ctx.newPage();
+    const tabErrors = [];
+    tab.on("pageerror", (e) => tabErrors.push(e.message));
+    const feed = /\/api\/domain\/v1\/workspaces\/[^/]+\/conversations(\?|$)/;
+    let failFeed = true;
+    await tab.route(feed, (route) =>
+      failFeed && route.request().method() === "GET"
+        ? route.fulfill({
+            status: 503,
+            contentType: "application/json",
+            body: JSON.stringify({
+              error: { code: "transport", message: "Synthetic outage" },
+            }),
+          })
+        : route.continue(),
+    );
+    await tab.goto(`${origin}/?workspace=${ws}`);
+    const workError = tab.getByTestId("home-work-error");
+    await expect(workError).toContainText(
+      "Work from your conversations couldn’t be read",
+      { timeout: 20000 },
+    );
+    // Handed-over work, read separately, still shows.
+    await expect(
+      tab.locator(
+        `a.work-row[data-assignment="${ids.second.assignment_ids[0]}"]`,
+      ),
+    ).toBeAttached({ timeout: 15000 });
+    await expect(
+      tab.locator(`.work-row[data-artifact="${ids.kit.loans_id}"]`),
+    ).toHaveCount(0);
+    failFeed = false;
+    await workError.getByRole("button", { name: "Try again" }).click();
+    await expect(workError).toHaveCount(0, { timeout: 15000 });
+    const kitRow = tab.locator(
+      `.work-row[data-artifact="${ids.kit.loans_id}"]`,
+    );
+    await expect(kitRow).toBeAttached({ timeout: 15000 });
+
+    // A failed re-read keeps what was read, labelled as such.
+    failFeed = true;
+    await tab.evaluate(() => window.dispatchEvent(new Event("focus")));
+    const stale = tab.getByTestId("home-work-stale");
+    await expect(stale).toContainText("shown as last read", {
+      timeout: 15000,
+    });
+    await expect(kitRow).toBeAttached();
+    await tab.setViewportSize({ width: 390, height: 844 });
+    await noOverflow(tab);
+    await tab.screenshot({
+      path: path.join(out, "10c-home-work-stale-phone.png"),
+    });
+    failFeed = false;
+    await tab.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await expect(stale).toHaveCount(0, { timeout: 20000 });
+    assert.deepEqual(tabErrors, []);
+    await ctx.close();
+    pass(
+      "Home says when the work conversations made can't be read, apart from handed-over work: an error with Try again at first, and a last-read label when a re-read fails",
+    );
+  }
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);
