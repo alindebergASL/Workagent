@@ -184,11 +184,17 @@ export function FlexibleEditor({
   refresh,
   onDirtyChange,
   focusRevision,
+  onAskForChange,
 }: {
   ws: string;
   cid: string;
   /** An earlier version a conversation link opened, if any. */
   focusRevision?: string | null;
+  /**
+   * Brings the conversation beside this work forward, ready to ask for a
+   * different change. Nothing is sent and the proposal stays as it is.
+   */
+  onAskForChange?: () => void;
   artifact: S["Artifact"];
   proposals: S["Proposal"][];
   history: S["Revision"][];
@@ -560,6 +566,16 @@ export function FlexibleEditor({
               >
                 {outdated ? "Dismiss proposal" : "Keep my current version"}
               </button>
+              {onAskForChange ? (
+                <button
+                  type="button"
+                  className="btn btn-quiet"
+                  onClick={onAskForChange}
+                  data-testid="ask-for-change"
+                >
+                  Ask for a different change
+                </button>
+              ) : null}
             </div>
             {!outdated && dirty ? (
               <p className="small">Save or discard your changes first.</p>

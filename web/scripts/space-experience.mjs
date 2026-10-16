@@ -1046,6 +1046,30 @@ try {
     await page.screenshot({
       path: path.join(out, "08c-proposal-compact-phone.png"),
     });
+    // Asking for a different change is one step from the decision: the
+    // conversation comes forward with the cursor in its reply box, about
+    // this work; nothing is sent and the proposal stays as it is.
+    const posts = [];
+    const onPost = (r) => {
+      if (r.method() === "POST") posts.push(new URL(r.url()).pathname);
+    };
+    page.on("request", onPost);
+    await proposal.getByTestId("ask-for-change").click();
+    await expect(page.locator(".working-surface")).toHaveAttribute(
+      "data-pane",
+      "agent",
+    );
+    await expect(page.locator("#peek-reply")).toBeFocused();
+    await page.waitForTimeout(300);
+    page.off("request", onPost);
+    assert.deepEqual(posts, [], "asking for a change sends nothing by itself");
+    await page
+      .locator(".working-switch")
+      .getByRole("button", { name: "Work" })
+      .click();
+    await expect(
+      proposal.getByRole("button", { name: "Apply proposed version" }),
+    ).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
     await compare.locator("summary").click();
     const diff = proposal.locator(".diff");
