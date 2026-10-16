@@ -1982,3 +1982,48 @@ contract change.
   - lint and typecheck clean;
   - full gate at `f4f3da5` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Home: "Since you left" (concept 02)
+
+**Problem.** A returning person had to scan every group on Home to find what moved while they were
+away.
+
+**Change** (`app/page.tsx`, `lib/since-you-left.ts`, `lib/client/since-marker.ts`,
+`agent-first.css`). Home opens with a short list, newest first, of at most four entries:
+- "A proposed version of “…” is waiting for you" (a current proposal only);
+- "Workagent saved a new version of “…”".
+
+Each entry opens the exact work. Left out:
+- the person's own saves;
+- proposals made for an earlier version;
+- the decision already shown in full in the card below.
+
+Nothing says a proposal is accepted or work is finished.
+
+**Marker (until backend dependency A exists).**
+- Kept on this device as the newest service timestamp Home showed (`workagent:seen:<ws>`), so it
+  doesn't depend on the device clock.
+- A first visit says nothing.
+- Each tab fixes its starting point (`workagent:since:<ws>`), so a reload keeps the list.
+- "Got it" clears it.
+- When the service records what a person has seen, this hook is the one place to switch over.
+
+**Regression** (`space-experience.mjs`, new case). The marker is set back to before the fixture's
+work was made, standing in for an earlier visit. The case checks:
+- a first visit is empty;
+- an earlier marker lists the fixture's work, each entry's wording, link and row status;
+- the decision shown in full isn't repeated;
+- a reload keeps the list, and an entry opens its work;
+- 390px fits;
+- "Got it" clears it in this tab and a new one.
+
+Unit tests cover selection and the marker comparison.
+
+**Results.**
+- RED without the change: no marker.
+- GREEN:
+  - routing 7 + Space 27;
+  - 298 unit tests;
+  - 38 DOM regressions;
+  - full gate at `f4c4992` with 0 failures (same as baseline);
+  - mock e2e 15/15.
