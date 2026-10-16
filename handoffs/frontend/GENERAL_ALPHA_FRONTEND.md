@@ -2156,3 +2156,105 @@ Unit tests cover rewrites, additions, removals, check/uncheck and note counting.
 - A pinned Apply/Keep bar on phones (less needed now the card fits one screen).
 - A bottom tab bar on phones.
 - Written change descriptions ("Added a clear return-time step") need Hermes (B).
+
+## Home reads work from every space the person can open (Hermes 6208780916)
+
+**Problem.** Home read conversation-owned work only from the default personal workspace. With
+several workspaces, these all missed work elsewhere:
+- "Since you left";
+- "Pick up where you left off";
+- decisions;
+- "Made in your conversations".
+
+On a retained multi-workspace database, Home showed an older fixture workspace.
+
+**Change** (`conversation-work.ts` `loadHomeWork`/`useHomeWork`, `app/page.tsx`).
+- Home reads the work of each workspace the server lists for this person and joins it, decisions
+  first.
+- Each item keeps its own workspace, so its links open it there.
+- No scope is bypassed, and there is no active-workspace selector.
+- A workspace the caller can't see is left out. One that can't be read is counted, and Home says so
+  rather than showing it as empty. The read fails only when no workspace can be read.
+- "Since you left" uses Home's own device marker, `workagent:seen:home`.
+- New requests still start in the personal workspace.
+
+**Not yet across spaces.** Home's responsibility rows still come from the personal workspace's
+overview.
+
+**Regression.** Space-experience Home case: Home opened for the local workspace shows the
+studio-kit lending table, linking into studio-kit. Unit tests cover joining, hidden versus
+unreadable workspaces, and total failure. The review-boundary stub gains the new export.
+
+**Results.**
+- RED without the change: absent.
+- GREEN:
+  - routing 7 + Space 27;
+  - review-boundary 15/15;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `78c2087` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+## Home's responsibilities come from every space too
+
+**Problem.** After `78c2087`, Home's conversation work spanned every space, but its handed-over
+work still came from the personal workspace alone. That covered "I'm handling", "Ready for you",
+held responsibilities and the attention card.
+
+**Change** (`overview.ts` `useHomeOverview`, `responsibility.ts` `useHoldsIn`, `app/page.tsx`).
+- Home reads each workspace's assignments and joins them, newest change first.
+- A workspace that can't be read is counted, using the same "couldn't be read just now" line. The
+  read fails only when no workspace can be read.
+- Each responsibility is read in the workspace that holds it. `useHolds(ws, ids)` is now a thin
+  call into `useHoldsIn`, so its stale/unknown rules are unchanged for every other list.
+- New requests still start in the personal workspace.
+
+**Regression** (space-experience Home case). Home opened for the local workspace shows the
+hand-over held in personal-work, linking into it, with its current record read. The
+review-boundary fixture's assignment gains the `workspace_id` that real summaries carry.
+
+**Results.**
+- RED without the change: absent.
+- GREEN:
+  - routing 7 + Space 27;
+  - responsibility journey 9/9;
+  - review-boundary 15/15;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `e7d1f12` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+## Proposal review: ask for a different change (concept 04)
+
+**Problem.** Concept 04 puts "Ask for a change…" right beside Apply/Keep. Asking for something else
+meant finding the Conversation switch and its reply box.
+
+**Change** (`FlexibleWork.tsx`, the work page). The proposal card has "Ask for a different change"
+after Apply and Keep. It:
+- brings the conversation beside the work forward (on a phone, it switches panes);
+- puts the cursor in the reply box, which is already about this work's saved version.
+
+Nothing is sent. The saved version and the proposal stay as they are until the person decides.
+
+**Regression** (findings proposal at 390×844):
+- the button opens the conversation pane with the reply box focused;
+- no POST is made;
+- switching back shows the proposal's Apply control.
+
+**Results.**
+- RED without the change: no button.
+- GREEN:
+  - routing 7 + Space 27;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `a2394fa` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Deferred: a bottom tab bar on phones.** On phones, several controls already stick to the bottom
+of the screen:
+- the unsaved-changes bar;
+- table row controls;
+- the reply box beside the work.
+
+A fixed tab bar would overlap them and the keyboard, which concept 04 itself warns against. The top
+tabs fit at 320 and 390. Revisit with a layout that reserves space for both.

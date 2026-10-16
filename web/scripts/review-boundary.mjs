@@ -24,7 +24,7 @@ window.mode='absent';window.calls=[];window.scope={ws:'w',ids:['a']};
 window.space={ws:'w',id:'c',artifactIds:['a']};window.searchParams='work=a';
 window.spaceDetail=()=>({conversation:{id:window.space.id,title:'Synthetic project',state:'open',work_version:1,work_area:{title:'Synthetic project',goal:'Synthetic goal',kind:'project',origin:'human'}},messages:[],turns:[],artifact_ids:window.space.artifactIds,assignment_ids:[]});
 window.revision='r1';
-window.item={id:'a',title:'Synthetic venue responsibility',conversation_id:'c',state:'paused',lifecycle:'paused',needs_review_artifact_ids:[],responsibility:null};
+window.item={id:'a',workspace_id:'w',title:'Synthetic venue responsibility',conversation_id:'c',state:'paused',lifecycle:'paused',needs_review_artifact_ids:[],responsibility:null};
 window.detail=()=>({assignment:{...window.item,goal:'Synthetic venue responsibility',work_version:3},lifecycle:{state:window.mode==='closed'?'taken_over':'active',execution_status:window.mode==='running'?'running':'not_admitted',outcome_status:'unverified',dependencies:[],review_required:false,check_in_due:false,current_outcome:'Synthetic',next_action:{kind:'continue_work',description:'Synthetic'},wait:null}});
 function Holds(){const r=useHolds(window.scope.ws,window.scope.ids);return <pre id="holds">{JSON.stringify(r.holds)}</pre>}
 const root=createRoot(document.getElementById('root'));
@@ -54,9 +54,9 @@ const mocks = {
   "@/lib/client/workspace":
     "import React from 'react';import {scopedHref} from '@/lib/scope';export const useWorkspace=()=>({workspace:{id:window.scope.ws},workspaces:[{id:window.scope.ws}],loading:false,error:null,zone:'UTC'});export const useCurrentWorkspace=()=>({workspace:{id:window.scope.ws},zone:'UTC'});export const useScopedHref=()=>(h,ws)=>scopedHref(h,ws??window.scope.ws);export const InWorkspace=({children})=>React.createElement(React.Fragment,null,children);",
   "@/lib/client/overview":
-    "export const useWorkOverview=()=>({data:[window.item],loading:false});",
+    "export const useWorkOverview=()=>({data:[window.item],loading:false});export const useHomeOverview=()=>({data:{items:[window.item],unreadable:0},loading:false});",
   "@/lib/client/conversation-work":
-    "export const useConversationWork=()=>({data:[]});",
+    "export const useConversationWork=()=>({data:[]});export const useHomeWork=()=>({data:{items:[],unreadable:0}});",
   "@/components/Composer": "export const Composer=()=>null;",
   "@/components/ConversationWorkRow":
     "export const ConversationWorkRow=()=>null;",

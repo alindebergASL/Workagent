@@ -60,7 +60,6 @@ type SavedBlock = { block_id: string; kind: string; text: string };
  * What applying would do to the notes the person added themselves: how many
  * there are, and how many the proposal keeps word for word.
  */
-
 export function yourNotes(
   saved: SavedBlock[],
   proposed: SavedBlock[],

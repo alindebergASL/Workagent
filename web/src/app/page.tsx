@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { scopedHref } from "@/lib/scope";
 import { useWorkspace } from "@/lib/client/workspace";
-import { useWorkOverview } from "@/lib/client/overview";
+import { useHomeOverview } from "@/lib/client/overview";
 import {
-  useConversationWork,
+  useHomeWork,
   type ConversationWork,
 } from "@/lib/client/conversation-work";
 import type { AssignmentSummary } from "@/lib/contract/types";
@@ -19,7 +19,7 @@ import {
 import { Composer } from "@/components/Composer";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkRow } from "@/components/WorkRow";
-import { useHolds } from "@/lib/client/responsibility";
+import { useHoldsIn } from "@/lib/client/responsibility";
 import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 import { useSinceMarker } from "@/lib/client/since-marker";
@@ -131,29 +131,38 @@ function SinceYouLeft({
 }
 
 export default function AgentHome() {
-  const { workspace, error: wsError, zone } = useWorkspace();
+  const { workspace, workspaces, error: wsError, zone } = useWorkspace();
   const wsId = workspace?.id ?? null;
-  const overview = useWorkOverview(wsId);
-  const items = overview.data ?? [];
+  // Handed-over work in every workspace this person can open.
+  const workspaceIds = workspaces.map((w) => w.id);
+  const overview = useHomeOverview(workspaceIds);
+  const items = overview.data?.items ?? [];
   const attention = workAttention(items);
-  // Work conversations own, from their records; no assignment is invented.
-  const conversationWork = useConversationWork(wsId);
-  const made = conversationWork.data ?? [];
+  // Work conversations own, from their records (no assignment is
+  // invented), in every workspace this person can open: Home is one agent's
+  // view. Each item opens in its own workspace.
+  const conversationWork = useHomeWork(workspaceIds);
+  const made = conversationWork.data?.items ?? [];
   const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
   const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
   const madeSaved = made.filter((w) => !w.decision);
   // What changed since this device last showed Home; the decision already
   // shown in full below isn't repeated.
-  const marker = useSinceMarker(wsId, conversationWork.data);
+  const marker = useSinceMarker(
+    workspaces.length ? "home" : null,
+    conversationWork.data?.items ?? null,
+  );
   const changed =
     marker.since === undefined || !conversationWork.data
       ? []
       : sinceYouLeft(made, marker.since).filter((e) => e.work !== leadDecision);
   // Where conversation hand-overs stand now: their current responsibility
   // records decide their group, never the assignment's coarse "paused".
-  const { holds } = useHolds(
-    wsId,
-    items.filter((i) => i.conversation_id).map((i) => i.id),
+  // Each is read in its own workspace.
+  const { holds } = useHoldsIn(
+    items
+      .filter((i) => i.conversation_id)
+      .map((i) => ({ ws: i.workspace_id, id: i.id })),
   );
   const groupOf = (i: AssignmentSummary) => holdGroup(holds[i.id]);
   const others = items.filter((i) => i !== attention?.item);
@@ -199,6 +208,11 @@ export default function AgentHome() {
     savedSince: changed.filter((e) => e.what === "saved").length,
   });
   const recent = recentWork(made);
+  // Spaces whose work couldn't be read just now, by either read.
+  const unreadable = Math.max(
+    overview.data?.unreadable ?? 0,
+    conversationWork.data?.unreadable ?? 0,
+  );
   const groups = [
     {
       key: "handling",
@@ -333,11 +347,18 @@ export default function AgentHome() {
         />
       ) : null}
 
-      {groups.length || overview.reconnecting ? (
+      {groups.length || overview.reconnecting || unreadable ? (
         <div className="since">
           {overview.reconnecting ? (
             <p className="hint" role="status">
               Reconnecting. Showing the work last observed.
+            </p>
+          ) : null}
+          {unreadable ? (
+            <p className="hint" role="status" data-testid="home-unreadable">
+              {unreadable === 1
+                ? "Work in one of your spaces couldn’t be read just now, so it isn’t shown here."
+                : `Work in ${unreadable} of your spaces couldn’t be read just now, so it isn’t shown here.`}
             </p>
           ) : null}
           {groups.map((g) => (

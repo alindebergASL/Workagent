@@ -135,6 +135,23 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
   const focusRevision = useSearchParams().get("revision");
   const ws = scope.wsId ?? undefined;
   const [unsaved, setUnsaved] = useState(false);
+  // "Ask for a different change": bring the conversation forward (on a phone
+  // it switches panes) and put the cursor in its reply box, about this work.
+  // The box takes focus only once its pane shows, so try for a few frames.
+  const [askForChange, setAskForChange] = useState(0);
+  useEffect(() => {
+    if (!askForChange) return;
+    let frames = 0;
+    let handle = 0;
+    const tryFocus = () => {
+      const box = document.getElementById("peek-reply");
+      box?.focus();
+      if (document.activeElement !== box && ++frames < 10)
+        handle = requestAnimationFrame(tryFocus);
+    };
+    handle = requestAnimationFrame(tryFocus);
+    return () => cancelAnimationFrame(handle);
+  }, [askForChange]);
   const resource = useResource<Data>(
     ws ? `product:${ws}:${id}:${artifactId}` : null,
     async (signal) => {
@@ -228,7 +245,7 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
         )
       ) : (
         <WorkSurface
-          focusAgent={0}
+          focusAgent={askForChange}
           document={
             isProduct(resource.data.artifact.current_revision.body) ? (
               <ProductEditor
@@ -270,6 +287,7 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
                 stale={resource.reconnecting}
                 refresh={resource.refresh}
                 onDirtyChange={setUnsaved}
+                onAskForChange={() => setAskForChange((n) => n + 1)}
               />
             )
           }

@@ -215,6 +215,12 @@ async function readHold(
   }
 }
 
+/** One piece of handed-over work, in the workspace that holds it. */
+export interface HoldRef {
+  ws: string;
+  id: string;
+}
+
 /**
  * One bounded, read-only, workspace-scoped read of where several pieces of
  * handed-over work stand, shared by every list that shows them. A failed
@@ -223,11 +229,23 @@ async function readHold(
  * and stops when the list or workspace changes.
  */
 export function useHolds(ws: string | null, ids: string[]) {
-  const list = [...new Set(ids)].sort().slice(0, HOLD_READ_LIMIT);
+  return useHoldsIn(ws ? ids.map((id) => ({ ws, id })) : []);
+}
+
+/**
+ * The same read for work held in several workspaces (Home): each item is
+ * read in its own workspace, never another's.
+ */
+export function useHoldsIn(refs: HoldRef[]) {
+  const seen = new Map(refs.map((r) => [`${r.ws}/${r.id}`, r]));
+  const list = [...seen.keys()]
+    .sort()
+    .slice(0, HOLD_READ_LIMIT)
+    .map((k) => seen.get(k)!);
   const previous = useRef<Record<string, HoldEntry>>({});
   const key =
-    ws && API_MODE === "real" && list.length
-      ? `holds:${ws}:${list.join(",")}`
+    API_MODE === "real" && list.length
+      ? `holds:${list.map((r) => `${r.ws}/${r.id}`).join(",")}`
       : null;
   // What was read belongs to one workspace and list only.
   const lastKey = useRef(key);
@@ -239,8 +257,8 @@ export function useHolds(ws: string | null, ids: string[]) {
     key,
     async (signal) => {
       const entries = await Promise.all(
-        list.map(async (id) => {
-          const next = await readHold(ws!, id, signal);
+        list.map(async ({ ws, id }) => {
+          const next = await readHold(ws, id, signal);
           const before = previous.current[id];
           if (next.kind !== "unknown" || !before) return [id, next] as const;
           if (before.kind === "ready")

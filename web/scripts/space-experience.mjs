@@ -1046,6 +1046,30 @@ try {
     await page.screenshot({
       path: path.join(out, "08c-proposal-compact-phone.png"),
     });
+    // Asking for a different change is one step from the decision: the
+    // conversation comes forward with the cursor in its reply box, about
+    // this work; nothing is sent and the proposal stays as it is.
+    const posts = [];
+    const onPost = (r) => {
+      if (r.method() === "POST") posts.push(new URL(r.url()).pathname);
+    };
+    page.on("request", onPost);
+    await proposal.getByTestId("ask-for-change").click();
+    await expect(page.locator(".working-surface")).toHaveAttribute(
+      "data-pane",
+      "agent",
+    );
+    await expect(page.locator("#peek-reply")).toBeFocused();
+    await page.waitForTimeout(300);
+    page.off("request", onPost);
+    assert.deepEqual(posts, [], "asking for a change sends nothing by itself");
+    await page
+      .locator(".working-switch")
+      .getByRole("button", { name: "Work" })
+      .click();
+    await expect(
+      proposal.getByRole("button", { name: "Apply proposed version" }),
+    ).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
     await compare.locator("summary").click();
     const diff = proposal.locator(".diff");
@@ -2039,17 +2063,41 @@ try {
     const rows = tab.locator(".work-row[data-artifact]");
     await tab.goto(homeURL);
     await expect(rows.first()).toBeAttached({ timeout: 15000 });
+    // Home is one agent's view: work from another space is here too, and
+    // opens in its own space.
+    const kitRow = tab.locator(
+      `.work-row[data-artifact="${ids.kit.loans_id}"]`,
+    );
+    await expect(kitRow).toBeAttached({ timeout: 15000 });
+    await expect(kitRow).toHaveAttribute(
+      "href",
+      new RegExp(`workspace=${ids.kit.workspace}`),
+    );
+    // So is handed-over work: a responsibility held in another space is read
+    // there and opens there.
+    const heldRow = tab.locator(
+      `a.work-row[data-assignment="${ids.second.assignment_ids[0]}"]`,
+    );
+    await expect(heldRow).toBeAttached({ timeout: 15000 });
+    await expect(heldRow).toHaveAttribute(
+      "href",
+      new RegExp(`workspace=${ids.second.workspace}`),
+    );
+    await expect(heldRow).toHaveAttribute("data-hold", /ready|absent/, {
+      timeout: 15000,
+    });
+    await expect(tab.getByTestId("home-unreadable")).toHaveCount(0);
     await expect
       .poll(() =>
-        tab.evaluate((k) => localStorage.getItem(k), `workagent:seen:${ws}`),
+        tab.evaluate((k) => localStorage.getItem(k), "workagent:seen:home"),
       )
       .not.toBeNull();
     await expect(since).toHaveCount(0);
 
-    await tab.evaluate((ws) => {
-      localStorage.setItem(`workagent:seen:${ws}`, "2000-01-01T00:00:00Z");
+    await tab.evaluate(() => {
+      localStorage.setItem("workagent:seen:home", "2000-01-01T00:00:00Z");
       sessionStorage.clear();
-    }, ws);
+    });
     await tab.reload();
     await expect(since).toBeVisible({ timeout: 15000 });
     const entries = await since.locator("li").evaluateAll((lis) =>
