@@ -22,6 +22,10 @@ import { WorkRow } from "@/components/WorkRow";
 import { useHolds } from "@/lib/client/responsibility";
 import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
+import { useSinceMarker } from "@/lib/client/since-marker";
+import { sinceYouLeft, type SinceEntry } from "@/lib/since-you-left";
+import { readableTitle } from "@/lib/titles";
+import { formatTime } from "@/lib/time";
 
 function lede(
   items: AssignmentSummary[],
@@ -67,6 +71,60 @@ const HANDLING = new Set(["working", "waiting", "unknown", "paused"]);
  */
 const SETTLED = new Set(["approved", "stopped"]);
 
+const SHOWN = 4;
+
+/** The handful of things that changed, newest first, each one step away. */
+function SinceYouLeft({
+  entries,
+  zone,
+  onSeen,
+}: {
+  entries: SinceEntry[];
+  zone: string;
+  onSeen: () => void;
+}) {
+  const more = entries.length - SHOWN;
+  return (
+    <section
+      className="since-left"
+      aria-labelledby="since-left-title"
+      data-testid="since-you-left"
+    >
+      <div className="row row-between">
+        <h2 id="since-left-title" className="eyebrow-caps">
+          Since you left
+        </h2>
+        <button type="button" className="btn btn-sm btn-quiet" onClick={onSeen}>
+          Got it
+        </button>
+      </div>
+      <ul>
+        {entries.slice(0, SHOWN).map(({ work: w, what, at }) => (
+          <li key={`${w.artifact_id}:${what}`} data-artifact={w.artifact_id}>
+            <Link
+              href={scopedHref(
+                `/conversations/${w.conversation_id}/artifacts/${w.artifact_id}`,
+                w.workspace_id,
+              )}
+            >
+              {what === "proposed"
+                ? `A proposed version of “${readableTitle(w.title)}” is waiting for you`
+                : `Workagent saved a new version of “${readableTitle(w.title)}”`}
+            </Link>
+            <span className="small muted"> · {formatTime(at, zone)}</span>
+          </li>
+        ))}
+      </ul>
+      {more > 0 ? (
+        <p className="small muted">
+          {more === 1 ? "1 more change" : `${more} more changes`} in your work
+          below.
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 export default function AgentHome() {
   const { workspace, error: wsError, zone } = useWorkspace();
   const wsId = workspace?.id ?? null;
@@ -79,6 +137,13 @@ export default function AgentHome() {
   const leadDecision = !attention && made[0]?.decision?.fresh ? made[0] : null;
   const madeDecisions = made.filter((w) => w.decision && w !== leadDecision);
   const madeSaved = made.filter((w) => !w.decision);
+  // What changed since this device last showed Home; the decision already
+  // shown in full below isn't repeated.
+  const marker = useSinceMarker(wsId, conversationWork.data);
+  const changed =
+    marker.since === undefined || !conversationWork.data
+      ? []
+      : sinceYouLeft(made, marker.since).filter((e) => e.work !== leadDecision);
   // Where conversation hand-overs stand now: their current responsibility
   // records decide their group, never the assignment's coarse "paused".
   const { holds } = useHolds(
@@ -184,6 +249,10 @@ export default function AgentHome() {
             : lede(items, made, holding.length)}
         </p>
       </section>
+
+      {changed.length ? (
+        <SinceYouLeft entries={changed} zone={zone} onSeen={marker.seenAll} />
+      ) : null}
 
       {attention ? (
         <section
