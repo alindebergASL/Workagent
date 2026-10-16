@@ -2049,6 +2049,19 @@ try {
       "href",
       new RegExp(`workspace=${ids.kit.workspace}`),
     );
+    // So is handed-over work: a responsibility held in another space is read
+    // there and opens there.
+    const heldRow = tab.locator(
+      `a.work-row[data-assignment="${ids.second.assignment_ids[0]}"]`,
+    );
+    await expect(heldRow).toBeAttached({ timeout: 15000 });
+    await expect(heldRow).toHaveAttribute(
+      "href",
+      new RegExp(`workspace=${ids.second.workspace}`),
+    );
+    await expect(heldRow).toHaveAttribute("data-hold", /ready|absent/, {
+      timeout: 15000,
+    });
     await expect(tab.getByTestId("home-unreadable")).toHaveCount(0);
     await expect
       .poll(() =>
