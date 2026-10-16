@@ -1943,3 +1943,40 @@ This is the first implementation step recommended in the concepts handoff (#9, 6
   - 38 DOM regressions;
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## A proposal leads with the decision (Hermes 6206756267)
+
+**Problem.** A pending proposal on a work page rendered its full old/new comparison before the
+decision. On a phone, Apply and Keep sat several screens down, and a proposal that renamed the work
+(the 12-minute version) wasn't named until the person read the diff. The saved heading correctly
+stayed on the saved title.
+
+**Change** (`FlexibleWork.tsx`, `products.css`). The card now reads, in order:
+- "A proposed version is ready", or the outdated status;
+- **Proposed: <new name>** when the proposal renames the work;
+- the proposal's reason;
+- a one-line change summary ("Renames it …; adds or rewrites 2 parts; takes out or replaces 1
+  part"), plus the note about the person's own edits when it applies;
+- the governed **Apply proposed version / Keep my current version** controls;
+- **Compare in full**, folded: the paragraph diff, and table cell changes when there are more than
+  three (three or fewer stay inline as Saved → Proposed);
+- "See the proposed version", folded, as before.
+
+Proposal id and base-revision fencing, the outdated rule and explicit apply are unchanged. No
+contract change.
+
+**Fixture.** The findings proposal now renames the document to "Findings so far: the 10-day option".
+
+**Regression** (`space-experience.mjs`, findings case, 390×844):
+- the full comparison follows Apply in the card and starts folded;
+- Apply sits within 700px of the card's top;
+- the proposed name is shown and the saved h1 keeps the saved title;
+- opening "Compare in full" shows the same diff assertions as before.
+
+**Results.**
+- RED on the previous card: the comparison came before Apply.
+- GREEN:
+  - routing 7 + Space 26;
+  - 293 unit tests;
+  - 38 DOM regressions;
+  - lint and typecheck clean.
