@@ -2258,3 +2258,36 @@ of the screen:
 
 A fixed tab bar would overlap them and the keyboard, which concept 04 itself warns against. The top
 tabs fit at 320 and 390. Revisit with a layout that reserves space for both.
+
+## Home: the conversation-work feed says its own state (Codex 6219198814)
+
+**Problem.** Home handled only the handed-over work's error and reconnecting state. The work
+conversations made is a separate read:
+- when it failed at first, Home silently left that work out, including any proposal waiting on it,
+  while handed-over work looked complete;
+- when a re-read failed, Home kept showing proposals as if they were current.
+
+**Change** (`app/page.tsx`). That feed now says its own state, whatever the other read does:
+- **First read failed:** "Work from your conversations couldn't be read. It isn't shown here,
+  including any proposal waiting for you. Nothing was changed." with **Try again**.
+- **A re-read failed:** "Couldn't re-check work from your conversations. It's shown as last read,
+  so a proposal may have changed since."
+
+The handed-over work's existing notices are unchanged.
+
+**Regression** (space-experience). The conversation list is failed in the browser while
+assignments are still served:
+- the error shows while handed-over work is still listed;
+- Try again reads the work;
+- a failed re-read keeps the work, labelled as last read, at 390px too;
+- recovery clears the label.
+
+**Results.**
+- RED without the change: no error shown.
+- GREEN:
+  - routing 7 + Space 28;
+  - review-boundary 15/15;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `4dbeffe` with 0 failures (same as baseline);
+  - mock e2e 15/15.
