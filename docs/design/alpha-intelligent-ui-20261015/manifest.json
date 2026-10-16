@@ -1,0 +1,12 @@
+{
+  "kind": "generated-design-concepts-not-product-evidence",
+  "requested_date": "2026-10-15 America/Los_Angeles",
+  "base_commit": "e39f2af14a330b12c9379c2eefaf74cf4289327b",
+  "files": {
+    "01-lending-workspace.png": "1753f00fcbbccbebf0eb03e2c00732814aae1278a7c30f1ff7949c9aae3a049b",
+    "02-agent-home.png": "4efd813b63544e75c793de28ef9c5578f64088616d6abbacfb4778efe5a3145d",
+    "03-adaptive-planning.png": "1df4559e6c56e02ccbdc95d5b6b44d4d52efb42fdef8ace44e02049c087ae161",
+    "04-mobile-review.png": "8ccdd8604a5b8a0e6175cf44a87fd8e92063ee148bdd8b027d3f81a9bd0ef948",
+    "05-gtd-workspace.png": "10f6689839a37adbafd1cbd57252da0e0010f979356e410795d08afce2b704b0"
+  }
+}
