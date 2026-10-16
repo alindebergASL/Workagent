@@ -799,3 +799,9 @@ textarea.fit-text {
   background: var(--soft);
   border-color: var(--attn);
 }
+
+/* The proposed version's name, when it differs from the saved one. */
+.proposal-name {
+  margin: 0;
+  font-size: 1.0625rem;
+}

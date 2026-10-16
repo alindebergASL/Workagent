@@ -988,9 +988,56 @@ try {
     const proposal = page.getByTestId("product-proposal");
     await expect(proposal).toContainText("A proposed version is ready");
     await expect(proposal.getByTestId("proposal-changes")).toContainText(
-      "Adds or rewrites 2 parts; takes out or replaces 1 part",
+      "Renames it “Findings so far: the 10-day option”; adds or rewrites 2 parts; takes out or replaces 1 part",
     );
     await expect(proposal.getByTestId("proposal-replaces-yours")).toBeVisible();
+    // The decision comes first: what's proposed, by name, a one-line summary
+    // and Apply/Keep, in one phone screen; the full comparison is a step away.
+    // The saved version keeps its own title until the proposal is applied.
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Findings so far",
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    // However long the change, the full comparison never stands between the
+    // summary and the decision, and is folded until asked for.
+    const order = await proposal.evaluate((card) => {
+      const apply = [...card.querySelectorAll("button")].find((b) =>
+        b.textContent.includes("Apply proposed version"),
+      );
+      const diff = card.querySelector(".diff");
+      return {
+        applyFirst: Boolean(
+          diff &&
+          apply.compareDocumentPosition(diff) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+        diffShown: Boolean(
+          diff &&
+          !diff.closest("details:not([open])") &&
+          diff.checkVisibility(),
+        ),
+        applyAt:
+          apply.getBoundingClientRect().bottom -
+          card.getBoundingClientRect().top,
+      };
+    });
+    assert.ok(order.applyFirst, "the full comparison comes before Apply");
+    assert.ok(!order.diffShown, "the full comparison is open by default");
+    assert.ok(
+      order.applyAt <= 700,
+      `Apply is ${Math.round(order.applyAt)}px into the proposal on a phone`,
+    );
+    await expect(proposal.getByTestId("proposal-name")).toHaveText(
+      "Proposed: Findings so far: the 10-day option",
+    );
+    const compare = proposal.getByTestId("proposal-compare");
+    await expect(compare).not.toHaveAttribute("open", "");
+    await proposal.scrollIntoViewIfNeeded();
+    await page.screenshot({
+      path: path.join(out, "08c-proposal-compact-phone.png"),
+    });
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await compare.locator("summary").click();
     const diff = proposal.locator(".diff");
     await expect(diff.locator('[data-added="true"]')).toContainText([
       "Northprint says 10 days is possible for EUR 40 more.",
