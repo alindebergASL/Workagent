@@ -778,3 +778,24 @@ textarea.fit-text {
   margin-right: auto;
   color: var(--ink-2);
 }
+
+/* One proposed value beside the saved one. */
+.saved-proposed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.saved-proposed p {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+}
+.saved-proposed .sp-saved {
+  background: var(--surface-2);
+}
+.saved-proposed .sp-proposed {
+  background: var(--soft);
+  border-color: var(--attn);
+}

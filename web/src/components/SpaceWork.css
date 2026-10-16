@@ -185,3 +185,26 @@
   padding: 10px 12px 12px 15px;
   background: var(--surface, transparent);
 }
+
+/* The chosen work's tabs: what it shows, what it reads, what's proposed. */
+.work-facets .tabs {
+  margin-bottom: var(--sp-2);
+}
+.space-change {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--attn);
+  border-radius: var(--r-md);
+  padding: var(--sp-3);
+  background: var(--surface);
+}
+.space-source-head {
+  justify-content: space-between;
+  align-items: baseline;
+}
+.space-source-head h3 {
+  margin: 0;
+}
+/* A tab's panel that isn't chosen is hidden, whatever layout it has. */
+.work-facets > [role="tabpanel"][hidden] {
+  display: none;
+}

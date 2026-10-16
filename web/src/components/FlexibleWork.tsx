@@ -1281,7 +1281,7 @@ function ViewInput({
  * Each value a proposed table would change, saved value to proposed one; a
  * value the person set themselves is marked, and said first.
  */
-function TableProposalCells({
+export function TableProposalCells({
   saved,
   proposed,
   authors,
@@ -1295,6 +1295,34 @@ function TableProposalCells({
   const yours = (c: CellChange) => authors[cellAt(c.rowId, c.key)] === "human";
   const theirs = changes.filter(yours);
   const shown = [...theirs, ...changes.filter((c) => !yours(c))].slice(0, 12);
+  if (changes.length === 1) {
+    // One value: the saved and proposed values side by side.
+    const c = changes[0]!;
+    return (
+      <div className="stack-sm" data-testid="saved-proposed">
+        <p className="small">
+          {c.row} · {c.field}
+          {yours(c) ? <span className="muted"> (your value)</span> : null}
+        </p>
+        <div className="saved-proposed">
+          <p className="sp-saved">
+            <span className="small muted">Saved</span>{" "}
+            <strong>{c.before}</strong>
+          </p>
+          <span aria-hidden="true">→</span>
+          <p className="sp-proposed">
+            <span className="small muted">Proposed</span>{" "}
+            <strong>{c.after}</strong>
+          </p>
+        </div>
+        {yours(c) ? (
+          <p className="small" data-testid="proposal-replaces-yours">
+            It changes a value you set yourself. Applying it replaces it.
+          </p>
+        ) : null}
+      </div>
+    );
+  }
   return (
     <div className="stack-sm">
       {theirs.length ? (

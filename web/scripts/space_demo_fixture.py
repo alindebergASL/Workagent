@@ -366,8 +366,18 @@ LOANS = {'kind': 'structured_table', 'version': 'structured-table/v1', 'title': 
 runs['loans'] = ask(kit.id, 'Set up a lending desk table for the open day kit.', [publish(LOANS)],
                     'I set up the lending desk.', name='loans')
 assert runs['loans'][1] in ('ready', 'partial'), runs['loans']
-kit_ids = {'workspace': third, 'conversation_id': kit.id,
-           'loans_id': s.get_conversation(p, ws, kit.id).artifact_ids[0]}
+loans_id = s.get_conversation(p, ws, kit.id).artifact_ids[0]
+# A proposed change to one value: the saved table stays until it's applied.
+LOANS_SHORTER = json.loads(json.dumps(LOANS))
+next(c for r in LOANS_SHORTER['rows'] if r['row_id'] == 'lantern'
+     for c in r['cells'] if c['field_key'] == 'days')['value'] = 2
+loans_target = exact(loans_id)
+runs['loans_change'] = ask(kit.id, 'Make the lantern a two-day loan.',
+                           [publish(LOANS_SHORTER, loans_target)],
+                           'I proposed a two-day loan for the lantern.', target=loans_target,
+                           name='loans_change')
+assert runs['loans_change'][1] in ('ready', 'partial'), runs['loans_change']
+kit_ids = {'workspace': third, 'conversation_id': kit.id, 'loans_id': loans_id}
 ws, me = first_ws, first_me
 result = {
     'mode': 'real_service_postgresql_worker_with_synthetic_provider_transport',
