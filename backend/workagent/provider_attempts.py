@@ -256,6 +256,46 @@ class ProviderAttempts:
             deny()
         return run,attempt,row['evidence_origin']
 
+    def yield_settled_responses_lease(self,cap,receipt):
+        """End only our current lease after settled I/O; never renew or retry it.
+
+        Trusted worker seam, called after a normal synchronous visit under its
+        private-state lock. Pending/unknown/invalid provider outcomes keep their
+        original lease. The next visit must claim through normal domain authority
+        with the same immutable receipt and a new fence.
+        """
+        from .service import WorkerCapability
+        if not isinstance(cap,WorkerCapability) or not isinstance(receipt,ReceiptCapability):deny()
+        if (cap.workspace_id,cap.run_id,cap.principal_id)!=(receipt.workspace_id,receipt.run_id,receipt.principal_id):deny()
+        with self.db.transaction() as c:
+            p,run,_=self._check_capability(c,cap)
+            bound,attempt,_=self._receipt_binding(c,receipt)
+            if bound.id!=run.id or bound.workspace_id!=run.workspace_id or run.profile not in ('openai-responses-v1','general-responses-v1'):
+                deny()
+            if attempt.state=='failed':return False
+            # _check_capability holds the workspace UPDATE lock, also taken by
+            # configure_grant/revoke_grant. Runtime has no grant-table UPDATE
+            # privilege; even SELECT FOR SHARE would require that privilege.
+            grant=c.execute('SELECT active FROM provider_grants WHERE id=%s AND workspace_id=%s',
+                (attempt.grant_id,run.workspace_id)).fetchone()
+            if not grant or not grant['active']:deny()
+            if run.conversation_id:self._general_context(c,cap)
+            rows=c.execute('''SELECT phase,kind,data->>'state' AS result_state
+                FROM responses_events WHERE attempt_id=%s''',(attempt.id,)).fetchall()
+            phases={}
+            for row in rows:phases.setdefault(row['phase'],{})[row['kind']]=row['result_state']
+            if not any('result' in events for events in phases.values()):return False
+            for events in phases.values():
+                if 'cancel' in events or 'problem' in events:return False
+                if 'count_send' in events and 'count_result' not in events:return False
+                if 'result' in events and events['result'] not in ('function_call','completed'):return False
+                if 'dispatch' in events and 'result' not in events:return False
+            run.lease_expires_at=now()
+            self._store_run(c,run)
+            c.execute('UPDATE runs SET lease_hash=NULL WHERE workspace_id=%s AND id=%s',(run.workspace_id,run.id))
+            self._event(c,p,run.workspace_id,'yield_settled_responses_lease',run.id)
+            return True
+
     def dispatch_provider_attempt(self,cap,attempt_id):
         """Commit BEFORE any send. Only the winning caller may send ONCE.
 

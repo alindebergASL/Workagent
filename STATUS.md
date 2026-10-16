@@ -7,7 +7,24 @@ Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
 ## Candidate, owners and service state
 
-Single continuing integrator, branch hermes/overnight-intelligent-work. Backend
+Sole integration/backend writer: durable Kanban task `t_19606c3d`, branch
+`hermes/overnight-intelligent-work`, recovering from published `c0f3624`.
+Fresh supported gateway readback on October16 confirms all12 retired sessions
+plus handoff generation28 idle, no pending admissions/processes/delegations or
+standing controls. Four legacy STOP files remain; eight preserved file hashes
+matched before editing. Parent is read-only observer, not a competing writer.
+Claude remains sole web owner on `claude/workagent-frontend-kyg51x`.
+
+Settled-only lease handoff is now being published with candid scoped validation.
+The retained direct Z.AI GLM5.3 review found no P1/P2 and all eight source pins
+still match. Fresh disposable PostgreSQL with frozen pending source passes the
+previously failing before_publication probe (1 test,6.78s). Serial focused safety
+regressions are underway; no combined/all-green/full-suite claim yet. An initial
+background invocation lacked PYTHONPATH and failed collection; retained separately.
+Historical broad405-case interruption, publication-probe failure and read-exhaustion
+failure remain retained, not retrospectively relabeled. Safe multivisit test helpers
+must assert settled I/O before simulated expiry; production margins are unchanged.
+No product calls, grant installation or service restart by this task yet.
 candidate92967e3 narrows ledger accounting reads; predecessor64cf6d4 fixed idle
 discovery lock contention and runtime diagnostics; d802155 added inspect_json.
 Merge05064b7 integrates sole web owner f1838a1 (work facets, plain capability
@@ -22,8 +39,10 @@ Grant10 and zero-capacity predecessor11 are retired, never rebound.
 
 Supported launcher: scripts/dev_service.py build/install/start/stop/restart/status.
 Private config: /home/ubuntu/workagent-private-alpha/service.json. All three
-services restarted/active under grant12; post-install HTTP and retained-state
-readbacks passed. Execution truthfully reports blocked/can_advance=false because
+services restarted under grant12 and post-install HTTP/retained-state readbacks
+passed. Worker is now stopped for candidate verification; API/web were left serving
+the previous loaded checkpoint. New runtime needs a compatible zero-capacity
+successor before restart. Prior execution reported blocked/can_advance=false because
 grant12 carries zero inference headroom. Earlier bounded idle observation found
 no reproduced lock crash. The43% sample was API, NOT a baseline for the later4%
 worker sample; the prior comparison was incorrect and has been corrected.
@@ -34,8 +53,12 @@ and evidence remain; scheduled preview retirement is not deletion.
 
 Grant10 workagent-alpha-dev-20261015-10 was installed for two distinct studio turns,
 six generation slots/$0.791520. Both admissions are now terminal; five generations
-were used. Operator encumbrance is $39.919920 of the existing $40 ceiling;
-unactivated $0.080080. No refund or reuse of unused older allocations is inferred.
+were used. On October16 Andrew explicitly authorized “Add $10 — new total cap
+$50”: one cumulative operator ceiling, NOT an additional $50. Fresh read-only
+reconciliation at05:52UTC confirms $39.919920 encumbered and $10.080080 unactivated.
+The former $0.080080 remains the historical $40-cap checkpoint, not billing or
+installed capacity. No refund/reuse of unused older allocations is inferred.
+No per-project cap, route, access or external-effect authority is expanded.
 Latest canonical shared ledger:91 generations/95 counts/509 reads/0 cancels,
 $15.434640 reserved including $3.429920 carry. These are reservations, NOT billing.
 Historical records/events are unchanged; failed and unknown liabilities remain.
@@ -48,8 +71,10 @@ $0.080080; read-only preflight iteration6-zero-preflight.json). It supports
 service/review operation, not another live evaluation. A typed request may be
 retained and canonically budget-blocked; that is not inference capacity.
 Controlled PostgreSQL test proves no count/generation/read occurs.
-No new paid evaluation fits the remaining unactivated allowance under the present
-bounded request policy. Provider-free implementation/integration can continue.
+The new aggregate authority does not add capacity to successor12. Any distinct
+post-fix paid evaluation needs reconciled accounting and reviewed, installed,
+read-back compatible bounded authority before worker start. No paid request has
+been made by this restart; provider-free implementation/integration continues.
 
 Frozen, never retry/rebind/replace or reinterpret as refunds:
 - count_unknown48a1a403-eb54-4d65-9d31-4fa3dfa7476f and
@@ -172,6 +197,15 @@ earlier eight-minute model reply delays have not been shown resolved.
 
 ## Next permitted work / gates
 
+0. Resolve the concurrent old session first. Fresh control/handoff:
+   /home/ubuntu/workagent-private-alpha/restart-20261016b/iteration-result.json.
+   Old session local-6d454d51d77de36cff7cc10729970f0a06966a15b410c1e160754ef4fec0e429
+   wrote test_adaptive_guards.py after this restart launched. Review pins still
+   match production; test-only edits need serial verification. The old verifier
+   assumes a completed broad XML that does not exist; do not run/install from it.
+   Owner branch a20631e is fetched, not merged: it wires proposal diff items and
+   joins Home work across authorized Spaces. Reuse the owner's review and verify
+   the actual integrated browser after sole ownership is restored.
 1. Continue provider-free latency/HTTP admission investigation and broader reusable
    tooling. New paid usefulness checks need adequate reconciled authority; no
    recycling frozen requests, old allocations or billable uncertainty.

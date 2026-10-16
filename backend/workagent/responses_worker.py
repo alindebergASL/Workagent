@@ -182,7 +182,24 @@ class ResponsesWorker:
 
     def run(self,ws,rid,*,reconcile_only=False):
         with self.state.lock(ws,rid):
-            return self._run(ws,rid,reconcile_only=reconcile_only)
+            result=self._run(ws,rid,reconcile_only=reconcile_only)
+            if not reconcile_only and result in ('deferred','provider_pending'):
+                self._yield_if_settled(ws,rid)
+            return result
+
+    def _yield_if_settled(self,ws,rid):
+        # Never called from finally/exception recovery or while I/O is in flight.
+        # Keep all HTTP admission margins and the immutable request journal.
+        saved=self.state.load(ws,rid)
+        if not saved or not saved.get('receipt'):return False
+        cap=WorkerCapability(**saved['worker'])
+        try:
+            # Would a new visit still fit this same lease? One fresh authority
+            # check suffices; the actual I/O path keeps its stricter deadlines.
+            if self._http_window(self._fresh(cap),time.monotonic()+self.deadline_seconds,handoff=True):return False
+            return self.service.yield_settled_responses_lease(cap,ReceiptCapability(**saved['receipt']))
+        except DomainError:
+            return False  # Expiry/revocation/edits do not authorize a handoff.
 
     def _run(self,ws,rid,*,reconcile_only=False):
         s=self.service

@@ -116,7 +116,10 @@ class GeneralWorker:
         if run.profile=='general-responses-v1':
             if self.phases is None: raise DomainError('unsupported_operation')
             with self.phases.state.lock(ws,run_id):
-                return self._responses_work(p,ws,run)
+                result=self._responses_work(p,ws,run)
+                if result.state=='running' and self.phases._yield_if_settled(ws,run_id):
+                    return service.get_run(p,ws,run_id)
+                return result
         if self.phases is not None or run.profile not in (PROFILE,PRODUCT_PROFILE):
             raise DomainError('unsupported_operation')
         if run.state in ('ready','partial','cancelled'):

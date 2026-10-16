@@ -11,6 +11,7 @@ from test_conversations import conversation, post
 from test_general_responses import Provider, worker, totals, attach, target
 from test_general_products import CODE, wasmop
 from test_runtime import expire
+from test_adaptive_execution import finish_safe_visits
 from workagent.models import ProviderGrant, GeneralAlphaResponsesBinding, new_id, CancelConversation, HumanSave
 from workagent.composition import POLICY, DECISION_SCHEMA, AlphaDecision, discovery
 from workagent.general_schema import EXPLANATION_SCHEMA
@@ -88,7 +89,7 @@ def test_direct_answer_is_substantive_ready_not_goal_completion(context,tmp_path
     s,p,ws,_,_=context
     text='A reversible decision can be tried cheaply; an irreversible one needs stronger evidence. Start with the smallest useful experiment.'
     cv,g,q,fake,w=launch(context,tmp_path,[{'kind':'reply','text':text}],explanation='A generic replacement must not erase the selected answer.')
-    assert w.work(p,ws,q.run.id).state=='ready'
+    assert finish_safe_visits(context,w,q.run.id).state=='ready'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.messages[-1].text==text
     assert detail.turns[0].state=='replied' and detail.turns[0].adaptive.outcome=='answered'
@@ -116,7 +117,7 @@ def test_direct_answer_is_substantive_ready_not_goal_completion(context,tmp_path
 def test_discover_load_read_and_existing_wasm_compose(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,q,fake,w=launch(context,tmp_path,[{'kind':'discover_capabilities'},skill,{'kind':'read_context','section':'messages'},calculate])
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id); turn=detail.turns[0]
     assert turn.adaptive.outcome=='needs_validation' and len(turn.adaptive.steps)==4
     loaded=turn.adaptive.steps[1].capability_result['result']
@@ -143,7 +144,7 @@ def test_skill_restart_retains_exact_observation_without_reload(context,tmp_path
     before=s.get_conversation(p,ws,cv.id).turns[0].adaptive.steps[0].capability_result
     expire(context,q.run.id)
     monkeypatch.setattr(skills,'load',lambda *_: (_ for _ in ()).throw(AssertionError('retained skill must not reload')))
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[0].adaptive.steps[0].capability_result==before
     assert len(detail.messages)==2 and totals(s,g)['request_counts']['dispatch']==3
@@ -212,11 +213,12 @@ def test_unknown_provider_send_is_not_regenerated(context,tmp_path):
 def test_exhausting_reads_is_limit_not_answer_or_completion(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,q,fake,w=launch(context,tmp_path,[{'kind':'discover_capabilities'}]*4)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[0].adaptive.outcome=='step_limit'
     assert 'no answer or operational completion' in detail.messages[-1].text
     assert not detail.artifact_ids
+    assert totals(s,g)['request_counts']=={'count_send':5,'dispatch':5,'read':0,'cancel':0}
 
 
 def test_second_method_composes_existing_publication_without_loop_branch(context,tmp_path):
@@ -225,7 +227,7 @@ def test_second_method_composes_existing_publication_without_loop_branch(context
     def publish(ctx):
         return {'kind':'publish_artifact','target':None,'body':body}
     cv,g,q,fake,w=launch(context,tmp_path,[lambda ctx:skill(ctx,1),publish],explanation='A small pilot preserves the option to change direction. No decision has been taken for you.')
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[0].adaptive.steps[0].capability_result['result']['skill_id']=='decision-brief'
     assert detail.turns[0].adaptive.outcome=='needs_validation'
@@ -239,7 +241,7 @@ def test_second_method_composes_existing_publication_without_loop_branch(context
 def test_no_skill_operation_remains_optional(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,q,fake,w=launch(context,tmp_path,[calculate])
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     turn=s.get_conversation(p,ws,cv.id).turns[0]
     assert len(turn.adaptive.steps)==1 and turn.adaptive.steps[0].capability_result is None
     assert turn.retained_local_result.output.value=='3750'
@@ -249,7 +251,7 @@ def test_historical_explanation_projection_does_not_rewrite_receipts_or_messages
     from test_adaptive_execution import setup
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,invented=True)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     with s.db.transaction() as c:
         before=c.execute('SELECT data FROM conversation_messages WHERE workspace_id=%s ORDER BY sequence',(ws,)).fetchall()
         receipts=c.execute('SELECT e.data FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.workspace_id=%s ORDER BY e.id',(ws,)).fetchall()
@@ -307,7 +309,7 @@ def test_long_explanation_keeps_full_typed_readback_and_status(context,tmp_path)
     text='Useful explanation. '*600
     assert len(text)==12000
     cv,g,q,fake,w=launch(context,tmp_path,[calculate],explanation=text)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert len(detail.messages[-1].text)==10000
     assert 'Explanation shortened' in detail.messages[-1].text

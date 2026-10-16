@@ -2,10 +2,21 @@
 
 ## Current execution boundary — private-alpha development
 
-The user's October 15 implementation instruction authorizes Hermes to select,
-configure and run bounded synthetic development evaluations on the existing
-approved model route within the remaining reconciled portion of the existing
-**$40 cumulative ceiling**. This is not another $40. Routine implementation,
+The user's October 16 safe-continuation authorization records the explicit
+clarification **“Add $10 — new total cap $50”**. The new cumulative operator
+ceiling is **$50**, not an additional $50. This supersedes ONLY the former $40
+aggregate ceiling. It does not raise per-project caps, activate a grant, refund
+or reuse an earlier allocation, or change provider, private-account, production,
+default-branch or external-effect authority.
+
+The October 15 implementation scope continues: Hermes may select, configure and
+run bounded synthetic development evaluations on the existing official
+**gpt-6.1-sol** route, within reconciled authority. Paid calls require an explicit
+compatible bounded grant, reviewed aggregate/per-run enforcement, installation
+and readback before worker start. The prior $39.919920 encumbrance and $0.080080
+unactivated allowance under $40 are reconciliation checkpoints, NOT billing or
+fresh installed capacity. Preserve every historical allocation, reservation,
+uncertain outcome and scope. Routine implementation,
 refactoring, testing, development-service operation, integration and feature-branch
 publication do not require incremental approval. A finished narrow evaluation is
 not a project-wide stop.
@@ -20,6 +31,16 @@ default-branch merging and production replacement remain outside this authority.
 Current candidate, services, accounting reconciliation and work status live only
 in [STATUS.md](../STATUS.md). Historical sections below are evidence, not competing
 current launch instructions or balances.
+
+October16 restart20261016b read-only reconciliation (05:52UTC): allocation lineage,
+historical source fences and canonical shared/union reservations checked unchanged.
+Operator encumbrance remains $39.919920; unactivated authority under $50 is
+$10.080080. Current grant workagent-alpha-dev-20261015-12 remains zero-capacity;
+no new grant, provider operation or spending activation occurred in this restart.
+Per-project limits remain unchanged. Receipt:
+`/home/ubuntu/workagent-private-alpha/restart-20261016b/financial-preflight.json`.
+Older $40/$0.080080 statements below describe historical allocation checkpoints,
+not the superseding aggregate cap or current unactivated authority.
 
 ## Prior execution boundary — overnight exact-candidate evaluation
 
