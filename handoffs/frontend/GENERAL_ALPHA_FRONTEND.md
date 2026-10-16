@@ -2156,3 +2156,41 @@ Unit tests cover rewrites, additions, removals, check/uncheck and note counting.
 - A pinned Apply/Keep bar on phones (less needed now the card fits one screen).
 - A bottom tab bar on phones.
 - Written change descriptions ("Added a clear return-time step") need Hermes (B).
+
+## Home reads work from every space the person can open (Hermes 6208780916)
+
+**Problem.** Home read conversation-owned work only from the default personal workspace. With
+several workspaces, these all missed work elsewhere:
+- "Since you left";
+- "Pick up where you left off";
+- decisions;
+- "Made in your conversations".
+
+On a retained multi-workspace database, Home showed an older fixture workspace.
+
+**Change** (`conversation-work.ts` `loadHomeWork`/`useHomeWork`, `app/page.tsx`).
+- Home reads the work of each workspace the server lists for this person and joins it, decisions
+  first.
+- Each item keeps its own workspace, so its links open it there.
+- No scope is bypassed, and there is no active-workspace selector.
+- A workspace the caller can't see is left out. One that can't be read is counted, and Home says so
+  rather than showing it as empty. The read fails only when no workspace can be read.
+- "Since you left" uses Home's own device marker, `workagent:seen:home`.
+- New requests still start in the personal workspace.
+
+**Not yet across spaces.** Home's responsibility rows still come from the personal workspace's
+overview.
+
+**Regression.** Space-experience Home case: Home opened for the local workspace shows the
+studio-kit lending table, linking into studio-kit. Unit tests cover joining, hidden versus
+unreadable workspaces, and total failure. The review-boundary stub gains the new export.
+
+**Results.**
+- RED without the change: absent.
+- GREEN:
+  - routing 7 + Space 27;
+  - review-boundary 15/15;
+  - 308 unit tests;
+  - 38 DOM regressions;
+  - full gate at `78c2087` with 0 failures (same as baseline);
+  - mock e2e 15/15.
