@@ -1719,6 +1719,110 @@ try {
     );
   }
 
+  // One piece of work with what belongs to it. A table with a proposed
+  // change shows its saved version and the change as two tabs; a single
+  // changed value reads Saved → Proposed; the decision stays explicit on
+  // the work's own page. A view shows the saved work it reads as a tab, and
+  // a draft beside the view survives switching. Plain work stays one surface.
+  {
+    const kit = ids.kit;
+    const kitSpace = `${origin}/spaces/${kit.workspace}/work/${kit.conversation_id}?work=${kit.loans_id}`;
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(kitSpace);
+    const card = page.locator(".space-work");
+    const tab = (name) => card.getByRole("tab", { name, exact: true });
+    await expect(tab("Saved version")).toBeVisible({ timeout: 15000 });
+    await expect(tab("Changes · 1")).toBeVisible();
+    await expect(tab("Saved version")).toHaveAttribute("aria-selected", "true");
+    await expect(card.locator(".space-proposal")).toContainText(
+      "A proposed change is waiting for your review.",
+    );
+    await card.getByRole("button", { name: "See the change" }).click();
+    await expect(tab("Changes · 1")).toHaveAttribute("aria-selected", "true");
+    const change = card.getByTestId("work-change");
+    await expect(change.getByTestId("saved-proposed")).toContainText(
+      "Lantern · Loan (days)",
+    );
+    await expect(change.locator(".sp-saved")).toContainText("3");
+    await expect(change.locator(".sp-proposed")).toContainText("2");
+    await expect(change).toContainText(
+      "Your saved version stays until you apply the change.",
+    );
+    await expect(
+      card.getByRole("region", { name: "Lending desk" }),
+    ).toBeHidden();
+    // Keyboard moves between tabs; the choice comes back after a reload.
+    await tab("Changes · 1").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(tab("Saved version")).toHaveAttribute("aria-selected", "true");
+    await expect(tab("Saved version")).toBeFocused();
+    await page.keyboard.press("End");
+    await expect(tab("Changes · 1")).toHaveAttribute("aria-selected", "true");
+    await page.reload();
+    await expect(tab("Changes · 1")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForTimeout(200);
+      assert.ok(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+        `the work's tabs scroll sideways at ${width}`,
+      );
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    // The decision is on the work's own page, with the same comparison.
+    await change.getByRole("link", { name: "Review and decide" }).click();
+    await page.waitForURL(new RegExp(`/artifacts/${kit.loans_id}`));
+    await expect(page.getByTestId("saved-proposed").first()).toContainText(
+      "Lantern · Loan (days)",
+      { timeout: 15000 },
+    );
+    await shot(page, "14-saved-proposed-work-page");
+
+    // A view: what it reads is a tab; a draft beside the view survives.
+    await page.goto(
+      `${origin}/spaces/${sup.workspace}/work/${sup.conversation_id}?work=${sup.compare_id}`,
+    );
+    await expect(tab("View")).toBeVisible({ timeout: 15000 });
+    await expect(tab("Sources")).toBeVisible();
+    const weightInput = card
+      .getByTestId("view-inputs")
+      .getByLabel(/Weight on price/);
+    await expect(weightInput).toBeVisible({ timeout: 15000 });
+    const was = await weightInput.inputValue();
+    const typed = was === "35" ? "36" : "35";
+    await weightInput.fill(typed);
+    await tab("Sources").click();
+    const sources = card.getByTestId("work-sources");
+    await expect(sources).toContainText("Supplier evidence");
+    await expect(sources).toContainText("Priorities");
+    // Only the chosen tab's panel shows.
+    await expect(card.getByTestId("view-inputs")).toBeHidden();
+    await expect(
+      sources.getByRole("link", { name: "Open to edit" }).first(),
+    ).toHaveAttribute("href", /\/artifacts\//);
+    await shot(page, "14-view-sources-tab");
+    await tab("View").click();
+    await expect(sources).toBeHidden();
+    await expect(weightInput).toHaveValue(typed);
+    await card
+      .getByTestId("view-inputs")
+      .getByRole("button", { name: "Discard my change" })
+      .click();
+    await expect(weightInput).toHaveValue(was);
+
+    // Plain work, with nothing proposed and nothing it reads: no tabs.
+    await page.goto(`${origin}/spaces/${ws}/work/${cid}?work=${planId}`);
+    await expect(card).toBeVisible({ timeout: 15000 });
+    await expect(card.getByRole("tablist")).toHaveCount(0);
+    pass(
+      "a piece of work shows its saved version, what it reads and what's proposed as tabs only when there's more than one; one changed value reads Saved → Proposed; drafts survive switching",
+    );
+  }
+
   // A wide table (six typed columns, one a long note) stays inside the work
   // pane: the page never scrolls sideways, each row's own controls stay in
   // view, the table says when columns are out of view, and the last column

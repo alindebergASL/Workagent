@@ -26,6 +26,13 @@ import {
 } from "@/lib/space-view";
 import { ConversationPeek } from "./ConversationPeek";
 import { InPlaceView, ReadOnly, ViewInputs, type Bound } from "./FlexibleWork";
+import {
+  ChangesPanel,
+  SourcePanel,
+  WorkFacets,
+  type Facet,
+  type PendingChange,
+} from "./WorkFacets";
 import { ProductView } from "./ProductView";
 import { SpaceDetails } from "./WorkAreas";
 import { WorkSurface } from "./WorkSurface";
@@ -706,6 +713,54 @@ function SelectedWork({
       ),
     [body, boundKey, open, item.artifact],
   );
+  // What belongs with this work: the saved work it reads and the changes
+  // waiting on it (or on what it reads). Tabs only when there's more than one.
+  const sourceItems = reads
+    .map((aid) => byId.get(aid))
+    .filter((x): x is SpaceWorkItem => Boolean(x));
+  const sourceChanges: PendingChange[] = sourceItems.flatMap((i) =>
+    actionable(i).map((proposal) => ({ item: i, proposal })),
+  );
+  const changes: PendingChange[] = [
+    ...ready.map((proposal) => ({ item, proposal })),
+    ...sourceChanges,
+  ];
+  const facets: { key: Facet; label: string }[] = [
+    { key: "view", label: view ? "View" : "Saved version" },
+    ...(view && reads.length
+      ? [
+          {
+            key: "source" as const,
+            label: reads.length === 1 ? "Source" : "Sources",
+          },
+        ]
+      : []),
+    ...(changes.length
+      ? [{ key: "changes" as const, label: `Changes · ${changes.length}` }]
+      : []),
+  ];
+  const facetKey = `workagent:facet:${ws}:${item.artifact.id}`;
+  const [chosenFacet, setChosenFacet] = useState<Facet>("view");
+  // The tab chosen for this work comes back when the person returns to it.
+  useEffect(() => {
+    try {
+      const kept = sessionStorage.getItem(facetKey) as Facet | null;
+      if (kept) setChosenFacet(kept);
+    } catch {
+      /* the default tab is fine */
+    }
+  }, [facetKey]);
+  const facet = facets.some((f) => f.key === chosenFacet)
+    ? chosenFacet
+    : "view";
+  const chooseFacet = (f: Facet) => {
+    setChosenFacet(f);
+    try {
+      sessionStorage.setItem(facetKey, f);
+    } catch {
+      /* the choice still holds while this page is open */
+    }
+  };
   const related = (label: string, ids: string[]) =>
     ids.length ? (
       <p className="small space-related" data-testid={`space-${label}`}>
@@ -788,7 +843,33 @@ function SelectedWork({
           </p>
           <p className="small muted">
             Shown below is the saved version; the change applies only if you
-            accept it.
+            accept it.{" "}
+            {facets.some((f) => f.key === "changes") ? (
+              <button
+                type="button"
+                className="link-quiet"
+                onClick={() => chooseFacet("changes")}
+              >
+                See the change
+              </button>
+            ) : null}
+          </p>
+        </div>
+      ) : sourceChanges.length ? (
+        <div className="notice-line space-proposal" role="note">
+          <p>
+            <strong>
+              {sourceChanges.length === 1
+                ? `A proposed change to “${workTitle(sourceChanges[0]!.item.artifact)}”, which this reads, is waiting for your review.`
+                : `${sourceChanges.length} proposed changes to what this reads are waiting for your review.`}
+            </strong>{" "}
+            <button
+              type="button"
+              className="link-quiet"
+              onClick={() => chooseFacet("changes")}
+            >
+              See the change
+            </button>
           </p>
         </div>
       ) : null}
@@ -802,30 +883,55 @@ function SelectedWork({
           </p>
         </div>
       ) : null}
-      {preview}
-      {view ? (
-        <ViewInputs
-          ws={ws}
-          cid={cid}
-          view={item.artifact}
-          tables={reads
-            .map((aid) => byId.get(aid)?.artifact)
-            .filter(
-              (a): a is SpaceWorkItem["artifact"] =>
-                Boolean(a) &&
-                (a!.current_revision.body as { kind?: string }).kind ===
-                  "structured_table" &&
-                (
-                  a!.current_revision.body as {
-                    fields: { editable: boolean }[];
-                  }
-                ).fields.some((f) => f.editable),
-            )}
-          bound={JSON.parse(boundKey) as Bound}
-          open={open}
-          refresh={refresh}
-        />
-      ) : null}
+      <WorkFacets
+        id={item.artifact.id}
+        facets={facets}
+        facet={facet}
+        onFacet={chooseFacet}
+        view={
+          <>
+            {preview}
+            {view ? (
+              <ViewInputs
+                ws={ws}
+                cid={cid}
+                view={item.artifact}
+                tables={reads
+                  .map((aid) => byId.get(aid)?.artifact)
+                  .filter(
+                    (a): a is SpaceWorkItem["artifact"] =>
+                      Boolean(a) &&
+                      (a!.current_revision.body as { kind?: string }).kind ===
+                        "structured_table" &&
+                      (
+                        a!.current_revision.body as {
+                          fields: { editable: boolean }[];
+                        }
+                      ).fields.some((f) => f.editable),
+                  )}
+                bound={JSON.parse(boundKey) as Bound}
+                open={open}
+                refresh={refresh}
+              />
+            ) : null}
+          </>
+        }
+        source={
+          <SourcePanel
+            cid={cid}
+            sources={sourceItems}
+            missing={reads.length - sourceItems.length}
+          />
+        }
+        changes={
+          <ChangesPanel
+            ws={ws}
+            cid={cid}
+            changes={changes}
+            shownId={item.artifact.id}
+          />
+        }
+      />
     </article>
   );
 }

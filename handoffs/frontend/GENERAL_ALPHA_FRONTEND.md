@@ -1884,3 +1884,62 @@ while being shown a table without remounting. Drafts were only checked for kind 
   - 38 DOM regressions (6/6 runs);
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Capabilities a step used, in plain words
+
+Following Hermes `d802155` (`inspect_json`), integrated by fast-forward. The turn details said
+"Used inspect_json (version 1)", an internal identifier.
+- Known capabilities now read in plain words: "Looked inside the attached JSON file", "Searched your
+  earlier work", "Read your saved work", and so on.
+- An unfamiliar one reads as words ("Used summarise notes").
+- The trailing "This reads information; it isn’t a permission or an action." is unchanged.
+- `.json` attachments were already accepted, because the web reads the generated attachment
+  contract's extensions.
+- Unit regression in `test/adaptive-presentation.test.ts`. RED: the internal names were shown.
+- GREEN: 293 unit tests; 38 DOM regressions; full gate (on the merged `d802155` backend) with 0
+  failures; mock e2e 15/15.
+
+## One piece of work, with what belongs to it (View · Source · Changes)
+
+This is the first implementation step recommended in the concepts handoff (#9, 6205830752; gallery
+`ceac131`). It is frontend only and uses data the web already reads.
+
+**What changed.**
+- The chosen work on a project page now has tabs, but only when it has more than one facet:
+  - **View** for a view, or **Saved version** for other work;
+  - **Source** / **Sources**, the saved work a view reads, each read-only and with "Open to
+    edit" going to its trusted editor;
+  - **Changes · n**, the proposals waiting on this work or on what it reads.
+- Plain work with nothing it reads and nothing proposed stays a single surface.
+- The tablist follows the ARIA pattern: arrow keys, Home and End, roving focus.
+- Every panel stays mounted (hidden when not chosen), so a view, its trusted inputs and their drafts
+  keep their state. The chosen tab returns after a reload.
+- The status line gains "See the change". A change to something a view reads is named as such.
+- A proposal that changes one table value reads **Saved → Proposed** ("Lantern · Loan (days):
+  Saved 3 → Proposed 2"). The same applies on the work page.
+- "(your value)" and "It changes a value you set yourself" come from history, fetched only for a
+  table change.
+- Applying stays explicit, on the work's own page ("Review and decide"). The Changes tab says the
+  saved version stays until the change is applied.
+
+**Fixture.** The kit workspace's lending table gains one single-value proposal: the lantern's loan,
+3 → 2 days.
+
+**Regression.** A new `space-experience.mjs` case checks:
+- tabs and Saved → Proposed on the kit project;
+- keyboard movement and focus;
+- the tab choice persisting across a reload;
+- no sideways scroll at 390 or 320;
+- "Review and decide" leading to the same comparison on the work page;
+- the comparison view's Sources tab, with only the chosen panel shown, and a trusted-input draft
+  that survives switching tabs, then is discarded;
+- no tabs for the plain workshop plan.
+
+**Results.**
+- RED on the previous build: no tabs.
+- GREEN:
+  - routing 7 + Space 26 + refusal 4;
+  - 293 unit tests;
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
