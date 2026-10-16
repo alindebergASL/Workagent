@@ -2011,6 +2011,135 @@ try {
     );
   }
 
+  // Home says what changed since this device last showed it: proposals
+  // waiting and work Workagent saved, from saved records, never the person's
+  // own saves, never the decision already shown in full. A first visit says
+  // nothing; a reload keeps the list; "Got it" clears it for good. The
+  // marker is per device, so an earlier visit is stood in for by setting it
+  // back before the fixture's work was made.
+  {
+    const home = await browser.newContext({
+      viewport: { width: 1440, height: 1000 },
+    });
+    const tab = await home.newPage();
+    const homeErrors = [];
+    tab.on("pageerror", (e) => homeErrors.push(e.message));
+    const homeURL = `${origin}/?workspace=${ws}`;
+    const since = tab.getByTestId("since-you-left");
+    const rows = tab.locator(".work-row[data-artifact]");
+    await tab.goto(homeURL);
+    await expect(rows.first()).toBeAttached({ timeout: 15000 });
+    await expect
+      .poll(() =>
+        tab.evaluate((k) => localStorage.getItem(k), `workagent:seen:${ws}`),
+      )
+      .not.toBeNull();
+    await expect(since).toHaveCount(0);
+
+    await tab.evaluate((ws) => {
+      localStorage.setItem(`workagent:seen:${ws}`, "2000-01-01T00:00:00Z");
+      sessionStorage.clear();
+    }, ws);
+    await tab.reload();
+    await expect(since).toBeVisible({ timeout: 15000 });
+    const entries = await since.locator("li").evaluateAll((lis) =>
+      lis.map((li) => ({
+        id: li.dataset.artifact,
+        text: li.querySelector("a").textContent,
+        href: li.querySelector("a").getAttribute("href"),
+      })),
+    );
+    assert.ok(entries.length >= 1 && entries.length <= 4, entries.length);
+    const lead = await tab
+      .locator(".decision-card[data-artifact]")
+      .evaluateAll((els) => els[0]?.dataset.artifact ?? null);
+    for (const e of entries) {
+      assert.match(
+        e.text,
+        /^(A proposed version of “.+” is waiting for you|Workagent saved a new version of “.+”)$/,
+      );
+      assert.match(e.href, new RegExp(`/artifacts/${e.id}`));
+      assert.notEqual(e.id, lead, "the decision shown in full isn't repeated");
+      const note = await tab
+        .locator(`.work-row[data-artifact="${e.id}"]`)
+        .first()
+        .textContent();
+      if (e.text.startsWith("Workagent saved"))
+        assert.ok(!note.includes("Last saved by you"), e.text);
+      else assert.ok(note.includes("Decision needed"), e.text);
+    }
+    await expect(since).not.toContainText(/accepted|is ready to use|now fits/i);
+    // The greeting says, in one line, what changed and what needs the
+    // person; the entry comes first; recent work is one step away.
+    const saved = entries.filter((e) =>
+      e.text.startsWith("Workagent saved"),
+    ).length;
+    const lede = tab.locator(".lede");
+    if (saved)
+      await expect(lede).toContainText(
+        saved === 1
+          ? "Workagent saved a new version of one piece of work since you left."
+          : "since you left.",
+      );
+    await expect(lede).not.toContainText(/done|accepted|ready to use/i);
+    assert.ok(
+      await tab.evaluate(
+        () =>
+          document
+            .querySelector(".composer, form")
+            .compareDocumentPosition(
+              document.querySelector('[data-testid="since-you-left"]'),
+            ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+      "the entry comes before what changed",
+    );
+    const pick = tab.getByTestId("pick-up").locator("a");
+    const picks = await pick.count();
+    assert.ok(picks >= 1 && picks <= 3, `pick-up shows ${picks}`);
+    for (let i = 0; i < picks; i++)
+      assert.match(
+        await pick.nth(i).getAttribute("href"),
+        /\/conversations\/[^/]+\/artifacts\/[^/?]+/,
+      );
+    await shot(tab, "10-since-you-left");
+
+    // A reload keeps the list; the work opens from it.
+    await tab.reload();
+    await expect(since.locator("li")).toHaveCount(entries.length, {
+      timeout: 15000,
+    });
+    await since.locator("li a").first().click();
+    await tab.waitForURL(new RegExp(`/artifacts/${entries[0].id}`));
+    await tab.goBack();
+    await expect(since).toBeVisible({ timeout: 15000 });
+
+    // On a phone it fits.
+    await tab.setViewportSize({ width: 390, height: 844 });
+    await noOverflow(tab);
+    await tab.screenshot({
+      path: path.join(out, "10b-since-you-left-phone.png"),
+    });
+
+    // "Got it" clears it in this tab and the next.
+    await since.getByRole("button", { name: "Got it" }).click();
+    await expect(since).toHaveCount(0);
+    await expect(tab.locator(".lede")).not.toContainText("since you left");
+    await tab.reload();
+    await expect(rows.first()).toBeAttached({ timeout: 15000 });
+    await expect(since).toHaveCount(0);
+    const next = await home.newPage();
+    await next.goto(homeURL);
+    await expect(next.locator(".work-row[data-artifact]").first()).toBeAttached(
+      { timeout: 15000 },
+    );
+    await expect(next.getByTestId("since-you-left")).toHaveCount(0);
+    assert.deepEqual(homeErrors, []);
+    await home.close();
+    pass(
+      "Home says what changed since this device last showed it, in its greeting line and a short list: a proposal waiting or work Workagent saved, each opening the work; the entry comes first and recent work is one step away; the person's own saves and the decision shown in full aren't repeated; a first visit says nothing; it survives a reload, fits a phone, and Got it clears it",
+    );
+  }
+
   // Unavailable and refused reads are said as such.
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${origin}/spaces/${ws}/work/${ids.plain.conversation_id}`);

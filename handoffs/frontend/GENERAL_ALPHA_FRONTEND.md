@@ -1982,3 +1982,85 @@ contract change.
   - lint and typecheck clean;
   - full gate at `f4f3da5` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Home: "Since you left" (concept 02)
+
+**Problem.** A returning person had to scan every group on Home to find what moved while they were
+away.
+
+**Change** (`app/page.tsx`, `lib/since-you-left.ts`, `lib/client/since-marker.ts`,
+`agent-first.css`). Home opens with a short list, newest first, of at most four entries:
+- "A proposed version of “…” is waiting for you" (a current proposal only);
+- "Workagent saved a new version of “…”".
+
+Each entry opens the exact work. Left out:
+- the person's own saves;
+- proposals made for an earlier version;
+- the decision already shown in full in the card below.
+
+Nothing says a proposal is accepted or work is finished.
+
+**Marker (until backend dependency A exists).**
+- Kept on this device as the newest service timestamp Home showed (`workagent:seen:<ws>`), so it
+  doesn't depend on the device clock.
+- A first visit says nothing.
+- Each tab fixes its starting point (`workagent:since:<ws>`), so a reload keeps the list.
+- "Got it" clears it.
+- When the service records what a person has seen, this hook is the one place to switch over.
+
+**Regression** (`space-experience.mjs`, new case). The marker is set back to before the fixture's
+work was made, standing in for an earlier visit. The case checks:
+- a first visit is empty;
+- an earlier marker lists the fixture's work, each entry's wording, link and row status;
+- the decision shown in full isn't repeated;
+- a reload keeps the list, and an entry opens its work;
+- 390px fits;
+- "Got it" clears it in this tab and a new one.
+
+Unit tests cover selection and the marker comparison.
+
+**Results.**
+- RED without the change: no marker.
+- GREEN:
+  - routing 7 + Space 27;
+  - 298 unit tests;
+  - 38 DOM regressions;
+  - full gate at `f4c4992` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+## What each responsibility waits on or does next (concept 02, "I'm handling")
+
+**Problem.** These surfaces said only that a responsibility was held ("Nothing runs for it right
+now. Outcome not verified."), not what it is about:
+- Home's "I'm handling" / "Ready for you" rows;
+- a conversation's hand-overs;
+- a project's standing card.
+
+**Change** (`hold-view.ts`, `WorkRow.tsx`, the conversation page, `space-view.ts`). Each now leads
+with one line from its current lifecycle record:
+- its wait reason;
+- else its blocker;
+- else "Something it depends on has changed since it was recorded.";
+- else "Next: <next_action>".
+
+When review is required, the review comes first and no next step is shown. Closed
+responsibilities show none. Run status and "Outcome not verified" are unchanged. No contract change.
+
+**Regression.** The responsibility-recording journey checks:
+- the waiting row reads "The venue has not replied." on Home and in the conversation;
+- the held row reads "Next: Draft the first rota.".
+
+Unit tests cover the wait, blocker, changed-dependency, review-first and closed cases.
+
+**Results.**
+- RED without the change: no line.
+- GREEN:
+  - responsibility journey 9/9;
+  - routing 7 + Space 27;
+  - 299 unit tests;
+  - 38 DOM regressions;
+  - full gate at `47e1dff` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Not done yet.** Steering beside each responsibility on Home. Pause, resume and take back stay on
+the work page, where their journaled controls are.

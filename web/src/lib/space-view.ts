@@ -175,7 +175,11 @@ export function spaceStanding({
     const line = (tone: Tone): StandingLine => ({
       key: `hold:${aid}`,
       text: status ? `${name}: ${status.label}.` : name,
-      ...(status?.note ? { detail: status.note } : {}),
+      ...(status?.note || status?.next
+        ? {
+            detail: [status.next, status.note].filter(Boolean).join(" "),
+          }
+        : {}),
       tone,
       href: `/assignments/${encodeURIComponent(aid)}`,
       action: "See where it stands",

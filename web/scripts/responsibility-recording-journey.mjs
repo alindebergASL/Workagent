@@ -71,6 +71,11 @@ try {
   const page = await browser.newPage({
     viewport: { width: 1440, height: 1000 },
   });
+  const sends = [];
+  page.on("request", (r) => {
+    if (r.method() === "POST" && /\/messages$/.test(new URL(r.url()).pathname))
+      sends.push(r.url());
+  });
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   const {
@@ -114,6 +119,10 @@ try {
   await expect(row(page, waiting.assignment_id)).toContainText(
     "Nothing runs for it right now. Outcome not verified.",
   );
+  // Each says what it's waiting on, or what it does next, from its record.
+  await expect(
+    row(page, waiting.assignment_id).getByTestId("hold-next"),
+  ).toHaveText("The venue has not replied.");
   const holding = page.locator(".since-holding");
   await holding.locator("summary").click();
   await expect(
@@ -122,7 +131,21 @@ try {
   await expect(
     holding.locator(`[data-assignment="${active.assignment_id}"]`),
   ).not.toContainText(/Running|Working/);
+  await expect(
+    holding
+      .locator(`[data-assignment="${active.assignment_id}"]`)
+      .getByTestId("hold-next"),
+  ).toHaveText("Next: Draft the first rota.");
   await expect(page.getByText("Track the other team budget")).toHaveCount(0);
+  // Steering sits beside each held responsibility: say what to change in its
+  // conversation (the reply box is ready, nothing is sent), or pause, resume
+  // or stop it on its page.
+  const steerOf = (aid) =>
+    page
+      .locator(`li:has(> a.work-row[data-assignment="${aid}"])`)
+      .getByTestId("steer");
+  for (const a of [waiting, active])
+    await expect(steerOf(a.assignment_id)).toBeVisible();
   await noDuplicateIds(page);
   await shot(page, "01-home-desktop");
   for (const width of [390, 320]) {
@@ -131,8 +154,34 @@ try {
     await shot(page, `02-home-${width}`);
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
+  const sendsBefore = sends.length;
+  await steerOf(waiting.assignment_id)
+    .getByRole("link", { name: /^Steer “Keep the venue hand-off current/ })
+    .click();
+  await page.waitForURL(
+    new RegExp(`/conversations/${waiting.conversation_id}\\?.*#follow-up$`),
+  );
+  await expect(page.getByLabel("Continue the conversation")).toBeFocused({
+    timeout: 15000,
+  });
+  assert.equal(sends.length, sendsBefore, "steering sends nothing by itself");
+  await page.goBack();
+  await page.locator(".since-holding summary").click();
+  await steerOf(active.assignment_id)
+    .getByRole("link", { name: /^Pause or stop “Prepare the volunteer rota/ })
+    .click();
+  await page.waitForURL(
+    new RegExp(`/assignments/${active.assignment_id}\\?.*#responsibility$`),
+  );
+  await expect(page.getByTestId("responsibility")).toBeInViewport({
+    timeout: 15000,
+  });
+  await expect(
+    page.getByTestId("responsibility").getByRole("button", { name: "Pause" }),
+  ).toBeVisible();
+  await page.goto(origin);
   pass(
-    "Home groups recorded responsibilities by their current lifecycle; held is not running; another workspace never appears",
+    "Home groups recorded responsibilities by their current lifecycle; held is not running; another workspace never appears; steering sits beside each one",
   );
 
   // The conversation: the receipt names the work and links to it; the turn
@@ -157,6 +206,9 @@ try {
   );
   await expect(handed).toContainText("Keep the venue hand-off current");
   await expect(handed).toContainText("Waiting for a person");
+  await expect(handed.getByTestId("hold-next")).toHaveText(
+    "The venue has not replied.",
+  );
   await expect(
     page.getByRole("link", {
       name: "Where it was recorded in this conversation",
@@ -237,6 +289,8 @@ try {
       .locator(".since-stopped")
       .locator(`[data-assignment="${waiting.assignment_id}"]`),
   ).toHaveCount(1, { timeout: 15000 });
+  // Taken back: nothing left to steer.
+  await expect(steerOf(waiting.assignment_id)).toHaveCount(0);
   pass(
     "taking it back changes the current record everywhere; the turn's receipt stays as recorded",
   );

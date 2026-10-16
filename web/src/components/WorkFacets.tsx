@@ -212,9 +212,8 @@ function ChangeCard({
     flexibleKind(saved as never) === "structured_table" &&
     flexibleKind(proposal.body as never) === "structured_table";
   // Who set each saved value, so a change to the person's own is said.
-  const history = useResource(
-    table ? `history:${ws}:${aid}` : null,
-    (signal) => productApi.history(ws, aid, signal),
+  const history = useResource(table ? `history:${ws}:${aid}` : null, (signal) =>
+    productApi.history(ws, aid, signal),
   );
   const authors = table
     ? cellAuthors(item.artifact.current_revision, history.data ?? [])

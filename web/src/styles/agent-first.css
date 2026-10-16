@@ -368,6 +368,66 @@ h2 {
   text-transform: uppercase;
   color: var(--ink-2);
 }
+/* What changed since this device last showed Home: a short list, not a feed. */
+.since-left {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px 14px;
+  display: grid;
+  gap: 6px;
+}
+.since-left h2 {
+  margin: 0;
+}
+.since-left ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.since-left li {
+  overflow-wrap: anywhere;
+}
+.since-left a {
+  color: var(--ink);
+}
+
+/* A few recently changed pieces of work, one step away. */
+.pick-up {
+  display: grid;
+  gap: 8px;
+}
+.pick-up h2 {
+  margin: 0;
+}
+.pick-up ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+}
+.pick-up a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.pick-up a:hover,
+.pick-up a:focus-visible {
+  border-color: var(--soft-line);
+  background: var(--soft);
+}
+
 .decision-card {
   background: var(--soft);
   border-radius: 18px;
@@ -1037,6 +1097,19 @@ details.disclosure.card {
 .work-row-note {
   font-size: 0.8125rem;
   color: var(--muted);
+}
+/* Steering beside a held responsibility, under its row. */
+.work-row-steer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 0 12px;
+}
+/* What a held responsibility is waiting on or does next: the substance. */
+.work-row-next {
+  font-size: 0.875rem;
+  color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 /* Intake outcome: the exact question, document checks and run provenance. */

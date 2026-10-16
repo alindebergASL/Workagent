@@ -151,7 +151,9 @@ describe("where a project stands", () => {
     expect(s.needs[0]!.text).toMatch(/Chase the venue contract/);
     expect(s.next.key).toBe("hold:w");
     expect(s.underway[0]!.text).toMatch(/Keep the rota current/);
-    expect(s.underway[0]!.detail).toMatch(/Nothing runs for it right now/);
+    expect(s.underway[0]!.detail).toMatch(
+      /^Next: Draft\. Nothing runs for it right now/,
+    );
     expect(s.underway[0]!.text + s.underway[0]!.detail).not.toMatch(
       /Running|Working on/,
     );
