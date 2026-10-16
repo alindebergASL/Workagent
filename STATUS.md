@@ -7,34 +7,26 @@ Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
 ## Candidate, owners and service state
 
-Single continuing integrator, branch hermes/overnight-intelligent-work. Published
-backend d802155 contains inspect_json; prior d60b8e0 contains strict structured-text
-aggregation and safe failure diagnostics. Local merge05064b7 integrates sole web
-owner f1838a1, including work facets, plain capability labels and decision-first
-proposal review. Hermes owns backend/runtime/integration; existing Claude Cloud
-session owns web. No replacement owner, default merge or production replacement.
-
-Published backend resilience commit64cf6d4 (atop d802155 inspect_json, d60b8e0
-aggregation/diagnostics) with runtime identity
-14bf0d19241dbdea66e2eede1cacea039a932574917a6608ca712e7dd27c6a6f; local
-merge05064b7 integrates sole web owner f1838a1 (work facets, plain capability
+Single continuing integrator, branch hermes/overnight-intelligent-work. Backend
+candidate92967e3 narrows ledger accounting reads; predecessor64cf6d4 fixed idle
+discovery lock contention and runtime diagnostics; d802155 added inspect_json.
+Merge05064b7 integrates sole web owner f1838a1 (work facets, plain capability
 labels, decision-first proposal review). Hermes owns backend/runtime/integration;
 existing Claude Cloud session owns web. No replacement owner, default merge or
 production replacement.
 
-Installed grant11 workagent-alpha-dev-20261015-11 (zero-additional-capacity
-successor) pins commit64cf6d4 runtime identity above; grant10 is retired.
+Installed zero-capacity successor workagent-alpha-dev-20261015-12 binds the
+reviewed consumer for92967e3. Full runtime manifest (a separate identity):
+e8f93d4893f575437e168e831b5b6ae836078523b7c15c1fa458c7caa905d52f.
+Grant10 and zero-capacity predecessor11 are retired, never rebound.
 
 Supported launcher: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 is active;
-API8152 and worker are stopped for accounting-projection candidate verification
-and compatible successor installation. Grant11 remains installed, not rebound.
-Before maintenance, worker MainPID2147334 had no restarts. Bounded post-fix
-observation: worker ~4% CPU, zero
-error/backoff/lock lines in journal, no reproduced idle crash. The earlier43%
-sample was the API, NOT a worker baseline; no CPU reduction is established.
-Execution truthfully reports
-blocked/can_advance=false because grant11 carries zero inference headroom.
+Private config: /home/ubuntu/workagent-private-alpha/service.json. All three
+services restarted/active under grant12; post-install HTTP and retained-state
+readbacks passed. Execution truthfully reports blocked/can_advance=false because
+grant12 carries zero inference headroom. Earlier bounded idle observation found
+no reproduced lock crash. The43% sample was API, NOT a baseline for the later4%
+worker sample; the prior comparison was incorrect and has been corrected.
 Retained DB47b87fe3b82e/private worker state remain intact. Earlier3151/8151 data
 and evidence remain; scheduled preview retirement is not deletion.
 
@@ -48,8 +40,8 @@ Latest canonical shared ledger:91 generations/95 counts/509 reads/0 cancels,
 $15.434640 reserved including $3.429920 carry. These are reservations, NOT billing.
 Historical records/events are unchanged; failed and unknown liabilities remain.
 
-Prepared and INSTALLED (2026-10-16 ~04:00 UTC): operational successor11 for the
-new runtime, with ZERO additional spending or provider-operation capacity. Its
+Operational successor12 installed after scoped verification, with ZERO additional
+spending or provider-operation capacity (same as predecessor11). Its
 cumulative caps equal already-consumed totals; it retains all prior encumbrance,
 scopes and bindings (new encumbrance $0; aggregate $39.919920; unactivated
 $0.080080; read-only preflight iteration6-zero-preflight.json). It supports
@@ -168,23 +160,22 @@ fell1,268,169→44,565 bytes, and four alternating function samples had median
 0.090→0.022s. This is function-level evidence, not deployed/end-to-end improvement.
 Direct GLM5.3 exact-source review completed(stop), no P1/P2 findings; scoped
 139-case regression passed in780.13s; exact collection/source/JUnit hashes checked
-by iteration6-ledger-projection-verification.json. New zero-capacity successor12
-is prepared but NOT installed; no additional inference capacity is authorized.
+by iteration6-ledger-projection-verification2.json. First local install preflight
+incorrectly compared runtime/consumer hashes and stopped before writes; corrected
+by reconstructing the predecessor consumer from reviewed file hashes. Grant12
+installed with identical limits/scopes and zero additional inference capacity.
+Post-restart execution GET samples0.569/0.447/0.470s, conversation0.068s,
+artifact0.032s; same506 SQL calls remain. Ledger/frozen records/current accepted
+revision verified unchanged by iteration6-read-profile-projected.json. These are
+bounded samples under differing load, not a controlled latency benchmark; the
+earlier eight-minute model reply delays have not been shown resolved.
 
 ## Next permitted work / gates
 
-1. ~~Resolve current regression failures~~ DONE: final 217-pass/0-fail run on a
-   fresh isolated DB (iteration6-resilience-final2.xml); companion 281-pass and
-   4-pass timing runs; exact collection and hashes verified
-   (iteration6-resilience-verification.json). Production lease/HTTP margins
-   unchanged; earlier failed XMLs retained as evidence.
-2. ~~Publish and install successor11~~ DONE: commit64cf6d4 pushed to
-   hermes/overnight-intelligent-work; grant11 installed and services restarted;
-   idle stability observed (~4% CPU, zero error lines). PR #9 comment 6207866127.
-3. Continue provider-free latency/HTTP admission investigation and broader reusable
+1. Continue provider-free latency/HTTP admission investigation and broader reusable
    tooling. New paid usefulness checks need adequate reconciled authority; no
    recycling frozen requests, old allocations or billable uncertainty.
-4. Keep owner integration and actual/replay/human evidence distinct. User-device
+2. Keep owner integration and actual/replay/human evidence distinct. User-device
    authenticated access remains untested; server-side strict SSH/loopback forwarding
    was verified in iteration6-access.json. No key contents were inspected.
 
