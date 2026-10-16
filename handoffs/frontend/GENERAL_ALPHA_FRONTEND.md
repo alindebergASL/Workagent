@@ -1799,4 +1799,6 @@ sticky row controls.
 - GREEN:
   - routing 7 + Space 24 + refusal 4;
   - 292 unit tests;
-  - 38 DOM regressions.
+  - 38 DOM regressions;
+  - full gate with 0 failures;
+  - mock e2e 15/15.
