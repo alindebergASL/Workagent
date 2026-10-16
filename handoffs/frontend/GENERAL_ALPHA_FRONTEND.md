@@ -2027,3 +2027,40 @@ Unit tests cover selection and the marker comparison.
   - 38 DOM regressions;
   - full gate at `f4c4992` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## What each responsibility waits on or does next (concept 02, "I'm handling")
+
+**Problem.** These surfaces said only that a responsibility was held ("Nothing runs for it right
+now. Outcome not verified."), not what it is about:
+- Home's "I'm handling" / "Ready for you" rows;
+- a conversation's hand-overs;
+- a project's standing card.
+
+**Change** (`hold-view.ts`, `WorkRow.tsx`, the conversation page, `space-view.ts`). Each now leads
+with one line from its current lifecycle record:
+- its wait reason;
+- else its blocker;
+- else "Something it depends on has changed since it was recorded.";
+- else "Next: <next_action>".
+
+When review is required, the review comes first and no next step is shown. Closed
+responsibilities show none. Run status and "Outcome not verified" are unchanged. No contract change.
+
+**Regression.** The responsibility-recording journey checks:
+- the waiting row reads "The venue has not replied." on Home and in the conversation;
+- the held row reads "Next: Draft the first rota.".
+
+Unit tests cover the wait, blocker, changed-dependency, review-first and closed cases.
+
+**Results.**
+- RED without the change: no line.
+- GREEN:
+  - responsibility journey 9/9;
+  - routing 7 + Space 27;
+  - 299 unit tests;
+  - 38 DOM regressions;
+  - full gate at `47e1dff` with 0 failures (same as baseline);
+  - mock e2e 15/15.
+
+**Not done yet.** Steering beside each responsibility on Home. Pause, resume and take back stay on
+the work page, where their journaled controls are.
