@@ -440,6 +440,34 @@ export function FlexibleEditor({
       {pendingProposals.map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
         const proposed = isFlexible(p.body) ? p.body : null;
+        const tableProposal = Boolean(
+          proposed &&
+          flexibleKind(proposed) === "structured_table" &&
+          kind === "structured_table",
+        );
+        const cellCount = tableProposal
+          ? cellChanges(saved as StructuredTable, proposed as StructuredTable)
+              .length
+          : 0;
+        const docParts =
+          proposed &&
+          !outdated &&
+          flexibleKind(proposed) === "document" &&
+          kind === "document"
+            ? documentProposalParts(
+                saved as DocumentBody,
+                proposed as DocumentBody,
+                savedNoteAuthors,
+                artifact.current_revision.author_kind === "human",
+              )
+            : null;
+        // A proposal that renames the work is named, so it's clear which
+        // version is proposed while the saved one keeps its own title.
+        const proposedTitle = (proposed as { title?: string } | null)?.title;
+        const proposedName =
+          proposedTitle && proposedTitle !== (saved as { title?: string }).title
+            ? readableTitle(proposedTitle)
+            : null;
         return (
           <section
             key={p.id}
@@ -460,10 +488,13 @@ export function FlexibleEditor({
                 conversation.
               </p>
             ) : null}
-            <p className="small">{p.reason}</p>
-            {proposed &&
-            flexibleKind(proposed) === "structured_table" &&
-            kind === "structured_table" ? (
+            {proposedName ? (
+              <p className="proposal-name" data-testid="proposal-name">
+                Proposed: <strong>{proposedName}</strong>
+              </p>
+            ) : null}
+            {p.reason ? <p className="small">{p.reason}</p> : null}
+            {tableProposal ? (
               <>
                 <p className="decision-question" data-testid="proposal-changes">
                   {changeSummary(
@@ -473,7 +504,7 @@ export function FlexibleEditor({
                     ),
                   )}
                 </p>
-                {outdated ? null : (
+                {outdated || cellCount > 3 ? null : (
                   <TableProposalCells
                     saved={saved as StructuredTable}
                     proposed={proposed as StructuredTable}
@@ -482,17 +513,7 @@ export function FlexibleEditor({
                 )}
               </>
             ) : null}
-            {proposed &&
-            !outdated &&
-            flexibleKind(proposed) === "document" &&
-            kind === "document" ? (
-              <DocumentProposal
-                saved={saved as DocumentBody}
-                proposed={proposed as DocumentBody}
-                savedAuthors={savedNoteAuthors}
-                yours={artifact.current_revision.author_kind === "human"}
-              />
-            ) : null}
+            {docParts?.summary}
             {proposed &&
             flexibleKind(proposed) === "custom_view" &&
             kind === "custom_view" ? (
@@ -501,20 +522,8 @@ export function FlexibleEditor({
                 proposed={proposed as CustomView}
                 bound={bound}
               />
-            ) : proposed ? (
-              <details className="ids-details">
-                <summary>See the proposed version</summary>
-                <ReadOnly
-                  body={proposed}
-                  authors={proposedNoteAuthors(
-                    saved,
-                    proposed,
-                    savedNoteAuthors,
-                  )}
-                />
-              </details>
             ) : null}
-            <div className="row">
+            <div className="row proposal-decision">
               {outdated ? null : (
                 <button
                   className="btn btn-on-soft"
@@ -549,6 +558,34 @@ export function FlexibleEditor({
             </div>
             {!outdated && dirty ? (
               <p className="small">Save or discard your changes first.</p>
+            ) : null}
+            {docParts?.diff || (tableProposal && !outdated && cellCount > 3) ? (
+              // The full comparison is a step away, so the decision above
+              // stays in reach however much changed.
+              <details className="ids-details" data-testid="proposal-compare">
+                <summary>Compare in full</summary>
+                {docParts?.diff}
+                {tableProposal && !outdated && cellCount > 3 ? (
+                  <TableProposalCells
+                    saved={saved as StructuredTable}
+                    proposed={proposed as StructuredTable}
+                    authors={savedCellAuthors}
+                  />
+                ) : null}
+              </details>
+            ) : null}
+            {proposed && flexibleKind(proposed) !== "custom_view" ? (
+              <details className="ids-details">
+                <summary>See the proposed version</summary>
+                <ReadOnly
+                  body={proposed}
+                  authors={proposedNoteAuthors(
+                    saved,
+                    proposed,
+                    savedNoteAuthors,
+                  )}
+                />
+              </details>
             ) : null}
           </section>
         );
@@ -1353,17 +1390,17 @@ export function TableProposalCells({
  * exactly: what it adds and what it takes out, beside each other. When the
  * saved version is the person's own, it says that applying it replaces it.
  */
-function DocumentProposal({
-  saved,
-  proposed,
-  savedAuthors,
-  yours,
-}: {
-  saved: DocumentBody;
-  proposed: DocumentBody;
-  savedAuthors: NoteAuthors;
-  yours: boolean;
-}) {
+/**
+ * A proposed document against the saved one: a one-line summary (and when it
+ * replaces the person's own edit) for the decision, and the full comparison
+ * for whoever wants it, kept apart so the decision stays near the top.
+ */
+function documentProposalParts(
+  saved: DocumentBody,
+  proposed: DocumentBody,
+  savedAuthors: NoteAuthors,
+  yours: boolean,
+): { summary: React.ReactNode; diff: React.ReactNode | null } {
   const ops = diffBlocks(
     viewBlocks(saved.blocks, savedAuthors),
     viewBlocks(
@@ -1374,41 +1411,49 @@ function DocumentProposal({
   const { added, removed } = countChanges(ops);
   const titleChanged = saved.title !== proposed.title;
   if (!added && !removed && !titleChanged)
-    return (
-      <p className="small muted" data-testid="proposal-changes">
-        It reads the same as your saved version.
-      </p>
-    );
-  const parts = (n: number) => `${n} part${n === 1 ? "" : "s"}`;
-  return (
-    <div className="stack-sm" data-testid="proposal-doc-changes">
-      <p className="decision-question" data-testid="proposal-changes">
-        {[
-          titleChanged ? `renames it “${readableTitle(proposed.title)}”` : "",
-          added ? `adds or rewrites ${parts(added)}` : "",
-          removed ? `takes out or replaces ${parts(removed)}` : "",
-        ]
-          .filter(Boolean)
-          .join("; ")
-          .replace(/^./, (c) => c.toUpperCase())}
-        .
-      </p>
-      {yours && removed ? (
-        <p className="small" data-testid="proposal-replaces-yours">
-          Your saved version is your own edit. Applying this replaces the parts
-          marked as only in your version.
+    return {
+      summary: (
+        <p className="small muted" data-testid="proposal-changes">
+          It reads the same as your saved version.
         </p>
-      ) : null}
-      <DocDiff
-        ops={ops}
-        labels={{
-          added: "Only in the proposal",
-          removed: "Only in your saved version",
-          tone: "compare",
-        }}
-      />
-    </div>
-  );
+      ),
+      diff: null,
+    };
+  const parts = (n: number) => `${n} part${n === 1 ? "" : "s"}`;
+  return {
+    summary: (
+      <div className="stack-sm" data-testid="proposal-doc-changes">
+        <p className="decision-question" data-testid="proposal-changes">
+          {[
+            titleChanged ? `renames it “${readableTitle(proposed.title)}”` : "",
+            added ? `adds or rewrites ${parts(added)}` : "",
+            removed ? `takes out or replaces ${parts(removed)}` : "",
+          ]
+            .filter(Boolean)
+            .join("; ")
+            .replace(/^./, (c) => c.toUpperCase())}
+          .
+        </p>
+        {yours && removed ? (
+          <p className="small" data-testid="proposal-replaces-yours">
+            Your saved version is your own edit. Applying this replaces the
+            parts marked as only in your version.
+          </p>
+        ) : null}
+      </div>
+    ),
+    diff:
+      added || removed ? (
+        <DocDiff
+          ops={ops}
+          labels={{
+            added: "Only in the proposal",
+            removed: "Only in your saved version",
+            tone: "compare",
+          }}
+        />
+      ) : null,
+  };
 }
 
 /**

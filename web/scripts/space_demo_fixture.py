@@ -323,7 +323,7 @@ findings_first = exact(findings_id)
 s.human_save(p, ws, findings_id, cmd(HumanSave, expected_current_revision_id=findings_first['revision_id'],
                                      body=FINDINGS_EDITED))
 findings_target = exact(findings_id)
-FINDINGS_PROPOSED = {**FINDINGS_EDITED, 'blocks': [
+FINDINGS_PROPOSED = {**FINDINGS_EDITED, 'title': 'Findings so far: the 10-day option', 'blocks': [
     b if b['block_id'] != 'b2' else
     {**b, 'text': 'Lark & Co can deliver in 6 days; Northprint says 10 days is possible for EUR 40 more.'}
     for b in FINDINGS_EDITED['blocks']] + [para(6, 'Decide by Friday so printing can start on Monday.',
