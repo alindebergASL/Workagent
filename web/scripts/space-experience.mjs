@@ -2039,17 +2039,28 @@ try {
     const rows = tab.locator(".work-row[data-artifact]");
     await tab.goto(homeURL);
     await expect(rows.first()).toBeAttached({ timeout: 15000 });
+    // Home is one agent's view: work from another space is here too, and
+    // opens in its own space.
+    const kitRow = tab.locator(
+      `.work-row[data-artifact="${ids.kit.loans_id}"]`,
+    );
+    await expect(kitRow).toBeAttached({ timeout: 15000 });
+    await expect(kitRow).toHaveAttribute(
+      "href",
+      new RegExp(`workspace=${ids.kit.workspace}`),
+    );
+    await expect(tab.getByTestId("home-unreadable")).toHaveCount(0);
     await expect
       .poll(() =>
-        tab.evaluate((k) => localStorage.getItem(k), `workagent:seen:${ws}`),
+        tab.evaluate((k) => localStorage.getItem(k), "workagent:seen:home"),
       )
       .not.toBeNull();
     await expect(since).toHaveCount(0);
 
-    await tab.evaluate((ws) => {
-      localStorage.setItem(`workagent:seen:${ws}`, "2000-01-01T00:00:00Z");
+    await tab.evaluate(() => {
+      localStorage.setItem("workagent:seen:home", "2000-01-01T00:00:00Z");
       sessionStorage.clear();
-    }, ws);
+    });
     await tab.reload();
     await expect(since).toBeVisible({ timeout: 15000 });
     const entries = await since.locator("li").evaluateAll((lis) =>

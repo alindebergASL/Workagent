@@ -15,7 +15,10 @@ vi.mock("../src/lib/client/products", () => ({
   isProduct: (b: { kind?: string }) => "kind" in b,
 }));
 
-import { loadConversationWork } from "../src/lib/client/conversation-work";
+import {
+  loadConversationWork,
+  loadHomeWork,
+} from "../src/lib/client/conversation-work";
 
 const hidden = () =>
   new ApiError({
@@ -120,5 +123,53 @@ describe("conversation-owned work on Home and Spaces", () => {
       new ApiError({ code: "transport", status: 0, message: "Down." }),
     );
     await expect(loadConversationWork("w")).rejects.toThrow("Down.");
+  });
+});
+
+describe("Home's work across every workspace", () => {
+  const down = () =>
+    new ApiError({ code: "transport", status: 0, message: "Down." });
+  beforeEach(() => {
+    // Each workspace's artifacts belong to it.
+    const own = prod.get.getMockImplementation()!;
+    prod.get.mockImplementation(async (ws: string, aid: string) => ({
+      ...(await own(ws, aid)),
+      workspace_id: ws,
+    }));
+  });
+
+  it("joins the work of each workspace, each keeping its own, decisions first", async () => {
+    const home = await loadHomeWork(["w", "v"]);
+    expect(home.unreadable).toBe(0);
+    expect(home.items.map((r) => `${r.workspace_id}:${r.artifact_id}`)).toEqual(
+      expect.arrayContaining([
+        "w:a-fresh",
+        "v:a-fresh",
+        "w:a-plain",
+        "v:a-plain",
+      ]),
+    );
+    expect(home.items.slice(0, 2).every((r) => r.decision?.fresh)).toBe(true);
+    expect(home.items.at(-1)!.decision).toBeNull();
+  });
+
+  it("leaves out a workspace the person can't see; counts one that can't be read", async () => {
+    const list = conv.list.getMockImplementation();
+    conv.list.mockImplementation(async (ws: string) => {
+      if (ws === "hidden") throw hidden();
+      if (ws === "down") throw down();
+      return list!(ws);
+    });
+    const home = await loadHomeWork(["w", "hidden", "down"]);
+    expect(home.unreadable).toBe(1);
+    expect(new Set(home.items.map((r) => r.workspace_id))).toEqual(
+      new Set(["w"]),
+    );
+  });
+
+  it("fails as a whole only when no workspace can be read", async () => {
+    conv.list.mockRejectedValue(down());
+    await expect(loadHomeWork(["w", "v"])).rejects.toThrow("Down.");
+    expect(await loadHomeWork([])).toEqual({ items: [], unreadable: 0 });
   });
 });

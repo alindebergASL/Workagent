@@ -117,17 +117,62 @@ export async function loadConversationWork(
       seen.add(key);
       return true;
     })
-    .sort((a, b) => {
-      // Decisions you can act on first, then everything newest first.
-      const rank = (w: ConversationWork) =>
-        w.decision?.fresh ? 0 : w.decision ? 1 : 2;
-      return (
-        rank(a) - rank(b) ||
-        (b.decision?.created_at ?? b.updated_at).localeCompare(
-          a.decision?.created_at ?? a.updated_at,
-        )
-      );
-    });
+    .sort(byAttention);
+}
+
+/** Decisions you can act on first, then everything newest first. */
+function byAttention(a: ConversationWork, b: ConversationWork): number {
+  const rank = (w: ConversationWork) =>
+    w.decision?.fresh ? 0 : w.decision ? 1 : 2;
+  return (
+    rank(a) - rank(b) ||
+    (b.decision?.created_at ?? b.updated_at).localeCompare(
+      a.decision?.created_at ?? a.updated_at,
+    )
+  );
+}
+
+/** Home's work across every workspace the person can open. */
+export interface HomeWork {
+  items: ConversationWork[];
+  /** Workspaces whose work couldn't be read just now; never shown as empty. */
+  unreadable: number;
+}
+
+/**
+ * The work conversations own in each workspace the server lists for this
+ * person, as one list: Home is one agent's view, not one workspace's. Each
+ * item keeps its own workspace, so its links open it there. A workspace the
+ * caller can't see is left out; one that can't be read is counted, so the
+ * page can say so, and only when none can be read does the whole read fail.
+ */
+export async function loadHomeWork(
+  workspaceIds: string[],
+  signal?: AbortSignal,
+): Promise<HomeWork> {
+  const reads = await Promise.allSettled(
+    workspaceIds.map((ws) => loadConversationWork(ws, signal)),
+  );
+  const items: ConversationWork[] = [];
+  const failures: unknown[] = [];
+  for (const r of reads) {
+    if (r.status === "fulfilled") items.push(...r.value);
+    else if (!hidden(r.reason)) failures.push(r.reason);
+  }
+  if (failures.length && failures.length === workspaceIds.length)
+    throw failures[0];
+  return { items: items.sort(byAttention), unreadable: failures.length };
+}
+
+export function useHomeWork(workspaceIds: string[]): Resource<HomeWork> {
+  const ids = [...new Set(workspaceIds)].sort();
+  return useResource<HomeWork>(
+    ids.length && CAPABILITIES.conversation
+      ? `home-work:${ids.join(",")}`
+      : null,
+    (signal) => loadHomeWork(ids, signal),
+    { pollMs: 15000, shouldPoll: () => true },
+  );
 }
 
 export function useConversationWork(

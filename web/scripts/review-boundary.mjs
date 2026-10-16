@@ -56,7 +56,7 @@ const mocks = {
   "@/lib/client/overview":
     "export const useWorkOverview=()=>({data:[window.item],loading:false});",
   "@/lib/client/conversation-work":
-    "export const useConversationWork=()=>({data:[]});",
+    "export const useConversationWork=()=>({data:[]});export const useHomeWork=()=>({data:{items:[],unreadable:0}});",
   "@/components/Composer": "export const Composer=()=>null;",
   "@/components/ConversationWorkRow":
     "export const ConversationWorkRow=()=>null;",
