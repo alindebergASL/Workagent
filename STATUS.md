@@ -14,21 +14,25 @@ owner f1838a1, including work facets, plain capability labels and decision-first
 proposal review. Hermes owns backend/runtime/integration; existing Claude Cloud
 session owns web. No replacement owner, default merge or production replacement.
 
-Uncommitted runtime-resilience candidate identity:
-14bf0d19241dbdea66e2eede1cacea039a932574917a6608ca712e7dd27c6a6f.
-Installed grant10 still pins the prior reviewed runtime:
-5104a3bbfa7d7e3d54d746ec9c5a05c2526c9787b3f0a1d6dd1aca2da27f300a.
-Do not run paid work against incompatible authority. Runtime identity excludes
-docs/frontend-only commits; it is evidence, not authority.
+Published backend resilience commit64cf6d4 (atop d802155 inspect_json, d60b8e0
+aggregation/diagnostics) with runtime identity
+14bf0d19241dbdea66e2eede1cacea039a932574917a6608ca712e7dd27c6a6f; local
+merge05064b7 integrates sole web owner f1838a1 (work facets, plain capability
+labels, decision-first proposal review). Hermes owns backend/runtime/integration;
+existing Claude Cloud session owns web. No replacement owner, default merge or
+production replacement.
+
+Installed grant11 workagent-alpha-dev-20261015-11 (zero-additional-capacity
+successor) pins commit64cf6d4 runtime identity above; grant10 is retired.
 
 Supported launcher: scripts/dev_service.py build/install/start/stop/restart/status.
-Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152 is active;
-API8152 and worker are temporarily stopped for exact-candidate verification and
-compatible authority. The API was consuming43% of one CPU in a sampled idle period
-with old review tabs open; performance is not resolved by pausing it for tests.
+Private config: /home/ubuntu/workagent-private-alpha/service.json. Web3152, API8152
+and worker are ACTIVE under grant11 (started 2026-10-16 04:01 UTC; worker MainPID
+2147334). Post-fix idle observation: worker ~4% CPU (was ~43% pre-fix), zero
+error/backoff/lock lines in journal, no idle crash. Execution truthfully reports
+blocked/can_advance=false because grant11 carries zero inference headroom.
 Retained DB47b87fe3b82e/private worker state remain intact. Earlier3151/8151 data
-and evidence remain; scheduled preview retirement is not deletion. Review waits
-are not a reason to stop the service; this is runtime-maintenance gating.
+and evidence remain; scheduled preview retirement is not deletion.
 
 ## Authority and accounting
 
@@ -40,12 +44,14 @@ Latest canonical shared ledger:91 generations/95 counts/509 reads/0 cancels,
 $15.434640 reserved including $3.429920 carry. These are reservations, NOT billing.
 Historical records/events are unchanged; failed and unknown liabilities remain.
 
-Prepared, NOT INSTALLED: operational successor11 for the new runtime, with ZERO
-additional spending or provider-operation capacity. Its cumulative caps equal
-already-consumed totals; it retains all prior encumbrance, scopes and bindings.
-It can support service/review operation, not another live evaluation. A typed
-request may be retained and canonically budget-blocked; that is not inference
-capacity. Controlled PostgreSQL test proves no count/generation/read occurs.
+Prepared and INSTALLED (2026-10-16 ~04:00 UTC): operational successor11 for the
+new runtime, with ZERO additional spending or provider-operation capacity. Its
+cumulative caps equal already-consumed totals; it retains all prior encumbrance,
+scopes and bindings (new encumbrance $0; aggregate $39.919920; unactivated
+$0.080080; read-only preflight iteration6-zero-preflight.json). It supports
+service/review operation, not another live evaluation. A typed request may be
+retained and canonically budget-blocked; that is not inference capacity.
+Controlled PostgreSQL test proves no count/generation/read occurs.
 No new paid evaluation fits the remaining unactivated allowance under the present
 bounded request policy. Provider-free implementation/integration can continue.
 
@@ -146,11 +152,14 @@ the private test env explicitly; foreground shell exports did not carry into the
 
 ## Next permitted work / gates
 
-1. Resolve current regression failures without weakening production lease/I/O
-   margins or treating partial dots as PASS; verify exact collection/code hashes.
-2. Publish reviewed runtime changes and install/read back zero-additional-capacity
-   successor11 only after those gates. Restart via supported launcher; verify
-   stable service PID, truthful no-capacity readiness, unchanged ledger/human work.
+1. ~~Resolve current regression failures~~ DONE: final 217-pass/0-fail run on a
+   fresh isolated DB (iteration6-resilience-final2.xml); companion 281-pass and
+   4-pass timing runs; exact collection and hashes verified
+   (iteration6-resilience-verification.json). Production lease/HTTP margins
+   unchanged; earlier failed XMLs retained as evidence.
+2. ~~Publish and install successor11~~ DONE: commit64cf6d4 pushed to
+   hermes/overnight-intelligent-work; grant11 installed and services restarted;
+   idle stability observed (~4% CPU, zero error lines). PR #9 comment 6207866127.
 3. Continue provider-free latency/HTTP admission investigation and broader reusable
    tooling. New paid usefulness checks need adequate reconciled authority; no
    recycling frozen requests, old allocations or billable uncertainty.
