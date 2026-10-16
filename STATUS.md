@@ -5,7 +5,7 @@ extensible tools/skills, scoped memory, continuity, authorized initiative, optio
 Spaces and Intelligent UI mission remains. No parity or user-acceptance claim.
 Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
-## Current operating checkpoint — October16,22:24UTC
+## Current operating checkpoint — October16,22:42UTC
 
 Application candidate `41a373965fd6aed6fdd6d55599a265515017cd9e` is published and
 served from a separate frozen directory. Sole integration owner: current attended
@@ -13,15 +13,29 @@ CLI session; Claude remains sole web owner. The failed dispatcher card remains
 blocked, its two unknown admissions preserved and compute interpreters gone.
 No automatic restart or duplicate owner was admitted.
 
-API/web/worker started21:36:28UTC; build `S3q1X0z3unkcQp8UaAsyV`. Installed grant
-`workagent-alpha-recovery-20261016-01` is compatible and unchanged. Cumulative
-authority$50; at22:09UTC allocated$43.086/unactivated$6.914; shared reservations
-$15.43464 including carry$3.42992,2unknown usage steps. Not billing.
+API started22:32:59UTC, web22:33:29UTC, worker22:39:10UTC after deliberate
+interruption/reopen checks; same build `S3q1X0z3unkcQp8UaAsyV` and frozen41a3739.
+Installed grant `workagent-alpha-recovery-20261016-01` is compatible and unchanged.
+At22:41UTC all services active, worker idle/can_advance=true. Cumulative authority
+$50; allocated$43.086/unactivated$6.914; shared reservations$16.88576 including
+carry$3.42992. Original2unknown usage steps retained; not billed spend.
+Six live requests used11generation slots;13generations/13counts/214reads and
+4run slots remain under the SAME allowance. No installed/duplicated/enlarged grant.
 
 Scoped backend1+94+168 and activation2 PASS are reused matching-runtime evidence,
 not a full suite. Combined frontend308/lint/types/format/contracts/webpack PASS.
-Local ordinary-product evaluation has begun under existing allowance; usefulness,
-latency, phone and authenticated external review remain unaccepted.
+Fresh ordinary-product journey: useful text110words, shorter45words, editable
+supply table, human correction, proposed3-value revision, explicit acceptance and
+reopen after restart verified with no duplicate effects. An unavailable-web
+obstacle produced an honest safe alternative. One separate checklist request failed
+schema validation and remains held; no retry. Browser/server timings and retained
+failures are [published](docs/evidence/LIVE_REVIEW_20261016.json).
+Actual desktop/390px phone captures are [here](docs/evidence/review-20261016/).
+SSH-authenticated [review access](docs/REVIEW_ACCESS_20261016.md) is host-side
+verified; user-device connection and physical-phone check remain unverified.
+Bounded review-ready, NOT a general-alpha PASS:113–119s poll gaps, backend
+in-flight/unknown status misclassification and malformed-turn liveness remain.
+Attended owner only; no unattended development continuation is claimed.
 
 Current handoff: [RECOVERY_DELIVERY_20261016](docs/RECOVERY_DELIVERY_20261016.md).
 Sanitized report hashes/results: [evidence](docs/evidence/RECOVERY_CHECKPOINT_20261016.json).

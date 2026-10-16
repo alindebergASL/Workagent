@@ -1,0 +1,287 @@
+{
+  "candidate": "41a373965fd6aed6fdd6d55599a265515017cd9e",
+  "model": "gpt-6.1-sol",
+  "evidence_kind": "actual live ordinary-browser product use on synthetic data; no scripted provider output",
+  "measured_runs": [
+    {
+      "name": "simple",
+      "run_id": "007db18a-c2d6-40d5-a90d-9427dbe67c30",
+      "attempt_id": "5a0ba690-3421-4820-8762-79d4d3573e83",
+      "state": "ready",
+      "submitted_server": "2026-10-16T22:22:07.046461Z",
+      "reply_server": "2026-10-16T22:24:19.689567Z",
+      "completion_s": 132.643,
+      "reply_words": 110,
+      "admission_to_first_count_s": 2.57,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 1.902,
+          "dispatch_to_identity_s": 1.027,
+          "identity_to_observed_result_s": 119.586,
+          "max_read_gap_s": 113.021,
+          "read_count": 3,
+          "dispatch_count": 1,
+          "result_state": "function_call"
+        },
+        {
+          "phase": "final",
+          "count_roundtrip_s": 0.419,
+          "dispatch_to_identity_s": 0.64,
+          "identity_to_observed_result_s": 5.512,
+          "max_read_gap_s": 4.951,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "completed"
+        }
+      ],
+      "browser_ack_s": 0.148,
+      "browser_first_useful_s": 133.65,
+      "browser_delivery_after_persist_s": 0.942,
+      "browser_capture_complete": true
+    },
+    {
+      "name": "shorter",
+      "run_id": "b12598b5-a5a1-464d-958f-18728b79ab56",
+      "attempt_id": "e530ebbc-b26a-41ce-a571-6e134b93371b",
+      "state": "ready",
+      "submitted_server": "2026-10-16T22:25:24.008919Z",
+      "reply_server": "2026-10-16T22:27:35.336690Z",
+      "completion_s": 131.328,
+      "reply_words": 45,
+      "admission_to_first_count_s": 2.189,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 0.78,
+          "dispatch_to_identity_s": 0.943,
+          "identity_to_observed_result_s": 4.264,
+          "max_read_gap_s": 3.504,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "function_call"
+        },
+        {
+          "phase": "final",
+          "count_roundtrip_s": 0.492,
+          "dispatch_to_identity_s": 5.159,
+          "identity_to_observed_result_s": 116.044,
+          "max_read_gap_s": 115.357,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "completed"
+        }
+      ],
+      "browser_ack_s": 3.991,
+      "browser_first_useful_s": null,
+      "browser_delivery_after_persist_s": null,
+      "browser_capture_complete": false
+    },
+    {
+      "name": "checklist_failed",
+      "run_id": "2aefb283-66cb-4fc3-a3b9-eb67ae756803",
+      "attempt_id": "240e3c4f-758e-4829-b50e-a21a3061abd3",
+      "state": "running",
+      "submitted_server": "2026-10-16T22:26:43.949485Z",
+      "reply_server": null,
+      "completion_s": null,
+      "reply_words": null,
+      "admission_to_first_count_s": 14.509,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 0.62,
+          "dispatch_to_identity_s": 1.246,
+          "identity_to_observed_result_s": 121.166,
+          "max_read_gap_s": 112.682,
+          "read_count": 3,
+          "dispatch_count": 1,
+          "result_state": "malformed"
+        }
+      ],
+      "browser_ack_s": 6.333,
+      "browser_first_useful_s": null,
+      "browser_delivery_after_persist_s": null,
+      "browser_capture_complete": false
+    },
+    {
+      "name": "supplies",
+      "run_id": "c1792f5c-6a2c-45e8-8956-047626ade2b4",
+      "attempt_id": "5a60a10f-1857-4c82-b98c-d765d760b8a9",
+      "state": "partial",
+      "submitted_server": "2026-10-16T22:31:13.213435Z",
+      "reply_server": "2026-10-16T22:33:32.002439Z",
+      "completion_s": 138.789,
+      "reply_words": 95,
+      "admission_to_first_count_s": 3.906,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 1.018,
+          "dispatch_to_identity_s": 1.198,
+          "identity_to_observed_result_s": 119.883,
+          "max_read_gap_s": 114.645,
+          "read_count": 3,
+          "dispatch_count": 1,
+          "result_state": "function_call"
+        },
+        {
+          "phase": "final",
+          "count_roundtrip_s": 0.639,
+          "dispatch_to_identity_s": 1.186,
+          "identity_to_observed_result_s": 9.374,
+          "max_read_gap_s": 4.8,
+          "read_count": 3,
+          "dispatch_count": 1,
+          "result_state": "completed"
+        }
+      ],
+      "browser_ack_s": 6.057,
+      "browser_first_useful_s": 145.506,
+      "browser_delivery_after_persist_s": 2.666,
+      "browser_capture_complete": true
+    },
+    {
+      "name": "revision",
+      "run_id": "f3d14014-8fad-433a-9bd1-79347682fecd",
+      "attempt_id": "deb83838-1dc1-4dc3-95bb-af20cdc6dfef",
+      "state": "partial",
+      "submitted_server": "2026-10-16T22:35:08.823302Z",
+      "reply_server": "2026-10-16T22:37:29.721176Z",
+      "completion_s": 140.898,
+      "reply_words": 147,
+      "admission_to_first_count_s": 7.815,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 0.766,
+          "dispatch_to_identity_s": 0.755,
+          "identity_to_observed_result_s": 119.924,
+          "max_read_gap_s": 119.065,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "function_call"
+        },
+        {
+          "phase": "final",
+          "count_roundtrip_s": 0.86,
+          "dispatch_to_identity_s": 0.971,
+          "identity_to_observed_result_s": 8.476,
+          "max_read_gap_s": 7.316,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "completed"
+        }
+      ],
+      "browser_ack_s": 0.297,
+      "browser_first_useful_s": 142.511,
+      "browser_delivery_after_persist_s": 1.562,
+      "browser_capture_complete": true
+    },
+    {
+      "name": "obstacle",
+      "run_id": "aae5e06b-0304-4ec8-b720-6c6730e94b79",
+      "attempt_id": "523f1c5e-23f3-4a6e-b59f-3d07354cdc4f",
+      "state": "ready",
+      "submitted_server": "2026-10-16T22:37:41.327321Z",
+      "reply_server": "2026-10-16T22:38:10.172997Z",
+      "completion_s": 28.846,
+      "reply_words": 144,
+      "admission_to_first_count_s": 1.667,
+      "phases": [
+        {
+          "phase": "selection",
+          "count_roundtrip_s": 0.57,
+          "dispatch_to_identity_s": 1.131,
+          "identity_to_observed_result_s": 11.434,
+          "max_read_gap_s": 5.097,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "function_call"
+        },
+        {
+          "phase": "final",
+          "count_roundtrip_s": 0.545,
+          "dispatch_to_identity_s": 0.799,
+          "identity_to_observed_result_s": 7.831,
+          "max_read_gap_s": 7.237,
+          "read_count": 2,
+          "dispatch_count": 1,
+          "result_state": "completed"
+        }
+      ],
+      "browser_ack_s": 0.28,
+      "browser_first_useful_s": 30.432,
+      "browser_delivery_after_persist_s": 1.498,
+      "browser_capture_complete": true
+    }
+  ],
+  "methodology": [
+    "Browser wall-clock mutation timestamps; canonical DB messages and durable response events. Expected answers are evaluator-only, not attached to model.",
+    "Admission-to-first-count combines queue/lease/preflight/DB; individual SQL cost not instrumented. Snapshot reads were0.039–0.264s but are NOT total database work.",
+    "Count and identity intervals measure transport plus commit overhead; identity-to-result includes provider execution AND local status-poll gaps. Provider actual completion within a polling gap is unknown.",
+    "The long113–119s no-poll gaps align with lease expiry; do not attribute entire elapsed time to provider or infer exact provider-only latency.",
+    "Shorter browser capture ended before completion; server131.328s verified, final browser latency NOT MEASURED.",
+    "Intentional restart during known-ID wait used dev_service restart --component worker; launcher ignores component for restart and restarted the whole target. API/worker22:32:59,web22:33:29. Later worker-only restart used systemctl22:39:10."
+  ],
+  "checks": {
+    "shortening_words": [
+      110,
+      45
+    ],
+    "shortening_reduction_pct": 59.1,
+    "shorter_two_sentences_essentials_retained": true,
+    "original_shortages": [
+      5,
+      0,
+      6,
+      1
+    ],
+    "accepted_shortages": [
+      13,
+      3,
+      6,
+      1
+    ],
+    "saved_human_gloves": 12,
+    "human_sentence_preserved": "Non-negotiable: do not place any order before the coordinator approves it.",
+    "pre_acceptance_current_revision": "eb94133a-fb10-4ad2-b45c-37c2bf62ffdb",
+    "accepted_proposal": "a92bd2ff-1c7a-4878-abdd-e098d02e6901",
+    "accepted_revision": "e54e9d74-43d3-4b45-98ab-5a192a00f6ef",
+    "artifact_count": 1,
+    "revision_count": 3,
+    "proposal_count": 1,
+    "post_acceptance_restart_added_provider_operations": 0,
+    "post_acceptance_restart_changed_revisions": false,
+    "per_phase_dispatch_at_most_once": true,
+    "unrelated_progress_beside_held_request": true
+  },
+  "retained_failures": [
+    {
+      "run": "2aefb283-66cb-4fc3-a3b9-eb67ae756803",
+      "issue": "selection schema_validation_failed; no artifact; retained run still running-shaped but malformed-terminal UI blocks followup",
+      "new_followup_admission": "refused action_unresolved; no provider call; draft retained",
+      "no_retry": true
+    },
+    "Transient stopped/uncertain warning appeared during successful in-flight turns. Claude comment6225920341 traced it to responses_ledger.observations mapping dispatch-without-identity to outcome_unknown/count_send-without-result to count_unknown, and execution_status.classify mapping these to blocked. Attended owner verified these exact source paths. Backend projection issue, not a frontend workaround; not fixed in this bound candidate."
+  ],
+  "obstacle_scope": "No web capability available; agent honestly declined verification and chose manual-evidence comparison steps. This is a capability obstacle, NOT an actual network fetch failure or public-source retrieval proof.",
+  "accounting": {
+    "cumulative_authorization_usd": "50",
+    "allocated_encumbered_usd": "43.086000",
+    "unactivated_usd": "6.914000",
+    "shared_reserved_usd": "16.88576",
+    "increment_reserved_usd": "1.45112",
+    "unknown_usage_steps": 2,
+    "remaining_generation_slots": 13,
+    "remaining_count_slots": 13,
+    "remaining_read_slots": 214,
+    "remaining_run_slots": 4,
+    "not_billing": true
+  },
+  "verdicts": {
+    "engineering": "scoped deterministic gates PASS; live safety/recovery path verified; known malformed-response liveness and latency issues remain",
+    "usefulness": "bounded answer/correction/table/proposal/acceptance/reopen journey PASS with1retainedfailedrequest; general breadth NOT proven",
+    "experience_access": "actual desktop and390px phone inspected; SSH route host-side verified; user-device connection andphysicalphone NOT verified"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "candidate": "41a373965fd6aed6fdd6d55599a265515017cd9e",
+  "screenshots": [
+    {
+      "file": "desktop-proposal.png",
+      "sha256": "d02a1901002c2715712b442f38bdfcbe889e30f69e8ccbb765db7ae8f3d4b449",
+      "source": "actual tested Chromium app capture; synthetic evaluation data; not design concept"
+    },
+    {
+      "file": "phone-accepted-table.png",
+      "sha256": "2239bbe1df911d452e7012ac2bcd1b749b17311502a70609245bd3aaed08f662",
+      "source": "actual tested Chromium app capture; synthetic evaluation data; not design concept"
+    },
+    {
+      "file": "phone-concision.png",
+      "sha256": "e6c81bcd4ce183a3c0060c24935a742bbaf025110508cfea438ecb71c183168c",
+      "source": "actual tested Chromium app capture; synthetic evaluation data; not design concept"
+    }
+  ],
+  "desktop_viewport": [
+    1440,
+    957
+  ],
+  "phone_viewport": [
+    390,
+    844
+  ],
+  "physical_phone_tested": false
+}
