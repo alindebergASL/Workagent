@@ -407,6 +407,72 @@
   {
     "availability": "available",
     "effects": [
+      "read_context"
+    ],
+    "handler": "inspect_json",
+    "input_schema": {
+      "$defs": {
+        "AttachmentRef": {
+          "additionalProperties": false,
+          "properties": {
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "$ref": "#/$defs/AttachmentRef"
+        },
+        "kind": {
+          "const": "inspect_json",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "description": "Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.",
+          "items": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "path"
+      ],
+      "title": "InspectJSON",
+      "type": "object"
+    },
+    "name": "inspect_json",
+    "reason": "Preserves decimal text; rejects duplicates. Local inspection only, never code execution or a live service check.",
+    "scope": "Exact current-turn .json attachment and literal path; at most 16384 UTF-8 output bytes",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
       "append_answer"
     ],
     "handler": "reply",

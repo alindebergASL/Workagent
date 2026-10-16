@@ -244,6 +244,20 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** InspectJSON */
+        InspectJSON: {
+            attachment: components["schemas"]["AttachmentRef"];
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "inspect_json";
+            /**
+             * Path
+             * @description Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.
+             */
+            path: string[];
+        };
         /** LoadSkill */
         LoadSkill: {
             /**
@@ -416,7 +430,7 @@ export interface components {
         /** AlphaDecision */
         AlphaDecision: {
             /** Decision */
-            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["SearchWorkContext"] | components["schemas"]["RecordResponsibility"];
+            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["SearchWorkContext"] | components["schemas"]["InspectJSON"] | components["schemas"]["RecordResponsibility"];
             /** Goal */
             goal: string;
             /** Success Criteria */

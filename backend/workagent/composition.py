@@ -2,9 +2,9 @@
 
 No loop, credential discovery, authorization cache or executable plugin loading.
 """
-from typing import Literal
+from typing import Annotated, Literal
 from pydantic import Field, AwareDatetime, field_validator
-from .general_schema import Closed, Reply, CSVDecision, WasmDecision, PublishDecision, DecisionTarget
+from .general_schema import Closed, Reply, CSVDecision, WasmDecision, PublishDecision, DecisionTarget, AttachmentRef
 from .model_base import Id, Hash, Model, Text
 from .responsibility_models import ResponsibilityPlan, ResponsibilityDependency, ResponsibilityWait
 
@@ -45,7 +45,14 @@ class SearchWorkContext(ReadDecision):
     limit: int = Field(ge=1,le=6)
 
 
-READ_DECISIONS=(DiscoverCapabilities,LoadSkill,ReadContext,ReadSavedWork,SearchWorkContext)
+class InspectJSON(ReadDecision):
+    kind: Literal['inspect_json']
+    attachment: AttachmentRef
+    path: list[Annotated[str,Field(max_length=128)]] = Field(max_length=12,
+        description='Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.')
+
+
+READ_DECISIONS=(DiscoverCapabilities,LoadSkill,ReadContext,ReadSavedWork,SearchWorkContext,InspectJSON)
 
 
 class AlphaReply(Reply):
@@ -95,7 +102,7 @@ class RecordResponsibility(Closed, Model):
 class AlphaDecision(Closed):
     goal: str = Field(min_length=1,max_length=2000)
     success_criteria: list[WasmCheck | CSVCheck] = Field(max_length=8)
-    decision: AreaReply | AreaPublish | AlphaReply | CSVDecision | WasmDecision | PublishDecision | AlphaStop | DiscoverCapabilities | LoadSkill | ReadContext | ReadSavedWork | SearchWorkContext | RecordResponsibility
+    decision: AreaReply | AreaPublish | AlphaReply | CSVDecision | WasmDecision | PublishDecision | AlphaStop | DiscoverCapabilities | LoadSkill | ReadContext | ReadSavedWork | SearchWorkContext | InspectJSON | RecordResponsibility
 
 
 class CapabilityDescriptor(Closed):
@@ -138,6 +145,7 @@ def descriptors():
         (ReadContext,'Already authorized current run context only',['read_context'],'read',None),
         (ReadSavedWork,'Exact indexed current revision in the human conversation; bounded complete body',['read_context'],'read_saved_work','No arbitrary IDs; omitted/unread bodies cannot be revised.'),
         (SearchWorkContext,'Frozen index of granted same-owner source-free conversations; current saved revisions and human messages',['read_context'],'search_work_context','Literal-word retrieval; bounded excerpts only, no edit permission or private-account search.'),
+        (InspectJSON,'Exact current-turn .json attachment and literal path; at most 16384 UTF-8 output bytes',['read_context'],'inspect_json','Preserves decimal text; rejects duplicates. Local inspection only, never code execution or a live service check.'),
         (AlphaReply,'Current conversation',['append_answer'],'reply',None),
         (AlphaStop,'Current run only',['append_status'],'stop',None),
         (CSVDecision,'Exact offered attachment or saved target',['local_compute','retain_product_or_proposal'],'product','Invoice schema only; not an arbitrary spreadsheet engine.'),
@@ -185,7 +193,18 @@ def _read(decision,context):
             'target':context.get('target_body'),'attachments':current.get('attachments',[])}[decision.section]}
 
 
-HANDLERS={'discover_capabilities':_discover,'load_skill':_load,'read_context':_read}
+def _inspect_json(decision,context):
+    from .errors import DomainError
+    from .json_inspection import inspect_json
+    current=next(m for m in context['messages'] if m['run_id']==context['run_id'] and m['author_kind']=='human')
+    attachment=next((a for a in current.get('attachments',[]) if a['ref']==decision.attachment.ref
+                     and a['sha256']==decision.attachment.sha256 and a['filename'].endswith('.json')
+                     and a['mime_type']=='text/plain'),None)
+    if attachment is None:raise DomainError('not_found_or_not_authorized')
+    return inspect_json(attachment,decision.path)
+
+
+HANDLERS={'discover_capabilities':_discover,'load_skill':_load,'read_context':_read,'inspect_json':_inspect_json}
 
 
 def execute_read(decision, context):

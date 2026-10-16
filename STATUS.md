@@ -10,9 +10,10 @@ Authority: docs/GENERAL_MODEL_AUTHORIZATION.md. No parity claim.
 Branch hermes/overnight-intelligent-work. Iteration6 is the sole active integrator.
 Older iteration4 explicitly yielded; overlap handoff and retained failed runs:
 /home/ubuntu/workagent-private-alpha/continuation/iteration-4-overlap-handoff.json.
-Published runtime67903fd includes the reservation handoff/context-efficiency fix.
-Bounded09 was installed and exercised. Additional output/diagnostic fix passed281
-selected integrated tests; do not run it against09. Ownerceac131 design assets and
+Published d60b8e0 includes the output/diagnostic fix and281 selected integrated
+tests. The new supplied-JSON capability passed155 integrated tests plus10 review/
+migration probes; fresh compatible authority is still pending. Do not run against09.
+Ownerceac131 design assets and
 verification notes merged; five asset hashes verified, not product screenshots.
 Hermes owns backend/runtime/integration; the existing Claude Cloud
 session exclusively owns web. No default merge or production replacement.
@@ -25,8 +26,8 @@ Retained DB47b87fe3b82e and private worker state preserved. Full stack restart
 preserved canonical revisions and produced no new provider operations.
 Older3151/8151 preview/data/evidence preserved; scheduled retirement is not deletion.
 
-Published runtime identity44c4c401d384f968b0c3dfa6b8633d80978652b6cf3ccf4036f16dc62b8d1850;
-working-tree runtime is awaiting exact final verification and new authority.
+Verified candidate runtime identity5104a3bbfa7d7e3d54d746ec9c5a05c2526c9787b3f0a1d6dd1aca2da27f300a;
+publication and new compatible authority are next.
 Prior runtime identity was unchanged across the frontend-only owner merge. It includes
 Python/migrations/runtime dependencies/canonical schemas, not npm-installed tools,
 illustrative examples, docs or frontend commits. Identity is evidence, not a grant.
@@ -74,6 +75,12 @@ refund. Its event hash also survived restart unchanged.
   never silently upgraded into execution under the new policy.
 - Broader public-source retrieval and working-file/shell tools remain unavailable.
   Adding those capabilities remains permitted implementation work, not a new loop.
+- New inspect_json reads only an exact current human .json attachment through the
+  existing broker. Literal paths, exact decimal JSON text, bounded structure/output;
+  no shell, network or filesystem access. Additive032 independently checks source,
+  selected value/bytes, aliases and scope in PostgreSQL. Errors yield no partial
+  value or completion claim. Optional inspect-structured-evidence guidance composes
+  with existing reply/publication; no-skill, resume and revoked-scope paths tested.
 
 ## Actual live usefulness and browser evidence
 
@@ -174,9 +181,19 @@ hashes verified in iteration6-output-verification.json; not all backend tests or
 live acceptance. Lease114/hash and historical event hashes reverified in
 iteration6-initial-observation.json; no new authority or provider I/O yet.
 
-Next: publish this verified runtime checkpoint, add bounded reusable supplied-JSON
-inspection through the existing broker, then verify and install fresh authority
-before any new paid work. Prepared10 installer allocates six slots0.791520, preserving
+New capability:155 selected integrated PASS/0fail/0skip in502.89s;10 separate
+review/prefix-upgrade probes PASS. Fresh031→032 migration preserved saved human
+work, prior journals and runtime ACLs; repeated migrate passed. All001–031 hashes
+unchanged. Direct GLM5.3 review completed(stop); its conditional key-order concern
+was disproved by013's explicit C ordering and actual SQL vectors. Hash/null/unique
+result invariants were inspected and adversarially tested; responsibility denial
+added. Findings dispositioned by integrator, not a second independent PASS. Exact
+reviewed code hashes and test collection verified in iteration6-json-verification.
+Frontend292PASS, TypeScriptPASS, supported feature-enabled webpack buildPASS;
+contracts generate/checkPASS. New tool has no live usefulness proof yet.
+
+Next: publish this verified tool increment, then install fresh authority before
+any new paid work. Prepared10 installer allocates six slots0.791520, preserving
 all39.128400 prior encumbrance; projected total39.919920, unactivated0.080080.
 It is NOT installed yet. A distinct fresh document/correction/revision journey
 must not reuse the frozen museum/validator requests. A real unactivated admission was

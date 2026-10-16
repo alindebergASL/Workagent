@@ -20,7 +20,7 @@ def consumer_hash():
     from .service import digest
     names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'composition.py','selection_policy.py','saved_work.py','work_context.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -159,7 +159,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
-    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork, SearchWorkContext
+    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
     decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
@@ -172,6 +172,12 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
         if not alpha_enabled(config): raise DomainError('unsupported_operation')
         if isinstance(decision,SearchWorkContext) and config.get('responsibility'):
             raise DomainError('unsupported_operation')
+        if isinstance(decision,InspectJSON):
+            attachment=next((a for a in message.attachments if a.ref==decision.attachment.ref
+                and a.sha256==decision.attachment.sha256 and a.filename.endswith('.json')
+                and a.mime_type=='text/plain'),None)
+            if message.author_kind!='human' or message.target is not None or config.get('responsibility') or attachment is None:
+                raise DomainError('not_found_or_not_authorized')
         if isinstance(decision,ReadSavedWork):
             from .saved_work import authorize
             authorize(context,message,decision.target)

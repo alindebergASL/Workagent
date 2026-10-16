@@ -692,6 +692,36 @@
       "title": "FormField",
       "type": "object"
     },
+    "InspectJSON": {
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "$ref": "#/$defs/AttachmentRef"
+        },
+        "kind": {
+          "const": "inspect_json",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "description": "Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.",
+          "items": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "path"
+      ],
+      "title": "InspectJSON",
+      "type": "object"
+    },
     "LoadSkill": {
       "additionalProperties": false,
       "properties": {
@@ -1249,6 +1279,9 @@
         },
         {
           "$ref": "#/$defs/SearchWorkContext"
+        },
+        {
+          "$ref": "#/$defs/InspectJSON"
         },
         {
           "$ref": "#/$defs/RecordResponsibility"
