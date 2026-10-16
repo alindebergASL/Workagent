@@ -257,3 +257,23 @@ export function lastStopped(
   const seen = last.progress?.provider_observation;
   return seen === "invalid" || seen === "outcome_unknown";
 }
+
+/** What using a capability means, in plain words, by its catalog name. */
+const CAPABILITY_WORDS: Record<string, string> = {
+  inspect_json: "Looked inside the attached JSON file",
+  search_work_context: "Searched your earlier work",
+  read_saved_work: "Read your saved work",
+  read_context: "Read the context it was given",
+  load_skill: "Used a saved method",
+  discover_capabilities: "Checked what it can do",
+};
+
+/**
+ * How a step's use of a capability reads: plain words for known ones, and an
+ * unfamiliar one as words rather than its internal identifier.
+ */
+export function capabilityUse(name: string): string {
+  return (
+    CAPABILITY_WORDS[name] ?? `Used ${name.replace(/[_.-]+/g, " ").trim()}`
+  );
+}

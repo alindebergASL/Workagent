@@ -415,6 +415,32 @@ describe("general alpha: answers and retained explanations", () => {
       "Used guidance (version 1). This reads information; it isn’t a permission or an action.",
     );
   });
+  it("names known capabilities in plain words, never their internal names", () => {
+    const using = (capability: string) => {
+      const p = alpha("answered", null);
+      (
+        p.adaptive!.steps![0] as unknown as {
+          capability_result: { capability: string };
+        }
+      ).capability_result.capability = capability;
+      return text(p);
+    };
+    expect(using("inspect_json")).toContain(
+      "Looked inside the attached JSON file (version 1).",
+    );
+    expect(using("search_work_context")).toContain(
+      "Searched your earlier work (version 1).",
+    );
+    expect(using("read_saved_work")).toContain("Read your saved work");
+    for (const name of [
+      "inspect_json",
+      "search_work_context",
+      "read_saved_work",
+    ])
+      expect(using(name)).not.toContain(name);
+    // An unfamiliar capability still reads as words, not an identifier.
+    expect(using("summarise_notes")).toContain("Used summarise notes");
+  });
 });
 
 describe("lastStopped", () => {

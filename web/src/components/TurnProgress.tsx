@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ResponsibilityOrigin, TurnState } from "@/lib/contract/types";
 import {
   adaptivePresentation,
+  capabilityUse,
   hasProductOutput,
   modelExamples,
 } from "@/lib/adaptive-presentation";
@@ -288,7 +289,7 @@ export function TurnProgressDetails({
               {"capability_result" in step &&
               typeof step.capability_result?.capability === "string" ? (
                 <p>
-                  Used {step.capability_result.capability}
+                  {capabilityUse(step.capability_result.capability)}
                   {typeof step.capability_result.version === "string"
                     ? ` (version ${step.capability_result.version})`
                     : ""}

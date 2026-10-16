@@ -1884,3 +1884,16 @@ while being shown a table without remounting. Drafts were only checked for kind 
   - 38 DOM regressions (6/6 runs);
   - full gate with 0 failures;
   - mock e2e 15/15.
+
+## Capabilities a step used, in plain words
+
+Following Hermes `d802155` (`inspect_json`), integrated by fast-forward. The turn details said
+"Used inspect_json (version 1)", an internal identifier.
+- Known capabilities now read in plain words: "Looked inside the attached JSON file", "Searched your
+  earlier work", "Read your saved work", and so on.
+- An unfamiliar one reads as words ("Used summarise notes").
+- The trailing "This reads information; it isn’t a permission or an action." is unchanged.
+- `.json` attachments were already accepted, because the web reads the generated attachment
+  contract's extensions.
+- Unit regression in `test/adaptive-presentation.test.ts`. RED: the internal names were shown.
+- GREEN: 293 unit tests; 38 DOM regressions.
