@@ -169,9 +169,12 @@ export default function AgentHome() {
   const holding = others.filter((i) => groupOf(i) === "holding");
   const legacy = others.filter((i) => groupOf(i) === null);
   // A recorded hand-over that can't start yet is never shown as being handled.
-  const handling = legacy.filter(
-    (i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i),
-  );
+  // What Workagent is actually doing: admitted responsibilities queued or
+  // running, and older work still in progress.
+  const handling = [
+    ...others.filter((i) => groupOf(i) === "handling"),
+    ...legacy.filter((i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i)),
+  ];
   const approved = legacy.filter((i) => phaseOf(i) === "approved");
   const stopped = [
     ...legacy.filter((i) => phaseOf(i) === "stopped"),

@@ -1604,6 +1604,79 @@ try {
     "PASS each request beside the work keeps its own failed/unknown state and reason after later turns, with a link once out of view",
   );
 
+  {
+    // While the latest request's outcome is unknown the service takes no new
+    // message, so the pane says so, holds sending and offers a re-read;
+    // it never says a new message starts a new request. A known unusable
+    // answer isn't held: a new message can be sent.
+    const showLast = (state, observation) =>
+      page.evaluate(
+        ([state, observation]) => {
+          const conv = structuredClone(window.resource.data.conversation);
+          conv.messages.push({
+            id: "msg-orient",
+            author: "person",
+            text: "Change the orientation.",
+            created_at: "2026-10-13T00:00:00Z",
+            sequence: 995,
+            run_id: "run-orient",
+            origin: "human",
+          });
+          conv.turns.push({
+            run_id: "run-orient",
+            state,
+            reason: null,
+            message_id: "msg-orient",
+            ...(observation
+              ? {
+                  progress: {
+                    provider_observation: observation,
+                    evidence_origin: "unverified",
+                  },
+                }
+              : {}),
+          });
+          window.peek = {
+            data: conv,
+            error: null,
+            reconnecting: false,
+            refresh: async () => null,
+          };
+          window.mount("away");
+          window.mount("product");
+        },
+        [state, observation],
+      );
+    const pane = page.locator(".agent-pane");
+    const box = pane.locator("#peek-reply");
+    // Linked or not, the pane's own send button.
+    const send = pane
+      .locator(".peek-ask")
+      .getByRole("button", { name: /^Send/ });
+    await showLast("outcome_unknown", null);
+    await box.fill("Make it landscape instead.");
+    await expect(pane.locator(".ask-bar .hint")).toContainText(
+      "Whether your last request went through couldn’t be confirmed",
+    );
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "A new message starts a new request",
+    );
+    await expect(send).toBeDisabled();
+    await expect(pane.getByTestId("unresolved-check")).toBeVisible();
+    await page.keyboard.press("Control+Enter");
+    await showLast("failed", "invalid");
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "couldn’t be confirmed",
+    );
+    await expect(box).toHaveValue("Make it landscape instead.");
+    await expect(send).toBeEnabled();
+    await expect(pane.getByTestId("unresolved-check")).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS beside the work, an unconfirmed request holds sending with a re-read and never invites a new request; a known stop isn't held",
+  );
+
   // Natural admission: a reply beside the work names the exact saved
   // version (never the unsaved working copy), and an unconfirmed reply
   // replays the same frozen target after the saved version moves on.

@@ -36,7 +36,9 @@ import {
   cardStatus,
   receiptSays,
   lastStopped,
+  lastUnresolved,
   STOPPED_HINT,
+  UNRESOLVED_HINT,
 } from "@/lib/adaptive-presentation";
 import {
   AgentReply,
@@ -110,7 +112,8 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       res.reconnecting ||
       !res.data ||
       res.data.conversation.state !== "open" ||
-      res.data.conversation.model_activation === "revoked",
+      res.data.conversation.model_activation === "revoked" ||
+      lastUnresolved(res.data.turns),
   });
   const { text, setText, sending, send } = reply;
   const sendError = reply.error;
@@ -612,11 +615,26 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             <span className="hint">
               {uncertainSend
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : inFlight
-                  ? "Sending now replaces the reply in progress; your earlier messages stay."
-                  : lastStopped(d.turns)
-                    ? STOPPED_HINT
-                    : "Ask, steer, or add detail."}
+                : lastUnresolved(d.turns)
+                  ? UNRESOLVED_HINT
+                  : inFlight
+                    ? "Sending now replaces the reply in progress; your earlier messages stay."
+                    : lastStopped(d.turns)
+                      ? STOPPED_HINT
+                      : "Ask, steer, or add detail."}
+              {!uncertainSend && lastUnresolved(d.turns) ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-check"
+                    onClick={() => void res.refresh()}
+                  >
+                    Check again
+                  </button>
+                </>
+              ) : null}
             </span>
             <button
               type="button"

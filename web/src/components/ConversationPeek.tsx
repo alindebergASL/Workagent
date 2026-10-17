@@ -18,7 +18,9 @@ import {
   cardStatus,
   receiptSays,
   lastStopped,
+  lastUnresolved,
   STOPPED_HINT,
+  UNRESOLVED_HINT,
 } from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
 import { useExecution } from "@/lib/client/execution";
@@ -195,7 +197,13 @@ export function ConversationPeek({
     // Files go with a reply only where a reply names its exact version.
     attach: target !== undefined,
     // Admission, not just the button: no key or retry sends while held.
-    held: revoked || staleRead || !open || answersOff || Boolean(paused),
+    held:
+      revoked ||
+      staleRead ||
+      !open ||
+      answersOff ||
+      Boolean(paused) ||
+      Boolean(d && lastUnresolved(d.turns)),
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -458,13 +466,28 @@ export function ConversationPeek({
             <span className="hint">
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : target && unsavedEdits
-                  ? "Your unsaved edits aren’t included. Replies work from your saved version."
-                  : unlinked
-                    ? "Nothing is sent until you choose to."
-                    : lastStopped(d.turns)
-                      ? STOPPED_HINT
-                      : idleHint}
+                : lastUnresolved(d.turns)
+                  ? UNRESOLVED_HINT
+                  : target && unsavedEdits
+                    ? "Your unsaved edits aren’t included. Replies work from your saved version."
+                    : unlinked
+                      ? "Nothing is sent until you choose to."
+                      : lastStopped(d.turns)
+                        ? STOPPED_HINT
+                        : idleHint}
+              {!reply.uncertain && lastUnresolved(d.turns) ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-check"
+                    onClick={() => void refreshBoth()}
+                  >
+                    Check again
+                  </button>
+                </>
+              ) : null}
             </span>
             {unlinked ? (
               <button

@@ -243,6 +243,26 @@ export function receiptSays(
 export const STOPPED_HINT =
   "The stopped request isn’t sent again. A new message starts a new request.";
 
+/** Said beside the composer while the latest request's outcome is unknown. */
+export const UNRESOLVED_HINT =
+  "Whether your last request went through couldn’t be confirmed, so a new message waits until that’s resolved. Your draft is kept.";
+
+/**
+ * Whether the latest request's outcome couldn't be confirmed. The service
+ * takes no new message until it's resolved (it answers "action_unresolved"),
+ * so sending is held and nothing is replayed; re-reading is what's left.
+ */
+export function lastUnresolved(
+  turns: readonly { state: TurnState; progress?: TurnProgress }[],
+): boolean {
+  const last = turns.at(-1);
+  if (!last) return false;
+  return (
+    last.state === "outcome_unknown" ||
+    last.progress?.provider_observation === "outcome_unknown"
+  );
+}
+
 /**
  * Whether the latest request stopped in a way that is kept as it is: its
  * answer couldn't be used, or whether it went through is unknown. Such a

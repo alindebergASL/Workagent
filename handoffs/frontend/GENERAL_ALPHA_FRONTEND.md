@@ -2472,3 +2472,51 @@ An earlier "Open table" timeout came from running it without fixture mode. It wa
   - `conversation-journey` now reads the test-reply label under Details.
   - Results: conversation journey PASS, flexible create and reopen PASS, routing 7 + Space 28;
     mock e2e 15/15 earlier in the run.
+
+## Review 6238326550: Home classification, ownership copy, unresolved requests
+
+**Home misclassified actual agent work.**
+- **Before:** "I'm handling" was built only from legacy items. Admitted responsibilities that
+  were queued or running fell into "holding" (recorded, not running).
+- **Now:** `holdGroup` returns **handling** for queued or running responsibilities that aren't
+  paused, and Home lists them under I'm handling.
+  - Recorded responsibilities that aren't admitted, and paused ones, stay held.
+  - Waiting on a person, blocked, or needing review still go to Needs you; closed stays
+    closed.
+  - Space's standing card lists handling with what's underway.
+- **Tests:** the unit test fails without the change ("holding" instead of "handling") and
+  passes with it. The responsibility-recording journey is 9/9.
+
+**Ownership said every next action was the person's.**
+- **Before:** "You own: Approving changes and any next action. Nothing is carried out without
+  you."
+- **Now:** for work without a responsibility, the line follows the recorded phase:
+  - deciding on the proposed change;
+  - reviewing prepared work;
+  - providing what's missing;
+  - otherwise, approving any proposed change before it's applied.
+- With a responsibility, its own panel says who holds what. The Ownership card shows only
+  "Done when", or nothing at all.
+
+**A request whose outcome is unknown had no usable exit.**
+- **Before:** the composer said "A new message starts a new request". The service actually
+  refuses new messages with `action_unresolved` until the earlier request is resolved.
+- **Now:** `lastUnresolved(turns)` is true when the last turn's state or provider observation
+  is `outcome_unknown`. On the conversation page and beside the work:
+  - sending is held, and the draft is kept and editable;
+  - the hint says "Whether your last request went through couldn't be confirmed, so a new
+    message waits until that's resolved. Your draft is kept.";
+  - **Check again** re-reads;
+  - nothing is replayed.
+- A known unusable answer (`invalid`) isn't held: a new message can still be sent, with the
+  usual "starts a new request" hint.
+- **Tests:**
+  - new stubbed DOM regression, RED without the change and GREEN with it;
+  - unit test for `lastUnresolved`;
+  - 41 DOM regressions, 310 unit tests, routing 7 + Space 28.
+
+**Left to Hermes from the same review:**
+- continuing work that loses its saved-plan reference;
+- deciding when an unresolved request becomes resolved, which the UI then simply re-reads.
+
+The ResponsibilityPanel copy simplification is the next frontend step.
