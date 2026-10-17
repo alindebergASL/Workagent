@@ -5,7 +5,25 @@ extensible tools/skills, scoped memory, continuity, authorized initiative, optio
 Spaces and Intelligent UI mission remains. No parity or user-acceptance claim.
 Authority: docs/GENERAL_MODEL_AUTHORIZATION.md.
 
-## Current operating checkpoint — October16,22:42UTC
+## Build-mode direction and user review — October 16, 2026 (Pacific)
+
+Andrew rejected the current experience as clunky, difficult to navigate and too
+exposed to machinery. Experience acceptance is **NOT ACCEPTED**; earlier bounded
+review readiness does not override that feedback.
+
+Andrew then directed: “can we blow up these contracts, we are still in build mode
+and not prod”. [AGENTS](AGENTS.md) and the shortened
+[product direction](docs/PRODUCT_CONTRACT.md) supersede old development checkpoints.
+Owners may change development architecture and interfaces to deliver the product.
+Current priorities are in [BUILD_PLAN](docs/BUILD_PLAN.md).
+[Source-level diagnosis](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6229836247)
+identifies admission, conversation lifetime and continuation limits.
+
+This documentation change does not alter application code, services, saved data
+or installed spending/access authority. The operational measurements below retain
+their original timestamps; they were not rechecked for this direction update.
+
+## Last measured operating checkpoint — October16,22:42UTC
 
 Application candidate `41a373965fd6aed6fdd6d55599a265515017cd9e` is published and
 served from a separate frozen directory. Sole integration owner: current attended
