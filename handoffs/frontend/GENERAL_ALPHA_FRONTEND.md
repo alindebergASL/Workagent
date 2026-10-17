@@ -2291,3 +2291,61 @@ assignments are still served:
   - 38 DOM regressions;
   - full gate at `4dbeffe` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Phone table cards and the notes box (review 6229665117)
+
+### Row cards
+**Problem.** At 390px each table row was a stack of full-width "label | value" lines. A long unit
+was repeated in every label on every row, e.g. "On hand (item count (gloves counted in pairs))".
+One four-column row nearly filled the first screen.
+
+**Change** (generic; nothing about any one kind of table):
+- `flexible.ts`:
+  - `cardLabel(field)` keeps a short unit beside the label, e.g. "Deposit (EUR)". A unit longer
+    than 14 characters is left out of the card label.
+  - `unitLegend(fields)` says each such unit once, above the cards, with the fields measured in it:
+    "Have, Want, Still to find: count (pairs counted as one)".
+  - Wider screens keep every unit in the column heading, so the legend shows only on a phone.
+- **Accessible names stay complete.** Every box whose field has a unit is described by it
+  (`aria-describedby` → "In <unit>"). The name cell's label is visually hidden, not removed.
+- **Card hierarchy** (`products.css`, phone only):
+  - what the row is (its name field) heads the card, with Remove beside it;
+  - values sit side by side, each under its label;
+  - text columns with values longer than about a number get two places;
+  - long text stays full width.
+  - Measured on the real lending-desk table: 193px per card (six fields, long notes below), down
+    from 224px before Remove moved up.
+  - A name + three numbers card is under 180px; the reviewed layout was about 290px.
+
+**Regression** (products-review-regressions, stubbed): a four-row table whose three number fields
+share a long unit, at 390px. It asserts:
+- the unit is described on each box;
+- the legend reads once, and the unit is painted exactly once on the page;
+- the card is ≤ 180px tall;
+- the name sits above the values, and the values share a line;
+- no sideways scroll;
+- at 1280px the full column heading carries the unit and the legend is hidden.
+
+**Results.**
+- RED without the source change: the box has no unit description.
+- GREEN: 39 DOM regressions.
+
+### Notes separators: not reproduced while typing
+In the real browser, against the real service, on the table notes box at 1280 and 390, every
+step kept exactly what was typed:
+- Enter, and Enter twice for a blank line;
+- leading and trailing spaces;
+- a real Ctrl+V paste with blank lines and a trailing newline;
+- Enter in the middle of a line;
+- `fill()`;
+- switching Work → Conversation → Work;
+- 8s of idle background re-reads (the fieldset was never disabled).
+
+**What does change is the save:**
+- blank lines and outer spaces are dropped, because the service accepts notes only as a list of
+  non-empty lines;
+- reopening shows the saved list, e.g. `"Line 1\n\nLine 3\n"` → `"Line 1\nLine 3"`.
+
+That happened silently. The box now says so: "Each line is saved as one note; blank lines aren't
+kept." If the evaluated session saw a collapse before saving, the exact input path is still
+needed. This probe did not find it.

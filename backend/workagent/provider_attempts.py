@@ -260,8 +260,8 @@ class ProviderAttempts:
         """End only our current lease after settled I/O; never renew or retry it.
 
         Trusted worker seam, called after a normal synchronous visit under its
-        private-state lock. Pending/unknown/invalid provider outcomes keep their
-        original lease. The next visit must claim through normal domain authority
+        private-state lock. Known-ID pending responses may hand off for same-ID
+        reads; unknown/invalid provider outcomes keep their original lease. The next visit must claim through normal domain authority
         with the same immutable receipt and a new fence.
         """
         from .service import WorkerCapability
@@ -284,12 +284,16 @@ class ProviderAttempts:
                 FROM responses_events WHERE attempt_id=%s''',(attempt.id,)).fetchall()
             phases={}
             for row in rows:phases.setdefault(row['phase'],{})[row['kind']]=row['result_state']
-            if not any('result' in events for events in phases.values()):return False
-            for events in phases.values():
+            if not any('result' in events or 'identity' in events for events in phases.values()):return False
+            from .responses_io import active
+            for phase,events in phases.items():
+                if any(active(c,attempt.id,phase,kind) for kind in ('count_send','dispatch','read','cancel')):return False
                 if 'cancel' in events or 'problem' in events:return False
                 if 'count_send' in events and 'count_result' not in events:return False
                 if 'result' in events and events['result'] not in ('function_call','completed'):return False
-                if 'dispatch' in events and 'result' not in events:return False
+                # A durable response ID after returned transport can be polled
+                # under the next fenced lease. Never regenerate this request.
+                if 'dispatch' in events and 'result' not in events and 'identity' not in events:return False
             run.lease_expires_at=now()
             self._store_run(c,run)
             c.execute('UPDATE runs SET lease_hash=NULL WHERE workspace_id=%s AND id=%s',(run.workspace_id,run.id))

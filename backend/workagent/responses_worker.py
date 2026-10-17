@@ -25,7 +25,7 @@ POLICY='''This profile offers only read_scoped_context, replacing the general re
 
 def consumer_hash():
     names=('responsibility_execution.py','responsibilities.py','responsibility_models.py','general_alpha_models.py',
-           'responses_worker.py','responses_ledger.py','responses_schema.py','responses_transport.py',
+           'responses_worker.py','responses_io.py','responses_ledger.py','responses_schema.py','responses_transport.py',
            'broker.py','provider_attempts.py','runtime_config.py','service.py','models.py','outcomes.py',
            'responses_dispatcher.py','responses_recovery.py','tool_registry.py')
     return digest({name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in names})
@@ -372,35 +372,40 @@ class ResponsesWorker:
             if not self._http_ready(cap,deadline): return None
             if 'count_result' not in events:
                 if 'count_send' in events: return None  # ambiguous count is never repeated
-                if self._reserve_http(ledger,request,'count_send',cap,deadline) is None:return None
-                if not self._after_reservation_ready(request,'count_send',cap,deadline):return None
-                try:
-                    count=self.transport.count(request)
-                except TransportError as error:
-                    ledger.count_problem(request,error)
-                    raise
-                ledger.retain(request,'count_result',{'request_sha256':count.request_sha256,
-                    'count_sha256':count.count_sha256,'input_tokens':count.input_tokens,
-                    'metadata':count.metadata.model_dump(),'provenance':asdict(count.provenance)})
+                from .responses_io import interval
+                with interval(ledger,request,'count_send',cap):
+                    if self._reserve_http(ledger,request,'count_send',cap,deadline) is None:return None
+                    # Recheck after acquiring the exact interval; it grants no authority.
+                    if not self._after_reservation_ready(request,'count_send',cap,deadline):return None
+                    try:
+                        count=self.transport.count(request)
+                    except TransportError as error:
+                        ledger.count_problem(request,error)
+                        raise
+                    ledger.retain(request,'count_result',{'request_sha256':count.request_sha256,
+                        'count_sha256':count.count_sha256,'input_tokens':count.input_tokens,
+                        'metadata':count.metadata.model_dump(),'provenance':asdict(count.provenance)})
                 self._hook('after_count')
             else:
                 data=events['count_result']
                 count=self.transport.restore_count(request,input_tokens=data['input_tokens'],
                     count_sha256=data['count_sha256'],provenance=Provenance(**data['provenance']))
             if not self._http_ready(cap,deadline):return None
-            permit=self._reserve_http(ledger,request,'dispatch',cap,deadline)
-            if permit is None:return None
-            self._hook('after_predispatch')
-            if not self._after_reservation_ready(request,'dispatch',cap,deadline):return None
-            try:
-                response=self.transport.create(request,count=count,permit=permit,
-                    on_accepted=lambda acceptance:ledger.retain(request,'identity',{
-                        'response_id':acceptance.response_id,'request_sha256':acceptance.request_sha256,
-                        'metadata':acceptance.metadata.model_dump(),'provenance':asdict(acceptance.provenance)}))
-            except TransportError as error:
-                logging.getLogger(__name__).warning('%s',json.dumps(dispatch_diagnostic(request,error)))
-                self.service.mark_provider_unknown(ledger.receipt)
-                return None
+            from .responses_io import interval
+            with interval(ledger,request,'dispatch',cap):
+                permit=self._reserve_http(ledger,request,'dispatch',cap,deadline)
+                if permit is None:return None
+                self._hook('after_predispatch')
+                if not self._after_reservation_ready(request,'dispatch',cap,deadline):return None
+                try:
+                    response=self.transport.create(request,count=count,permit=permit,
+                        on_accepted=lambda acceptance:ledger.retain(request,'identity',{
+                            'response_id':acceptance.response_id,'request_sha256':acceptance.request_sha256,
+                            'metadata':acceptance.metadata.model_dump(),'provenance':asdict(acceptance.provenance)}))
+                except TransportError as error:
+                    logging.getLogger(__name__).warning('%s',json.dumps(dispatch_diagnostic(request,error)))
+                    self.service.mark_provider_unknown(ledger.receipt)
+                    return None
             self._hook('after_response')
             if response.state not in ('queued','in_progress'):
                 ledger.retain(request,'result',parsed_data(response))
@@ -414,8 +419,11 @@ class ResponsesWorker:
             if not self._http_ready(cap,deadline): break
             if self._reserve_http(ledger,request,'read',cap,deadline) is None:break
             if not self._after_reservation_ready(request,'read',cap,deadline):break
-            try: response=self.transport.retrieve(identity['response_id'],request=request)
-            except TransportError: return None
+            from .responses_io import interval
+            with interval(ledger,request,'read',cap):
+                if not self._after_reservation_ready(request,'read',cap,deadline):break
+                try: response=self.transport.retrieve(identity['response_id'],request=request)
+                except TransportError: return None
             if response.state not in ('queued','in_progress'):
                 ledger.retain(request,'result',parsed_data(response))
                 return response
