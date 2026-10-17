@@ -2179,6 +2179,120 @@ try {
   );
 
   {
+    // A phone's row cards: what the row is heads the card, its values sit
+    // side by side under short labels, and a long unit is said once above
+    // the cards instead of on every row. Each box still names its unit for
+    // assistive tech, and wider screens keep the unit in the heading.
+    const long = "count (pairs counted as one)";
+    const num = (key, label) => ({
+      key,
+      label,
+      type: "integer",
+      editable: true,
+      unit: long,
+      scale: null,
+      enum: null,
+    });
+    const units = {
+      ...tableRev,
+      body: {
+        kind: "structured_table",
+        version: "structured-table/v1",
+        title: "Stock count",
+        notes: [],
+        fields: [
+          {
+            key: "item",
+            label: "Item",
+            type: "text",
+            editable: true,
+            unit: null,
+            scale: null,
+            enum: null,
+          },
+          num("have", "Have"),
+          num("want", "Want"),
+          num("short", "Still to find"),
+        ],
+        rows: ["Lamp", "Ladder", "Rope", "Tape"].map((name, i) => ({
+          row_id: `r${i}`,
+          cells: [
+            { field_key: "item", value: name },
+            { field_key: "have", value: i + 1 },
+            { field_key: "want", value: 10 },
+            { field_key: "short", value: 9 - i },
+          ],
+        })),
+      },
+    };
+    await page.addStyleTag({
+      path: path.join(web, "src", "styles", "products.css"),
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await showFlex(flexData(units));
+    const have = page.getByLabel("Lamp Have", { exact: true });
+    await expect(have).toBeVisible({ timeout: 15000 });
+    await expect(have).toHaveAccessibleDescription(`In ${long}`);
+    await expect(page.locator("[data-testid=unit-legend]:visible")).toHaveText(
+      `Have, Want, Still to find: ${long}`,
+    );
+    const said = await page.evaluate((long) => {
+      // Only text a person sees: not the visually hidden column headings.
+      let n = 0;
+      const walk = document.createTreeWalker(document.body, 4);
+      while (walk.nextNode()) {
+        const el = walk.currentNode.parentElement;
+        const r = el.getBoundingClientRect();
+        if (
+          !el.closest("thead") &&
+          el.checkVisibility() &&
+          r.width > 2 &&
+          r.height > 2 &&
+          walk.currentNode.textContent.includes(long)
+        )
+          n++;
+      }
+      return n;
+    }, long);
+    assert.equal(said, 1, `the unit is said ${said} times on a phone`);
+    const card = have.locator("xpath=ancestor::tr[1]");
+    const box = await card.boundingBox();
+    assert.ok(box.height <= 180, `a row card is ${box.height}px tall`);
+    const name = page
+      .getByLabel("Row 1 Item", { exact: true })
+      .locator("xpath=..");
+    const [nameBox, haveBox, wantBox] = await Promise.all([
+      name.boundingBox(),
+      have.boundingBox(),
+      page.getByLabel("Lamp Want", { exact: true }).boundingBox(),
+    ]);
+    assert.ok(
+      nameBox.y + nameBox.height <= haveBox.y,
+      "the name heads the card",
+    );
+    assert.ok(
+      Math.abs(haveBox.y - wantBox.y) < 2,
+      "values sit side by side under their labels",
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    );
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(
+      page.getByRole("columnheader", { name: `Have (${long})`, exact: true }),
+    ).toBeVisible();
+    await expect(page.locator("[data-testid=unit-legend]:visible")).toHaveCount(
+      0,
+    );
+  }
+  passed++;
+  console.log(
+    "PASS phone row cards: name first, values side by side, a long unit said once and kept for assistive tech",
+  );
+
+  {
     // Notes over the service's limit are refused visibly, never cut short.
     const table = tableRev.body;
     await page.setViewportSize({ width: 1280, height: 800 });
