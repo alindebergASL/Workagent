@@ -2421,9 +2421,15 @@ using actual real-service screens at 1440px and 390px. Changed in this increment
   - 309 unit tests;
   - lint and prettier clean.
 
-**Known, not from this change.** `verify_flexible_integration.py` times out at
-`flexible-journey.mjs` after "Open table" with this change stashed too, so it fails at the
-already-pushed head. To be investigated next.
+**Flexible journey.** The reopen half runs in a fresh browser, where no Edit choice is remembered.
+It now checks that the saved values read on Result, then opens Edit to check the editor starts from
+them. With `WORKAGENT_FIXTURE_MODE=true` and a plain build, as the gate runs it:
+- flexible create PASS;
+- flexible reopen PASS.
+
+An earlier "Open table" timeout came from running it without fixture mode. It was not a defect.
+
+**Full gate:** the same as baseline apart from the reopen line, now fixed. Mock e2e 15/15.
 
 **Still open toward the concepts:**
 - the decision card copy, and a Changes tab with the full comparison;

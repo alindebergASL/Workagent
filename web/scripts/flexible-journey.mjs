@@ -572,6 +572,17 @@ try {
     await page.goto(
       `${origin}/conversations/${ids.cid}/artifacts/${ids.table}`,
     );
+    // Reopened, the saved values read on the Result tab and are the ones
+    // the editor starts from.
+    await expect(
+      page
+        .getByRole("region", { name: "Saturday volunteer rota" })
+        .getByRole("cell", {
+          name: "Evening",
+          exact: true,
+        }),
+    ).not.toHaveCount(0, { timeout: 15000 });
+    await openEdit(page);
     await expect(page.getByLabel("Ben Hours", { exact: true })).toHaveValue(
       "6",
     );
