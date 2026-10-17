@@ -5,6 +5,7 @@ from test_general_alpha_runtime import launch, AlphaProvider, activate
 from test_general_responses import worker, totals
 from test_conversations import conversation, post
 from test_runtime import expire
+from test_adaptive_execution import finish_safe_visits
 from workagent.models import CancelConversation
 from workagent.errors import DomainError
 from workagent.responsibility_models import ControlResponsibility
@@ -61,11 +62,13 @@ def test_restart_and_repeated_selection_one_effect(context,tmp_path,fault):
             fired.append(name)
             raise RuntimeError('lost local acknowledgment')
     w.phases.hook=crash
-    with pytest.raises(RuntimeError): w.work(p,ws,q.run.id)
+    # Publication can be on a later bounded lease visit under host load. Reach
+    # the actual fault seam without replaying any unmatched provider I/O.
+    with pytest.raises(RuntimeError): finish_safe_visits(context,w,q.run.id)
     first=s.get_conversation(p,ws,cv.id).assignment_ids
     assert len(first)==1
     expire(context,q.run.id)
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.assignment_ids==first
     assert detail.turns[0].adaptive.steps[0].mutation_result==detail.turns[0].adaptive.steps[1].mutation_result
