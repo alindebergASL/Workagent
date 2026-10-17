@@ -4396,8 +4396,10 @@
           "state": {
             "enum": [
               "prepared",
+              "counting",
               "count_unknown",
               "counted",
+              "dispatching",
               "outcome_unknown",
               "accepted",
               "received",
@@ -9418,7 +9420,7 @@
                     "provider_turn_id": null,
                     "state": "queued",
                     "stop_reason": null,
-                    "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                    "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
                     "unresolved": [],
                     "used_units": 0,
                     "workspace_id": "workspace-example"
@@ -12714,7 +12716,7 @@
                   "provider_turn_id": null,
                   "state": "running",
                   "stop_reason": null,
-                  "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                  "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
                   "unresolved": [],
                   "used_units": 0,
                   "workspace_id": "workspace-example"

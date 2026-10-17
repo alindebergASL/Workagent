@@ -70,7 +70,8 @@ def classify(run, steps, available, active_run=None, canonical_status=None):
             return 'blocked','work_blocked'
         return 'waiting_for_person',None
     if not available:return 'unavailable','worker_unavailable'
-    if 'accepted' in states:return 'awaiting_provider',None
+    if states & {'accepted','dispatching'}:return 'awaiting_provider',None
+    if 'counting' in states:return 'working',None
     if run.state=='running' and active_run!=run.id:return 'recovering',None
     return 'working',None
 

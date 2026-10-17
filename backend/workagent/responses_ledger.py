@@ -305,6 +305,11 @@ def observations(c,attempt_id):
         receipt=e.get('corrected_readback',e.get('result',{})); usage=receipt.get('usage'); identity=e.get('identity',{})
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
+        if state in ('count_unknown','outcome_unknown') and 'problem' not in e:
+            from .responses_io import active
+            kind='count_send' if state=='count_unknown' else 'dispatch'
+            if active(c,attempt_id,step['phase'],kind):
+                state='counting' if kind=='count_send' else 'dispatching'
         if e.get('problem',{}).get('received') and not receipt: state='invalid'
         decision=(receipt.get('value') or {}).get('decision',{})
         if (target is not None and receipt.get('state')=='function_call' and 'tool_result' not in e
