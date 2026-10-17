@@ -9,6 +9,7 @@ import { scopedHref } from "@/lib/scope";
 import {
   Fragment,
   useEffect,
+  useId,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -37,6 +38,7 @@ import {
   canRemoveRow,
   cellInput,
   cellValue,
+  cardLabel,
   changeSummary,
   fieldHeading,
   longTextFields,
@@ -58,6 +60,7 @@ import {
   setCell,
   slug,
   tableChanges,
+  unitLegend,
   tableCsv,
   viewActionRequest,
   type CustomView,
@@ -1570,55 +1573,101 @@ export function ReadOnly({
 
 function TableRead({ body }: { body: StructuredTable }) {
   const longText = longTextFields(body);
+  const nameKey = rowNameField(body)?.key;
   return (
-    <div
-      className="product-scroll flex-table"
-      tabIndex={0}
-      role="region"
-      aria-label={body.title}
-    >
-      <table className={tableClass(longText, body.fields.length)}>
-        <thead>
-          <tr>
-            {body.fields.map((f) => (
-              <th
-                key={f.key}
-                scope="col"
-                data-type={f.type}
-                data-long={longText.has(f.key) ? "true" : undefined}
-              >
-                {fieldHeading(f)}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {body.rows.map((r) => (
-            <tr key={r.row_id}>
+    <>
+      <UnitLegend fields={body.fields} />
+      <div
+        className="product-scroll flex-table"
+        tabIndex={0}
+        role="region"
+        aria-label={body.title}
+      >
+        <table className={tableClass(longText, body.fields.length)}>
+          <thead>
+            <tr>
               {body.fields.map((f) => (
-                <td
+                <th
                   key={f.key}
+                  scope="col"
                   data-type={f.type}
-                  data-label={fieldHeading(f)}
                   data-long={longText.has(f.key) ? "true" : undefined}
                 >
-                  {formatCell(f, cellValue(r, f.key))}
-                </td>
+                  {fieldHeading(f)}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {body.notes?.length ? (
-        <ul className="small table-notes">
-          {body.notes.map((n, i) => (
-            <li key={i}>{n}</li>
-          ))}
-        </ul>
-      ) : null}
-    </div>
+          </thead>
+          <tbody>
+            {body.rows.map((r) => (
+              <tr key={r.row_id}>
+                {body.fields.map((f) => (
+                  <td
+                    key={f.key}
+                    data-type={f.type}
+                    data-label={cardLabel(f)}
+                    data-name={f.key === nameKey ? "true" : undefined}
+                    data-long={longText.has(f.key) ? "true" : undefined}
+                  >
+                    {formatCell(f, cellValue(r, f.key))}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {body.notes?.length ? (
+          <ul className="small table-notes">
+            {body.notes.map((n, i) => (
+              <li key={i}>{n}</li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    </>
   );
 }
+
+/**
+ * On a phone, the long units a table's row cards leave out of their labels,
+ * said once above the cards. Wider screens carry them in the column
+ * headings, so this shows only on a phone. `id` names each unit for the
+ * boxes measured in it.
+ */
+function UnitLegend({
+  fields,
+  id,
+}: {
+  fields: StructuredTable["fields"];
+  id?: string;
+}) {
+  const legend = unitLegend(fields);
+  const units = id ? fields.filter((f) => f.unit?.trim()) : [];
+  if (!legend.length && !units.length) return null;
+  return (
+    <>
+      {legend.length ? (
+        <p className="small unit-legend" data-testid="unit-legend">
+          {legend.map((u, i) => (
+            <span key={u.unit}>
+              {i ? " · " : ""}
+              {u.labels.join(", ")}: {u.unit}
+            </span>
+          ))}
+        </p>
+      ) : null}
+      {units.map((f) => (
+        <span key={f.key} id={`${id}-unit-${fieldIndex(fields, f)}`} hidden>
+          In {f.unit!.trim()}
+        </span>
+      ))}
+    </>
+  );
+}
+const fieldIndex = (
+  fields: StructuredTable["fields"],
+  f: StructuredTable["fields"][number],
+) => fields.findIndex((x) => x.key === f.key);
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 
@@ -1761,6 +1810,7 @@ function TableEditor({
   const errors = Object.entries(raw).filter(([, c]) => c.error);
   const longText = longTextFields(saved);
   const nameKey = rowNameField(body)?.key;
+  const unitsId = useId();
   const regionRef = useRef<HTMLDivElement>(null);
   // The last row removed, so one click puts it back where it was, with what
   // the person had typed in it.
@@ -1837,6 +1887,10 @@ function TableEditor({
     const locked = !f.editable && savedRows.has(r.row_id);
     const inputProps = {
       "aria-label": label,
+      // The unit, which a phone's card label may leave to the line above.
+      "aria-describedby": f.unit?.trim()
+        ? `${unitsId}-unit-${fieldIndex(body.fields, f)}`
+        : undefined,
       "aria-invalid": typed?.error ? true : undefined,
       value: typed?.text ?? cellInput(value),
     };
@@ -1844,7 +1898,11 @@ function TableEditor({
       <td
         key={f.key}
         data-type={f.type}
-        data-label={fieldHeading(f)}
+        data-label={cardLabel(f)}
+        data-name={f.key === nameKey ? "true" : undefined}
+        data-wide={
+          f.type === "text" && columnSize(f.key) > 14 ? "true" : undefined
+        }
         data-derived={f.editable ? undefined : "true"}
         data-long={longText.has(f.key) ? "true" : undefined}
         colSpan={wide}
@@ -1920,6 +1978,7 @@ function TableEditor({
           </span>
         ) : null}
       </p>
+      <UnitLegend fields={body.fields} id={unitsId} />
       <div
         className="product-scroll flex-table"
         tabIndex={0}
@@ -2033,6 +2092,9 @@ function TableEditor({
               value={notesText ?? (body.notes ?? []).join("\n")}
               onChange={updateNotes}
             />
+            <span className="hint" data-testid="notes-hint">
+              Each line is saved as one note; blank lines aren’t kept.
+            </span>
           </label>
         </>
       )}

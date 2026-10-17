@@ -399,7 +399,17 @@ textarea.fit-text {
   font-weight: 500;
 }
 
-/* On a phone each row reads as a card: label, then value. */
+/* Long units are said once above a phone's cards; columns carry them wider. */
+.unit-legend {
+  display: none;
+  margin: 0;
+  color: var(--ink-2);
+}
+
+/*
+ * On a phone each row reads as a card: what the row is first, then its
+ * values side by side, each under its label.
+ */
 @media (max-width: 640px) {
   .flex-table {
     border: 0;
@@ -420,25 +430,70 @@ textarea.fit-text {
     overflow: hidden;
     clip: rect(0 0 0 0);
   }
-  .flex-table tr {
+  .unit-legend {
+    display: block;
+  }
+  .flex-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: var(--sp-1) var(--sp-2);
+    align-items: end;
     border: 1px solid var(--line);
     border-radius: var(--r-md);
     background: var(--surface);
     margin-bottom: var(--sp-2);
-    padding: var(--sp-1) 0;
+    padding: var(--sp-2) var(--sp-3);
   }
   .flex-table td,
   .flex-table td[data-type] {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    gap: var(--sp-2);
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
     align-items: center;
     text-align: left;
     white-space: normal;
     border-bottom: 0;
-    padding: 4px var(--sp-3);
+    padding: 0;
     max-width: none;
     min-width: 0;
+  }
+  /* What the row is heads the card; its label stays for assistive tech. */
+  .flex-table td[data-name="true"] {
+    position: relative;
+    grid-column: 1 / -1;
+    font-weight: 600;
+  }
+  .flex-table td[data-name="true"] input {
+    font-weight: 600;
+  }
+  .flex-table td[data-name="true"]::before {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  /* Removing a row sits beside its name, not on a line of its own. */
+  .flex-table tbody tr:has(td.row-actions button) td[data-name="true"] {
+    grid-column: 1 / -2;
+    grid-row: 1;
+  }
+  .flex-table td.row-actions {
+    grid-column: 1 / -1;
+    width: auto;
+    justify-self: end;
+  }
+  .flex-table tbody tr:has(td.row-actions button) td.row-actions {
+    grid-column: -2 / -1;
+    grid-row: 1;
+  }
+  .flex-table tbody tr:not(:has(td.row-actions button)) td.row-actions {
+    display: none;
+  }
+  /* Text that runs longer than a number gets two places. */
+  .flex-table td[data-wide="true"] {
+    grid-column: span 2;
   }
   .flex-table th.row-actions,
   .flex-table td.row-actions {
@@ -462,8 +517,7 @@ textarea.fit-text {
   }
   /* A long value goes under its label, across the card. */
   .flex-table td[data-long="true"] {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
+    grid-column: 1 / -1;
     width: 100%;
   }
   .flex-table td::before {

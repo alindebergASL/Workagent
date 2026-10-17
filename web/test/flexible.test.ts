@@ -5,11 +5,13 @@ import {
   bindingStates,
   canRemoveRow,
   cellValue,
+  cardLabel,
   changeSummary,
   fieldHeading,
   longTextFields,
   flexibleKind,
   formatCell,
+  unitLegend,
   isEmptyPayload,
   pinsVersions,
   notesFrom,
@@ -90,6 +92,38 @@ describe("self-describing work", () => {
     expect(formatCell(field({ type: "boolean" }), false)).toBe("No");
     expect(formatCell(field({ type: "integer" }), null)).toBe("—");
     expect(formatCell(field({ type: "integer" }), 0)).toBe("0");
+  });
+
+  it("says a long unit once above a phone's cards, keeping short ones beside the label", () => {
+    const long = "count (pairs counted as one)";
+    const fields = [
+      field({ key: "name", label: "Name" }),
+      field({ key: "a", label: "Have", type: "integer", unit: long }),
+      field({ key: "b", label: "Want", type: "integer", unit: long }),
+      field({ key: "c", label: "Cost", type: "decimal", unit: "EUR" }),
+      field({ key: "d", label: "Weight in kilograms", unit: "kilograms" }),
+      field({
+        key: "e",
+        label: "Span",
+        type: "integer",
+        unit: "metres along the path",
+      }),
+    ];
+    expect(fields.map(cardLabel)).toEqual([
+      "Name",
+      "Have",
+      "Want",
+      "Cost (EUR)",
+      "Weight in kilograms",
+      "Span",
+    ]);
+    // Wider screens keep each unit in its column heading.
+    expect(fieldHeading(fields[1]!)).toBe(`Have (${long})`);
+    expect(unitLegend(fields)).toEqual([
+      { unit: long, labels: ["Have", "Want"] },
+      { unit: "metres along the path", labels: ["Span"] },
+    ]);
+    expect(unitLegend(venues.fields)).toEqual([]);
   });
 
   it("parses typed input with the service's own bounds", () => {

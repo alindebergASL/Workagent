@@ -43,6 +43,39 @@ export function fieldHeading(field: TableField): string {
     : field.label;
 }
 
+/** A unit longer than this is said once above a phone's row cards. */
+const LONG_UNIT = 14;
+const longUnit = (field: TableField) =>
+  Boolean(field.unit && field.unit.trim().length > LONG_UNIT) &&
+  fieldHeading(field) !== field.label;
+
+/**
+ * A field's label on a phone's row card: a short unit stays beside it
+ * ("Deposit (EUR)"); a long one is said once above the cards instead of on
+ * every row (see `unitLegend`).
+ */
+export function cardLabel(field: TableField): string {
+  return longUnit(field) ? field.label : fieldHeading(field);
+}
+
+/**
+ * The long units a phone's row cards leave out of their labels, once each,
+ * with the fields measured in them, in field order.
+ */
+export function unitLegend(
+  fields: TableField[],
+): { unit: string; labels: string[] }[] {
+  const out: { unit: string; labels: string[] }[] = [];
+  for (const f of fields) {
+    if (!longUnit(f)) continue;
+    const unit = f.unit!.trim();
+    const at = out.find((u) => u.unit === unit);
+    if (at) at.labels.push(f.label);
+    else out.push({ unit, labels: [f.label] });
+  }
+  return out;
+}
+
 /**
  * Text columns whose values are long enough that a one-line box would hide
  * most of them; these are edited in a box that wraps.
