@@ -175,11 +175,13 @@ class ResponsibilityExecution:
             # every reader when no responsibility can advance. Each reconcile,
             # claim and admission below rechecks write authority under its lock.
             self._scope(c, p, ws)
+            from .general_responses import scope_predicate
+            predicate=scope_predicate(c,'g','assignments.conversation_id')
             rows = c.execute("SELECT id FROM assignments WHERE workspace_id=%s AND data->>'owner_id'=%s "
-                "AND conversation_id=ANY(%s) AND responsibility_lifecycle IS NOT NULL "
+                f"AND EXISTS(SELECT 1 FROM provider_grants g WHERE g.id=%s AND {predicate}) AND responsibility_lifecycle IS NOT NULL "
                 "AND responsibility_lifecycle->>'state' NOT IN ('cancelled','taken_over') "
                 "AND (%s::text IS NULL OR id>%s) ORDER BY id LIMIT %s",
-                (ws, p.id, grant['data']['responses']['conversation_ids'], cursor, cursor, limit)).fetchall()
+                (ws, p.id, grant_id, cursor, cursor, limit)).fetchall()
         # Restart-safe fairness hint only; canonical authority remains entirely in PG.
         cursors[(ws,grant_id)]=rows[-1]['id'] if len(rows)==limit else None
         self._responsibility_scan_cursors=cursors

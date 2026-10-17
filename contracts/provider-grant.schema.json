@@ -1,0 +1,759 @@
+{
+  "$defs": {
+    "AdaptiveResponsesBinding": {
+      "additionalProperties": false,
+      "description": "Opt-in capability, not a mutation of the historical eight-generation grant.",
+      "properties": {
+        "authorization_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Authorization Sha256",
+          "type": "string"
+        },
+        "cancel_limit": {
+          "const": 0,
+          "default": 0,
+          "title": "Cancel Limit",
+          "type": "integer"
+        },
+        "conversation_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Conversation Ids",
+          "type": "array"
+        },
+        "cost_limit_usd": {
+          "const": "20.00",
+          "default": "20.00",
+          "title": "Cost Limit Usd",
+          "type": "string"
+        },
+        "count_limit": {
+          "const": 50,
+          "default": 50,
+          "title": "Count Limit",
+          "type": "integer"
+        },
+        "generation_limit": {
+          "const": 50,
+          "default": 50,
+          "title": "Generation Limit",
+          "type": "integer"
+        },
+        "input_limit": {
+          "const": 1000000,
+          "default": 1000000,
+          "title": "Input Limit",
+          "type": "integer"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "max_steps": {
+          "default": 4,
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "output_limit": {
+          "const": 409600,
+          "default": 409600,
+          "title": "Output Limit",
+          "type": "integer"
+        },
+        "policy_version": {
+          "const": "adaptive-local-v1",
+          "default": "adaptive-local-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^proj_[A-Za-z0-9_-]{1,100}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "read_limit": {
+          "const": 500,
+          "default": 500,
+          "title": "Read Limit",
+          "type": "integer"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "scope_tool_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Tool Sha256",
+          "type": "string"
+        },
+        "secret_reference": {
+          "pattern": "^file:/[A-Za-z0-9_./-]{1,400}$",
+          "title": "Secret Reference",
+          "type": "string"
+        },
+        "store_acknowledged": {
+          "const": true,
+          "default": true,
+          "title": "Store Acknowledged",
+          "type": "boolean"
+        },
+        "synthetic_data_only": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic Data Only",
+          "type": "boolean"
+        },
+        "transport_mode": {
+          "enum": [
+            "synthetic",
+            "official_api"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "secret_reference",
+        "transport_mode",
+        "instructions_sha256",
+        "schema_sha256",
+        "scope_tool_sha256",
+        "conversation_ids",
+        "authorization_sha256"
+      ],
+      "title": "AdaptiveResponsesBinding",
+      "type": "object"
+    },
+    "GeneralAlphaResponsesBinding": {
+      "additionalProperties": false,
+      "description": "Explicit cumulative project caps, independent of historical probe limits.\n\nPersisted historical alpha bindings already contain these fields. No defaults\nare supplied for new authority: omitting a reviewed cap must fail closed.",
+      "properties": {
+        "authorization_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Authorization Sha256",
+          "type": "string"
+        },
+        "cancel_limit": {
+          "const": 0,
+          "default": 0,
+          "title": "Cancel Limit",
+          "type": "integer"
+        },
+        "conversation_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 1,
+          "title": "Conversation Ids",
+          "type": "array"
+        },
+        "cost_limit_usd": {
+          "pattern": "^(0|[1-9][0-9]?)(\\.[0-9]{1,6})?$",
+          "title": "Cost Limit Usd",
+          "type": "string"
+        },
+        "count_limit": {
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Count Limit",
+          "type": "integer"
+        },
+        "generation_limit": {
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Generation Limit",
+          "type": "integer"
+        },
+        "input_limit": {
+          "maximum": 5120000,
+          "minimum": 0,
+          "title": "Input Limit",
+          "type": "integer"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "max_steps": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "output_limit": {
+          "maximum": 2097152,
+          "minimum": 0,
+          "title": "Output Limit",
+          "type": "integer"
+        },
+        "policy_version": {
+          "const": "adaptive-local-v1",
+          "default": "adaptive-local-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^proj_[A-Za-z0-9_-]{1,100}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "read_limit": {
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Read Limit",
+          "type": "integer"
+        },
+        "runtime_extension": {
+          "const": "general-alpha-v1",
+          "title": "Runtime Extension",
+          "type": "string"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "scope_tool_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Tool Sha256",
+          "type": "string"
+        },
+        "secret_reference": {
+          "pattern": "^file:/[A-Za-z0-9_./-]{1,400}$",
+          "title": "Secret Reference",
+          "type": "string"
+        },
+        "store_acknowledged": {
+          "const": true,
+          "default": true,
+          "title": "Store Acknowledged",
+          "type": "boolean"
+        },
+        "synthetic_data_only": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic Data Only",
+          "type": "boolean"
+        },
+        "transport_mode": {
+          "enum": [
+            "synthetic",
+            "official_api"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "secret_reference",
+        "transport_mode",
+        "instructions_sha256",
+        "schema_sha256",
+        "scope_tool_sha256",
+        "generation_limit",
+        "count_limit",
+        "read_limit",
+        "input_limit",
+        "output_limit",
+        "cost_limit_usd",
+        "conversation_ids",
+        "authorization_sha256",
+        "runtime_extension"
+      ],
+      "title": "GeneralAlphaResponsesBinding",
+      "type": "object"
+    },
+    "GeneralResponsesBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Authorization Sha256",
+          "type": "string"
+        },
+        "cancel_limit": {
+          "const": 0,
+          "default": 0,
+          "title": "Cancel Limit",
+          "type": "integer"
+        },
+        "conversation_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Conversation Ids",
+          "type": "array"
+        },
+        "cost_limit_usd": {
+          "const": "20.00",
+          "default": "20.00",
+          "title": "Cost Limit Usd",
+          "type": "string"
+        },
+        "count_limit": {
+          "const": 8,
+          "default": 8,
+          "title": "Count Limit",
+          "type": "integer"
+        },
+        "generation_limit": {
+          "const": 8,
+          "default": 8,
+          "title": "Generation Limit",
+          "type": "integer"
+        },
+        "input_limit": {
+          "const": 160000,
+          "default": 160000,
+          "title": "Input Limit",
+          "type": "integer"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "output_limit": {
+          "const": 65536,
+          "default": 65536,
+          "title": "Output Limit",
+          "type": "integer"
+        },
+        "policy_version": {
+          "const": "general-responses-v1",
+          "default": "general-responses-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^proj_[A-Za-z0-9_-]{1,100}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "read_limit": {
+          "const": 80,
+          "default": 80,
+          "title": "Read Limit",
+          "type": "integer"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "scope_tool_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Tool Sha256",
+          "type": "string"
+        },
+        "secret_reference": {
+          "pattern": "^file:/[A-Za-z0-9_./-]{1,400}$",
+          "title": "Secret Reference",
+          "type": "string"
+        },
+        "store_acknowledged": {
+          "const": true,
+          "default": true,
+          "title": "Store Acknowledged",
+          "type": "boolean"
+        },
+        "synthetic_data_only": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic Data Only",
+          "type": "boolean"
+        },
+        "transport_mode": {
+          "enum": [
+            "synthetic",
+            "official_api"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "secret_reference",
+        "transport_mode",
+        "instructions_sha256",
+        "schema_sha256",
+        "scope_tool_sha256",
+        "conversation_ids",
+        "authorization_sha256"
+      ],
+      "title": "GeneralResponsesBinding",
+      "type": "object"
+    },
+    "ResponsesBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "cancel_limit": {
+          "const": 4,
+          "default": 4,
+          "title": "Cancel Limit",
+          "type": "integer"
+        },
+        "cost_limit_usd": {
+          "const": "20.00",
+          "default": "20.00",
+          "title": "Cost Limit Usd",
+          "type": "string"
+        },
+        "count_limit": {
+          "const": 4,
+          "default": 4,
+          "title": "Count Limit",
+          "type": "integer"
+        },
+        "generation_limit": {
+          "const": 4,
+          "default": 4,
+          "title": "Generation Limit",
+          "type": "integer"
+        },
+        "input_limit": {
+          "const": 80000,
+          "default": 80000,
+          "title": "Input Limit",
+          "type": "integer"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "output_limit": {
+          "const": 32768,
+          "default": 32768,
+          "title": "Output Limit",
+          "type": "integer"
+        },
+        "project_id": {
+          "pattern": "^proj_[A-Za-z0-9_-]{1,100}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "read_limit": {
+          "const": 40,
+          "default": 40,
+          "title": "Read Limit",
+          "type": "integer"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "scope_tool_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Tool Sha256",
+          "type": "string"
+        },
+        "secret_reference": {
+          "pattern": "^file:/[A-Za-z0-9_./-]{1,400}$",
+          "title": "Secret Reference",
+          "type": "string"
+        },
+        "transport_mode": {
+          "enum": [
+            "synthetic",
+            "official_api"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "secret_reference",
+        "transport_mode",
+        "instructions_sha256",
+        "schema_sha256",
+        "scope_tool_sha256"
+      ],
+      "title": "ResponsesBinding",
+      "type": "object"
+    },
+    "StandingResponsesBinding": {
+      "additionalProperties": false,
+      "description": "Explicit opt-in: own source-free conversations in this principal/workspace.\n\nExecution scope is not cross-conversation recall authority. All cumulative\nprovider caps remain required; historical scoped bindings keep their shape.",
+      "properties": {
+        "admission_policy": {
+          "const": "principal-workspace-v1",
+          "title": "Admission Policy",
+          "type": "string"
+        },
+        "authorization_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Authorization Sha256",
+          "type": "string"
+        },
+        "cancel_limit": {
+          "const": 0,
+          "default": 0,
+          "title": "Cancel Limit",
+          "type": "integer"
+        },
+        "conversation_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 0,
+          "title": "Conversation Ids",
+          "type": "array"
+        },
+        "cost_limit_usd": {
+          "pattern": "^(0|[1-9][0-9]?)(\\.[0-9]{1,6})?$",
+          "title": "Cost Limit Usd",
+          "type": "string"
+        },
+        "count_limit": {
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Count Limit",
+          "type": "integer"
+        },
+        "generation_limit": {
+          "maximum": 256,
+          "minimum": 0,
+          "title": "Generation Limit",
+          "type": "integer"
+        },
+        "input_limit": {
+          "maximum": 5120000,
+          "minimum": 0,
+          "title": "Input Limit",
+          "type": "integer"
+        },
+        "instructions_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Instructions Sha256",
+          "type": "string"
+        },
+        "max_steps": {
+          "default": 4,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Max Steps",
+          "type": "integer"
+        },
+        "output_limit": {
+          "maximum": 2097152,
+          "minimum": 0,
+          "title": "Output Limit",
+          "type": "integer"
+        },
+        "policy_version": {
+          "const": "adaptive-local-v1",
+          "default": "adaptive-local-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "project_id": {
+          "pattern": "^proj_[A-Za-z0-9_-]{1,100}$",
+          "title": "Project Id",
+          "type": "string"
+        },
+        "read_limit": {
+          "maximum": 4096,
+          "minimum": 0,
+          "title": "Read Limit",
+          "type": "integer"
+        },
+        "runtime_extension": {
+          "const": "general-alpha-v1",
+          "title": "Runtime Extension",
+          "type": "string"
+        },
+        "schema_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Schema Sha256",
+          "type": "string"
+        },
+        "scope_tool_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Tool Sha256",
+          "type": "string"
+        },
+        "secret_reference": {
+          "pattern": "^file:/[A-Za-z0-9_./-]{1,400}$",
+          "title": "Secret Reference",
+          "type": "string"
+        },
+        "store_acknowledged": {
+          "const": true,
+          "default": true,
+          "title": "Store Acknowledged",
+          "type": "boolean"
+        },
+        "synthetic_data_only": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic Data Only",
+          "type": "boolean"
+        },
+        "transport_mode": {
+          "enum": [
+            "synthetic",
+            "official_api"
+          ],
+          "title": "Transport Mode",
+          "type": "string"
+        }
+      },
+      "required": [
+        "project_id",
+        "secret_reference",
+        "transport_mode",
+        "instructions_sha256",
+        "schema_sha256",
+        "scope_tool_sha256",
+        "generation_limit",
+        "count_limit",
+        "read_limit",
+        "input_limit",
+        "output_limit",
+        "cost_limit_usd",
+        "conversation_ids",
+        "authorization_sha256",
+        "runtime_extension",
+        "admission_policy"
+      ],
+      "title": "StandingResponsesBinding",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "consumer_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Consumer Sha256",
+      "type": "string"
+    },
+    "expires_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Expires At"
+    },
+    "id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "max_received_output_tokens": {
+      "default": 4096,
+      "maximum": 16384,
+      "minimum": 1,
+      "title": "Max Received Output Tokens",
+      "type": "integer"
+    },
+    "max_runs": {
+      "default": 1,
+      "maximum": 256,
+      "minimum": 1,
+      "title": "Max Runs",
+      "type": "integer"
+    },
+    "model": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Model",
+      "type": "string"
+    },
+    "principal_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Principal Id",
+      "type": "string"
+    },
+    "profile": {
+      "default": "openai-agents-v1",
+      "enum": [
+        "openai-agents-v1",
+        "openai-responses-v1",
+        "general-responses-v1"
+      ],
+      "title": "Profile",
+      "type": "string"
+    },
+    "responses": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ResponsesBinding"
+        },
+        {
+          "$ref": "#/$defs/GeneralResponsesBinding"
+        },
+        {
+          "$ref": "#/$defs/StandingResponsesBinding"
+        },
+        {
+          "$ref": "#/$defs/GeneralAlphaResponsesBinding"
+        },
+        {
+          "$ref": "#/$defs/AdaptiveResponsesBinding"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Responses"
+    },
+    "workspace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "workspace_id",
+    "principal_id",
+    "model",
+    "consumer_sha256",
+    "expires_at"
+  ],
+  "title": "ProviderGrant",
+  "type": "object"
+}

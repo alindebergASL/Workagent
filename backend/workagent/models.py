@@ -285,22 +285,42 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         return value
 
 
+class StandingResponsesBinding(GeneralAlphaResponsesBinding):
+    """Explicit opt-in: own source-free conversations in this principal/workspace.
+
+    Execution scope is not cross-conversation recall authority. All cumulative
+    provider caps remain required; historical scoped bindings keep their shape.
+    """
+    admission_policy: Literal['principal-workspace-v1']
+    conversation_ids: list[Id] = Field(strict=True, max_length=0)
+
+    @field_validator('cost_limit_usd')
+    @classmethod
+    def bounded_cost(cls, value):
+        from decimal import Decimal
+        if Decimal(value) > Decimal('50.00'):
+            raise ValueError('standing cost exceeds cumulative development ceiling')
+        return value
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
     profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | GeneralResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
+    responses: ResponsesBinding | GeneralResponsesBinding | StandingResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime | None
-    max_runs: int = Field(default=1, strict=True, ge=1, le=10)
+    max_runs: int = Field(default=1, strict=True, ge=1, le=256)
     # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
     max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
 
 
     @model_validator(mode='after')
     def exact_responses_binding(self):
+        if self.max_runs > 10 and not isinstance(self.responses, StandingResponsesBinding):
+            raise ValueError('standing admission policy required for expanded run bounds')
         if self.profile == 'general-responses-v1':
             if (not isinstance(self.responses,(GeneralResponsesBinding,AdaptiveResponsesBinding)) or self.expires_at is not None or
                 self.model!='gpt-6.1-sol' or (self.max_runs>4 and not isinstance(self.responses,AdaptiveResponsesBinding)) or self.max_received_output_tokens!=16384):
