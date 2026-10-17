@@ -8,6 +8,21 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// A piece of work opens on its result; editing is its Edit tab (remembered
+// for that work in the tab). Pages without one are left as they are.
+const openEdit = async (page) => {
+  const edit = page.getByRole("tab", { name: "Edit", exact: true });
+  await edit
+    .first()
+    .waitFor({ timeout: 15000 })
+    .catch(() => {});
+  if (
+    (await edit.count()) &&
+    (await edit.getAttribute("aria-selected")) !== "true"
+  )
+    await edit.click();
+};
+
 const repo = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -104,6 +119,7 @@ try {
   await page.goto(
     `${origin}/conversations/${cid}/artifacts/${table.artifact_id}`,
   );
+  await openEdit(page);
   const grid = page.getByRole("region", { name: "Editable table" });
   await expect(grid.getByRole("columnheader")).toHaveCount(
     tableRev.body.fields.length + 1,
@@ -188,6 +204,7 @@ try {
   await page.goto(
     `${origin}/conversations/${cid}/artifacts/${table.artifact_id}`,
   );
+  await openEdit(page);
   await page
     .getByLabel("River Centre Hire cost (supplied fact)", { exact: true })
     .fill("299");

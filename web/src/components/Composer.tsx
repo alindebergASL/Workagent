@@ -1,7 +1,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { api, newCommandId } from "@/lib/client/api";
+import { API_MODE, api, newCommandId } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
@@ -710,14 +710,16 @@ export function Composer({
             {st.label} ↗
           </button>
         ))}
-        <button
-          type="button"
-          className="link-quiet starter-quiet"
-          onClick={useSample}
-          disabled={!sources.data?.length || locked}
-        >
-          Try the intake example ↗
-        </button>
+        {API_MODE !== "real" && sources.data?.length ? (
+          <button
+            type="button"
+            className="link-quiet starter-quiet"
+            onClick={useSample}
+            disabled={locked}
+          >
+            Try the intake example ↗
+          </button>
+        ) : null}
       </div>
     </div>
   );

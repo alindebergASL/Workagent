@@ -31,7 +31,6 @@ import {
   TurnSummary,
   TurnProgressDetails,
   RecordingReceipts,
-  replyTag,
 } from "@/components/TurnProgress";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
@@ -115,7 +114,6 @@ const inFlight = (d: ConversationDetailView | null) =>
  */
 export function ConversationPeek({
   conversation: initial,
-  artifactId,
   wsId,
   refreshWork,
   target,
@@ -324,19 +322,13 @@ export function ConversationPeek({
                     {inline ? (
                       <TurnOutcome state={state} progress={turnNow?.progress} />
                     ) : null}
-                    {artifactId &&
-                    m.products?.some((p) => p.artifact_id === artifactId) ? (
-                      <span className="msg-tag">This work</span>
-                    ) : null}
                     <RecordingReceipts
                       progress={turnNow?.progress}
                       names={names}
                     />
                     <div className="msg-meta row wrap">
-                      {replyTag(m.origin) ? (
-                        <span className="msg-tag">{replyTag(m.origin)}</span>
-                      ) : null}
                       <TurnProgressDetails
+                        origin={m.origin}
                         progress={turnNow?.progress}
                         recorded={m.text}
                         outcome={inline ? null : view}

@@ -1164,3 +1164,20 @@ details.disclosure.card {
 .runtime-request p {
   margin: 0;
 }
+
+/* A project row: its name over what it's for; kind and workspace aside. */
+.project-meta {
+  flex: none;
+  max-width: 11rem;
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .work-row:has(.project-meta) {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .project-meta {
+    max-width: none;
+    text-align: left;
+  }
+}

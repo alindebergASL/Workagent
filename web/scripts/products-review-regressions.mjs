@@ -2012,18 +2012,24 @@ try {
     };
     return { status: 200, json: next };
   };
-  async function showFlex(data) {
+  // Flexible work opens on its result; these cases edit it, so each opens
+  // on the Edit tab the way a person who chose it last time would.
+  async function showFlex(data, mode = "edit") {
     flexPosts = [];
-    await page.evaluate((data) => {
-      sessionStorage.clear();
-      window.resource = {
-        data,
-        error: null,
-        reconnecting: false,
-        refresh: window.refresh,
-      };
-      window.mount("away");
-    }, data);
+    await page.evaluate(
+      ([data, mode]) => {
+        sessionStorage.clear();
+        if (mode) sessionStorage.setItem("workagent:product:w:c:a:mode", mode);
+        window.resource = {
+          data,
+          error: null,
+          reconnecting: false,
+          refresh: window.refresh,
+        };
+        window.mount("away");
+      },
+      [data, mode],
+    );
     // Separate steps, so React really unmounts the previous work.
     await page.evaluate(() => window.mount("product"));
   }
@@ -2290,6 +2296,65 @@ try {
   passed++;
   console.log(
     "PASS phone row cards: name first, values side by side, a long unit said once and kept for assistive tech",
+  );
+
+  {
+    // The work reads first: its result, with how it was made folded away
+    // and less-used actions in one menu. Editing is one tab away; leaving
+    // the tab keeps unsaved edits, and reopening goes back to them.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(flexData(tableRev), null);
+    const tab = (name) => page.getByRole("tab", { name, exact: true });
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(
+      page.getByRole("region", { name: tableRev.body.title }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Editable table" }),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("product-verification")).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeHidden();
+    await page.getByLabel("More for this work").click();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeVisible();
+    await page.getByLabel("More for this work").click();
+    await page.getByText("How this was prepared", { exact: true }).click();
+    await expect(page.getByTestId("product-verification")).toBeVisible();
+
+    await tab("Edit").click();
+    const name = tableRev.body.rows[0].cells.find(
+      (c) => c.field_key === tableRev.body.fields[0].key,
+    ).value;
+    const first = page.getByLabel(`Row 1 ${tableRev.body.fields[0].label}`, {
+      exact: true,
+    });
+    await first.fill(`${name} (edited)`);
+    await tab("Result").click();
+    await expect(page.getByText("Your edits aren’t saved yet.")).toBeVisible();
+    await page.getByRole("button", { name: "Continue editing" }).click();
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true");
+    await expect(first).toHaveValue(`${name} (edited)`);
+    // Keyboard moves between the two.
+    await tab("Edit").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(tab("Result")).toBeFocused();
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true");
+    // Reopened with an unsaved edit, it opens where the edit is.
+    await page.evaluate(() => window.mount("away"));
+    await page.evaluate(() => window.mount("product"));
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(first).toHaveValue(`${name} (edited)`);
+  }
+  passed++;
+  console.log(
+    "PASS work opens on its result; editing is a tab away, keeps unsaved edits and reopens on them; how it was made is folded",
   );
 
   {

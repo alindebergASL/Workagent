@@ -3,6 +3,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef, type ReactNode } from "react";
 import { useWorkspace } from "@/lib/client/workspace";
+import { API_MODE } from "@/lib/client/api";
+import { useResource } from "@/lib/client/hooks";
+import { areaHref, workAreas } from "@/lib/client/work-areas";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { EXECUTION } from "@/lib/execution";
 
@@ -35,7 +38,7 @@ const DEMONSTRATION =
   process.env["NEXT_PUBLIC_WORKAGENT_DEMO"] === "1";
 
 export function Shell({ children }: { children: ReactNode }) {
-  const { workspace, workspaces, zoneChoice, setZoneChoice } = useWorkspace();
+  const { workspaces } = useWorkspace();
   const pathname = usePathname();
   const onAgent = pathname === "/" || pathname.startsWith("/assignments");
   const onSpaces = pathname.startsWith("/spaces");
@@ -98,45 +101,11 @@ export function Shell({ children }: { children: ReactNode }) {
           <span>workagent</span>
         </Link>
         <ul className="nav-links">{nav}</ul>
-        {workspaces.length ? (
-          <div className="rail-spaces">
-            <h2 className="rail-heading">Workspaces</h2>
-            <ul className="nav-links">
-              {workspaces.map((w) => {
-                const href = `/spaces/${encodeURIComponent(w.id)}`;
-                return (
-                  <li key={w.id}>
-                    <Link
-                      className="nav-link nav-link-sm"
-                      href={href}
-                      aria-current={pathname === href ? "page" : undefined}
-                    >
-                      {w.name}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+        {API_MODE === "real" ? (
+          <YourWork spaces={workspaces} pathname={pathname} />
         ) : null}
         <div className="rail-foot">
           {activityLink("nav-link nav-link-sm rail-secondary")}
-          <span>
-            {workspace
-              ? `${workspace.kind === "personal" ? "Personal" : "Shared"} · Private`
-              : "Private"}
-          </span>
-          <label className="zone">
-            <span>Times in</span>
-            <select
-              aria-label="Time zone for displayed times"
-              value={zoneChoice}
-              onChange={(e) => setZoneChoice(e.target.value as "utc" | "local")}
-            >
-              <option value="utc">UTC</option>
-              <option value="local">This device</option>
-            </select>
-          </label>
         </div>
       </nav>
       <div className="frame">
@@ -168,6 +137,57 @@ export function Shell({ children }: { children: ReactNode }) {
           {EXECUTION.line}
         </footer>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The person's most recently changed projects, whichever workspace holds
+ * them, so current work is one click from anywhere. A workspace that can't
+ * be read just isn't listed here; Spaces says so.
+ */
+function YourWork({
+  spaces,
+  pathname,
+}: {
+  spaces: { id: string }[];
+  pathname: string;
+}) {
+  const key = spaces.map((w) => w.id).join(",");
+  const res = useResource(key ? `rail-work:${key}` : null, async (signal) => {
+    const read = await Promise.allSettled(
+      spaces.map((w) => workAreas.list(w.id, signal)),
+    );
+    return read
+      .flatMap((r) => (r.status === "fulfilled" ? r.value : []))
+      .filter((cv) => cv.state !== "cancelled")
+      .sort(
+        (a, b) =>
+          Date.parse(b.updated_at ?? b.created_at ?? "") -
+          Date.parse(a.updated_at ?? a.created_at ?? ""),
+      )
+      .slice(0, 6);
+  });
+  if (!res.data?.length) return null;
+  return (
+    <div className="rail-spaces">
+      <h2 className="rail-heading">Your work</h2>
+      <ul className="nav-links" data-testid="your-work">
+        {res.data.map((cv) => {
+          const href = areaHref(cv.workspace_id, cv.id);
+          return (
+            <li key={cv.id}>
+              <Link
+                className="nav-link nav-link-sm"
+                href={href}
+                aria-current={pathname === href ? "page" : undefined}
+              >
+                {cv.work_area?.title ?? cv.title}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

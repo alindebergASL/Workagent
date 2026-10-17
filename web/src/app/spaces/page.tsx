@@ -23,9 +23,7 @@ export default function SpacesPage() {
         </div>
       </header>
       {loading ? <p role="status">Loading your spaces…</p> : null}
-      {workspaces.map((w) => (
-        <WorkAreaList key={w.id} ws={w.id} />
-      ))}
+      <WorkAreaList spaces={workspaces} />
       <h2>Workspaces</h2>
       <div className="space-grid">
         {workspaces.map((w) => (
@@ -34,11 +32,6 @@ export default function SpacesPage() {
             className="space-card"
             href={`/spaces/${encodeURIComponent(w.id)}`}
           >
-            <span
-              className="space-banner"
-              data-kind={w.kind}
-              aria-hidden="true"
-            />
             <span className="space-card-body">
               <span className="space-card-title">{w.name}</span>
               <span className="small muted">

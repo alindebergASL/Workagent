@@ -358,6 +358,27 @@ export function FlexibleEditor({
   }, [dirty]);
   const pendingProposals = proposals.filter((p) => p.status === "pending");
   const byWorkagent = artifact.current_revision.author_kind !== "human";
+  // The work reads first; editing is one step away and comes back on its
+  // own while anything is unsaved. A view has its own surface instead.
+  const tabbed = kind !== "custom_view";
+  const modeKey = `${key}:mode`;
+  const [mode, setMode] = useState<"result" | "edit">(() => {
+    if (dirty || draft.pending) return "edit";
+    try {
+      return sessionStorage.getItem(modeKey) === "edit" ? "edit" : "result";
+    } catch {
+      return "result";
+    }
+  });
+  const show = (next: "result" | "edit") => {
+    setMode(next);
+    try {
+      sessionStorage.setItem(modeKey, next);
+    } catch {
+      /* the choice holds for this page only */
+    }
+  };
+  const editing = !tabbed || mode === "edit";
   return (
     <div className="stack product" data-kind={kind}>
       <header className="stack-sm">
@@ -367,23 +388,31 @@ export function FlexibleEditor({
             {KIND_LABEL[kind]} · {origin}
           </span>
           <span className="composer-spacer" />
-          {kind === "structured_table" ? (
-            <button
-              className="link-quiet small"
-              onClick={() =>
-                saveText(
-                  tableCsv(saved as StructuredTable),
-                  `${slug(saved.title, "table")}.csv`,
-                  "text/csv",
-                )
-              }
-            >
-              Download as CSV
-            </button>
-          ) : null}
-          <button className="link-quiet small" onClick={() => void refresh()}>
-            Check for updates
-          </button>
+          <details className="more-menu">
+            <summary aria-label="More for this work">⋯</summary>
+            <div className="more-menu-list">
+              {kind === "structured_table" ? (
+                <button
+                  className="link-quiet small"
+                  onClick={() =>
+                    saveText(
+                      tableCsv(saved as StructuredTable),
+                      `${slug(saved.title, "table")}.csv`,
+                      "text/csv",
+                    )
+                  }
+                >
+                  Download as CSV
+                </button>
+              ) : null}
+              <button
+                className="link-quiet small"
+                onClick={() => void refresh()}
+              >
+                Check for updates
+              </button>
+            </div>
+          </details>
         </div>
       </header>
 
@@ -424,32 +453,6 @@ export function FlexibleEditor({
           {notice}
         </p>
       ) : null}
-
-      {/* A view says who made it and what it reads in its own one line. */}
-      {kind === "custom_view" ? null : (
-        <section
-          className={kind === "document" ? "result-line" : "card result-card"}
-          aria-labelledby="result-title"
-        >
-          <h2 id="result-title" className="sr-only">
-            Status
-          </h2>
-          {kind === "structured_table" ? (
-            <p className="result-headline">
-              {plural((saved as StructuredTable).rows.length, "row")} ·{" "}
-              {plural((saved as StructuredTable).fields.length, "column")}
-            </p>
-          ) : null}
-          <p className="result-status" data-verified="false">
-            <span className="dot" aria-hidden="true" />
-            <span role="status" data-testid="product-verification">
-              {byWorkagent
-                ? "Draft made by Workagent. Its shape was checked; what it says hasn’t been verified."
-                : "Saved by you. Nothing checks this automatically."}
-            </span>
-          </p>
-        </section>
-      )}
 
       {pendingProposals.map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
@@ -640,115 +643,144 @@ export function FlexibleEditor({
         />
       ) : null}
 
-      <WorkingCopy view={kind === "custom_view"} dirty={dirty}>
-        <fieldset disabled={locked} className="stack">
-          {kind === "structured_table" ? (
-            <TableEditor
-              saved={saved as StructuredTable}
-              body={draft.body as StructuredTable}
-              raw={draft.raw ?? {}}
-              update={(body, raw) => keep({ ...draft, body, raw })}
-              notesText={draft.notesText}
-              updateNotes={(notesText) =>
-                keep({
-                  ...draft,
-                  notesText,
-                  body: {
-                    ...(draft.body as StructuredTable),
-                    notes: notesFrom(notesText),
-                  },
-                })
-              }
-            />
-          ) : kind === "document" ? (
-            <DocEdit
-              addable
-              blocks={viewBlocks(
-                (draft.body as DocumentBody).blocks,
-                draftNoteAuthors,
-              )}
-              disabled={locked}
-              onChange={(blocks) =>
-                keep({
-                  ...draft,
-                  body: savedBody((draft.body as DocumentBody).title, blocks),
-                })
-              }
-            />
-          ) : (
-            <label className="field">
-              <span className="field-label">Readable version</span>
-              <textarea
-                aria-label="Readable version"
-                rows={5}
-                value={(draft.body as CustomView).fallback}
-                onChange={(e) =>
+      {tabbed ? <WorkTabs mode={mode} show={show} dirty={dirty} /> : null}
+      {tabbed && !editing ? (
+        <section
+          className="work-result"
+          role="tabpanel"
+          id="work-panel-result"
+          aria-labelledby="work-tab-result"
+        >
+          <ReadOnly body={saved} authors={savedNoteAuthors} />
+          {dirty ? (
+            <p className="small unsaved-note" role="status">
+              Your edits aren’t saved yet.{" "}
+              <button
+                type="button"
+                className="link-quiet"
+                onClick={() => show("edit")}
+              >
+                Continue editing
+              </button>
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+      {editing ? (
+        <WorkingCopy
+          view={kind === "custom_view"}
+          dirty={dirty}
+          tabbed={tabbed}
+        >
+          <fieldset disabled={locked} className="stack">
+            {kind === "structured_table" ? (
+              <TableEditor
+                saved={saved as StructuredTable}
+                body={draft.body as StructuredTable}
+                raw={draft.raw ?? {}}
+                update={(body, raw) => keep({ ...draft, body, raw })}
+                notesText={draft.notesText}
+                updateNotes={(notesText) =>
                   keep({
                     ...draft,
+                    notesText,
                     body: {
-                      ...(draft.body as CustomView),
-                      fallback: e.target.value,
+                      ...(draft.body as StructuredTable),
+                      notes: notesFrom(notesText),
                     },
                   })
                 }
               />
-              <span className="hint">
-                Shown if the view can’t run, and to anyone who prefers text.
+            ) : kind === "document" ? (
+              <DocEdit
+                addable
+                blocks={viewBlocks(
+                  (draft.body as DocumentBody).blocks,
+                  draftNoteAuthors,
+                )}
+                disabled={locked}
+                onChange={(blocks) =>
+                  keep({
+                    ...draft,
+                    body: savedBody((draft.body as DocumentBody).title, blocks),
+                  })
+                }
+              />
+            ) : (
+              <label className="field">
+                <span className="field-label">Readable version</span>
+                <textarea
+                  aria-label="Readable version"
+                  rows={5}
+                  value={(draft.body as CustomView).fallback}
+                  onChange={(e) =>
+                    keep({
+                      ...draft,
+                      body: {
+                        ...(draft.body as CustomView),
+                        fallback: e.target.value,
+                      },
+                    })
+                  }
+                />
+                <span className="hint">
+                  Shown if the view can’t run, and to anyone who prefers text.
+                </span>
+              </label>
+            )}
+          </fieldset>
+          {problem && dirty ? (
+            <p role="alert" className="small" data-testid="draft-problem">
+              {problem}
+            </p>
+          ) : null}
+          <div
+            className={`row product-actions${dirty ? " unsaved-bar" : ""}`}
+            data-testid={dirty ? "unsaved-bar" : undefined}
+          >
+            {dirty ? (
+              // Kept in view while anything is unsaved, however long the work.
+              <span className="small unsaved-note" role="status">
+                Your changes are not saved yet.
               </span>
-            </label>
-          )}
-        </fieldset>
-        {problem && dirty ? (
-          <p role="alert" className="small" data-testid="draft-problem">
-            {problem}
+            ) : null}
+            {dirty ? (
+              <button
+                className="btn btn-primary"
+                disabled={locked || Boolean(problem)}
+                aria-keyshortcuts="Control+S Meta+S"
+                title="Save my edits (Ctrl+S or ⌘S)"
+                onClick={() =>
+                  void submit({
+                    kind: "save",
+                    id: crypto.randomUUID(),
+                    base: draft.base,
+                    body: structuredClone(draft.body),
+                  })
+                }
+              >
+                Save my edits
+              </button>
+            ) : null}
+            {dirty || changed ? (
+              <button
+                className="btn btn-quiet"
+                disabled={locked}
+                onClick={() => keep(fresh(artifact))}
+              >
+                Discard my changes
+              </button>
+            ) : null}
+          </div>
+          <p className="hint">
+            {dirty
+              ? "Save to keep your changes. Saving doesn’t change anything else."
+              : open
+                ? "Ask in the conversation to change or extend this."
+                : "This conversation has ended."}
           </p>
-        ) : null}
-        <div
-          className={`row product-actions${dirty ? " unsaved-bar" : ""}`}
-          data-testid={dirty ? "unsaved-bar" : undefined}
-        >
-          {dirty ? (
-            // Kept in view while anything is unsaved, however long the work.
-            <span className="small unsaved-note" role="status">
-              Your changes are not saved yet.
-            </span>
-          ) : null}
-          {dirty ? (
-            <button
-              className="btn btn-primary"
-              disabled={locked || Boolean(problem)}
-              aria-keyshortcuts="Control+S Meta+S"
-              title="Save my edits (Ctrl+S or ⌘S)"
-              onClick={() =>
-                void submit({
-                  kind: "save",
-                  id: crypto.randomUUID(),
-                  base: draft.base,
-                  body: structuredClone(draft.body),
-                })
-              }
-            >
-              Save my edits
-            </button>
-          ) : null}
-          {dirty || changed ? (
-            <button
-              className="btn btn-quiet"
-              disabled={locked}
-              onClick={() => keep(fresh(artifact))}
-            >
-              Discard my changes
-            </button>
-          ) : null}
-        </div>
-        <p className="hint">
-          {dirty
-            ? "Save to keep your changes. Saving doesn’t change anything else."
-            : open
-              ? "Ask in the conversation to change or extend this."
-              : "This conversation has ended."}
-        </p>
-      </WorkingCopy>
+        </WorkingCopy>
+      ) : null}
       {draft.pending ? (
         <button
           className="btn btn-primary"
@@ -759,41 +791,111 @@ export function FlexibleEditor({
         </button>
       ) : null}
 
-      {observations.length ? (
-        <details className="disclosure">
-          <summary>How this was checked</summary>
-          <div className="disclosure-body stack">
-            {observations.map((read) => (
-              <ObservedOutput
-                key={read.observation.id}
-                artifact={artifact}
-                read={read}
-                stale={stale}
-              />
-            ))}
-          </div>
-        </details>
-      ) : null}
-
-      <details className="disclosure">
-        <summary>Saved history</summary>
+      <details className="disclosure" data-testid="how-prepared">
+        <summary>How this was prepared</summary>
         <div className="disclosure-body stack">
-          {history.map((r) => (
-            <details key={r.id} className="ids-details">
-              <summary>
-                Version {r.revision_number} · {versionAuthor(r, proposals)}
-                {r.id === artifact.current_revision_id ? " · current" : ""}
-              </summary>
-              {isFlexible(r.body) ? (
-                <ReadOnly body={r.body} authors={noteAuthors(r, history)} />
-              ) : null}
-              <p className="ids">
-                {r.id} · {r.body_hash}
-              </p>
+          {kind === "structured_table" ? (
+            <p className="small result-headline">
+              {plural((saved as StructuredTable).rows.length, "row")} ·{" "}
+              {plural((saved as StructuredTable).fields.length, "column")}
+            </p>
+          ) : null}
+          {kind === "custom_view" ? null : (
+            <p className="small" data-testid="product-verification">
+              {byWorkagent
+                ? "Draft made by Workagent. Its shape was checked; what it says hasn’t been verified."
+                : "Saved by you. Nothing checks this automatically."}
+            </p>
+          )}
+          {observations.length ? (
+            <details className="ids-details">
+              <summary>How this was checked</summary>
+              <div className="stack">
+                {observations.map((read) => (
+                  <ObservedOutput
+                    key={read.observation.id}
+                    artifact={artifact}
+                    read={read}
+                    stale={stale}
+                  />
+                ))}
+              </div>
             </details>
-          ))}
+          ) : null}
+          <details className="ids-details">
+            <summary>Saved history</summary>
+            <div className="stack">
+              {history.map((r) => (
+                <details key={r.id} className="ids-details">
+                  <summary>
+                    Version {r.revision_number} · {versionAuthor(r, proposals)}
+                    {r.id === artifact.current_revision_id ? " · current" : ""}
+                  </summary>
+                  {isFlexible(r.body) ? (
+                    <ReadOnly body={r.body} authors={noteAuthors(r, history)} />
+                  ) : null}
+                  <p className="ids">
+                    {r.id} · {r.body_hash}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </details>
         </div>
       </details>
+    </div>
+  );
+}
+
+/** Result and Edit: the work as it reads, and the place to change it. */
+function WorkTabs({
+  mode,
+  show,
+  dirty,
+}: {
+  mode: "result" | "edit";
+  show: (m: "result" | "edit") => void;
+  dirty: boolean;
+}) {
+  const tabs = [
+    { key: "result", label: "Result" },
+    { key: "edit", label: "Edit" },
+  ] as const;
+  return (
+    <div
+      className="tabs work-tabs"
+      role="tablist"
+      aria-label="Show"
+      onKeyDown={(e) => {
+        if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+        e.preventDefault();
+        const next = mode === "result" ? "edit" : "result";
+        show(next);
+        document.getElementById(`work-tab-${next}`)?.focus();
+      }}
+    >
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          type="button"
+          role="tab"
+          id={`work-tab-${t.key}`}
+          className="tab"
+          aria-selected={mode === t.key}
+          aria-controls={`work-panel-${t.key}`}
+          tabIndex={mode === t.key ? 0 : -1}
+          onClick={() => show(t.key)}
+        >
+          {t.label}
+          {t.key === "edit" && dirty ? (
+            <span
+              className="tab-dot"
+              title="Not saved yet"
+              aria-hidden="true"
+            />
+          ) : null}
+        </button>
+      ))}
     </div>
   );
 }
@@ -805,13 +907,25 @@ export function FlexibleEditor({
 function WorkingCopy({
   view,
   dirty,
+  tabbed = false,
   children,
 }: {
   view: boolean;
   dirty: boolean;
+  /** Shown as the Edit tab's panel. */
+  tabbed?: boolean;
   children: React.ReactNode;
 }) {
-  const body = (
+  const body = tabbed ? (
+    <section
+      className="stack product-work"
+      role="tabpanel"
+      id="work-panel-edit"
+      aria-labelledby="work-tab-edit"
+    >
+      {children}
+    </section>
+  ) : (
     <section className="stack product-work" aria-label="Your working copy">
       {children}
     </section>
@@ -1616,13 +1730,7 @@ function TableRead({ body }: { body: StructuredTable }) {
             ))}
           </tbody>
         </table>
-        {body.notes?.length ? (
-          <ul className="small table-notes">
-            {body.notes.map((n, i) => (
-              <li key={i}>{n}</li>
-            ))}
-          </ul>
-        ) : null}
+        {body.notes?.length ? <TableNotes notes={body.notes} /> : null}
       </div>
     </>
   );
@@ -1668,6 +1776,34 @@ const fieldIndex = (
   fields: StructuredTable["fields"],
   f: StructuredTable["fields"][number],
 ) => fields.findIndex((x) => x.key === f.key);
+
+/** A table's notes: the first few, and the rest a step away. */
+function TableNotes({ notes }: { notes: string[] }) {
+  const SHOWN = 3;
+  return (
+    <div className="table-notes-wrap">
+      <ul className="small table-notes">
+        {notes.slice(0, SHOWN).map((n, i) => (
+          <li key={i}>{n}</li>
+        ))}
+      </ul>
+      {notes.length > SHOWN ? (
+        <details className="ids-details table-notes-more">
+          <summary>
+            {notes.length - SHOWN === 1
+              ? "One more note"
+              : `${notes.length - SHOWN} more notes`}
+          </summary>
+          <ul className="small table-notes">
+            {notes.slice(SHOWN).map((n, i) => (
+              <li key={i}>{n}</li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
+    </div>
+  );
+}
 
 const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
 

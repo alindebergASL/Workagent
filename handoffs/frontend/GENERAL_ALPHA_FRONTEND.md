@@ -2349,3 +2349,85 @@ step kept exactly what was typed:
 That happened silently. The box now says so: "Each line is saved as one note; blank lines aren't
 kept." If the evaluated session saw a collapse before saving, the exact input path is still
 needed. This probe did not find it.
+
+## Coherent default experience, increment 1 (Andrew's rejection 6229753182, direction 6229889011)
+
+Compared side by side with the 15 October concepts (`docs/design/alpha-intelligent-ui-20261015`)
+using actual real-service screens at 1440px and 390px. Changed in this increment:
+
+### Work page: result first (concept 01)
+- **One quiet header:** title, then "Table · made by Workagent". "Download as CSV" and "Check for
+  updates" are behind a "⋯" menu ("More for this work").
+- **The "3 rows · 6 columns" card and verification caveat are gone from the top.** They now sit,
+  with the checks and saved history, under one closed **How this was prepared** at the bottom.
+  "Nothing checks this automatically" no longer leads the page.
+- **Result | Edit tabs** for tables and documents:
+  - the work opens on **Result**, a read view: a table reads as a table and a document as text;
+  - **Edit** holds the existing editor, unchanged;
+  - the choice is remembered per work in the tab;
+  - with an unsaved edit, the page opens on Edit, and the tab shows a dot;
+  - the Result tab says "Your edits aren't saved yet. Continue editing";
+  - arrow keys move between the tabs;
+  - nothing about saving, drafts or Ctrl+S changed.
+- **Long note lists:** a table's notes show three, with "N more notes" a step away.
+- **Views** keep their own surface, as before.
+
+### Conversation beside the work
+- **"Synthetic test reply" / "Test reply"** moved into each message's **Details**, as "Test reply:
+  not a live model's answer". The Demonstration banner still labels the whole build.
+- **The "This work" chip beside the work is removed**, since that conversation is about the work.
+
+### Navigation
+- **Sidebar "Your work"** replaces the workspace list. It shows the six most recently changed
+  projects across every workspace the person can open, so current work is one click away.
+- **Workspaces** stay on Spaces.
+- **"Personal · Private" and the time-zone select** moved off every page; the time zone is now on
+  Activity & details.
+
+### Spaces: one list
+- **The page said "Projects and workflows" once per workspace with no workspace name**, giving
+  repeated (and possibly empty) sections. Now there is:
+  - one **Projects** heading and one **New project** button;
+  - a workspace chooser when there's more than one workspace;
+  - the workspace named on each row when there are several;
+  - one "couldn't be read" line if a workspace fails;
+  - one empty message only when there are truly none.
+- Rows read name over purpose. Workspace cards lost the large decorative banner.
+
+### Home
+- **"Try the intake example"** (a legacy intake sample) shows only in the mock build, never
+  against the real service.
+
+### Tests
+- **New stubbed regression:**
+  - the work opens on Result, with the read view, no editor, the verification folded and CSV in
+    the menu;
+  - Edit works;
+  - leaving the tab keeps the edit, and Continue editing returns to it;
+  - arrow keys switch tabs;
+  - a remount with an unsaved edit reopens on Edit.
+  - RED without the change; GREEN with it.
+- **Existing suites that edit work now open its Edit tab first:**
+  - `products-review-regressions`, through `showFlex`;
+  - `space-experience`;
+  - `flexible-journey`, `flexible-live-records` and `space-journey`, with a tolerant `openEdit`.
+- **`workspace-routing`:**
+  - it now treats the sidebar's project-list read as navigation;
+  - every page's own record reads are still asserted to stay in the page's workspace;
+  - the sidebar never reads a workspace the person can't open.
+- **Results:**
+  - 40 DOM regressions;
+  - routing 7 + Space 28;
+  - 309 unit tests;
+  - lint and prettier clean.
+
+**Known, not from this change.** `verify_flexible_integration.py` times out at
+`flexible-journey.mjs` after "Open table" with this change stashed too, so it fails at the
+already-pushed head. To be investigated next.
+
+**Still open toward the concepts:**
+- the decision card copy, and a Changes tab with the full comparison;
+- moving Home's "Ready for you" items into "Since you left" / "I'm handling" sections;
+- the composer's secondary buttons;
+- stale dependent values (with Hermes);
+- phone bottom tabs.

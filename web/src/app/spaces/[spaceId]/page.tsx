@@ -94,7 +94,7 @@ export default function SpacePage() {
             in one place.
           </p>
         </header>
-        {space ? <WorkAreaList ws={space.id} /> : null}
+        {space ? <WorkAreaList spaces={[space]} /> : null}
         <Composer
           wsId={space?.id ?? null}
           contextLabel={space?.name ?? "This space"}

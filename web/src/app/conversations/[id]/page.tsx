@@ -45,7 +45,6 @@ import {
   TurnProgressDetails,
   RecordingReceipts,
   TurnSummary,
-  replyTag,
 } from "@/components/TurnProgress";
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
@@ -369,12 +368,8 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                         ) : null}
                         {replied ? (
                           <div className="msg-meta row wrap">
-                            {replyTag(m.origin) ? (
-                              <span className="msg-tag">
-                                {replyTag(m.origin)}
-                              </span>
-                            ) : null}
                             <TurnProgressDetails
+                              origin={m.origin}
                               progress={turnNow?.progress}
                               recorded={m.text}
                               outcome={folded ? view : null}
