@@ -159,12 +159,16 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
-    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
-    decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config)).decision if enabled(config) else
+    from .composition import enabled as alpha_enabled, continuity_enabled, READ_DECISIONS, RecordResponsibility, AdvanceResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
+    decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config),continuity=continuity_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
-    if isinstance(decision,RecordResponsibility):
+    if isinstance(decision,AdvanceResponsibility):
+        from .responsibility_action import authorize_advance
+        authorize_advance(service,c,run,decision,config,ledger,phase)
+        operation=decision
+    elif isinstance(decision,RecordResponsibility):
         from .responsibility_action import authorize
         authorize(service,c,p,run,cv,message,decision,config)
         operation=decision

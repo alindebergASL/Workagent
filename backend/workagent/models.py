@@ -252,6 +252,7 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     are supplied for new authority: omitting a reviewed cap must fail closed.
     """
     runtime_extension: Literal['general-alpha-v1']
+    continuity_version: Literal['sustained-v1'] | None = None
     max_steps: int = Field(default=4, strict=True, ge=1, le=8)
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
@@ -260,6 +261,13 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     output_limit: int = Field(strict=True, ge=0, le=2097152)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_continuity(self,handler):
+        data=handler(self)
+        if self.continuity_version is None:
+            data.pop('continuity_version',None)
+        return data
 
     @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
     @classmethod
@@ -508,7 +516,7 @@ class TextResult(Model):
 class TurnResult(Model):
     # Extend this typed result family when a broker-backed operation is implemented.
     # No opaque dicts, simulated files/tools, or authority/acceptance fields.
-    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
+    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=17)
     work_area: WorkAreaIdentification | None = None
 
     @model_serializer(mode='wrap')

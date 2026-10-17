@@ -772,6 +772,10 @@ export interface components {
             capability_result?: {
                 [key: string]: unknown;
             } | null;
+            /** Followthrough Result */
+            followthrough_result?: {
+                [key: string]: unknown;
+            } | null;
             mutation_result?: components["schemas"]["ResponsibilityMutationResult"] | null;
             /** Operation Hash */
             operation_hash?: string | null;
@@ -2039,12 +2043,16 @@ export interface components {
             next_check_in_at?: string | null;
             /** Observations */
             observations?: components["schemas"]["DependencyObservation"][];
+            /** Outcome Evidence */
+            outcome_evidence?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Outcome Status
              * @default unverified
              * @enum {string}
              */
-            outcome_status: "unverified" | "needs_review";
+            outcome_status: "unverified" | "needs_review" | "evidenced_preparation";
             /**
              * Review Required
              * @default false

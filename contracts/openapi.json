@@ -638,6 +638,18 @@
             ],
             "title": "Capability Result"
           },
+          "followthrough_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Followthrough Result"
+          },
           "mutation_result": {
             "anyOf": [
               {
@@ -4566,11 +4578,24 @@
             "title": "Observations",
             "type": "array"
           },
+          "outcome_evidence": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome Evidence"
+          },
           "outcome_status": {
             "default": "unverified",
             "enum": [
               "unverified",
-              "needs_review"
+              "needs_review",
+              "evidenced_preparation"
             ],
             "title": "Outcome Status",
             "type": "string"
@@ -6496,7 +6521,7 @@
                 }
               ]
             },
-            "maxItems": 3,
+            "maxItems": 17,
             "minItems": 1,
             "title": "Results",
             "type": "array"

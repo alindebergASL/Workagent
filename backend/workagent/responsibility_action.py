@@ -149,3 +149,88 @@ def stage(service,c,cap,receipt,phase,resolved,ledger):
     if resolve_selection(service,c,cap,receipt,phase)[5]!=binding:
         raise DomainError('source_changed')
     return staged
+
+
+def authorize_advance(service,c,run,decision,config,ledger,phase):
+    """A plan for this exact wake only, citing actual earlier local observations."""
+    from .composition import continuity_enabled
+    from .responsibility_execution import validate_binding
+    from .models import now
+    if not continuity_enabled(config) or not config.get('responsibility'):
+        deny()
+    validate_binding(c,run,config)
+    binding=config['responsibility']
+    if decision.expected_work_version!=binding['work_version']:
+        raise DomainError('version_conflict')
+    expected=[{'kind':d['kind'],'object_id':d['object_id'],'expected_version':d['observed_version']}
+              for d in binding['observations']]
+    if [d.model_dump(mode='json') for d in decision.plan.dependencies]!=expected:
+        deny()  # No new data access, omitted dependencies or stale plan input.
+    if decision.plan.next_action.kind=='request_decision' and (
+            decision.plan.wait is None or decision.plan.wait.kind!='person'):
+        raise DomainError('unsupported_operation')
+    if decision.plan.next_action.kind=='await_event' and decision.plan.wait is None:
+        raise DomainError('unsupported_operation')
+    saved=ledger._events(c,phase).get('tool_result')
+    if (not saved and decision.plan.next_check_in_at is not None
+            and decision.plan.next_check_in_at<=now()):
+        raise DomainError('unsupported_operation')
+    evidence=[]
+    for ref in decision.evidence:
+        if ref.phase>=phase or any(x['phase']==ref.phase for x in evidence):
+            deny()
+        observed=ledger._events(c,ref.phase).get('tool_result',{})
+        if (observed.get('status')!='observed' or observed.get('body') is None
+                or observed.get('binding',{}).get('operation_hash')!=ref.operation_hash):
+            deny()
+        from .service import digest
+        evidence.append({'phase':ref.phase,'operation_hash':ref.operation_hash,
+                         'body_hash':digest(observed['body']),
+                         'basis':'observed_preparation_not_goal_verification'})
+    return {'assignment_id':binding['assignment_id'],'work_version':binding['work_version'],
+            'evidence':evidence,'status':'staged_until_settlement'}
+
+
+def apply_advance(service,c,run,config):
+    """Apply one retained plan after final publication, inside that transaction.
+
+    The immutable run binding is checked before any plan/version/fence change,
+    while the old run is still leased and its final publication is reconciled.
+    No new run or provider action is admitted here; the canonical dispatcher owns
+    the next wake. Stop/budget/unknown-effect outcomes never auto-resume a plan.
+    """
+    from .composition import AdvanceResponsibility, continuity_enabled
+    from .responsibility_execution import validate_binding
+    from .service import Principal, encoded
+    from .models import now
+    if not continuity_enabled(config) or not config.get('responsibility'):
+        return False
+    if run.state not in ('ready','partial') or run.stop_reason in ('budget_limit','blocked','waiting_for_user','step_limit'):
+        return False
+    row=c.execute("SELECT e.data FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id "
+        "WHERE a.workspace_id=%s AND a.run_id=%s AND a.data->>'state'='reconciled' "
+        "AND e.kind='tool_result' AND e.data ? 'followthrough_result' ORDER BY e.phase DESC LIMIT 1",
+        (run.workspace_id,run.id)).fetchone()
+    if not row: return False
+    validate_binding(c,run,config)
+    staged=row['data']
+    decision=AdvanceResponsibility.model_validate(staged['decision'])
+    p=Principal(run.principal_id,'worker')
+    a,cv=service._responsibility_assignment(c,p,run.workspace_id,config['responsibility']['assignment_id'])
+    service._responsibility_cas(a,decision.expected_work_version)
+    old=service._lifecycle(c,run.workspace_id,a.id)
+    life=service._new_responsibility_plan(c,p,a,cv,decision.plan)
+    life.outcome_status='evidenced_preparation'
+    life.outcome_evidence={'run_id':run.id,'attempt_id':staged['binding']['attempt_id'],
+                           'evidence':staged['followthrough_result']['evidence']}
+    life.current_outcome=decision.plan.current_outcome
+    service._retire_responsibility_wake(c,run.workspace_id,old)
+    a.work_version+=1
+    a.unresolved=['Preparation retained; continuing under the saved scoped plan.']
+    service._queue_responsibility_wake(c,p,a,life)
+    a.observed_at=now()
+    c.execute('UPDATE assignments SET data=%s, responsibility_lifecycle=%s, responsibility_lease=NULL, '
+              'responsibility_fence=responsibility_fence+1 WHERE workspace_id=%s AND id=%s',
+              (encoded(a.model_dump(mode='json',exclude={'responsibility'})),encoded(life),run.workspace_id,a.id))
+    service._event(c,p,run.workspace_id,'responsibility_advanced',a.id)
+    return True

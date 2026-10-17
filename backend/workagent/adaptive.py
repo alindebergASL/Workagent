@@ -48,6 +48,9 @@ def contract(binding):
     from .general_schema import DECISION_SCHEMA as historical
     from .general_responses import POLICY as policy
     if getattr(binding,'runtime_extension',None)=='general-alpha-v1':
+        if getattr(binding,'continuity_version',None)=='sustained-v1':
+            from .composition import CONTINUITY_POLICY, CONTINUITY_DECISION_SCHEMA
+            return CONTINUITY_POLICY,CONTINUITY_DECISION_SCHEMA
         from .composition import POLICY as alpha_policy, DECISION_SCHEMA as alpha_schema
         return alpha_policy,alpha_schema
     return (POLICY,DECISION_SCHEMA) if binding.policy_version==CAPABILITY else (policy,historical)
@@ -65,11 +68,11 @@ def retained(c,attempt_id):
     return [dict(phase=r['phase'],**r['data']) for r in c.execute("SELECT phase,data FROM responses_events WHERE attempt_id=%s AND kind='tool_result' ORDER BY phase",(attempt_id,)).fetchall()]
 
 
-def decision(c,ledger,phase,*,alpha=False):
+def decision(c,ledger,phase,*,alpha=False,continuity=False):
     result=ledger._events(c,phase).get('result',{})
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
-    from .composition import AlphaDecision
-    model=AlphaDecision if alpha else AdaptiveDecision
+    from .composition import AlphaDecision, ContinuityDecision
+    model=ContinuityDecision if continuity else AlphaDecision if alpha else AdaptiveDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
@@ -121,7 +124,7 @@ def request_provenance(message):
     return {'message_id':message.id, 'message_sha256':digest(material)}
 
 
-def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=None,*,alpha=False):
+def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=None,*,alpha=False,continuity=False):
     request=request_provenance(message)
     previous=retained(c,ledger.receipt.attempt_id)
     if previous and previous[0]['verification'].get('request')!=request:
@@ -142,7 +145,10 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         from .acceptance_checks import evaluate
         acceptance=evaluate(message.acceptance_checks,operation,staged)
         observation['verification']['acceptance']=acceptance
-    if alpha and staged.get('mutation_result') is not None:
+    if continuity and staged.get('followthrough_result') is not None:
+        outcome='needs_validation' if len(previous)+1>=max_steps else 'continue'
+        staged['reason']='Evidence-backed preparation plan retained; applied on settlement only. No human changes accepted or overall goal completion asserted.'
+    elif alpha and staged.get('mutation_result') is not None:
         outcome='needs_validation' if len(previous)+1>=max_steps else 'continue'
         from .responsibility_action import RECORDING_REASON
         staged['reason']=RECORDING_REASON
@@ -161,7 +167,7 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
                           if isinstance(value.decision,Stop) and value.decision.outcome=='complete' else
                           f'Execution stopped ({outcome}); the requested goal is not verified. '+unresolved_summary(value.decision.text))
     elif operation is not None and operation.kind=='publish_artifact' and staged['status']=='observed':
-        outcome='needs_validation'
+        outcome=('continue' if len(previous)+1<max_steps else 'step_limit') if continuity else 'needs_validation'
         staged['reason']='Draft artifact retained; only its data shape was checked. Generated content and code are unverified; the requested goal needs validation. Changes to existing work require human acceptance.'
     elif observation['verification']['satisfied']:
         outcome='completed'
@@ -191,6 +197,8 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         staged['reason']='Execution stopped at the step limit; the requested goal is not verified. '+staged.get('reason','Local tests did not establish a passing result.')
     else:
         outcome='continue'
+    if continuity and outcome=='needs_validation' and staged['status']=='observed':
+        outcome='continue' if len(previous)+1<max_steps else 'step_limit'
     if alpha:
         ownership=staged.get('mutation_result') or next((o['mutation_result'] for o in previous if o.get('mutation_result')),None)
         if ownership:
