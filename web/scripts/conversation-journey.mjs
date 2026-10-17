@@ -162,12 +162,17 @@ try {
   record.worker_batches.push(worker());
   await page.goto(`${origin}/conversations/${cid}`);
   await expect(thread.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
-  await expect(thread.locator(".msg-tag")).toHaveText("Test reply");
+  // Where the reply came from is said under its Details, not as a chip.
+  await expect(thread.getByTestId("reply-origin")).toHaveText(
+    "Test reply: not a live model’s answer.",
+  );
   await expect(page.getByText("Waiting for a reply.")).toHaveCount(0);
   detail = (await api(`/conversations/${cid}`)).body;
   const reply = detail.messages.find((m) => m.author_kind === "assistant");
   expect(reply.evidence_origin).toBe("controlled_transport");
-  await expect(thread.locator(".msg-agent p")).toContainText(reply.text);
+  await expect(thread.locator(".msg-agent p").first()).toContainText(
+    reply.text,
+  );
   await shot(page, "02-conversation-replied-desktop");
 
   // ---- follow-up, then steering: a newer message stops the unfinished turn ----

@@ -2465,3 +2465,10 @@ An earlier "Open table" timeout came from running it without fixture mode. It wa
   - the phone-review case in `space-experience` asserts there is no comparison inside the
     decision card, and that Review the changes selects "Changes · 1" with the diff;
   - 40 DOM regressions, routing 7 + Space 28, typecheck and lint clean.
+- **Gate follow-up for increment 2:**
+  - When Home has nothing under Needs you or I'm handling, its first group opens again. Without
+    this, a Home holding only "Made in your conversations" read as empty; `flexible-journey`
+    caught it.
+  - `conversation-journey` now reads the test-reply label under Details.
+  - Results: conversation journey PASS, flexible create and reopen PASS, routing 7 + Space 28;
+    mock e2e 15/15 earlier in the run.

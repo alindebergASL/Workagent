@@ -248,6 +248,7 @@ export default function AgentHome() {
     },
     { key: "stopped", label: "Stopped", dot: "", rows: rows(stopped) },
   ].filter((g) => g.rows.length);
+  const primary = groups.some((g) => g.key === "ready" || g.key === "handling");
 
   if (wsError) {
     return (
@@ -398,8 +399,13 @@ export default function AgentHome() {
               key={g.key}
               className={`since-group since-${g.key}`}
               // What needs the person and what Workagent is handling read
-              // open, as sections; the rest is a step away.
-              open={g.key === "ready" || g.key === "handling"}
+              // open, as sections; the rest is a step away, unless it's all
+              // there is.
+              open={
+                g.key === "ready" ||
+                g.key === "handling" ||
+                (!primary && g === groups[0])
+              }
             >
               <summary>
                 <span className={`dot ${g.dot}`} aria-hidden="true" />
