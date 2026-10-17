@@ -222,7 +222,7 @@ export default function AgentHome() {
     },
     {
       key: "ready",
-      label: "Ready for you",
+      label: "Needs you",
       dot: "dot-attn",
       rows: [...madeRows(madeDecisions), ...rows(ready)],
     },
@@ -248,8 +248,6 @@ export default function AgentHome() {
     },
     { key: "stopped", label: "Stopped", dot: "", rows: rows(stopped) },
   ].filter((g) => g.rows.length);
-  // Open the most useful group first: what I'm carrying, else what's ready.
-  const openKey = groups[0]?.key;
 
   if (wsError) {
     return (
@@ -343,11 +341,17 @@ export default function AgentHome() {
             <p className="eyebrow-caps">Waiting for you</p>
             <StatusBadge label="Decision needed" tone="status-attention" />
           </div>
-          <h2 id="decision-title">A proposed version is ready</h2>
-          <p className="small clamp-2">{shortTitle(leadDecision.title)}</p>
+          {/* Named by the work, as people think of it; what's waiting
+              says so in a line. */}
+          <h2 id="decision-title" className="clamp-2">
+            {shortTitle(leadDecision.title)}
+          </h2>
+          <p className="small">
+            A proposed version is ready. Your saved version stays until you
+            apply it.
+          </p>
           <p className="small muted">
-            From “{leadDecision.conversation_title}”. Your saved version stays
-            until you apply it.
+            From “{leadDecision.conversation_title}”
           </p>
           <Link
             className="btn btn-on-soft"
@@ -393,7 +397,9 @@ export default function AgentHome() {
             <details
               key={g.key}
               className={`since-group since-${g.key}`}
-              open={g.key === openKey && (!attention || g.key === "handling")}
+              // What needs the person and what Workagent is handling read
+              // open, as sections; the rest is a step away.
+              open={g.key === "ready" || g.key === "handling"}
             >
               <summary>
                 <span className={`dot ${g.dot}`} aria-hidden="true" />

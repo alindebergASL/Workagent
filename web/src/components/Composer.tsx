@@ -532,8 +532,28 @@ export function Composer({
         ) : null}
         <div className="composer-bar">
           {natural ? (
-            <label className="chip-toggle file-pick" data-disabled={locked}>
-              Attach a file
+            <label
+              className="chip-toggle file-pick icon-pick"
+              data-disabled={locked}
+              title="Attach a file"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l8-8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="sr-only">Attach a file</span>
               <input
                 type="file"
                 className="sr-only"
@@ -547,17 +567,20 @@ export function Composer({
               />
             </label>
           ) : null}
-          <button
-            type="button"
-            className="chip-toggle"
-            aria-expanded={contextOpen}
-            aria-controls={panelId}
-            data-filled={selected.length ? "true" : "false"}
-            onClick={() => setContextOpen((v) => !v)}
-            disabled={locked}
-          >
-            {contextText}
-          </button>
+          {/* Choosing records only matters when there are some. */}
+          {sources.data?.length || selected.length || needsContext ? (
+            <button
+              type="button"
+              className="chip-toggle"
+              aria-expanded={contextOpen}
+              aria-controls={panelId}
+              data-filled={selected.length ? "true" : "false"}
+              onClick={() => setContextOpen((v) => !v)}
+              disabled={locked}
+            >
+              {contextText}
+            </button>
+          ) : null}
           <span className="composer-spacer" />
           <button
             type="button"

@@ -1181,3 +1181,11 @@ details.disclosure.card {
     text-align: left;
   }
 }
+
+/* Attaching is an icon in the composer, named for assistive tech. */
+.icon-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+}

@@ -362,15 +362,22 @@ export function FlexibleEditor({
   // own while anything is unsaved. A view has its own surface instead.
   const tabbed = kind !== "custom_view";
   const modeKey = `${key}:mode`;
-  const [mode, setMode] = useState<"result" | "edit">(() => {
+  const [chosen, setMode] = useState<WorkMode>(() => {
     if (dirty || draft.pending) return "edit";
     try {
-      return sessionStorage.getItem(modeKey) === "edit" ? "edit" : "result";
+      const m = sessionStorage.getItem(modeKey);
+      return m === "edit" || m === "changes" ? m : "result";
     } catch {
       return "result";
     }
   });
-  const show = (next: "result" | "edit") => {
+  // Changes shows only while something is proposed for this kind of work.
+  const comparable = pendingProposals.filter(
+    (p) => isFlexible(p.body) && flexibleKind(p.body) === kind,
+  );
+  const mode: WorkMode =
+    chosen === "changes" && !comparable.length ? "result" : chosen;
+  const show = (next: WorkMode) => {
     setMode(next);
     try {
       sessionStorage.setItem(modeKey, next);
@@ -586,33 +593,22 @@ export function FlexibleEditor({
             {!outdated && dirty ? (
               <p className="small">Save or discard your changes first.</p>
             ) : null}
-            {docParts?.diff || (tableProposal && !outdated && cellCount > 3) ? (
-              // The full comparison is a step away, so the decision above
-              // stays in reach however much changed.
-              <details className="ids-details" data-testid="proposal-compare">
-                <summary>Compare in full</summary>
-                {docParts?.diff}
-                {tableProposal && !outdated && cellCount > 3 ? (
-                  <TableProposalCells
-                    saved={saved as StructuredTable}
-                    proposed={proposed as StructuredTable}
-                    authors={savedCellAuthors}
-                  />
-                ) : null}
-              </details>
-            ) : null}
-            {proposed && flexibleKind(proposed) !== "custom_view" ? (
-              <details className="ids-details">
-                <summary>See the proposed version</summary>
-                <ReadOnly
-                  body={proposed}
-                  authors={proposedNoteAuthors(
-                    saved,
-                    proposed,
-                    savedNoteAuthors,
-                  )}
-                />
-              </details>
+            {tabbed && proposed && flexibleKind(proposed) === kind ? (
+              // The full comparison is its own tab, so the decision here
+              // stays short however much changed.
+              <button
+                type="button"
+                className="link-quiet small"
+                data-testid="review-changes"
+                onClick={() => {
+                  show("changes");
+                  document
+                    .getElementById("work-tab-changes")
+                    ?.scrollIntoView({ block: "start" });
+                }}
+              >
+                Review the changes
+              </button>
             ) : null}
           </section>
         );
@@ -643,8 +639,65 @@ export function FlexibleEditor({
         />
       ) : null}
 
-      {tabbed ? <WorkTabs mode={mode} show={show} dirty={dirty} /> : null}
-      {tabbed && !editing ? (
+      {tabbed ? (
+        <WorkTabs
+          mode={mode}
+          show={show}
+          dirty={dirty}
+          changes={comparable.length}
+        />
+      ) : null}
+      {tabbed && mode === "changes" ? (
+        <section
+          className="work-result stack"
+          role="tabpanel"
+          id="work-panel-changes"
+          aria-labelledby="work-tab-changes"
+          data-testid="work-changes"
+        >
+          {comparable.map((p) => {
+            const proposed = p.body as FlexibleBody;
+            const outdated =
+              p.base_revision_id !== artifact.current_revision_id;
+            return (
+              <div key={p.id} className="stack-sm">
+                {outdated ? (
+                  <p className="small" role="status">
+                    Made from an earlier saved version, so it can’t replace your
+                    current one.
+                  </p>
+                ) : null}
+                {kind === "structured_table" ? (
+                  <TableProposalCells
+                    saved={saved as StructuredTable}
+                    proposed={proposed as StructuredTable}
+                    authors={savedCellAuthors}
+                  />
+                ) : kind === "document" ? (
+                  documentProposalParts(
+                    saved as DocumentBody,
+                    proposed as DocumentBody,
+                    savedNoteAuthors,
+                    artifact.current_revision.author_kind === "human",
+                  ).diff
+                ) : null}
+                <details className="ids-details">
+                  <summary>The whole proposed version</summary>
+                  <ReadOnly
+                    body={proposed}
+                    authors={proposedNoteAuthors(
+                      saved,
+                      proposed,
+                      savedNoteAuthors,
+                    )}
+                  />
+                </details>
+              </div>
+            );
+          })}
+        </section>
+      ) : null}
+      {tabbed && mode === "result" ? (
         <section
           className="work-result"
           role="tabpanel"
@@ -847,20 +900,30 @@ export function FlexibleEditor({
   );
 }
 
-/** Result and Edit: the work as it reads, and the place to change it. */
+type WorkMode = "result" | "edit" | "changes";
+
+/**
+ * Result, Edit and (while something is proposed) Changes: the work as it
+ * reads, the place to change it, and the full comparison.
+ */
 function WorkTabs({
   mode,
   show,
   dirty,
+  changes,
 }: {
-  mode: "result" | "edit";
-  show: (m: "result" | "edit") => void;
+  mode: WorkMode;
+  show: (m: WorkMode) => void;
   dirty: boolean;
+  changes: number;
 }) {
-  const tabs = [
+  const tabs: { key: WorkMode; label: string }[] = [
     { key: "result", label: "Result" },
     { key: "edit", label: "Edit" },
-  ] as const;
+    ...(changes
+      ? [{ key: "changes" as const, label: `Changes · ${changes}` }]
+      : []),
+  ];
   return (
     <div
       className="tabs work-tabs"
@@ -869,7 +932,9 @@ function WorkTabs({
       onKeyDown={(e) => {
         if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
         e.preventDefault();
-        const next = mode === "result" ? "edit" : "result";
+        const at = tabs.findIndex((t) => t.key === mode);
+        const step = e.key === "ArrowRight" ? 1 : -1;
+        const next = tabs[(at + step + tabs.length) % tabs.length]!.key;
         show(next);
         document.getElementById(`work-tab-${next}`)?.focus();
       }}

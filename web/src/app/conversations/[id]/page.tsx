@@ -521,20 +521,24 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       {back}
       <header className="stack">
         <h1 className="h1-long">{d.conversation.title}</h1>
-        <div className="row">
-          <StatusBadge
-            label={open ? (inFlight ? "Waiting for a reply" : "Open") : "Ended"}
-            tone={open ? (inFlight ? "status-working" : "") : ""}
-          />
-          {d.conversation.context_count ? (
-            <span className="small muted">
-              Uses {d.conversation.context_count} record
-              {d.conversation.context_count === 1 ? "" : "s"} you chose
-            </span>
-          ) : (
-            <span className="small muted">No context attached</span>
-          )}
-        </div>
+        {/* Only what's worth knowing: an open, idle conversation needs no
+            badge, and having no chosen records needs no line. */}
+        {!open || inFlight || d.conversation.context_count ? (
+          <div className="row">
+            {!open || inFlight ? (
+              <StatusBadge
+                label={open ? "Waiting for a reply" : "Ended"}
+                tone={open ? "status-working" : ""}
+              />
+            ) : null}
+            {d.conversation.context_count ? (
+              <span className="small muted">
+                Uses {d.conversation.context_count} record
+                {d.conversation.context_count === 1 ? "" : "s"} you chose
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </header>
 
       {wsId ? (

@@ -2437,3 +2437,31 @@ An earlier "Open table" timeout came from running it without fixture mode. It wa
 - the composer's secondary buttons;
 - stale dependent values (with Hermes);
 - phone bottom tabs.
+
+## Coherent default experience, increment 2
+
+- **Changes tab (concept 01's "Changes · 1"):**
+  - while something is proposed, the work has a third tab with the full comparison and the
+    whole proposed version;
+  - the decision card keeps only the summary (up to three cells inline), Apply / Keep / Ask
+    for a different change, and **Review the changes**, which opens that tab;
+  - "Compare in full" and "See the proposed version" are no longer inside the decision;
+  - arrow keys cycle all three tabs;
+  - with nothing proposed, a remembered Changes choice falls back to Result.
+- **Home:**
+  - the decision card is named by the work, e.g. "Lending desk", followed by "A proposed
+    version is ready…" and then "From …";
+  - the group "Ready for you" is now **Needs you**;
+  - Needs you and I'm handling read open as sections, while the others stay a step away.
+- **Conversation header:**
+  - an open, idle conversation no longer shows an "Open" badge;
+  - "No context attached" is gone;
+  - Ended, Waiting for a reply and "Uses N records you chose" still show.
+- **Composer:**
+  - "Attach a file" is a paperclip icon, still named "Attach a file" for assistive tech;
+  - "Your context" shows only when there are records to choose, some are chosen, or one is
+    needed.
+- **Tests:**
+  - the phone-review case in `space-experience` asserts there is no comparison inside the
+    decision card, and that Review the changes selects "Changes · 1" with the diff;
+  - 40 DOM regressions, routing 7 + Space 28, typecheck and lint clean.
