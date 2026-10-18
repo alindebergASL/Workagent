@@ -40,6 +40,7 @@ import {
   cellValue,
   cardLabel,
   changeSummary,
+  editsSinceWorkagent,
   fieldHeading,
   longTextFields,
   rowNameField,
@@ -197,7 +198,7 @@ export function FlexibleEditor({
    * Brings the conversation beside this work forward, ready to ask for a
    * different change. Nothing is sent and the proposal stays as it is.
    */
-  onAskForChange?: () => void;
+  onAskForChange?: (suggestion?: string) => void;
   artifact: S["Artifact"];
   proposals: S["Proposal"][];
   history: S["Revision"][];
@@ -229,6 +230,21 @@ export function FlexibleEditor({
   const savedNoteAuthors = useMemo(
     () => noteAuthors(artifact.current_revision, history),
     [artifact.current_revision, history],
+  );
+  // Values the person changed since Workagent's latest version: what it
+  // worked out from them hasn't been recalculated, and says so.
+  const edited = useMemo(
+    () =>
+      editsSinceWorkagent(
+        artifact.current_revision,
+        history,
+        new Set(
+          proposals
+            .map((p) => p.accepted_revision_id)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ),
+    [artifact.current_revision, history, proposals],
   );
   const savedCellAuthors = useMemo(
     () => cellAuthors(artifact.current_revision, history),
@@ -583,7 +599,7 @@ export function FlexibleEditor({
                 <button
                   type="button"
                   className="btn btn-quiet"
-                  onClick={onAskForChange}
+                  onClick={() => onAskForChange()}
                   data-testid="ask-for-change"
                 >
                   Ask for a different change
@@ -704,7 +720,34 @@ export function FlexibleEditor({
           id="work-panel-result"
           aria-labelledby="work-tab-result"
         >
-          <ReadOnly body={saved} authors={savedNoteAuthors} />
+          {edited &&
+          !pendingProposals.some(
+            (p) => p.base_revision_id === artifact.current_revision_id,
+          ) ? (
+            <p className="notice-line small" data-testid="maybe-stale">
+              You changed {plural(edited.cells.size, "value")} since Workagent’s
+              last version. Anything it worked out from them, such as totals or
+              notes, hasn’t been recalculated.
+              {onAskForChange && open ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="link-quiet"
+                    data-testid="ask-recheck"
+                    onClick={() => onAskForChange(RECHECK)}
+                  >
+                    Ask Workagent to recheck
+                  </button>
+                </>
+              ) : null}
+            </p>
+          ) : null}
+          <ReadOnly
+            body={saved}
+            authors={savedNoteAuthors}
+            edited={edited?.cells}
+          />
           {dirty ? (
             <p className="small unsaved-note" role="status">
               Your edits aren’t saved yet.{" "}
@@ -1732,17 +1775,24 @@ function proposedNoteAuthors(
   return out;
 }
 
+/** What "Ask Workagent to recheck" puts in the reply box; nothing is sent. */
+const RECHECK =
+  "I changed some values in this table. Please recheck anything worked out from them and propose corrections.";
+
 export function ReadOnly({
   body,
   authors,
+  edited,
 }: {
   body: FlexibleBody;
   /** Who added each kept note, where known. */
   authors?: NoteAuthors;
+  /** Table cells the person changed since Workagent's latest version. */
+  edited?: Set<string>;
 }) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
-    return <TableRead body={body as StructuredTable} />;
+    return <TableRead body={body as StructuredTable} edited={edited} />;
   if (kind === "document")
     return (
       <DocRead blocks={viewBlocks((body as DocumentBody).blocks, authors)} />
@@ -1750,7 +1800,13 @@ export function ReadOnly({
   return <p className="view-fallback">{(body as CustomView).fallback}</p>;
 }
 
-function TableRead({ body }: { body: StructuredTable }) {
+function TableRead({
+  body,
+  edited,
+}: {
+  body: StructuredTable;
+  edited?: Set<string>;
+}) {
   const longText = longTextFields(body);
   const nameKey = rowNameField(body)?.key;
   return (
@@ -1787,8 +1843,14 @@ function TableRead({ body }: { body: StructuredTable }) {
                     data-label={cardLabel(f)}
                     data-name={f.key === nameKey ? "true" : undefined}
                     data-long={longText.has(f.key) ? "true" : undefined}
+                    data-edited={
+                      edited?.has(cellAt(r.row_id, f.key)) ? "true" : undefined
+                    }
                   >
                     {formatCell(f, cellValue(r, f.key))}
+                    {edited?.has(cellAt(r.row_id, f.key)) ? (
+                      <span className="sr-only"> (changed by you)</span>
+                    ) : null}
                   </td>
                 ))}
               </tr>

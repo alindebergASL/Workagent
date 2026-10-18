@@ -127,6 +127,7 @@ export function ConversationPeek({
   compact = false,
   held: heldByPage = false,
   paused,
+  suggest,
 }: {
   conversation: ConversationDetailView;
   /** The work shown beside this pane, if one is. */
@@ -161,6 +162,12 @@ export function ConversationPeek({
    * goes on. For example, the work a reply is about is being re-read.
    */
   paused?: string;
+  /**
+   * A request the page suggests (e.g. "recheck what you worked out"): put
+   * in the reply box when it's empty, each time `n` changes. Never sent
+   * until the person sends it.
+   */
+  suggest?: { text: string; n: number };
 }) {
   const cid = initial.conversation.id;
   const execution = useExecution(wsId);
@@ -227,6 +234,14 @@ export function ConversationPeek({
     fresh.forEach((k) => known.add(k));
     void refreshWork();
   }, [settled, refreshWork]);
+
+  const suggested = suggest?.n ?? 0;
+  const setReplyText = reply.setText;
+  const replyEmpty = !reply.text.trim();
+  useEffect(() => {
+    if (suggested && suggest && replyEmpty) setReplyText(suggest.text);
+    // Only a new suggestion fills the box; typing afterwards is the person's.
+  }, [suggested]);
 
   // Without an exact saved version (older services), a reply here can't
   // name the version it's about. It is held until the person sends it
@@ -485,7 +500,15 @@ export function ConversationPeek({
                     onClick={() => void refreshBoth()}
                   >
                     Check again
-                  </button>
+                  </button>{" "}
+                  ·{" "}
+                  <Link
+                    className="link-quiet small"
+                    data-testid="unresolved-stop"
+                    href={scopedHref(`/conversations/${cid}?stop=1`, wsId)}
+                  >
+                    Stop this conversation…
+                  </Link>
                 </>
               ) : null}
             </span>

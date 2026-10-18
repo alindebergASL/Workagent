@@ -339,6 +339,49 @@ export function cellAuthors(
   return out;
 }
 
+/**
+ * The values a person changed in a table since Workagent's latest version
+ * of it, read from the saved history: what it worked out from those values
+ * (totals, shortages, notes) hasn't been recalculated since. Null when the
+ * current version is Workagent's, or no earlier version of its is read.
+ */
+export function editsSinceWorkagent(
+  current: S["Revision"] | undefined,
+  history: S["Revision"][],
+  /** Versions made by applying one of Workagent's proposals: its content. */
+  applied: ReadonlySet<string> = new Set(),
+): { cells: Set<string>; notes: boolean } | null {
+  const body = current?.body as StructuredTable | undefined;
+  if (!current || body?.kind !== "structured_table") return null;
+  const workagents = (r: S["Revision"]) =>
+    r.author_kind !== "human" || applied.has(r.id);
+  if (workagents(current)) return null;
+  const byId = new Map(history.map((r) => [r.id, r]));
+  let base = current.parent_revision_id
+    ? byId.get(current.parent_revision_id)
+    : undefined;
+  while (base && !workagents(base))
+    base = base.parent_revision_id
+      ? byId.get(base.parent_revision_id)
+      : undefined;
+  const before = base?.body as StructuredTable | undefined;
+  if (!base || before?.kind !== "structured_table") return null;
+  const cells = new Set<string>();
+  for (const r of body.rows) {
+    const old = before.rows.find((x) => x.row_id === r.row_id);
+    if (!old) continue;
+    for (const f of body.fields)
+      if (
+        JSON.stringify(cellValue(r, f.key) ?? null) !==
+        JSON.stringify(cellValue(old, f.key) ?? null)
+      )
+        cells.add(cellAt(r.row_id, f.key));
+  }
+  const notes =
+    JSON.stringify(body.notes ?? []) !== JSON.stringify(before.notes ?? []);
+  return cells.size ? { cells, notes } : null;
+}
+
 export function changeSummary(c: ReturnType<typeof tableChanges>): string {
   const parts = [
     c.cells ? `${c.cells} value${c.cells === 1 ? "" : "s"} changed` : "",

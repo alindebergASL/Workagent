@@ -2520,3 +2520,103 @@ An earlier "Open table" timeout came from running it without fixture mode. It wa
 - deciding when an unresolved request becomes resolved, which the UI then simply re-reads.
 
 The ResponsibilityPanel copy simplification is the next frontend step.
+
+## Coordination handoff 6243584073: responsibility panel, stale dependent values
+
+### ResponsibilityPanel: what it's handling, what it needs, the control
+**Headline**
+- "Workagent is on it" while queued or running.
+- Otherwise the state: Recorded as yours to carry forward / Waiting for a person / Paused /
+  Stopped / You took this back.
+
+**One short status line**
+- "Nothing is running for it right now."
+- "Queued to run; it hasn't started."
+- "Running now; not done yet."
+- "Its latest run finished. The result needs your review."
+- "Its run is blocked."
+
+**Rows, each only when there is something to say**
+- **Needs from you:** a blocker, or a review of its result.
+- **Waiting on:** the recorded reason.
+- **Next.**
+- **So far.**
+- **Checks in.**
+
+**Below the rows**
+- Changed dependencies, as one line.
+- The steering controls, unchanged: Pause / Resume / Stop / Take this back, with the same
+  compare-and-swap and unresolved-command handling.
+- Freshness is one quiet "Checked HH:MM · Check again" line. Stale and reply-only warnings stay
+  prominent.
+
+**Details**
+- The full account: admitted is not dispatched, queued is not started, running is not done,
+  and a settled result isn't accepted.
+- The run link.
+- The readiness-review note.
+
+**Test changes, coordinated in this change**
+- `responsibility-journey`, `responsibility-recovery`, `test/responsibility-view.test.ts` and
+  `test/continuation.test.ts` now assert the short line.
+- Each truthfulness clause is still asserted on the Details text (`responsibility-why`).
+- The copy no longer exists to satisfy tests.
+
+### Dependent values: visible stale status
+**What the contract lacks.** It says nothing about which fields are worked out from others, so
+the web can't recompute them, or know exactly which become stale.
+
+**What the web does now.** After a person saves values in a table Workagent made,
+`editsSinceWorkagent(current, history)` compares the current version with Workagent's latest
+version. The Result tab then:
+- marks each changed value: a light tint with a dotted underline (the same in the table and in
+  phone cards), plus "(changed by you)" for assistive tech;
+- says "You changed N values since Workagent's last version. Anything it worked out from them,
+  such as totals or notes, hasn't been recalculated.";
+- offers **Ask Workagent to recheck** while the conversation is open.
+
+That button brings the conversation forward and puts a recheck request in its empty reply box.
+Nothing is sent until the person sends it. The notice disappears once Workagent saves a newer
+version, or has a proposal against the current one.
+
+**Tests**
+- Stubbed DOM regression: RED without the change, GREEN with it.
+- `flexible` unit tests for the helper.
+
+**Smallest backend capability requested from Hermes:** an optional `derived_from: string[]` on
+`TableField` (and, if cheap, a small arithmetic `formula`). With it the web marks exactly the
+dependent cells stale (or recomputes them in the draft), instead of the whole table.
+
+### Unconfirmed requests: the backend's permitted way out (Hermes 6243714238)
+**The backend's rule.** When the latest request's outcome is unknown, the conversation takes no
+new message. No retry is safe.
+
+**What the backend permits.** `POST /conversations/{id}/cancel` stops the conversation:
+- it fences with a compare-and-swap, and keeps saved work and the journal;
+- it does not cancel the provider's execution or refund anything.
+
+**What the web does now**
+- **Full conversation:** beside the held composer, "Check again · Stop this conversation…".
+  The stop opens the existing end confirmation; nothing is cancelled without that second click.
+- **Beside the work (peek):** the same pair. The stop links to `/conversations/{id}?stop=1`,
+  which opens that confirmation. The pane never cancels by itself.
+- **Ending carries the draft:** an unsent message moves to Home's composer for that workspace;
+  a draft already there is never overwritten. The ended notice says "Your unsent message is
+  waiting on Home."
+- **Truthful end copy:** the old line "Ending stops any reply in progress" is gone. It now says a
+  request already sent may still be processed by the model service, and that ending doesn't
+  undo it.
+- **Hint copy:** the hint no longer implies that Check again resolves anything. The service
+  still decides.
+
+**Tests**
+- Stubbed regression (peek link, href `?stop=1`, gone once resolved): RED/GREEN.
+- `test/draft-carry.test.ts`.
+- Real stack: `conversation-journey` arrives with `?stop=1`, types a draft, ends, and finds the
+  draft in Home's composer.
+- An unknown outcome itself can't be produced on the local stack without a provider, so the held
+  state is exercised only in the stubbed regression.
+
+### Assignment page
+- **One status statement.** When the responsibility panel is shown, the header drops its
+  "Where it stands is shown below" line; the badge and the panel carry the status.

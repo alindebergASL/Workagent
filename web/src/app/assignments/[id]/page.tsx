@@ -195,10 +195,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
                 tone: "done",
                 text: "You handed this over from a conversation. It’s recorded, but nothing has been admitted to run for it, so it stays paused.",
               }
-            : {
-                tone: "done",
-                text: "You handed this over from a conversation. Where it stands is shown below.",
-              }
+            : // The responsibility panel below says where it stands.
+              { tone: "done", text: "" }
           : {
               tone: "done",
               text: "Paused. Nothing new is prepared until you resume. Saved results are kept.",
@@ -250,10 +248,12 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
             </Link>
           ) : null}
         </div>
-        <p className="status-line" data-tone={statusLine.tone} role="status">
-          <span className="dot" aria-hidden="true" />
-          <span>{statusLine.text}</span>
-        </p>
+        {statusLine.text ? (
+          <p className="status-line" data-tone={statusLine.tone} role="status">
+            <span className="dot" aria-hidden="true" />
+            <span>{statusLine.text}</span>
+          </p>
+        ) : null}
         {phase === "unknown" ? (
           <div className="row">
             <button

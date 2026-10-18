@@ -377,13 +377,26 @@ try {
   await page.getByRole("button", { name: "Not now" }).click();
 
   // ---- end the conversation ----
-  await page.goto(`${origin}/conversations/${cid}`);
-  await page.getByText("End this conversation").click();
-  await page.getByRole("button", { name: "End…" }).click();
+  // Arriving to stop it (the way out of an unconfirmed request) opens the
+  // confirmation; an unsent message moves to Home rather than being lost.
+  await page.goto(`${origin}/conversations/${cid}?stop=1`);
+  await page.locator("#follow-up").fill("Book the room swap instead.");
   await page.getByRole("button", { name: "End conversation" }).click();
   await expect(
     page.getByText("This conversation has ended. Its history is kept."),
   ).toBeVisible();
+  await expect(
+    page.getByText("Your unsent message is waiting on"),
+  ).toBeVisible();
+  await page
+    .getByRole("status")
+    .getByRole("link", { name: "Home", exact: true })
+    .click();
+  await expect(page.locator("#request")).toHaveValue(
+    "Book the room swap instead.",
+  );
+  await page.locator("#request").fill("");
+  await page.goto(`${origin}/conversations/${cid}`);
   expect((await api(`/conversations/${cid}`)).body.conversation.state).toBe(
     "cancelled",
   );

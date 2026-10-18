@@ -1663,6 +1663,12 @@ try {
     );
     await expect(send).toBeDisabled();
     await expect(pane.getByTestId("unresolved-check")).toBeVisible();
+    // The backend's permitted way out: stop this conversation, confirmed
+    // in the full conversation; nothing is cancelled from the pane itself.
+    await expect(pane.getByTestId("unresolved-stop")).toHaveAttribute(
+      "href",
+      /\/conversations\/[^/?]+\?stop=1/,
+    );
     await page.keyboard.press("Control+Enter");
     await showLast("failed", "invalid");
     await expect(pane.locator(".ask-bar .hint")).not.toContainText(
@@ -1671,6 +1677,7 @@ try {
     await expect(box).toHaveValue("Make it landscape instead.");
     await expect(send).toBeEnabled();
     await expect(pane.getByTestId("unresolved-check")).toHaveCount(0);
+    await expect(pane.getByTestId("unresolved-stop")).toHaveCount(0);
   }
   passed++;
   console.log(
@@ -2428,6 +2435,62 @@ try {
   passed++;
   console.log(
     "PASS work opens on its result; editing is a tab away, keeps unsaved edits and reopens on them; how it was made is folded",
+  );
+
+  {
+    // A person changed a value in a table Workagent made: what it worked
+    // out from that value isn't recalculated, and the result says so, marks
+    // the changed value and offers to ask for a recheck. The request is put
+    // in the reply box; nothing is sent until the person sends it.
+    const agentRev = {
+      ...tableRev,
+      id: "r-agent",
+      parent_revision_id: null,
+      author_kind: "worker",
+    };
+    const body = structuredClone(tableRev.body);
+    const num = body.fields.find((f) => f.type === "integer");
+    const cell = body.rows[0].cells.find((c) => c.field_key === num.key);
+    cell.value = (cell.value ?? 0) + 7;
+    const humanRev = {
+      ...tableRev,
+      id: "r-human",
+      parent_revision_id: "r-agent",
+      author_kind: "human",
+      body,
+    };
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(
+      flexData(humanRev, {
+        history: [
+          { ...agentRev, artifact_id: "a" },
+          { ...humanRev, artifact_id: "a" },
+        ],
+      }),
+      null,
+    );
+    const stale = page.getByTestId("maybe-stale");
+    await expect(stale).toContainText("You changed 1 value", {
+      timeout: 15000,
+    });
+    await expect(stale).toContainText("hasn’t been recalculated");
+    await expect(page.locator('td[data-edited="true"]')).toHaveCount(1);
+    await page.getByTestId("ask-recheck").click();
+    await expect(page.locator("#peek-reply")).toHaveValue(
+      /recheck anything worked out from them/,
+    );
+    assert.equal(flexPosts.length, 0, "asking to recheck sends nothing");
+    // Workagent's own latest version says nothing of the kind.
+    await showFlex(flexData(agentRev), null);
+    await expect(page.getByRole("tab", { name: "Result" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByTestId("maybe-stale")).toHaveCount(0);
+    await expect(page.locator('td[data-edited="true"]')).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS values a person changed since Workagent's version are marked, what it worked out is said not to be recalculated, and a recheck is one click to the reply box",
   );
 
   {

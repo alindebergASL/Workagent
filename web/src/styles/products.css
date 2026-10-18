@@ -925,3 +925,11 @@ textarea.fit-text {
   display: grid;
   gap: var(--sp-2);
 }
+
+/* A value the person changed since Workagent's last version. */
+/* A tint and underline read the same in the table and in phone cards. */
+.flex-table td[data-edited="true"] {
+  background: color-mix(in srgb, var(--attn) 12%, transparent);
+  text-decoration: underline dotted var(--attn);
+  text-underline-offset: 3px;
+}

@@ -7,6 +7,7 @@ import {
   cellValue,
   cardLabel,
   changeSummary,
+  editsSinceWorkagent,
   fieldHeading,
   longTextFields,
   flexibleKind,
@@ -419,5 +420,56 @@ describe("long text cells", () => {
     );
     expect([...longTextFields(long)]).toContain(text.key);
     expect(longTextFields(long).has(other.key)).toBe(false);
+  });
+});
+
+describe("values changed since Workagent's version", () => {
+  const rev = (
+    id: string,
+    parent: string | null,
+    author_kind: "human" | "worker",
+    capacity: number,
+  ) => {
+    const body = structuredClone(venues);
+    const cell = body.rows[0]!.cells.find((c) => c.field_key === "capacity")!;
+    cell.value = capacity;
+    return {
+      id,
+      parent_revision_id: parent,
+      author_kind,
+      body,
+    } as unknown as Parameters<typeof editsSinceWorkagent>[0] & object;
+  };
+  it("names the cells a person changed after Workagent's latest version", () => {
+    const agent = rev("a", null, "worker", 80);
+    const human1 = rev("h1", "a", "human", 90);
+    const human2 = rev("h2", "h1", "human", 95);
+    const out = editsSinceWorkagent(human2, [agent, human1, human2]);
+    expect([...(out?.cells ?? [])]).toEqual([
+      `${venues.rows[0]!.row_id}\u001fcapacity`,
+    ]);
+  });
+  it("treats a version made by applying Workagent's proposal as Workagent's", () => {
+    const agent = rev("a", null, "worker", 80);
+    const applied = rev("p", "a", "human", 70);
+    expect(
+      editsSinceWorkagent(applied, [agent, applied], new Set(["p"])),
+    ).toBeNull();
+    const edit = rev("h", "p", "human", 75);
+    const out = editsSinceWorkagent(
+      edit,
+      [agent, applied, edit],
+      new Set(["p"]),
+    );
+    expect(out?.cells.size).toBe(1);
+  });
+  it("says nothing when Workagent saved last, or no version of its is read", () => {
+    const agent = rev("a", null, "worker", 80);
+    expect(editsSinceWorkagent(agent, [agent])).toBeNull();
+    const human = rev("h", "missing", "human", 90);
+    expect(editsSinceWorkagent(human, [human])).toBeNull();
+    // The same values as Workagent's: nothing changed.
+    const same = rev("s", "a", "human", 80);
+    expect(editsSinceWorkagent(same, [agent, same])).toBeNull();
   });
 });

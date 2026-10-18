@@ -22,20 +22,31 @@ export const BLOCKER: Record<NonNullable<Lifecycle["blocker"]>, string> = {
 };
 
 /**
- * What the service records about running this responsibility, in words that
- * claim no more than the record: admission is not dispatch, and a run is not
- * the goal done. Keyed by the generated execution status, so every status the
- * contract adds must be worded here before it compiles.
+ * Where running this responsibility stands, in one short line. Keyed by the
+ * generated execution status, so every status the contract adds must be
+ * worded here before it compiles.
  */
 const EXECUTION: Record<Lifecycle["execution_status"], string> = {
+  not_admitted: "Nothing is running for it right now.",
+  queued: "Queued to run; it hasn’t started.",
+  running: "Running now; not done yet.",
+  settled: "Its latest run finished. The result needs your review.",
+  blocked: "Its run is blocked.",
+};
+
+/**
+ * The same, in full, for Details: what the record does and doesn't claim
+ * (admission is not dispatch, and a run is not the goal done).
+ */
+const EXECUTION_DETAIL: Record<Lifecycle["execution_status"], string> = {
   not_admitted:
-    "Not admitted to run: nothing runs in the background for it right now.",
+    "It hasn’t been admitted to run, so nothing runs in the background for it.",
   queued:
-    "Admitted to run and waiting its turn. Queued isn’t the same as started.",
+    "It’s admitted to run and waiting its turn. Queued isn’t the same as started.",
   running:
     "The service records a run in progress. Running isn’t the same as done.",
   settled:
-    "Its latest run finished and its result is recorded. That result still needs your review; it isn’t accepted, and the goal isn’t marked done.",
+    "Its latest run finished and its result is recorded. That result isn’t accepted, and the goal isn’t marked done.",
   blocked:
     "Its run is blocked. Some work may already have happened, so check its run.",
 };
@@ -48,23 +59,40 @@ const EXECUTION: Record<Lifecycle["execution_status"], string> = {
 export function responsibilityView(life: Lifecycle) {
   const closed = life.state === "cancelled" || life.state === "taken_over";
   const lines: string[] = [];
-  if (life.wait?.reason) lines.push(`Waiting: ${life.wait.reason}`);
-  if (life.blocker) lines.push(BLOCKER[life.blocker]);
   const changed = (life.observations ?? []).filter((o) => o.changed).length;
   if (changed)
     lines.push(
       `${changed} thing${changed === 1 ? "" : "s"} it depends on changed since it was recorded.`,
     );
-  if (life.review_required || life.outcome_status === "needs_review")
-    lines.push("Needs your review.");
+  // What it needs from the person, if anything: a review, or what blocks it.
+  const review =
+    life.review_required ||
+    life.outcome_status === "needs_review" ||
+    life.execution_status === "settled";
+  const needsYou = closed
+    ? null
+    : life.blocker
+      ? BLOCKER[life.blocker]
+      : review
+        ? "Your review of its result."
+        : null;
   const allowed: Operation[] = closed
     ? []
     : life.state === "paused"
       ? ["resume", "cancel", "takeover"]
       : ["pause", "cancel", "takeover"];
   return {
-    state: STATE[life.state],
+    state:
+      !closed &&
+      life.state === "active" &&
+      (life.execution_status === "queued" ||
+        life.execution_status === "running")
+        ? "Workagent is on it"
+        : STATE[life.state],
     closed,
+    /** What it waits on (a person, or something changing). */
+    waiting: closed ? null : (life.wait?.reason ?? null),
+    needsYou,
     outcome: life.current_outcome,
     next: closed ? null : life.next_action.description,
     lines,
@@ -77,6 +105,7 @@ export function responsibilityView(life: Lifecycle) {
         ? "It’s back with you. Workagent isn’t holding it any more."
         : "Stopped. Nothing further runs for it."
       : EXECUTION[life.execution_status],
+    executionDetail: closed ? null : EXECUTION_DETAIL[life.execution_status],
     allowed,
     /** The run the service bound to this responsibility, if any. */
     runId: life.run_id ?? null,

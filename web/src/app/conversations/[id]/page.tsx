@@ -4,7 +4,10 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
-import { useConversationReply } from "@/lib/client/conversation-reply";
+import {
+  carryDraftHome,
+  useConversationReply,
+} from "@/lib/client/conversation-reply";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import type { WorkspaceScope } from "@/lib/client/workspace";
@@ -194,8 +197,11 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   };
 
   // ---- end the conversation ----
-  const [confirmEnd, setConfirmEnd] = useState(false);
+  // Arriving with ?stop=1 (from beside the work) opens the stop confirmation.
+  const [confirmEnd, setConfirmEnd] = useState(search.get("stop") === "1");
   const [ending, setEnding] = useState(false);
+  const [carried, setCarried] = useState(false);
+  const endRef = useRef<HTMLDetailsElement>(null);
   const [endError, setEndError] = useState<unknown>(null);
   const endCmd = usePendingCommand<{
     command_id: string;
@@ -214,6 +220,11 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       await conversationApi.cancel(wsId, id, endCmd.current!);
       endCmd.set(null);
       setConfirmEnd(false);
+      // An unsent message goes to Home rather than staying in a closed box.
+      if (carryDraftHome(wsId, text)) {
+        setText("");
+        setCarried(true);
+      }
       await res.refresh();
     } catch (e) {
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) endCmd.set(null);
@@ -632,6 +643,20 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                     onClick={() => void res.refresh()}
                   >
                     Check again
+                  </button>{" "}
+                  ·{" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-stop"
+                    onClick={() => {
+                      setConfirmEnd(true);
+                      requestAnimationFrame(() =>
+                        endRef.current?.scrollIntoView({ block: "center" }),
+                      );
+                    }}
+                  >
+                    Stop this conversation…
                   </button>
                 </>
               ) : null}
@@ -657,8 +682,15 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
           </div>
         </form>
       ) : (
-        <p className="hint">
+        <p className="hint" role="status">
           This conversation has ended. Its history is kept.
+          {carried ? (
+            <>
+              {" "}
+              Your unsent message is waiting on{" "}
+              <Link href={scopedHref("/", wsId)}>Home</Link>.
+            </>
+          ) : null}
         </p>
       )}
 
@@ -733,12 +765,18 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       ) : null}
 
       {open ? (
-        <details className="ids-details" open={endPending || undefined}>
+        <details
+          ref={endRef}
+          className="ids-details"
+          open={endPending || confirmEnd || undefined}
+        >
           <summary>End this conversation</summary>
           <div className="stack-sm" style={{ marginTop: 8 }}>
             <p className="small muted">
-              Ending stops any reply in progress. The history and anything you
-              handed over are kept.
+              Ending closes this conversation, so nothing new is added to it.
+              Its history and anything you handed over are kept, and an unsent
+              message moves to Home. A request already sent may still be
+              processed by the model service; ending doesn’t undo it.
             </p>
             {endPending ? (
               <p className="hint" role="status">

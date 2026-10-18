@@ -117,7 +117,7 @@ try {
     "Waiting for a person",
   );
   await expect(row(page, waiting.assignment_id)).toContainText(
-    "Nothing runs for it right now. Outcome not verified.",
+    "Nothing runs for it right now.",
   );
   // Each says what it's waiting on, or what it does next, from its record.
   await expect(
