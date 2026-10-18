@@ -15,7 +15,9 @@ from the live candidate.
 | d07–d08 | After a person changes a value, the changed cell is marked and the note says what hasn't been recalculated. "Ask Workagent to recheck" fills the reply beside the work; nothing is sent. |
 | d09–d10 | Returning to Home, then reopening the work. |
 | d11 | A responsibility: what it waits on, what's next, Checked · Check again, the controls, and Details. |
-| c07 | A conversation ended from `?stop=1`, with the unsent message moved to Home. This one comes from a conversation-journey run on the plain build. |
+
+The stop-and-carry flow (`?stop=1`, then End, then the draft waiting in Home's composer) is
+asserted by `conversation-journey` on the real stack. It has no screenshot here.
 
 ## Phone, 390 wide
 | Screen | What it shows |
