@@ -31,12 +31,26 @@ def index(service,c,p,ws,cv,projection):
             'read_limit_bytes':MAX_READ_BYTES,'scope':'current_conversation_snapshot'}
 
 
-def authorize(context,message,target):
+def authorize(context,message,target,*,c=None,attempt_id=None,phase=None,config=None):
     selected=target.model_dump(mode='json')
+    from .composition import continuity_enabled
+    if config and continuity_enabled(config):
+        from .service import encoded
+        if c.execute('SELECT saved_work_target_permitted(%s,%s,%s,false) ok',
+                     (attempt_id,phase,encoded(selected))).fetchone()['ok']:
+            return
+        raise DomainError('not_found_or_not_authorized')
     if message.author_kind!='human' or (message.target is not None and message.target.model_dump(mode='json')!=selected):
         raise DomainError('not_found_or_not_authorized')
     if not any(item['target']==selected for item in context.get('saved_work',{}).get('items',[])):
         raise DomainError('not_found_or_not_authorized')
+
+
+def discover(c,run,decision):
+    # The same bounded, scoped query is recomputed by the SQL receipt guard.
+    result=c.execute('SELECT saved_work_page(r,%s,%s) page FROM runs r WHERE workspace_id=%s AND id=%s',
+        (decision.after_artifact_id,decision.limit,run.workspace_id,run.id)).fetchone()['page']
+    return {'capability':'discover_saved_work','version':'1','result':result}
 
 
 def reads(c,attempt_id,phase):
@@ -51,6 +65,17 @@ def reads(c,attempt_id,phase):
 def was_read(c,attempt_id,phase,target):
     selected=target.model_dump(mode='json')
     return any(r['status']=='complete' and r['target']==selected for r in reads(c,attempt_id,phase))
+
+
+def revalidate_reads(service,c,p,run,cv):
+    from .general_responses import exact_target
+    from .models import ExactTarget
+    rows=c.execute("SELECT e.data->'capability_result'->'result'->'target' AS target FROM responses_events e "
+        "JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.workspace_id=%s AND a.run_id=%s "
+        "AND e.kind='tool_result' AND e.data->'capability_result'->>'capability'='read_saved_work'",
+        (run.workspace_id,run.id)).fetchall()
+    for row in rows:
+        exact_target(service,c,p,run.workspace_id,cv,ExactTarget.model_validate(row['target']))
 
 
 def result(c,attempt_id,phase,target,base):
