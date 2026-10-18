@@ -182,7 +182,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
-    from .composition import enabled as alpha_enabled, continuity_enabled, READ_DECISIONS, RecordResponsibility, AdvanceResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
+    from .composition import enabled as alpha_enabled, continuity_enabled, READ_DECISIONS, RecordResponsibility, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, InspectJSON
     decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config),continuity=continuity_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
@@ -205,9 +205,11 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
                 and a.mime_type=='text/plain'),None)
             if message.author_kind!='human' or message.target is not None or config.get('responsibility') or attachment is None:
                 raise DomainError('not_found_or_not_authorized')
+        if isinstance(decision,DiscoverSavedWork) and not continuity_enabled(config):
+            raise DomainError('unsupported_operation')
         if isinstance(decision,ReadSavedWork):
             from .saved_work import authorize
-            authorize(context,message,decision.target)
+            authorize(context,message,decision.target,c=c,attempt_id=attempt.id,phase=phase,config=config)
             base=exact_target(service,c,p,run.workspace_id,cv,decision.target)
         operation=decision
     elif isinstance(decision,(Reply,Stop)):
@@ -219,7 +221,11 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
             message.target.model_dump(mode='json') if message.target else None,
             author_kind=message.author_kind,alpha=companion_enabled(config),
             responsibility=bool(config.get('responsibility')))
-        if message.target is not None or message.author_kind!='human' or not alpha_enabled(config):
+        if config.get('responsibility') and continuity_enabled(config):
+            if selected is not None:
+                from .saved_work import authorize
+                authorize(context,message,selected,c=c,attempt_id=attempt.id,phase=phase,config=config)
+        elif message.target is not None or message.author_kind!='human' or not alpha_enabled(config):
             if not companion and (selected.model_dump() if selected else None)!=(message.target.model_dump() if message.target else None):
                 raise DomainError('not_found_or_not_authorized')
         elif selected is not None:
@@ -228,7 +234,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
             # context and exact_target both recheck at selection/staging/publication.
             if selected.model_dump(mode='json') not in context['work_area_context']['offered_targets']:
                 from .saved_work import authorize, was_read
-                authorize(context,message,selected)
+                authorize(context,message,selected,c=c,attempt_id=attempt.id,phase=phase,config=config)
                 if not was_read(c,attempt.id,phase,selected):
                     raise DomainError('not_found_or_not_authorized')
         # A companion has an exact source above, but no mutation base: it creates

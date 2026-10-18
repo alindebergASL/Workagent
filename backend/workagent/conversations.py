@@ -330,7 +330,8 @@ class Conversations:
                            [{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
             if alpha:
                 from .responsibility_action import offer
-                context['composition']=context_catalog()
+                from .composition import continuity_enabled
+                context['composition']=context_catalog(continuity_enabled(config))
                 context['responsibility_offer']=offer(c,run,cv,latest,config)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):
@@ -338,6 +339,13 @@ class Conversations:
                 context['sources']=[]
                 sources=[]
                 context['responsibility']=config['responsibility']
+                from .composition import continuity_enabled
+                if continuity_enabled(config):
+                    from .responsibility_execution import durable_context
+                    context['durable_work']=durable_context(c,run,latest,config['responsibility'])
+                    steering=next((m for m in reversed(messages) if m.author_kind=='human' and m.sequence<latest.sequence),None)
+                    if steering:
+                        context['durable_work']['latest_human_steering']={'message_id':steering.id,'text':steering.text}
                 context['dependencies']=[]
                 for dep in config['responsibility']['observations']:
                     if dep['kind']=='artifact_revision':
@@ -381,6 +389,14 @@ class Conversations:
                 validate_consumed(self,c,p,run,config)
         if run.profile=='general-responses-v1':
             from .general_responses import standing
+            from .composition import continuity_enabled
+            from .saved_work import revalidate_reads
+            revalidate_reads(self,c,p,run,cv)
+            if continuity_enabled(config):
+                context['saved_work_discovery']={'capability':'discover_saved_work',
+                    'scope':'responsibility_dependencies' if config.get('responsibility') else 'current_conversation',
+                    'first_page':{'kind':'discover_saved_work','after_artifact_id':None,'limit':12},
+                    'notice':'Snapshot omission is not absence. Page descriptors, then read an exact target.'}
             if standing(grant.responses):
                 from .conversation_context import bound_context
                 bound_context(context,run.id,profile(run.profile)['max_context_bytes'])

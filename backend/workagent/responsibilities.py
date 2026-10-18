@@ -357,7 +357,10 @@ class Responsibilities(ResponsibilityExecution):
         if not person_wait or context_changed or due_changed or blocker_changed or cv.state != 'open':
             life.review_required = True
             life.outcome_status = 'needs_review'
-        if not person_wait:
+        # A wake invalidates evidence, not the saved plan. Keep an executable
+        # human/agent-maintained next action instead of replacing it with boilerplate.
+        # Non-executable waits still become a scoped review when their event arrives.
+        if not person_wait and life.next_action.kind not in ('continue_work','review_dependency'):
             life.next_action = ResponsibilityNextAction(kind='review_dependency',
                 description='Review changed saved context or the due check-in before continuing.')
         # Retain an explicit human wait and its next action verbatim. Ordinary
