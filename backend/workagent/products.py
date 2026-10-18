@@ -328,7 +328,7 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
-        from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, SearchWorkContext, execute_read
+        from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         if isinstance(operation,AdvanceResponsibility):
             from .responsibility_action import authorize_advance
             from .general_responses import check_pins
@@ -337,6 +337,14 @@ class Products:
                 followthrough=authorize_advance(self,c,current[1],operation,check_pins(c,current[1]),ledger,phase)
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'followthrough_result':followthrough}
+        elif isinstance(operation,DiscoverSavedWork):
+            from .saved_work import discover
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=discover(c,current[1],operation)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'capability_result':read}
         elif isinstance(operation,SearchWorkContext):
             from .work_context import search
             from .general_responses import check_pins
