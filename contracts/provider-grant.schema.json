@@ -150,6 +150,19 @@
           "title": "Cancel Limit",
           "type": "integer"
         },
+        "continuity_version": {
+          "anyOf": [
+            {
+              "const": "sustained-v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuity Version"
+        },
         "conversation_ids": {
           "items": {
             "maxLength": 128,
@@ -517,6 +530,19 @@
           "default": 0,
           "title": "Cancel Limit",
           "type": "integer"
+        },
+        "continuity_version": {
+          "anyOf": [
+            {
+              "const": "sustained-v1",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuity Version"
         },
         "conversation_ids": {
           "items": {
