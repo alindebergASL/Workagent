@@ -606,7 +606,7 @@ export function Composer({
             className="btn btn-sm delegate"
             title={
               pausedOnly
-                ? "Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
+                ? "Records it as a paused hand-over; nothing runs for this record. To have Workagent work on something, ask it in a conversation."
                 : undefined
             }
             onClick={() => void delegate()}

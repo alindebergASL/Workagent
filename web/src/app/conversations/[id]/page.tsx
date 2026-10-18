@@ -441,7 +441,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         })}
       </ol>
 
-      <ExecutionLine execution={execution} />
+      <ExecutionLine execution={execution} perTurn />
       {res.reconnecting ? (
         <p role="status" data-state="reconnecting">
           Connection lost. Showing what was last read; sending waits until it
@@ -666,7 +666,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
               className="btn btn-sm delegate"
               onClick={() => setHandoverOpen((v) => !v)}
               aria-expanded={handoverOpen}
-              title="Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
+              title="Records it as a paused hand-over; nothing runs for this record. To have Workagent work on something, ask it in a conversation."
             >
               Record a hand-over
             </button>
@@ -719,9 +719,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         >
           <h2 id="handover-title">Record a hand-over</h2>
           <p className="small muted">
-            This saves what to carry forward, linked to this conversation. I
-            can’t work on it on my own yet: it stays paused, and nothing happens
-            until it’s picked up here.
+            This records what to carry forward as a paused hand-over, linked to
+            this conversation. Nothing runs for this record by itself. To have
+            Workagent work on something, ask it here in the conversation.
           </p>
           <label className="field">
             <span className="field-label">What to carry forward</span>

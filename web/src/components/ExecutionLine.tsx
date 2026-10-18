@@ -8,10 +8,17 @@ import { workspaceExecution, type ExecutionStatus } from "@/lib/execution-view";
  */
 export function ExecutionLine({
   execution,
+  perTurn = false,
 }: {
   execution: { data: ExecutionStatus | null; error: unknown };
+  /** Each request on this page shows its own run (a conversation). */
+  perTurn?: boolean;
 }) {
-  const line = workspaceExecution(execution.data, Boolean(execution.error));
+  const line = workspaceExecution(
+    execution.data,
+    Boolean(execution.error),
+    perTurn,
+  );
   if (!line) return null;
   return (
     <p
