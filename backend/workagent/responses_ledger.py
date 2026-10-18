@@ -56,9 +56,11 @@ class Ledger:
                 config=check_pins(c,run)
                 if enabled(config):
                     from .adaptive import DECISION_SCHEMA
-                    from .composition import enabled as alpha_enabled
+                    from .composition import enabled as alpha_enabled, continuity_enabled
                     if alpha_enabled(config):
                         from .composition import DECISION_SCHEMA
+                    if continuity_enabled(config):
+                        from .composition import CONTINUITY_DECISION_SCHEMA as DECISION_SCHEMA
                     policy=CAPABILITY
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
             else:
@@ -305,6 +307,11 @@ def observations(c,attempt_id):
         receipt=e.get('corrected_readback',e.get('result',{})); usage=receipt.get('usage'); identity=e.get('identity',{})
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
+        if state in ('count_unknown','outcome_unknown') and 'problem' not in e:
+            from .responses_io import active
+            kind='count_send' if state=='count_unknown' else 'dispatch'
+            if active(c,attempt_id,step['phase'],kind):
+                state='counting' if kind=='count_send' else 'dispatching'
         if e.get('problem',{}).get('received') and not receipt: state='invalid'
         decision=(receipt.get('value') or {}).get('decision',{})
         if (target is not None and receipt.get('state')=='function_call' and 'tool_result' not in e
@@ -323,7 +330,17 @@ def observations(c,attempt_id):
 
 def summary(c,grant_id,*,shared=False):
     predicate='s.grant_id IN (SELECT responses_budget_grants(%s))' if shared else 's.grant_id=%s'
-    rows=c.execute('SELECT e.kind,e.data FROM responses_events e JOIN responses_steps s USING(attempt_id,phase) WHERE '+predicate,(grant_id,)).fetchall()
+    # Accounting needs reservations and usage, never retained response/tool bodies.
+    # Keep the scope predicate and exact Decimal calculation below unchanged.
+    rows=c.execute('''SELECT e.kind, CASE e.kind
+        WHEN 'dispatch' THEN jsonb_build_object(
+            'reserved_input_tokens',e.data->'reserved_input_tokens',
+            'reserved_output_tokens',e.data->'reserved_output_tokens',
+            'reserved_cost_usd',e.data->'reserved_cost_usd')
+        WHEN 'result' THEN jsonb_build_object('usage',e.data->'usage')
+        ELSE '{}'::jsonb END AS data
+        FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
+        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchall()
     counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
     reservations=[r['data'] for r in rows if r['kind']=='dispatch']
     receipts=[r['data'] for r in rows if r['kind']=='result']

@@ -1,34 +1,32 @@
 # Workagent development instructions
 
-Read `docs/PRODUCT_CONTRACT.md`, `docs/BUILD_PLAN.md`, `docs/WORK_CONTRACT.md`
-and `docs/PRODUCT_ACCEPTANCE.md` before product work.
-`handoffs/PRODUCT_RESET.md` assigns the current backend and frontend work.
+Workagent is in active build mode. Andrew's October 16 direction is explicit:
+“can we blow up these contracts, we are still in build mode and not prod”.
 
-Workagent is a general, persistent work partner. Intake is an implemented
-capability and a closed engineering checkpoint, not the product definition.
-Old S0/S1 packets, intake missions and integration handoffs describe historical
-slices. Their scope and “no redesign” directions do not govern new product work.
-The current product contract governs direction; deployed schemas remain actual
-API authority until explicitly migrated.
+Read [product direction](docs/PRODUCT_CONTRACT.md), [current work](docs/BUILD_PLAN.md)
+and [STATUS](STATUS.md). The other contract filenames are short supporting guides,
+not additional approval gates. These instructions supersede historical checkpoint
+ordering, demo limits and architecture-preservation requirements for new development.
 
-User instructions and actual authorization always govern execution. Broad
-capability grants no access, spending or external effects. An expired mission
-grant does not limit architecture. Continue routine implementation and reversible
-local checks within authorized scope; ask only for a missing consequential
-decision or authorization.
+Hermes owns backend/runtime/integration. The existing Claude Code owner owns web.
+Coordinate interface changes and preserve concurrent work; use isolated branches.
 
-Hermes owns backend/runtime/integration. The existing Claude Code session owns
-`web/`. Agree contracts before parallel implementation, use isolated branches
-and preserve concurrent changes. Do not create another frontend or another owner
-of the model/tool loop. Both owners inspect the integrated journey.
+Change or replace development APIs, schemas, runtime policies, tools and UI when
+they obstruct the product. Choose the simplest useful implementation. Existing
+architecture is a starting point, not a permanent requirement. Protect saved user
+work with migrations/backups or isolated environments; regenerate affected clients.
 
-Keep PostgreSQL/domain authority, scoped broker checks, immutable revisions,
-human edits, replay, fences, truthful recovery and exact approval. Do not edit
-hash-pinned accepted `agent/v0.1.*` bundles in place. Introduce reviewed versions.
-Reused upstream components go through the same authority boundary.
+Continue authorized reversible implementation, targeted checks, integration,
+development-service operation and feature-branch publication without routine
+checkpoint approval. Publish coherent increments and continue toward the outcome.
+A demo, test pass, review or session boundary does not complete the mission.
 
-Substantive PRs state the user outcome and three verdicts: engineering,
-usefulness and experience. Separate fixtures, live calls and human review.
-Untested is not PASS. Do not close general-agent milestones using only intake
-or research evidence. Keep machinery in details unless it explains a user
-action or uncertainty. A reset document is not implementation.
+Preserve human edits/acceptance, access isolation, truthful state, budget accounting
+and duplicate-effect protection. Existing external outcomes and historical receipts
+must not be erased or reinterpreted. Actual spending/access authority remains in
+[GENERAL_MODEL_AUTHORIZATION](docs/GENERAL_MODEL_AUTHORIZATION.md).
+
+Use risk-proportionate tests and independent review where useful. No mandatory
+all-model/all-persona ceremony or full-suite rerun for every increment. Share
+unfinished work honestly. Evaluate usefulness and the actual desktop/phone
+experience; compare the approved designs. Keep machinery behind optional details.

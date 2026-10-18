@@ -252,6 +252,7 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     are supplied for new authority: omitting a reviewed cap must fail closed.
     """
     runtime_extension: Literal['general-alpha-v1']
+    continuity_version: Literal['sustained-v1'] | None = None
     max_steps: int = Field(default=4, strict=True, ge=1, le=8)
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
@@ -260,6 +261,13 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     output_limit: int = Field(strict=True, ge=0, le=2097152)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_continuity(self,handler):
+        data=handler(self)
+        if self.continuity_version is None:
+            data.pop('continuity_version',None)
+        return data
 
     @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
     @classmethod
@@ -285,22 +293,42 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         return value
 
 
+class StandingResponsesBinding(GeneralAlphaResponsesBinding):
+    """Explicit opt-in: own source-free conversations in this principal/workspace.
+
+    Execution scope is not cross-conversation recall authority. All cumulative
+    provider caps remain required; historical scoped bindings keep their shape.
+    """
+    admission_policy: Literal['principal-workspace-v1']
+    conversation_ids: list[Id] = Field(strict=True, max_length=0)
+
+    @field_validator('cost_limit_usd')
+    @classmethod
+    def bounded_cost(cls, value):
+        from decimal import Decimal
+        if Decimal(value) > Decimal('50.00'):
+            raise ValueError('standing cost exceeds cumulative development ceiling')
+        return value
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
     profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | GeneralResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
+    responses: ResponsesBinding | GeneralResponsesBinding | StandingResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime | None
-    max_runs: int = Field(default=1, strict=True, ge=1, le=10)
+    max_runs: int = Field(default=1, strict=True, ge=1, le=256)
     # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
     max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
 
 
     @model_validator(mode='after')
     def exact_responses_binding(self):
+        if self.max_runs > 10 and not isinstance(self.responses, StandingResponsesBinding):
+            raise ValueError('standing admission policy required for expanded run bounds')
         if self.profile == 'general-responses-v1':
             if (not isinstance(self.responses,(GeneralResponsesBinding,AdaptiveResponsesBinding)) or self.expires_at is not None or
                 self.model!='gpt-6.1-sol' or (self.max_runs>4 and not isinstance(self.responses,AdaptiveResponsesBinding)) or self.max_received_output_tokens!=16384):
@@ -508,7 +536,7 @@ class TextResult(Model):
 class TurnResult(Model):
     # Extend this typed result family when a broker-backed operation is implemented.
     # No opaque dicts, simulated files/tools, or authority/acceptance fields.
-    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
+    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=17)
     work_area: WorkAreaIdentification | None = None
 
     @model_serializer(mode='wrap')

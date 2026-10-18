@@ -380,8 +380,10 @@
               "state": {
                 "enum": [
                   "prepared",
+                  "counting",
                   "count_unknown",
                   "counted",
+                  "dispatching",
                   "outcome_unknown",
                   "accepted",
                   "received",

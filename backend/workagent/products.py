@@ -62,7 +62,7 @@ def adaptive_readback(c,run,attempt):
         max_steps=data['responses']['max_steps'],outcome=outcome,
         shared_reserved_cost_usd=summary(c,data['grant_id'],shared=True)['reserved_cost_usd'],
         shared_cost_limit_usd=data['responses']['cost_limit_usd'],
-        steps=[step_model(**({'capability_result':o.get('capability_result'),'mutation_result':o.get('mutation_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
+        steps=[step_model(**({'capability_result':o.get('capability_result'),'mutation_result':o.get('mutation_result'),'followthrough_result':o.get('followthrough_result')} if alpha else {}),phase=o['phase'],status=o['status'],operation_hash=o['binding']['operation_hash'],
             reason=o.get('reason'),verification=o['verification'],outcome=o['terminal_outcome']) for o in observations])
 
 
@@ -256,7 +256,7 @@ class Products:
                 raise DomainError('action_unresolved')
         return self.get_run(p,run.workspace_id,run.id)
 
-    def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None,*,unresolved=None):
+    def _publish_product(self,c,p,run,cv,operation,base,body,file,observed,text,origin='controlled_transport',binding=None,*,unresolved=None,materials_only=False):
         from .service import digest,encoded
         from .outcomes import acknowledge
         if isinstance(operation,PublishArtifact) and base:
@@ -293,6 +293,8 @@ class Products:
             c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
                 (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
             results.append(ProductResult(kind=getattr(material,'kind','document'),artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
+        if materials_only:
+            return results
         result=TurnResult(results=[TextResult(text=text),*results])
         messages=self._conversation_messages(c,run.workspace_id,cv.id)
         self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
@@ -326,8 +328,16 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
-        from .composition import READ_DECISIONS, ReadSavedWork, SearchWorkContext, execute_read
-        if isinstance(operation,SearchWorkContext):
+        from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, SearchWorkContext, execute_read
+        if isinstance(operation,AdvanceResponsibility):
+            from .responsibility_action import authorize_advance
+            from .general_responses import check_pins
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                followthrough=authorize_advance(self,c,current[1],operation,check_pins(c,current[1]),ledger,phase)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
+                    'followthrough_result':followthrough}
+        elif isinstance(operation,SearchWorkContext):
             from .work_context import search
             from .general_responses import check_pins
             with self.db.transaction() as c:
@@ -373,9 +383,10 @@ class Products:
             if enabled(config):
                 message=next(m for m in self._conversation_messages(c,current[1].workspace_id,current[2].id)
                              if m.run_id==current[1].id and m.author_kind in ('human','system'))
-                from .composition import enabled as alpha_enabled
+                from .composition import enabled as alpha_enabled, continuity_enabled
                 alpha=alpha_enabled(config)
-                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase,alpha=alpha),operation,staged,config['responses']['max_steps'],message,base,alpha=alpha))
+                continuity=continuity_enabled(config)
+                staged.update(stage_metadata(c,ledger,phase,decision(c,ledger,phase,alpha=alpha,continuity=continuity),operation,staged,config['responses']['max_steps'],message,base,alpha=alpha,continuity=continuity))
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior!=staged: raise DomainError('command_conflict')
@@ -404,7 +415,10 @@ class Products:
             text=GeneralExplanation.model_validate(final['value'],strict=True).text
             from .composition import enabled as alpha_enabled, publication_text
             from .general_responses import check_pins
-            alpha=alpha_enabled(check_pins(c,run))
+            from .composition import continuity_enabled
+            config=check_pins(c,run)
+            alpha=alpha_enabled(config)
+            continuity=continuity_enabled(config)
             generated=text
             adaptive_outcome=staged.get('terminal_outcome')
             if adaptive_outcome and adaptive_outcome=='continue': raise DomainError('action_unresolved')
@@ -426,7 +440,24 @@ class Products:
                 # the trusted limitation. Keep provider prose in its receipt.
                 text=staged['reason']
             if alpha: text=publication_text(staged,generated)
-            if staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
+            if continuity:
+                # Resolve every retained selection before writes alter discovery.
+                # Each source/CAS/fence is rechecked; no last-step-only loss of work.
+                results=self._publish_continuity_materials(c,cap,receipt,run,cv,text,origin)
+                messages=self._conversation_messages(c,run.workspace_id,cv.id)
+                self._append_message(c,run.workspace_id,ConversationMessage(id=new_id(),conversation_id=cv.id,run_id=run.id,
+                    sequence=len(messages)+1,author_id='general-worker',author_kind='assistant',text=text,
+                    evidence_origin=origin,model_receipt=receipt.attempt_id,
+                    result=TurnResult(results=[TextResult(text=text),*results])))
+                run.state='ready' if adaptive_outcome in ('answered','completed') else 'partial'
+                if adaptive_outcome in ('blocked','waiting_for_user','step_limit'):
+                    run.stop_reason=adaptive_outcome
+                run.used_units+=1; run.lease_expires_at=None
+                if run.state=='partial':
+                    from .adaptive import unresolved_summary
+                    run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome)]
+                acknowledge(c,run.workspace_id,run.id)
+            elif staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
                 file=FileBody.model_validate(staged['file']) if staged['file'] else None
                 output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(staged['output'])
@@ -456,16 +487,41 @@ class Products:
             self._store_attempt(c,attempt)
             run.execution.provider_observation='received'; run.execution.evidence_origin=origin
             run.provider_session_id=final['response_id']; run.provider_turn_id=final['response_id']
+            if continuity:
+                from .responsibility_action import apply_advance
+                apply_advance(self,c,run,config)
             self._store_run(c,run)
+            if continuity:
+                self._event(c,p,run.workspace_id,'complete_run',run.id)
         detail=self.get_conversation(p,run.workspace_id,cv.id)
         message=next((m for m in detail.messages if m.run_id==run.id and m.author_kind=='assistant'),None)
         if not message or message.text!=text or message.model_receipt!=receipt.attempt_id:
             raise DomainError('action_unresolved')
         for item in results:
             observed=self.get_product_observation(p,run.workspace_id,item.observation_id)
-            if observed.observation.model_selection.model_dump()!=binding:
+            if (not continuity and observed.observation.model_selection.model_dump()!=binding
+                    or observed.observation.model_selection.attempt_id!=receipt.attempt_id):
                 raise DomainError('action_unresolved')
         return self.get_run(p,run.workspace_id,run.id)
+
+    def _publish_continuity_materials(self,c,cap,receipt,run,cv,text,origin):
+        from .adaptive import retained
+        from .general_responses import resolve_selection
+        prepared=[]
+        for observation in retained(c,receipt.attempt_id):
+            if observation['status']!='observed':
+                continue
+            p,_,_,operation,base,binding,_=resolve_selection(self,c,cap,receipt,observation['phase'])
+            if binding!=observation['binding']:
+                raise DomainError('source_changed')
+            body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(observation['body'])
+            file=FileBody.model_validate(observation['file']) if observation['file'] else None
+            output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(observation['output'])
+            prepared.append((p,operation,base,binding,body,file,output))
+        results=[]
+        for p,operation,base,binding,body,file,output in prepared:
+            results.extend(self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
+        return results
 
     def stop_general_budget(self,cap,receipt):
         """Durable no-provider terminal path; not a synthesized model message.

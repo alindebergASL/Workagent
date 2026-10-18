@@ -22,7 +22,7 @@ from workagent.db import Database
 def test_plausible_wrong_output_changes_next_action(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,wrong_first=True)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     turn=s.get_conversation(p,ws,cv.id).turns[0]
     first,second=turn.adaptive.steps
     assert first.status=='observed' and first.verification.checks[0].actual=='7'
@@ -35,7 +35,7 @@ def test_plausible_wrong_output_changes_next_action(context,tmp_path):
 def test_invented_passing_criteria_save_artifact_not_goal_completion(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,invented=True)
-    run=w.work(p,ws,q.run.id)
+    run=finish_safe_visits(context,w,q.run.id)
     detail=s.get_conversation(p,ws,cv.id); turn=detail.turns[0]
     assert run.state=='partial' and run.unresolved
     assert turn.adaptive.outcome=='needs_validation'
@@ -91,7 +91,7 @@ def test_stale_human_edit_blocks_pending_generation_or_publication(context,tmp_p
     def crash(name):
         if name==fault: raise RuntimeError('crash')
     w.phases.hook=crash
-    with pytest.raises(RuntimeError): w.work(p,ws,q.run.id)
+    with pytest.raises(RuntimeError): finish_safe_visits(context,w,q.run.id)
     human=base.body.model_copy(update={'notes':['Human material instruction; preserve this.']})
     saved=s.human_save(p,ws,tool.id,cmd(HumanSave,expected_current_revision_id=base.id,body=human))
     before=list(fake.calls)
@@ -114,7 +114,7 @@ def test_budget_stop_never_abandons_a_sent_attempt(context,tmp_path,monkeypatch)
             raise DomainError('budget_exhausted')
         return original(ledger,request,kind,cap,**kwargs)
     monkeypatch.setattr(Ledger,'reserve_operation',exhausted)
-    run=w.work(p,ws,q.run.id)
+    run=finish_safe_visits(context,w,q.run.id)
     assert run.state=='partial' and run.stop_reason=='budget_limit'
     with s.db.transaction() as c:
         attempt=c.execute('SELECT data,abandonment_reason FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(ws,q.run.id)).fetchone()

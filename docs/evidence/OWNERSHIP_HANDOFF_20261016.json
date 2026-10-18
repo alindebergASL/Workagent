@@ -1,0 +1,1024 @@
+{
+  "observed_at": "2026-10-16T16:19:35.916903+00:00",
+  "scope": "ownership handoff only; no implementation, paid evaluation, deployment, or acceptance",
+  "branch": "hermes/overnight-intelligent-work",
+  "prepublication_remote_head": "7492bb90d532886fd4cf6fee3d1f8fea9378c132",
+  "prepublication_local_head": "e6f1638e7cb0c12789d9ecfab8d4b007e91d6f3e",
+  "prepublication_unpublished_commits": [
+    "e6f1638e7cb0c12789d9ecfab8d4b007e91d6f3e Merge owner itemized proposal review and note preservation summary",
+    "c91b916b19e9235c31f502e874f4c3e17789174c Handoff: proposal review what-changed items",
+    "1fe3abe3d29706d8402affd3194311fd67c4d1aa Proposal review lists what changed, item by item, quoting the proposal",
+    "4b6acfe563420f2720f47687394c6e9fcf717cb0 Handoff: Home summary, entry first, pick-up, steering",
+    "f4ba55700715a846caf66f633cb6c0468de9e965 Merge owner Home continuity and responsibility steering",
+    "c3255299672f97e7b8f04c01797463e9791764ec Proposal review: read \"what changed\" item by item from the diff",
+    "03130d39535ae7316ede7f627de487c763290f55 Steer beside each held responsibility on Home",
+    "61f9050804371b8cd5fc85e5a7d5e93b0f912a65 Home leads with one line of what needs you, the entry, and recent work",
+    "183e1feec74cd7728b028bf5b6f95899df090f47 Handoff: responsibilities say what they wait on or do next",
+    "47e1dffa77190a051f69fbdc2d2716f086e7a211 Responsibilities say what they wait on or do next, on every list",
+    "8cc8ef7795e15ac15e259b1d3d7637a62c089907 Handoff: Home since-you-left",
+    "f4c4992f4943d55e508a29a78027fc17cbbac3d6 Home: \"Since you left\" names what changed, from saved records"
+  ],
+  "preserved_dirty_files_sha256": {
+    "STATUS.md": "41ec565ea2bf9da5111d88458a0632b81c046b3859f06fbc43e30b2e40d14089",
+    "backend/tests/test_adaptive_guards.py": "8657584e7e7b3f79869529fab5bfffa1bcbd0582c7ddc2c6476a4ab44f312b8b",
+    "backend/tests/test_general_alpha_runtime.py": "03356e4c74598e04525ccb626d0fe2cd09f27a003352dfaabd70fd5a151f2c9c",
+    "backend/tests/test_responses_settled_handoff.py": "decdbee5d0fb264432e5d24b4163f479a901651d05d29c278db6adc9d6e29bdf",
+    "backend/workagent/general_worker.py": "cad533e77ed878f7341308b0029dfde96c25e98a38f38e78bc850b131b263753",
+    "backend/workagent/provider_attempts.py": "4330025d462e8f54c56b4b071da252fec184c3fd003df3e783ff2ca69671d217",
+    "backend/workagent/responses_worker.py": "8806341110333732eb99080a3765b8299adad96219236fc0354ebb7ba1519e58",
+    "docs/GENERAL_MODEL_AUTHORIZATION.md": "c631c1422134000ff1a18ad3f1c01a8dc681079e28c1026f19997cb5e32b8625"
+  },
+  "private_preservation_archives": {
+    "all-refs.bundle": {
+      "bytes": 178322775,
+      "sha256": "2de1418152d2f508f9356b3029aa2a23a21358a940a49e88ffc2f86a208c2af4"
+    },
+    "index.patch": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "private-evidence.tar.gz": {
+      "bytes": 430894917,
+      "sha256": "deec6df865fb3e4e40ebbd8a056edc1c708339e7523a0b5aebd2f005e61da458"
+    },
+    "dirty-files.tar.gz": {
+      "bytes": 40822,
+      "sha256": "5b069aef55143bcd890d4697e419b032dc85c2f06d8ec5acc9b6c5bf30a8f07a"
+    },
+    "tracked.patch": {
+      "bytes": 23017,
+      "sha256": "243c093adad2121c7c4fc584514fa71605f9d6c242ef710b4c89f5501b15b4a7"
+    }
+  },
+  "hermes_version": "0.22.0+2222.gccc6355",
+  "gateway": {
+    "instance_id": "64fa24f185c3405793b38fb99d092c14",
+    "authority_epoch": 2,
+    "code_sha": "ccc635594d8bf94c77e0331be3f7345ee8a5a4b5"
+  },
+  "retired_sessions": [
+    {
+      "session_id": "local-66dbd21521b296e1b4337e0819396cf96b8ce8a21e28d9f99aacf7aa7bf08274",
+      "generation": 11,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-c8d452d6dbffe843baad74ff064ec65af058857fdb1460f75655f08fa7c29422",
+      "generation": 19,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-d9fd431202166bd2e06ec1c995886508e64510b2e1fe8f983c03bb02a8cc9051",
+      "generation": 9,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-f959364e5e59f122ce589e710ed227a9f511f12cc128236b6318dcc575eb4c7d",
+      "generation": 16,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-e0c4a91b58c5eed4faf2633689d525fde558b6c433506e687e863d1a111898da",
+      "generation": 1,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-b90607e236a4e4035e48e42c52c4d211ebc9d8b2830fa11dca1df1403358a9c9",
+      "generation": 1,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-a24dd6f7aaa5c931d2bbf3c27cef5607467bd3bc6c83d1cc6d40ba4224026c9f",
+      "generation": 3,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-627a61fba9aa75b4926e38d0e1d6a44201adbffeb62894139f062000e4379dd6",
+      "generation": 6,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-4715e277724df87f3ad2ae53e4059ad71d85f3496334c2db6466f9f11f5acfc8",
+      "generation": 6,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-6d454d51d77de36cff7cc10729970f0a06966a15b410c1e160754ef4fec0e429",
+      "generation": 23,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "local-c78c19a8a3228cf352b2fdeb283d9f47f91719921c5f8e480b5432b933b27169",
+      "generation": 1,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    },
+    {
+      "session_id": "20261015_012331_c1e160a9",
+      "generation": 27,
+      "running": false,
+      "pending_count": 0,
+      "active_child_jobs": 0
+    }
+  ],
+  "current_handoff_session": {
+    "id": "local-9c0a2963c25c10efc52bbaf1fa5507000bc65b30b15e0c609b2264064d47131a",
+    "generation": 28,
+    "running_at_observation": true,
+    "fresh_owner_must_verify_settlement": true
+  },
+  "retired_notification": {
+    "delegation_id": "deleg_5b137a42",
+    "delivery_state": "dropped",
+    "completed_result_preserved": true,
+    "result_sha256": "9d225ff5ddcd654da5981a1bb149aa1aa9466c1f93180931f86c6ec49278dd83"
+  },
+  "disabled_continuation_sources": [
+    "/home/ubuntu/workagent-overnight-20261015-control/STOP",
+    "/home/ubuntu/workagent-private-alpha/continuation/STOP",
+    "/home/ubuntu/workagent-private-alpha/restart-20261016/STOP",
+    "/home/ubuntu/workagent-private-alpha/restart-20261016b/STOP"
+  ],
+  "services": {
+    "api": {
+      "MainPID": "2194162",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 04:35:24 UTC",
+      "ActiveState": "active",
+      "ActiveEnterTimestamp": "Fri 2026-10-16 04:35:24 UTC",
+      "cwd": "/home/ubuntu/workagent-overnight-20261015/backend",
+      "exe": "/usr/bin/python3.12"
+    },
+    "worker": {
+      "MainPID": "0",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 04:35:24 UTC",
+      "ActiveState": "inactive",
+      "ActiveEnterTimestamp": "Fri 2026-10-16 04:35:24 UTC"
+    },
+    "web": {
+      "MainPID": "2242292",
+      "ExecMainStartTimestamp": "Fri 2026-10-16 05:12:00 UTC",
+      "ActiveState": "active",
+      "ActiveEnterTimestamp": "Fri 2026-10-16 05:12:00 UTC",
+      "cwd": "/home/ubuntu/workagent-overnight-20261015/web",
+      "exe": "/home/ubuntu/.hermes/node/bin/node"
+    }
+  },
+  "disk_runtime_sha256": "957f2bca71140d9bdd82aafadf9526c83b60edcccecabd2e57fa2b29ea3097e1",
+  "installed_runtime_sha256": "e8f93d4893f575437e168e831b5b6ae836078523b7c15c1fa458c7caa905d52f",
+  "installed_grant_candidate": "92967e3b40333c5cf4f9f2d8ccc15c69155abd53",
+  "disk_matches_installed_runtime": false,
+  "api_memory_identity_verified": false,
+  "web_build": {
+    "build_id": "Ot8lKSKmQ45IzMlkRxNJX",
+    "build_id_mtime": "2026-10-16T05:11:21.338636+00:00",
+    "manifest_hashes": {
+      "build-manifest.json": "1775a6be4d4dbdfd768614bd72c3215da55a2651df675052212e2ac42efaacaa",
+      "required-server-files.json": "fdcdf06dd2c021842998b2655ce3188f4ee5875c878494a38b6c11c96e353625",
+      "server/app-paths-manifest.json": "3de0c6058738ea4765bbb458fe18034687790b2a48e1d8e362e5dc0742f3d503"
+    },
+    "http_status": 200,
+    "html_contains_build_id": true
+  },
+  "readiness": false,
+  "financial_readback": {
+    "historical_sources_fenced_and_unchanged": true,
+    "union": {
+      "dispatch": 117,
+      "count_send": 121,
+      "read": 698,
+      "cancel": 0,
+      "reserved_input_tokens": 2340000,
+      "reserved_output_tokens": 958464,
+      "reserved_cost_usd": "15.43464"
+    },
+    "shared": {
+      "carried_reserved_cost_usd": "3.42992",
+      "request_counts": {
+        "count_send": 95,
+        "dispatch": 91,
+        "read": 509,
+        "cancel": 0
+      },
+      "reserved_input_tokens": 1820000,
+      "reserved_output_tokens": 745472,
+      "reserved_cost_usd": "15.43464",
+      "reported_usage": {
+        "input_tokens": 952435,
+        "output_tokens": 64929
+      },
+      "unknown_usage_steps": 2,
+      "conservatively_calculated_cost_usd": null,
+      "billed_cost_usd": null,
+      "cost_basis": "undiscounted reservation rates; not provider billing"
+    },
+    "allocation_receipts_reconciled": true,
+    "aggregate_encumbered_usd": "39.919920",
+    "unactivated_usd": "10.080080",
+    "provider_requests": 0,
+    "installed_successor": false,
+    "current_grant_id": "workagent-alpha-dev-20261015-12",
+    "source_only_audit_disposition": "Union/shared cost equality and original source fences asserted; allocation receipt lineage retained, not inferred from usage.",
+    "operator_cap_usd": "50.000000",
+    "observed_at": "2026-10-16T16:10:50.373329+00:00",
+    "new_authority_installed": false
+  },
+  "tests": [
+    {
+      "sha256": "792e33cb6120ea1da36d61a2765978219a7b73365d8fefba99ca51d19ae0bd6a",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "continuation-focused.xml"
+    },
+    {
+      "sha256": "faa2e561954cb128fb1129546df12ae1937082ac1e0c8d57885723a7cb6f5045",
+      "tests": 154,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "continuation-reviewed-regressions.xml"
+    },
+    {
+      "sha256": "a9a193a7ff6644baeb02a0266c017272688eb7109c7a5933ae16835b24e24543",
+      "tests": 73,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "continuation-service-regressions-verified.xml"
+    },
+    {
+      "sha256": "ca661cf39c7e4bab105da792595eccb6a54357fe1650be682f2d0f217fa18ea0",
+      "tests": 73,
+      "failures": 0,
+      "errors": 63,
+      "skips": 0,
+      "report": "continuation-service-regressions.xml"
+    },
+    {
+      "sha256": "a5f569f23cd9ce4f044e6263b1f76c9e7aca6d4ce3bc36c1fd9ba8464882a85f",
+      "tests": 88,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-focused.xml"
+    },
+    {
+      "sha256": "a7f4473638e0e8f60d1712a87b4f08a4525231e859431f036dd6b47428d74640",
+      "tests": 233,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-regression-a.xml"
+    },
+    {
+      "sha256": "e495e8bf062178e310e375f68f2426682eee17889f5d140f3da505c848febed4",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-regression-b1.xml"
+    },
+    {
+      "sha256": "cc080237835f981dfa03df936e255ab17e9264aa2888cdecd2cd6cbccf998dcb",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-regression-b2.xml"
+    },
+    {
+      "sha256": "e6c2b09640965f9d4273a76f1a8437f21ed40550ccd6643f7073aa65fb918ca8",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-regression-b3.xml"
+    },
+    {
+      "sha256": "8118db349f7b0632c1fde20599cf5cf0916048421f6323132976b0ad9ff445b1",
+      "tests": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "development-bounds-regression.xml"
+    },
+    {
+      "sha256": "50399deac6b8e24c88e0f0d913b726c6387a7f8dc67a099578aecd99736284ae",
+      "tests": 26,
+      "failures": 6,
+      "errors": 0,
+      "skips": 0,
+      "report": "draft-final-focused.xml"
+    },
+    {
+      "sha256": "16d9bc2731d9f0a420f4942a25af006e815e4ed909e0ea7a33cc73d9de95ff50",
+      "tests": 98,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "draft-final-runtime-regressions.xml"
+    },
+    {
+      "sha256": "d096f09a4c4f8381cac0da2113f2fb37346e303feb1c28f5292a64811cdce134",
+      "tests": 71,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "draft-final-verified.xml"
+    },
+    {
+      "sha256": "dbb063617486cd2c02f953173786284de40fc79609e3d5862ebd278f895331cb",
+      "tests": 6,
+      "failures": 6,
+      "errors": 0,
+      "skips": 0,
+      "report": "draft-state-red.xml"
+    },
+    {
+      "sha256": "470fa47f88922dde26f6968e306702423eead53c042bc4ae6852cc59268f55f3",
+      "tests": 114,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "integrated-runtime-tests.xml"
+    },
+    {
+      "sha256": "bd3b1e72c3921888318643853691ef9dcebb3cad2fd55574269d6a9e341b495a",
+      "tests": 65,
+      "failures": 2,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-consumer-pass.xml"
+    },
+    {
+      "sha256": "1e33d1445e224f680452b9254643e7fb01fad864f0fdb09f1a78db50d1e5df62",
+      "tests": 65,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-consumer-verified.xml"
+    },
+    {
+      "sha256": "c2a1d3d2236921c74bbbd8f6ec8888c19b4e66eb4b05dd709f2c62356e4b239d",
+      "tests": 65,
+      "failures": 0,
+      "errors": 46,
+      "skips": 0,
+      "report": "iteration3-consumer.xml"
+    },
+    {
+      "sha256": "980629b4a9fbd3f3d24a098b29efd0da085edb61a651d85e6ea9c468bb5bed7f",
+      "tests": 51,
+      "failures": 5,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-context-first.xml"
+    },
+    {
+      "sha256": "819714dcb6dec451d82a1afa5b2833dfd93bcecb71cca60a60c478b2b935e139",
+      "tests": 55,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-context-fixed.xml"
+    },
+    {
+      "sha256": "3849f1cd707ffb54b4e9e983ea306752db4f295137a653446e06689b6e4b8953",
+      "tests": 42,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-detached-context.xml"
+    },
+    {
+      "sha256": "e067da9b6ab119e18faa79ecc54568569c070a59050352b21c842a798fc07614",
+      "tests": 63,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-detached-verified.xml"
+    },
+    {
+      "sha256": "c47beacec2f31b2176f511a479ee4c58ca68b7fc27103dabd38fd09be8ee5c3b",
+      "tests": 70,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-diagnostic-context.xml"
+    },
+    {
+      "sha256": "f7b575f36c5ffd1e5f7674350dbc8b779f063b6ba1009dd07aebb8ae3fd602c3",
+      "tests": 94,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-final-regression.xml"
+    },
+    {
+      "sha256": "24c1d7d483ef1fc7b4408cf3ad58b5da06895f9c13dae9a3b9455408abbd6fb1",
+      "tests": 56,
+      "failures": 3,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-managed-tests.xml"
+    },
+    {
+      "sha256": "5e20f4760b8191ff763b45eaa5c87c8eebfb9a344ce418b8f2192db077e05742",
+      "tests": 165,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-runtime-verified.xml"
+    },
+    {
+      "sha256": "87ccf4ca36125f4dca1c94b7c194e220c39d82c982c2e91670372b2477fdf3c0",
+      "tests": 165,
+      "failures": 0,
+      "errors": 150,
+      "skips": 0,
+      "report": "iteration3-runtime.xml"
+    },
+    {
+      "sha256": "5ed58cdf345ed158f12f445af5e1f1c775aa1fc01db3dbc9aae3cd6e22681fa5",
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-target-denial-focused.xml"
+    },
+    {
+      "sha256": "aec0edc8539af96d552e0f1d1ded47d57d5c019ca3c07cf56af3d5a17eb9acab",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-target-denial-red.xml"
+    },
+    {
+      "sha256": "494981f86dd678066257a8996a1fd9688e06552ba8f360fc833979835054d229",
+      "tests": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-target-denial-verified.xml"
+    },
+    {
+      "sha256": "5f18566742934c7605578aeaa34d5e4bb59a2809c3ac2b0e95eb9640110fbc31",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration3-target-denial-worker.xml"
+    },
+    {
+      "sha256": "cb15c52b757378ad25fa00c072ae3377521185494409a0c8b349f8a37b517424",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-admission-failure-probe.xml"
+    },
+    {
+      "sha256": "7fc9645fad71f73b73a76560bd2748badc8e9af3871886946a896cb9697ee3a7",
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-admission-fixed.xml"
+    },
+    {
+      "sha256": "4533629149904fb537df08dad8592858c8f45682602ffc79ecf107454e3e9159",
+      "tests": 131,
+      "failures": 4,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-admission-integrated-final.xml"
+    },
+    {
+      "sha256": "dc89b76677090c0e332d536c6193765481b52b98e44d4697045397eadb92a3e8",
+      "tests": 192,
+      "failures": 0,
+      "errors": 164,
+      "skips": 0,
+      "report": "iteration4-admission-integrated.xml"
+    },
+    {
+      "sha256": "bbd184635165ede8f7af8a4431c97e495e4f4ad9ac6222b53f4d5a61153ccf9b",
+      "tests": 9,
+      "failures": 9,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-admission-red.xml"
+    },
+    {
+      "sha256": "76c08e68ef8aeaab68db5053e05acf1c182a7afd1b7ee315d69be7a3b9a9b7d3",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-admission-review-tests.xml"
+    },
+    {
+      "sha256": "b842420a815b011e3a966564ccd601b0308947821101e3f677b246d8ae71fbec",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-companion-boundary.xml"
+    },
+    {
+      "sha256": "5e61febe8ed8e8a54b2c5c54d0c016c3d754d0b404a2e9b7f660afb63029851f",
+      "tests": 17,
+      "failures": 8,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-companion-first.xml"
+    },
+    {
+      "sha256": "f5477a6ac335cdfabaf5a5bc21ce814ef451b5104a5ba16f878d7eed50e6174e",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-companion-focused.xml"
+    },
+    {
+      "sha256": "d4859a29c6dbcddc0175f74bfbe453608effe82ecc6552c53e5d013cc9f47efd",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-companion-red.xml"
+    },
+    {
+      "sha256": "c26f6f34f9a39c9eb55f0e84468182a4f09c939f1656e3106412d197a4dbe2d4",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-identity-fixed.xml"
+    },
+    {
+      "sha256": "4b68b8548b08372e5b25083859f3ef6d0d0be7dcc2120a1239995580ac6380c2",
+      "tests": 3,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-identity-red.xml"
+    },
+    {
+      "sha256": "6727b017f29d1f9893606504de28c32a0f39b9ec685858a7aec5f6d12e37daf2",
+      "tests": 159,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-integrated-fixed.xml"
+    },
+    {
+      "sha256": "f9ff6097ce15504b06ce5765c3126509c57a1ca34faa47267e543bf31db4895c",
+      "tests": 157,
+      "failures": 0,
+      "errors": 131,
+      "skips": 0,
+      "report": "iteration4-integrated.xml"
+    },
+    {
+      "sha256": "43f5aacf74159235f2184ec87967ff05edfd830756a84f68516be02c472429be",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-migration.xml"
+    },
+    {
+      "sha256": "b3652c7d8db4eb9b4329b8458b5007e53fa0ecbc32fda6e4a8e15651a57ff3c3",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration4-policy-red.xml"
+    },
+    {
+      "sha256": "5a05390faf72b1e6338972d23cfa63322eec8fc363e6d81951e5b3682e6c0faa",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-boundary-efficiency-green.xml"
+    },
+    {
+      "sha256": "703a03225f5a24756e5641d695eadd4765c5b76873ed6072c86ac09ea75232e8",
+      "tests": 6,
+      "failures": 6,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-boundary-efficiency-red.xml"
+    },
+    {
+      "sha256": "dfdd23aeefdc3ab689e0c5de108fd571055dad44fe83a04bb3a065deb835fa93",
+      "tests": 129,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-final-integrated.xml"
+    },
+    {
+      "sha256": "df3b0628bc5eaa57360b8f9eb07dab471c2372291a5cb79eade0c08f8219eb08",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-flexible-before.xml"
+    },
+    {
+      "sha256": "5ebbefe3696601cf054fec7bd7c572509b4bbf824ea35de0ddce6ba613a5aec4",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-flexible-profile.xml"
+    },
+    {
+      "sha256": "2d26a63a36ab446771ffb7d575d8b48817815887cfca6d70896dcec1cea96562",
+      "tests": 76,
+      "failures": 9,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-focused-integrated.xml"
+    },
+    {
+      "sha256": "a0f8547f915b9f39ff8f692c6e3bea4e96f1d22d799818874781f56e14d6bdbf",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-handoff-fixture.xml"
+    },
+    {
+      "sha256": "c80a913e5ad5ffd8e4b57552c092008073e47dc6f9b7c4003376044e3b570275",
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-integrated-complete.xml"
+    },
+    {
+      "sha256": "c999c2ebcdf259a809a8eff8536b440a73b4cb855f473033b496598c7edcd428",
+      "tests": 259,
+      "failures": 13,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-integrated-postfix.xml"
+    },
+    {
+      "sha256": "0ee0f412fd23f0d60ff1228adf1b0c84f459dd796eac0a5b37987e395d36b096",
+      "tests": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-integrated.xml"
+    },
+    {
+      "sha256": "56d077a28ad655f95e5bfef6f1cdd9a07f347f7f6821f69e45122deb5d08813c",
+      "tests": 33,
+      "failures": 0,
+      "errors": 30,
+      "skips": 0,
+      "report": "iteration5-leases.xml"
+    },
+    {
+      "sha256": "c299da4388218e266038b08230ece0b8eceb79467809d2b6a09dc97ea9a53d4e",
+      "tests": 280,
+      "failures": 2,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-output-final.xml"
+    },
+    {
+      "sha256": "536372d4bcd8f3f47db089164af2855b5fb67525474bb96218c4f9e31182cb39",
+      "tests": 151,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-output-green.xml"
+    },
+    {
+      "sha256": "ae0bcee4bf64a873e67cbae5f123e707190ea64ae831980d3620d08492a7e9be",
+      "tests": 273,
+      "failures": 2,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-output-integrated.xml"
+    },
+    {
+      "sha256": "1894a9100df4838011bd347c69212be5f87da666631be431c76b97ab12923747",
+      "tests": 7,
+      "failures": 3,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-output-red.xml"
+    },
+    {
+      "sha256": "45546e36945add1a3a4900ad4cd250858997379fc55bebe019b1e427d0e8a5fb",
+      "tests": 292,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-owner-latest-tests.xml"
+    },
+    {
+      "sha256": "e54e02697e498f0027309d56eecad2665864e1b404508791bc2b1b9f83708239",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration5-target-failure.xml"
+    },
+    {
+      "sha256": "f466742f48c6b09ba58d625e955d837943c90223186686d196036b108244132e",
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-decision-web.xml"
+    },
+    {
+      "sha256": "1dd62c8dd373b63eace6a307abe6b41ee12b424bf2dee60c9ca8141760abcc58",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-handoff-alpha-corrected.xml"
+    },
+    {
+      "sha256": "b19c1b824e8dc7a57202383c06514b3099710ad1685d2135f032ba6474e97d44",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-handoff-publication-probe.xml"
+    },
+    {
+      "sha256": "3e4cc5ee5339800d9921e8eb8b2d33eeb9e814b523178f10f1ffbcb3942963ec",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-handoff-read-exhaustion-probe.xml"
+    },
+    {
+      "sha256": "42a39e152aba1c811e30ab2fa9f0811b840ae20d43ff4a2d0e97fde399782323",
+      "tests": 155,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-json-integrated.xml"
+    },
+    {
+      "sha256": "29f5aa9ec12e0fc1877866a2ffd98e29bfbafb13aa726cf41fd459a24056d107",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-json-pure.xml"
+    },
+    {
+      "sha256": "1638001b50b0e52ccb4b77c99c4f2344e7a6c2c576d603f06831844fc5be2a48",
+      "tests": 1,
+      "failures": 0,
+      "errors": 1,
+      "skips": 0,
+      "report": "iteration6-json-red.xml"
+    },
+    {
+      "sha256": "5cf76820ec181360dd918a5418a4460a331a097381881e2b0547c95eac2188a8",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-json-review-probes.xml"
+    },
+    {
+      "sha256": "dc6d9d54c3ced309793db9918129d6e6ad595909782a9c8daa65630684a60591",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-json-runtime-first.xml"
+    },
+    {
+      "sha256": "93d0f75f0cca6f90475b13ea9ffa180d6cf0d3da3063269e67945d9e250a083a",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-json-runtime-red.xml"
+    },
+    {
+      "sha256": "21f8efcb869690830fb51122b381bd6e2383a7caf110b8cf37d55b839639be8f",
+      "tests": 139,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-ledger-projection-green.xml"
+    },
+    {
+      "sha256": "730c3cf3991777515f6e4cf1262e71b01f307cfd40ad24d3d0cccb592ccec8b2",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-ledger-projection-red.xml"
+    },
+    {
+      "sha256": "57acd8210c64dfc42851b7c06c7bcac8687d6af0654c98408fe3efd4dc263d2c",
+      "tests": 281,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-output-final.xml"
+    },
+    {
+      "sha256": "ec44d6b6cce8c30e384c3a321e287aa676e06164c18806d588fc9da21cac309e",
+      "tests": 305,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-owner-c325-unit.xml"
+    },
+    {
+      "sha256": "b61726a5832b896052daf3f4b2588ce9866441e0dbebe025633753655655b9c9",
+      "tests": 305,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-owner-c91-unit.xml"
+    },
+    {
+      "sha256": "e8966b45c6ae6b15636fa215b7836b0d9440b8c5487e42c697659ff668b79c99",
+      "tests": 293,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-owner-web.xml"
+    },
+    {
+      "sha256": "1e4efd38fe41603900a45f0c60f14cffd1d45ee852c449603ea0d8f268ee701c",
+      "tests": 217,
+      "failures": 4,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-resilience-final.xml"
+    },
+    {
+      "sha256": "4afc2a998e43948e4d64c73d15b8887bf597a14e7b64ffa4671b14d915cc09e0",
+      "tests": 217,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-resilience-final2.xml"
+    },
+    {
+      "sha256": "ec9cd9cc5e9e1bde552eddf9321af1415b40765d513c589bdac439d3ea1f9228",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-resilience-green.xml"
+    },
+    {
+      "sha256": "d1c66917780e36b18bbc7ea082131d716ee2b376e386bd8bd0cb578297d4f0dd",
+      "tests": 212,
+      "failures": 0,
+      "errors": 168,
+      "skips": 0,
+      "report": "iteration6-resilience-integrated.xml"
+    },
+    {
+      "sha256": "ee107dab6e99bbf26111ad2c64f7538a4210b5c9740ea0db3856415f442c190b",
+      "tests": 5,
+      "failures": 5,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-resilience-red.xml"
+    },
+    {
+      "sha256": "713ca62b44f304b370c3d0e505cca8113b76a570ce769a20912abadfe77743e6",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-settled-handoff-corrected.xml"
+    },
+    {
+      "sha256": "166abee53705b451ab8fbd8036e03ae0a8ff2cdc7442c61d3e68f33130808363",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-settled-handoff-first.xml"
+    },
+    {
+      "sha256": "b4618e66f65aadb18286ed65e48849d8be700cc7c249585f4715bc51f9f0e2b8",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-settled-handoff-focused.xml"
+    },
+    {
+      "sha256": "1cf94399fadb40610f7e34ab9810d4718e8620436b50247e88b7103039ac7eec",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-settled-handoff-fresh-probe.xml"
+    },
+    {
+      "sha256": "8ae7e56ae61d28484f2de9ccc9b6e01308d8df742cc712782d6d0ad2e1c4ed4f",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-settled-handoff-red.xml"
+    },
+    {
+      "sha256": "cb725936cf2c21c84c81039cd387bdb64d61db3d147a4c52b2e1c82a8f949696",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-timing-green.xml"
+    },
+    {
+      "sha256": "fcd249a05d8163977dd6f6edfc0573b5d325f1a8c14c69c6b6e14db7c8a20adf",
+      "tests": 292,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-web.xml"
+    },
+    {
+      "sha256": "6db477379db3ebf654cdf762b89c00b28572fd70526088bba741482696a73584",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-yield-probes.xml"
+    },
+    {
+      "sha256": "cdc93f93ea2a4cede86e52c9018e8b76f6201e336b54472a0a0563378044f45b",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-zero-headroom-final.xml"
+    },
+    {
+      "sha256": "530de611ab9eb4165cbe99701c0b128b6aeba172897c86822cdb134022542b23",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-zero-headroom-green.xml"
+    },
+    {
+      "sha256": "5b9af2b732a022f15bbad833bdcac2099b8954ae9b0fe662539eba18eef2a935",
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0,
+      "report": "iteration6-zero-headroom.xml"
+    }
+  ],
+  "interrupted_run": {
+    "job_id": "proc_183e09405c43",
+    "expected_collection": 405,
+    "exit_code": -15,
+    "final_junit_present": false,
+    "partial_failure_markers": 2,
+    "verdict": "interrupted; not PASS"
+  }
+}

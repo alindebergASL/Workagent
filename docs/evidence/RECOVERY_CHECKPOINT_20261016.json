@@ -1,0 +1,129 @@
+{
+  "application_candidate": "41a373965fd6aed6fdd6d55599a265515017cd9e",
+  "backend_increment": "29502de",
+  "verification": [
+    {
+      "report": "publication-preserved.xml",
+      "sha256": "5c733602069a177911e6a2ac621a1defc1940ddf91dc6867765bf654979986ed",
+      "testcases": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "settled-focused-env.xml",
+      "sha256": "4251d7fe54d0fe0de056d2ef7a1d0242e80f4fff4d9682a4d880432e8b9325a5",
+      "testcases": 94,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "recovery-transport.xml",
+      "sha256": "ec590bbf52ccc2494ff9a09dd10a51bd3e3a0d57ecfc5093c96f9622f25ba156",
+      "testcases": 168,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "activation-scope-corrected.xml",
+      "sha256": "c9076820ecc1c7e472feb816b97d320836ce31b75300d04fe9167cfd9d1a7812",
+      "testcases": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "settled-focused.xml",
+      "sha256": "18c9c89e8746e4d4eba693f81273e63019c2b79d36b808d13dca76893db3c2c9",
+      "testcases": 5,
+      "failures": 0,
+      "errors": 5,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "activation-scope.xml",
+      "sha256": "d1fe98c81bde40b366ddc97d2536879eb76515794d68793fe06837ef7cd61e21",
+      "testcases": 2,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    },
+    {
+      "report": "continuation/web-unit.xml",
+      "sha256": "b77f6f54089afe1ee679cc012c08641f2417c69c0f5c99ca7fd9c5f4e49ed751",
+      "testcases": 308,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "evidence": "reused retained report; inspected 2026-10-16, not rerun"
+    }
+  ],
+  "frontend_checks": [
+    {
+      "name": "web-unit",
+      "exit_code": 0
+    },
+    {
+      "name": "typecheck",
+      "exit_code": 0
+    },
+    {
+      "name": "lint",
+      "exit_code": 0
+    },
+    {
+      "name": "format",
+      "exit_code": 0
+    },
+    {
+      "name": "contracts",
+      "exit_code": 0
+    }
+  ],
+  "build_id": "S3q1X0z3unkcQp8UaAsyV",
+  "startup_at": "2026-10-16T21:36:28Z",
+  "runtime_sha256": "957f2bca71140d9bdd82aafadf9526c83b60edcccecabd2e57fa2b29ea3097e1",
+  "consumer_sha256": "cdbb566857b2a0603bffba37e1c10e1611016cce3729866c0a078b685fda985d",
+  "installed_grant": "workagent-alpha-recovery-20261016-01",
+  "accounting_as_of": "2026-10-16T22:09:02.242807+00:00",
+  "allocation_encumbered_usd": "43.086000",
+  "unactivated_usd": "6.914000",
+  "shared_reservations_usd": "15.43464",
+  "unknown_usage_steps": 2,
+  "not_billing": true,
+  "ownership": {
+    "task": "t_dae2fde4",
+    "runs": [
+      2,
+      3
+    ],
+    "authority_epoch": 2,
+    "generation": 1,
+    "admissions": [
+      "2d1e92ff5e2f4a79818be05b64317ecc",
+      "3689c35b777c4083ac7e056ce537809e"
+    ],
+    "admission_status": "unknown retained without replay",
+    "compute_status": "terminal",
+    "bound_pids": [
+      3170411,
+      3179114
+    ],
+    "controllers": [
+      3170319,
+      3179055
+    ],
+    "all_pids_absent": true,
+    "failure": "synchronous_rpc_on_event_loop during session persistence at21:36:47 and21:39:22; managed_worker_failed follows",
+    "upstream139612": "same outward symptom/classification; memory pressure and owner_unavailable cause NOT established here",
+    "owner": "attended current CLI session; no retry or new dispatcher owner"
+  }
+}

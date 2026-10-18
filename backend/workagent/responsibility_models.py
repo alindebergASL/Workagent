@@ -69,7 +69,8 @@ class ResponsibilityLifecycle(ResponsibilityPlan):
     schema_version: Literal['responsibility/v1'] = 'responsibility/v1'
     state: Literal['active', 'waiting_person', 'waiting_event', 'blocked', 'paused',
                    'cancelled', 'taken_over'] = 'active'
-    outcome_status: Literal['unverified', 'needs_review'] = 'unverified'
+    outcome_status: Literal['unverified', 'needs_review', 'evidenced_preparation'] = 'unverified'
+    outcome_evidence: dict | None = None
     observations: list[DependencyObservation] = Field(default_factory=list, max_length=50)
     review_required: bool = False
     blocker: Literal['grant_required', 'tool_required', 'authority_unavailable',

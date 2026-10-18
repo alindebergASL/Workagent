@@ -772,6 +772,10 @@ export interface components {
             capability_result?: {
                 [key: string]: unknown;
             } | null;
+            /** Followthrough Result */
+            followthrough_result?: {
+                [key: string]: unknown;
+            } | null;
             mutation_result?: components["schemas"]["ResponsibilityMutationResult"] | null;
             /** Operation Hash */
             operation_hash?: string | null;
@@ -1985,7 +1989,7 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "prepared" | "count_unknown" | "counted" | "outcome_unknown" | "accepted" | "received" | "invalid";
+            state: "prepared" | "counting" | "count_unknown" | "counted" | "dispatching" | "outcome_unknown" | "accepted" | "received" | "invalid";
         };
         /** ResponsibilityDependency */
         ResponsibilityDependency: {
@@ -2039,12 +2043,16 @@ export interface components {
             next_check_in_at?: string | null;
             /** Observations */
             observations?: components["schemas"]["DependencyObservation"][];
+            /** Outcome Evidence */
+            outcome_evidence?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Outcome Status
              * @default unverified
              * @enum {string}
              */
-            outcome_status: "unverified" | "needs_review";
+            outcome_status: "unverified" | "needs_review" | "evidenced_preparation";
             /**
              * Review Required
              * @default false
@@ -4066,7 +4074,7 @@ export interface operations {
                      *         "provider_turn_id": null,
                      *         "state": "queued",
                      *         "stop_reason": null,
-                     *         "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                     *         "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -5994,7 +6002,7 @@ export interface operations {
                      *       "provider_turn_id": null,
                      *       "state": "running",
                      *       "stop_reason": null,
-                     *       "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                     *       "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

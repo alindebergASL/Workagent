@@ -20,7 +20,7 @@ def consumer_hash():
     from .service import digest
     names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'conversation_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -87,18 +87,41 @@ def check_pins(c,run):
     if (run.bundle_hash!=PROFILE_HASH or config.get('bundle_hash')!=PROFILE_HASH or
         config.get('implementation_hash')!=grant.consumer_sha256 or run.budget_units!=1 or
         run.tool_registry_hash!=digest(profile(PROFILE)['tools']) or
-        run.conversation_id not in grant.responses.conversation_ids):
+        not permits_conversation(c,grant.id,run.conversation_id)):
         raise DomainError('unsupported_operation')
     from .responsibility_execution import validate_binding
     validate_binding(c,run,config)
     return config
 
 
+def standing(binding):
+    return getattr(binding,'admission_policy',None)=='principal-workspace-v1'
+
+
+def permits_conversation(c,grant_id,conversation_id):
+    predicate=scope_predicate(c,'g','%s')
+    return c.execute(f'SELECT EXISTS(SELECT 1 FROM provider_grants g WHERE g.id=%s AND {predicate}) permitted',
+                     (grant_id,conversation_id)).fetchone()['permitted']
+
+
+def scope_predicate(c,grant_alias,conversation_expression):
+    """Trusted SQL fragments only; old schema prefixes keep exact list scope.
+
+    The fallback supports migration fixtures/reads, never standing admission:
+    their existing SQL binding guard rejects the new policy until migration.
+    """
+    installed=c.execute("SELECT to_regprocedure('general_execution_scope_permits(text,text)') IS NOT NULL installed").fetchone()['installed']
+    if installed:
+        return f'general_execution_scope_permits({grant_alias}.id,{conversation_expression})'
+    return f"{grant_alias}.data->'responses'->'conversation_ids' ? {conversation_expression}"
+
+
 def admission(service,c,p,ws,cv,cmd):
     """An existing revoked/exhausted scoped activation never silently falls back."""
     from .models import ProviderGrant
-    rows=c.execute("SELECT data,active FROM provider_grants WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'=%s",(ws,p.id,PROFILE)).fetchall()
-    scoped=[r for r in rows if cv.id in r['data']['responses']['conversation_ids']]
+    predicate=scope_predicate(c,'g','%s')
+    scoped=c.execute(f"SELECT data,active FROM provider_grants g WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'=%s AND {predicate}",
+                     (ws,p.id,PROFILE,cv.id)).fetchall()
     if not scoped:
         if not service.allow_controlled_turns: raise DomainError('unsupported_operation')
         if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
@@ -159,12 +182,16 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .adaptive import enabled,decision as adaptive_decision,Stop
     config=check_pins(c,run)
-    from .composition import enabled as alpha_enabled, READ_DECISIONS, RecordResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
-    decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config)).decision if enabled(config) else
+    from .composition import enabled as alpha_enabled, continuity_enabled, READ_DECISIONS, RecordResponsibility, AdvanceResponsibility, ReadSavedWork, SearchWorkContext, InspectJSON
+    decision=(adaptive_decision(c,ledger,phase,alpha=alpha_enabled(config),continuity=continuity_enabled(config)).decision if enabled(config) else
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
-    if isinstance(decision,RecordResponsibility):
+    if isinstance(decision,AdvanceResponsibility):
+        from .responsibility_action import authorize_advance
+        authorize_advance(service,c,run,decision,config,ledger,phase)
+        operation=decision
+    elif isinstance(decision,RecordResponsibility):
         from .responsibility_action import authorize
         authorize(service,c,p,run,cv,message,decision,config)
         operation=decision
