@@ -336,6 +336,43 @@
       "title": "DiscoverCapabilities",
       "type": "object"
     },
+    "DiscoverSavedWork": {
+      "additionalProperties": false,
+      "properties": {
+        "after_artifact_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "After Artifact Id"
+        },
+        "kind": {
+          "const": "discover_saved_work",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "after_artifact_id",
+        "limit"
+      ],
+      "title": "DiscoverSavedWork",
+      "type": "object"
+    },
     "DraftAction": {
       "additionalProperties": false,
       "properties": {
@@ -1354,6 +1391,9 @@
         },
         {
           "$ref": "#/$defs/AdvanceResponsibility"
+        },
+        {
+          "$ref": "#/$defs/DiscoverSavedWork"
         }
       ],
       "title": "Decision"

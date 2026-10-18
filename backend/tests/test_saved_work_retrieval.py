@@ -101,7 +101,9 @@ def test_large_work_rechecks_authority_and_revision(context,tmp_path,change,when
     def hook(name):
         if name==('after_tool_result' if when=='after_read' else when): alter()
     w.phases.hook=hook
-    with pytest.raises(DomainError) as exc: w.work(p,ws,q.run.id)
+    from test_adaptive_execution import finish_safe_visits
+    with pytest.raises(DomainError) as exc: finish_safe_visits(context,w,q.run.id)
+    assert changed, 'The authority-change hook must actually have fired'
     assert exc.value.code.value in ('source_changed','version_conflict','not_found_or_not_authorized','action_unresolved')
     with Database(admin).transaction() as c:
         assert c.execute('SELECT count(*) n FROM proposals WHERE workspace_id=%s',(ws,)).fetchone()['n']==0
@@ -140,7 +142,8 @@ def test_read_limit_is_explicit_not_truncated_or_editable(context,tmp_path):
         assert result['status']=='size_limit' and result['body'] is None
         assert result['body_bytes']>32768 and result['limit_bytes']==32768
         return {'kind':'reply','text':'The saved work exceeds the bounded read limit; it was not revised.'}
-    assert worker(context,AlphaProvider([read_choice,stop]),tmp_path).work(p,ws,q.run.id).state=='ready'
+    from test_adaptive_execution import finish_safe_visits
+    assert finish_safe_visits(context,worker(context,AlphaProvider([read_choice,stop]),tmp_path),q.run.id).state=='ready'
     assert not s.proposals(p,ws,a.id).items
 
 
