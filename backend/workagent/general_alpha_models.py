@@ -26,6 +26,7 @@ class AlphaStep(Model):
     outcome: Literal['continue','answered','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation']
     capability_result: dict | None = None
     mutation_result: ResponsibilityMutationResult | None = None
+    followthrough_result: dict | None = None
 
 
 class AlphaExecution(Model):
