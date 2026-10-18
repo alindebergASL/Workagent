@@ -34,7 +34,7 @@ def test_settled_phase_handoff_resumes_without_waiting_or_resending(context,tmp_
 
 
 @pytest.mark.parametrize('fault',['pending','lost_id','count_problem','malformed'])
-def test_unsettled_final_keeps_lease_and_does_not_retry(context,tmp_path,monkeypatch,fault):
+def test_final_handoff_distinguishes_known_pending_from_unsettled(context,tmp_path,monkeypatch,fault):
     import json
     import httpx
     from test_conversations import conversation,post
@@ -61,6 +61,25 @@ def test_unsettled_final_keeps_lease_and_does_not_retry(context,tmp_path,monkeyp
     before=s.get_run(p,ws,q.run.id);counts=totals(s,g);calls=list(fake.calls)
     saved=w.phases.state.load(ws,q.run.id)
     cap=WorkerCapability(**saved['worker']);receipt=ReceiptCapability(**saved['receipt'])
+    if fault=='pending':
+        # Returned HTTP plus a durable response ID is settled local I/O, not an
+        # unknown send. Retire the old fence, then GET that exact response once.
+        with s.db.transaction() as c:
+            identity=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s "
+                               "AND phase='final' AND kind='identity'",(receipt.attempt_id,)).fetchone()['data']
+        assert s.yield_settled_responses_lease(cap,receipt) is True
+        with pytest.raises(DomainError):
+            with s.db.transaction() as c:s._check_capability(c,cap)
+        assert fake.calls==calls and totals(s,g)==counts
+        w.phases.poll_limit=1
+        assert w.work(p,ws,q.run.id).state=='ready'
+        assert fake.calls[len(calls):]==[('GET','/v1/responses/'+identity['response_id'])]
+        assert totals(s,g)['request_counts']==dict(counts['request_counts'],read=1)
+        assert s.get_run(p,ws,q.run.id).fence==cap.fence+1
+        with s.db.transaction() as c:
+            rows=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(ws,q.run.id)).fetchall()
+        assert [row['id'] for row in rows]==[receipt.attempt_id]
+        return
     assert s.yield_settled_responses_lease(cap,receipt) is False
     monkeypatch.setattr(w.phases,'_http_window',lambda *args,**kwargs:False)
     assert w.phases._yield_if_settled(ws,q.run.id) is False
