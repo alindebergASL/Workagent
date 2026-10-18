@@ -38,7 +38,7 @@ class _Recording(Closed):
 
 RECORDING_REASON=('Local responsibility recorded; the outcome still needs validation. '
     'External inboxes are not monitored; no booking or message was sent. '
-    'Future execution requires separate current grant and budget authority.')
+    'At each local check-in, the dispatcher rechecks the current grant, budget and saved plan before execution.')
 
 
 def recording(c,run):

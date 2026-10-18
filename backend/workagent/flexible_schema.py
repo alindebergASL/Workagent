@@ -10,8 +10,19 @@ from .flexible_models import (Block,Body,TableField,StructuredTableBody,ViewSour
 from .model_base import Text
 
 
-class DraftBlock(Block):
+class DraftTextBlock(Block):
+    # Express the durable validator in the provider grammar. A shared bool|null
+    # field falsely permitted checkbox state on paragraphs/headings/notes.
+    kind: Literal['heading', 'paragraph', 'protected_note']
+    checked: None
+
+
+class DraftChecklistBlock(Block):
+    kind: Literal['checklist']
     checked: bool | None
+
+
+DraftBlock = DraftTextBlock | DraftChecklistBlock
 
 
 class DraftDocument(Body):

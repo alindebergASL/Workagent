@@ -404,7 +404,7 @@
       "title": "DraftAction",
       "type": "object"
     },
-    "DraftBlock": {
+    "DraftChecklistBlock": {
       "additionalProperties": false,
       "properties": {
         "block_id": {
@@ -426,12 +426,7 @@
           "title": "Checked"
         },
         "kind": {
-          "enum": [
-            "heading",
-            "paragraph",
-            "checklist",
-            "protected_note"
-          ],
+          "const": "checklist",
           "title": "Kind",
           "type": "string"
         },
@@ -448,7 +443,7 @@
         "text",
         "checked"
       ],
-      "title": "DraftBlock",
+      "title": "DraftChecklistBlock",
       "type": "object"
     },
     "DraftDocument": {
@@ -456,7 +451,14 @@
       "properties": {
         "blocks": {
           "items": {
-            "$ref": "#/$defs/DraftBlock"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DraftTextBlock"
+              },
+              {
+                "$ref": "#/$defs/DraftChecklistBlock"
+              }
+            ]
           },
           "maxItems": 200,
           "minItems": 1,
@@ -671,6 +673,45 @@
         "notes"
       ],
       "title": "DraftTable",
+      "type": "object"
+    },
+    "DraftTextBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "checked": {
+          "title": "Checked",
+          "type": "null"
+        },
+        "kind": {
+          "enum": [
+            "heading",
+            "paragraph",
+            "protected_note"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "text",
+        "checked"
+      ],
+      "title": "DraftTextBlock",
       "type": "object"
     },
     "DraftView": {
