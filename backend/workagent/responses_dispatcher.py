@@ -182,7 +182,9 @@ def general_status(db,workspace,grant_id):
         runs=c.execute("SELECT r.data FROM runs r JOIN run_configurations rc ON rc.workspace_id=r.workspace_id AND rc.run_id=r.id WHERE r.workspace_id=%s AND rc.data->>'grant_id'=%s ORDER BY r.id",(workspace,grant_id)).fetchall()
         return {'grant_id':grant.id,'workspace_id':workspace,'active':row['active'],
             'profile':grant.profile,'mode':grant.responses.transport_mode,'expires_at':None,
-            'conversation_ids':grant.responses.conversation_ids,'budget':summary(c,grant.id),
+            'conversation_ids':grant.responses.conversation_ids,
+            'admission_policy':getattr(grant.responses,'admission_policy','explicit-conversations'),
+            'budget':summary(c,grant.id),
             'shared_budget':summary(c,grant.id,shared=True),
             'turns':[turn_state(Run.model_validate(r['data']),c).model_dump(mode='json',exclude={'retained_local_result'}) for r in runs]}
 

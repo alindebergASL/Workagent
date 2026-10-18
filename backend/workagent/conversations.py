@@ -81,11 +81,13 @@ class Conversations:
             self._source(c,p,ws,ref,versions)
         return cv
 
-    def _conversation_preview(self,c,ws,cv):
+    def _conversation_preview(self,c,ws,cv,p=None):
         messages=self._conversation_messages(c,ws,cv.id)
         cv.updated_at=messages[-1].created_at if messages else cv.created_at
         cv.last_message_preview=messages[-1].text[:240] if messages else None
-        activation=c.execute("SELECT active FROM provider_grants WHERE workspace_id=%s AND data->>'profile'='general-responses-v1' AND data->'responses'->'conversation_ids' ? %s ORDER BY active DESC,id LIMIT 1",(ws,cv.id)).fetchone()
+        from .general_responses import scope_predicate
+        predicate=scope_predicate(c,'g','%s')
+        activation=c.execute(f"SELECT active FROM provider_grants g WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'='general-responses-v1' AND {predicate} ORDER BY active DESC,id LIMIT 1",(ws,p.id if p else cv.owner_id,cv.id)).fetchone()
         if activation:
             cv.execution_profile='general-responses-v1'
             cv.model_activation='active' if activation['active'] else 'revoked'
@@ -138,7 +140,7 @@ class Conversations:
                   WHERE s.workspace_id=cv.workspace_id AND s.conversation_id=cv.id
                   AND (g.active IS DISTINCT FROM true OR (src.data->>'available')::boolean IS DISTINCT FROM true))
                 ORDER BY cv.id LIMIT %s''',(ws,cursor or '',p.id,limit+1)).fetchall()
-            items=[self._conversation_preview(c,ws,self._conversation(c,p,ws,r['id'])) for r in rows[:limit]]
+            items=[self._conversation_preview(c,ws,self._conversation(c,p,ws,r['id']),p) for r in rows[:limit]]
             return ConversationPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
     def get_conversation(self,p,ws,cid):
@@ -152,7 +154,7 @@ class Conversations:
             from .products import turn_state
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
-            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
+            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -203,9 +205,11 @@ class Conversations:
                      'next':cmd.model_dump(mode='json'),
                      'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
                      'tools':self.local_tool_registry() if cmd.operation else []}
-        if responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+        from .general_responses import standing
+        bounded=grant is not None and standing(grant.responses)
+        if not bounded and responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
             raise DomainError('budget_exhausted')
-        if sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
+        if not bounded and sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
             raise DomainError('budget_exhausted')
         if responsibility is None:
             self._cancel_conversation_runs(c,ws,cid)  # Only human steering supersedes other work.
@@ -237,6 +241,10 @@ class Conversations:
         if responsibility is None:
             cv.work_version+=1
             self._store_conversation(c,cv)
+        if bounded and responsibility is None:
+            # Validate the exact bounded context in the admission transaction.
+            # Oversized current intent rolls back rather than being truncated.
+            self._materialize_general_context(c,p,run,cv)
         self._event(c,p,ws,'post_message' if responsibility is None else 'responsibility_run_queued',run.id)
         if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
         return MessageQueued(conversation=cv,message=message,run=run)
@@ -371,6 +379,11 @@ class Conversations:
                     snapshot=previous['data'].get('work_context_index') if previous else None)
                 from .work_context import validate_consumed
                 validate_consumed(self,c,p,run,config)
+        if run.profile=='general-responses-v1':
+            from .general_responses import standing
+            if standing(grant.responses):
+                from .conversation_context import bound_context
+                bound_context(context,run.id,profile(run.profile)['max_context_bytes'])
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             if context.get('responsibility'):
                 from .responsibility_execution import ContinuationContextTooLarge

@@ -79,8 +79,20 @@ def classify(run, steps, available, active_run=None, canonical_status=None):
 def admission_available(service,c,p,ws,grant):
     """Reuse read-only canonical admission checks; never insert a probe command."""
     from types import SimpleNamespace
-    from .general_responses import admission
+    from .general_responses import admission, standing, validate_grant
     from .errors import DomainError
+    if standing(grant.responses):
+        # A fresh own source-free Home conversation is eligible; do not require
+        # an operator-created conversation merely to report available authority.
+        try:
+            service._scope(c,p,ws)
+            validate_grant(grant,c)
+            row=c.execute('SELECT active FROM provider_grants WHERE id=%s AND workspace_id=%s AND principal_id=%s',
+                          (grant.id,ws,p.id)).fetchone()
+            n=c.execute("SELECT count(*) n FROM run_configurations WHERE data->>'grant_id'=%s",(grant.id,)).fetchone()['n']
+            return bool(row and row['active'] and n<grant.max_runs)
+        except DomainError:
+            return False
     command=SimpleNamespace(attachments=[],target=None,acceptance_checks=None,operation=None)
     for cid in grant.responses.conversation_ids:
         try:

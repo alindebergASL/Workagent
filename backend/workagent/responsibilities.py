@@ -120,15 +120,17 @@ class Responsibilities(ResponsibilityExecution):
             return
         if life.blocker in ('tool_required', 'authority_unavailable', 'conversation_closed'):
             return
+        from .general_responses import scope_predicate
+        predicate=scope_predicate(c,'g','%s')
         rows = c.execute("SELECT g.id FROM provider_grants g WHERE g.workspace_id=%s "
             "AND g.principal_id=%s AND g.active AND g.data->>'profile'='general-responses-v1' "
-            "AND g.data->'responses'->'conversation_ids' ? %s "
+            f"AND {predicate} "
             "AND (SELECT count(*) FROM run_configurations rc WHERE rc.workspace_id=g.workspace_id "
             "AND rc.data->>'grant_id'=g.id) < (g.data->>'max_runs')::integer"
             if life.execution_status not in ('queued', 'running') else
             "SELECT g.id FROM provider_grants g WHERE g.workspace_id=%s AND g.principal_id=%s "
             "AND g.active AND g.data->>'profile'='general-responses-v1' "
-            "AND g.data->'responses'->'conversation_ids' ? %s",
+            f"AND {predicate}",
             (a.workspace_id, p.id, a.conversation_id)).fetchall()
         if len(rows) != 1:
             life.blocker = 'grant_required'

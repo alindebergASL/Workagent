@@ -267,7 +267,8 @@ def test_four_selections_plus_one_final_and_no_extra_reservation(context,tmp_pat
     q=post(context,cv,'Explore only the bounded capability catalog.')
     f=AlphaProvider([{'kind':'discover_capabilities'}]*4)
     w=worker(context,f,tmp_path)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    from test_adaptive_execution import finish_safe_visits
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     with s.db.transaction() as c:
         phases=c.execute('SELECT phase FROM responses_steps WHERE grant_id=%s ORDER BY phase',(g.id,)).fetchall()
         assert {r['phase'] for r in phases}=={'selection','selection_2','selection_3','selection_4','final'}
