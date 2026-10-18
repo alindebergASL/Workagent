@@ -37,7 +37,7 @@ function nextLine(life: HoldDetailLifecycle): string | null {
   return next ? `Next: ${next}` : null;
 }
 
-const RUN: Record<string, string> = {
+const RUN: Record<HoldDetailLifecycle["execution_status"], string> = {
   not_admitted: "Nothing runs for it right now.",
   queued: "Queued to run; not started.",
   running: "A run is in progress; not done.",
@@ -58,7 +58,7 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
         ? view.execution
         : review
           ? `Needs your review before it continues. ${RUN[life.execution_status]}`
-          : `${RUN[life.execution_status]} Outcome not verified.`;
+          : RUN[life.execution_status];
       return {
         label: view.state,
         next: view.closed ? null : nextLine(life),

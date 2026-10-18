@@ -100,14 +100,19 @@ try {
       : "Recorded as yours to carry forward",
   );
   await expect(page.getByTestId("responsibility-execution")).toHaveText(
-    "Not admitted to run: nothing runs in the background for it right now.",
+    "Nothing is running for it right now.",
+  );
+  // The fuller account is a step away, and still claims no run.
+  await expect(page.getByTestId("responsibility-why")).toHaveText(
+    "It hasn’t been admitted to run, so nothing runs in the background for it.",
   );
   // No older claim that it can never run sits beside the record.
   await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
   await expect(page.getByText("I own")).toHaveCount(0);
   await expect(panel).toContainText("A draft briefing outline is saved.");
   await expect(panel).toContainText("Decide who opens the doors.");
-  await expect(panel).toContainText("Waiting: Asha to confirm the room.");
+  await expect(panel).toContainText("Waiting on");
+  await expect(panel).toContainText("Asha to confirm the room.");
   // One set of steering only.
   await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
   await shot(page, "01-responsibility-desktop");
@@ -125,7 +130,7 @@ try {
   await panel.getByRole("button", { name: "Resume", exact: true }).click();
   await expect(panel.getByRole("heading")).not.toHaveText("Paused");
   await expect(page.getByTestId("responsibility-execution")).toContainText(
-    "Not admitted to run",
+    "Nothing is running",
   );
 
   // Take it back: confirmed, recorded, and then nothing left to steer.

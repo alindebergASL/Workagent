@@ -245,7 +245,7 @@ export const STOPPED_HINT =
 
 /** Said beside the composer while the latest request's outcome is unknown. */
 export const UNRESOLVED_HINT =
-  "Whether your last request went through couldn’t be confirmed, so a new message waits until that’s resolved. Your draft is kept.";
+  "Whether your last request went through couldn’t be confirmed, so this conversation takes no new message until that’s resolved. Your draft is kept.";
 
 /**
  * Whether the latest request's outcome couldn't be confirmed. The service

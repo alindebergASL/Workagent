@@ -246,7 +246,7 @@ try {
   await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
   await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
   await expect(page.getByTestId("responsibility-execution")).toHaveText(
-    "Not admitted to run: nothing runs in the background for it right now.",
+    "Nothing is running for it right now.",
   );
   pass("activation appears on an open page; older claims and controls go");
 
@@ -283,7 +283,7 @@ try {
   await page.unroute(respURL);
   await page.getByRole("button", { name: "Check again" }).click();
   await expect(page.getByTestId("responsibility-observed")).toContainText(
-    "Read at",
+    "Checked",
     { timeout: 15000 },
   );
   await expect(panel.getByRole("button", { name: "Pause" })).toBeEnabled();
@@ -384,7 +384,7 @@ try {
     await page.unroute(respURL);
     await page.getByRole("button", { name: "Check again" }).click();
     await expect(page.getByTestId("responsibility-observed")).toContainText(
-      "Read at",
+      "Checked",
       { timeout: 15000 },
     );
     pass(`CAS conflict with ${reread ? "a successful" : "a failed"} re-read`);
@@ -496,12 +496,21 @@ try {
   pass("runtime continuation requests: labelled, anchored, every turn state");
 
   // F2: every execution status worded truthfully, with its bound run.
-  for (const [status, expected] of [
-    ["not_admitted", "Not admitted to run"],
-    ["queued", "Queued isn’t the same as started."],
-    ["running", "Running isn’t the same as done."],
-    ["settled", "it isn’t accepted, and the goal isn’t marked done."],
-    ["blocked", "Some work may already have happened"],
+  // The short line says where it stands; Details keeps the full account.
+  for (const [status, expected, why] of [
+    ["not_admitted", "Nothing is running", "hasn’t been admitted to run"],
+    ["queued", "Queued to run", "Queued isn’t the same as started."],
+    [
+      "running",
+      "Running now; not done yet.",
+      "Running isn’t the same as done.",
+    ],
+    [
+      "settled",
+      "The result needs your review.",
+      "isn’t accepted, and the goal isn’t marked done.",
+    ],
+    ["blocked", "Its run is blocked.", "Some work may already have happened"],
   ]) {
     await page.route(respURL, async (route) => {
       if (route.request().method() !== "GET") return route.continue();
@@ -519,6 +528,7 @@ try {
     await page.goto(`${origin}/assignments/${aid}`);
     const exec = page.getByTestId("responsibility-execution");
     await expect(exec).toContainText(expected, { timeout: 15000 });
+    await expect(page.getByTestId("responsibility-why")).toContainText(why);
     if (status === "not_admitted")
       await expect(page.getByTestId("responsibility-run")).toHaveCount(0);
     else

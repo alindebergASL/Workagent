@@ -154,39 +154,39 @@ export function ResponsibilityPanel({
       aria-labelledby="responsibility-title"
       data-testid="responsibility"
     >
-      <p className="eyebrow-caps">Responsibility</p>
+      <p className="eyebrow-caps">Handed to Workagent</p>
       <h2 id="responsibility-title">{view.state}</h2>
       <p className="small" data-testid="responsibility-execution">
         {view.execution}
-        {view.runId && shown.detail.assignment.conversation_id ? (
-          <>
-            {" "}
-            <Link
-              href={inScope(
-                `/conversations/${shown.detail.assignment.conversation_id}#run-${view.runId}`,
-                shown.detail.assignment.workspace_id,
-              )}
-              data-testid="responsibility-run"
-            >
-              See its run in the conversation
-            </Link>
-          </>
-        ) : null}
       </p>
       <dl className="glance-list">
-        <div>
-          <dt>Outcome so far</dt>
-          <dd>{view.outcome}</dd>
-        </div>
+        {view.needsYou ? (
+          <div data-testid="responsibility-needs">
+            <dt>Needs from you</dt>
+            <dd>{view.needsYou}</dd>
+          </div>
+        ) : null}
+        {view.waiting ? (
+          <div>
+            <dt>Waiting on</dt>
+            <dd>{view.waiting}</dd>
+          </div>
+        ) : null}
         {view.next ? (
           <div>
             <dt>Next</dt>
             <dd>{view.next}</dd>
           </div>
         ) : null}
+        {view.outcome ? (
+          <div>
+            <dt>So far</dt>
+            <dd>{view.outcome}</dd>
+          </div>
+        ) : null}
         {view.checkIn ? (
           <div>
-            <dt>Check in</dt>
+            <dt>Checks in</dt>
             <dd>
               {formatTime(view.checkIn, zone)}
               {view.checkInDue ? " · due now" : ""}
@@ -201,17 +201,19 @@ export function ResponsibilityPanel({
           ))}
         </ul>
       ) : null}
-      {view.reviewQueued ? (
-        <p className="hint">A readiness review is queued. That isn’t a run.</p>
-      ) : null}
 
-      <p className="hint" data-testid="responsibility-observed">
+      {/* Freshness stays in view only when it matters; otherwise one quiet
+          line with a re-read. */}
+      <p
+        className={shown.fromReply || stale ? "hint" : "small muted"}
+        data-testid="responsibility-observed"
+      >
         {shown.fromReply
           ? "From the service’s reply; not re-read yet."
           : stale
             ? `Can’t reach the service. Showing what was read at ${observedAt ? formatTime(observedAt, zone) : "the last read"}; steering waits until it reconnects.`
             : observedAt
-              ? `Read at ${formatTime(observedAt, zone)}.`
+              ? `Checked ${formatTime(observedAt, zone)}.`
               : null}{" "}
         <button
           type="button"
@@ -297,6 +299,30 @@ export function ResponsibilityPanel({
         </p>
       ) : null}
       {error ? <ErrorNotice error={error} /> : null}
+      {view.executionDetail || view.runId || view.reviewQueued ? (
+        <details className="ids-details">
+          <summary>Details</summary>
+          <div className="stack-sm small">
+            {view.executionDetail ? (
+              <p data-testid="responsibility-why">{view.executionDetail}</p>
+            ) : null}
+            {view.reviewQueued ? (
+              <p>A readiness review is queued. That isn’t a run.</p>
+            ) : null}
+            {view.runId && shown.detail.assignment.conversation_id ? (
+              <Link
+                href={inScope(
+                  `/conversations/${shown.detail.assignment.conversation_id}#run-${view.runId}`,
+                  shown.detail.assignment.workspace_id,
+                )}
+                data-testid="responsibility-run"
+              >
+                See its run in the conversation
+              </Link>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
     </section>
   );
 }

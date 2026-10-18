@@ -1189,3 +1189,15 @@ details.disclosure.card {
   justify-content: center;
   padding: 6px 8px;
 }
+
+/* On a phone the composer's actions share one row under the attachments,
+   with Send at its end. */
+@media (max-width: 480px) {
+  .composer-bar .composer-spacer {
+    flex-basis: 100%;
+    height: 0;
+  }
+  .composer-bar .send-round {
+    margin-left: auto;
+  }
+}
