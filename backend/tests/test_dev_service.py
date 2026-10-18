@@ -85,3 +85,23 @@ def test_refuses_missing_state_and_world_readable_environment(tmp_path):
     (tmp_path/'worker-state').mkdir(mode=0o700)
     (tmp_path/'runtime.env').chmod(0o644)
     with pytest.raises(ValueError):m.load_config(p)
+
+
+@pytest.mark.parametrize('action', ['start', 'stop', 'restart'])
+@pytest.mark.parametrize('component', [None, 'api', 'web', 'worker'])
+def test_service_control_honors_scope_and_waits_for_stack_stop(tmp_path, monkeypatch, action, component):
+    m=module(); path=config(tmp_path); before=path.read_bytes(); calls=[]
+    argv=['dev_service',action,'--config',str(path)]
+    if component: argv+=['--component',component]
+    monkeypatch.setattr(m.sys,'argv',argv)
+    monkeypatch.setattr(m,'control',lambda *args:calls.append(args))
+    assert m.main()==0
+    if component:
+        assert calls==[(action,f'workagent-alpha-{component}.service')]
+    elif action=='start':
+        assert calls==[('start','workagent-alpha.target')]
+    else:
+        assert calls[0]==('stop','workagent-alpha.target','workagent-alpha-api.service','workagent-alpha-worker.service','workagent-alpha-web.service')
+        assert calls[1:]==([('start','workagent-alpha.target')] if action=='restart' else [])
+    assert path.read_bytes()==before
+    assert (tmp_path/'worker-state').is_dir()
