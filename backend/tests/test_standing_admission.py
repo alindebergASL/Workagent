@@ -219,11 +219,16 @@ def test_scoped_default_keeps_legacy_turn_bound(context):
     assert len(s.get_conversation(p,ws,cv.id).messages)==8
 
 
-def test_standing_successor_uses_old_and_new_conversations_without_rebinding(context):
+@pytest.mark.parametrize('continuity_version', [None, 'sustained-v1'])
+def test_standing_successor_uses_old_and_new_conversations_without_rebinding(context, continuity_version):
     s,p,ws,_,admin=context
     cv=conversation(context); old=grant_for(context,[cv]); configure_grant(Database(admin),old)
     old_run=post(context,cv).run
-    g=draft_standing_successor(Database(admin),old.id,grant_id=new_id(),max_runs=32)
+    g=draft_standing_successor(Database(admin),old.id,grant_id=new_id(),max_runs=32,
+                              continuity_version=continuity_version)
+    assert g.responses.continuity_version == continuity_version
+    from workagent.general_responses import validate_grant
+    validate_grant(g)
     revoke_grant(Database(admin),old.id)
     configure_grant(Database(admin),g,predecessor_id=old.id)
     assert post(context,s.get_conversation(p,ws,cv.id).conversation).run.execution.grant_id==g.id

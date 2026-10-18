@@ -9,10 +9,12 @@ from .models import ProviderGrant, StandingResponsesBinding
 from .errors import DomainError
 
 
-def draft_standing_successor(db, predecessor_id, *, grant_id, max_runs, cost_limit_usd=None):
+def draft_standing_successor(db, predecessor_id, *, grant_id, max_runs, cost_limit_usd=None,
+                             continuity_version=None):
+    from types import SimpleNamespace
     from .provider_attempts import _owner
     from .general_responses import consumer_hash
-    from .composition import POLICY, DECISION_SCHEMA
+    from .adaptive import contract
     from .general_schema import EXPLANATION_SCHEMA
     with db.transaction() as c:
         _owner(c)
@@ -29,9 +31,12 @@ def draft_standing_successor(db, predecessor_id, *, grant_id, max_runs, cost_lim
     # cumulative ceiling; project/route/carry and all usage stay identical.
     if cost_limit_usd is not None:
         binding['cost_limit_usd'] = cost_limit_usd
+    if continuity_version is not None:
+        binding['continuity_version'] = continuity_version
+    policy, decision_schema = contract(SimpleNamespace(**binding))
     binding.update(admission_policy='principal-workspace-v1', conversation_ids=[],
-        instructions_sha256=sha256(POLICY.encode()).hexdigest(),
-        scope_tool_sha256=sha256(DECISION_SCHEMA.material).hexdigest(),
+        instructions_sha256=sha256(policy.encode()).hexdigest(),
+        scope_tool_sha256=sha256(decision_schema.material).hexdigest(),
         schema_sha256=sha256(EXPLANATION_SCHEMA.material).hexdigest())
     raw = previous.model_dump(mode='json')
     raw.update(id=grant_id, max_runs=max_runs, consumer_sha256=consumer_hash(),
