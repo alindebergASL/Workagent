@@ -1,77 +1,126 @@
-# WorkAgent — authoritative implementation status
+# WorkAgent — implementation and delivery status
 
-## 2026-10-18 — attended integration resumed
+## 2026-10-18: working private review candidate, experience not accepted
 
-**Private alpha; experience NOT ACCEPTED.** The general persistent agent mission
-remains: natural conversation, agent-chosen presentation, reusable real tools,
-continuity, authoritative human corrections and authorized initiative. Memory and
-learning remain sequenced through issue #10. A green suite is not acceptance.
+The mission remains a general, persistent, useful work partner. These are reusable
+capability/runtime increments and an actual retained-work journey, not a claim
+that a workshop example or a green suite completes the product. Memory and
+learning remain sequenced through issue #10.
 
-### Ownership
+### Published and running
 
-- Attended Hermes integration owner: session
-  `local-c415d94c0cb1a28dbdc8d80ccb863d223e5f8fe05b4279b71ed5895f40b9e6ca`,
-  sole writer of `/home/ubuntu/workagent-build-mode`.
-- Previous build owner `20261017_050237_0e042084`: gateway reports idle, no pending
-  admissions, all four tracked tool jobs exited, no subagents or control loop.
-  Historical failed dispatcher admissions remain UNKNOWN with terminal compute;
-  none were reset or replayed. No unattended integration successor is claimed.
-- Claude remains sole frontend owner. `d4e0290494d656bcfbc3a2d85b5a24d976e29f9d`
-  is integrated. Coordination continues in PR #9, including the usable held-work
-  exit and dependent-result staleness; no frontend implementation takeover.
-- One isolated backend lane is implementing scoped saved-work discovery and
-  retained background context on `hermes/context-recovery`. Its work is not yet
-  in the published combination at this checkpoint.
+- Running development candidate: `f9179a01c711bbb9d02f5f4eb57d46c42a0920e9`,
+  `/home/ubuntu/workagent-candidates/f9179a0`.
+- All three services actually restarted at 2026-10-18 01:30:04 UTC; systemd
+  definitions and process working directories match that frozen checkout.
+- Web build `fwb8IMkPdDNGS__bEwy_6`, built with real natural admission enabled
+  at `907f4b6`, reused after proving frontend/contract/runtime bytes identical.
+- Claude owner head `ddd4acc` (including `60cda46`) was merged at `907f4b6`:
+  clearer responsibilities, stale calculation indicators, human-confirmed exit
+  from unconfirmed requests and post-save refresh handling. Claude remains the
+  sole web implementation owner.
+- Earlier local increments `e51de17` and `5f70a73` are published. Scoped saved-work
+  discovery and durable background context landed through `8fa48fd` / `c555c3c`.
+- Launcher fix `f9179a0` honors component-only control and waits for explicit
+  service stops rather than mistaking a stopping target for full quiescence.
 
-### Published, not yet running
+### Working behavior verified
 
-`7032da5f922306f806c25510bd8006043c7bff7e` on
-`hermes/build-mode-continuity` / PR #16 combines:
+Real `gpt-6.1-sol` work advanced under the installed allowance, not merely a
+healthy process. The retained conversation produced an ordinary text answer,
+a shorter answer, an agent-chosen editable table from an attached CSV, a proposed
+revision preserving a human stock correction and exact approval note, and one
+accepted revision. Later changed facts were answered without changing the saved
+table. A ninth human turn completed across a service restart by retrieving the
+same accepted provider response, without a second generation for that phase.
+Historical held requests were not replayed; the two existing paused
+responsibilities remain paused.
 
-- `e51de1704803dbbcfec7396c7ef71260d7eaee7f`: standing Home admission and bounded
-  conversation context; the former local branch is now published.
-- `5f70a730e2efae7e46fbb436ca242a10ebaf57c0`: sustained multi-action preparation
-  and receipt-staged responsibility planning; former local branch now published.
-- Claude's `d4e0290`, not merely `43bf5e6`.
+Measured server completion for the six newly executed turns through the ninth
+human message: 36.05s ordinary answer, 31.78s shorter answer, 73.41s table,
+46.55s revision proposal, 47.13s unavailable-source alternative, 69.79s later
+update including restart. The shorter answer was browser-visible at 32.471s,
+with a 103.2ms message acknowledgement. It reduced 76 whitespace-delimited words
+to 35 while retaining recommendation and trade-off. The timing evidence separates
+pre-count delay, count/submit event windows and known-ID polling windows; those
+windows include ledger/queue work and are not pure provider latency.
 
-Fresh combined checks on frozen `7032da5`: generated Python contracts match;
-310 frontend unit tests, TypeScript, lint and webpack production build passed.
-An initial frontend run had eight import failures because the isolated candidate
-lacked contract dependencies; corrected environment, no source/test relaxation.
-Serial real-PostgreSQL lease/status checks completed on disposable
-`workagent_test_integration_20261018`: **44 passed, 6 failed**. One failure asserted
-access with a deliberately retired worker capability; five depended on complete
-multi-phase work fitting one wall-clock visit under host load. Corrections retain
-all send-count, unknown-outcome and stale-fence assertions and drive only provably
-settled synthetic leases. The historical 39-pass/11-failure run remains retained.
-Targeted corrected checks are next; no green combined backend claim yet.
+A tenth human turn completed on the final frontend/build in 52.96s server time,
+with a 2.619s browser-observed message acknowledgement. It retained the latest
+borrowed-stock/requirement facts, offered approval and preparation steps, made no
+contact and left the saved artifact at revision 3. Exact browser first-result time
+for this turn was not captured: the bounded message pane kept a constant visible
+reply count, defeating that observer. The exact 32.471s shorter-reply measurement
+above remains valid.
 
-### Running product and authority
+Final shared reservation is $19.26032, including historical carry/unknowns, with
+two retained unknown usage steps. The installed allowance has capacity for at
+most 25 more generation reservations ($3.298), subject to all other grant limits;
+this is not an authorization increase or a billing claim.
 
-The loopback development services still run old application
-`41a373965fd6aed6fdd6d55599a265515017cd9e`; they do not acquire newly pushed code.
-Fresh heartbeat is unauthorized because the route/pricing verification dated
-2026-10-16T16:39:55Z has expired. Exact failure:
-`fresh_verified_general_route_and_pricing_required`. Installed grant consumer
-pins still match that old process. Same approved model metadata GET and official
-pricing were freshly verified on October 18; no generation was made by that check.
+### Authority and review access
 
-Installed grant remains `workagent-alpha-recovery-20261016-01`. Fresh shared
-ledger: 108 count sends, 104 generations, 541 reads, no cancels, $17.14960 reserved
-including $3.42992 carry, two unknown usage steps. Current project envelope is
-$18.60072. Historical reservations are not provider billing and are not refunded.
-Cumulative authorization remains $50, previously allocated $43.086, unallocated
-$6.914. A compatible standing/sustained successor is being prepared within that
-ceiling; no new installed allowance is claimed at this checkpoint.
+The original cumulative authorization remains $50. Allocated authorization is
+$47.04360, unactivated remainder $2.95640; current project envelope $22.55832.
+Installed `workagent-standing-20261018-02` is a zero-addition compatible successor
+of `workagent-standing-20261018-01`. Frontend/launcher refreshes changed no grant.
+Historical reservations, unknown outcomes and attempt bindings were retained.
+Reservation accounting is not a provider invoice; live usage remains bounded by
+the installed finite allowance.
 
-### Next executable work
+Execution had been unavailable because route/pricing verification exceeded the
+24-hour freshness requirement, not because the heartbeat was missing. Fresh
+same-model metadata/pricing evidence restored authorized execution. No new route,
+public listener, default-branch merge or production deployment was authorized.
 
-Finish targeted failure triage, integrate/review scoped discovery and background
-context, freeze the final source, install compatible authority with readback,
-restart from that candidate and exercise the ordinary product through correction,
-revision/acceptance, interruption, later continuation and beyond eight turns.
-Record loaded startup/build identity, real useful-progress latency and actual
-sanitized desktop/phone evidence. Preserve held unknown work and human edits.
-Authenticated review remains through the existing SSH loopback tunnel documented
-in `docs/REVIEW_ACCESS_20261016.md`; user-device access is still unverified.
-No default merge, production deployment, new paid route or broader private access.
+Use `docs/REVIEW_ACCESS_20261018.md` for the SSH-loopback entry and direct retained
+conversation/table links. Host-side authenticated access is verified; user-device
+SSH access and physical-phone behavior are not. Phone captures use Chromium
+390×844 emulation.
+
+### Validation: reused versus fresh
+
+- Frozen `7032da5` lease/status run: 44 pass / 6 fail, retained honestly.
+- Corrected frozen `6a75c32` targeted run: 13 pass. All 11 failures in the earlier
+  39-pass/11-failure run have later passing case evidence.
+- Frozen `6a75c32` standing/sustained/handoff run: 41 pass / 1 obsolete known-ID
+  expectation. `e6071f3` replacement matrix: 4 pass; known IDs may yield/retrieve,
+  while lost IDs, count problems and malformed outcomes remain held.
+- Frozen `c555c3c` real disposable-PostgreSQL context/retrieval suite: 15 pass,
+  generated contracts match. This covers discovery beyond the initial 12 items,
+  exact SQL receipts and scope rejection, background goal/instructions/dependencies,
+  proposal-only edits, maintained next actions and later-event continuation.
+  These are controlled-transport tests, not live-model background quality proof.
+- Across the preceding scopes, 107 distinct current cases have passing latest
+  evidence; four renamed obsolete cases remain explicitly mapped to replacements.
+  This is reused plus fresh evidence, NOT one full-backend-suite pass.
+- Frozen `907f4b6`: 318 frontend tests, typecheck, lint and production build pass.
+  The deployed build was separately compiled through the credential-free launcher
+  build environment with natural admission enabled.
+- Launcher regression: reproduced 11 failures before the fix; 21 tests pass after.
+- Independent Astra review of `6a75c32` found no concrete new Python/SQL authority
+  blocker in its scoped static review. Its three activation-helper findings were
+  corrected. Later context/frontend changes are outside that review's exact scope.
+
+### Remaining product failures and ownership
+
+1. Home creates a conversation in the first historical workspace, not the
+   workspace with usable standing authority. The real request failed with 422 and
+   draft preserved. Claude was given exact evidence in PR #9 comment6243959390.
+   This is distinct from the already-fixed cross-workspace Home feed. The direct
+   conversation path works; ordinary Home admission is NOT accepted.
+2. Public website retrieval is not installed. The agent truthfully offered an
+   alternative rather than inventing prices or placing an order; that does not
+   establish general research capability.
+3. Latency, Home's large initial request fan-out and source/account integration
+   remain product gaps. Full backend suite and physical/user-device review remain
+   outstanding. No broad completion verdict is implied.
+4. The historical managed dispatcher chain remains blocked/UNKNOWN, not reset.
+   No unattended integration successor is claimed. Development ownership is the
+   attended integration session until its explicit handoff; product-worker
+   operation is separate and continues within the existing grant.
+
+Next integration action: take Claude's Home destination fix, rebuild the exact
+combined candidate, and re-exercise ordinary Home admission without widening
+historical workspace authority. Preserve the full general-agent scope, not just
+this retained journey.
