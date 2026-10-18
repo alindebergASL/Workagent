@@ -1201,3 +1201,20 @@ details.disclosure.card {
     margin-left: auto;
   }
 }
+
+/* Where a message started on Home goes, when there is a choice. */
+.composer-destination {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3) var(--sp-2);
+}
+.composer-destination select {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 6px;
+  max-width: 100%;
+}

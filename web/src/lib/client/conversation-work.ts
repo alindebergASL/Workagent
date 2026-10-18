@@ -5,6 +5,11 @@ import { isProduct, productApi } from "./products";
 import { flexibleKind } from "@/lib/flexible";
 import { conversationApi } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
+import { limiter } from "./limit";
+
+// Home's feed is many small reads; a few at a time keeps a person's own
+// request from queueing behind them.
+const feedRead = limiter(6);
 
 /**
  * A product a conversation owns, with any decision waiting on it. Read only
@@ -48,7 +53,7 @@ export async function loadConversationWork(
     conversations.map(async (c) => {
       let detail;
       try {
-        detail = await conversationApi.get(ws, c.id, signal);
+        detail = await feedRead(() => conversationApi.get(ws, c.id, signal));
       } catch (e) {
         if (hidden(e)) return [];
         throw e;
@@ -57,8 +62,8 @@ export async function loadConversationWork(
         detail.artifact_ids.map(async (aid): Promise<ConversationWork[]> => {
           try {
             const [artifact, proposals] = await Promise.all([
-              productApi.get(ws, aid, signal),
-              productApi.proposals(ws, aid, signal),
+              feedRead(() => productApi.get(ws, aid, signal)),
+              feedRead(() => productApi.proposals(ws, aid, signal)),
             ]);
             // Only work this conversation owns in this workspace.
             if (

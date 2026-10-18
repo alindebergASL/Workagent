@@ -11,7 +11,7 @@ import {
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import type { WorkspaceScope } from "@/lib/client/workspace";
-import { scopedHref } from "@/lib/scope";
+import { scopedHref, WORKSPACE_PARAM } from "@/lib/scope";
 import { backTo, ScopedRecord } from "@/components/ScopedRecord";
 import { useExecution } from "@/lib/client/execution";
 import { turnExecution } from "@/lib/execution-view";
@@ -688,7 +688,13 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             <>
               {" "}
               Your unsent message is waiting on{" "}
-              <Link href={scopedHref("/", wsId)}>Home</Link>.
+              {/* Home starts new work in this workspace, where the draft waits. */}
+              <Link
+                href={`/?${WORKSPACE_PARAM}=${encodeURIComponent(wsId ?? "")}`}
+              >
+                Home
+              </Link>
+              .
             </>
           ) : null}
         </p>

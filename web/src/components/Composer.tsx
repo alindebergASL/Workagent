@@ -1,6 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { API_MODE, api, newCommandId } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
@@ -89,9 +96,21 @@ function writeDraftFiles(scope: string, files: MessageAttachment[]): void {
 export function Composer({
   wsId,
   contextLabel = "Your context",
+  destinations,
+  onDestination,
+  destinationNote,
 }: {
   wsId: string | null;
   contextLabel?: string;
+  /**
+   * Where a new conversation can start, when there is a choice (Home). The
+   * draft stays as it is when the destination changes; the choice is locked
+   * while a request's outcome is still being settled.
+   */
+  destinations?: readonly { id: string; name: string }[];
+  onDestination?: (id: string) => void;
+  /** What the person should know about the chosen destination. */
+  destinationNote?: ReactNode;
 }) {
   const router = useRouter();
   const { loading: wsLoading } = useWorkspace();
@@ -613,6 +632,30 @@ export function Composer({
             <span aria-hidden="true">↑</span>
           </button>
         </div>
+        {destinations && destinations.length > 1 && onDestination ? (
+          <div className="composer-destination small">
+            <label>
+              <span className="muted">Starts in </span>
+              <select
+                value={wsId ?? ""}
+                onChange={(e) => {
+                  // Records chosen as context belong to the old workspace.
+                  setSelected([]);
+                  onDestination(e.target.value);
+                }}
+                disabled={locked || Boolean(chat.current) || submitting}
+                data-testid="home-destination"
+              >
+                {destinations.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
+        {destinationNote}
         <div id={panelId} className="context-panel" hidden={!contextOpen}>
           <fieldset
             className="field"

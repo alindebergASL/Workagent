@@ -307,10 +307,12 @@ try {
   await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible();
   await shot(page, "05-handover-assignment-desktop");
 
-  // Home never presents it as being handled.
+  // Home never presents it as being handled: once its current record is
+  // read, it says what the conversation page says.
   await page.goto(origin);
   await expect(page.locator(`[data-assignment="${aid}"] .status`)).toHaveText(
-    "Handed over",
+    "Paused hand-over",
+    { timeout: 15000 },
   );
   await expect(page.locator(".since-handling")).toHaveCount(0);
   await shot(page, "06-home-desktop");
