@@ -139,6 +139,14 @@ export function Ownership({
   // With a responsibility, its own panel says who holds what; an empty
   // card here would only repeat the heading.
   if (!legacy && !g.doneWhen.length) return null;
+  // Beside that panel, what finishes it is one line, not a card of its own.
+  if (!legacy)
+    return (
+      <p className="small done-when" data-testid="done-when">
+        <span className="muted">Done when </span>
+        {g.doneWhen.join(" ")}
+      </p>
+    );
 
   return (
     <section className="card card-quiet glance" aria-labelledby="glance-title">

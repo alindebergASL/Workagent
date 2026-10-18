@@ -260,6 +260,63 @@ try {
     "before the workspace list loads, a project page's links already name its workspace",
   );
 
+  // Home: a new conversation starts in the workspace the address names, not
+  // whichever is listed first.
+  await page.goto(`${origin}/?workspace=${second}`);
+  const request = page.locator("#request");
+  const homeSend = page.getByRole("button", { name: "Send", exact: true });
+  await request.fill("Plan the room swap for the open day.");
+  await expect(homeSend).toBeEnabled({ timeout: 15000 });
+  const created = page.waitForRequest(
+    (r) =>
+      r.method() === "POST" &&
+      /\/conversations$/.test(new URL(r.url()).pathname),
+    { timeout: 15000 },
+  );
+  const sent = page.waitForResponse(
+    (r) =>
+      r.request().method() === "POST" &&
+      /\/conversations\/[^/]+\/messages$/.test(new URL(r.url()).pathname),
+    { timeout: 15000 },
+  );
+  await homeSend.click();
+  assert.equal(
+    RECORD.exec((await created).url())?.[1],
+    second,
+    "the conversation is created in the workspace the address names",
+  );
+  // Let the send settle; leaving mid-send would rightly hold it unconfirmed.
+  assert.equal(RECORD.exec((await sent).url())?.[1], second);
+  // Changing where it starts keeps the draft, and what the service says
+  // about that workspace is said as it is (a fresh tab: nothing pending).
+  const home = await context.newPage();
+  home.on("pageerror", (e) => errors.push(String(e)));
+  await home.goto(`${origin}/?workspace=${second}`);
+  const dest = home.getByTestId("home-destination");
+  await expect(dest).toHaveValue(second, { timeout: 15000 });
+  const draft = "Draft a thank-you note to the volunteers.";
+  await home.locator("#request").fill(draft);
+  await dest.selectOption(first);
+  await expect(home).toHaveURL(new RegExp(`[?&]workspace=${first}(&|$)`));
+  await expect(home.locator("#request")).toHaveValue(draft);
+  await dest.selectOption(second);
+  await expect(home).toHaveURL(new RegExp(`[?&]workspace=${second}(&|$)`));
+  await expect(home.locator("#request")).toHaveValue(draft);
+  const execution = await (
+    await home.request.get(
+      `${origin}/api/domain/v1/workspaces/${second}/execution`,
+    )
+  ).json();
+  const note = home.getByTestId("home-destination-note");
+  if (execution.can_advance_authorized_work === false)
+    await expect(note).toContainText("can’t take on work in");
+  else await expect(note).toHaveCount(0);
+  await home.locator("#request").fill("");
+  await home.close();
+  pass(
+    "Home starts a conversation in the workspace its address names; switching keeps the draft; the destination's state is shown as the service reports it",
+  );
+
   // A workspace this person can't open is not available, and nothing is
   // read from it or from any other workspace instead.
   // Leave the previous page first, so its own polling can't be counted.

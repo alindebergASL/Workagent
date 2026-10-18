@@ -551,3 +551,18 @@ export function rebind(
     }),
   };
 }
+
+/**
+ * The service's fixed provenance notes on a proposal, in plain words: who
+ * prepared it, and that nothing changes until it's applied. Any other
+ * reason is shown as written.
+ */
+const PLAIN_REASON: Record<string, string> = {
+  "Model-selected proposed revision. Review before acceptance.":
+    "Prepared by the model. Nothing changes until you apply it.",
+  "Controlled local proposed revision. Review before acceptance.":
+    "Prepared locally, without a model. Nothing changes until you apply it.",
+};
+export function plainReason(reason: string): string {
+  return PLAIN_REASON[reason.trim()] ?? reason;
+}

@@ -1,6 +1,11 @@
 "use client";
 import Link from "next/link";
-import { scopedHref } from "@/lib/scope";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { scopedHref, WORKSPACE_PARAM } from "@/lib/scope";
+import { DESTINATION_KEY, homeDestination } from "@/lib/home-destination";
+import { executionApi, useExecution } from "@/lib/client/execution";
+import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useHomeOverview } from "@/lib/client/overview";
 import {
@@ -130,9 +135,97 @@ function SinceYouLeft({
   );
 }
 
-export default function AgentHome() {
-  const { workspace, workspaces, error: wsError, zone } = useWorkspace();
-  const wsId = workspace?.id ?? null;
+/**
+ * Where a message started here goes, said plainly, with the person's way to
+ * another workspace when this one can't take work now. The service's own
+ * execution read decides "can't"; nothing is assumed from names or history.
+ */
+function useHomeDestination() {
+  const { workspaces } = useWorkspace();
+  const router = useRouter();
+  const named = useSearchParams().get(WORKSPACE_PARAM);
+  const [remembered, setRemembered] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      setRemembered(localStorage.getItem(DESTINATION_KEY));
+    } catch {
+      /* storage unavailable: the address or the default decides */
+    }
+  }, []);
+  const id = homeDestination({ named, remembered, openable: workspaces });
+  const choose = (next: string) => {
+    setRemembered(next);
+    try {
+      localStorage.setItem(DESTINATION_KEY, next);
+    } catch {
+      /* storage unavailable: the address still carries it */
+    }
+    router.replace(`/?${WORKSPACE_PARAM}=${encodeURIComponent(next)}`, {
+      scroll: false,
+    });
+  };
+  const exec = useExecution(id);
+  const cannot = exec.data?.can_advance_authorized_work === false;
+  // Only when this one can't take work: one read of each other workspace,
+  // to offer one that can.
+  const others = workspaces.filter((w) => w.id !== id).map((w) => w.id);
+  const elsewhere = useResource<string | null>(
+    cannot && others.length ? `ready-elsewhere:${others.join(",")}` : null,
+    async (signal) => {
+      for (const ws of others) {
+        try {
+          const st = await executionApi.get(ws, signal);
+          if (st.can_advance_authorized_work) return ws;
+        } catch {
+          /* unreadable: not offered */
+        }
+      }
+      return null;
+    },
+  );
+  const name = (ws: string | null) =>
+    workspaces.find((w) => w.id === ws)?.name ?? "this workspace";
+  const alt = cannot ? elsewhere.data : null;
+  const note = cannot ? (
+    <p className="hint" role="status" data-testid="home-destination-note">
+      Workagent can’t take on work in {name(id)} right now.
+      {alt ? (
+        <>
+          {" "}
+          <button
+            type="button"
+            className="link-quiet small"
+            data-testid="home-destination-switch"
+            onClick={() => choose(alt)}
+          >
+            Start in {name(alt)} instead
+          </button>
+        </>
+      ) : null}
+    </p>
+  ) : null;
+  return {
+    id,
+    choose,
+    note,
+    options: workspaces.map((w) => ({ id: w.id, name: w.name })),
+  };
+}
+
+// The address may name where a new conversation starts, so Home reads it;
+// everything here is the person's own data, read in the browser.
+export default function AgentHomePage() {
+  return (
+    <Suspense fallback={<div className="agent-col" aria-busy="true" />}>
+      <AgentHome />
+    </Suspense>
+  );
+}
+
+function AgentHome() {
+  const { workspaces, error: wsError, zone } = useWorkspace();
+  const destination = useHomeDestination();
+  const wsId = destination.id;
   // Handed-over work in every workspace this person can open.
   const workspaceIds = workspaces.map((w) => w.id);
   const overview = useHomeOverview(workspaceIds);
@@ -282,7 +375,12 @@ export default function AgentHome() {
         </p>
       </section>
 
-      <Composer wsId={wsId} />
+      <Composer
+        wsId={wsId}
+        destinations={destination.options}
+        onDestination={destination.choose}
+        destinationNote={destination.note}
+      />
 
       {/* Each feed says its own state: the work conversations made is read
           separately from handed-over work, and either can fail alone. */}

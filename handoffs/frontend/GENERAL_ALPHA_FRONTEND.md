@@ -2620,3 +2620,51 @@ new message. No retry is safe.
 ### Assignment page
 - **One status statement.** When the responsibility panel is shown, the header drops its
   "Where it stands is shown below" line; the badge and the panel carry the status.
+
+### Decision card on a work page
+- **Plain provenance.** The service's two fixed proposal notes ("Model-selected… / Controlled
+  local proposed revision…") read "Prepared by the model / Prepared locally, without a model.
+  Nothing changes until you apply it." Any other reason is shown as written.
+- **No duplicate diff.** With the Changes tab open, the card no longer repeats the cell diff
+  or the "Review the changes" link.
+- **Tests:** stubbed regression, RED/GREEN.
+
+## Live blocker 6243959390: Home sends to the workspace it names (HA1)
+**Cause.** Home's composer used the personal workspace, else the first listed, and ignored
+`?workspace=`. On the candidate this sent a new conversation to a historical workspace with no
+grant (422).
+
+**Where it now starts, in order**
+1. the workspace the address names (`/?workspace=…`), if the person can open it;
+2. the one they last chose on Home (a per-device convenience);
+3. their personal workspace, or the first they can open.
+
+A workspace they can't open is never used.
+
+**Visible destination.** When there's more than one workspace, the composer shows "Starts in
+[workspace]".
+- Changing it updates the address and keeps the draft.
+- Records chosen as context are cleared, since they belong to the old workspace.
+- The choice is locked while a request's outcome is still being settled.
+
+**Usable authority, from the service.**
+- `GET /workspaces/{id}/execution` returns `can_advance_authorized_work`. When it is false
+  for the destination, Home says "Workagent can't take on work in {name} right now."
+- Only then does it read the other workspaces once, and offers "Start in {name} instead" for
+  one that can.
+- Nothing is inferred from names or history, and no authority is widened. The service still
+  decides on send.
+
+**Other changes**
+- **Ending a conversation:** its "Home" link names that conversation's workspace, so the
+  carried draft is in the composer that opens.
+- **Home's read storm:** per-conversation and per-artifact reads now go at most six at a
+  time, so a send isn't queued behind about a hundred reads.
+
+**Tests**
+- Real stack, `workspace-routing`:
+  - `/?workspace=<second>` creates the conversation in `<second>`. This was RED on the old
+    Home: it went to `local-workspace`.
+  - Switching keeps the draft.
+  - The note matches the service's `can_advance_authorized_work`.
+- Unit tests: `test/home-destination.test.ts`, covering destination order and the limiter.

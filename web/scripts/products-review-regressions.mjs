@@ -2763,10 +2763,24 @@ try {
     await expect(items.nth(1)).toHaveText(
       "Willow Hall · Travel time (supplied fact) (minutes): 15 → 20",
     );
+    // A reason the service wrote itself is shown as written.
+    await expect(card).toContainText(
+      "Synthetic proposal under a changed budget",
+    );
+    // With Changes open, the same cells aren't repeated in the card.
+    await page.getByRole("tab", { name: /^Changes/ }).click();
+    await expect(card.getByTestId("proposal-changes")).toHaveText(
+      "2 values changed",
+    );
+    await expect(card.getByTestId("proposal-cell-changes")).toHaveCount(0);
+    await expect(card.getByTestId("review-changes")).toHaveCount(0);
+    await page.getByRole("tab", { name: "Result" }).click();
+    await expect(card.getByTestId("proposal-cell-changes")).toBeVisible();
+    await expect(card.getByTestId("review-changes")).toBeVisible();
   }
   passed++;
   console.log(
-    "PASS a proposal to a corrected table lists each value it changes and marks the person's own",
+    "PASS a proposal to a corrected table lists each value it changes and marks the person's own; Changes doesn't repeat them",
   );
 
   {

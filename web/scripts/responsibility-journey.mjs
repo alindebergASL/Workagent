@@ -113,8 +113,12 @@ try {
   await expect(panel).toContainText("Decide who opens the doors.");
   await expect(panel).toContainText("Waiting on");
   await expect(panel).toContainText("Asha to confirm the room.");
-  // One set of steering only.
+  // One set of steering only; what finishes it is one line, not a card.
   await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
+  await expect(page.getByText("Ownership at a glance")).toHaveCount(0);
+  await expect(page.getByTestId("done-when")).toHaveText(
+    "Done when The briefing is ready to send",
+  );
   await shot(page, "01-responsibility-desktop");
   await page.setViewportSize({ width: 390, height: 900 });
   await noOverflow(page);

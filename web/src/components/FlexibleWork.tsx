@@ -41,6 +41,7 @@ import {
   cardLabel,
   changeSummary,
   editsSinceWorkagent,
+  plainReason,
   fieldHeading,
   longTextFields,
   rowNameField,
@@ -533,7 +534,7 @@ export function FlexibleEditor({
                 Proposed: <strong>{proposedName}</strong>
               </p>
             ) : null}
-            {p.reason ? <p className="small">{p.reason}</p> : null}
+            {p.reason ? <p className="small">{plainReason(p.reason)}</p> : null}
             {tableProposal ? (
               <>
                 <p className="decision-question" data-testid="proposal-changes">
@@ -544,7 +545,10 @@ export function FlexibleEditor({
                     ),
                   )}
                 </p>
-                {outdated || cellCount > 3 ? null : (
+                {/* The Changes tab shows the same cells; not twice. */}
+                {outdated ||
+                cellCount > 3 ||
+                (tabbed && mode === "changes") ? null : (
                   <TableProposalCells
                     saved={saved as StructuredTable}
                     proposed={proposed as StructuredTable}
@@ -609,7 +613,10 @@ export function FlexibleEditor({
             {!outdated && dirty ? (
               <p className="small">Save or discard your changes first.</p>
             ) : null}
-            {tabbed && proposed && flexibleKind(proposed) === kind ? (
+            {tabbed &&
+            mode !== "changes" &&
+            proposed &&
+            flexibleKind(proposed) === kind ? (
               // The full comparison is its own tab, so the decision here
               // stays short however much changed.
               <button

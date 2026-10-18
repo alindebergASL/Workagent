@@ -8,6 +8,7 @@ import {
   cardLabel,
   changeSummary,
   editsSinceWorkagent,
+  plainReason,
   fieldHeading,
   longTextFields,
   flexibleKind,
@@ -471,5 +472,27 @@ describe("values changed since Workagent's version", () => {
     // The same values as Workagent's: nothing changed.
     const same = rev("s", "a", "human", 80);
     expect(editsSinceWorkagent(same, [agent, same])).toBeNull();
+  });
+});
+
+describe("plainReason", () => {
+  it("says who prepared a proposal in plain words, keeping the fact", () => {
+    expect(
+      plainReason(
+        "Model-selected proposed revision. Review before acceptance.",
+      ),
+    ).toBe("Prepared by the model. Nothing changes until you apply it.");
+    expect(
+      plainReason(
+        "Controlled local proposed revision. Review before acceptance.",
+      ),
+    ).toBe(
+      "Prepared locally, without a model. Nothing changes until you apply it.",
+    );
+  });
+  it("shows any other reason as written", () => {
+    expect(plainReason("Shortened the lantern loan as asked.")).toBe(
+      "Shortened the lantern loan as asked.",
+    );
   });
 });
