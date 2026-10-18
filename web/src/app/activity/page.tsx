@@ -11,7 +11,7 @@ import { formatTime } from "@/lib/time";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 
 export default function ActivityPage() {
-  const { workspace, zone } = useWorkspace();
+  const { workspace, zone, zoneChoice, setZoneChoice } = useWorkspace();
   const wsId = workspace?.id ?? null;
   const work = useWorkOverview(wsId);
   const conversations = useResource<ConversationSummary[]>(
@@ -44,6 +44,17 @@ export default function ActivityPage() {
         <p className="lede">
           Where each piece of work and conversation stands, latest change first.
         </p>
+        <label className="zone row">
+          <span className="small muted">Times in</span>
+          <select
+            aria-label="Time zone for displayed times"
+            value={zoneChoice}
+            onChange={(e) => setZoneChoice(e.target.value as "utc" | "local")}
+          >
+            <option value="utc">UTC</option>
+            <option value="local">This device</option>
+          </select>
+        </label>
       </header>
       {work.error && !work.data ? <ErrorNotice error={work.error} /> : null}
       {conversations.error && !conversations.data ? (

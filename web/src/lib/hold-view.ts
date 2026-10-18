@@ -106,12 +106,13 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
 
 /**
  * Which Home group a read responsibility belongs in: needing the person,
- * held (recorded, not running) or closed. Null when there is no current
- * responsibility read, so the item keeps its usual place.
+ * being handled (admitted and queued or running), held (recorded, not
+ * running) or closed. Null when there is no current responsibility read,
+ * so the item keeps its usual place.
  */
 export function holdGroup(
   entry: HoldEntry | undefined,
-): "attention" | "holding" | "closed" | null {
+): "attention" | "handling" | "holding" | "closed" | null {
   if (entry?.kind !== "ready") return null;
   const life = entry.detail.lifecycle;
   if (life.state === "cancelled" || life.state === "taken_over")
@@ -125,5 +126,10 @@ export function holdGroup(
     life.execution_status === "blocked"
   )
     return "attention";
+  if (
+    life.state !== "paused" &&
+    (life.execution_status === "queued" || life.execution_status === "running")
+  )
+    return "handling";
   return "holding";
 }

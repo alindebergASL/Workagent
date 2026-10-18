@@ -208,20 +208,37 @@ export function TurnProgressDetails({
   progress,
   recorded,
   outcome,
+  origin,
 }: {
   progress?: TurnProgress;
+  /** Where a reply came from when it isn't a live model's answer. */
+  origin?: string | null;
   /** The message exactly as recorded, when the answer shown is the retained explanation. */
   recorded?: string;
   /** A routine outcome note folded in here rather than shown inline. */
   outcome?: { title: string; note: string } | null;
 }) {
-  if (!progress) return null;
+  const tag = origin ? replyTag(origin) : null;
+  if (!progress)
+    return tag ? (
+      <details className="ids-details">
+        <summary>Details</summary>
+        <p className="small" data-testid="reply-origin">
+          {tag}: not a live model’s answer.
+        </p>
+      </details>
+    ) : null;
   const local = progress.retained_local_result;
   const showRecorded =
     recorded !== undefined && replyText(recorded, progress).explanation;
   return (
     <details className="ids-details">
       <summary>Details</summary>
+      {tag ? (
+        <p className="small" data-testid="reply-origin">
+          {tag}: not a live model’s answer.
+        </p>
+      ) : null}
       {outcome ? (
         <p className="small" data-testid="turn-outcome">
           <strong>{outcome.title}.</strong> {outcome.note}

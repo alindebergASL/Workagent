@@ -1604,6 +1604,79 @@ try {
     "PASS each request beside the work keeps its own failed/unknown state and reason after later turns, with a link once out of view",
   );
 
+  {
+    // While the latest request's outcome is unknown the service takes no new
+    // message, so the pane says so, holds sending and offers a re-read;
+    // it never says a new message starts a new request. A known unusable
+    // answer isn't held: a new message can be sent.
+    const showLast = (state, observation) =>
+      page.evaluate(
+        ([state, observation]) => {
+          const conv = structuredClone(window.resource.data.conversation);
+          conv.messages.push({
+            id: "msg-orient",
+            author: "person",
+            text: "Change the orientation.",
+            created_at: "2026-10-13T00:00:00Z",
+            sequence: 995,
+            run_id: "run-orient",
+            origin: "human",
+          });
+          conv.turns.push({
+            run_id: "run-orient",
+            state,
+            reason: null,
+            message_id: "msg-orient",
+            ...(observation
+              ? {
+                  progress: {
+                    provider_observation: observation,
+                    evidence_origin: "unverified",
+                  },
+                }
+              : {}),
+          });
+          window.peek = {
+            data: conv,
+            error: null,
+            reconnecting: false,
+            refresh: async () => null,
+          };
+          window.mount("away");
+          window.mount("product");
+        },
+        [state, observation],
+      );
+    const pane = page.locator(".agent-pane");
+    const box = pane.locator("#peek-reply");
+    // Linked or not, the pane's own send button.
+    const send = pane
+      .locator(".peek-ask")
+      .getByRole("button", { name: /^Send/ });
+    await showLast("outcome_unknown", null);
+    await box.fill("Make it landscape instead.");
+    await expect(pane.locator(".ask-bar .hint")).toContainText(
+      "Whether your last request went through couldn’t be confirmed",
+    );
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "A new message starts a new request",
+    );
+    await expect(send).toBeDisabled();
+    await expect(pane.getByTestId("unresolved-check")).toBeVisible();
+    await page.keyboard.press("Control+Enter");
+    await showLast("failed", "invalid");
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "couldn’t be confirmed",
+    );
+    await expect(box).toHaveValue("Make it landscape instead.");
+    await expect(send).toBeEnabled();
+    await expect(pane.getByTestId("unresolved-check")).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS beside the work, an unconfirmed request holds sending with a re-read and never invites a new request; a known stop isn't held",
+  );
+
   // Natural admission: a reply beside the work names the exact saved
   // version (never the unsaved working copy), and an unconfirmed reply
   // replays the same frozen target after the saved version moves on.
@@ -2012,18 +2085,24 @@ try {
     };
     return { status: 200, json: next };
   };
-  async function showFlex(data) {
+  // Flexible work opens on its result; these cases edit it, so each opens
+  // on the Edit tab the way a person who chose it last time would.
+  async function showFlex(data, mode = "edit") {
     flexPosts = [];
-    await page.evaluate((data) => {
-      sessionStorage.clear();
-      window.resource = {
-        data,
-        error: null,
-        reconnecting: false,
-        refresh: window.refresh,
-      };
-      window.mount("away");
-    }, data);
+    await page.evaluate(
+      ([data, mode]) => {
+        sessionStorage.clear();
+        if (mode) sessionStorage.setItem("workagent:product:w:c:a:mode", mode);
+        window.resource = {
+          data,
+          error: null,
+          reconnecting: false,
+          refresh: window.refresh,
+        };
+        window.mount("away");
+      },
+      [data, mode],
+    );
     // Separate steps, so React really unmounts the previous work.
     await page.evaluate(() => window.mount("product"));
   }
@@ -2290,6 +2369,65 @@ try {
   passed++;
   console.log(
     "PASS phone row cards: name first, values side by side, a long unit said once and kept for assistive tech",
+  );
+
+  {
+    // The work reads first: its result, with how it was made folded away
+    // and less-used actions in one menu. Editing is one tab away; leaving
+    // the tab keeps unsaved edits, and reopening goes back to them.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(flexData(tableRev), null);
+    const tab = (name) => page.getByRole("tab", { name, exact: true });
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(
+      page.getByRole("region", { name: tableRev.body.title }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Editable table" }),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("product-verification")).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeHidden();
+    await page.getByLabel("More for this work").click();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeVisible();
+    await page.getByLabel("More for this work").click();
+    await page.getByText("How this was prepared", { exact: true }).click();
+    await expect(page.getByTestId("product-verification")).toBeVisible();
+
+    await tab("Edit").click();
+    const name = tableRev.body.rows[0].cells.find(
+      (c) => c.field_key === tableRev.body.fields[0].key,
+    ).value;
+    const first = page.getByLabel(`Row 1 ${tableRev.body.fields[0].label}`, {
+      exact: true,
+    });
+    await first.fill(`${name} (edited)`);
+    await tab("Result").click();
+    await expect(page.getByText("Your edits aren’t saved yet.")).toBeVisible();
+    await page.getByRole("button", { name: "Continue editing" }).click();
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true");
+    await expect(first).toHaveValue(`${name} (edited)`);
+    // Keyboard moves between the two.
+    await tab("Edit").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(tab("Result")).toBeFocused();
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true");
+    // Reopened with an unsaved edit, it opens where the edit is.
+    await page.evaluate(() => window.mount("away"));
+    await page.evaluate(() => window.mount("product"));
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(first).toHaveValue(`${name} (edited)`);
+  }
+  passed++;
+  console.log(
+    "PASS work opens on its result; editing is a tab away, keeps unsaved edits and reopens on them; how it was made is folded",
   );
 
   {

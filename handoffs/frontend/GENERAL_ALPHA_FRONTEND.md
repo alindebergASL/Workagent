@@ -2349,3 +2349,174 @@ step kept exactly what was typed:
 That happened silently. The box now says so: "Each line is saved as one note; blank lines aren't
 kept." If the evaluated session saw a collapse before saving, the exact input path is still
 needed. This probe did not find it.
+
+## Coherent default experience, increment 1 (Andrew's rejection 6229753182, direction 6229889011)
+
+Compared side by side with the 15 October concepts (`docs/design/alpha-intelligent-ui-20261015`)
+using actual real-service screens at 1440px and 390px. Changed in this increment:
+
+### Work page: result first (concept 01)
+- **One quiet header:** title, then "Table · made by Workagent". "Download as CSV" and "Check for
+  updates" are behind a "⋯" menu ("More for this work").
+- **The "3 rows · 6 columns" card and verification caveat are gone from the top.** They now sit,
+  with the checks and saved history, under one closed **How this was prepared** at the bottom.
+  "Nothing checks this automatically" no longer leads the page.
+- **Result | Edit tabs** for tables and documents:
+  - the work opens on **Result**, a read view: a table reads as a table and a document as text;
+  - **Edit** holds the existing editor, unchanged;
+  - the choice is remembered per work in the tab;
+  - with an unsaved edit, the page opens on Edit, and the tab shows a dot;
+  - the Result tab says "Your edits aren't saved yet. Continue editing";
+  - arrow keys move between the tabs;
+  - nothing about saving, drafts or Ctrl+S changed.
+- **Long note lists:** a table's notes show three, with "N more notes" a step away.
+- **Views** keep their own surface, as before.
+
+### Conversation beside the work
+- **"Synthetic test reply" / "Test reply"** moved into each message's **Details**, as "Test reply:
+  not a live model's answer". The Demonstration banner still labels the whole build.
+- **The "This work" chip beside the work is removed**, since that conversation is about the work.
+
+### Navigation
+- **Sidebar "Your work"** replaces the workspace list. It shows the six most recently changed
+  projects across every workspace the person can open, so current work is one click away.
+- **Workspaces** stay on Spaces.
+- **"Personal · Private" and the time-zone select** moved off every page; the time zone is now on
+  Activity & details.
+
+### Spaces: one list
+- **The page said "Projects and workflows" once per workspace with no workspace name**, giving
+  repeated (and possibly empty) sections. Now there is:
+  - one **Projects** heading and one **New project** button;
+  - a workspace chooser when there's more than one workspace;
+  - the workspace named on each row when there are several;
+  - one "couldn't be read" line if a workspace fails;
+  - one empty message only when there are truly none.
+- Rows read name over purpose. Workspace cards lost the large decorative banner.
+
+### Home
+- **"Try the intake example"** (a legacy intake sample) shows only in the mock build, never
+  against the real service.
+
+### Tests
+- **New stubbed regression:**
+  - the work opens on Result, with the read view, no editor, the verification folded and CSV in
+    the menu;
+  - Edit works;
+  - leaving the tab keeps the edit, and Continue editing returns to it;
+  - arrow keys switch tabs;
+  - a remount with an unsaved edit reopens on Edit.
+  - RED without the change; GREEN with it.
+- **Existing suites that edit work now open its Edit tab first:**
+  - `products-review-regressions`, through `showFlex`;
+  - `space-experience`;
+  - `flexible-journey`, `flexible-live-records` and `space-journey`, with a tolerant `openEdit`.
+- **`workspace-routing`:**
+  - it now treats the sidebar's project-list read as navigation;
+  - every page's own record reads are still asserted to stay in the page's workspace;
+  - the sidebar never reads a workspace the person can't open.
+- **Results:**
+  - 40 DOM regressions;
+  - routing 7 + Space 28;
+  - 309 unit tests;
+  - lint and prettier clean.
+
+**Flexible journey.** The reopen half runs in a fresh browser, where no Edit choice is remembered.
+It now checks that the saved values read on Result, then opens Edit to check the editor starts from
+them. With `WORKAGENT_FIXTURE_MODE=true` and a plain build, as the gate runs it:
+- flexible create PASS;
+- flexible reopen PASS.
+
+An earlier "Open table" timeout came from running it without fixture mode. It was not a defect.
+
+**Full gate:** the same as baseline apart from the reopen line, now fixed. Mock e2e 15/15.
+
+**Still open toward the concepts:**
+- the decision card copy, and a Changes tab with the full comparison;
+- moving Home's "Ready for you" items into "Since you left" / "I'm handling" sections;
+- the composer's secondary buttons;
+- stale dependent values (with Hermes);
+- phone bottom tabs.
+
+## Coherent default experience, increment 2
+
+- **Changes tab (concept 01's "Changes · 1"):**
+  - while something is proposed, the work has a third tab with the full comparison and the
+    whole proposed version;
+  - the decision card keeps only the summary (up to three cells inline), Apply / Keep / Ask
+    for a different change, and **Review the changes**, which opens that tab;
+  - "Compare in full" and "See the proposed version" are no longer inside the decision;
+  - arrow keys cycle all three tabs;
+  - with nothing proposed, a remembered Changes choice falls back to Result.
+- **Home:**
+  - the decision card is named by the work, e.g. "Lending desk", followed by "A proposed
+    version is ready…" and then "From …";
+  - the group "Ready for you" is now **Needs you**;
+  - Needs you and I'm handling read open as sections, while the others stay a step away.
+- **Conversation header:**
+  - an open, idle conversation no longer shows an "Open" badge;
+  - "No context attached" is gone;
+  - Ended, Waiting for a reply and "Uses N records you chose" still show.
+- **Composer:**
+  - "Attach a file" is a paperclip icon, still named "Attach a file" for assistive tech;
+  - "Your context" shows only when there are records to choose, some are chosen, or one is
+    needed.
+- **Tests:**
+  - the phone-review case in `space-experience` asserts there is no comparison inside the
+    decision card, and that Review the changes selects "Changes · 1" with the diff;
+  - 40 DOM regressions, routing 7 + Space 28, typecheck and lint clean.
+- **Gate follow-up for increment 2:**
+  - When Home has nothing under Needs you or I'm handling, its first group opens again. Without
+    this, a Home holding only "Made in your conversations" read as empty; `flexible-journey`
+    caught it.
+  - `conversation-journey` now reads the test-reply label under Details.
+  - Results: conversation journey PASS, flexible create and reopen PASS, routing 7 + Space 28;
+    mock e2e 15/15 earlier in the run.
+
+## Review 6238326550: Home classification, ownership copy, unresolved requests
+
+**Home misclassified actual agent work.**
+- **Before:** "I'm handling" was built only from legacy items. Admitted responsibilities that
+  were queued or running fell into "holding" (recorded, not running).
+- **Now:** `holdGroup` returns **handling** for queued or running responsibilities that aren't
+  paused, and Home lists them under I'm handling.
+  - Recorded responsibilities that aren't admitted, and paused ones, stay held.
+  - Waiting on a person, blocked, or needing review still go to Needs you; closed stays
+    closed.
+  - Space's standing card lists handling with what's underway.
+- **Tests:** the unit test fails without the change ("holding" instead of "handling") and
+  passes with it. The responsibility-recording journey is 9/9.
+
+**Ownership said every next action was the person's.**
+- **Before:** "You own: Approving changes and any next action. Nothing is carried out without
+  you."
+- **Now:** for work without a responsibility, the line follows the recorded phase:
+  - deciding on the proposed change;
+  - reviewing prepared work;
+  - providing what's missing;
+  - otherwise, approving any proposed change before it's applied.
+- With a responsibility, its own panel says who holds what. The Ownership card shows only
+  "Done when", or nothing at all.
+
+**A request whose outcome is unknown had no usable exit.**
+- **Before:** the composer said "A new message starts a new request". The service actually
+  refuses new messages with `action_unresolved` until the earlier request is resolved.
+- **Now:** `lastUnresolved(turns)` is true when the last turn's state or provider observation
+  is `outcome_unknown`. On the conversation page and beside the work:
+  - sending is held, and the draft is kept and editable;
+  - the hint says "Whether your last request went through couldn't be confirmed, so a new
+    message waits until that's resolved. Your draft is kept.";
+  - **Check again** re-reads;
+  - nothing is replayed.
+- A known unusable answer (`invalid`) isn't held: a new message can still be sent, with the
+  usual "starts a new request" hint.
+- **Tests:**
+  - new stubbed DOM regression, RED without the change and GREEN with it;
+  - unit test for `lastUnresolved`;
+  - 41 DOM regressions, 310 unit tests, routing 7 + Space 28.
+
+**Left to Hermes from the same review:**
+- continuing work that loses its saved-plan reference;
+- deciding when an unresolved request becomes resolved, which the UI then simply re-reads.
+
+The ResponsibilityPanel copy simplification is the next frontend step.

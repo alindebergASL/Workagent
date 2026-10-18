@@ -16,6 +16,14 @@ import {
 } from "@/lib/work-state";
 import { ErrorNotice } from "./ui";
 
+const YOURS: Partial<Record<WorkPhase, string>> = {
+  decision: "Deciding on the proposed change.",
+  prepared: "Reviewing the prepared work.",
+  blocked: "Providing what’s missing.",
+  unknown: "Nothing yet; the last request’s outcome is being confirmed.",
+  stopped: "Nothing. This work was stopped.",
+};
+
 /** Plain ownership lines, from recorded state only. Nothing here is a promise. */
 function glance(a: Assignment, phase: WorkPhase) {
   const run = currentRun(a);
@@ -46,8 +54,9 @@ function glance(a: Assignment, phase: WorkPhase) {
       phase === "paused" && a.conversation_id
         ? "Nothing has been admitted to run for it"
         : (waitingOn[phase] ?? "Nothing"),
-    yours:
-      "Approving changes and any next action. Nothing is carried out without you.",
+    // What's actually the person's now, from the recorded phase; never a
+    // claim that every next step waits on them.
+    yours: YOURS[phase] ?? "Approving any proposed change before it’s applied.",
     doneWhen: a.completion_criteria,
   };
 }
@@ -127,6 +136,10 @@ export function Ownership({
     }
   };
 
+  // With a responsibility, its own panel says who holds what; an empty
+  // card here would only repeat the heading.
+  if (!legacy && !g.doneWhen.length) return null;
+
   return (
     <section className="card card-quiet glance" aria-labelledby="glance-title">
       <h2 id="glance-title">Ownership at a glance</h2>
@@ -143,10 +156,12 @@ export function Ownership({
             </div>
           </>
         ) : null}
-        <div>
-          <dt>You own</dt>
-          <dd>{g.yours}</dd>
-        </div>
+        {legacy ? (
+          <div>
+            <dt>You own</dt>
+            <dd>{g.yours}</dd>
+          </div>
+        ) : null}
         {g.doneWhen.length ? (
           <div>
             <dt>Done when</dt>

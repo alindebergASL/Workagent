@@ -10,6 +10,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   adaptivePresentation,
   lastStopped,
+  lastUnresolved,
   modelExamples,
 } from "../src/lib/adaptive-presentation";
 import {
@@ -460,6 +461,34 @@ describe("lastStopped", () => {
     // An earlier stop with a later answer is history, not the current state.
     expect(
       lastStopped([{ state: "outcome_unknown" }, { state: "replied" }]),
+    ).toBe(false);
+  });
+});
+
+describe("lastUnresolved", () => {
+  it("is true only while the latest request's outcome is unknown", () => {
+    expect(lastUnresolved([])).toBe(false);
+    expect(lastUnresolved([{ state: "outcome_unknown" }])).toBe(true);
+    expect(
+      lastUnresolved([
+        {
+          state: "failed",
+          progress: { ...progress(), provider_observation: "outcome_unknown" },
+        },
+      ]),
+    ).toBe(true);
+    // A known, unusable answer is stopped, not unresolved: a new message can
+    // start a new request.
+    expect(
+      lastUnresolved([
+        {
+          state: "failed",
+          progress: { ...progress(), provider_observation: "invalid" },
+        },
+      ]),
+    ).toBe(false);
+    expect(
+      lastUnresolved([{ state: "outcome_unknown" }, { state: "replied" }]),
     ).toBe(false);
   });
 });

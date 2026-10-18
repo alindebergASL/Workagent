@@ -149,6 +149,12 @@ describe("where a hand-over stands, on every list", () => {
     expect(holdStatus(ready({ execution_status: "running" }))!.note).toMatch(
       /in progress; not done/,
     );
+    // Admitted and queued or running, it's being handled; paused isn't.
+    expect(holdGroup(ready({ execution_status: "running" }))).toBe("handling");
+    expect(holdGroup(ready({ execution_status: "queued" }))).toBe("handling");
+    expect(
+      holdGroup(ready({ state: "paused", execution_status: "queued" })),
+    ).toBe("holding");
   });
   it("says what it waits on, else what comes next, never once closed", () => {
     expect(holdStatus(ready({}))!.next).toBe("Next: Draft.");

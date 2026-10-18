@@ -12,6 +12,14 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+// A piece of work opens on its result; editing is its Edit tab. The choice
+// is remembered for that work in the tab, so later visits open on it.
+const openEdit = async (page) => {
+  const edit = page.getByRole("tab", { name: "Edit", exact: true });
+  await expect(edit).toBeVisible({ timeout: 15000 });
+  if ((await edit.getAttribute("aria-selected")) !== "true") await edit.click();
+};
+
 const out = path.resolve(process.argv[2]);
 const ids = JSON.parse(await readFile(process.argv[3], "utf8"));
 await mkdir(out, { recursive: true });
@@ -128,24 +136,31 @@ try {
   // Leave and return: Spaces lists projects by what they're for.
   await page.goto(`${origin}/spaces`);
   await expect(page.getByTestId("demo-banner")).toBeVisible();
-  const list = page.getByRole("region", { name: "Projects and workflows" });
-  await expect(page.getByRole("link", { name: /Autumn workshop/ })).toBeVisible(
-    { timeout: 15000 },
-  );
   await expect(
-    page.getByRole("link", { name: /Monthly newsletter/ }),
+    page.getByRole("main").getByRole("link", { name: /Autumn workshop/ }),
+  ).toBeVisible({ timeout: 15000 });
+  // One list, however many workspaces hold the projects: each row names its
+  // workspace, and no heading repeats.
+  await expect(page.getByRole("heading", { name: "Projects" })).toHaveCount(1);
+  await expect(
+    page.getByRole("main").getByRole("link", { name: /Spring open day/ }),
+  ).toContainText("Personal work");
+  await expect(
+    page.getByRole("main").getByRole("link", { name: /Monthly newsletter/ }),
   ).toContainText("Ongoing workflow");
   // Each workspace's projects are listed, and each opens in its own workspace.
   await expect(page.locator(".work-row")).toHaveCount(5);
   await expect(
-    page.getByRole("link", { name: /Spring open day/ }),
+    page.getByRole("main").getByRole("link", { name: /Spring open day/ }),
   ).toHaveAttribute(
     "href",
     `/spaces/${ids.second.workspace}/work/${ids.second.conversation_id}`,
   );
-  assert.equal(list ? true : true, true);
   await shot(page, "01-spaces");
-  await page.getByRole("link", { name: /Autumn workshop/ }).click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: /Autumn workshop/ })
+    .click();
   await page.waitForURL(`**/work/${cid}`);
   pass(
     "Spaces lists each project by name, purpose and kind; an ordinary chat isn't listed; the demonstration label shows",
@@ -924,6 +939,7 @@ try {
   await page.goto(
     `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
   );
+  await openEdit(page);
   const adder = page.getByRole("group", { name: "Add to the document" });
   await expect(adder).toBeVisible({ timeout: 15000 });
   await adder.getByRole("button", { name: "Paragraph" }).click();
@@ -974,6 +990,7 @@ try {
     await page.goto(
       `${origin}/conversations/${sup.conversation_id}/artifacts/${sup.findings_id}?workspace=${sup.workspace}`,
     );
+    await openEdit(page);
     const kept = page.locator('.doc-editable .doc-block[data-note="true"]');
     await expect(kept).toContainText("Note from Workagent", {
       timeout: 15000,
@@ -1009,30 +1026,19 @@ try {
     );
     await page.setViewportSize({ width: 390, height: 844 });
     // However long the change, the full comparison never stands between the
-    // summary and the decision, and is folded until asked for.
+    // summary and the decision: it's the work's Changes tab, a step away.
     const order = await proposal.evaluate((card) => {
       const apply = [...card.querySelectorAll("button")].find((b) =>
         b.textContent.includes("Apply proposed version"),
       );
-      const diff = card.querySelector(".diff");
       return {
-        applyFirst: Boolean(
-          diff &&
-          apply.compareDocumentPosition(diff) &
-            Node.DOCUMENT_POSITION_FOLLOWING,
-        ),
-        diffShown: Boolean(
-          diff &&
-          !diff.closest("details:not([open])") &&
-          diff.checkVisibility(),
-        ),
+        diffInCard: Boolean(card.querySelector(".diff")),
         applyAt:
           apply.getBoundingClientRect().bottom -
           card.getBoundingClientRect().top,
       };
     });
-    assert.ok(order.applyFirst, "the full comparison comes before Apply");
-    assert.ok(!order.diffShown, "the full comparison is open by default");
+    assert.ok(!order.diffInCard, "the full comparison sits in the decision");
     assert.ok(
       order.applyAt <= 700,
       `Apply is ${Math.round(order.applyAt)}px into the proposal on a phone`,
@@ -1040,8 +1046,7 @@ try {
     await expect(proposal.getByTestId("proposal-name")).toHaveText(
       "Proposed: Findings so far: the 10-day option",
     );
-    const compare = proposal.getByTestId("proposal-compare");
-    await expect(compare).not.toHaveAttribute("open", "");
+    await expect(proposal.getByTestId("review-changes")).toBeVisible();
     await proposal.scrollIntoViewIfNeeded();
     await page.screenshot({
       path: path.join(out, "08c-proposal-compact-phone.png"),
@@ -1071,8 +1076,11 @@ try {
       proposal.getByRole("button", { name: "Apply proposed version" }),
     ).toBeVisible();
     await page.setViewportSize({ width: 1440, height: 1000 });
-    await compare.locator("summary").click();
-    const diff = proposal.locator(".diff");
+    await proposal.getByTestId("review-changes").click();
+    await expect(
+      page.getByRole("tab", { name: "Changes · 1", exact: true }),
+    ).toHaveAttribute("aria-selected", "true");
+    const diff = page.getByTestId("work-changes").locator(".diff");
     await expect(diff.locator('[data-added="true"]')).toContainText([
       "Northprint says 10 days is possible for EUR 40 more.",
       "Decide by Friday so printing can start on Monday.",
@@ -1425,6 +1433,7 @@ try {
     await tab.goto(
       `${origin}/conversations/${cid}/artifacts/${planId}?workspace=${ws}`,
     );
+    await openEdit(tab);
     const adder = tab.getByRole("group", { name: "Add to the document" });
     await expect(adder).toBeVisible({ timeout: 15000 });
     await adder.getByRole("button", { name: "Paragraph" }).click();
@@ -1648,6 +1657,7 @@ try {
     await source.click();
     await page.waitForURL(new RegExp(`/artifacts/${sup.evidence_id}`));
     // The trusted editor for the source, not another view of it.
+    await openEdit(page);
     await expect(
       page.getByRole("region", { name: "Editable table" }),
     ).toBeVisible({ timeout: 15000 });
@@ -1688,6 +1698,7 @@ try {
       });
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(checklistUrl);
+    await openEdit(page);
     const step2 = page
       .getByRole("region", { name: "Editable table" })
       .locator("textarea")
@@ -1917,6 +1928,7 @@ try {
       );
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(loansUrl);
+    await openEdit(page);
     const grid = page.getByRole("region", { name: "Editable table" });
     await expect(grid).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(300);
@@ -1993,6 +2005,7 @@ try {
     await page.goto(
       `${origin}/conversations/${kit.conversation_id}/artifacts/${kit.loans_id}?workspace=${kit.workspace}`,
     );
+    await openEdit(page);
     const grid = page.getByRole("region", { name: "Editable table" });
     const items = () =>
       grid

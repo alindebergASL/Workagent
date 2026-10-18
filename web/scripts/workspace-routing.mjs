@@ -68,8 +68,13 @@ try {
     const at = reads.length;
     return () => reads.slice(at);
   };
+  // The sidebar's "Your work" lists projects from every workspace the
+  // person can open, on every page: that list read is the navigation, not
+  // the page's records, so only it may go elsewhere.
+  const navList = (r) =>
+    r.method === "GET" && /\/work-areas\?limit=\d+$/.test(r.url);
   const onlyIn = (got, ws, what) => {
-    const elsewhere = got().filter((r) => r.ws !== ws);
+    const elsewhere = got().filter((r) => r.ws !== ws && !navList(r));
     assert.deepEqual(
       elsewhere,
       [],
@@ -78,11 +83,11 @@ try {
     assert.ok(got().length > 0, `${what}: records were read`);
   };
 
-  // Choosing the workspace in the rail, then opening its work from there.
-  await page.goto(`${origin}/`);
+  // Choosing the workspace on Spaces, then opening its work from there.
+  await page.goto(`${origin}/spaces`);
   await page
-    .getByRole("navigation", { name: "Workspace" })
-    .getByRole("link", { name: "Personal work" })
+    .getByRole("main")
+    .getByRole("link", { name: /^Personal work/ })
     .click();
   await page.waitForURL(`**/spaces/${second}`);
   let got = since();
@@ -264,7 +269,15 @@ try {
     await page.goto(`${origin}/conversations/${chatId}?workspace=${named}`);
     await notAvailable(page);
     await expect(page.getByText("Eleven works well")).toHaveCount(0);
-    assert.deepEqual(got(), [], `nothing is read for ${named}`);
+    assert.deepEqual(
+      got().filter((r) => !navList(r)),
+      [],
+      `nothing is read for ${named}`,
+    );
+    assert.ok(
+      got().every((r) => r.ws !== named),
+      `the sidebar doesn't read ${named} either`,
+    );
   }
   await shot(page, "04-workspace-not-available");
   // An address that names no workspace keeps its earlier meaning: the
