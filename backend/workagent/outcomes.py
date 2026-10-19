@@ -250,7 +250,8 @@ def project_responsibility_artifacts(service,c,p,assignment):
 
 
 def project_assignment(service,c,p,assignment):
-    project_responsibility_artifacts(service,c,p,assignment)
+    # Legacy assignment-artifact clients cannot render conversation products.
+    # Rich responsibility reads expose those outputs without changing ownership.
     rows=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s',(assignment.workspace_id,assignment.id)).fetchall()
     runs={r['data']['id']:Run.model_validate(r['data']) for r in rows}
     assignment.responsibility=ResponsibilityOutcome(
