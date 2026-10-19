@@ -78,6 +78,12 @@ export function turnExecution(
 export function workspaceExecution(
   status: ExecutionStatus | null | undefined,
   unreadable: boolean,
+  /**
+   * Where each request already says how its own run stands (a
+   * conversation), "working somewhere in this workspace" says nothing
+   * about this page and outlives its answers, so it isn't shown.
+   */
+  perTurn = false,
 ): { state: string; text: string } | null {
   if (!status)
     return unreadable
@@ -102,7 +108,9 @@ export function workspaceExecution(
     case "working":
     case "awaiting_provider":
     case "recovering":
-      return { state: "working", text: "Workagent is working on a request." };
+      return perTurn
+        ? null
+        : { state: "working", text: "Workagent is working on a request." };
     default:
       return null;
   }

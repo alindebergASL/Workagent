@@ -97,4 +97,17 @@ describe("the workspace line", () => {
     expect(workspaceExecution(null, true)?.state).toBe("unknown");
     expect(workspaceExecution(null, false)).toBeNull();
   });
+  it("in a conversation, never says it's working: each request shows its own run", () => {
+    for (const s of ["working", "awaiting_provider", "recovering"] as const) {
+      expect(workspaceExecution(status(s, [], true), false)?.state).toBe(
+        "working",
+      );
+      expect(workspaceExecution(status(s, [], true), false, true)).toBeNull();
+    }
+    // What affects every request still shows there.
+    expect(workspaceExecution(status("unavailable"), false, true)?.state).toBe(
+      "unavailable",
+    );
+    expect(workspaceExecution(null, true, true)?.state).toBe("unknown");
+  });
 });
