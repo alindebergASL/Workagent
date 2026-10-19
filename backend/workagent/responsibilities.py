@@ -294,6 +294,10 @@ class Responsibilities(ResponsibilityExecution):
                 if life.state != 'paused' or cv.state != 'open':
                     raise DomainError('unsupported_operation')
                 life.state = 'active'
+                # Resume is a new human-controlled wake, never a replay of the
+                # cancelled run. Admission still checks every unresolved send.
+                life.run_id = None
+                life.execution_status = 'not_admitted'
                 self._refresh_responsibility(c, p, a, cv, life)
                 self._responsibility_state(life)
             else:

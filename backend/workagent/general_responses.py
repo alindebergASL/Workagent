@@ -116,6 +116,44 @@ def scope_predicate(c,grant_alias,conversation_expression):
     return f"{grant_alias}.data->'responses'->'conversation_ids' ? {conversation_expression}"
 
 
+def cancelled_rejection_is_settled(c, attempt_id):
+    """A deliberate cancellation may release a known schema-rejected attempt.
+
+    Never changes historical attempts/events or refunds reservations. A running
+    rejection is still held: this is not permission for automatic regeneration.
+    Every HTTP boundary must have a bound terminal receipt; unknown/count-only
+    ambiguity, outstanding IDs and cancellation HTTP remain blocking.
+    """
+    row=c.execute("SELECT r.data->>'state' state FROM provider_attempts a JOIN runs r "
+        "ON r.workspace_id=a.workspace_id AND r.id=a.run_id WHERE a.id=%s",(attempt_id,)).fetchone()
+    if not row or row['state']!='cancelled':return False
+    steps=c.execute('SELECT phase,request_sha256,metadata FROM responses_steps WHERE attempt_id=%s',
+                    (attempt_id,)).fetchall()
+    rejected=False
+    for step in steps:
+        events={r['kind']:r['data'] for r in c.execute("SELECT kind,data FROM responses_events "
+            "WHERE attempt_id=%s AND phase=%s AND kind NOT IN ('read')",(attempt_id,step['phase'])).fetchall()}
+        if 'problem' in events or 'cancel' in events:return False
+        if 'count_send' in events and 'count_result' not in events:return False
+        if 'dispatch' not in events:continue
+        identity=events.get('identity',{});result=events.get('result',{})
+        if (not identity.get('response_id') or result.get('response_id')!=identity['response_id']
+            or result.get('usage') is None or result.get('metadata')!=step['metadata']
+            or result.get('request_sha256')!=step['request_sha256']
+            or identity.get('request_sha256')!=step['request_sha256']
+            or events.get('count_result',{}).get('request_sha256')!=step['request_sha256']):return False
+        if result.get('state')=='malformed' and result.get('issue')=='schema_validation_failed':
+            rejected=True
+        elif result.get('state') not in ('function_call','completed'):return False
+    return rejected
+
+
+def has_unresolved_attempt(c,ws,conversation_id):
+    rows=c.execute("SELECT a.id FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id "
+        "WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed')",(ws,conversation_id)).fetchall()
+    return any(not cancelled_rejection_is_settled(c,row['id']) for row in rows)
+
+
 def admission(service,c,p,ws,cv,cmd):
     """An existing revoked/exhausted scoped activation never silently falls back."""
     from .models import ProviderGrant
@@ -133,8 +171,7 @@ def admission(service,c,p,ws,cv,cmd):
         raise DomainError('unsupported_operation')
     if cv.selected_source_refs: raise DomainError('unsupported_operation')
     # A new user turn must not bypass an unresolved send; cancellation is explicit.
-    if c.execute("""SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id
-        WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed') LIMIT 1""",(ws,cv.id)).fetchone():
+    if has_unresolved_attempt(c,ws,cv.id):
         raise DomainError('action_unresolved')
     if cmd.operation:
         from .product_models import RunWasm

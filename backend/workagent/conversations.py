@@ -180,10 +180,8 @@ class Conversations:
         try:
             grant=admission(self,c,p,ws,cv,cmd)
         except DomainError as exc:
-            if responsibility is not None and exc.code.value=='action_unresolved' and c.execute(
-                "SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id "
-                "WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed') LIMIT 1",
-                (ws,cid)).fetchone():
+            from .general_responses import has_unresolved_attempt
+            if responsibility is not None and exc.code.value=='action_unresolved' and has_unresolved_attempt(c,ws,cid):
                 from .responsibility_execution import ContinuationAdmissionPending
                 raise ContinuationAdmissionPending() from exc
             raise

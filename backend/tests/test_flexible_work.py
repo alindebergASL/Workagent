@@ -167,6 +167,16 @@ class DraftProvider:
         return httpx.Response(200,json=response)
 
 
+def settled(worker, principal, workspace, run_id):
+    # A valid visit can yield before the next HTTP allowance fits. Exercise the
+    # canonical worker across bounded visits, as the dispatcher does, rather
+    # than requiring an entire multi-step preparation inside one lease visit.
+    for _ in range(12):
+        result=worker.work(principal,workspace,run_id)
+        if result.state!='running':return result
+    raise AssertionError('worker did not settle across twelve bounded visits')
+
+
 @pytest.mark.parametrize('adaptive',[False,True])
 @pytest.mark.parametrize('kind',['document','structured_table','custom_view'])
 def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptive,kind):
@@ -181,7 +191,7 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
           else table() if kind=='structured_table' else view(bound))
     fake=DraftProvider(body,adaptive)
     q=post(context,cv,'Organize this general work and retain a useful draft.')
-    run=worker(context,fake,tmp_path).work(p,ws,q.run.id)
+    run=settled(worker(context,fake,tmp_path),p,ws,q.run.id)
     assert run.state=='partial' and run.unresolved
     detail=s.get_conversation(p,ws,cv.id); item=detail.messages[-1].result.results[1]
     art=s.get_artifact(p,ws,item.artifact_id)
@@ -197,12 +207,12 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
         assert not detail.messages[-1].text.startswith('Verified')
     # Restart readback and duplicate delivery do not regenerate or accept anything.
     assert Service(s.db).get_artifact(p,ws,art.id).current_revision==art.current_revision
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert settled(worker(context,fake,tmp_path),p,ws,q.run.id).state=='partial'
     if kind=='custom_view': assert s.invoke_view_action(p,ws,art.id,action(art)).body==bound.current_revision.body
     saved_body=art.current_revision.body.model_copy(deep=True); saved_body.title='Human title'
     saved=s.human_save(p,ws,art.id,cmd(HumanSave,expected_current_revision_id=art.current_revision_id,body=saved_body))
     q2=post(context,detail.conversation,'Suggest a revised draft without accepting it.',target=target(saved))
-    assert worker(context,fake,tmp_path).work(p,ws,q2.run.id).state=='partial'
+    assert settled(worker(context,fake,tmp_path),p,ws,q2.run.id).state=='partial'
     assert s.get_conversation(p,ws,cv.id).turns[-1].state=='replied'
     proposal=s.proposals(p,ws,art.id).items[0]
     assert proposal.status=='pending' and s.get_artifact(p,ws,art.id).current_revision.body.title=='Human title'
@@ -226,7 +236,7 @@ def test_draft_cannot_bypass_human_checks_or_break_publication(context,tmp_path,
     cv=conversation(context); grant=activate(context,cv)
     q=post(context,cv,'Create work and satisfy my supplied checks.',acceptance_checks=checks)
     fake=DraftProvider(table(),True)
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert settled(worker(context,fake,tmp_path),p,ws,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id)
     assert detail.turns[-1].adaptive.outcome=='step_limit'
     steps=detail.turns[-1].adaptive.steps
@@ -236,7 +246,7 @@ def test_draft_cannot_bypass_human_checks_or_break_publication(context,tmp_path,
     assert 'supplied acceptance checks' in detail.messages[-1].text
     before=totals(s,grant)['request_counts']['dispatch']
     assert before==5
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert settled(worker(context,fake,tmp_path),p,ws,q.run.id).state=='partial'
     assert totals(s,grant)['request_counts']['dispatch']==before
     assert Service(s.db).get_conversation(p,ws,cv.id)==detail
 
@@ -267,7 +277,7 @@ def test_rejected_draft_can_continue_to_checked_executable_work(context,tmp_path
                 return httpx.Response(200,json=payload)
         return draft_handle(request)
     fake.handle=handle
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
+    assert settled(worker(context,fake,tmp_path),p,ws,q.run.id).state=='partial'
     detail=s.get_conversation(p,ws,cv.id); steps=detail.turns[-1].adaptive.steps
     assert detail.turns[-1].adaptive.outcome=='needs_validation' and len(steps)==2
     assert steps[0].status=='rejected' and not steps[0].verification.acceptance.passed
