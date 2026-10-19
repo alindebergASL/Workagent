@@ -19,7 +19,7 @@ import { ExecutionLine } from "@/components/ExecutionLine";
 import { resultState, useResultStates } from "@/lib/client/result-states";
 import { resultLink } from "@/lib/result-links";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
-import { holdStatus } from "@/lib/hold-view";
+import { holdStatus, idleHold } from "@/lib/hold-view";
 import { recordedResponsibilities } from "@/lib/contract/natural";
 import { shortTitle } from "@/lib/work-state";
 import { ApiError, describeSendError } from "@/lib/contract/errors";
@@ -507,9 +507,14 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                             tone={status.tone}
                           />
                         ) : null}
-                        <span className="work-row-note">
-                          {status?.note ?? "Open it to see where it stands."}
-                        </span>
+                        {/* Held and idle: the heading already says it's
+                            handed over; the row doesn't repeat that
+                            nothing runs for it. */}
+                        {idleHold(holds[aid]) ? null : (
+                          <span className="work-row-note">
+                            {status?.note ?? "Open it to see where it stands."}
+                          </span>
+                        )}
                       </span>
                     </span>
                     <span className="work-row-go" aria-hidden="true">

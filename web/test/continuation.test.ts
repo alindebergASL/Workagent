@@ -85,7 +85,9 @@ describe("runtime continuation requests (F1)", () => {
     );
     const text = html.replace(/<[^>]+>/g, " ");
     expect(text).not.toMatch(/You:/);
-    expect(text).toContain("Continuation request from a hand-over");
+    // One plain line up front; its own wording a step away.
+    expect(text).toContain("Workagent picked a hand-over back up.");
+    expect(html).toMatch(/<details[^>]*>.*Confirm the room\./s);
     expect(text).toContain("not by you");
     expect(text).toContain("Wake wake-1 · hand-over version 3");
     expect(html).toContain('href="/assignments/asg-1"');

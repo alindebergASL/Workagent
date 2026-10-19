@@ -10,7 +10,7 @@ import {
 } from "@/lib/work-state";
 import type { AssignmentSummary } from "@/lib/contract/types";
 import type { HoldEntry } from "@/lib/client/responsibility";
-import { holdStatus } from "@/lib/hold-view";
+import { holdStatus, idleHold } from "@/lib/hold-view";
 import { responsibilityView } from "@/lib/responsibility-view";
 import { scopedHref } from "@/lib/scope";
 import { StatusBadge } from "./ui";
@@ -34,13 +34,7 @@ export function WorkRow({
   quietIdle?: boolean;
 }) {
   const held = holdStatus(hold);
-  const idle =
-    quietIdle &&
-    hold?.kind === "ready" &&
-    !hold.stale &&
-    hold.detail.lifecycle.execution_status === "not_admitted" &&
-    !hold.detail.lifecycle.review_required &&
-    hold.detail.lifecycle.outcome_status !== "needs_review";
+  const idle = quietIdle && idleHold(hold);
   const phase = phaseOf(item);
   const review = decisionArtifactId(item);
   const run = currentRun(item);

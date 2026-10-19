@@ -10,7 +10,7 @@ import {
   adaptivePresentation,
   hasProductOutput,
 } from "../src/lib/adaptive-presentation";
-import { holdGroup, holdStatus } from "../src/lib/hold-view";
+import { holdGroup, idleHold, holdStatus } from "../src/lib/hold-view";
 import type { HoldEntry } from "../src/lib/client/responsibility";
 
 type S = components["schemas"];
@@ -198,6 +198,14 @@ describe("where a hand-over stands, on every list", () => {
     expect(holdStatus(ready({ state: "taken_over" }))!.label).toBe(
       "You took this back",
     );
+  });
+  it("idle means read now, nothing running and nothing to review", () => {
+    expect(idleHold(ready({}))).toBe(true);
+    expect(idleHold(ready({}, true))).toBe(false);
+    expect(idleHold(ready({ execution_status: "queued" }))).toBe(false);
+    expect(idleHold(ready({ review_required: true }))).toBe(false);
+    expect(idleHold(ready({ outcome_status: "needs_review" }))).toBe(false);
+    expect(idleHold({ kind: "unknown", lastAbsent: false })).toBe(false);
   });
   it("a canonical pause is the record's, not the coarse state", () => {
     expect(holdStatus(ready({ state: "paused" }))!.label).toBe("Paused");
