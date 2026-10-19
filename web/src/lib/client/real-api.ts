@@ -343,6 +343,25 @@ async function artifactView(
     })),
   };
 }
+/**
+ * Legacy assignment-owned work only. An older service may still project a
+ * responsibility's conversation-owned outputs into the legacy `artifact_ids`;
+ * those are canonically the conversation's and are surfaced by the rich
+ * responsibility read, so they are left out here rather than failing the
+ * whole assignment view through the legacy adapter.
+ */
+async function assignmentArtifacts(
+  ws: string,
+  ids: string[],
+  signal?: AbortSignal,
+): Promise<V.Artifact[]> {
+  const raws = await Promise.all(
+    ids.map((id) => rawArtifact(ws, id, undefined, signal)),
+  );
+  return Promise.all(
+    raws.filter((r) => r.assignment_id).map((r) => artifactView(r, signal)),
+  );
+}
 async function enrichConflict<T>(
   ws: string,
   id: string,
@@ -415,14 +434,7 @@ export const realApi = {
         ).map(async (a) =>
           assignmentSummary(
             a,
-            await Promise.all(
-              (a.artifact_ids ?? []).map(async (id) =>
-                artifactView(
-                  await rawArtifact(ws, id, undefined, signal),
-                  signal,
-                ),
-              ),
-            ),
+            await assignmentArtifacts(ws, a.artifact_ids ?? [], signal),
           ),
         ),
       ),
@@ -436,11 +448,7 @@ export const realApi = {
     const a = await rawAssignment(ws, id, signal);
     const [sources, artifacts, runs] = await Promise.all([
       rawSources(ws, signal),
-      Promise.all(
-        (a.artifact_ids ?? []).map(async (id) =>
-          artifactView(await rawArtifact(ws, id, undefined, signal), signal),
-        ),
-      ),
+      assignmentArtifacts(ws, a.artifact_ids ?? [], signal),
       Promise.all((a.run_ids ?? []).map((id) => rawRun(ws, id, signal))),
     ]);
     const initial = runs.find((r) => r.kind === "initial");
@@ -516,11 +524,13 @@ export const realApi = {
         ),
       ),
     );
-    const artifacts = await Promise.all(
-      (a.artifact_ids ?? []).map((id) =>
-        rawArtifact(ws, id, undefined, signal),
-      ),
-    );
+    const artifacts = (
+      await Promise.all(
+        (a.artifact_ids ?? []).map((id) =>
+          rawArtifact(ws, id, undefined, signal),
+        ),
+      )
+    ).filter((x) => x.assignment_id);
     return list(
       sources.map((source) => {
         const dependencies = new Map<

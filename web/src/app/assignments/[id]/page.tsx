@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useResponsibility } from "@/lib/client/responsibility";
+import { useResponsibilityOutputs } from "@/lib/client/responsibility-outputs";
 import { ResponsibilityPanel } from "@/components/ResponsibilityPanel";
 import type { WorkspaceScope } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
@@ -24,6 +25,7 @@ import {
   statusOf,
   waitingSummary,
 } from "@/lib/work-state";
+import { readableTitle } from "@/lib/titles";
 import { Ownership } from "@/components/Ownership";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
@@ -70,6 +72,13 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   // says there is no responsibility here; never while it's unknown, denied,
   // or an earlier "none" can't be re-read.
   const legacy = rs.kind === "absent";
+  // Its published outputs live in its conversation; only the rich read
+  // projects them, and each opens at its canonical conversation address.
+  const outputs = useResponsibilityOutputs(
+    wsId,
+    id,
+    rs.kind === "ready" ? rs.detail.assignment : null,
+  );
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const artifactTitles = useMemo(
@@ -395,7 +404,9 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         <h2 id="saved-title" className="section-title">
           Saved work
         </h2>
-        {a.artifacts.length === 0 ? (
+        {a.artifacts.length === 0 &&
+        outputs.outputs.length === 0 &&
+        !outputs.loading ? (
           <p className="muted">
             {rs.kind === "ready"
               ? "No documents or files are attached to it yet. The responsibility itself is saved, above."
@@ -405,7 +416,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
                 ? "No documents or files saved yet."
                 : "No documents or files were saved."}
           </p>
-        ) : (
+        ) : null}
+        {a.artifacts.length ? (
           <ul className="work-list">
             {a.artifacts.map((x) => {
               const s = artifactStatus(
@@ -439,7 +451,75 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
               );
             })}
           </ul>
-        )}
+        ) : null}
+        {outputs.loading ? (
+          <p
+            className="hint"
+            role="status"
+            data-testid="responsibility-outputs-loading"
+          >
+            Checking its conversation for saved results…
+          </p>
+        ) : null}
+        {outputs.outputs.length ? (
+          <>
+            <p className="small muted">
+              Saved in the conversation this came from. Opening one keeps its
+              history and your edits there.
+            </p>
+            <ul className="work-list" data-testid="responsibility-outputs">
+              {outputs.outputs.map((o) => (
+                <li key={o.id}>
+                  {o.kind === "ready" || o.kind === "unread" ? (
+                    <Link
+                      className="work-row"
+                      href={scopedHref(o.href, wsId)}
+                      data-phase="completed"
+                    >
+                      <span className="work-row-main">
+                        <span className="work-row-title">
+                          {o.kind === "ready"
+                            ? readableTitle(o.title)
+                            : "A saved result (not read yet)"}
+                        </span>
+                        <span className="work-row-status">
+                          <StatusBadge
+                            label={
+                              o.kind === "ready" && o.stale
+                                ? "Saved · from an earlier read"
+                                : "Saved in its conversation"
+                            }
+                            tone="status-ok"
+                          />
+                        </span>
+                      </span>
+                      <span className="work-row-go" aria-hidden="true">
+                        ↗
+                      </span>
+                    </Link>
+                  ) : o.kind === "denied" ? (
+                    <p className="notice-line small">
+                      A saved result this responsibility published can’t be
+                      opened by you right now.
+                    </p>
+                  ) : (
+                    <p className="notice-line small">
+                      A saved result couldn’t be read just now, so nothing about
+                      it is shown.{" "}
+                      <button
+                        type="button"
+                        className="link-quiet small"
+                        onClick={() => void outputs.refresh()}
+                      >
+                        Check again
+                      </button>
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
       </section>
 
       <details className="disclosure">
