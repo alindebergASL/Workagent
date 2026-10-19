@@ -224,7 +224,33 @@ def verify_run(service,c,p,assignment,run):
     return result
 
 
+def project_responsibility_artifacts(service,c,p,assignment):
+    """Expose saved continuation outputs without changing their conversation owner.
+
+    This is a read projection, not an acceptance or a publication rewrite. Only
+    assistant results of runs explicitly bound to this responsibility qualify;
+    unrelated work in the same conversation and merely staged drafts do not.
+    """
+    if not assignment.conversation_id:
+        return assignment
+    ws,cid=assignment.workspace_id,assignment.conversation_id
+    service._conversation(c,p,ws,cid)
+    rows=c.execute('''SELECT a.id, min((m.data->>'sequence')::int) first_sequence
+        FROM conversation_messages m JOIN run_configurations rc
+          ON rc.workspace_id=m.workspace_id AND rc.run_id=m.run_id
+        CROSS JOIN LATERAL jsonb_array_elements(COALESCE(m.data->'result'->'results','[]'::jsonb)) item
+        JOIN artifacts a ON a.workspace_id=m.workspace_id AND a.conversation_id=m.conversation_id
+          AND a.id=item->>'artifact_id'
+        WHERE m.workspace_id=%s AND m.conversation_id=%s AND m.data->>'author_kind'='assistant'
+          AND rc.data->'responsibility'->>'assignment_id'=%s
+          AND rc.data->'responsibility'->>'conversation_id'=%s
+        GROUP BY a.id ORDER BY first_sequence,a.id LIMIT 100''',(ws,cid,assignment.id,cid)).fetchall()
+    assignment.artifact_ids=list(dict.fromkeys([*assignment.artifact_ids,*(r['id'] for r in rows)]))[:100]
+    return assignment
+
+
 def project_assignment(service,c,p,assignment):
+    project_responsibility_artifacts(service,c,p,assignment)
     rows=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND assignment_id=%s',(assignment.workspace_id,assignment.id)).fetchall()
     runs={r['data']['id']:Run.model_validate(r['data']) for r in rows}
     assignment.responsibility=ResponsibilityOutcome(

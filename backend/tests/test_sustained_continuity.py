@@ -93,6 +93,18 @@ def test_followthrough_schedules_checkin_and_restart_not_human_review(context,tm
     assert not state.lifecycle.review_required
     assert state.lifecycle.outcome_status=='evidenced_preparation'
     assert len(state.lifecycle.outcome_evidence['evidence'])==2
+    # The assignment shows only its actually published continuation outputs,
+    # not every artifact in its source conversation, and does not steal ownership.
+    saved=s.get_assignment(p,ws,a.id).artifact_ids
+    assert len(saved)==2 and art.id not in saved
+    assert state.assignment.artifact_ids==saved
+    assert next(x for x in s.list_assignments(p,ws).items if x.id==a.id).artifact_ids==saved
+    for aid in saved:
+        output=s.get_artifact(p,ws,aid)
+        assert output.conversation_id==cv.id and output.assignment_id is None
+        assert output.current_revision.author_kind=='worker'
+    with s.db.transaction() as c:
+        assert c.execute('SELECT data FROM assignments WHERE workspace_id=%s AND id=%s',(ws,a.id)).fetchone()['data']['artifact_ids']==[]
     calls=list(fake.calls)
     # New Service/dispatcher rehydrates the durable check-in; no extra effects now.
     fresh=(Service(s.db),*context[1:])
@@ -109,6 +121,9 @@ def test_followthrough_schedules_checkin_and_restart_not_human_review(context,tm
     assert len(admitted(s,ws))==2
     d3.once()
     assert len(admitted(s,ws))==2
+    other=delegate(fresh,cv,'A separate responsibility in the same conversation')
+    assert s.get_assignment(p,ws,other.id).artifact_ids==[]
+    assert s.get_assignment(p,ws,a.id).artifact_ids==saved
 
 
 def test_legacy_publication_still_stops_after_first_artifact(context,tmp_path):

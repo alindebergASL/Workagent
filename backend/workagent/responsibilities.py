@@ -331,6 +331,8 @@ class Responsibilities(ResponsibilityExecution):
             a, _ = self._responsibility_assignment(c, p, ws, assignment_id)
             life = self._lifecycle(c, ws, a.id)
             self._responsibility_observations(c, p, a, life.dependencies)
+            from .outcomes import project_responsibility_artifacts
+            project_responsibility_artifacts(self,c,p,a)
             return self._responsibility_detail(a, life)
 
     def _refresh_responsibility(self, c, p, a, cv, life):
