@@ -183,11 +183,15 @@ try {
     "href",
     `/conversations/${cid}/artifacts/${budgetId}?workspace=${ws}`,
   );
-  await expect(page.locator(".space-standing")).toContainText(
+  // Waiting on the venue is underway, kept track of; it isn't the
+  // person's to act on, so it isn't listed as needing them.
+  const ongoing = page.locator('[aria-labelledby="space-ongoing-heading"]');
+  await expect(ongoing).toContainText(
     "Get written confirmation of the venue booking",
   );
-  await expect(page.locator(".space-standing")).toContainText(
-    "Waiting for a person",
+  await expect(ongoing).toContainText("Waiting for a person");
+  await expect(page.locator(".space-standing")).not.toContainText(
+    "Get written confirmation of the venue booking",
   );
   // Nothing is chosen for the person: a reply is about the whole project.
   await expect(item(budgetId)).toHaveAttribute("aria-pressed", "false");
@@ -666,9 +670,9 @@ try {
     timeout: 15000,
   });
   await expect(next).toContainText("earlier version", { timeout: 15000 });
-  await expect(page.locator(".space-standing")).toContainText(
-    "Get written confirmation of the venue booking",
-  );
+  await expect(
+    page.locator('[aria-labelledby="space-ongoing-heading"]'),
+  ).toContainText("Get written confirmation of the venue booking");
   await expect(item(budgetId)).not.toContainText("Change to review");
   await item(budgetId).click();
   await expect(page.locator(".space-work")).toContainText("Catering");

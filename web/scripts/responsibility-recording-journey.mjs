@@ -247,9 +247,12 @@ try {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Keep the venue hand-off current",
   );
-  await expect(
-    page.getByText("No documents or files are attached to it yet."),
-  ).toBeVisible();
+  // With nothing prepared yet, no empty "Saved work" section and no claim
+  // of documents.
+  await expect(page.getByRole("heading", { name: "Saved work" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByTestId("responsibility-prepared")).toHaveCount(0);
   await expect(page.getByText("No results were saved.")).toHaveCount(0);
   await page.getByText("What I checked", { exact: true }).click();
   await expect(page.getByText("No run is recorded for it.")).toBeVisible();
