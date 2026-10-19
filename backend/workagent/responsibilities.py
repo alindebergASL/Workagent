@@ -96,6 +96,10 @@ class Responsibilities(ResponsibilityExecution):
             # Changed context can require human review, but cannot supply the
             # decision this responsibility explicitly waits for.
             life.state = 'waiting_person'
+        elif life.wait is not None and life.wait.kind == 'check_in' and not life.check_in_due:
+            # Retain changed inputs for the scheduled review. An edit (or a
+            # worker restart) is not permission to cross its not-before time.
+            life.state = 'waiting_event'
         elif life.review_required or life.check_in_due or life.wait is None:
             life.state = 'active'
         else:
