@@ -10,5 +10,6 @@ These screenshots come from the real local stack: FastAPI, PostgreSQL and the Ne
 | 03 | A responsibility that has prepared work, on desktop. The page reads in this order: its recorded outcome; "Prepared for you", with each result opening at its conversation address; then one steering block. |
 | 04 / 05 | The same page at 390 and 320 px wide, with no horizontal scroll. |
 | 06 | A responsibility that is waiting on a person, with nothing prepared yet. It has no empty "Saved work" section. |
+| 07 / 08 | A conversation after Workagent picked a hand-over back up, on desktop and at 390 px wide. It shows one plain line, "Started by Workagent, not by you", with what it asked for a step away. Then come the two results it prepared, and the "Handed over" list without repeated idle text. These two were captured on the commit that follows e16c9e5. |
 
 The checks behind this are in `web/scripts/responsibility-result-journey.mjs`, which ran on the real stack.

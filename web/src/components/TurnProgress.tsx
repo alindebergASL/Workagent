@@ -124,29 +124,32 @@ export function RuntimeRequest({
   const inScope = useScopedHref();
   return (
     <div className="stack-xs runtime-request" data-testid="runtime-request">
-      <p className="eyebrow-caps">Continuation request from a hand-over</p>
-      <p>
-        <span className="sr-only">Workagent’s continuation request: </span>
-        {text}
-      </p>
-      {origin ? (
-        <p className="small muted">
-          Asked by Workagent for a recorded hand-over, not by you.{" "}
+      <p className="small">
+        <strong>
+          {origin
+            ? "Workagent picked a hand-over back up."
+            : "Workagent continued on its own."}
+        </strong>{" "}
+        Started by Workagent, not by you.{" "}
+        {origin ? (
           <Link href={inScope(`/assignments/${origin.assignment_id}`)}>
             Open the hand-over
           </Link>
+        ) : null}
+      </p>
+      {/* Its own wording is for checking what it was asked, not reading. */}
+      <details className="ids-details">
+        <summary>What it asked for</summary>
+        <p className="small">
+          <span className="sr-only">Workagent’s continuation request: </span>
+          {text}
         </p>
-      ) : (
-        <p className="small muted">Asked by Workagent, not by you.</p>
-      )}
-      {origin ? (
-        <details className="ids-details">
-          <summary>Request details</summary>
+        {origin ? (
           <p className="ids">
             Wake {origin.wake_id} · hand-over version {origin.work_version}
           </p>
-        </details>
-      ) : null}
+        ) : null}
+      </details>
     </div>
   );
 }

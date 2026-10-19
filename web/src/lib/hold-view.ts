@@ -137,3 +137,18 @@ export function holdGroup(
     return "handling";
   return "holding";
 }
+
+/**
+ * A current, read responsibility with nothing running and nothing for the
+ * person to review: under a heading that already says it's held, its row
+ * needn't repeat that nothing runs for it.
+ */
+export function idleHold(entry: HoldEntry | undefined): boolean {
+  if (entry?.kind !== "ready" || entry.stale) return false;
+  const life = entry.detail.lifecycle;
+  return (
+    life.execution_status === "not_admitted" &&
+    !life.review_required &&
+    life.outcome_status !== "needs_review"
+  );
+}
