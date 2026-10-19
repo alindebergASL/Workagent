@@ -105,26 +105,35 @@ try {
       { timeout: 15000 },
     );
   await expect(row(page, waiting.assignment_id)).toBeVisible();
+  // Waiting on someone else isn't the person's to act on: it's kept track
+  // of, in an open section, not listed as needing them.
+  await expect(
+    page
+      .locator(".since-holding")
+      .locator(`[data-assignment="${waiting.assignment_id}"]`),
+  ).toHaveCount(1);
   await expect(
     page
       .locator(".since-ready")
       .locator(`[data-assignment="${waiting.assignment_id}"]`),
-  ).toHaveCount(1);
+  ).toHaveCount(0);
   await expect(row(page, waiting.assignment_id)).toContainText(
     "Keep the venue hand-off current",
   );
   await expect(row(page, waiting.assignment_id)).toContainText(
     "Waiting for a person",
   );
-  await expect(row(page, waiting.assignment_id)).toContainText(
-    "Nothing runs for it right now.",
+  // The heading says it's kept track of; an idle row doesn't repeat that
+  // nothing runs for it, and never claims it's running.
+  await expect(row(page, waiting.assignment_id)).not.toContainText(
+    /Nothing runs for it|Running|Working/,
   );
   // Each says what it's waiting on, or what it does next, from its record.
   await expect(
     row(page, waiting.assignment_id).getByTestId("hold-next"),
   ).toHaveText("The venue has not replied.");
   const holding = page.locator(".since-holding");
-  await holding.locator("summary").click();
+  await expect(holding).toHaveAttribute("open", "");
   await expect(
     holding.locator(`[data-assignment="${active.assignment_id}"]`),
   ).toContainText("Recorded as yours to carry forward");
@@ -166,7 +175,6 @@ try {
   });
   assert.equal(sends.length, sendsBefore, "steering sends nothing by itself");
   await page.goBack();
-  await page.locator(".since-holding summary").click();
   await steerOf(active.assignment_id)
     .getByRole("link", { name: /^Pause or stop “Prepare the volunteer rota/ })
     .click();
@@ -239,9 +247,12 @@ try {
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "Keep the venue hand-off current",
   );
-  await expect(
-    page.getByText("No documents or files are attached to it yet."),
-  ).toBeVisible();
+  // With nothing prepared yet, no empty "Saved work" section and no claim
+  // of documents.
+  await expect(page.getByRole("heading", { name: "Saved work" })).toHaveCount(
+    0,
+  );
+  await expect(page.getByTestId("responsibility-prepared")).toHaveCount(0);
   await expect(page.getByText("No results were saved.")).toHaveCount(0);
   await page.getByText("What I checked", { exact: true }).click();
   await expect(page.getByText("No run is recorded for it.")).toBeVisible();
@@ -308,7 +319,6 @@ try {
   );
   assert.equal(paused.status, 200, JSON.stringify(paused.body));
   await page.reload();
-  await page.locator(".since-holding summary").click();
   await expect(row(page, active.assignment_id)).toContainText("Paused", {
     timeout: 15000,
   });

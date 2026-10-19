@@ -118,7 +118,8 @@ describe("where a project stands", () => {
       "A change to “Run sheet” is waiting for your review.",
     );
     expect(s.next.href).toBe("/conversations/cv1/artifacts/b");
-    expect(s.needs.map((l) => l.key)).toEqual(["review:b", "hold:h"]);
+    // Waiting on someone else isn't the person's to act on.
+    expect(s.needs.map((l) => l.key)).toEqual(["review:b"]);
   });
 
   it("a proposal made for an earlier version is outdated, not a change to apply", () => {
@@ -138,25 +139,25 @@ describe("where a project stands", () => {
     expect(outdated(item)).toHaveLength(1);
   });
 
-  it("responsibilities follow their current lifecycle: waiting needs you, active is held, not running", () => {
+  it("responsibilities follow their current lifecycle: a review needs you, waiting and active are held, not running", () => {
     const s = spaceStanding({
-      detail: detail({ assignment_ids: ["w", "a"] }),
+      detail: detail({ assignment_ids: ["r", "w", "a"] }),
       work: [],
       holds: {
+        r: ready("Check the caterer quote", { review_required: true }),
         w: ready("Chase the venue contract", { state: "waiting_person" }),
         a: ready("Keep the rota current"),
       },
     });
     expect(s.needs).toHaveLength(1);
-    expect(s.needs[0]!.text).toMatch(/Chase the venue contract/);
-    expect(s.next.key).toBe("hold:w");
-    expect(s.underway[0]!.text).toMatch(/Keep the rota current/);
-    expect(s.underway[0]!.detail).toMatch(
-      /^Next: Draft\. Nothing runs for it right now/,
+    expect(s.needs[0]!.text).toMatch(/Check the caterer quote/);
+    expect(s.next.key).toBe("hold:r");
+    expect(s.underway.map((l) => l.text).join(" ")).toMatch(
+      /Chase the venue contract/,
     );
-    expect(s.underway[0]!.text + s.underway[0]!.detail).not.toMatch(
-      /Running|Working on/,
-    );
+    const rota = s.underway.find((l) => /Keep the rota current/.test(l.text))!;
+    expect(rota.detail).toMatch(/^Next: Draft\. Nothing runs for it right now/);
+    expect(rota.text + rota.detail).not.toMatch(/Running|Working on/);
   });
 
   it("an unreadable responsibility is said as such, never as nothing", () => {

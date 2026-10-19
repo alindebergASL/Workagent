@@ -223,7 +223,7 @@ try {
     timeout: 15000,
   });
   await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
-  await expect(page.getByTestId("responsibility")).toContainText(
+  await expect(page.getByTestId("responsibility-outcome")).toContainText(
     "Receipts are sorted by month.",
   );
   pass("stale absence recovers to a responsibility activated meanwhile");

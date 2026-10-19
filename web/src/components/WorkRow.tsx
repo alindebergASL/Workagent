@@ -23,11 +23,24 @@ import { StatusBadge } from "./ui";
 export function WorkRow({
   item,
   hold,
+  quietIdle = false,
 }: {
   item: AssignmentSummary;
   hold?: HoldEntry;
+  /**
+   * Under a heading that already says it's being kept track of, an idle
+   * responsibility doesn't repeat that nothing runs for it.
+   */
+  quietIdle?: boolean;
 }) {
   const held = holdStatus(hold);
+  const idle =
+    quietIdle &&
+    hold?.kind === "ready" &&
+    !hold.stale &&
+    hold.detail.lifecycle.execution_status === "not_admitted" &&
+    !hold.detail.lifecycle.review_required &&
+    hold.detail.lifecycle.outcome_status !== "needs_review";
   const phase = phaseOf(item);
   const review = decisionArtifactId(item);
   const run = currentRun(item);
@@ -39,7 +52,9 @@ export function WorkRow({
   );
   const status = held ?? statusOf(item);
   const note = held
-    ? held.note
+    ? idle
+      ? null
+      : held.note
     : phase === "decision"
       ? run?.state === "decision_stale"
         ? "A proposal is based on an older version"

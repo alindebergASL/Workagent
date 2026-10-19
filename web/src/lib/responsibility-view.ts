@@ -81,6 +81,8 @@ export function responsibilityView(life: Lifecycle) {
     : life.state === "paused"
       ? ["resume", "cancel", "takeover"]
       : ["pause", "cancel", "takeover"];
+  const checkingBack =
+    life.state === "waiting_event" && life.wait?.kind === "check_in";
   return {
     state:
       !closed &&
@@ -88,10 +90,30 @@ export function responsibilityView(life: Lifecycle) {
       (life.execution_status === "queued" ||
         life.execution_status === "running")
         ? "Workagent is on it"
-        : STATE[life.state],
+        : checkingBack
+          ? "Checks back later"
+          : STATE[life.state],
     closed,
-    /** What it waits on (a person, or something changing). */
-    waiting: closed ? null : (life.wait?.reason ?? null),
+    /** Waiting for its own scheduled check-in, said by its time. */
+    checkingBack: !closed && checkingBack,
+    /**
+     * What it waits on (a person, or something changing). A scheduled
+     * check-in is said by its time instead, so its reason isn't repeated.
+     */
+    waiting:
+      closed || life.wait?.kind === "check_in"
+        ? null
+        : (life.wait?.reason ?? null),
+    /**
+     * Whether its run state is worth saying up front: queued, running,
+     * blocked or settled. "Nothing is running" stays in Details.
+     */
+    executionMatters:
+      !closed &&
+      (life.execution_status === "queued" ||
+        life.execution_status === "running" ||
+        life.execution_status === "blocked" ||
+        life.execution_status === "settled"),
     needsYou,
     outcome: life.current_outcome,
     next: closed ? null : life.next_action.description,

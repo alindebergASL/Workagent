@@ -185,8 +185,14 @@ describe("where a hand-over stands, on every list", () => {
     expect(holdStatus(ready({ state: "cancelled" }))!.next).toBeNull();
     expect(holdStatus({ kind: "denied" })!.next).toBeUndefined();
   });
-  it("waiting for a person needs attention; closed is closed", () => {
-    expect(holdGroup(ready({ state: "waiting_person" }))).toBe("attention");
+  it("waiting on someone else is kept track of; a blocker or review needs you; closed is closed", () => {
+    expect(holdGroup(ready({ state: "waiting_person" }))).toBe("holding");
+    expect(
+      holdGroup(ready({ state: "waiting_person", review_required: true })),
+    ).toBe("attention");
+    expect(
+      holdGroup(ready({ state: "waiting_person", blocker: "grant_required" })),
+    ).toBe("attention");
     expect(holdGroup(ready({ state: "taken_over" }))).toBe("closed");
     expect(holdGroup(ready({ state: "cancelled" }))).toBe("closed");
     expect(holdStatus(ready({ state: "taken_over" }))!.label).toBe(

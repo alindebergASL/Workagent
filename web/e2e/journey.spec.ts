@@ -30,7 +30,7 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(
       page.getByText(/hand over something you’d like finished/),
     ).toBeVisible();
-    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(page.getByText(/I’m working on/)).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Take it from here" }),
     ).toBeDisabled();
@@ -375,7 +375,7 @@ test.describe("S1 journey (mock mode)", () => {
     await expect(
       page.getByRole("link", { name: "Open prepared work" }),
     ).toBeVisible();
-    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(page.getByText(/I’m working on/)).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Review the change" }),
     ).toHaveCount(0);
