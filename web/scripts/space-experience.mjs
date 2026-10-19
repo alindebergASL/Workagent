@@ -2226,7 +2226,9 @@ try {
     const tab = await ctx.newPage();
     const tabErrors = [];
     tab.on("pageerror", (e) => tabErrors.push(e.message));
-    const feed = /\/api\/domain\/v1\/workspaces\/[^/]+\/conversations(\?|$)/;
+    // Home's conversation feed is one summary read per workspace.
+    const feed =
+      /\/api\/domain\/v1\/workspaces\/[^/]+\/conversation-work(\?|$)/;
     let failFeed = true;
     await tab.route(feed, (route) =>
       failFeed && route.request().method() === "GET"
