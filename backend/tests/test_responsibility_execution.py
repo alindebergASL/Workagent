@@ -189,6 +189,10 @@ def test_post_admission_races_fence_every_phase_and_publication(context,tmp_path
     s.advance_responsibilities(ws,g.id)
     rid=admitted(s,ws)[0]['run_id']
     d,fake,w=dispatch(context,tmp_path,g)
+    # This matrix tests mutation fences with in-process mock HTTP, not network
+    # timeout admission. Avoid exhausting a production-sized HTTP window while
+    # a loaded host is still processing the fixture's already-settled count.
+    w.phases.transport._client.timeout=httpx.Timeout(.5)
     changed=[]
     def change(name):
         if name!=phase: return
@@ -209,9 +213,13 @@ def test_post_admission_races_fence_every_phase_and_publication(context,tmp_path
                 wait=ResponsibilityWait(kind='person',reason='Human steering supersedes this run')))
         changed.append(True)
     w.phases.hook=change
-    try: w.work(p,ws,rid)
-    except DomainError:
-        if not changed: raise
+    # A visit may yield at a settled provider phase; preserve the same run and
+    # receipt until the requested race hook is reached, without lease expiry.
+    for _ in range(5):
+        try: w.work(p,ws,rid)
+        except DomainError:
+            if not changed: raise
+        if changed: break
     assert changed
     with s.db.transaction() as c:
         assert not c.execute("SELECT 1 FROM conversation_messages WHERE workspace_id=%s AND run_id=%s AND author_kind='assistant'",(ws,rid)).fetchone()
