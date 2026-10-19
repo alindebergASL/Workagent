@@ -330,23 +330,26 @@ def observations(c,attempt_id):
 
 def summary(c,grant_id,*,shared=False):
     predicate='s.grant_id IN (SELECT responses_budget_grants(%s))' if shared else 's.grant_id=%s'
-    # Accounting needs reservations and usage, never retained response/tool bodies.
-    # Keep the scope predicate and exact Decimal calculation below unchanged.
-    rows=c.execute('''SELECT e.kind, CASE e.kind
-        WHEN 'dispatch' THEN jsonb_build_object(
-            'reserved_input_tokens',e.data->'reserved_input_tokens',
-            'reserved_output_tokens',e.data->'reserved_output_tokens',
-            'reserved_cost_usd',e.data->'reserved_cost_usd')
-        WHEN 'result' THEN jsonb_build_object('usage',e.data->'usage')
-        ELSE '{}'::jsonb END AS data
+    # One aggregate row, not one Python/JSON object for every historical event.
+    # Keep the exact grant/project predicate, unknown reservations and carry;
+    # no cache may hide a reservation committed by another worker.
+    totals=c.execute('''SELECT
+        count(*) FILTER (WHERE e.kind='count_send') AS count_send,
+        count(*) FILTER (WHERE e.kind='dispatch') AS dispatch,
+        count(*) FILTER (WHERE e.kind='read') AS read,
+        count(*) FILTER (WHERE e.kind='cancel') AS cancel,
+        coalesce(sum((e.data->>'reserved_input_tokens')::bigint) FILTER (WHERE e.kind='dispatch'),0) AS reserved_input,
+        coalesce(sum((e.data->>'reserved_output_tokens')::bigint) FILTER (WHERE e.kind='dispatch'),0) AS reserved_output,
+        coalesce(sum((e.data->>'reserved_cost_usd')::numeric) FILTER (WHERE e.kind='dispatch'),0) AS reserved_cost,
+        count(*) FILTER (WHERE e.kind='result' AND e.data->'usage'->>'input_tokens' IS NOT NULL) AS usages,
+        coalesce(sum((e.data->'usage'->>'input_tokens')::bigint) FILTER (WHERE e.kind='result'),0) AS reported_input,
+        coalesce(sum((e.data->'usage'->>'output_tokens')::bigint) FILTER (WHERE e.kind='result'),0) AS reported_output
         FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
-        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchall()
-    counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
-    reservations=[r['data'] for r in rows if r['kind']=='dispatch']
-    receipts=[r['data'] for r in rows if r['kind']=='result']
-    usages=[r['usage'] for r in receipts if r.get('usage')]
-    unknown=len(reservations)-len(usages)
-    calculated=sum((Decimal(u['input_tokens'])*Decimal('2.5')+Decimal(u['output_tokens'])*Decimal('10'))/Decimal(1000000) for u in usages)
+        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchone()
+    counts={k:totals[k] for k in ('count_send','dispatch','read','cancel')}
+    unknown=counts['dispatch']-totals['usages']
+    calculated=((Decimal(totals['reported_input'])*Decimal('2.5')+Decimal(totals['reported_output'])*Decimal('10'))/Decimal(1000000)
+                if totals['usages'] else 0)
     carried = Decimal(0)
     carry_fields = {}
     if shared:
@@ -357,9 +360,9 @@ def summary(c,grant_id,*,shared=False):
         carried = carry['cost']
         if carry['n']:
             carry_fields = {'carried_reserved_cost_usd':str(carried)}
-    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
-            'reserved_output_tokens':sum(r['reserved_output_tokens'] for r in reservations),
-            'reserved_cost_usd':str(carried+sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
-            'reported_usage':{'input_tokens':sum(u['input_tokens'] for u in usages),'output_tokens':sum(u['output_tokens'] for u in usages)},
+    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
+            'reserved_output_tokens':int(totals['reserved_output']),
+            'reserved_cost_usd':str(carried+totals['reserved_cost']),
+            'reported_usage':{'input_tokens':int(totals['reported_input']),'output_tokens':int(totals['reported_output'])},
             'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}
