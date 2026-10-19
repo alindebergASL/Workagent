@@ -11,5 +11,6 @@ These screenshots come from the real local stack: FastAPI, PostgreSQL and the Ne
 | 04 / 05 | The same page at 390 and 320 px wide, with no horizontal scroll. |
 | 06 | A responsibility that is waiting on a person, with nothing prepared yet. It has no empty "Saved work" section. |
 | 07 / 08 | A conversation after Workagent picked a hand-over back up, on desktop and at 390 px wide. It shows one plain line, "Started by Workagent, not by you", with what it asked for a step away. Then come the two results it prepared, and the "Handed over" list without repeated idle text. These two were captured on the commit that follows e16c9e5. |
+| 09 / 10 | The same responsibility at 390 px wide with a long recorded outcome (about 50 words, lengthened in the browser only). Collapsed, the page shows the outcome's first sentence word for word, then "Read all of it". Both prepared results and Pause / Stop / Take this back are on the first screen. Expanded, the full original text shows, including the line about what wasn't checked. |
 
 The checks behind this are in `web/scripts/responsibility-result-journey.mjs`, which ran on the real stack.
