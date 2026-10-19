@@ -169,6 +169,24 @@ def authority(path,*,general=False):
     return record
 
 
+def current_route_authority(path,grant,expected_runtime):
+    """Reload operator-verified evidence; never refresh its timestamp ourselves.
+
+    A standing process must observe a renewed record rather than permanently
+    holding the startup copy. Rebinding credentials/project/model still requires
+    an explicit restart; expired/missing/malformed evidence remains fail closed.
+    """
+    try:
+        current=authority(path,general=True)
+        if current.get('grant_id')!=grant.id or current['runtime']!=expected_runtime:
+            raise TransportError('grant_route_mismatch')
+        from .general_responses import verify_route_record
+        verify_route_record(current,grant)
+        return current
+    except (OSError,ValueError,KeyError,TypeError):
+        raise TransportError('route_verification_unavailable') from None
+
+
 def general_status(db,workspace,grant_id):
     """Local operator readback only; no private request/receipt/key material."""
     from .responses_ledger import summary
@@ -325,8 +343,7 @@ def main():
                 dispatcher=ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id,status_path=os.environ.get('WORKAGENT_EXECUTION_STATUS'))
                 if args.serve:
                     def verify():
-                        from .general_responses import verify_route_record
-                        verify_route_record(record,grant)
+                        current_route_authority(args.authority_record,grant,record['runtime'])
                         with db.transaction() as c:
                             row=c.execute('SELECT active FROM provider_grants WHERE id=%s',(grant.id,)).fetchone()
                             if not row or not row['active']: raise TransportError('operator_grant_required')

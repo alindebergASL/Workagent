@@ -164,6 +164,12 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def promote_work_area(workspace_id:Id,conversation_id:Id,body:PromoteWorkArea,p:P):
         return service.promote_work_area(p,workspace_id,conversation_id,body)
 
+    from .home_work_summary import HomeConversationWorkPage, read as home_work_summary
+
+    @route('/v1/workspaces/{workspace_id}/conversation-work','GET','list_conversation_work',HomeConversationWorkPage)
+    def list_conversation_work(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=100):
+        return home_work_summary(service,p,workspace_id,cursor,limit)
+
     @route('/v1/workspaces/{workspace_id}/conversations','GET','list_conversations',ConversationPage)
     def list_conversations(workspace_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
         return service.list_conversations(p,workspace_id,cursor,limit)

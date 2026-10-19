@@ -2977,6 +2977,219 @@
         "title": "FileBody",
         "type": "object"
       },
+      "HomeConversationWork": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Artifact Id",
+            "type": "string"
+          },
+          "author_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Author Id",
+            "type": "string"
+          },
+          "author_kind": {
+            "enum": [
+              "human",
+              "worker"
+            ],
+            "title": "Author Kind",
+            "type": "string"
+          },
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "conversation_state": {
+            "enum": [
+              "open",
+              "cancelled"
+            ],
+            "title": "Conversation State",
+            "type": "string"
+          },
+          "conversation_title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Conversation Title",
+            "type": "string"
+          },
+          "conversation_updated_at": {
+            "format": "date-time",
+            "title": "Conversation Updated At",
+            "type": "string"
+          },
+          "conversation_work_version": {
+            "minimum": 1.0,
+            "title": "Conversation Work Version",
+            "type": "integer"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HomePendingProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "kind": {
+            "enum": [
+              "table",
+              "tool",
+              "file",
+              "document",
+              "structured_table",
+              "custom_view"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "revision_number": {
+            "minimum": 1.0,
+            "title": "Revision Number",
+            "type": "integer"
+          },
+          "title": {
+            "maxLength": 240,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Workspace Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_id",
+          "conversation_id",
+          "conversation_title",
+          "conversation_state",
+          "conversation_work_version",
+          "conversation_updated_at",
+          "artifact_id",
+          "title",
+          "kind",
+          "revision_id",
+          "revision_number",
+          "author_id",
+          "author_kind",
+          "updated_at"
+        ],
+        "title": "HomeConversationWork",
+        "type": "object"
+      },
+      "HomeConversationWorkPage": {
+        "additionalProperties": false,
+        "properties": {
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/HomeConversationWork"
+            },
+            "maxItems": 100,
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "has_more"
+        ],
+        "title": "HomeConversationWorkPage",
+        "type": "object"
+      },
+      "HomePendingProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "base_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Base Revision Id",
+            "type": "string"
+          },
+          "base_work_version": {
+            "minimum": 1.0,
+            "title": "Base Work Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fresh": {
+            "title": "Fresh",
+            "type": "boolean"
+          },
+          "proposal_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Proposal Id",
+            "type": "string"
+          },
+          "status": {
+            "const": "pending",
+            "default": "pending",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "proposal_id",
+          "base_revision_id",
+          "base_work_version",
+          "fresh",
+          "created_at"
+        ],
+        "title": "HomePendingProposal",
+        "type": "object"
+      },
       "HumanSave": {
         "additionalProperties": false,
         "properties": {
@@ -10686,6 +10899,188 @@
           }
         ],
         "summary": "Create Task"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/conversation-work": {
+      "get": {
+        "operationId": "list_conversation_work",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeConversationWorkPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Conversation Work"
       }
     },
     "/v1/workspaces/{workspace_id}/conversations": {

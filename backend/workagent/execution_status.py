@@ -151,7 +151,10 @@ def read(service, p, ws, path):
             run_available=available and record['grant_id']==h.get('grant_id')
             from .products import turn_state
             from .responses_dispatcher import general_dispatch_status
-            canonical_status=general_dispatch_status(run,turn_state(run,c)) if run.profile=='general-responses-v1' else None
+            # Only partial runs need canonical adaptive outcome to distinguish
+            # budget/work blocks from human review. Keep that full readback;
+            # queued/running/ready/cancelled classification never consumes it.
+            canonical_status=general_dispatch_status(run,turn_state(run,c)) if run.profile=='general-responses-v1' and run.state=='partial' else None
             state,failure=classify(run,steps,run_available,h.get('run_id') if h else None,canonical_status)
             phase=steps[-1].phase if steps else None
             progress=c.execute('SELECT max(created_at) at FROM responses_events WHERE attempt_id=%s',(a['id'],)).fetchone()['at'] if a else run.observed_at
