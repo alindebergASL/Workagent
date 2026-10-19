@@ -1,0 +1,31 @@
+{
+  "source": "8d37f75bb365140dc5b971f806349e6ad87e93cc",
+  "root": "/home/ubuntu/workagent-candidates/result-link-20261019",
+  "web_build": "kpjoA0f1_sg1VSgVHyGNd",
+  "services": {
+    "api": {
+      "systemd": "MainPID=1295611\nExecMainStartTimestamp=Mon 2026-10-19 17:38:30 UTC\nActiveState=active\n",
+      "cwd": "/home/ubuntu/workagent-candidates/result-link-20261019/backend"
+    },
+    "web": {
+      "systemd": "MainPID=1295612\nExecMainStartTimestamp=Mon 2026-10-19 17:38:30 UTC\nActiveState=active\n",
+      "cwd": "/home/ubuntu/workagent-candidates/result-link-20261019/web"
+    },
+    "worker": {
+      "systemd": "MainPID=1295613\nExecMainStartTimestamp=Mon 2026-10-19 17:38:30 UTC\nActiveState=active\n",
+      "cwd": "/home/ubuntu/workagent-candidates/result-link-20261019/backend"
+    }
+  },
+  "retained_hashes_identical": true,
+  "artifact_revision_identical": true,
+  "accounting_identical": true,
+  "new_model_calls": 0,
+  "grant_id": "workagent-standing-20261019-06",
+  "project_ceiling_usd": "29.15432",
+  "remaining_generation_slots": 60,
+  "remaining_reservation_usd": "7.91520",
+  "execution_state": "idle",
+  "can_advance_authorized_work": true,
+  "authenticated_execution_seconds": 6.0184601320070215,
+  "launcher_ready": false
+}
