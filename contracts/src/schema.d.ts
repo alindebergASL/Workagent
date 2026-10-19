@@ -261,6 +261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/conversation-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conversation Work */
+        get: operations["list_conversation_work"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/conversations": {
         parameters: {
             query?: never;
@@ -1581,6 +1598,84 @@ export interface components {
             mime_type: "text/csv" | "text/plain" | "application/wasm-text";
             /** Title */
             title: string;
+        };
+        /** HomeConversationWork */
+        HomeConversationWork: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Author Id */
+            author_id: string;
+            /**
+             * Author Kind
+             * @enum {string}
+             */
+            author_kind: "human" | "worker";
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Conversation State
+             * @enum {string}
+             */
+            conversation_state: "open" | "cancelled";
+            /** Conversation Title */
+            conversation_title: string;
+            /**
+             * Conversation Updated At
+             * Format: date-time
+             */
+            conversation_updated_at: string;
+            /** Conversation Work Version */
+            conversation_work_version: number;
+            decision?: components["schemas"]["HomePendingProposal"] | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "table" | "tool" | "file" | "document" | "structured_table" | "custom_view";
+            /** Revision Id */
+            revision_id: string;
+            /** Revision Number */
+            revision_number: number;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Workspace Id */
+            workspace_id: string;
+        };
+        /** HomeConversationWorkPage */
+        HomeConversationWorkPage: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["HomeConversationWork"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** HomePendingProposal */
+        HomePendingProposal: {
+            /** Base Revision Id */
+            base_revision_id: string;
+            /** Base Work Version */
+            base_work_version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Fresh */
+            fresh: boolean;
+            /** Proposal Id */
+            proposal_id: string;
+            /**
+             * Status
+             * @default pending
+             * @constant
+             */
+            status: "pending";
         };
         /** HumanSave */
         HumanSave: {
@@ -4717,6 +4812,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskReceipt"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_conversation_work: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeConversationWorkPage"];
                 };
             };
             /** @description Missing or invalid local authentication */
