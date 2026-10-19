@@ -1,9 +1,12 @@
 # Current development authorization
 
-Andrew's latest recorded cumulative model-testing ceiling is **$50**, including
-historical allocations, reservations and uncertain liabilities. This is a ceiling,
-not a statement of remaining capacity or a verified provider bill. Read current
+Andrew's October 19 integration-resumption instruction raises the cumulative
+model-testing ceiling from $50 to **$100 total**, including all historical
+allocations, reservations and uncertain liabilities—not a new $100 allowance.
+This ceiling is not remaining capacity or a verified provider bill. Read current
 accounting before spending; [STATUS](../STATUS.md) records the last checkpoint.
+Development/review-tool costs outside the product ledger are reported separately.
+The existing approved routes and data/effect boundaries are unchanged.
 
 Hermes may continue routine implementation, refactoring, targeted testing,
 development-service operation, integration and feature-branch publication without
