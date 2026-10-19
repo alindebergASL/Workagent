@@ -69,13 +69,18 @@ export function responsibilityView(life: Lifecycle) {
     life.review_required ||
     life.outcome_status === "needs_review" ||
     life.execution_status === "settled";
+  // A decision it asks for is the person's to make, said in its own words.
+  const decision =
+    life.next_action.kind === "request_decision"
+      ? life.next_action.description.trim() || "A decision from you."
+      : null;
   const needsYou = closed
     ? null
     : life.blocker
       ? BLOCKER[life.blocker]
       : review
         ? "Your review of its result."
-        : null;
+        : decision;
   const allowed: Operation[] = closed
     ? []
     : life.state === "paused"
@@ -116,7 +121,11 @@ export function responsibilityView(life: Lifecycle) {
         life.execution_status === "settled"),
     needsYou,
     outcome: life.current_outcome,
-    next: closed ? null : life.next_action.description,
+    // Not said twice: a decision asked for is already what it needs from you.
+    next:
+      closed || (decision && needsYou === decision)
+        ? null
+        : life.next_action.description,
     lines,
     checkIn: closed ? null : (life.next_check_in_at ?? null),
     checkInDue: !closed && life.check_in_due,

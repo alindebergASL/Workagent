@@ -71,6 +71,28 @@ describe("a recorded responsibility, in plain words", () => {
       expect(v.next).toBeNull();
     }
   });
+  it("a decision it asks for is what it needs from you, said once", () => {
+    const v = responsibilityView(
+      life({
+        state: "waiting_person",
+        next_action: {
+          kind: "request_decision",
+          description: "Choose the Tuesday or Thursday slot.",
+        },
+      }),
+    );
+    expect(v.needsYou).toBe("Choose the Tuesday or Thursday slot.");
+    expect(v.next).toBeNull();
+    // A review still comes first, and then the decision is its next step.
+    const r = responsibilityView(
+      life({
+        review_required: true,
+        next_action: { kind: "request_decision", description: "Choose." },
+      }),
+    );
+    expect(r.needsYou).toBe("Your review of its result.");
+    expect(r.next).toBe("Choose.");
+  });
   it("names a blocker plainly", () => {
     expect(
       responsibilityView(life({ state: "blocked", blocker: "grant_required" }))

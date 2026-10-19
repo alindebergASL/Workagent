@@ -26,6 +26,14 @@ export interface HoldStatus {
 
 /** The one line that says what is being handled: its wait, else its next step. */
 function nextLine(life: HoldDetailLifecycle): string | null {
+  // A decision it asks for is what the person reads first, unless its
+  // result is waiting on their review.
+  if (
+    life.next_action.kind === "request_decision" &&
+    !life.review_required &&
+    life.outcome_status !== "needs_review"
+  )
+    return `Needs your decision: ${life.next_action.description.trim()}`;
   // A scheduled check-in says what it will do then, not why it waits.
   if (life.wait?.reason && life.wait.kind !== "check_in")
     return life.wait.reason;
@@ -71,7 +79,8 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
           ? ""
           : life.state === "waiting_person" ||
               life.state === "blocked" ||
-              life.review_required
+              life.review_required ||
+              life.next_action.kind === "request_decision"
             ? "status-attention"
             : life.execution_status === "running" ||
                 life.execution_status === "queued"
@@ -108,7 +117,7 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
 
 /**
  * Which Home group a read responsibility belongs in: needing the person (a
- * review, or something blocking it), being worked on (admitted and queued or
+ * review, a decision it asks for, or something blocking it), being worked on (admitted and queued or
  * running), kept track of (recorded and waiting on someone, an event or its
  * check-in; nothing running) or closed. Waiting on someone else is not the
  * person's to act on. Null when there is no current responsibility read, so
@@ -126,6 +135,7 @@ export function holdGroup(
     Boolean(life.blocker) ||
     life.review_required ||
     life.outcome_status === "needs_review" ||
+    life.next_action.kind === "request_decision" ||
     life.execution_status === "settled" ||
     life.execution_status === "blocked"
   )
