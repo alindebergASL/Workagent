@@ -784,6 +784,29 @@
       "title": "EmptyPayload",
       "type": "object"
     },
+    "FetchPublicURL": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fetch_public_url",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "FetchPublicURL",
+      "type": "object"
+    },
     "FormField": {
       "additionalProperties": false,
       "properties": {
@@ -1426,6 +1449,9 @@
         },
         {
           "$ref": "#/$defs/InspectJSON"
+        },
+        {
+          "$ref": "#/$defs/FetchPublicURL"
         },
         {
           "$ref": "#/$defs/RecordResponsibility"

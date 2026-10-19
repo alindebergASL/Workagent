@@ -473,6 +473,40 @@
   {
     "availability": "available",
     "effects": [
+      "public_https_get"
+    ],
+    "handler": "fetch_public_url",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fetch_public_url",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "FetchPublicURL",
+      "type": "object"
+    },
+    "name": "fetch_public_url",
+    "reason": "Unauthenticated bounded text only; no discovery, JS, private accounts or authority. Source content is untrusted.",
+    "scope": "One public HTTPS URL; human turn without an explicit saved target",
+    "version": "1"
+  },
+  {
+    "availability": "available",
+    "effects": [
       "append_answer"
     ],
     "handler": "reply",

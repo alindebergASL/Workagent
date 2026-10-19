@@ -126,24 +126,24 @@ export interface components {
             name: string;
             payload_schema: components["schemas"]["DraftPayloadSchema"];
         };
-        /** DraftBlock */
-        DraftBlock: {
+        /** DraftChecklistBlock */
+        DraftChecklistBlock: {
             /** Block Id */
             block_id: string;
             /** Checked */
             checked: boolean | null;
             /**
              * Kind
-             * @enum {string}
+             * @constant
              */
-            kind: "heading" | "paragraph" | "checklist" | "protected_note";
+            kind: "checklist";
             /** Text */
             text: string;
         };
         /** DraftDocument */
         DraftDocument: {
             /** Blocks */
-            blocks: components["schemas"]["DraftBlock"][];
+            blocks: (components["schemas"]["DraftTextBlock"] | components["schemas"]["DraftChecklistBlock"])[];
             /** Title */
             title: string;
         };
@@ -211,6 +211,20 @@ export interface components {
              */
             version: "structured-table/v1";
         };
+        /** DraftTextBlock */
+        DraftTextBlock: {
+            /** Block Id */
+            block_id: string;
+            /** Checked */
+            checked: null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "heading" | "paragraph" | "protected_note";
+            /** Text */
+            text: string;
+        };
         /** DraftView */
         DraftView: {
             /** Access Generation */
@@ -237,6 +251,19 @@ export interface components {
         };
         /** EmptyPayload */
         EmptyPayload: Record<string, never>;
+        /** FetchPublicURL */
+        FetchPublicURL: {
+            /**
+             * Kind
+             * @constant
+             */
+            kind: "fetch_public_url";
+            /**
+             * Url
+             * @description One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.
+             */
+            url: string;
+        };
         /** FormField */
         FormField: {
             /** Label */
@@ -430,7 +457,7 @@ export interface components {
         /** AlphaDecision */
         AlphaDecision: {
             /** Decision */
-            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["SearchWorkContext"] | components["schemas"]["InspectJSON"] | components["schemas"]["RecordResponsibility"];
+            decision: components["schemas"]["AreaReply"] | components["schemas"]["AreaPublish"] | components["schemas"]["AlphaReply"] | components["schemas"]["CSVDecision"] | components["schemas"]["WasmDecision"] | components["schemas"]["PublishDecision"] | components["schemas"]["AlphaStop"] | components["schemas"]["DiscoverCapabilities"] | components["schemas"]["LoadSkill"] | components["schemas"]["ReadContext"] | components["schemas"]["ReadSavedWork"] | components["schemas"]["SearchWorkContext"] | components["schemas"]["InspectJSON"] | components["schemas"]["FetchPublicURL"] | components["schemas"]["RecordResponsibility"];
             /** Goal */
             goal: string;
             /** Success Criteria */
