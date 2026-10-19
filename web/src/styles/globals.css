@@ -843,6 +843,11 @@ details.disclosure > .disclosure-body {
   margin-top: 14px;
 }
 
+/* Line breaks the text was saved with are kept as written. */
+.doc-line {
+  white-space: pre-line;
+}
+
 .doc-block[data-kind="heading"]:first-child {
   margin-top: 0;
 }

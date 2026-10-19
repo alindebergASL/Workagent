@@ -199,6 +199,39 @@ describe("where a hand-over stands, on every list", () => {
       "You took this back",
     );
   });
+  it("a decision it asks for needs you, even without a review or a blocker", () => {
+    const asks = ready({
+      state: "waiting_person",
+      wait: { kind: "person", reason: "Waiting on your choice." },
+      next_action: {
+        kind: "request_decision",
+        description: "Choose the Tuesday or Thursday slot.",
+      },
+    });
+    expect(holdGroup(asks)).toBe("attention");
+    expect(holdStatus(asks)!.next).toBe(
+      "Needs your decision: Choose the Tuesday or Thursday slot.",
+    );
+    expect(holdStatus(asks)!.tone).toBe("status-attention");
+    // Waiting on someone without a decision asked of the person stays tracked.
+    expect(
+      holdGroup(
+        ready({
+          state: "waiting_person",
+          wait: { kind: "person", reason: "Waiting on your choice." },
+        }),
+      ),
+    ).toBe("holding");
+    // Once it's closed, nothing is asked any more.
+    expect(
+      holdGroup(
+        ready({
+          state: "cancelled",
+          next_action: { kind: "request_decision", description: "Choose." },
+        }),
+      ),
+    ).toBe("closed");
+  });
   it("idle means read now, nothing running and nothing to review", () => {
     expect(idleHold(ready({}))).toBe(true);
     expect(idleHold(ready({}, true))).toBe(false);
