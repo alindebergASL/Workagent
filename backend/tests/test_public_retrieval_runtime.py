@@ -83,15 +83,32 @@ def test_current_authority_rechecked_before_fetch(context,tmp_path,monkeypatch,c
     assert calls==[]
 
 
-def test_failed_read_is_retained_and_can_explain_gap(context,tmp_path,monkeypatch):
-    s,p,ws,_,_=context;cv,g,q,calls=setup(context,monkeypatch)
-    transport(monkeypatch,[wire(status=403)])
+@pytest.mark.parametrize('yield_after_read',[False,True])
+def test_failed_read_is_retained_and_can_explain_gap(context,tmp_path,monkeypatch,yield_after_read):
+    s,p,ws,_,_=context;cv,g,q,_=setup(context,monkeypatch)
+    calls=transport(monkeypatch,[wire(status=403)])
     def failure(ctx):
         result=ctx['adaptive']['observations'][-1]['capability_result']['result']
         assert result['status']=='error' and result['error']=='http_error' and not result['text']
         return {'kind':'reply','text':'The public page returned HTTP 403; I cannot substantiate its contents.'}
-    fake=CheckedProvider([CHOICE,failure])
-    assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='ready'
+    fake=CheckedProvider([CHOICE,failure]);w=worker(context,fake,tmp_path)
+    ready=w.phases._http_ready
+    if yield_after_read:
+        def pause(name):
+            if name=='after_tool_result':w.phases._http_ready=lambda *_:False
+        w.phases.hook=pause
+    first=w.work(p,ws,q.run.id)
+    if yield_after_read:assert first.state=='running'
+    w.phases._http_ready=ready;w.phases.hook=None
+    # A worker visit is bounded, not a promise to finish every model phase.
+    # Resume the same journal normally; never expire a lease or replay a read.
+    result=first
+    for _ in range(5):
+        if result.state not in ('queued','running'):break
+        result=w.work(p,ws,q.run.id)
+    assert result.state=='ready'
+    assert len(calls)==1
+    assert s.get_conversation(p,ws,cv.id).messages[-1].text=='The public page returned HTTP 403; I cannot substantiate its contents.'
     if fake.failures:raise fake.failures[0]
 
 
