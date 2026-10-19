@@ -1,6 +1,53 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-19: delivery reconciliation complete; alpha experience not accepted
+## 2026-10-19: result-first candidate running; phase incomplete
+
+This section supersedes the historical checkpoint below. The full phase is NOT
+accepted: phone outcome density still needs the sole frontend owner's fix, and
+the live scheduled follow-up failed before the timing fix was installed.
+
+- Running application: `a8be0900a372e067226655edc790fd294cf6e8a3` in
+  `/home/ubuntu/workagent-candidates/phase2-combined-20261019`, web build
+  `lk4BYZ8UTVn1Z3csBZ2ls`, private loopback review stack only.
+- Claude remains sole web owner. Integrated through `617990f`: outcome/result-first
+  Home and responsibility pages, paged Home summaries, clearer conversation
+  check-back/steering, explicit decision prompts and preserved document line breaks.
+- Backend: SQL-side budget aggregation, operator-evidence reload without timestamp
+  renewal, bounded public HTTPS retrieval, scoped paged Home summary, and a fix
+  preventing changed dependencies from overriding future scheduled check-ins.
+- Activation08 was code-only with $0 added allocation. Before/after retained-row
+  hashes and budget match; readiness passed. The $100 cumulative ceiling and
+  $53.63960 allocated authority remain unchanged. Three unknown-usage steps remain
+  reserved. No default-branch merge, production deployment or private-data expansion.
+- Verified installed Home → saved newsletter; responsibility → canonical workshop
+  result; reply steering; refresh and human notes; desktop and 390/320px layouts.
+  No horizontal overflow observed. Physical-phone/user-device testing not performed.
+- 341 web tests, TypeScript, lint and production build passed. Targeted backend
+  evidence resolves 70 unique cases across the initial suite and corrected race
+  rerun; no full-backend-suite claim. Race tests now allow normal bounded visits
+  and use short in-process mock HTTP timeouts rather than exhausting a live-network
+  allowance on the loaded host. Production timeout safety was not relaxed.
+- Live unfamiliar-task evidence: ordinary Home request fetched W3C guidance and
+  saved a source-linked newsletter checklist. A protected human note and later
+  print-distribution edit survived refresh and worker-only restart, with all three
+  revisions retained. The scheduled continuation started 71.057242 seconds early,
+  was cancelled when the due-time changed, and produced no proposal. No unknown
+  request was replayed. The failed test responsibility was taken back through its
+  normal UI control. The timing fix subsequently passed real-clock/restart tests
+  with a synthetic provider, but has NOT been re-proven in a live model journey.
+- This journey reserved $1.45112 across 11 generations, not provider billing.
+  Development/review tooling is outside that ledger; current final tooling cost
+  has not been reconciled (last earlier Claude-lane accounting was $10.584020).
+- Remaining UI acceptance issue: the full outcome paragraph pushes the result and
+  steering down on phone. Requested faithful concise/expandable treatment from
+  Claude in [6278283661](https://github.com/alindebergASL/Workagent/pull/9#issuecomment-6278283661).
+  A posted request is not proof of an active successor.
+
+Evidence: `docs/evidence/result-first-20261019/`; private detailed evaluation and
+activation records: `/home/ubuntu/workagent-phase2-20261019/`. Product code remains
+running; no autonomous engineering successor is established by this checkpoint.
+
+## Historical: delivery reconciliation complete; alpha experience not accepted
 
 **The requested first delivery step is delivered:** the shared feature branch contains
 the identified running review candidate, and the retained responsibility opens its saved

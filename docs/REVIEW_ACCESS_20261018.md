@@ -1,6 +1,30 @@
 # Development review access — updated 19 October 2026
 
-## Identified running review candidate
+## Current result-first candidate (supersedes details below)
+
+Running application: `a8be0900a372e067226655edc790fd294cf6e8a3`, frozen directory
+`/home/ubuntu/workagent-candidates/phase2-combined-20261019`, web build
+`lk4BYZ8UTVn1Z3csBZ2ls`. The existing tunnel below is unchanged. This remains a
+private development review, not production or full phase acceptance.
+
+Start at Home and open **Community newsletter: volunteer accessibility checklist**
+under conversation work. The document has a source-linked real public read, a saved
+human note and later print-distribution edit. On desktop the conversation sits
+beside the result; phone uses Work/Conversation. Result line breaks are preserved.
+
+For the workshop responsibility at the direct URL below, **Prepared for you** now
+precedes lifecycle details. Open the named checklist, or use **Tell Workagent
+something** to reach its ordinary reply composer. Pause/Stop/Take this back remain
+visible. Desktop, 390px and 320px layouts were checked; no physical phone claim.
+
+Open limitations: the long responsibility outcome still occupies too much phone
+space, and the new newsletter's scheduled continuation failed early-start timing.
+The timing fix is installed and tested with a synthetic provider; a successful live
+repeat is not claimed. The failed hand-over was taken back normally, with all
+saved edits and unknown-use liability retained. See current STATUS.md and
+`docs/evidence/result-first-20261019/combined-verification.json`.
+
+## Historical review candidate — superseded
 
 - Application SHA: **`8d37f75bb365140dc5b971f806349e6ad87e93cc`**.
 - Frozen directory: `/home/ubuntu/workagent-candidates/result-link-20261019`.
