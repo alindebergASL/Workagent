@@ -59,11 +59,14 @@ export function ResponsibilityPanel({
   observedAt,
   stale,
   refresh,
+  doneWhen,
 }: {
   ws: string;
   detail: Responsibility;
   observedAt: string | null;
   stale: boolean;
+  /** What finishes it, from the hand-over; kept with the details. */
+  doneWhen?: string | null;
   /** Re-reads the assignment and its responsibility; true if both read. */
   refresh: () => Promise<boolean>;
 }) {
@@ -146,6 +149,29 @@ export function ResponsibilityPanel({
 
   // Steering needs a current read and no command in doubt.
   const steerable = !stale && !unresolved && !shown.fromReply && !busy;
+  const conversationId = shown.detail.assignment.conversation_id;
+  const observedLine = (
+    <p
+      className={shown.fromReply || stale ? "hint" : "small muted"}
+      data-testid="responsibility-observed"
+    >
+      {shown.fromReply
+        ? "From the service’s reply; not re-read yet."
+        : stale
+          ? `Can’t reach the service. Showing what was read at ${observedAt ? formatTime(observedAt, zone) : "the last read"}; steering waits until it reconnects.`
+          : observedAt
+            ? `Checked ${formatTime(observedAt, zone)}.`
+            : null}{" "}
+      <button
+        type="button"
+        className="link-quiet small"
+        onClick={() => void checkAgain()}
+        disabled={checking}
+      >
+        {checking ? "Checking…" : "Check again"}
+      </button>
+    </p>
+  );
 
   return (
     <section
@@ -154,46 +180,47 @@ export function ResponsibilityPanel({
       aria-labelledby="responsibility-title"
       data-testid="responsibility"
     >
-      <p className="eyebrow-caps">Handed to Workagent</p>
-      <h2 id="responsibility-title">{view.state}</h2>
-      <p className="small" data-testid="responsibility-execution">
-        {view.execution}
-      </p>
-      <dl className="glance-list">
-        {view.needsYou ? (
-          <div data-testid="responsibility-needs">
-            <dt>Needs from you</dt>
-            <dd>{view.needsYou}</dd>
-          </div>
-        ) : null}
-        {view.waiting ? (
-          <div>
-            <dt>Waiting on</dt>
-            <dd>{view.waiting}</dd>
-          </div>
-        ) : null}
-        {view.next ? (
-          <div>
-            <dt>Next</dt>
-            <dd>{view.next}</dd>
-          </div>
-        ) : null}
-        {view.outcome ? (
-          <div>
-            <dt>So far</dt>
-            <dd>{view.outcome}</dd>
-          </div>
-        ) : null}
-        {view.checkIn ? (
-          <div>
-            <dt>Checks in</dt>
-            <dd>
-              {formatTime(view.checkIn, zone)}
-              {view.checkInDue ? " · due now" : ""}
-            </dd>
-          </div>
-        ) : null}
-      </dl>
+      <h2 id="responsibility-title">
+        {view.checkingBack && view.checkIn && !view.checkInDue
+          ? `Checks back ${formatTime(view.checkIn, zone)}`
+          : view.state}
+      </h2>
+      {view.needsYou ? (
+        <p className="responsibility-needs" data-testid="responsibility-needs">
+          <strong>Needs you:</strong> {view.needsYou}
+        </p>
+      ) : null}
+      {view.waiting ? (
+        <p>
+          <span className="muted">Waiting on </span>
+          {view.waiting}
+        </p>
+      ) : null}
+      {view.next || view.checkIn ? (
+        <p data-testid="responsibility-next">
+          {view.next ? (
+            <>
+              <span className="muted">Next </span>
+              {view.next}
+            </>
+          ) : null}
+          {view.checkIn && !(view.checkingBack && !view.checkInDue) ? (
+            <span className="muted">
+              {view.next ? " · " : ""}
+              {view.checkInDue
+                ? "Its check-in is due now."
+                : `Checks back ${formatTime(view.checkIn, zone)}.`}
+            </span>
+          ) : null}
+        </p>
+      ) : null}
+      {/* Run state up front only when it says something: queued, running,
+          blocked or settled. "Nothing is running" is in Details. */}
+      {view.executionMatters || view.closed ? (
+        <p className="small" data-testid="responsibility-execution">
+          {view.execution}
+        </p>
+      ) : null}
       {view.lines.length ? (
         <ul className="small responsibility-lines">
           {view.lines.map((l) => (
@@ -202,29 +229,9 @@ export function ResponsibilityPanel({
         </ul>
       ) : null}
 
-      {/* Freshness stays in view only when it matters; otherwise one quiet
-          line with a re-read. */}
-      <p
-        className={shown.fromReply || stale ? "hint" : "small muted"}
-        data-testid="responsibility-observed"
-      >
-        {shown.fromReply
-          ? "From the service’s reply; not re-read yet."
-          : stale
-            ? `Can’t reach the service. Showing what was read at ${observedAt ? formatTime(observedAt, zone) : "the last read"}; steering waits until it reconnects.`
-            : observedAt
-              ? `Checked ${formatTime(observedAt, zone)}.`
-              : null}{" "}
-        <button
-          type="button"
-          className="link-quiet small"
-          onClick={() => void checkAgain()}
-          disabled={checking}
-        >
-          {checking ? "Checking…" : "Check again"}
-        </button>
-      </p>
-
+      {/* A stale or reply-only read is said before the controls it holds;
+          otherwise one quiet line with a re-read follows them. */}
+      {shown.fromReply || stale ? observedLine : null}
       {unresolved ? (
         <div className="notice-line stack-sm" role="status">
           <p>
@@ -272,7 +279,7 @@ export function ResponsibilityPanel({
             </div>
           </div>
         ) : (
-          <div className="row">
+          <div className="row steer-row">
             {view.allowed.map((op) => (
               <button
                 key={op}
@@ -290,6 +297,18 @@ export function ResponsibilityPanel({
                 {busy === op ? LABEL[op][1] : LABEL[op][0]}
               </button>
             ))}
+            {conversationId ? (
+              <Link
+                className="btn btn-sm btn-quiet"
+                href={inScope(
+                  `/conversations/${conversationId}`,
+                  shown.detail.assignment.workspace_id,
+                )}
+                data-testid="responsibility-tell"
+              >
+                Tell Workagent something
+              </Link>
+            ) : null}
           </div>
         )
       ) : null}
@@ -298,13 +317,23 @@ export function ResponsibilityPanel({
           {note}
         </p>
       ) : null}
+      {shown.fromReply || stale ? null : observedLine}
       {error ? <ErrorNotice error={error} /> : null}
-      {view.executionDetail || view.runId || view.reviewQueued ? (
+      {view.executionDetail || view.runId || view.reviewQueued || doneWhen ? (
         <details className="ids-details">
           <summary>Details</summary>
           <div className="stack-sm small">
+            {!view.executionMatters && !view.closed ? (
+              <p data-testid="responsibility-execution">{view.execution}</p>
+            ) : null}
             {view.executionDetail ? (
               <p data-testid="responsibility-why">{view.executionDetail}</p>
+            ) : null}
+            {doneWhen ? (
+              <p data-testid="done-when">
+                <span className="muted">Done when </span>
+                {doneWhen}
+              </p>
             ) : null}
             {view.reviewQueued ? (
               <p>A readiness review is queued. That isn’t a run.</p>

@@ -26,7 +26,9 @@ export interface HoldStatus {
 
 /** The one line that says what is being handled: its wait, else its next step. */
 function nextLine(life: HoldDetailLifecycle): string | null {
-  if (life.wait?.reason) return life.wait.reason;
+  // A scheduled check-in says what it will do then, not why it waits.
+  if (life.wait?.reason && life.wait.kind !== "check_in")
+    return life.wait.reason;
   if (life.blocker) return BLOCKER[life.blocker];
   if ((life.observations ?? []).some((o) => o.changed))
     return "Something it depends on has changed since it was recorded.";
@@ -105,10 +107,12 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
 }
 
 /**
- * Which Home group a read responsibility belongs in: needing the person,
- * being handled (admitted and queued or running), held (recorded, not
- * running) or closed. Null when there is no current responsibility read,
- * so the item keeps its usual place.
+ * Which Home group a read responsibility belongs in: needing the person (a
+ * review, or something blocking it), being worked on (admitted and queued or
+ * running), kept track of (recorded and waiting on someone, an event or its
+ * check-in; nothing running) or closed. Waiting on someone else is not the
+ * person's to act on. Null when there is no current responsibility read, so
+ * the item keeps its usual place.
  */
 export function holdGroup(
   entry: HoldEntry | undefined,
@@ -118,8 +122,8 @@ export function holdGroup(
   if (life.state === "cancelled" || life.state === "taken_over")
     return "closed";
   if (
-    life.state === "waiting_person" ||
     life.state === "blocked" ||
+    Boolean(life.blocker) ||
     life.review_required ||
     life.outcome_status === "needs_review" ||
     life.execution_status === "settled" ||

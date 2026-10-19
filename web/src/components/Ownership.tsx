@@ -77,6 +77,7 @@ export function Ownership({
   assignment: a,
   onChanged,
   legacy,
+  inPanel = false,
 }: {
   assignment: Assignment;
   onChanged: () => Promise<unknown> | void;
@@ -86,6 +87,8 @@ export function Ownership({
    * nothing about who holds it and offers no steering.
    */
   legacy: boolean;
+  /** The responsibility panel already shows what finishes it. */
+  inPanel?: boolean;
 }) {
   const phase = phaseOf(a);
   const g = glance(a, phase);
@@ -138,7 +141,7 @@ export function Ownership({
 
   // With a responsibility, its own panel says who holds what; an empty
   // card here would only repeat the heading.
-  if (!legacy && !g.doneWhen.length) return null;
+  if (!legacy && (!g.doneWhen.length || inPanel)) return null;
   // Beside that panel, what finishes it is one line, not a card of its own.
   if (!legacy)
     return (

@@ -92,7 +92,7 @@ try {
     await expect(
       page.locator(`[data-assignment="${state.assignment_id}"] .status`),
     ).toHaveText("Approved revision", { timeout: 15000 });
-    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(page.getByText(/I’m working on/)).toHaveCount(0);
     await page.goto(origin + state.artifact_url);
     await expect(
       page.locator(".doc-card").getByText(human, { exact: true }),
@@ -163,7 +163,7 @@ try {
       page.getByRole("heading", { name: "Good to see you." }),
     ).toBeVisible();
     // No stale in-progress or decision controls before any work exists.
-    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(page.getByText(/I’m working on/)).toHaveCount(0);
     await page
       .getByLabel("Message your agent")
       .fill(records.find((r) => r.id === "SG-F1").content.instruction);
@@ -426,7 +426,7 @@ try {
     await expect(
       page.locator(`[data-assignment="${assignmentId}"] .status`),
     ).toHaveText("Approved revision", { timeout: 15000 });
-    await expect(page.getByText(/I’m handling/)).toHaveCount(0);
+    await expect(page.getByText(/I’m working on/)).toHaveCount(0);
     await expect(
       page.getByRole("link", { name: "Review the change" }),
     ).toHaveCount(0);

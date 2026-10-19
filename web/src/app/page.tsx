@@ -281,9 +281,14 @@ function AgentHome() {
         isRecordedHandover(i),
     ),
   ];
-  const rows = (list: AssignmentSummary[]) =>
+  const rows = (list: AssignmentSummary[], quietIdle = false) =>
     list.map((item) => (
-      <WorkRow key={item.id} item={item} hold={holds[item.id]} />
+      <WorkRow
+        key={item.id}
+        item={item}
+        hold={holds[item.id]}
+        quietIdle={quietIdle}
+      />
     ));
   const madeRows = (list: ConversationWork[]) =>
     list.map((w) => (
@@ -312,7 +317,7 @@ function AgentHome() {
   const groups = [
     {
       key: "handling",
-      label: "I’m handling",
+      label: "I’m working on",
       dot: "dot-live",
       rows: rows(handling),
     },
@@ -323,12 +328,13 @@ function AgentHome() {
       rows: [...madeRows(madeDecisions), ...rows(ready)],
     },
     {
-      // Recorded as Workagent's to carry. Held isn't running: each row says
-      // whether anything runs for it.
+      // Recorded as Workagent's to carry and waiting (on someone, an event
+      // or its check-in). The heading says nothing is being worked on now;
+      // a row says more only when its run does.
       key: "holding",
-      label: "Responsibilities I’m holding",
+      label: "I’m keeping track of",
       dot: "",
-      rows: rows(holding),
+      rows: rows(holding, true),
     },
     {
       key: "made",
@@ -344,7 +350,9 @@ function AgentHome() {
     },
     { key: "stopped", label: "Stopped", dot: "", rows: rows(stopped) },
   ].filter((g) => g.rows.length);
-  const primary = groups.some((g) => g.key === "ready" || g.key === "handling");
+  const primary = groups.some(
+    (g) => g.key === "ready" || g.key === "handling" || g.key === "holding",
+  );
 
   if (wsError) {
     return (
@@ -361,10 +369,6 @@ function AgentHome() {
 
   return (
     <div className="agent-col">
-      <p className="context-line">
-        <span className="dot" aria-hidden="true" />
-        Your agent · Work continues here
-      </p>
       <section className="agent-intro" aria-labelledby="home-title">
         <div className="agent-presence" aria-hidden="true" />
         <h1 id="home-title">Good to see you.</h1>
@@ -505,6 +509,7 @@ function AgentHome() {
               open={
                 g.key === "ready" ||
                 g.key === "handling" ||
+                g.key === "holding" ||
                 (!primary && g === groups[0])
               }
             >

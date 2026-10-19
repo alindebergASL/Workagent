@@ -1155,6 +1155,17 @@ details.disclosure.card {
   margin: 0;
   padding-left: 1.2em;
 }
+.responsibility p {
+  margin: 0;
+}
+/* What it needs from the person reads first and stands out. */
+.responsibility-needs {
+  color: var(--attn);
+}
+.steer-row {
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
 
 /* A continuation request the service made for a hand-over: not the person. */
 .msg-runtime {

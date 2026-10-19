@@ -109,7 +109,10 @@ try {
   // No older claim that it can never run sits beside the record.
   await expect(page.getByText("can’t start work on my own")).toHaveCount(0);
   await expect(page.getByText("I own")).toHaveCount(0);
-  await expect(panel).toContainText("A draft briefing outline is saved.");
+  // What it has done so far leads the page, in its own recorded words.
+  await expect(page.getByTestId("responsibility-outcome")).toHaveText(
+    "A draft briefing outline is saved.",
+  );
   await expect(panel).toContainText("Decide who opens the doors.");
   await expect(panel).toContainText("Waiting on");
   await expect(panel).toContainText("Asha to confirm the room.");
