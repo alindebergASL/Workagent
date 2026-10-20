@@ -169,10 +169,17 @@ def test_unstaged_companion_receipt_restart_obeys_pinned_policy(context,tmp_path
 def test_companion_policy_pin_is_reviewed_in_both_boundaries():
     from hashlib import sha256
     from pathlib import Path
-    from workagent.composition import POLICY
-    from workagent.selection_policy import COMPANION_POLICY_SHA256
-    assert sha256(POLICY.encode()).hexdigest()==COMPANION_POLICY_SHA256
-    assert COMPANION_POLICY_SHA256 in (Path(__file__).parents[1]/'migrations/031_companion_view_scope.sql').read_text()
+    from workagent.composition import POLICY, CONTINUITY_POLICY
+    from workagent.selection_policy import COMPANION_POLICY_SHA256S
+    migrations=Path(__file__).parents[1]/'migrations'
+    reviewed=(migrations/'031_companion_view_scope.sql').read_text()+(migrations/'037_companion_policy_pins.sql').read_text()
+    # Every current policy that instructs companion creation is pinned in Python
+    # and in reviewed SQL; every Python pin is a reviewed SQL pin.
+    for policy in (POLICY,CONTINUITY_POLICY):
+        pin=sha256(policy.encode()).hexdigest()
+        assert pin in COMPANION_POLICY_SHA256S
+        assert pin in reviewed
+    assert all(pin in reviewed for pin in COMPANION_POLICY_SHA256S)
 
 
 def test_sql_keeps_historical_companion_denied_even_if_python_is_bypassed(context,tmp_path,monkeypatch):
