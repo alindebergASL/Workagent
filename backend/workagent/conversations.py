@@ -176,6 +176,11 @@ class Conversations:
         cid=cv.id
         self._conversation_cas(cv,cmd.expected_work_version)
         self._conversation(c,p,ws,cid,True)
+        # Human steering belongs to the conversation owner. Another active member
+        # could otherwise admit a controlled turn here, cancel the owner's model
+        # run and leave an unresolved attempt the owner can no longer clear.
+        if responsibility is None and cv.owner_id!=p.id:
+            deny()
         from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
         try:
             grant=admission(self,c,p,ws,cv,cmd)

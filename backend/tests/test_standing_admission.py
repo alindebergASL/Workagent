@@ -85,7 +85,12 @@ def test_standing_scope_is_not_other_user_workspace_or_source_authority(context)
         assert not permits_conversation(c,g.id,theirs.id)
         assert not permits_conversation(c,g.id,source.id)
         assert not permits_conversation(c,g.id,'missing')
-    for principal,cv in [(other,own),(other,theirs),(p,theirs),(p,source)]:
+    # A conversation you do not own is not yours to steer, in any execution mode.
+    for principal,cv in [(other,own),(p,theirs)]:
+        raises('not_found_or_not_authorized',lambda:s.post_message(principal,ws,cv.id,
+            cmd(PostMessage,expected_work_version=cv.work_version,text='Not my conversation')))
+    # Your own conversation without standing scope, or with selected sources, is not paid work.
+    for principal,cv in [(other,theirs),(p,source)]:
         raises('unsupported_operation',lambda:s.post_message(principal,ws,cv.id,
             cmd(PostMessage,expected_work_version=cv.work_version,text='Not authorized for paid work')))
     raises('not_found_or_not_authorized',lambda:s.post_message(p,'other-workspace',own.id,

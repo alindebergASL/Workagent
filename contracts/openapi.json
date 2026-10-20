@@ -1953,7 +1953,7 @@
             ]
           },
           "text": {
-            "maxLength": 10000,
+            "maxLength": 12000,
             "minLength": 1,
             "title": "Text",
             "type": "string"
@@ -6645,7 +6645,7 @@
             "type": "string"
           },
           "text": {
-            "maxLength": 10000,
+            "maxLength": 12000,
             "minLength": 1,
             "title": "Text",
             "type": "string"

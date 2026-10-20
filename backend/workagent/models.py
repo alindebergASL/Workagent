@@ -528,9 +528,14 @@ class DelegateConversation(Command):
     completion_criteria: list[Text] = Field(min_length=1, max_length=30)
 
 
+# Assistant-origin text follows the provider schemas (general_schema, adaptive and
+# general_alpha_models allow 12,000 characters); human input stays bounded by Text.
+AssistantText = Annotated[str, Field(min_length=1, max_length=12000)]
+
+
 class TextResult(Model):
     kind: Literal['text'] = 'text'
-    text: Text
+    text: AssistantText
 
 
 class TurnResult(Model):
@@ -557,7 +562,7 @@ class ConversationMessage(Model):
     sequence: Version
     author_id: Id
     author_kind: Literal['human', 'assistant', 'system']
-    text: Text
+    text: AssistantText
     evidence_origin: Literal['human', 'runtime', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
     result: TurnResult | None = None
     operation: LocalOperation | None = None
