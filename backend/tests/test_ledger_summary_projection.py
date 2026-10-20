@@ -34,14 +34,23 @@ def legacy_summary(c,grant_id,shared):
 
 
 class AccountingOnly:
-    def __init__(self,c):self.c=c;self.rows=[]
+    """Records every ledger read so the test can prove no event bodies were transferred."""
+    def __init__(self,c):self.c=c;self.statements=[]
     def execute(self,sql,*args):
-        result=self.c.execute(sql,*args)
-        if not sql.startswith('SELECT e.kind'):return result
-        rows=result.fetchall();self.rows.extend(rows)
-        class Rows:
-            def fetchall(self):return rows
-        return Rows()
+        if 'responses_events' in sql:self.statements.append(sql)
+        return self.c.execute(sql,*args)
+
+
+def equivalent(actual,expected):
+    """Equal accounting; cost strings compare as decimals ('0.0075' == '0.00750')."""
+    money={'reserved_cost_usd','conservatively_calculated_cost_usd','carried_reserved_cost_usd','billed_cost_usd'}
+    assert set(actual)==set(expected)
+    for key in expected:
+        a,e=actual[key],expected[key]
+        if key in money and a is not None and e is not None:
+            assert Decimal(a)==Decimal(e),key
+        else:
+            assert a==e,key
 
 
 @pytest.mark.parametrize('shared',[False,True])
@@ -49,16 +58,18 @@ class AccountingOnly:
 def test_summary_preserves_accounting_without_response_bodies(context,tmp_path,shared,lose_id):
     s,p,ws,_,_=context;cv=conversation(context);g=activate(context,[cv])
     with s.db.transaction() as c:
-        assert summary(c,g.id,shared=shared)==legacy_summary(c,g.id,shared)
+        equivalent(summary(c,g.id,shared=shared),legacy_summary(c,g.id,shared))
     fake=Provider(lose_id=lose_id);w=worker(context,fake,tmp_path)
     q=post(context,cv,'Explain this synthetic tradeoff.')
     w.work(p,ws,q.run.id)
     with s.db.transaction() as c:
         proxy=AccountingOnly(c);actual=summary(proxy,g.id,shared=shared)
-        assert actual==legacy_summary(c,g.id,shared)
+        equivalent(actual,legacy_summary(c,g.id,shared))
     assert actual['request_counts']['dispatch']>0
     assert (actual['unknown_usage_steps']>0)==lose_id
-    allowed={'dispatch':{'reserved_input_tokens','reserved_output_tokens','reserved_cost_usd'},
-        'result':{'usage'},'count_send':set(),'read':set(),'cancel':set()}
-    assert proxy.rows
-    assert all(r['kind'] in allowed and set(r['data'])<=allowed[r['kind']] for r in proxy.rows)
+    # The ledger read is one aggregate over accounting fields; it never selects
+    # whole event rows, retained response bodies or tool values.
+    assert proxy.statements
+    for sql in proxy.statements:
+        assert 'count(*)' in sql and 'sum(' in sql
+        assert 'SELECT e.kind,e.data' not in sql and "e.data->'value'" not in sql and 'SELECT *' not in sql

@@ -1,4 +1,5 @@
 """Pure regressions: no database fixtures, services, provider or network calls."""
+from decimal import Decimal
 from types import SimpleNamespace
 import pytest
 from workagent.adaptive import AdaptiveDecision, WasmCheck, verify, decision
@@ -112,10 +113,11 @@ def test_budget_summary_keeps_unknown_and_known_worst_case_reservations():
             if 'responses_budget_carry' in sql:
                 return SimpleNamespace(fetchone=lambda:{'n':0,'cost':0})
             assert 'responses_budget_grants' in sql
-            return SimpleNamespace(fetchall=lambda:[
-                {'kind':'dispatch','data':{'reserved_input_tokens':20000,'reserved_output_tokens':8192,'reserved_cost_usd':'0.131920'}},
-                {'kind':'dispatch','data':{'reserved_input_tokens':20000,'reserved_output_tokens':8192,'reserved_cost_usd':'0.131920'}},
-                {'kind':'result','data':{'usage':{'input_tokens':100,'output_tokens':10}}}])
+            # summary() reads one aggregate row: two reservations of 0.131920,
+            # one reported usage, so one reservation remains unknown.
+            return SimpleNamespace(fetchone=lambda:{'count_send':2,'dispatch':2,'read':0,'cancel':0,
+                'reserved_input':40000,'reserved_output':16384,'reserved_cost':Decimal('0.263840'),
+                'usages':1,'reported_input':100,'reported_output':10})
     result=summary(Connection(),'grant',shared=True)
     assert result['reserved_cost_usd']=='0.263840'
     assert result['unknown_usage_steps']==1 and result['billed_cost_usd'] is None

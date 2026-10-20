@@ -219,7 +219,8 @@ def test_staged_proof_is_not_overall_completion_until_publication(monkeypatch,st
     monkeypatch.setattr('workagent.responses_ledger.summary',lambda *_,**kw:{'reserved_cost_usd':'0'})
     class Connection:
         def execute(self,sql,args):
-            result=({'data':{'responses':{'policy_version':'adaptive-local-v1','max_steps':4},'grant_id':'grant'}}
+            # Persisted run configurations always carry the shared cost ceiling.
+            result=({'data':{'responses':{'policy_version':'adaptive-local-v1','max_steps':4,'cost_limit_usd':'20.00'},'grant_id':'grant'}}
                     if 'run_configurations' in sql else {'value':value.model_dump()})
             return SimpleNamespace(fetchone=lambda:result)
     run=SimpleNamespace(workspace_id='ws',id='run',state=state,stop_reason=None)
