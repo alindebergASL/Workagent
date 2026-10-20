@@ -27,6 +27,7 @@ import {
 } from "@/lib/work-state";
 import { readableTitle } from "@/lib/titles";
 import { Ownership } from "@/components/Ownership";
+import { OutcomeLede } from "@/components/OutcomeLede";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -254,9 +255,7 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           // Where it stands is the panel's; the header leads with what it has
           // done so far, in its own recorded words.
           rich.lifecycle.current_outcome ? (
-            <p className="lede" data-testid="responsibility-outcome">
-              {rich.lifecycle.current_outcome}
-            </p>
+            <OutcomeLede text={rich.lifecycle.current_outcome} />
           ) : null
         ) : (
           <div className="row">

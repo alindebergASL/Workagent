@@ -144,6 +144,66 @@ try {
     await phone.close();
   }
   pass("phone widths read result-first with no horizontal scroll");
+
+  // A long recorded outcome leads with its first sentence on a phone, so the
+  // prepared work and the steering stay in view; the full text, uncertainty
+  // included, is one click away, word for word. (Only the outcome text of
+  // the real read is lengthened, in the browser.)
+  const LONG =
+    "Prepared a brief and a second checklist from the bound inputs and saved both in the conversation. " +
+    "Publication checked shape only; nobody has reviewed the wording, and no external outcome is claimed. " +
+    "The next pass will compare both against the readiness criteria once they are supplied, and say what changed.";
+  const phone = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+  });
+  await phone.route(
+    /\/assignments\/[^/]+\/responsibility(\?|$)/,
+    async (route) => {
+      const res = await route.fetch();
+      const body = await res.json();
+      body.lifecycle.current_outcome = LONG;
+      await route.fulfill({ response: res, json: body });
+    },
+  );
+  await phone.goto(page_);
+  const outcome = phone.getByTestId("responsibility-outcome");
+  await expect(outcome).toContainText(
+    "Prepared a brief and a second checklist from the bound inputs and saved both in the conversation.",
+    { timeout: 20000 },
+  );
+  await expect(outcome).not.toContainText("Publication checked shape only");
+  const firstLink = phone
+    .getByTestId("responsibility-prepared")
+    .getByRole("link")
+    .first();
+  const box = await firstLink.boundingBox();
+  assert.ok(
+    box && box.y + box.height <= 844,
+    "a prepared result is on the first screen",
+  );
+  const pause = await phone
+    .getByTestId("responsibility")
+    .getByRole("button", { name: "Pause", exact: true })
+    .boundingBox();
+  assert.ok(
+    pause && pause.y + pause.height <= 844,
+    "steering is on the first screen",
+  );
+  await phone.screenshot({ path: path.join(out, "03-long-outcome-390.png") });
+  const toggle = phone.getByTestId("responsibility-outcome-toggle");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.focus();
+  await phone.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(outcome).toContainText(LONG);
+  await noOverflow(phone);
+  await phone.screenshot({
+    path: path.join(out, "04-long-outcome-expanded-390.png"),
+  });
+  await phone.close();
+  pass(
+    "a long outcome leads with its first sentence on a phone; all of it is one click away",
+  );
   assert.deepEqual(errors, []);
   await writeFile(
     path.join(out, "report.json"),
