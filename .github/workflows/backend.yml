@@ -1,0 +1,60 @@
+name: backend
+
+on:
+  push:
+    paths:
+      [
+        "backend/**",
+        "runtime/**",
+        "contracts/**",
+        "fixtures/**",
+        "agent/**",
+        "scripts/**",
+        ".github/workflows/backend.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "backend/**",
+        "runtime/**",
+        "contracts/**",
+        "fixtures/**",
+        "agent/**",
+        "scripts/**",
+        ".github/workflows/backend.yml",
+      ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # dev_db.py provisions a disposable workagent_test_* database through
+      # `sudo -n -u postgres psql`, exactly as a contributor does locally, so the
+      # runner's bundled PostgreSQL 16 is used rather than a service container.
+      - name: Start PostgreSQL 16
+        run: |
+          sudo systemctl start postgresql
+          sudo -n -u postgres psql -X -c 'select version()'
+      - name: Install locked backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --require-hashes -r backend/requirements.lock
+          python -m pip install --require-hashes -r backend/requirements-local-tools.txt
+      - name: Provision disposable test database
+        run: PYTHONPATH=backend:. python backend/dev_db.py --env-file backend/.tests.env
+      - name: Backend and runtime tests
+        run: |
+          . backend/.tests.env
+          PYTHONPATH=backend:. python -m pytest -q -p no:cacheprovider --durations=20 backend/tests runtime/tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generated contracts match canonical models
+        run: |
+          npm ci --ignore-scripts --prefix contracts
+          cd contracts && python ../backend/export_contracts.py --check && node check-drift.mjs
