@@ -178,7 +178,7 @@ class Conversations:
         self._conversation(c,p,ws,cid,True)
         from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
         try:
-            grant=admission(self,c,p,ws,cv,cmd)
+            grant=admission(self,c,p,ws,cv,cmd,human_steering=responsibility is None)
         except DomainError as exc:
             from .general_responses import has_unresolved_attempt
             if responsibility is not None and exc.code.value=='action_unresolved' and has_unresolved_attempt(c,ws,cid):

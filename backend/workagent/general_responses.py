@@ -120,6 +120,7 @@ def cancelled_rejection_is_settled(c, attempt_id):
     row=c.execute("SELECT r.data->>'state' state FROM provider_attempts a JOIN runs r "
         "ON r.workspace_id=a.workspace_id AND r.id=a.run_id WHERE a.id=%s",(attempt_id,)).fetchone()
     if not row or row['state']!='cancelled':return False
+    if known_input_rejection_is_settled(c,attempt_id):return True
     steps=c.execute('SELECT phase,request_sha256,metadata FROM responses_steps WHERE attempt_id=%s',
                     (attempt_id,)).fetchall()
     rejected=False
@@ -141,7 +142,44 @@ def cancelled_rejection_is_settled(c, attempt_id):
     return rejected
 
 
-def has_unresolved_attempt(c,ws,conversation_id):
+def known_input_rejection_is_settled(c,attempt_id):
+    """Read-only proof for an explicit NEW human turn, never automatic retry.
+
+    A returned excessive token count has no generation identity or send. Every
+    earlier send must have its exact terminal receipt and completed local action.
+    Prepared, ambiguous, outstanding and partially applied work remain held.
+    """
+    from .responses_ledger import RESERVED_INPUT
+    row=c.execute('SELECT data FROM provider_attempts WHERE id=%s',(attempt_id,)).fetchone()
+    if not row or row['data'].get('profile')!='general-responses-v1':return False
+    rejected=False
+    for step in c.execute('SELECT phase,request_sha256,metadata FROM responses_steps WHERE attempt_id=%s',
+                          (attempt_id,)).fetchall():
+        events={r['kind']:r['data'] for r in c.execute("SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind<>'read'",
+                                                     (attempt_id,step['phase'])).fetchall()}
+        if 'cancel' in events or 'corrected_readback' in events:return False
+        problem=events.get('problem')
+        if problem is not None:
+            if (set(events)!={'count_send','problem'} or problem.get('operation')!='count'
+                    or problem.get('code')!='input_count_exceeds_limit' or problem.get('received') is not True
+                    or type(problem.get('input_tokens')) is not int or problem['input_tokens']<=RESERVED_INPUT
+                    or problem.get('limit')!=RESERVED_INPUT or rejected):return False
+            rejected=True
+            continue
+        identity=events.get('identity',{});result=events.get('result',{})
+        if ('dispatch' not in events or 'count_send' not in events
+                or not identity.get('response_id') or result.get('response_id')!=identity['response_id']
+                or result.get('usage') is None or result.get('metadata')!=step['metadata']
+                or identity.get('metadata')!=step['metadata']
+                or result.get('request_sha256')!=step['request_sha256']
+                or identity.get('request_sha256')!=step['request_sha256']
+                or events.get('count_result',{}).get('request_sha256')!=step['request_sha256']
+                or result.get('state') not in ('function_call','completed')
+                or (result['state']=='function_call' and 'tool_result' not in events)):return False
+    return rejected
+
+
+def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=False):
     # A terminal cancellation fences every subsequent send. With no prepared
     # request OR event, this retained prepared-only attempt cannot have reserved
     # external I/O. Ignore it for NEW admission only: never rewrite its state,
@@ -157,10 +195,12 @@ def has_unresolved_attempt(c,ws,conversation_id):
             AND NOT EXISTS (SELECT 1 FROM responses_steps s WHERE s.attempt_id=a.id)
             AND NOT EXISTS (SELECT 1 FROM responses_events e WHERE e.attempt_id=a.id)),false)""",
         (ws,conversation_id)).fetchall()
-    return any(not cancelled_rejection_is_settled(c,row['id']) for row in rows)
+    return any(not cancelled_rejection_is_settled(c,row['id'])
+               and not (allow_known_input_rejection and known_input_rejection_is_settled(c,row['id']))
+               for row in rows)
 
 
-def admission(service,c,p,ws,cv,cmd):
+def admission(service,c,p,ws,cv,cmd,*,human_steering=False):
     """An existing revoked/exhausted scoped activation never silently falls back."""
     from .models import ProviderGrant
     predicate=scope_predicate(c,'g','%s')
@@ -177,7 +217,7 @@ def admission(service,c,p,ws,cv,cmd):
         raise DomainError('unsupported_operation')
     if cv.selected_source_refs: raise DomainError('unsupported_operation')
     # A new user turn must not bypass an unresolved send; cancellation is explicit.
-    if has_unresolved_attempt(c,ws,cv.id):
+    if has_unresolved_attempt(c,ws,cv.id,allow_known_input_rejection=human_steering):
         raise DomainError('action_unresolved')
     if cmd.operation:
         from .product_models import RunWasm

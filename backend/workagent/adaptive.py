@@ -271,4 +271,12 @@ BUDGET_STOP_REASON=('Execution stopped at the cumulative budget limit. No furthe
 def continuation_context(context,observations,max_steps):
     # Model-generated tests remain visible; independent expected answers do not.
     from .acceptance_checks import for_model
-    return {**context,'adaptive':{'max_steps':max_steps,'observations':[for_model(o) for o in observations]}}
+    projected=[for_model(o) for o in observations]
+    for observation in projected:
+        capability=observation.get('capability_result') or {}
+        if capability.get('capability')=='discover_capabilities':
+            # The complete schemas already travel in the function definition.
+            # Project only this duplicate; retained receipts and user data stay whole.
+            for descriptor in capability['result']['capabilities']:
+                descriptor.pop('input_schema',None)
+    return {**context,'adaptive':{'max_steps':max_steps,'observations':projected}}
