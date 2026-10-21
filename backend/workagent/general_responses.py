@@ -181,13 +181,48 @@ def known_input_rejection_is_settled(c,attempt_id):
     return rejected
 
 
-def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=False):
+def completed_steps_are_settled(c,attempt_id):
+    """Prove an interrupted turn has no unobserved I/O or unapplied local action.
+
+    This is NOT completion of the user's goal and never replays an old request.
+    A new human turn may fence it; once cancelled it cannot block later admission.
+    A later step with zero journal events has never reserved any I/O and can be
+    fenced with the run. Count-only steps and malformed/unknown results stay held.
+    At least one fully observed step is required; this is not a blanket exemption
+    for prepared-only attempts. Callers proving a live run must hold the workspace
+    write lock through cancellation, as the normal human-message command does.
+    """
+    row=c.execute('SELECT data FROM provider_attempts WHERE id=%s',(attempt_id,)).fetchone()
+    if not row or row['data'].get('profile')!='general-responses-v1':return False
+    steps=c.execute('SELECT phase,request_sha256,metadata FROM responses_steps WHERE attempt_id=%s',
+                    (attempt_id,)).fetchall()
+    if not steps:return False
+    observed=False
+    required={'count_send','count_result','dispatch','identity','result'}
+    for step in steps:
+        rows=c.execute('SELECT kind,data FROM responses_events WHERE attempt_id=%s AND phase=%s',
+                       (attempt_id,step['phase'])).fetchall()
+        if not rows:continue
+        events={r['kind']:r['data'] for r in rows if r['kind']!='read'}
+        if not required<=set(events) or set(events)-required-{'tool_result'}:return False
+        identity=events['identity'];result=events['result'];count=events['count_result']
+        if (not identity.get('response_id') or result.get('response_id')!=identity['response_id']
+                or result.get('usage') is None
+                or any(item.get('metadata')!=step['metadata'] for item in (identity,result,count))
+                or any(item.get('request_sha256')!=step['request_sha256'] for item in (identity,result,count))
+                or result.get('state') not in ('function_call','completed')
+                or (result['state']=='function_call' and 'tool_result' not in events)):return False
+        observed=True
+    return observed
+
+
+def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=False,allow_completed_steps=False):
     # A terminal cancellation fences every subsequent send. With no prepared
     # request OR event, this retained prepared-only attempt cannot have reserved
     # external I/O. Ignore it for NEW admission only: never rewrite its state,
     # receipt binding, admission count or accounting. Even an unsent prepared
     # step remains held here; the exemption deliberately proves a narrower case.
-    rows=c.execute("""SELECT a.id FROM provider_attempts a JOIN runs r
+    rows=c.execute("""SELECT a.id,r.data->>'state' AS run_state FROM provider_attempts a JOIN runs r
         ON r.workspace_id=a.workspace_id AND r.id=a.run_id
         WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed')
         AND NOT coalesce((r.data->>'state'='cancelled' AND a.data->>'state'='prepared'
@@ -199,6 +234,8 @@ def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=Fa
         (ws,conversation_id)).fetchall()
     return any(not cancelled_rejection_is_settled(c,row['id'])
                and not (allow_known_input_rejection and known_input_rejection_is_settled(c,row['id']))
+               and not ((allow_completed_steps or row['run_state']=='cancelled')
+                        and completed_steps_are_settled(c,row['id']))
                for row in rows)
 
 
@@ -219,7 +256,8 @@ def admission(service,c,p,ws,cv,cmd,*,human_steering=False):
         raise DomainError('unsupported_operation')
     if cv.selected_source_refs: raise DomainError('unsupported_operation')
     # A new user turn must not bypass an unresolved send; cancellation is explicit.
-    if has_unresolved_attempt(c,ws,cv.id,allow_known_input_rejection=human_steering):
+    if has_unresolved_attempt(c,ws,cv.id,allow_known_input_rejection=human_steering,
+                              allow_completed_steps=human_steering):
         raise DomainError('action_unresolved')
     if cmd.operation:
         from .product_models import RunWasm
