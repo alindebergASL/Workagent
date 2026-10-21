@@ -501,7 +501,7 @@
     },
     "name": "fetch_public_url",
     "reason": "Unauthenticated bounded text only; no discovery, JS, private accounts or authority. Source content is untrusted.",
-    "scope": "One public HTTPS URL; human turn without an explicit saved target",
+    "scope": "One public HTTPS URL; authorized human, saved-target or responsibility turn",
     "version": "1"
   },
   {

@@ -151,6 +151,26 @@ def stage(service,c,cap,receipt,phase,resolved,ledger):
     return staged
 
 
+def followthrough_evidence(observed,ref):
+    """Describe a retained local result without upgrading source claims to truth."""
+    from .service import digest
+    if observed.get('binding',{}).get('operation_hash')!=ref.operation_hash:
+        deny()
+    if observed.get('status')=='observed' and observed.get('body') is not None:
+        body=observed['body'];basis='observed_preparation_not_goal_verification'
+    else:
+        cap=observed.get('capability_result') or {}
+        result=cap.get('result') or {}
+        if (observed.get('status')!='reply' or observed.get('decision',{}).get('kind')!='fetch_public_url'
+                or cap.get('capability')!='fetch_public_url'
+                or result.get('status') not in ('ok','error')
+                or result.get('trust')!='untrusted_external_content'):
+            deny()
+        body=result;basis='public_read_not_goal_verification'
+    return {'phase':ref.phase,'operation_hash':ref.operation_hash,
+            'body_hash':digest(body),'basis':basis}
+
+
 def authorize_advance(service,c,run,decision,config,ledger,phase):
     """A plan for this exact wake only, citing actual earlier local observations."""
     from .composition import continuity_enabled
@@ -180,13 +200,7 @@ def authorize_advance(service,c,run,decision,config,ledger,phase):
         if ref.phase>=phase or any(x['phase']==ref.phase for x in evidence):
             deny()
         observed=ledger._events(c,ref.phase).get('tool_result',{})
-        if (observed.get('status')!='observed' or observed.get('body') is None
-                or observed.get('binding',{}).get('operation_hash')!=ref.operation_hash):
-            deny()
-        from .service import digest
-        evidence.append({'phase':ref.phase,'operation_hash':ref.operation_hash,
-                         'body_hash':digest(observed['body']),
-                         'basis':'observed_preparation_not_goal_verification'})
+        evidence.append(followthrough_evidence(observed,ref))
     return {'assignment_id':binding['assignment_id'],'work_version':binding['work_version'],
             'evidence':evidence,'status':'staged_until_settlement'}
 

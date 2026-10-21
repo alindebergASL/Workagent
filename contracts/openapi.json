@@ -587,7 +587,7 @@
             "type": "string"
           },
           "shared_cost_limit_usd": {
-            "pattern": "^(0|[1-9][0-9]?)(\\.[0-9]{1,6})?$",
+            "pattern": "^(0|[1-9][0-9]{0,2})(\\.[0-9]{1,6})?$",
             "title": "Shared Cost Limit Usd",
             "type": "string"
           },
