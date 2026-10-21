@@ -1,27 +1,51 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: prototype reset underway; phone fix installed
+## 2026-10-21: two runtime fixes installed; recovery/status work active
 
-- Running private review candidate: `ab840d66043aeb19b453ff46a6f1c668418107be`,
-  `/home/ubuntu/workagent-candidates/prototype-reset-phone-20261020`, build
-  `FC9L13JejhrjSn41PS7e-`. API/web/worker active; the unchanged backend still reports
-  execution unavailable pending the runtime reset below.
-- Claude's finished `60775dd` phone outcome fix is now integrated and installed.
-  Four focused preview tests and production build passed. Live browser checks at
-  390px and 1440px verified short/full outcome text, keyboard expand/collapse,
-  saved-result navigation and no horizontal overflow. Physical-phone testing is
-  not claimed.
-- Active implementation: Hermes owns integration/live verification; isolated
-  backend lane `hermes/prototype-runtime-reset` is removing evidence TTL and
-  code-hash reauthorization, aligning the existing $100 budget schema, and enabling
-  bounded public retrieval in background/targeted turns. These changes are not yet
-  installed. No replacement engine or new permission framework is being added.
-- Fresh shared reservations: $22.69024 of the active grant's $29.15432 ceiling;
-  $6.46408 reservation headroom, three unknown-usage steps retained. The new live
-  evaluation is bounded to $3.56184 / 27 generation slots within existing authority;
-  $0 new allocation. These are reservations, not provider billing.
-- Current evidence: `/home/ubuntu/workagent-reset-20261020/`. The previous failed
-  early check-in remains failed evidence; no live corrected continuation PASS yet.
+- Running private candidate: `f574d4094f01930b1a78276583286e7fc2b6e0bc`,
+  `/home/ubuntu/workagent-candidates/checkin-boundary-20261021`, web build
+  `cbtj8hC3EMVpHTJz7R2ei`. API/web/worker restarted and readiness verified.
+  Code-only installation: no new migrations, grant, allocation or route-evidence renewal.
+- Found and reproduced the hours-long stall: recording a second responsibility
+  incremented the conversation version; scheduler bookkeeping on an older waiting
+  responsibility then invalidated the recording turn's frozen context. The narrow
+  normalization reconstructs the original context hash only for that exact own
+  receipt-bound change. Human controls, other edits and authority checks stay fenced.
+  Existing requests, histories and saved work were not rewritten.
+- Core independent review found no blockers. Parent verification: 37 distinct focused
+  backend/DB cases passed, including recovery, unchanged stored context/request bytes,
+  pause/cancel/pause-then-resume rejection and safe closed-code denial diagnostics.
+  No full backend-suite claim. Evidence: `recording-refresh-{red,green,verified}.*`.
+- Claude's phone fix remains installed; additionally integrated `3877954` + `ca8a7f5`
+  for visible browser-storage warnings and the editor-reopen test fix. Verified 44 DOM
+  regressions, 345 frontend unit tests and production build. Installed 390px browser
+  check has no horizontal overflow. Physical-phone testing is not claimed.
+- Live recovery completed: recording `dfa8735a-b703-4fe8-ab01-6d77e699cf6d` published;
+  overdue continuation `633d2fa3-abc2-4707-bc7f-9e19d3e71d30` automatically ran,
+  fetched W3C guidance and published proposal `ee9be1f2-92d5-458f-b1f0-b63edd1bdbd1`.
+  The human editor note and current human revision are preserved; proposal is pending,
+  responsibility waits for a person, and no further check-in is scheduled.
+  This verifies recovery, not an uninterrupted scheduled cycle.
+- Fresh-cycle finding (04:45 UTC): a plan with `next_check_in_at` but `wait=null`
+  admitted continuation `0aacb6ed-1fa1-415a-810d-fef4b57856eb` 73.532976 seconds
+  early. The later human edit cancelled it before any response step or I/O event;
+  its retained attempt is `prepared`. Replacement admission is currently held up.
+  The two-page distribution edit and protected editor note are saved. This is failed
+  timing evidence, not a clean-cycle pass (`implicit-wait-live-failure.json`).
+- The missing-wait timing fix is now installed; 28 focused timing/lifecycle cases
+  passed, including real-DB edit/restart checks and preserved explicit event waits.
+  A fresh live post-fix timing pass is still pending. Isolated implementation worker
+  `deleg_ce1e80e5` is fixing genuine stale-context status visibility and investigating
+  safe admission past cancelled, provably unsent attempts. It has no live-provider or
+  deployment authority. Its status/cancellation changes are not installed yet.
+- Latest evaluation reservations increased by $3.29800;
+  the three historical unknown-usage steps remain. Evaluation bound: $4.61720 / 35
+  generation slots, wholly within the same existing allowance and cumulative $100
+  authorization. These are reservations, not provider billing; $0 new allocation.
+- Evidence: `/home/ubuntu/workagent-reset-20261020/`, including the read-only
+  `verified-633d2fa3-abc2-4707-bc7f-9e19d3e71d30.json`, test logs and pre-install backup.
+  Earlier failed/late journeys remain failed/late evidence. The mission is active,
+  not complete; older unrelated blocked requests have not been erased or replayed.
 
 ## 2026-10-19: result-first candidate running; phase incomplete
 
