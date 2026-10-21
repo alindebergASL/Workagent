@@ -6,12 +6,28 @@ from .errors import DomainError
 from .models import new_id
 from .service import encoded, digest
 from .responses_transport import (PreparedRequest, RequestMetadata, DispatchPermit, ParsedResponse,
-                                  Provenance, Usage, MODEL)
+                                  Provenance, Usage, MODEL, MAX_INPUT_TOKENS, MAX_OUTPUT_TOKENS,
+                                  INPUT_RESERVATION_RATE, OUTPUT_RESERVATION_RATE)
 from .responses_schema import READ_SCHEMA, FINAL_SCHEMA
 
-RESERVED_INPUT=20000
-RESERVED_OUTPUT=8192
-RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal('2.5')+Decimal(RESERVED_OUTPUT)*Decimal('10'))/Decimal(1000000)
+RESERVED_INPUT=MAX_INPUT_TOKENS
+RESERVED_OUTPUT=MAX_OUTPUT_TOKENS
+RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal(INPUT_RESERVATION_RATE)+
+               Decimal(RESERVED_OUTPUT)*Decimal(OUTPUT_RESERVATION_RATE))/Decimal(1000000)
+
+
+def count_input_limit(send):
+    """Read immutable send policy, not today's ceiling, for historical receipts.
+
+    Pre-041 count sends stored exactly {}; new SQL inserts require an explicit
+    50k policy. Never treat a missing send or malformed policy as legacy evidence.
+    """
+    if send == {}:
+        return 20000
+    if (isinstance(send,dict) and set(send)=={'input_token_limit'}
+            and type(send['input_token_limit']) is int and send['input_token_limit']==50000):
+        return 50000
+    raise DomainError('command_conflict')
 
 class ReservationDeferred(Exception):
     """The uncommitted reservation was rolled back before any external I/O."""
@@ -124,7 +140,7 @@ class Ledger:
             limit={'count_send':b.count_limit,'dispatch':b.generation_limit,'read':b.read_limit,'cancel':b.cancel_limit}[kind]
             if n >= limit:
                 raise DomainError('budget_exhausted')
-            data={}
+            data={'input_token_limit':MAX_INPUT_TOKENS} if kind=='count_send' else {}
             if kind=='dispatch':
                 # Same lock/order and isolation as the DB guard. Check after the
                 # lock so a racing workspace yields a typed budget stop, not SQL
@@ -196,9 +212,6 @@ class Ledger:
         data={'operation':'count','code':code,'received':False}
         if code=='http_error' and type(error.http_status) is int and 100<=error.http_status<=599:
             data['http_status']=error.http_status
-        if (code=='input_count_exceeds_limit' and type(error.input_tokens) is int
-                and error.input_tokens>RESERVED_INPUT):
-            data.update(received=True,input_tokens=error.input_tokens,limit=RESERVED_INPUT)
         with self.service.db.transaction() as c:
             self._auth(c)
             row=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -207,6 +220,10 @@ class Ledger:
             if (not row or row['request_sha256']!=request.sha256 or 'count_send' not in events
                     or 'count_result' in events or 'dispatch' in events):
                 raise DomainError('command_conflict')
+            limit=count_input_limit(events['count_send'])
+            if (code=='input_count_exceeds_limit' and type(error.input_tokens) is int
+                    and error.input_tokens>limit):
+                data.update(received=True,input_tokens=error.input_tokens,limit=limit)
             if 'problem' in events:
                 if events['problem']!=data: raise DomainError('command_conflict')
                 return

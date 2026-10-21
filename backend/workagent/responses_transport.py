@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 MODEL = 'gpt-6.1-sol'
 READ_TOOL = 'read_scoped_context'
 OFFICIAL_ORIGIN = 'https://api.openai.com'
-MAX_INPUT_TOKENS = 20_000
+MAX_INPUT_TOKENS = 50_000
 MAX_OUTPUT_TOKENS = 8192
 # These are reservation rates, NOT a claim about actual billed/cache-discount cost.
 INPUT_RESERVATION_RATE = '2.5'

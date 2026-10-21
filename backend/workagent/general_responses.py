@@ -149,7 +149,7 @@ def known_input_rejection_is_settled(c,attempt_id):
     earlier send must have its exact terminal receipt and completed local action.
     Prepared, ambiguous, outstanding and partially applied work remain held.
     """
-    from .responses_ledger import RESERVED_INPUT
+    from .responses_ledger import count_input_limit
     row=c.execute('SELECT data FROM provider_attempts WHERE id=%s',(attempt_id,)).fetchone()
     if not row or row['data'].get('profile')!='general-responses-v1':return False
     rejected=False
@@ -160,10 +160,12 @@ def known_input_rejection_is_settled(c,attempt_id):
         if 'cancel' in events or 'corrected_readback' in events:return False
         problem=events.get('problem')
         if problem is not None:
+            try: limit=count_input_limit(events.get('count_send'))
+            except DomainError: return False
             if (set(events)!={'count_send','problem'} or problem.get('operation')!='count'
                     or problem.get('code')!='input_count_exceeds_limit' or problem.get('received') is not True
-                    or type(problem.get('input_tokens')) is not int or problem['input_tokens']<=RESERVED_INPUT
-                    or problem.get('limit')!=RESERVED_INPUT or rejected):return False
+                    or type(problem.get('input_tokens')) is not int or problem['input_tokens']<=limit
+                    or type(problem.get('limit')) is not int or problem['limit']!=limit or rejected):return False
             rejected=True
             continue
         identity=events.get('identity',{});result=events.get('result',{})
