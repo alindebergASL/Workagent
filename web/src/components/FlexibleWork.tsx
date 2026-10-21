@@ -268,14 +268,17 @@ export function FlexibleEditor({
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   useLeaveGuard(dirty || Boolean(draft.pending));
 
-  function keep(next: Draft) {
+  /** Journals the draft; false when the browser refused to store it. */
+  function keep(next: Draft): boolean {
     setDraft(next);
     try {
       sessionStorage.setItem(key, JSON.stringify(next));
+      return true;
     } catch {
       setNotice(
         "Browser storage unavailable. Keep this tab open to retain the draft and retry information.",
       );
+      return false;
     }
   }
   const fresh = (a: S["Artifact"]): Draft => ({
@@ -286,10 +289,11 @@ export function FlexibleEditor({
   async function submit(action: Pending, done?: string) {
     if (busy || (!draft.pending && action.kind === "save" && problem)) return;
     const exact = draft.pending ?? action;
-    keep({ ...draft, pending: exact });
+    const journaled = keep({ ...draft, pending: exact });
     setBusy(true);
     setError("");
-    setNotice("");
+    // A storage failure was just reported by keep(); do not erase that warning.
+    if (journaled) setNotice("");
     try {
       if (exact.kind === "save") {
         const next = await productApi.save(

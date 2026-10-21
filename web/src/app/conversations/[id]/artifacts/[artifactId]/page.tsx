@@ -367,23 +367,27 @@ function ProductEditor({
         (other) => other?.observation.id === read?.observation.id,
       ) === index,
   );
-  function keep(next: Draft) {
+  /** Journals the draft; false when the browser refused to store it. */
+  function keep(next: Draft): boolean {
     setDraft(next);
     try {
       sessionStorage.setItem(key, JSON.stringify(next));
+      return true;
     } catch {
       setNotice(
         "Browser storage unavailable. Keep this tab open to retain the draft and retry information.",
       );
+      return false;
     }
   }
   async function submit(action: Pending) {
     if (busy || (!draft.pending && inputsError)) return;
     const exact = draft.pending ?? action;
-    keep({ ...draft, pending: exact });
+    const journaled = keep({ ...draft, pending: exact });
     setBusy(true);
     setError("");
-    setNotice("");
+    // A storage failure was just reported by keep(); do not erase that warning.
+    if (journaled) setNotice("");
     try {
       if (exact.kind === "save") {
         const saved = await productApi.save(

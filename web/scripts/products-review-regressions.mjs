@@ -165,6 +165,13 @@ try {
     await page.goto("https://products.test/");
     await page.addScriptTag({ content: code });
   }
+  // Shows the stand-in page and waits until it is on screen, so the work
+  // mounted next is a fresh mount. Two renders sent back to back can be
+  // batched by React into one, and the work would then never unmount.
+  async function away() {
+    await page.evaluate(() => window.mount("away"));
+    await expect(page.getByText("Navigation away")).toBeVisible();
+  }
   async function mount(mode = "operation", ws = "w", cid = "c", version = 7) {
     await page.evaluate(
       (args) => window.mount(...args),
@@ -2106,11 +2113,10 @@ try {
           reconnecting: false,
           refresh: window.refresh,
         };
-        window.mount("away");
       },
       [data, mode],
     );
-    // Separate steps, so React really unmounts the previous work.
+    await away();
     await page.evaluate(() => window.mount("product"));
   }
 
@@ -2425,7 +2431,7 @@ try {
     await expect(tab("Result")).toBeFocused();
     await expect(tab("Result")).toHaveAttribute("aria-selected", "true");
     // Reopened with an unsaved edit, it opens where the edit is.
-    await page.evaluate(() => window.mount("away"));
+    await away();
     await page.evaluate(() => window.mount("product"));
     await expect(tab("Edit")).toHaveAttribute("aria-selected", "true", {
       timeout: 15000,
@@ -2517,7 +2523,7 @@ try {
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
-    await page.evaluate(() => window.mount("away"));
+    await away();
     await page.evaluate(() => window.mount("product"));
     await expect(notes).toHaveValue(eleven);
     await expect(page.getByTestId("draft-problem")).toBeVisible();
@@ -2538,6 +2544,105 @@ try {
   passed++;
   console.log(
     "PASS notes over the limit are refused visibly and kept through reload, never truncated on save",
+  );
+
+  {
+    // When the browser refuses to keep the pending save, the person is told
+    // so while it is in flight and after an unconfirmed outcome, since only
+    // this tab then holds the exact retry.
+    const table = tableRev.body;
+    await showFlex(flexData(tableRev));
+    await page
+      .getByLabel("Notes (one per line)", { exact: true })
+      .fill([...table.notes, "Kept only in this tab"].join("\n"));
+    await page.evaluate(() => {
+      window.realSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === "workagent:product:w:c:a")
+          throw new DOMException("full", "QuotaExceededError");
+        return window.realSetItem.call(this, key, value);
+      };
+    });
+    let held;
+    const hold = (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      held = route;
+    };
+    await page.route("**/v1/workspaces/**", hold);
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    const warning = page.getByText("Browser storage unavailable.", {
+      exact: false,
+    });
+    await expect.poll(() => Boolean(held)).toBe(true);
+    await expect(warning).toBeVisible();
+    // The acknowledgement is lost: the outcome is unknown and only this tab
+    // can retry it exactly, so the warning stays.
+    await held.abort("failed");
+    await expect(
+      page.getByRole("button", { name: /Retry|Try again/ }).first(),
+    ).toBeVisible();
+    await expect(warning).toBeVisible();
+    await page.unroute("**/v1/workspaces/**", hold);
+    await page.evaluate(() => {
+      Storage.prototype.setItem = window.realSetItem;
+    });
+  }
+  passed++;
+  console.log(
+    "PASS a work editor that can't keep its pending save says so while saving and after an unconfirmed outcome",
+  );
+
+  {
+    // The same for a tool: its editor keeps the warning while the save of a
+    // changed input is in flight.
+    await page.evaluate((data) => {
+      sessionStorage.clear();
+      window.resource = {
+        data,
+        error: null,
+        reconnecting: false,
+        refresh: window.refresh,
+      };
+      window.mount("away");
+    }, data);
+    await page.evaluate(() => window.mount("product"));
+    await page.getByLabel("Quantity", { exact: true }).fill("5");
+    await page.evaluate(() => {
+      window.realSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === "workagent:product:w:c:a")
+          throw new DOMException("full", "QuotaExceededError");
+        return window.realSetItem.call(this, key, value);
+      };
+    });
+    let held;
+    const hold = (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      held = route;
+    };
+    await page.route("**/v1/workspaces/**", hold);
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect.poll(() => Boolean(held)).toBe(true);
+    await expect(
+      page.getByText("Browser storage unavailable.", { exact: false }),
+    ).toBeVisible();
+    await held.abort("failed");
+    await expect(
+      page.getByText("Browser storage unavailable.", { exact: false }),
+    ).toBeVisible();
+    await page.unroute("**/v1/workspaces/**", hold);
+    await page.evaluate(() => {
+      Storage.prototype.setItem = window.realSetItem;
+      sessionStorage.clear();
+    });
+  }
+  passed++;
+  console.log(
+    "PASS a tool editor that can't keep its pending save says so while saving and after an unconfirmed outcome",
   );
 
   {
@@ -2887,7 +2992,7 @@ try {
       [viewRev, true],
       [loose, false],
     ]) {
-      await page.evaluate(() => window.mount("away"));
+      await away();
       await page.evaluate(
         ({ rev, bound }) => {
           window.inPlace = {
