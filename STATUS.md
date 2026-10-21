@@ -33,8 +33,13 @@
   slots. Aggregate allocated authority remains $57.55032 within cumulative $100.
   All three historical unknown liabilities remain; no additional allocation made.
 - Recovery reply latency was 344.265122 seconds, versus 77.55005/80.436438 for the
-  table turns. Continuing with a bounded read-only Astra timing investigation using
-  sanitized event timestamps; no additional paid product calls in that diagnostic.
+  table turns. A read-only Astra audit found a 253.617002-second local count-to-dispatch
+  gap and a specific settled-count handoff omission; exact attribution of the entire
+  gap remains unproven. A bounded Astra implementation worker is active in isolated
+  worktree `/home/ubuntu/workagent-lease-handoff-20261021`, branch
+  `hermes/settled-count-handoff`. It owns only the handoff guard and focused tests,
+  with no live product calls or deployment permission. Parent integration/verification
+  remains required. Evidence: `/home/ubuntu/workagent-lease-handoff-evidence/`.
 - Evidence: `/home/ubuntu/workagent-turn-recovery-20261021/`, including
   `recovery-{red,final,regressions}.xml`, `unsent-tail-red.xml`, `review*-verdict.txt`,
   `installed.json`, `recovery-{before,after}.json`, `varied-verified.json`,
