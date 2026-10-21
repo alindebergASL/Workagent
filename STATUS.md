@@ -1,51 +1,51 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: two runtime fixes installed; recovery/status work active
+## 2026-10-21: recovery fixes installed; fresh live cycle in progress
 
-- Running private candidate: `f574d4094f01930b1a78276583286e7fc2b6e0bc`,
-  `/home/ubuntu/workagent-candidates/checkin-boundary-20261021`, web build
-  `cbtj8hC3EMVpHTJz7R2ei`. API/web/worker restarted and readiness verified.
-  Code-only installation: no new migrations, grant, allocation or route-evidence renewal.
-- Found and reproduced the hours-long stall: recording a second responsibility
-  incremented the conversation version; scheduler bookkeeping on an older waiting
-  responsibility then invalidated the recording turn's frozen context. The narrow
-  normalization reconstructs the original context hash only for that exact own
-  receipt-bound change. Human controls, other edits and authority checks stay fenced.
-  Existing requests, histories and saved work were not rewritten.
-- Core independent review found no blockers. Parent verification: 37 distinct focused
-  backend/DB cases passed, including recovery, unchanged stored context/request bytes,
-  pause/cancel/pause-then-resume rejection and safe closed-code denial diagnostics.
-  No full backend-suite claim. Evidence: `recording-refresh-{red,green,verified}.*`.
-- Claude's phone fix remains installed; additionally integrated `3877954` + `ca8a7f5`
-  for visible browser-storage warnings and the editor-reopen test fix. Verified 44 DOM
-  regressions, 345 frontend unit tests and production build. Installed 390px browser
-  check has no horizontal overflow. Physical-phone testing is not claimed.
-- Live recovery completed: recording `dfa8735a-b703-4fe8-ab01-6d77e699cf6d` published;
-  overdue continuation `633d2fa3-abc2-4707-bc7f-9e19d3e71d30` automatically ran,
-  fetched W3C guidance and published proposal `ee9be1f2-92d5-458f-b1f0-b63edd1bdbd1`.
-  The human editor note and current human revision are preserved; proposal is pending,
-  responsibility waits for a person, and no further check-in is scheduled.
-  This verifies recovery, not an uninterrupted scheduled cycle.
-- Fresh-cycle finding (04:45 UTC): a plan with `next_check_in_at` but `wait=null`
-  admitted continuation `0aacb6ed-1fa1-415a-810d-fef4b57856eb` 73.532976 seconds
-  early. The later human edit cancelled it before any response step or I/O event;
-  its retained attempt is `prepared`. Replacement admission is currently held up.
-  The two-page distribution edit and protected editor note are saved. This is failed
-  timing evidence, not a clean-cycle pass (`implicit-wait-live-failure.json`).
-- The missing-wait timing fix is now installed; 28 focused timing/lifecycle cases
-  passed, including real-DB edit/restart checks and preserved explicit event waits.
-  A fresh live post-fix timing pass is still pending. Isolated implementation worker
-  `deleg_ce1e80e5` is fixing genuine stale-context status visibility and investigating
-  safe admission past cancelled, provably unsent attempts. It has no live-provider or
-  deployment authority. Its status/cancellation changes are not installed yet.
-- Latest evaluation reservations increased by $3.29800;
-  the three historical unknown-usage steps remain. Evaluation bound: $4.61720 / 35
-  generation slots, wholly within the same existing allowance and cumulative $100
-  authorization. These are reservations, not provider billing; $0 new allocation.
-- Evidence: `/home/ubuntu/workagent-reset-20261020/`, including the read-only
-  `verified-633d2fa3-abc2-4707-bc7f-9e19d3e71d30.json`, test logs and pre-install backup.
-  Earlier failed/late journeys remain failed/late evidence. The mission is active,
-  not complete; older unrelated blocked requests have not been erased or replayed.
+- Running private candidate: `4048e8f6eeb9afee0e29e2bca1afbf8e3dcbac72`,
+  `/home/ubuntu/workagent-candidates/compact-context-20261021`, web build
+  `cbtj8hC3EMVpHTJz7R2ei`. Readiness verified. Migration 039 applied after a
+  verified backup; retained work, request histories, grants, budget and route evidence
+  hashed identically before/after migration. No new allocation or evidence renewal.
+- Installed recording-context normalization and implicit scheduled-wait boundary:
+  the run's own receipt-bound bookkeeping cannot invalidate its frozen context;
+  `next_check_in_at` without an explicit wait object still prevents early work.
+  Human edits, controls and actual authority changes remain fenced.
+- Installed per-run closed dispatcher diagnostics and safe new admission past
+  cancelled prepared-only attempts with zero request steps/events. Old attempts and
+  accounting are unchanged. Prepared requests and ambiguous sends remain blocking.
+  Also fixed execution status ordering: Run has `observed_at`, not `created_at`;
+  random IDs must not hide the newest run from the bounded status list.
+- Independent implementation handoff: `handoffs/backend/STALLED_TURN_STATUS.md`.
+  Parent reviewed the diff; 96 child cases verified from JUnit. Integrated recovery
+  and timing checks plus status-ordering regression bring that set to 106 unique
+  passing cases. TypeScript passed. No full backend-suite claim.
+- Recovery now verified for both earlier failed cycles. Latest continuation
+  `91babe5d-274f-48d0-9ef1-111fe0d443f4` fetched W3C again and published pending
+  proposal `c16ceab1-ec53-45d6-977c-cbfa0d30a416` against human revision
+  `452d5634-1aad-4e1a-a2a5-f0752bcc357c`. The two-page edit and editor note survive;
+  the responsibility waits for feedback with no further check-in. This is recovery,
+  not an uninterrupted scheduled-cycle pass.
+- A fresh request then hit a known input-count rejection before recording a handover:
+  22,428 tokens versus the unchanged 20,000 limit. Full capability schemas duplicated
+  the schemas already sent with the function definition. Installed a model-input-only
+  projection removing that duplication; retained tool receipts remain complete.
+  A fresh explicit human turn may supersede an exact count-rejected request only
+  when every earlier send/action is settled; automatic retry and unknown sends remain
+  held. 39 focused input/context/admission/acceptance cases pass. The failed request
+  is retained; this fix did not rewrite or resend it.
+- A fresh six-minute handover request has been sent through the ordinary composer.
+  Hermes is continuing the actual edit/leave/restart/return check. It is not yet a pass.
+- Claude remains web owner. Installed frontend verification: 44 DOM regressions,
+  345 unit tests and production build; 390px browser layout and saved edits checked.
+  Physical-phone testing is not claimed. Backend now supplies optional fixed
+  `failure_reason`/`next_action`; current UI still uses its legacy category fallback.
+- Last measured evaluation reservation increase: $4.08952. Bound: $6.33216 / 48
+  generation slots within existing grant limits and cumulative $100 authority.
+  Historical unknown-usage liabilities remain reserved. No new allocation. These
+  figures describe reservations, not provider billing.
+- Evidence: `/home/ubuntu/workagent-reset-20261020/`. Earlier failed/late journeys
+  remain failed/late evidence; the mission remains active and incomplete.
 
 ## 2026-10-19: result-first candidate running; phase incomplete
 
