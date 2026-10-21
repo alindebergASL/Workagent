@@ -1,6 +1,46 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: migration 040 installed; recovery passed, clean repeat failed
+## 2026-10-21: 50k input budgeting installed; fresh scheduled-cycle verification active
+
+- Running private candidate: `9be5a541ccda6b8c3f136bbbffe175b211de2d01`,
+  `/home/ubuntu/workagent-candidates/paused-context-20261021`. API/web/worker
+  readiness verified; unchanged frontend build `cbtj8hC3EMVpHTJz7R2ei`.
+- Implemented all five input-budget changes: 50,000-token exact-provider preflight,
+  complete-request local budgeting with continuation headroom, identical structured
+  body references, compact inactive lifecycles with frozen scoped detail retrieval,
+  and content-free size metrics. See `docs/INPUT_BUDGET.md`. Local counts are estimates,
+  not provider counts or billing. Offline replay of the earlier rejected request
+  estimated 9.9% fewer input tokens; no historical request was rewritten.
+- Installed migrations 041/042 after backup/archive verification. Retained saved
+  work, requests, receipts and accounting hashed unchanged. Historical count
+  rejections retain their original 20k semantics; unknown sends remain blocking.
+- Latest results across the integrated targeted batches cover 129 distinct passing
+  cases, with earlier failures retained and superseded by reruns. Independent review
+  found a non-adaptive budget-stop defect; it was fixed with a red/green regression.
+  This is not a full-suite or single-run green claim.
+- A live request counted 17,241 input tokens and recorded its handover, then exposed
+  an older paused-handover bookkeeping defect. A narrow fix preserves only the
+  receipt-bound own refresh when all substantive lifecycle fields are identical.
+  Eight regression cases now pass, including real human-control rejection. The fix
+  is installed with identical retained data, grant, route and accounting.
+- Interrupted run `2a3cf395-7ba4-47e5-aef4-a28513659dde` remains blocked: its check-in
+  passed during diagnosis and its handover was subsequently paused. A new message
+  in that conversation is refused as unresolved. No replay/history rewrite was
+  forced. This remains a recovery/usability limitation, not a clean pass.
+- Fresh synthetic conversation `b7f68f2a-6501-4820-b35b-883ce93c56e0` was created through
+  Home. Initial run `620a3358-e3c5-4ddd-abbe-276c3694fce0` completed and saved editable
+  document `7d804d72-b6c9-4acb-b98b-1958b6696f15`. A new scheduled-cycle attempt is in
+  progress; no clean-cycle result is claimed yet.
+- Existing cumulative authorization remains $100. Aggregate allocated authority is
+  $57.55032, not billed spend. Installation activated at most $4.96608 of further
+  generation reservations (24 generations/32 counts) with all earlier usage and
+  three unknown liabilities retained. No second allowance, new route or private-data
+  scope was created. No default-branch merge or production deployment.
+- Evidence: `/home/ubuntu/workagent-input-optimization-20261021/`, including
+  `targeted-test-summary.json`, `installation-verified.json`, `paused-refresh-{red,green}`,
+  `paused-fix-installed.json`, `paused-fix-readiness.json`, and live journey snapshots.
+
+## Earlier checkpoint: migration 040 installed; recovery passed, clean repeat failed
 
 - Running private candidate: `4bf4d505c4699f24174b92979af39047bf725aec`,
   `/home/ubuntu/workagent-candidates/retained-read-20261021`; same verified web build.
