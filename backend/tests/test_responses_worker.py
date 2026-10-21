@@ -46,6 +46,10 @@ def totals(s,g):
 def test_initial_human_edit_revision_exact_approval(context,tmp_path):
     s,p,ws,refs,_=context
     g,q,fake,worker=setup(context,tmp_path)
+    # This checks state/receipts, not HTTP lease margins. MockTransport has no
+    # live network wait; timing-specific probes set their own explicit timeouts.
+    import httpx
+    worker.transport._client.timeout=httpx.Timeout(0.1)
     assert q.run.profile=='openai-responses-v1'
     assert worker.run(ws,q.run.id)=='completed'
     a=s.get_assignment(p,ws,q.assignment.id)

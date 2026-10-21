@@ -7,7 +7,7 @@ from test_domain import context
 from test_responses_worker import grant as intake_grant
 from workagent.models import ResponsesBinding,GeneralResponsesBinding,AdaptiveResponsesBinding,ProviderGrant,new_id
 from workagent.db import Database
-from workagent.provider_attempts import configure_grant
+from workagent.provider_attempts import configure_grant,revoke_grant
 from workagent.service import encoded
 
 
@@ -26,7 +26,10 @@ def test_legacy_intake_grant_is_not_enlarged_by_readback(context):
     assert current.responses.input_limit==200000
     raw=current.model_dump(mode='json');raw['id']=new_id();raw['responses']['input_limit']=80000
     old=ProviderGrant.model_validate(raw)
-    configured=configure_grant(Database(admin),old,predecessor_id=current.id)
+    # Fixed intake does not use the alpha successor seam. Install a separate
+    # explicit legacy-shaped fixture after revoking the unused new one.
+    revoke_grant(Database(admin),current.id)
+    configured=configure_grant(Database(admin),old)
     with s.db.transaction() as c:
         stored=c.execute('SELECT data FROM provider_grants WHERE id=%s',(old.id,)).fetchone()['data']
     assert configured.responses.input_limit==80000
