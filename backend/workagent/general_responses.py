@@ -27,10 +27,10 @@ def consumer_hash():
 def verify_route_record(record,grant=None):
     """Explicit operator evidence prerequisite, not automatic model discovery.
 
-    Fresh account/model availability and conservative price verification is
-    separate from the revocable, non-expiring cumulative spending grant.
+    Evidence binds the route and conservative prices, not a rolling time lease.
+    Never renew its timestamp. Revocation and cumulative spending stay separate.
     """
-    from datetime import datetime,timedelta
+    from datetime import datetime
     from decimal import Decimal
     from .models import now
     from .responses_transport import TransportError,INPUT_RESERVATION_RATE,OUTPUT_RESERVATION_RATE
@@ -41,7 +41,7 @@ def verify_route_record(record,grant=None):
             and v['account_available'] is True and v['model_available'] is True
             and v['synthetic_context_confirmed'] is True
             and v['service_tier']=='default' and v['store_acknowledged'] is True
-            and now()-timedelta(hours=24)<=checked<=now()
+            and checked.tzinfo is not None and checked<=now()
             and Decimal('0')<Decimal(v['input_usd_per_million'])<=Decimal(INPUT_RESERVATION_RATE)
             and Decimal('0')<Decimal(v['output_usd_per_million'])<=Decimal(OUTPUT_RESERVATION_RATE)
             and v['authorization_sha256']==AUTHORIZATION_HASH
@@ -50,23 +50,16 @@ def verify_route_record(record,grant=None):
             valid=valid and record['grant_id']==grant.id and r['product_project_id']==grant.responses.project_id and r['secure_secret_reference']==grant.responses.secret_reference
     except (KeyError,TypeError,ValueError,ArithmeticError):
         valid=False
-    if not valid: raise TransportError('fresh_verified_general_route_and_pricing_required')
+    if not valid: raise TransportError('verified_general_route_and_pricing_required')
 
 
 def validate_grant(grant,c=None):
-    from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
-    from .service import digest
+    # Source/prompt/schema hashes in grants are historical provenance, not
+    # installation authority. Keep exact grant/config/attempt identity checks;
+    # current code supplies the contract only when preparing NEW requests.
     b=grant.responses
-    from .adaptive import contract
-    policy,decision_schema=contract(b)
-    from .responses_recovery import approved_successor
-    consumer_ok=(grant.consumer_sha256==consumer_hash() or
-                 (c is not None and approved_successor(c,grant) is not None))
-    if (grant.profile!=PROFILE or not consumer_ok or
+    if (grant.profile!=PROFILE or b is None or
         b.authorization_sha256!=AUTHORIZATION_HASH or
-        b.instructions_sha256!=sha256(policy.encode()).hexdigest() or
-        b.schema_sha256!=sha256(EXPLANATION_SCHEMA.material).hexdigest() or
-        b.scope_tool_sha256!=sha256(decision_schema.material).hexdigest() or
         len(set(b.conversation_ids))!=len(b.conversation_ids)):
         raise DomainError('unsupported_operation')
 
@@ -235,8 +228,9 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     elif isinstance(decision,READ_DECISIONS):
         if not alpha_enabled(config): raise DomainError('unsupported_operation')
         if isinstance(decision,FetchPublicURL):
-            if message.author_kind!='human' or message.target is not None or config.get('responsibility'):
-                raise DomainError('not_found_or_not_authorized')
+            # Current run/responsibility and exact target were checked above.
+            # A public read grants no private recall or mutation authority.
+            base=None
         if isinstance(decision,SearchWorkContext) and config.get('responsibility'):
             raise DomainError('unsupported_operation')
         if isinstance(decision,InspectJSON):

@@ -264,16 +264,16 @@ def test_historical_explanation_projection_does_not_rewrite_receipts_or_messages
         assert c.execute('SELECT e.data FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.workspace_id=%s ORDER BY e.id',(ws,)).fetchall()==receipts
 
 
-def test_catalog_source_pin_change_blocks_next_phase(context,tmp_path,monkeypatch):
+def test_catalog_source_change_does_not_require_approval_for_next_phase(context,tmp_path,monkeypatch):
     import workagent.general_responses as runtime
     s,p,ws,_,_=context
     cv,g,q,fake,w=launch(context,tmp_path,[skill,calculate])
     def change(name):
         if name=='after_tool_result': monkeypatch.setattr(runtime,'consumer_hash',lambda:'f'*64)
     w.phases.hook=change
-    raises('unsupported_operation',lambda:w.work(p,ws,q.run.id))
-    assert totals(s,g)['request_counts']['dispatch']==1
-    assert not s.get_conversation(p,ws,cv.id).artifact_ids
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
+    assert totals(s,g)['request_counts']['dispatch']==3
+    assert len(s.get_conversation(p,ws,cv.id).artifact_ids)==2
 
 
 @pytest.mark.parametrize('mutation',['skill_hash','skill_authority','completion','answer'])

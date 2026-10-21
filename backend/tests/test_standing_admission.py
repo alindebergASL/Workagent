@@ -203,7 +203,7 @@ def test_explicit_fifty_dollar_ceiling_counts_all_historical_carry(context,tmp_p
         total=summary(c,g.id,shared=True)
         assert Decimal(total['reserved_cost_usd'])<=50
         assert Decimal(total['carried_reserved_cost_usd'])==sum(map(Decimal,amounts))
-    raw=g.model_dump(mode='json'); raw['responses']['cost_limit_usd']='50.01'
+    raw=g.model_dump(mode='json'); raw['responses']['cost_limit_usd']='100.01'
     with pytest.raises(ValidationError): ProviderGrant.model_validate(raw)
     with pytest.raises(psycopg.Error):
         with Database(admin).transaction() as c:

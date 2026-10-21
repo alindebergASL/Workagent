@@ -83,7 +83,12 @@ class Provider:
 
 
 def worker(ctx,fake,tmp_path,**kwargs):
-    return GeneralWorker(ctx[0],transport=fake.transport(),state=tmp_path/'state',enable_responses=True,**kwargs)
+    transport=fake.transport()
+    # In-process MockTransport has no live-network timeout budget. Keep the
+    # production HTTP/lease admission margins intact, including on loaded CI.
+    assert isinstance(transport._client._transport,httpx.MockTransport)
+    transport._client.timeout=httpx.Timeout(0.1)
+    return GeneralWorker(ctx[0],transport=transport,state=tmp_path/'state',enable_responses=True,**kwargs)
 
 
 def totals(s,g):

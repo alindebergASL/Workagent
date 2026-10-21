@@ -1,4 +1,4 @@
-"""A standing worker sees renewed evidence without granting itself freshness."""
+"""Route evidence binds facts, never a rolling 24-hour execution lease."""
 import json
 from copy import deepcopy
 from datetime import datetime,timedelta,timezone
@@ -20,16 +20,13 @@ def fixture():
     return {'grant_id':grant.id,'runtime':runtime,'verification':verification},grant
 
 
-def test_reload_observes_operator_renewal_without_refreshing_old_evidence(tmp_path,monkeypatch):
+def test_stale_evidence_remains_valid_without_timestamp_renewal(tmp_path,monkeypatch):
     import workagent.models as rules
     record,grant=fixture();path=tmp_path/'route.json';path.write_text(json.dumps(record))
     start=datetime.fromisoformat(record['verification']['checked_at'])
     monkeypatch.setattr(rules,'now',lambda:start+timedelta(hours=25))
-    with pytest.raises(TransportError):current_route_authority(path,grant,record['runtime'])
+    assert current_route_authority(path,grant,record['runtime'])==record
     assert json.loads(path.read_text())==record  # runtime never renews the evidence itself
-    renewed=deepcopy(record);renewed['verification']['checked_at']=(start+timedelta(hours=24)).isoformat()
-    path.write_text(json.dumps(renewed))
-    assert current_route_authority(path,grant,record['runtime'])==renewed
 
 
 @pytest.mark.parametrize('damage',['project','secret','grant','model','malformed','missing'])

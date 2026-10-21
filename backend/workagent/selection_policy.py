@@ -4,15 +4,9 @@ A companion is a new, inert, read-only view of the exact selected source, not an
 edit of it. Scope/currentness/lease checks still belong to the domain broker.
 """
 
-# Kept in sync with additive SQL authority, not the latest mutable instructions.
-# A future policy change needs explicit migration rather than retrospective scope.
-COMPANION_POLICY_SHA256='d9e01384a363919be4c4436b1ddcd1db6d4b69d4ee42b27e85f85030051c1a47'
-
-
 def companion_enabled(config):
     binding=config.get('responses',{})
-    return (binding.get('runtime_extension')=='general-alpha-v1'
-            and binding.get('instructions_sha256')==COMPANION_POLICY_SHA256)
+    return binding.get('runtime_extension')=='general-alpha-v1'
 
 
 def companion_view(decision, target, *, author_kind, alpha, responsibility=False):
