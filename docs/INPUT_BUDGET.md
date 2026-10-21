@@ -70,6 +70,20 @@ PostgreSQL with controlled HTTP to check scoped retrieval, unchanged canonical
 bodies and restart behavior. Controlled tests are not live-model quality evidence.
 
 Increasing the request-size limit must update Python and database reservations
-consistently. It does not reset spending, forgive unknown sends, create a second
+consistently. Migration 041 binds each new count-send to the 50,000-token policy;
+legacy empty count-send records retain their historical 20,000-token meaning.
+Migration 042 allows new fixed-profile grants to reserve all of their original
+allowed generations at 50,000 tokens each (200,000 intake / 400,000 general /
+2,500,000 adaptive aggregate input tokens). Historical explicit limits remain
+valid and unchanged; monetary and generation ceilings are not increased by these
+defaults. Intake SQL enforces the actual stored input ceiling, not a hardcoded one.
+
+Packing rejection in either worker path becomes a durable budget stop rather than
+a running spinner. Only a prepared attempt with zero request steps can be marked
+unsent/failed; any prepared request, count send, generation or unknown history
+retains its conservative existing status and liability. No provider result is
+fabricated to complete a rejected step.
+
+These changes do not reset spending, forgive unknown sends, create a second
 allowance, or change the cumulative $100 development ceiling. Activation and live
 verification are recorded separately in STATUS.md.

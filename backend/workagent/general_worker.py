@@ -204,14 +204,14 @@ class GeneralWorker:
         ledger=Ledger(s,receipt)
         if enabled(config):
             return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
-        selection,_=ledger.snapshot('selection',cap)
-        if selection is None:
-            from .request_packing import prepare_selection
-            selection=prepare_selection(context,instructions=POLICY,
-                read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
-                policy='general-responses-v1')
-            ledger.prepare(selection,cap)
         try:
+            selection,_=ledger.snapshot('selection',cap)
+            if selection is None:
+                from .request_packing import prepare_selection
+                selection=prepare_selection(context,instructions=POLICY,
+                    read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
+                    policy='general-responses-v1')
+                ledger.prepare(selection,cap)
             selected=phases._step(ledger,selection,cap,deadline)
             if selected is None or selected.state!='function_call':
                 return s.get_run(p,ws,rid)
@@ -236,7 +236,10 @@ class GeneralWorker:
             # Ambiguous count/send is kept in the exact journal. No controlled
             # failure message, new turn, repair, regenerated decision or refund.
             return s.get_run(p,ws,rid)
-        except DomainError:
+        except DomainError as error:
+            if error.code.value=='budget_exhausted':
+                result=s.stop_general_budget(cap,receipt)
+                return self._terminal_readback(p,ws,result)
             raise
         except Exception:
             # Read back a potentially committed result; never fail/retry generation.

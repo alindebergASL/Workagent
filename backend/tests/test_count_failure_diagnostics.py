@@ -86,7 +86,7 @@ def test_alpha_final_count_limit_preserves_stage_and_never_retries(context,tmp_p
     assert len(detail.messages)==1 and not detail.artifact_ids
     assert turn.response_steps[-1].phase=='final' and turn.response_steps[-1].state=='invalid'
     assert turn.retained_local_result is not None and not turn.retained_local_result.published
-    assert '20000' in turn.reason
+    assert '50000' in turn.reason
     assert all('instructions' not in ctx and 'tools' not in ctx for ctx in fake.contexts)
     before=list(fake.calls);worker(context,fake,tmp_path).work(p,ws,q.run.id);assert fake.calls==before
     assert totals(s,g)['request_counts']=={'count_send':2,'dispatch':1,'read':0,'cancel':0}

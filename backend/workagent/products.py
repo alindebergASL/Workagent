@@ -543,17 +543,26 @@ class Products:
         from .responses_ledger import Ledger, observations
         from .general_responses import check_pins
         from .outcomes import acknowledge
-        from .adaptive import enabled, BUDGET_STOP_REASON
+        from .adaptive import BUDGET_STOP_REASON
+        from .service import encoded
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv=self._check_capability(c,cap)
             bound,attempt,origin=ledger._auth(c,cap)
-            if bound.id!=run.id or not enabled(check_pins(c,run)):
+            if bound.id!=run.id:
                 raise DomainError('unsupported_operation')
+            check_pins(c,run)
             # Includes current human target, scope and original context pins.
             self._general_context(c,cap)
             steps=observations(c,attempt.id)
             received=any(x.state in ('received','invalid') for x in steps)
+            # Only a zero-step attempt is proven never prepared for any provider
+            # I/O. The run lock fences concurrent preparation. Count-only,
+            # generation and all prepared-request histories remain unresolved.
+            if not steps and attempt.state=='prepared':
+                attempt.state='failed'
+                c.execute("UPDATE provider_attempts SET data=%s,abandonment_reason='unsent_abandoned' WHERE id=%s",
+                          (encoded(attempt),attempt.id))
             # Budget exhaustion is not evidence of an unsent/abandoned attempt.
             # Preserve its state and every receipt, including known completed
             # phases; only exact final publication may reconcile the attempt.

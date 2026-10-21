@@ -196,7 +196,9 @@ class ResponsesBinding(Model):
     count_limit: Literal[4] = 4
     read_limit: Literal[40] = 40
     cancel_limit: Literal[4] = 4
-    input_limit: Literal[80000] = 80000
+    # Historical serialized grants retain their original cap. NEW fixed grants
+    # allow their existing generation count at the new 50k request reservation.
+    input_limit: Literal[80000,200000] = 200000
     output_limit: Literal[32768] = 32768
     cost_limit_usd: Literal['20.00'] = '20.00'
 
@@ -213,7 +215,7 @@ class GeneralResponsesBinding(Model):
     count_limit: Literal[8] = 8
     read_limit: Literal[80] = 80
     cancel_limit: Literal[0] = 0
-    input_limit: Literal[160000] = 160000
+    input_limit: Literal[160000,400000] = 400000
     output_limit: Literal[65536] = 65536
     cost_limit_usd: Literal['20.00'] = '20.00'
     conversation_ids: list[Id] = Field(min_length=1,max_length=2)
@@ -236,7 +238,7 @@ class AdaptiveResponsesBinding(Model):
     count_limit: Literal[50] = 50
     read_limit: Literal[500] = 500
     cancel_limit: Literal[0] = 0
-    input_limit: Literal[1000000] = 1000000
+    input_limit: Literal[1000000,2500000] = 2500000
     output_limit: Literal[409600] = 409600
     cost_limit_usd: Literal['20.00'] = '20.00'
     conversation_ids: list[Id] = Field(min_length=1,max_length=2)

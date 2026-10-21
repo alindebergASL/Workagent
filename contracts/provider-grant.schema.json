@@ -46,8 +46,11 @@
           "type": "integer"
         },
         "input_limit": {
-          "const": 1000000,
-          "default": 1000000,
+          "default": 2500000,
+          "enum": [
+            1000000,
+            2500000
+          ],
           "title": "Input Limit",
           "type": "integer"
         },
@@ -339,8 +342,11 @@
           "type": "integer"
         },
         "input_limit": {
-          "const": 160000,
-          "default": 160000,
+          "default": 400000,
+          "enum": [
+            160000,
+            400000
+          ],
           "title": "Input Limit",
           "type": "integer"
         },
@@ -449,8 +455,11 @@
           "type": "integer"
         },
         "input_limit": {
-          "const": 80000,
-          "default": 80000,
+          "default": 200000,
+          "enum": [
+            80000,
+            200000
+          ],
           "title": "Input Limit",
           "type": "integer"
         },

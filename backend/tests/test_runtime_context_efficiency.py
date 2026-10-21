@@ -17,6 +17,10 @@ def test_reservation_leaves_room_for_postcommit_authority_check(context, tmp_pat
     import workagent.service as service_module
     from workagent.responses_ledger import Ledger
     grant, queued, fake, worker, phases = setup_family(context, tmp_path, family)
+    # General test helpers intentionally use subsecond MockTransport timeouts;
+    # this test specifically exercises the real 100s HTTP allowance instead.
+    import httpx
+    phases.transport._client.timeout=httpx.Timeout(30.0,connect=5.0)
     origin = now()
     clock = [0.0]
     inserted = [False]
