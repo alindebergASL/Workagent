@@ -165,6 +165,13 @@ try {
     await page.goto("https://products.test/");
     await page.addScriptTag({ content: code });
   }
+  // Shows the stand-in page and waits until it is on screen, so the work
+  // mounted next is a fresh mount. Two renders sent back to back can be
+  // batched by React into one, and the work would then never unmount.
+  async function away() {
+    await page.evaluate(() => window.mount("away"));
+    await expect(page.getByText("Navigation away")).toBeVisible();
+  }
   async function mount(mode = "operation", ws = "w", cid = "c", version = 7) {
     await page.evaluate(
       (args) => window.mount(...args),
@@ -2106,11 +2113,10 @@ try {
           reconnecting: false,
           refresh: window.refresh,
         };
-        window.mount("away");
       },
       [data, mode],
     );
-    // Separate steps, so React really unmounts the previous work.
+    await away();
     await page.evaluate(() => window.mount("product"));
   }
 
@@ -2425,7 +2431,7 @@ try {
     await expect(tab("Result")).toBeFocused();
     await expect(tab("Result")).toHaveAttribute("aria-selected", "true");
     // Reopened with an unsaved edit, it opens where the edit is.
-    await page.evaluate(() => window.mount("away"));
+    await away();
     await page.evaluate(() => window.mount("product"));
     await expect(tab("Edit")).toHaveAttribute("aria-selected", "true", {
       timeout: 15000,
@@ -2517,7 +2523,7 @@ try {
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
-    await page.evaluate(() => window.mount("away"));
+    await away();
     await page.evaluate(() => window.mount("product"));
     await expect(notes).toHaveValue(eleven);
     await expect(page.getByTestId("draft-problem")).toBeVisible();
@@ -2986,7 +2992,7 @@ try {
       [viewRev, true],
       [loose, false],
     ]) {
-      await page.evaluate(() => window.mount("away"));
+      await away();
       await page.evaluate(
         ({ rev, bound }) => {
           window.inPlace = {
