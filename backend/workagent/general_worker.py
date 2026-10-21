@@ -206,7 +206,8 @@ class GeneralWorker:
             return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
         selection,_=ledger.snapshot('selection',cap)
         if selection is None:
-            selection=build_tool_selection(instructions=POLICY,source_context=canonical(self._request_context(context)),
+            from .request_packing import prepare_selection
+            selection=prepare_selection(context,instructions=POLICY,
                 read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
                 policy='general-responses-v1')
             ledger.prepare(selection,cap)
@@ -221,6 +222,8 @@ class GeneralWorker:
                 final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(staged,selected),
                     instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                     metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                from .request_packing import check_final
+                check_final(final)
                 ledger.prepare(final,cap)
             generated=phases._step(ledger,final,cap,deadline)
             if generated is None or generated.state!='completed':
@@ -263,8 +266,8 @@ class GeneralWorker:
                     with s.db.transaction() as c:
                         ledger._auth(c,cap)
                         observations=retained(c,receipt.attempt_id)
-                    selection=build_tool_selection(instructions=POLICY,
-                        source_context=canonical(continuation_context(self._request_context(context),observations,bound)),
+                    from .request_packing import prepare_selection
+                    selection=prepare_selection(continuation_context(context,observations,bound),instructions=POLICY,
                         read_schema=DECISION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id=phase),
                         policy=CAPABILITY,phase=phase)
@@ -279,6 +282,8 @@ class GeneralWorker:
                     final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(for_model(staged),selected),
                         instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                    from .request_packing import check_final
+                    check_final(final)
                     ledger.prepare(final,cap)
                 generated=phases._step(ledger,final,cap,deadline)
                 if generated is None or generated.state!='completed': return s.get_run(p,ws,rid)
