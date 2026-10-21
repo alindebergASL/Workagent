@@ -1,6 +1,48 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: 50k input budgeting installed; fresh scheduled cycle passed
+## 2026-10-21: original conversation recovered; varied table task passed
+
+- Running private candidate: `8aeec66ec10eb1ac96122b10e25dfdd9b994eaa9`,
+  `/home/ubuntu/workagent-candidates/turn-recovery-20261021`. No web implementation
+  changes, database migration, new grant, route renewal, allowance or private-data
+  expansion. Installed after a verified backup; retained data/accounting matched.
+- New human steering can fence an interrupted turn when every sent step has exact
+  terminal receipts and committed local effects. A later prepared step with zero
+  journal events is provably unsent and may be fenced, not replayed. Unknown sends,
+  unapplied results and ambiguous events remain blocking. Details: `docs/TURN_RECOVERY.md`.
+- TDD reproduced both the original denial and the actual zero-event trailing step.
+  Latest targeted batches cover 22 distinct passing cases. Independent gpt-6-astra
+  static review passed, then narrowly rechecked the unsent-tail delta; locking and
+  fencing were inspected, not newly concurrency-load-tested. No full-suite claim.
+  Reviewer calls are developer-tool use, not product-ledger evaluation charges.
+- Original conversation `6dfa709d-eb3f-4404-89ca-a42d27546f9c` recovered through its
+  normal message UI. Old run `2a3cf395-7ba4-47e5-aef4-a28513659dde` is cancelled;
+  new run `3642ec7f-4fd3-40ce-b8d9-4da71afb75f8` replied successfully. Exact old
+  attempt/step/event hashes stayed unchanged. Human revision
+  `22e96383-ea9e-4b92-80c1-5c7cc74b3ae1` and both paused handovers stayed unchanged.
+  The old goal was not relabelled complete and no old operation was replayed.
+- Varied live task: Home created an editable volunteer-rota structured table in
+  conversation `6f85265d-a0bc-4e6b-b02c-66b5a6fee83e`. A human changed Pack-down End
+  to `12:45` and saved a no-personal-details note. Follow-up produced pending
+  proposal `18cb75f0-eb64-4521-bbdb-8857002f388d` against human revision
+  `ec4eb168-71be-4fb7-9adc-666b5b70759c`, adding a Check column while preserving
+  every existing cell and the full note. The saved revision is unchanged; nothing
+  was accepted/distributed. Desktop and 390px phone-width return views checked.
+- This increment reserved +$1.65536, not billed spend. Current shared reservation
+  total is $32.65120 against installed $33.06504, leaving $0.41384/two generation
+  slots. Aggregate allocated authority remains $57.55032 within cumulative $100.
+  All three historical unknown liabilities remain; no additional allocation made.
+- Recovery reply latency was 344.265122 seconds, versus 77.55005/80.436438 for the
+  table turns. Continuing with a bounded read-only Astra timing investigation using
+  sanitized event timestamps; no additional paid product calls in that diagnostic.
+- Evidence: `/home/ubuntu/workagent-turn-recovery-20261021/`, including
+  `recovery-{red,final,regressions}.xml`, `unsent-tail-red.xml`, `review*-verdict.txt`,
+  `installed.json`, `recovery-{before,after}.json`, `varied-verified.json`,
+  `varied-{desktop,phone}.png`, and `latency-evidence.json`.
+- No default-branch merge or production deployment. This recovery increment is
+  delivered; the broader build mission remains active, not declared complete.
+
+## Earlier checkpoint: 50k input budgeting installed; fresh scheduled cycle passed
 
 - Running private candidate: `9be5a541ccda6b8c3f136bbbffe175b211de2d01`,
   `/home/ubuntu/workagent-candidates/paused-context-20261021`. API/web/worker
