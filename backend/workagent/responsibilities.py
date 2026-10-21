@@ -96,9 +96,11 @@ class Responsibilities(ResponsibilityExecution):
             # Changed context can require human review, but cannot supply the
             # decision this responsibility explicitly waits for.
             life.state = 'waiting_person'
-        elif life.wait is not None and life.wait.kind == 'check_in' and not life.check_in_due:
-            # Retain changed inputs for the scheduled review. An edit (or a
-            # worker restart) is not permission to cross its not-before time.
+        elif (life.next_check_in_at is not None and not life.check_in_due
+              and (life.wait is None or life.wait.kind == 'check_in')):
+            # A scheduled next action waits even if the optional wait object was
+            # omitted. Explicit person/dependency waits retain their own semantics.
+            # Edits and restart cannot cross the agreed not-before time.
             life.state = 'waiting_event'
         elif life.review_required or life.check_in_due or life.wait is None:
             life.state = 'active'
