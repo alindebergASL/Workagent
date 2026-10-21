@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator, model_serializer
 
-from .model_base import Model, Id, Text, Hash
+from .model_base import Model, Id, Text, AssistantOutputText, Hash
 from .acceptance_checks import AcceptanceSpec
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 
@@ -533,7 +533,7 @@ class DelegateConversation(Command):
 
 class TextResult(Model):
     kind: Literal['text'] = 'text'
-    text: Text
+    text: AssistantOutputText
 
 
 class TurnResult(Model):
@@ -560,7 +560,7 @@ class ConversationMessage(Model):
     sequence: Version
     author_id: Id
     author_kind: Literal['human', 'assistant', 'system']
-    text: Text
+    text: AssistantOutputText
     evidence_origin: Literal['human', 'runtime', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
     result: TurnResult | None = None
     operation: LocalOperation | None = None
@@ -570,6 +570,15 @@ class ConversationMessage(Model):
     responsibility_origin: ResponsibilityOrigin | None = None
     acceptance_checks: AcceptanceSpec | None = None
     created_at: AwareDatetime = Field(default_factory=now)
+
+    @field_validator('text', 'author_kind')
+    @classmethod
+    def author_text_bound(cls, value, info):
+        kind = value if info.field_name == 'author_kind' else info.data.get('author_kind')
+        text = value if info.field_name == 'text' else info.data.get('text', '')
+        if kind != 'assistant' and len(text) > 10000:
+            raise ValueError('human and system message text must have at most 10000 characters')
+        return value
 
     @model_validator(mode='after')
     def human_checks_only(self):
