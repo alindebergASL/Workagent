@@ -21,7 +21,7 @@ from workagent.service import encoded
 from workagent.responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
 
 CAPS=dict(generation_limit=50,count_limit=50,read_limit=500,input_limit=1000000,output_limit=409600,cost_limit_usd='20.00')
-CEILINGS=dict(generation_limit=256,count_limit=256,read_limit=4096,input_limit=5120000,output_limit=2097152,cost_limit_usd='20.00')
+CEILINGS=dict(generation_limit=256,count_limit=256,read_limit=4096,input_limit=256*RESERVED_INPUT,output_limit=2097152,cost_limit_usd='20.00')
 
 
 def binding(cvs, project, **limits):
@@ -120,7 +120,7 @@ def test_conversations_explicit_unique_ten_and_historical_literals():
 
 
 @pytest.mark.parametrize('field,value',[(f,v) for f in CAPS for v in ('missing',None,True)] + [
-    ('generation_limit',257),('read_limit',4097),('input_limit',5120001),('output_limit',2097153),
+    ('generation_limit',257),('read_limit',4097),('input_limit',256*RESERVED_INPUT+1),('output_limit',2097153),
     ('count_limit','50'),('cost_limit_usd','20.000001'),('cost_limit_usd','NaN'),
     ('max_steps','4'),('synthetic_data_only','true'),('conversation_ids',['duplicate','duplicate']),
     ('runtime_extension','unknown')])

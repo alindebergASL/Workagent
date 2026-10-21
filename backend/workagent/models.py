@@ -259,7 +259,8 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
     read_limit: int = Field(strict=True, ge=0, le=4096)
-    input_limit: int = Field(strict=True, ge=0, le=5120000)
+    # 256 authorized generations, each reserving up to 50,000 input tokens.
+    input_limit: int = Field(strict=True, ge=0, le=12800000)
     output_limit: int = Field(strict=True, ge=0, le=2097152)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
