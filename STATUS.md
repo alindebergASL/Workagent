@@ -1,6 +1,26 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: assistant output persistence bound aligned
+## 2026-10-21: older budget/guard regression batch closed
+
+- Final targeted rerun: all 33 cases passed, with no errors or skips. Baseline was
+  30 passes and three failures caused by fixtures retaining the old reservation
+  cost and generation counts. Independent Astra static review passed.
+- Test-only changes use current reservation constants, leave one generation before
+  the unchanged synthetic $20 cap, and preserve SQL-denial, concurrent-workspace,
+  successor-accounting, retained-unpublished-work and no-refill assertions.
+  Successor prefill uses 95 genuine synthetic generation reservations; the useful
+  96th is admitted and the next is denied. No ledger fabrication or refunds.
+- No runtime code, migration, web, contract, grant, allowance or live-data changes.
+  Private runtime remains `1dd509a7a65e3a97d862b2c1f79ce7c6190c2e99`; no restart or
+  installation was needed. No paid product calls were made by these tests.
+- Evidence: `/home/ubuntu/workagent-budget-fixture-evidence/`, especially
+  `baseline.xml`, `final.xml` and `review-verdict.txt`.
+- This bounded follow-up is complete. No coding/test successor has been launched;
+  development is stopped at this checkpoint, not silently continuing. The private
+  app remains available. The full backend suite and overall product completion
+  are not claimed.
+
+## Earlier checkpoint: assistant output persistence bound aligned
 
 - Running private candidate `1dd509a7a65e3a97d862b2c1f79ce7c6190c2e99` at
   `/home/ubuntu/workagent-candidates/reply-bound-20261021`; tested-file hashes,
