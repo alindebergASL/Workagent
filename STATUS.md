@@ -1,5 +1,28 @@
 # WorkAgent — authoritative delivery status
 
+## 2026-10-21: prototype reset underway; phone fix installed
+
+- Running private review candidate: `ab840d66043aeb19b453ff46a6f1c668418107be`,
+  `/home/ubuntu/workagent-candidates/prototype-reset-phone-20261020`, build
+  `FC9L13JejhrjSn41PS7e-`. API/web/worker active; the unchanged backend still reports
+  execution unavailable pending the runtime reset below.
+- Claude's finished `60775dd` phone outcome fix is now integrated and installed.
+  Four focused preview tests and production build passed. Live browser checks at
+  390px and 1440px verified short/full outcome text, keyboard expand/collapse,
+  saved-result navigation and no horizontal overflow. Physical-phone testing is
+  not claimed.
+- Active implementation: Hermes owns integration/live verification; isolated
+  backend lane `hermes/prototype-runtime-reset` is removing evidence TTL and
+  code-hash reauthorization, aligning the existing $100 budget schema, and enabling
+  bounded public retrieval in background/targeted turns. These changes are not yet
+  installed. No replacement engine or new permission framework is being added.
+- Fresh shared reservations: $22.69024 of the active grant's $29.15432 ceiling;
+  $6.46408 reservation headroom, three unknown-usage steps retained. The new live
+  evaluation is bounded to $3.56184 / 27 generation slots within existing authority;
+  $0 new allocation. These are reservations, not provider billing.
+- Current evidence: `/home/ubuntu/workagent-reset-20261020/`. The previous failed
+  early check-in remains failed evidence; no live corrected continuation PASS yet.
+
 ## 2026-10-19: result-first candidate running; phase incomplete
 
 This section supersedes the historical checkpoint below. The full phase is NOT
