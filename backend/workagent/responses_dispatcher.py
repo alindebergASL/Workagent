@@ -112,29 +112,50 @@ class ResponsesDispatcher:
         self.cursor=rows[-1]['cursor'] if len(rows)==100 else 0
         results=[]
         for row in rows:
+            from .models import now
+            from .execution_status import FAILURES, record_dispatch_failure
+            checked_at=now()
             self.progress(run_id=row['run_id'],status='visiting')
             observation=None
             reason=None
+            failure=None
+            checked=False
             try:
                 status=self._blocked_status(row)
                 if status is not None:
-                    pass
+                    failure='authority_unavailable' if status=='authority_unavailable' else None
+                    checked=True
                 elif hasattr(self.worker,'phases'):
                     from .service import Principal
                     run=self.worker.work(Principal(row['data']['principal_id'],'worker'),self.workspace,row['run_id'])
                     detail=service.get_conversation(Principal(row['data']['principal_id']),self.workspace,run.conversation_id)
                     observation=next(t for t in detail.turns if t.run_id==run.id)
                     status=general_dispatch_status(run,observation)
-                else: status=self.worker.run(self.workspace,row['run_id'])
+                    checked=True
+                else:
+                    status=self.worker.run(self.workspace,row['run_id'])
+                    checked=True
             except (DomainError,BundleDenied,TransportError,BlockingIOError) as error:
                 status='denied_or_deferred'
                 if isinstance(error,DomainError):
                     reason=error.code.value  # Closed enum only; never exception text.
+                    if reason in FAILURES:
+                        failure=reason; checked=True
+                    elif reason in ('unsupported_operation','unauthenticated'):
+                        failure='authority_unavailable'; checked=True
+                elif isinstance(error,BundleDenied):
+                    failure='authority_unavailable'; checked=True
             except Exception as error:
                 # CLI reporting boundary: never render DB/private-state/model values.
                 # Direct worker tests still expose programmer failures to the test runner.
                 logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,row['run_id'])))
                 status='internal_error'
+                failure='internal_error'; checked=True
+            # Lock contention, unresolved leases and transport exceptions do not
+            # prove recovery. Successful canonical work/readback clears a prior
+            # denial; the diagnostic is never consulted when scheduling work.
+            if checked:
+                record_dispatch_failure(service.db,self.workspace,row['run_id'],failure,checked_at)
             result={'run_id':row['run_id'],'status':status}
             if reason is not None:
                 result['reason']=reason

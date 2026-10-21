@@ -5631,6 +5631,28 @@
             ],
             "title": "Failure Category"
           },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "source_changed",
+                  "source_unavailable",
+                  "version_conflict",
+                  "not_found_or_not_authorized",
+                  "budget_exhausted",
+                  "connection_required",
+                  "authority_unavailable",
+                  "internal_error"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last actionable dispatcher denial, not a terminal outcome or permission to retry.",
+            "title": "Failure Reason"
+          },
           "last_progress_at": {
             "anyOf": [
               {
@@ -5642,6 +5664,18 @@
               }
             ],
             "title": "Last Progress At"
+          },
+          "next_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fixed safe guidance; never exception or provider text.",
+            "title": "Next Action"
           },
           "phase": {
             "anyOf": [

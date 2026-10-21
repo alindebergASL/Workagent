@@ -142,8 +142,21 @@ def cancelled_rejection_is_settled(c, attempt_id):
 
 
 def has_unresolved_attempt(c,ws,conversation_id):
-    rows=c.execute("SELECT a.id FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id "
-        "WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed')",(ws,conversation_id)).fetchall()
+    # A terminal cancellation fences every subsequent send. With no prepared
+    # request OR event, this retained prepared-only attempt cannot have reserved
+    # external I/O. Ignore it for NEW admission only: never rewrite its state,
+    # receipt binding, admission count or accounting. Even an unsent prepared
+    # step remains held here; the exemption deliberately proves a narrower case.
+    rows=c.execute("""SELECT a.id FROM provider_attempts a JOIN runs r
+        ON r.workspace_id=a.workspace_id AND r.id=a.run_id
+        WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed')
+        AND NOT coalesce((r.data->>'state'='cancelled' AND a.data->>'state'='prepared'
+            AND a.data->>'profile'='general-responses-v1'
+            AND a.data->>'provider_session_id' IS NULL AND a.data->>'provider_turn_id' IS NULL
+            AND a.data->>'result_hash' IS NULL
+            AND NOT EXISTS (SELECT 1 FROM responses_steps s WHERE s.attempt_id=a.id)
+            AND NOT EXISTS (SELECT 1 FROM responses_events e WHERE e.attempt_id=a.id)),false)""",
+        (ws,conversation_id)).fetchall()
     return any(not cancelled_rejection_is_settled(c,row['id']) for row in rows)
 
 

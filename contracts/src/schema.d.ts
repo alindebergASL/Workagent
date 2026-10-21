@@ -2415,8 +2415,18 @@ export interface components {
         RunExecution: {
             /** Failure Category */
             failure_category?: ("unknown_external_outcome" | "invalid_response" | "authority_or_budget" | "internal_error" | "worker_unavailable" | "work_blocked") | null;
+            /**
+             * Failure Reason
+             * @description Last actionable dispatcher denial, not a terminal outcome or permission to retry.
+             */
+            failure_reason?: ("source_changed" | "source_unavailable" | "version_conflict" | "not_found_or_not_authorized" | "budget_exhausted" | "connection_required" | "authority_unavailable" | "internal_error") | null;
             /** Last Progress At */
             last_progress_at?: string | null;
+            /**
+             * Next Action
+             * @description Fixed safe guidance; never exception or provider text.
+             */
+            next_action?: string | null;
             /** Phase */
             phase?: string | null;
             /** Run Id */
