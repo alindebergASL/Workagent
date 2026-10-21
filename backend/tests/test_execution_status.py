@@ -15,6 +15,20 @@ from workagent.db import Database
 from workagent.service import Principal
 
 
+def test_recent_runs_do_not_sort_by_random_id(context,tmp_path,monkeypatch):
+    from test_conversations import conversation, post
+    import workagent.conversations as conversations
+    s,p,ws,_,_=context
+    ids=iter(range(9999,0,-1))
+    monkeypatch.setattr(conversations,'new_id',lambda:f'ordering-{next(ids):04d}')
+    runs=[]
+    for _ in range(41):
+        cv=conversation(context)
+        runs.append(post(context,cv,'Synthetic ordering regression.').run.id)
+    status=read(s,p,ws,str(tmp_path/'no-worker.json'))
+    assert [r.run_id for r in status.runs]==list(reversed(runs))[:40]
+
+
 def test_heartbeat_no_secrets_stale_wrong_workspace_and_dead_pid(tmp_path):
     path=tmp_path/'execution.json'
     publish(path,'ws','grant',authorized=True,run_id='run',status='visiting')

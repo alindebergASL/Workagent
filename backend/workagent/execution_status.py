@@ -174,7 +174,7 @@ def read(service, p, ws, path):
             LEFT JOIN run_dispatches d ON d.workspace_id=r.workspace_id AND d.run_id=r.id
             LEFT JOIN provider_grants g ON g.workspace_id=r.workspace_id AND g.id=rc.data->>'grant_id'
             WHERE r.workspace_id=%s AND cv.data->>'owner_id'=%s
-            ORDER BY r.data->>'created_at' DESC,r.id DESC LIMIT 40""",(ws,p.id)).fetchall()
+            ORDER BY (r.data->>'observed_at')::timestamptz DESC,r.id DESC LIMIT 40""",(ws,p.id)).fetchall()
         for record in records:
             run=Run.model_validate(record['data'])
             a=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(ws,run.id)).fetchone()
