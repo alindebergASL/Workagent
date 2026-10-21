@@ -1,6 +1,6 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: 50k input budgeting installed; fresh scheduled-cycle verification active
+## 2026-10-21: 50k input budgeting installed; fresh scheduled cycle passed
 
 - Running private candidate: `9be5a541ccda6b8c3f136bbbffe175b211de2d01`,
   `/home/ubuntu/workagent-candidates/paused-context-20261021`. API/web/worker
@@ -29,16 +29,39 @@
   forced. This remains a recovery/usability limitation, not a clean pass.
 - Fresh synthetic conversation `b7f68f2a-6501-4820-b35b-883ce93c56e0` was created through
   Home. Initial run `620a3358-e3c5-4ddd-abbe-276c3694fce0` completed and saved editable
-  document `7d804d72-b6c9-4acb-b98b-1958b6696f15`. A new scheduled-cycle attempt is in
-  progress; no clean-cycle result is claimed yet.
+  document `7d804d72-b6c9-4acb-b98b-1958b6696f15`. The complete fresh cycle passed:
+  ask → saved work → handover → human edit → leave → planned worker restart →
+  unattended scheduled continuation → return to a pending proposal. No code,
+  configuration or repair was applied during this fresh cycle.
+- Check-in was scheduled for `20:13:22.268263Z`; the dispatcher admitted continuation
+  `f772b736-a36e-42ed-8090-cff03ffdde47` at `20:13:22.804086Z` (0.535823 seconds late,
+  not early). It freshly fetched W3C once and published pending proposal
+  `c32f3cf1-7502-4d11-a321-1a6facfa2c29` at `20:15:47.048425Z`. The current human
+  revision `7ce9a31c-ff6c-4c20-9f79-8ff515719617` remains authoritative and is the
+  proposal base. Both full human notes are preserved. The handover waits for a
+  person with no next check-in; the proposal was not accepted or distributed.
+- The terminal read-only verifier checked schedule timing, fresh source reads,
+  unique generation phases, exact provider counts, unchanged human revision,
+  pending proposal and the three historical unknown liabilities. All five
+  continuation counts were below 50k. A public read remains observation, not goal
+  verification. Browser return controls and the saved human edit were checked at
+  desktop and 390px phone width, with no horizontal overflow; no physical-device
+  or printed-output accessibility claim is made.
 - Existing cumulative authorization remains $100. Aggregate allocated authority is
   $57.55032, not billed spend. Installation activated at most $4.96608 of further
   generation reservations (24 generations/32 counts) with all earlier usage and
   three unknown liabilities retained. No second allowance, new route or private-data
-  scope was created. No default-branch merge or production deployment.
+  scope was created. Post-install generation reservations total +$2.89688, including
+  the interrupted attempt and fresh journey; these are not provider billing.
+  No default-branch merge or production deployment.
 - Evidence: `/home/ubuntu/workagent-input-optimization-20261021/`, including
   `targeted-test-summary.json`, `installation-verified.json`, `paused-refresh-{red,green}`,
-  `paused-fix-installed.json`, `paused-fix-readiness.json`, and live journey snapshots.
+  `paused-fix-installed.json`, `paused-fix-readiness.json`, `fresh-{edited,planned-restart,
+  after-restart,complete}.json`, `verified-f772b736-a36e-42ed-8090-cff03ffdde47.json`,
+  and `fresh-return-{desktop,phone}.png`.
+- This input-budget increment is delivered. Broader mission work, including safe
+  recovery of the older blocked conversation, remains open. No autonomous coding
+  successor is active at this checkpoint; application services remain running.
 
 ## Earlier checkpoint: migration 040 installed; recovery passed, clean repeat failed
 
