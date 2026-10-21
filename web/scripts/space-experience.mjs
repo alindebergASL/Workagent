@@ -421,7 +421,25 @@ try {
           ],
         },
         "blocked",
-        "reached the limit it’s allowed for this",
+        "isn’t allowed to go further with this right now",
+      ],
+      [
+        {
+          state: "blocked",
+          can_advance_authorized_work: false,
+          runs: [
+            {
+              run_id: runId,
+              state: "blocked",
+              failure_category: "authority_or_budget",
+              failure_reason: "connection_required",
+              next_action:
+                "Restore the authorized connection before continuing.",
+            },
+          ],
+        },
+        "blocked",
+        "needs a connection that isn’t set up. Your message is kept. Restore the authorized connection before continuing.",
       ],
     ];
     for (const [status, lineState, turnText] of states) {
