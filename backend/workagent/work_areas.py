@@ -99,7 +99,7 @@ class WorkAreas:
                 after=projected.model_dump(mode='json')['lifecycle']
                 bookkeeping={'conversation_work_version','last_change_key'}
                 if (before is not None and after is not None
-                        and before['state']=='waiting_person'
+                        and before['state'] in ('waiting_person','paused')
                         and prior['owner_id']==a.owner_id
                         and a.work_version==prior['work_version']+1
                         and before['conversation_work_version']==work_version
