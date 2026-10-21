@@ -91,6 +91,9 @@ def record_successor_use(service,receipt,cap):
         _,current,_=service._check_capability(c,cap)
         if current.id!=run.id:raise DomainError('not_found_or_not_authorized')
         grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(attempt.grant_id,)).fetchone()['data'])
+        # General execution is authorized by scope/route/budget, not a binary
+        # approval. Preserve all existing attempt identities and successor rows.
+        if grant.profile=='general-responses-v1':return
         actual=current_consumer_hash(grant.profile)
         if actual==receipt.consumer_sha256:return
         if not approved_successor(c,grant):raise DomainError('action_unresolved')

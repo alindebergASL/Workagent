@@ -1,6 +1,6 @@
 """Model-selected companion views; controlled transport, real restricted DB."""
 import pytest
-from test_domain import context, cmd
+from test_domain import context, cmd, raises
 from test_flexible_work import publish, table, view, action
 from test_conversations import post
 from test_general_alpha_runtime import activate, AlphaProvider
@@ -127,7 +127,7 @@ def test_restricted_sql_rejects_companion_scope_bypass(context,tmp_path,monkeypa
 
 
 @pytest.mark.parametrize('historical',[False,True])
-def test_unstaged_companion_receipt_restart_obeys_pinned_policy(context,tmp_path,monkeypatch,historical):
+def test_unstaged_companion_receipt_restart_preserves_identity_across_prompt_changes(context,tmp_path,monkeypatch,historical):
     import workagent.composition as composition
     import test_general_alpha_runtime as fixtures
     from workagent.responses_ledger import observations
@@ -151,64 +151,39 @@ def test_unstaged_companion_receipt_restart_obeys_pinned_policy(context,tmp_path
     before=totals(s,grant);calls=list(fake.calls)
     with s.db.transaction() as c:
         aid=c.execute('SELECT id FROM provider_attempts WHERE run_id=%s',(q.run.id,)).fetchone()['id']
-        assert observations(c,aid)[-1].state==('invalid' if historical else 'received')
+        assert observations(c,aid)[-1].state=='received'
         retained=c.execute('SELECT * FROM responses_events WHERE attempt_id=%s ORDER BY id',(aid,)).fetchall()
     dispatcher=ResponsesDispatcher(worker(context,fake,tmp_path),workspace=ws,grant_id=grant.id)
     dispatcher.once()
     if historical:
+        # The original request/context is immutable, not silently rebound to a
+        # changed prompt. This is NOT a grant gate for new executions.
+        raises('source_changed',lambda:worker(context,fake,tmp_path).work(p,ws,q.run.id))
         assert totals(s,grant)==before and fake.calls==calls
         assert s.get_conversation(p,ws,cv.id).artifact_ids==[source.id]
         with s.db.transaction() as c:
             assert c.execute('SELECT * FROM responses_events WHERE attempt_id=%s ORDER BY id',(aid,)).fetchall()==retained
     else:
+        from test_adaptive_execution import finish_safe_visits
+        finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id)
         assert len(s.get_conversation(p,ws,cv.id).artifact_ids)==2
-        # Only final explanation I/O is new; the received selection isn't repeated.
         assert totals(s,grant)['request_counts']['dispatch']==before['request_counts']['dispatch']+1
 
 
-def test_companion_policy_pin_is_reviewed_in_both_boundaries():
-    from hashlib import sha256
-    from pathlib import Path
-    from workagent.composition import POLICY
-    from workagent.selection_policy import COMPANION_POLICY_SHA256
-    assert sha256(POLICY.encode()).hexdigest()==COMPANION_POLICY_SHA256
-    assert COMPANION_POLICY_SHA256 in (Path(__file__).parents[1]/'migrations/031_companion_view_scope.sql').read_text()
-
-
-def test_sql_keeps_historical_companion_denied_even_if_python_is_bypassed(context,tmp_path,monkeypatch):
-    import psycopg
+@pytest.mark.parametrize('old_prompt', ['historical instructions', 'new implementation instructions'])
+def test_companion_scope_not_authorized_by_prompt_hash(context,tmp_path,monkeypatch,old_prompt):
     import workagent.composition as composition
-    import workagent.selection_policy as policy
     import test_general_alpha_runtime as fixtures
-    from workagent.responses_ledger import Ledger,observations
-    from workagent.service import encoded
-    from workagent.models import new_id
+    from workagent.selection_policy import companion_enabled
     s,p,ws,cv,source=setup(context)
-    current=composition.POLICY;old=current.split(' An explicit target is both a source fence')[0]
-    monkeypatch.setattr(composition,'POLICY',old)
-    monkeypatch.setattr(fixtures,'POLICY',old)
-    activate(context,cv)
-    q=post(context,cv,'A new read-only representation.',target=target(source))
-    # Capture a structurally valid staged payload without persisting it. This
-    # simulates a compromised Python policy, not permission to upgrade history.
-    original=Ledger.event;captured={}
-    def retain(self,c,phase,kind,data):
-        if kind=='tool_result':
-            captured.update(attempt_id=self.receipt.attempt_id,phase=phase,data=data)
-            raise RuntimeError('captured without retention')
-        return original(self,c,phase,kind,data)
-    with monkeypatch.context() as bypass:
-        bypass.setattr(policy,'companion_enabled',lambda config:True)
-        bypass.setattr(Ledger,'event',retain)
-        with pytest.raises(RuntimeError,match='captured without retention'):
-            worker(context,AlphaProvider([decision(source)]),tmp_path).work(p,ws,q.run.id)
-    monkeypatch.setattr(composition,'POLICY',current)
-    monkeypatch.setattr(fixtures,'POLICY',current)
-    with s.db.transaction() as c:assert observations(c,captured['attempt_id'])[-1].state=='invalid'
-    with pytest.raises(psycopg.Error,match='companion policy not authorized'):
-        with s.db.transaction() as c:
-            c.execute('INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,%s,%s,%s)',
-                (new_id(),captured['attempt_id'],captured['phase'],'tool_result',encoded(captured['data'])))
-    with s.db.transaction() as c:
-        assert observations(c,captured['attempt_id'])[-1].state=='invalid'
-        assert c.execute("SELECT id FROM responses_events WHERE attempt_id=%s AND kind='tool_result'",(captured['attempt_id'],)).fetchall()==[]
+    monkeypatch.setattr(fixtures,'POLICY',old_prompt)
+    grant=activate(context,cv)
+    assert companion_enabled({'responses':grant.responses.model_dump(mode='json')})
+    # Current contract differs from the immutable grant; SQL enforces the exact
+    # source/non-mutation boundary without comparing policy text digests.
+    q=post(context,cv,'Create a companion, preserve my edits.',target=target(source))
+    fake=AlphaProvider([decision(source)])
+    from test_adaptive_execution import finish_safe_visits
+    assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='partial'
+    assert s.get_artifact(p,ws,source.id).current_revision==source.current_revision
+    assert len(s.get_conversation(p,ws,cv.id).artifact_ids)==2

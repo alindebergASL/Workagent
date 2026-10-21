@@ -299,6 +299,7 @@ class StandingResponsesBinding(GeneralAlphaResponsesBinding):
     Execution scope is not cross-conversation recall authority. All cumulative
     provider caps remain required; historical scoped bindings keep their shape.
     """
+    cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]{0,2})(\.[0-9]{1,6})?$')
     admission_policy: Literal['principal-workspace-v1']
     conversation_ids: list[Id] = Field(strict=True, max_length=0)
 
@@ -306,7 +307,7 @@ class StandingResponsesBinding(GeneralAlphaResponsesBinding):
     @classmethod
     def bounded_cost(cls, value):
         from decimal import Decimal
-        if Decimal(value) > Decimal('50.00'):
+        if Decimal(value) > Decimal('100.00'):
             raise ValueError('standing cost exceeds cumulative development ceiling')
         return value
 
