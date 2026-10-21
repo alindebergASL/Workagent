@@ -114,6 +114,7 @@ class ResponsesDispatcher:
         for row in rows:
             self.progress(run_id=row['run_id'],status='visiting')
             observation=None
+            reason=None
             try:
                 status=self._blocked_status(row)
                 if status is not None:
@@ -125,13 +126,18 @@ class ResponsesDispatcher:
                     observation=next(t for t in detail.turns if t.run_id==run.id)
                     status=general_dispatch_status(run,observation)
                 else: status=self.worker.run(self.workspace,row['run_id'])
-            except (DomainError,BundleDenied,TransportError,BlockingIOError): status='denied_or_deferred'
+            except (DomainError,BundleDenied,TransportError,BlockingIOError) as error:
+                status='denied_or_deferred'
+                if isinstance(error,DomainError):
+                    reason=error.code.value  # Closed enum only; never exception text.
             except Exception as error:
                 # CLI reporting boundary: never render DB/private-state/model values.
                 # Direct worker tests still expose programmer failures to the test runner.
                 logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,row['run_id'])))
                 status='internal_error'
             result={'run_id':row['run_id'],'status':status}
+            if reason is not None:
+                result['reason']=reason
             # Detailed evidence belongs in authenticated canonical readback,
             # never stdout of a continuous operator process.
             results.append(result)
