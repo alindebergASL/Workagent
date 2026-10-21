@@ -13,6 +13,33 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
+## Repeated-work verification and live capacity correction
+
+- Controlled PostgreSQL/HTTP verification: **18 passed, zero failed/skipped**
+  across repeated ownership, sustained continuation and check-in boundaries.
+  One shared grant drove five runs across two responsibilities: changed human
+  input/steering, worker recreation after retained publication receipts, a paused
+  responsibility while its peer advanced, and an unaccepted proposal based on the
+  human-edited revision. Duplicate visits added no sends or effects. Independent
+  Astra static review of the new regression: PASS. This is not fresh live-model
+  or desktop/phone proof.
+- Live preflight remained on `reply-bound-20261021`, with unchanged reservation
+  total `$32.65120` and three retained unknown-usage steps. Only two generation
+  slots remained. Preparing further bounded authority exposed the stale 5,120,000
+  aggregate input ceiling: it still assumed 20k rather than 50k per generation.
+  Preflight failed before live writes or new product calls.
+- A narrow correction is under verification in
+  `/home/ubuntu/workagent-cumulative-input-capacity-20261021`: 256 x 50k input
+  capacity, unchanged generation/count/output/dollar caps, additive migration 043,
+  unchanged historical rows. Six real SQL acceptance probes failed before the fix.
+  Independent review caught a numeric-prefix drift-check flaw; two real failing
+  tests reproduced it before the SQL token-boundary correction. Final tests and
+  re-review are active, not yet claimed passed or installed.
+- Evidence: `/home/ubuntu/workagent-repeated-continuation-evidence` (initial
+  `final.xml`, review verdict, capacity RED probes and separately named final runs).
+  Continue with private installation and actual repeated-work UI proof after the
+  correction is verified; no new user checkpoint approval is needed.
+
 ## 2026-10-21: older budget/guard regression batch closed
 
 - Final targeted rerun: all 33 cases passed, with no errors or skips. Baseline was
