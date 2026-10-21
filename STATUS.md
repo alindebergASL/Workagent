@@ -1,5 +1,18 @@
 # WorkAgent — authoritative delivery status
 
+## Active continuation: repeated ongoing work
+
+Andrew reaffirmed that routine steps do not need incremental approval. Development
+has resumed; a green batch is not a mission stop. Next: two responsibilities across
+multiple check-ins, worker recreation, changed human input and pause, with saved
+edits and duplicate-effect protection preserved, followed by actual desktop/phone
+verification and coherent integration. Astra is preparing focused regressions in
+`/home/ubuntu/workagent-repeated-continuation-20261021`; handoff/evidence lives at
+`/home/ubuntu/workagent-repeated-continuation-evidence`. Parent owns real PostgreSQL
+execution and fixes; Claude retains web ownership. No new paid route, private-data
+scope, business effects, default-branch merge or production deployment authorized.
+Existing cumulative $100 product-evaluation ceiling remains in force.
+
 ## 2026-10-21: older budget/guard regression batch closed
 
 - Final targeted rerun: all 33 cases passed, with no errors or skips. Baseline was
