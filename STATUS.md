@@ -1,6 +1,37 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: original conversation recovered; varied table task passed
+## 2026-10-21: settled-count lease handoff installed; no live speedup claim
+
+- Running private candidate: `829d8ef5688d53bf4539999ef6cd02ed70e8841c`,
+  `/home/ubuntu/workagent-candidates/settled-count-handoff-20261021`. Readiness
+  verified; services active. Existing web build unchanged.
+- A successful token count with no generation dispatch can now hand off an
+  unusable lease immediately instead of waiting for expiry. The next fenced visit
+  reuses the exact prepared request and count. Existing active-I/O, unknown-send,
+  problem/cancellation, authority and fencing checks are unchanged.
+- Isolated implementation was unable to connect to PostgreSQL in its sandbox and
+  did not claim a behavioral pass. Parent independently reproduced all three RED
+  cases against the old guard, applied the reviewed change, and ran all 29 targeted
+  handoff cases successfully under the restricted database role. Tests include
+  intake/general/adaptive reuse, accounting, stale capability, active I/O and
+  revoked/changed authority. No full-suite claim.
+- Code-only installation used a verified backup and retained-data hashes. No
+  migration, grant, route, allowance or scope change. Post-start readback confirms
+  unchanged accounting ($32.65120 reserved, three historical unknown liabilities),
+  the same saved human table revision and its still-pending proposal. No additional
+  paid product calls were made for this increment.
+- Controlled tests prove removal of this lease wait; they do not establish a live
+  end-to-end speedup or explain the whole earlier 253.617002-second local gap.
+- Evidence: `/home/ubuntu/workagent-lease-handoff-evidence/`, including
+  `parent-{red,green}.xml`, `parent-review.json`, `installed.json`, `readiness.json`,
+  and `post-install-verified.json`.
+- Next bounded implementation: the independently confirmed 12,000-character model
+  reply versus 10,000-character saved-message mismatch from Claude's handoff.
+  Preserve human-input bounds and regenerate canonical contracts; no live product
+  calls or deployment by the isolated worker. Broader mission remains active.
+- No default-branch merge or production deployment.
+
+## Earlier checkpoint: original conversation recovered; varied table task passed
 
 - Running private candidate: `8aeec66ec10eb1ac96122b10e25dfdd9b994eaa9`,
   `/home/ubuntu/workagent-candidates/turn-recovery-20261021`. No web implementation
