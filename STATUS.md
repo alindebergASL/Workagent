@@ -1,6 +1,38 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: settled-count lease handoff installed; no live speedup claim
+## 2026-10-21: assistant output persistence bound aligned
+
+- Running private candidate `1dd509a7a65e3a97d862b2c1f79ce7c6190c2e99` at
+  `/home/ubuntu/workagent-candidates/reply-bound-20261021`; tested-file hashes,
+  installed source, readiness and idle execution state verified after startup.
+- Durable assistant text accepts the general reply schema's 12,000-character
+  maximum. Human commands and stored human/system text retain 10,000. Rejected
+  text/author assignments preserve the original object instead of leaving an
+  invalid partial mutation. OpenAPI regenerated; canonical export check passes.
+- Scope correction: private alpha's `AlphaReply` deliberately still caps selected
+  replies at 10,000. No provider schema/policy pin or grant was widened. Existing
+  status-bearing explanation shortening is also unchanged. This is a persistence
+  consistency fix, not a new 12k private-alpha output entitlement.
+- Initial DTO regressions reproduced five failures; parent reproduced two more
+  assignment-mutation failures. Final targeted verification: 26 passing, no skips,
+  including four restricted-PostgreSQL publication/replay cases using controlled
+  transports. Independent Astra review passed the production diff. Parent then
+  corrected the additional test fixture to use the general profile and unescaped
+  Unicode JSON; no production budget checks changed. No full-suite claim.
+- No new product calls, migration, grant, route, allowance or private-data access.
+  Backup and exact retained-data hashes verified; post-start budget remains
+  $32.65120 reserved with three historical unknown liabilities. Saved human table
+  revision and pending proposal remain unchanged. Existing web build reused.
+- Evidence: `/home/ubuntu/workagent-reply-bound-evidence/`, especially `red.xml`,
+  `assignment-red.xml`, `parent-complete.xml`, `review-verdict.txt`,
+  `review-scope.md`, `verified-manifest.json` and `post-install-verified.json`.
+- Active follow-up: bounded regression run of the older budget-carryforward and
+  adaptive-guard fixtures against current input-budget rules, under a disposable
+  restricted test role. Evidence: `/home/ubuntu/workagent-budget-fixture-evidence/`.
+  This is verification work, not a running coding worker or additional live trial.
+- No default-branch merge or production deployment; broader mission remains active.
+
+## Earlier checkpoint: settled-count lease handoff installed; no live speedup claim
 
 - Running private candidate: `829d8ef5688d53bf4539999ef6cd02ed70e8841c`,
   `/home/ubuntu/workagent-candidates/settled-count-handoff-20261021`. Readiness
