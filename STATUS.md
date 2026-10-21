@@ -1,6 +1,45 @@
 # WorkAgent — authoritative delivery status
 
-## 2026-10-21: recovery fixes installed; fresh live cycle in progress
+## 2026-10-21: migration 040 installed; recovery passed, clean repeat failed
+
+- Running private candidate: `4bf4d505c4699f24174b92979af39047bf725aec`,
+  `/home/ubuntu/workagent-candidates/retained-read-20261021`; same verified web build.
+  API/web/worker active. No default-branch merge or production deployment.
+- The earlier failing DB test had not applied migration 040: `context` seeds data,
+  but does not migrate. Applied the migration explicitly using the disposable owner
+  DSN and verified its checksum, installed function and replay. All 24 focused
+  follow-through/continuity cases pass under the restricted runtime role. Contracts
+  match. No full-suite claim.
+- Installed migration 040 after `pre-migration-040.dump` and archive-list verification.
+  Before/after hashes of retained work, requests, contexts, attempts, events, grants,
+  dispatch records and accounting match. Route evidence is unchanged.
+- Continuation `c0890cf0-ecf6-462f-8c7c-aff7c0f5a61d` recovered and published pending
+  proposal `c07f450c-6cb8-42e3-8482-3ac2c6a2cdfc`, preserving human revision
+  `22e96383-ea9e-4b92-80c1-5c7cc74b3ae1` and the editor note. The responsibility now
+  waits for feedback with no further check-in. This is recovery evidence only.
+- A new conversation-request cycle recorded responsibility
+  `14929614-e5c9-4dcd-8ea1-abdf290131ea`, but its initiating run
+  `3484f86c-efd1-4bc7-b617-658ef579a62f` hit `input_count_exceeds_limit` at selection_2:
+  20,039 tokens versus 20,000. The prepared request and count rejection are retained.
+  The cycle did not reach the later-edit/restart test and is NOT a clean pass.
+- Input-packing diagnosis: the failed request's model context contains 22,079 JSON
+  characters of messages, 16,697 of work-area context and 4,703 of action observations.
+  Removing duplicate discovery schemas was not a general solution for growing
+  conversation/hand-over context. No stored request has been rewritten to hide this.
+- Current grant: 193/199 count calls consumed; six remain, versus eight planned for
+  another full repeat. Eight generation slots remain. Evaluation reservations are
+  +$5.40872; three historical unknown liabilities remain. No allocation, grant limit
+  or request-size limit was raised. These are reservations, not provider billing.
+- Engineering stopped at this bounded verification checkpoint; no coding worker is
+  active. Application services remain running. Next work is bounded model-context
+  packing plus sufficient existing-authority request-count capacity for another full
+  live repeat. Claude's `be3bc57` UI diagnostics handoff is ready but not integrated.
+- Evidence: `/home/ubuntu/workagent-reset-20261020/`, including
+  `saved-read-followthrough-final.{log,xml}`, `retained-read-runtime-migration.json`,
+  `retained-read-installed.json`, `verified-c0890cf0-ecf6-462f-8c7c-aff7c0f5a61d.json`
+  and `clean-fifth-recorded.json`.
+
+## Earlier checkpoint: recovery fixes installed; fresh live cycle in progress
 
 - Running private candidate: `4048e8f6eeb9afee0e29e2bca1afbf8e3dcbac72`,
   `/home/ubuntu/workagent-candidates/compact-context-20261021`, web build
