@@ -90,7 +90,9 @@ def turn_state(run,c=None):
             count_problem=next((r['data'] for r in reversed(problems) if r['data'].get('operation')=='count'),None)
             if count_problem:
                 if count_problem.get('code')=='input_count_exceeds_limit' and count_problem.get('received') is True:
-                    reason='Input exceeds the 20000-token per-request limit. No generation was sent for this phase; saved work is unchanged. No automatic retry.'
+                    limit=count_problem.get('limit')
+                    bound=f'{limit}-token' if type(limit) is int and limit in (20000,50000) else 'recorded input'
+                    reason=f'Input exceeds the {bound} per-request limit. No generation was sent for this phase; saved work is unchanged. No automatic retry.'
                 else:
                     reason='Token count could not be confirmed; the count attempt is retained. No generation was sent for this phase. No automatic retry.'
         if run.state=='cancelled': state='cancelled'; reason='Turn cancelled; any sent provider reservations remain retained.'

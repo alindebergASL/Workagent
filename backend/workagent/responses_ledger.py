@@ -79,6 +79,16 @@ class Ledger:
                         from .composition import CONTINUITY_DECISION_SCHEMA as DECISION_SCHEMA
                     policy=CAPABILITY
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
+                if phase!='final' and enabled(config) and alpha_enabled(config):
+                    # Restore an exact recognized historical validator, never
+                    # rewrite stored schemas or parse old bytes as a new request.
+                    import json
+                    from .service import canonical
+                    from .composition import LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA
+                    legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
+                    stored=json.loads(row['request_bytes'])['tools'][0]['parameters']
+                    if canonical(stored).encode()==legacy.material:
+                        schema=legacy
             else:
                 schema=READ_SCHEMA if phase=='selection' else FINAL_SCHEMA
             request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),phase,schema,policy)

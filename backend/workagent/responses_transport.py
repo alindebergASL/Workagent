@@ -224,8 +224,10 @@ def _validate_request(request: PreparedRequest) -> dict:
         from .general_schema import DECISION_SCHEMA, EXPLANATION_SCHEMA
         if request.policy=='adaptive-local-v1':
             from .adaptive import DECISION_SCHEMA
-            from .composition import DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA
-            if request.schema in (ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA):
+            from .composition import (DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA,
+                                      LEGACY_DECISION_SCHEMA, LEGACY_CONTINUITY_DECISION_SCHEMA)
+            if request.schema in (ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
+                                   LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA

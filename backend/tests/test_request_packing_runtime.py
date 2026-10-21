@@ -67,3 +67,22 @@ def test_inactive_handover_retrieval_cannot_expose_another_conversation(context,
     fake=AlphaProvider([choose,answer])
     assert finish_safe_visits(context,worker(context,fake,tmp_path),q.run.id).state=='ready'
     assert s.get_work_area_context(p,ws,cv.id).responsibilities[0].lifecycle.current_outcome==long_outcome
+
+
+def test_already_prepared_old_schema_restores_exact_bytes(context,tmp_path,monkeypatch):
+    from test_alpha_budget import prepared
+    import workagent.request_packing as packing
+    from workagent.composition import LEGACY_DECISION_SCHEMA
+    original=packing.prepare_selection
+    def historical(*args,**kwargs):
+        kwargs['read_schema']=LEGACY_DECISION_SCHEMA
+        return original(*args,**kwargs)
+    with monkeypatch.context() as change:
+        change.setattr(packing,'prepare_selection',historical)
+        _,fake,x=prepared(context,tmp_path)
+    before=x['request'].body
+    restored,events=x['ledger'].snapshot('selection',x['cap'])
+    assert restored.body==before and restored.sha256==x['request'].sha256
+    assert restored.schema==LEGACY_DECISION_SCHEMA
+    assert restored.count_body()==x['request'].count_body()
+    assert fake.calls==[] and events=={}
