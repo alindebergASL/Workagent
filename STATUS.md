@@ -15,6 +15,47 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
+## Latest: cancelled-response settlement fix published, not yet installed
+
+- Private feature branch `hermes/cancelled-response-receipts` HEAD
+  **8137e18479e92114b9e6f064da1054eeb51cc77f** (parent of installed runtime `646ed09`),
+  pushed and read back. Installs nothing; live services still run `646ed09`.
+- Diagnosis chain, all parent-verified: a human edit correctly cancelled an in-flight
+  scheduled run and preserved the edit, but the retained exact provider identity had no
+  terminal receipt, so all later responsibility admission waited forever. No request was
+  resent or history rewritten. Three-step reproduction: read-only diagnosis; tests-only
+  writer produced `test_cancelled_response_receipts.py` (parent-executed: exactly the two
+  intended REDs plus a passing never-resend control); implementation writer produced the
+  candidate while leaving the RED file untouched.
+- Parent found the implementation initially missed a second SQL guard; first parent run
+  failed 8/25 on `guard_responsibility_phase`. Parent patched the unpublished migration
+  for exact authorized observation there too: v2 disposable DB 25/25 PASS.
+- Independent review returned **HOLD**: a runtime SQL caller could replay an old result
+  through a TEMP-table trigger to forge a `cancelled_unapplied` disposition. Parent
+  executed both that replay and a stronger runtime-created `pg_temp` wrapper trigger:
+  2 genuine REDs (`review-replay-red.xml`). Correction: trusted producer trigger function
+  is now `SECURITY DEFINER` with fixed search path, exact relation/operation/trigger
+  identity checks, public-qualified targets; the disposition guard additionally requires
+  the real table owner's identity. Fresh v3 disposable DB: targeted suite **28/28 PASS**
+  (`parent-v3-final.xml`), migration applied twice idempotently; broader regressions
+  earlier passed **180/180** on the pre-hardening build. Focused follow-up review: **PASS**
+  on the corrected source; residual broader source-access/revocation coverage remains open.
+- Design preserved: cancelled run stays cancelled; human revision, request bytes, identity,
+  grants, budget and unknown liabilities unchanged; no `tool_result` fabrication; only the
+  exact known response may be GET-observed once under current authority with shared read
+  accounting; pre-cancellation results without recorded effects stay ambiguous and
+  blocking; unknown sends without identity stay quarantined; settled receipts unblock only
+  NEW ordinary admission bound to the latest human revision.
+- Commit `8137e18` freezes exactly the reviewed bytes (Python/tests match the v1 manifest;
+  migration046 SHA-256 `ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad`).
+  Live settlement verification script is prepared but **not run** — install, then
+  `verify_live_settlement.py`, then a fresh changed-between-waves cycle remain outstanding.
+- Evidence: `/home/ubuntu/workagent-cancelled-receipt-evidence/` (diagnosis, tasks,
+  worker logs, RED/GREEN XML, replay reproduction, live baseline hashes, review results,
+  final manifest). Disposable DBs `b2c1fc9a1169` (v2, old checksum) and `f55cf72dfe42` (v3)
+  exist; the older request-capacity DB carries the superseded first 046 checksum and must
+  not be reused with this source.
+
 ## Latest: combined runtime installed; fresh proof found a cancellation stall
 
 - Private source `646ed0914be8f97d26a828e7d62dbb8cea83e89c`, candidate
