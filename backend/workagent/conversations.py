@@ -281,23 +281,78 @@ class Conversations:
         self._event(c,p,ws,'delegate_conversation',a.id)
         return a
 
-    def _general_context(self,c,cap):
+    def _validate_general_context(self,c,cap):
+        """Validate frozen authority and every own addition, without projecting it."""
         from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
-        context,sources=self._materialize_general_context(c,p,run,cv)
+        materials=self._own_new_drafts(c,p,run,cv) if run.profile=='general-responses-v1' else []
+        own=[m['artifact_id'] for m in materials]
+        context,sources=self._materialize_general_context(c,p,run,cv,exclude_artifacts=own)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
         if 'work_area_context' in context:
             observation['work_area_context']=context['work_area_context']
         if 'work_context_index' in context:
             observation['work_context_index']=context['work_context_index']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
+        if own and not previous:
+            raise DomainError('source_changed')
         if previous and previous['data']!=observation:
             raise DomainError('source_changed')
         if not previous:
             c.execute('INSERT INTO run_contexts(workspace_id,run_id,data) VALUES (%s,%s,%s)',(run.workspace_id,run.id,encoded(observation)))
+        return p,run,cv,context,materials
+
+    def _general_context(self,c,cap,*,request_projection=False):
+        """Authority callers also validate additions; only new requests need packing.
+
+        In particular lease reclamation must succeed before a worker can settle
+        an oversized projection against its new fenced capability.
+        """
+        p,run,cv,context,materials=self._validate_general_context(c,cap)
+        own=[m['artifact_id'] for m in materials]
+        if own:
+            context['published_preparations']=materials
+            # Baseline above stays byte-for-byte frozen. Only this run's verified
+            # additions are projected for the next step, never arbitrary new work.
+            from .general_responses import check_pins
+            config=check_pins(c,run)
+            if not config.get('responsibility') and 'work_area_context' in context:
+                from copy import deepcopy
+                from .responsibility_action import offer
+                latest=next(m for m in self._conversation_messages(c,run.workspace_id,cv.id)
+                            if m.run_id==run.id and m.author_kind=='human')
+                context['responsibility_offer']=offer(c,run,cv,latest,config)
+                snapshot=deepcopy(context['work_area_context'])
+                known={a['artifact_id'] for a in snapshot['artifacts']}
+                additions=[a for a in own if a not in known]
+                room=max(0,12-len(known))
+                snapshot['artifacts'] += [{'artifact_id':a} for a in additions[:room]]
+                snapshot['omissions']['artifacts']+=len(additions[room:])
+                projection=self._work_area_context(c,p,run.workspace_id,cv,snapshot=snapshot,
+                    work_version=context['responsibility_offer']['conversation_work_version']).model_dump(mode='json')
+                # New work is discoverable; same-turn revisions still require
+                # the existing discovery + complete-read SQL authorization.
+                projection['offered_targets']=context['work_area_context']['offered_targets']
+                context['work_area_context']=projection
+                # Bindable references use the same validated current revisions.
+                for item in projection['artifacts']:
+                    body=item['body']
+                    if item['artifact_id'] in own and body and ('blocks' in body or body.get('kind')=='structured_table'):
+                        context['bindable_artifacts'].append({**{k:item[k] for k in ('artifact_id','revision_id','body_hash')},'title':body['title']})
+            # Pack optional history with the verified additions already present.
+            # Re-read the full message pool so omission counts remain truthful;
+            # never re-pack an already shortened history as if it were complete.
+            if request_projection and 'history_window' in context and not config.get('responsibility'):
+                from .conversation_context import bound_context
+                context['messages']=[m.model_dump(mode='json',exclude={'acceptance_checks'})
+                    for m in self._conversation_messages(c,run.workspace_id,cv.id)]
+                bound_context(context,run.id,profile(run.profile)['max_context_bytes'])
+            from .service import canonical
+            if request_projection and len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
+                raise DomainError('budget_exhausted')
         return context
 
-    def _materialize_general_context(self,c,p,run,cv):
+    def _materialize_general_context(self,c,p,run,cv,*,exclude_artifacts=()):
         """Shared exact context and bounds, without claiming or observing a run."""
         from .service import canonical
         if run.profile not in (PROFILE,PRODUCT_PROFILE,'general-responses-v1'):
@@ -330,7 +385,7 @@ class Conversations:
                 from .responsibility_action import offer
                 from .composition import continuity_enabled
                 context['composition']=context_catalog(continuity_enabled(config))
-                context['responsibility_offer']=offer(c,run,cv,latest,config)
+                context['responsibility_offer']=offer(c,run,cv,latest,config,exclude_artifacts=exclude_artifacts)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):
                 context['messages']=[m for m in context['messages'] if m['run_id']==run.id]
@@ -357,9 +412,9 @@ class Conversations:
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
                 for r in c.execute('''SELECT rev.* FROM artifacts art JOIN revisions rev
                     ON rev.workspace_id=art.workspace_id AND rev.artifact_id=art.id AND rev.id=art.current_revision_id
-                    WHERE art.workspace_id=%s AND art.conversation_id=%s
+                    WHERE art.workspace_id=%s AND art.conversation_id=%s AND NOT (art.id=ANY(%s))
                     AND (rev.data->'body'->>'kind'='structured_table' OR rev.data->'body' ? 'blocks')
-                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id)).fetchall()]
+                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id,list(exclude_artifacts))).fetchall()]
             if config.get('responsibility'):
                 permitted={d['object_id'] for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'}
                 context['bindable_artifacts']=[a for a in context['bindable_artifacts'] if a['artifact_id'] in permitted]
@@ -407,7 +462,7 @@ class Conversations:
 
     def conversation_worker_context(self,cap):
         with self.db.transaction() as c:
-            return self._general_context(c,cap)
+            return self._general_context(c,cap,request_projection=True)
 
     def complete_conversation_turn(self,cap,result):
         """Trusted fenced worker seam. No HTTP/model tool exposes this operation."""

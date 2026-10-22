@@ -82,7 +82,7 @@ def turn_state(run,c=None):
             'not_observed':'Explicit general profile queued; no provider receipt observed.',
             'pending':'Provider phase pending; recover only the same durable response, never regenerate.',
             'outcome_unknown':'Provider/count outcome unknown; reservations retained. Do not send a fresh turn to retry.',
-            'invalid':'Provider output invalid; no repair or generation retry; retained local result is not yet a published product.',
+            'invalid':'Provider output invalid; no repair or generation retry. Any published preparation remains unverified.',
             'received':'Receipt-backed explanation and local result read back; proposals require explicit human acceptance.'}[observation]
         if observation in ('outcome_unknown','invalid'): state='unavailable'
         if c is not None and attempt and observation in ('outcome_unknown','invalid'):
@@ -325,6 +325,7 @@ class Products:
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
+                self._publish_new_draft(c,prior,(p,run,cv,operation,base,binding,origin))
                 return prior
             from .composition import RecordResponsibility
             if isinstance(operation,RecordResponsibility):
@@ -402,10 +403,86 @@ class Products:
                 if prior!=staged: raise DomainError('command_conflict')
             else:
                 ledger.event(c,phase,'tool_result',staged)
+            self._publish_new_draft(c,staged,current)
         with self.db.transaction() as c:
             resolve_selection(self,c,cap,receipt,phase)
             if ledger._events(c,phase).get('tool_result')!=staged: raise DomainError('action_unresolved')
         return staged
+
+    def _new_draft_results(self,c,run,binding):
+        """Exact immutable selection -> material mapping (never content dedupe)."""
+        from .service import encoded, Principal
+        rows=c.execute("SELECT data FROM product_observations WHERE workspace_id=%s AND run_id=%s "
+            "AND data->'model_selection'=%s AND data->'output'->>'kind'='artifact_draft' "
+            "AND data->>'revision_id' IS NOT NULL",(run.workspace_id,run.id,encoded(binding))).fetchall()
+        results=[]
+        p=Principal(run.principal_id,'worker')
+        for record in rows:
+            observation=ProductObservation.model_validate(record['data'])
+            row,owner=self._artifact(c,p,run.workspace_id,observation.artifact_id)
+            self._cas(row,observation.revision_id)
+            revision=self._revision(c,p,run.workspace_id,row,owner,observation.revision_id)
+            if revision.body_hash!=observation.body_hash:
+                raise DomainError('source_changed')
+            results.append(ProductResult(kind=getattr(revision.body,'kind','document'),
+                artifact_id=observation.artifact_id,revision_id=observation.revision_id,
+                proposal_id=None,observation_id=observation.id))
+        return results
+
+    def _publish_new_draft(self,c,staged,resolved):
+        """Atomic early preparation on ordinary sustained turns; no explanation/settlement."""
+        from .composition import continuity_enabled
+        from .general_responses import check_pins
+        p,run,cv,operation,base,binding,origin=resolved
+        config=check_pins(c,run)
+        if (not continuity_enabled(config) or config.get('responsibility')
+                or not isinstance(operation,PublishArtifact) or operation.artifact_id is not None
+                or staged['status']!='observed'):
+            return
+        if self._new_draft_results(c,run,binding): return
+        from .responses_ledger import observations
+        if any(step.state in ('count_unknown','outcome_unknown','counting','dispatching','accepted','invalid')
+               for step in observations(c,binding['attempt_id'])):
+            raise DomainError('action_unresolved')
+        self._publish_product(c,p,run,cv,operation,None,type(operation.body).model_validate(staged['body']),
+            None,DraftObservation.model_validate(staged['output']),staged['reason'],origin,binding,materials_only=True)
+
+    def _own_new_drafts(self,c,p,run,cv):
+        """Only exact own receipt-bound additions may leave the frozen catalogs.
+
+        Validate even records beyond catalog limits: a human revision must fence
+        this turn, not be hidden by normalization or recreated at settlement.
+        """
+        from .service import digest
+        rows=c.execute("SELECT po.data,e.data AS stage,e.phase FROM product_observations po "
+            "JOIN provider_attempts a ON a.workspace_id=po.workspace_id AND a.run_id=po.run_id "
+            "AND a.id=po.data->'model_selection'->>'attempt_id' "
+            "JOIN responses_events e ON e.attempt_id=a.id AND e.kind='tool_result' "
+            "AND e.data->'binding'=po.data->'model_selection' "
+            "WHERE po.workspace_id=%s AND po.run_id=%s AND po.data->>'revision_id' IS NOT NULL "
+            "AND po.data->'output'->>'kind'='artifact_draft' ORDER BY po.artifact_id",
+            (run.workspace_id,run.id)).fetchall()
+        materials=[]
+        for record in rows:
+            o,stage=record['data'],record['stage']
+            row,owner=self._artifact(c,p,run.workspace_id,o['artifact_id'])
+            self._cas(row,o['revision_id'])
+            revision=self._revision(c,p,run.workspace_id,row,owner,o['revision_id'])
+            if (row.get('conversation_id')!=cv.id or stage['status']!='observed'
+                    or stage.get('decision',{}).get('kind')!='publish_artifact'
+                    or stage['decision'].get('target') is not None
+                    or o['conversation_id']!=cv.id or o['access_generation']!=run.access_generation
+                    or revision.author_id!=run.principal_id
+                    or revision.author_kind!='worker' or revision.revision_number!=1
+                    or revision.body.model_dump(mode='json')!=stage['body']
+                    or revision.body_hash!=o['body_hash'] or digest(stage['body'])!=o['body_hash']
+                    or stage['output']!=o['output']):
+                raise DomainError('source_changed')
+            materials.append({'phase':record['phase'],'binding':stage['binding'],
+                'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
+                'observation_id':o['id'],'body_hash':o['body_hash'],
+                'validation':'shape_only','goal_status':'needs_validation'})
+        return materials
 
     def complete_general_product(self,cap,receipt,phase='selection'):
         """Atomic explanation/products/proposal, strictly from retained receipts."""
@@ -530,7 +607,8 @@ class Products:
             prepared.append((p,operation,base,binding,body,file,output))
         results=[]
         for p,operation,base,binding,body,file,output in prepared:
-            results.extend(self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
+            prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) and base is None else []
+            results.extend(prior or self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
         return results
 
     def stop_general_budget(self,cap,receipt):
@@ -553,7 +631,7 @@ class Products:
                 raise DomainError('unsupported_operation')
             check_pins(c,run)
             # Includes current human target, scope and original context pins.
-            self._general_context(c,cap)
+            self._validate_general_context(c,cap)
             steps=observations(c,attempt.id)
             received=any(x.state in ('received','invalid') for x in steps)
             # Only a zero-step attempt is proven never prepared for any provider

@@ -97,7 +97,16 @@ def test_background_dependency_revision_next_action_and_later_event(context,tmp_
         assert r['scope']=='responsibility_dependencies' and [x['target'] for x in r['items']]==[expected]
         return {'kind':'read_saved_work','target':expected}
     def revise(ctx):
-        r=observation(ctx); body=copy.deepcopy(r['body']); body['title']='Proposed dependency revision'
+        r=observation(ctx)
+        body=copy.deepcopy(r['body'])
+        if 'body_reference' in body:
+            # Packing retains identical content once, at this exact trusted path.
+            from workagent.service import digest
+            ref=body['body_reference']
+            assert ref['path']=='#/dependencies/0/content'
+            body=copy.deepcopy(ctx['dependencies'][0]['content'])
+            assert digest(body)==ref['sha256']==expected['body_hash']
+        body['title']='Proposed dependency revision'
         return {'kind':'publish_artifact','target':expected,'body':body}
     fake=AlphaProvider([discover,read,revise,advance,{'kind':'reply','text':'Proposed a revision; scheduled further review, without accepting changes.'}])
     d,fake,w=dispatch(context,tmp_path,g,fake); d.once()
