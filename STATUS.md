@@ -6,14 +6,49 @@ Andrew reaffirmed that routine steps do not need incremental approval. Developme
 has resumed; a green batch is not a mission stop. Next: two responsibilities across
 multiple check-ins, worker recreation, changed human input and pause, with saved
 edits and duplicate-effect protection preserved, followed by actual desktop/phone
-verification and coherent integration. Astra is preparing focused regressions in
-`/home/ubuntu/workagent-repeated-continuation-20261021`; handoff/evidence lives at
+verification and coherent integration. Same-turn draft binding is now installed
+in the private runtime; a fresh two-responsibility Home exercise is active.
+Evidence lives at `/home/ubuntu/workagent-draft-binding-evidence` and
 `/home/ubuntu/workagent-repeated-continuation-evidence`. Parent owns real PostgreSQL
 execution and fixes; Claude retains web ownership. No new paid route, private-data
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## 2026-10-22: live stop/publication failure fixed; draft binding active
+## Latest: same-turn draft binding installed; fresh live cycle underway
+
+- Private runtime `draft-binding-20261022` is installed at
+  `fa2448310db7b378c94373f8880438ae309e954a`; feature integration `0da661b`.
+  New drafts become discoverable/bindable before the final answer through exact
+  receipt-bound publication. Finalization reuses the saved identity. Existing
+  artifact edits remain proposals; human/access/lease/unknown-send fences remain.
+- Independent Astra full-diff review PASS after two reproduced fixes: context
+  overflow can now settle safely across restart, and an exact retained recording
+  remains authorized when an own new draft displaces its dependency at the catalog
+  boundary. Real PostgreSQL evidence covers **61 distinct cases across batches**:
+  59 green before the final narrow window correction, 32 green in the post-fix
+  batch, then both window cases green after correcting the fixture's expected
+  terminal state (scheduled responsibility is `partial`, not completed `ready`).
+  The test now also requires one model-receipted reply. This is not a full-suite claim.
+- An older background fixture copied a packed `body_reference` as a document.
+  Failure was reproduced on unchanged pre-increment runtime; resolving the exact
+  reference and checking its hash made that fixture pass without runtime changes.
+- Migration 044 adds a unique exact-selection index. Install took a quiescent
+  backup and verified retained rows, budget, and route unchanged. Independent
+  readback verified the source, all migration checksums, ready services, unchanged
+  request/event journals, preserved human note, and paused old Garden responsibility.
+  No product request or added allowance was needed for installation. Web unchanged.
+- Fresh ordinary Home requests are active: Library desk readiness
+  `397e3a93-090c-4a1c-abdc-9d35851a4002` and Repair café readiness
+  `32a69429-27ae-4caf-83fe-b5eea1724790`. They request two check-ins, latest saved
+  edits, separate preparation notes and a final human-decision hold, with no external
+  effects. Desktop/phone edits, restart, repeated continuation and pause isolation
+  remain to be demonstrated on this fresh cycle. The earlier repaired cycle stays
+  failed evidence, not a pass. Current grant and cumulative $100 ceiling unchanged.
+- Evidence: `/home/ubuntu/workagent-draft-binding-evidence` — `test-summary.json`,
+  `window-review-verdict.txt`, `installed.json`, `installation-verified.json`,
+  `before-draft-binding.dump`, `fresh-live-requests.json`.
+
+## Earlier checkpoint: live stop/publication failure fixed; draft binding active
 
 - Installed private candidate `stop-reasons-20261022` at
   `3e83495eb2c702273b3e130ab519079ad625c9d8`; parent integration `227e9a6`.
