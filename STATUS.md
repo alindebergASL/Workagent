@@ -15,7 +15,7 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## Latest: combined runtime installed; fresh two-item proof active
+## Latest: combined runtime installed; fresh proof found a cancellation stall
 
 - Private source `646ed0914be8f97d26a828e7d62dbb8cea83e89c`, candidate
   `standing-capacity-20261022`, combines Claude's `d52928a` UI and the standing
@@ -42,13 +42,25 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
   carry, including three unknown generations and Garden's unresolved count. Old
   attempts remain bound to their original, now-revoked send authority; none resumed
   or rebound. Activation itself made zero provider requests; fresh work is separate.
-- Fresh repair-day and book-swap requests both saved/bound documents and completed
-  their initial replies. Human notes persisted after phone reloads. Book-swap was
-  paused through the UI before its first due check-in; repair-day remains scheduled.
-  The actual worker was restarted with readiness/PID change verified, source unchanged;
-  all app tabs are now left. The planned between-wave edits/pause isolation/second
-  check-ins are **in progress, not passed**. Prior Library and Garden failures remain
-  failed evidence; old repair-café independently passed its narrower cycle.
+- Fresh exercise #3 is **NOT a full pass**. Book-swap remained paused beyond its
+  original deadline, then completed both check-ins after Resume (runs `a7849dbc`
+  and `348e4661`), retained two readiness notes and ended `waiting_person` with no
+  further check-in. Both runs bound the first human revision `cfb8bc7d`. Parent DB
+  verification and desktop/390px-phone note readbacks passed. Its second human edit
+  was saved at `03:08:44Z`, AFTER both check-ins, not between them. That late edit
+  persisted, but cannot prove updated input was used in the second check-in.
+- Repair-day completed its first check-in, but a later human edit crossed its second
+  run (`a4163ad3`, dispatch `02:59:20Z`, edit/cancellation `02:59:37Z`). The human edit
+  correctly won; no stale second note was published. A known provider identity and
+  three reads were retained, but no terminal result. Further continuation now waits
+  for that attempt to settle; no unknown request was resent or reclassified. This
+  is genuine mid-flight-edit/stall evidence caused by the test's timing, not a clean
+  between-wave edit pass. Read-only Astra diagnosis is active; no correction claimed.
+- Actual worker restart/readiness/PID change and unchanged source were verified.
+  Latest reservation total **$42.99720**, not billing; unknown generations now **four**
+  (three historical plus the cancelled repair-day attempt). Allocated authority remains
+  $69.34476 of the original cumulative $100. Prior Library/Garden evidence is unchanged.
+  The full fresh changed-between-waves two-item proof remains outstanding.
 - Evidence: `/home/ubuntu/workagent-request-capacity-evidence/` (tests/review/build,
   migration backup/install readback and browser captures),
   `/home/ubuntu/workagent-frontend-verification-evidence/` (owner fix regressions),
