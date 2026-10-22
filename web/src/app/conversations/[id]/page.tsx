@@ -147,6 +147,8 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   const [handoverOpen, setHandoverOpen] = useState(
     search.get("handover") === "1",
   );
+  // On a phone the form opens below the reply box docked at the bottom.
+  const handRef = useRef<HTMLElement>(null);
   const [goal, setGoal] = useState<string | null>(null);
   const [doneWhen, setDoneWhen] = useState("");
   const [handing, setHanding] = useState(false);
@@ -630,7 +632,18 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             />
           ) : null}
           <div className="ask-bar">
-            <span className="hint">
+            <span
+              className="hint"
+              // Only the plain prompt: a phone's docked box leaves it out.
+              data-routine={
+                uncertainSend ||
+                lastUnresolved(d.turns) ||
+                inFlight ||
+                lastStopped(d.turns)
+                  ? undefined
+                  : ""
+              }
+            >
               {uncertainSend
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
                 : lastUnresolved(d.turns)
@@ -671,7 +684,12 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             <button
               type="button"
               className="btn btn-sm delegate"
-              onClick={() => setHandoverOpen((v) => !v)}
+              onClick={() => {
+                setHandoverOpen((v) => !v);
+                requestAnimationFrame(() =>
+                  handRef.current?.scrollIntoView({ block: "nearest" }),
+                );
+              }}
               aria-expanded={handoverOpen}
               title="Records it as a paused hand-over; nothing runs for this record. To have Workagent work on something, ask it in a conversation."
             >
@@ -721,6 +739,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
 
       {open && handoverOpen ? (
         <section
+          ref={handRef}
           className="card card-quiet handover"
           aria-labelledby="handover-title"
         >

@@ -28,6 +28,14 @@ function Mark() {
   );
 }
 
+const ICONS = {
+  agent: "M4 11.5L12 5l8 6.5V19a1 1 0 01-1 1h-4.5v-5.5h-5V20H5a1 1 0 01-1-1z",
+  spaces:
+    "M4 7a2 2 0 012-2h3.5l2 2H18a2 2 0 012 2v8a2 2 0 01-2 2H6a2 2 0 01-2-2z",
+  conversations:
+    "M5 5h14a1 1 0 011 1v9a1 1 0 01-1 1h-8l-4.5 3.5V16H5a1 1 0 01-1-1V6a1 1 0 011-1z",
+};
+
 /**
  * A build that shows example content says so on every page. Set explicitly
  * (NEXT_PUBLIC_WORKAGENT_DEMO_MODE=1); never inferred from what's on screen.
@@ -44,6 +52,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const onSpaces = pathname.startsWith("/spaces");
   const onConversations = pathname.startsWith("/conversations");
   const onActivity = pathname.startsWith("/activity");
+  // Inside one conversation the reply box takes the bottom of a phone
+  // screen, so the tab bar steps aside there (the page links back).
+  const inConversation = /^\/conversations\/[^/]+\/?$/.test(pathname);
 
   // Activity & details is a secondary destination: ordinary work never
   // needs it, so it lives in the sidebar foot and the phone "More" menu.
@@ -93,8 +104,24 @@ export function Shell({ children }: { children: ReactNode }) {
     </>
   );
 
+  // On a phone the destinations sit at the bottom, within thumb reach.
+  const tabs = [
+    { href: "/", label: "Agent", current: onAgent, icon: ICONS.agent },
+    { href: "/spaces", label: "Spaces", current: onSpaces, icon: ICONS.spaces },
+    ...(CAPABILITIES.conversation
+      ? [
+          {
+            href: "/conversations",
+            label: "Conversations",
+            current: onConversations,
+            icon: ICONS.conversations,
+          },
+        ]
+      : []),
+  ];
+
   return (
-    <div className="shell">
+    <div className="shell" data-tabbar={inConversation ? undefined : ""}>
       <nav className="rail" aria-label="Workspace">
         <Link href="/" className="brand">
           <Mark />
@@ -137,6 +164,38 @@ export function Shell({ children }: { children: ReactNode }) {
           {EXECUTION.line}
         </footer>
       </div>
+      {inConversation ? null : (
+        <nav className="tabbar" aria-label="Main">
+          <ul>
+            {tabs.map((t) => (
+              <li key={t.href}>
+                <Link
+                  href={t.href}
+                  aria-current={t.current ? "page" : undefined}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d={t.icon}
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>{t.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }

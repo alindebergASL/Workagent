@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import "@/styles/agent-first.css";
 import "@/styles/foundations.css";
 import "@/styles/products.css";
+import "@/styles/phone.css";
 import { WorkspaceProvider } from "@/lib/client/workspace";
 import { Shell } from "@/components/Shell";
 

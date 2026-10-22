@@ -722,6 +722,10 @@ textarea.fit-text {
 }
 .work-card .product-link {
   min-height: 32px;
+  /* A long action wraps inside a narrow card rather than running off it. */
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
 }
 .msg-meta {
   gap: var(--sp-2);

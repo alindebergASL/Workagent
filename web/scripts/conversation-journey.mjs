@@ -437,9 +437,15 @@ try {
   await noScroll(phone);
   await shot(phone, "11-activity-mobile");
   await phone.goto(origin);
-  await expect(
-    phone.getByRole("button", { name: "Take something off my plate ↗" }),
-  ).toBeVisible();
+  // On a phone the message box is one line until it's used; the starters
+  // and actions come with it.
+  const starter = phone.getByRole("button", {
+    name: "Take something off my plate ↗",
+  });
+  await expect(phone.getByLabel("Message your agent")).toBeVisible();
+  await expect(starter).toBeHidden();
+  await phone.getByLabel("Message your agent").focus();
+  await expect(starter).toBeVisible();
   await noScroll(phone);
   await shot(phone, "12-home-mobile");
   // The intro doesn't infer whether a hand-over is held or paused from its
@@ -453,26 +459,29 @@ try {
     phone.getByRole("heading", { name: "Good to see you." }),
   ).toBeVisible();
   await noScroll(phone);
+  // On a phone the destinations sit at the bottom of the screen.
+  await expect(phone.locator(".topbar-nav")).toBeHidden();
   for (const name of ["Agent", "Spaces", "Conversations"]) {
     const link = phone
-      .locator(".topbar-nav")
+      .locator(".tabbar")
       .getByRole("link", { name, exact: true });
     await expect(link).toBeVisible();
     const box = await link.boundingBox();
     expect(
-      box.x >= 0 && box.x + box.width <= 320,
+      box.x >= 0 && box.x + box.width <= 320 && box.y + box.height <= 640,
       `${name} fully on screen`,
     ).toBe(true);
   }
   // Keyboard reaches every destination in order.
-  await phone.locator(".topbar .brand").focus();
-  for (const name of ["Agent", "Spaces", "Conversations"]) {
+  await phone.locator(".tabbar a").first().focus();
+  for (const name of ["Spaces", "Conversations"]) {
     await phone.keyboard.press("Tab");
     await expect(
-      phone.locator(".topbar-nav").getByRole("link", { name, exact: true }),
+      phone.locator(".tabbar").getByRole("link", { name, exact: true }),
     ).toBeFocused();
   }
-  // Activity & details is one step further, in the More menu.
+  // Activity & details is in the More menu, next to the name at the top.
+  await phone.locator(".topbar .brand").focus();
   await phone.keyboard.press("Tab");
   const more = phone.locator(".topbar-more > summary");
   await expect(more).toBeFocused();
