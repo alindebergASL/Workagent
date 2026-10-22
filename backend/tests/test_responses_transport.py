@@ -177,11 +177,11 @@ def test_reject_changed_payload_before_count_network(harness, changes):
     assert calls == []
 
 
-@pytest.mark.parametrize('tokens', [20001, -1, True, '100', 1.0, None])
+@pytest.mark.parametrize('tokens', [50001, -1, True, '100', 1.0, None])
 def test_bad_or_excessive_count_never_creates(harness, tokens):
     transport, calls = harness(lambda _: httpx.Response(200, json={
         'object': 'response.input_tokens', 'input_tokens': tokens}))
-    with pytest.raises(TransportError, match='input_count_exceeds_limit' if tokens==20001 else 'invalid_or_excessive_input_count'):
+    with pytest.raises(TransportError, match='input_count_exceeds_limit' if tokens==50001 else 'invalid_or_excessive_input_count'):
         transport.count(selection())
     assert [call.url.path for call in calls] == ['/v1/responses/input_tokens']
 
@@ -347,7 +347,7 @@ def test_malformed_response_contract(changes):
 
 
 @pytest.mark.parametrize('changes', [
-    {'input_tokens': 20001}, {'output_tokens': 8193}, {'input_tokens': True},
+    {'input_tokens': 50001}, {'output_tokens': 8193}, {'input_tokens': True},
     {'output_tokens': '30'}, {'total_tokens': 999},
     {'input_tokens_details': {'cached_tokens': 101}},
     {'output_tokens_details': {'reasoning_tokens': 31}},

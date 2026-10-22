@@ -12,9 +12,10 @@ from workagent.budget_carryforward import install_carry, read_carry
 from workagent.db import Database, migrate
 from workagent.models import new_id
 from workagent.provider_attempts import configure_grant, revoke_grant
-from workagent.responses_ledger import summary
+from workagent.responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
 from workagent.service import encoded
 
+ONE_SLOT_CARRY = Decimal('20') - RESERVED_COST * Decimal('1.5')
 
 def carry(ctx, project=None, **changes):
     values=dict(project_id=project or 'proj_'+ctx[2], transport_mode='synthetic',
@@ -28,17 +29,17 @@ def carry(ctx, project=None, **changes):
 def test_carried_cost_enforced_by_runtime_and_sql(context, tmp_path):
     s,p,ws,_,admin=context
     cv=conversation(context); g=activate(context,cv)
-    values=carry(context)
+    values=carry(context,reserved_cost_usd=str(ONE_SLOT_CARRY))
     row=install_carry(Database(admin), **values)
-    assert row['reserved_cost_usd']==Decimal('19.80')
+    assert row['reserved_cost_usd']==ONE_SLOT_CARRY
     assert row['source_manifest_sha256']==values['source_manifest_sha256']
     assert read_carry(s.db, values['project_id'], 'synthetic')==[row]
     with s.db.transaction() as c:
         assert c.execute('SELECT count(*) n FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.workspace_id=%s',(ws,)).fetchone()['n']==0
         shared=summary(c,g.id,shared=True)
         assert shared['request_counts']['dispatch']==0
-        assert shared['carried_reserved_cost_usd']=='19.80'
-        assert shared['reserved_cost_usd']=='19.80'
+        assert Decimal(shared['carried_reserved_cost_usd'])==ONE_SLOT_CARRY
+        assert Decimal(shared['reserved_cost_usd'])==ONE_SLOT_CARRY
         assert 'carried_reserved_cost_usd' not in summary(c,g.id)
     q=post(context,cv,'Build and verify a calculator')
     fake=AdaptiveProvider(first_good=True); w=worker(context,fake,tmp_path)
@@ -51,7 +52,7 @@ def test_carried_cost_enforced_by_runtime_and_sql(context, tmp_path):
         with pytest.raises(psycopg.errors.RaiseException,match='shared cumulative project budget exhausted'):
             with s.db.transaction() as c:
                 c.execute("INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,'final','dispatch',%s)",
-                          (new_id(),step['attempt_id'],encoded(dict(reserved_input_tokens=20000,reserved_output_tokens=8192,reserved_cost_usd='0.131920',billed_cost_usd=None))))
+                          (new_id(),step['attempt_id'],encoded(dict(reserved_input_tokens=RESERVED_INPUT,reserved_output_tokens=RESERVED_OUTPUT,reserved_cost_usd=str(RESERVED_COST),billed_cost_usd=None))))
         denials.append(True)
     w.phases.hook=check_sql
     run=w.work(p,ws,q.run.id)
@@ -62,10 +63,10 @@ def test_carried_cost_enforced_by_runtime_and_sql(context, tmp_path):
     successor=activate(context,conversation(context))
     with s.db.transaction() as c:
         total=summary(c,successor.id,shared=True)
-        assert total['carried_reserved_cost_usd']=='19.80'
+        assert Decimal(total['carried_reserved_cost_usd'])==ONE_SLOT_CARRY
         assert total['request_counts']['dispatch']==1
-        assert Decimal(total['reserved_cost_usd'])==Decimal('19.931920')
-        assert Decimal(total['reserved_cost_usd'])+Decimal('0.131920')>20
+        assert Decimal(total['reserved_cost_usd'])==ONE_SLOT_CARRY+RESERVED_COST
+        assert Decimal(total['reserved_cost_usd'])+RESERVED_COST>20
     with pytest.raises(psycopg.errors.RaiseException,match='before local provider I/O'):
         install_carry(Database(admin), **carry(context,reserved_cost_usd='0.01'))
 
@@ -168,7 +169,7 @@ def test_concurrent_workspaces_share_carry_and_dispatch_cap(context,tmp_path):
     from test_domain import context as context_fixture
     other=context_fixture.__wrapped__()
     project='proj_concurrent_'+context[2]
-    install_carry(Database(context[4]), **carry(context,project=project))
+    install_carry(Database(context[4]), **carry(context,project=project,reserved_cost_usd=str(ONE_SLOT_CARRY)))
     barrier=Barrier(2)
     tasks=[]
     for index,ctx in enumerate((context,other)):
@@ -194,7 +195,8 @@ def test_concurrent_workspaces_share_carry_and_dispatch_cap(context,tmp_path):
     with context[0].db.transaction() as c:
         totals=[summary(c,t[5].id,shared=True) for t in tasks]
     assert totals[0]==totals[1]
-    assert Decimal(totals[0]['reserved_cost_usd'])==Decimal('19.931920')
+    assert Decimal(totals[0]['reserved_cost_usd'])==ONE_SLOT_CARRY+RESERVED_COST
+    assert Decimal(totals[0]['reserved_cost_usd'])+RESERVED_COST>20
 
 
 @pytest.mark.parametrize('amount',['NaN','Infinity','-Infinity','-1','20.000001','0.0000001'])

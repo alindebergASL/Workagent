@@ -141,7 +141,8 @@ def test_four_natural_language_turns_actual_worker_csv_generated_wat(context,tmp
     assert s.get_artifact(p,ws,art.id).current_revision_id==saved.current_revision_id
     t=totals(s,grant)
     assert t['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
-    assert t['reserved_input_tokens']==160000 and t['reserved_output_tokens']==65536
+    from workagent.responses_ledger import RESERVED_INPUT,RESERVED_OUTPUT
+    assert t['reserved_input_tokens']==8*RESERVED_INPUT and t['reserved_output_tokens']==8*RESERVED_OUTPUT
     before=len(fake.calls)
     assert worker(context,fake,tmp_path).work(p,ws,fourth.run.id).state=='ready'
     assert len(fake.calls)==before

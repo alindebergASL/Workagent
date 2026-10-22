@@ -978,7 +978,8 @@
           "enum": [
             "messages",
             "target",
-            "attachments"
+            "attachments",
+            "work_area"
           ],
           "title": "Section",
           "type": "string"

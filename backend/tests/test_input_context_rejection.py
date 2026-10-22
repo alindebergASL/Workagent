@@ -41,7 +41,7 @@ class CountProvider(AlphaProvider):
             if self.counts==self.fail_at:
                 self.calls.append((request.method,request.url.path))
                 if self.unknown:raise httpx.ReadError('synthetic unknown count')
-                return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':22428})
+                return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':50001})
         return super().handle(request)
 
 

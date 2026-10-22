@@ -160,13 +160,21 @@ def followthrough_evidence(observed,ref):
         body=observed['body'];basis='observed_preparation_not_goal_verification'
     else:
         cap=observed.get('capability_result') or {}
-        result=cap.get('result') or {}
-        if (observed.get('status')!='reply' or observed.get('decision',{}).get('kind')!='fetch_public_url'
-                or cap.get('capability')!='fetch_public_url'
-                or result.get('status') not in ('ok','error')
-                or result.get('trust')!='untrusted_external_content'):
+        result=cap.get('result')
+        kind=observed.get('decision',{}).get('kind')
+        if (observed.get('status')!='reply' or not kind
+                or cap.get('capability')!=kind or not isinstance(result,dict)):
             deny()
-        body=result;basis='public_read_not_goal_verification'
+        if kind=='fetch_public_url':
+            if (result.get('status') not in ('ok','error')
+                    or result.get('trust')!='untrusted_external_content'):deny()
+            basis='public_read_not_goal_verification'
+        elif cap.get('version')=='1':
+            # Prior receipt retention already checks the read's exact scope and
+            # body. Citing it grants no new access and verifies no goal claim.
+            basis='retained_read_not_goal_verification'
+        else:deny()
+        body=result
     return {'phase':ref.phase,'operation_hash':ref.operation_hash,
             'body_hash':digest(body),'basis':basis}
 

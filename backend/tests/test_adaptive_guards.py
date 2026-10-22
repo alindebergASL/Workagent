@@ -13,7 +13,7 @@ from workagent.models import HumanSave,new_id
 from workagent.message_models import ExactTarget
 from workagent.general_worker import GeneralWorker,ControlledTransport
 
-from workagent.responses_ledger import summary
+from workagent.responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
 from workagent.service import encoded
 from workagent.provider_attempts import revoke_grant
 from workagent.db import Database
@@ -127,16 +127,24 @@ def test_budget_stop_never_abandons_a_sent_attempt(context,tmp_path,monkeypatch)
 def test_shared_budget_successor_grants_stop_preserving_local_work(context,tmp_path):
     s,p,ws,_,_=context
     project='proj_budget_'+ws
-    # 150 genuine synthetic generation reservations across six grants and
-    # thirty runs; no direct ledger fabrication, deleted charges, or cap resets.
-    for _ in range(6):
+    # Fill with genuine five-generation runs across successor grants, leaving
+    # exactly one generation before the unchanged shared $20 cap.
+    prefill_runs=int((Decimal('20')/RESERVED_COST-1)//5)
+    prefill_dispatches=prefill_runs*5
+    assert prefill_runs>5
+    assert (prefill_dispatches+1)*RESERVED_COST<=20<(prefill_dispatches+2)*RESERVED_COST
+    for start in range(0,prefill_runs,5):
         cv=conversation(context); g=activate(context,cv,project_id=project)
-        for _ in range(5):
+        for _ in range(min(5,prefill_runs-start)):
             q=post(context,cv,'Exercise bounded failure')
             w=worker(context,AdaptiveProvider(always_bad=True),tmp_path)
             assert finish_safe_visits(context,w,q.run.id).state=='partial'
             cv=s.get_conversation(p,ws,cv.id).conversation
         revoke_grant(Database(context[4]),g.id)
+    with s.db.transaction() as c:
+        filled=summary(c,g.id,shared=True)
+    assert filled['request_counts']['dispatch']==prefill_dispatches
+    assert Decimal(filled['reserved_cost_usd'])==RESERVED_COST*prefill_dispatches
     cv=conversation(context); successor=activate(context,cv,project_id=project)
     q=post(context,cv,'Save useful local result before exhaustion')
     fake=AdaptiveProvider(first_good=True)
@@ -152,8 +160,8 @@ def test_shared_budget_successor_grants_stop_preserving_local_work(context,tmp_p
         with pytest.raises(psycopg.errors.RaiseException,match='shared cumulative project budget exhausted'):
             with s.db.transaction() as c:
                 c.execute("INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,'final','dispatch',%s)",
-                          (new_id(),pending['attempt_id'],encoded({'reserved_input_tokens':20000,
-                           'reserved_output_tokens':8192,'reserved_cost_usd':'0.131920','billed_cost_usd':None})))
+                          (new_id(),pending['attempt_id'],encoded({'reserved_input_tokens':RESERVED_INPUT,
+                           'reserved_output_tokens':RESERVED_OUTPUT,'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None})))
         sql_denials.append(True)
     w.phases.hook=check_sql_guard
     run=w.work(p,ws,q.run.id)
@@ -170,7 +178,7 @@ def test_shared_budget_successor_grants_stop_preserving_local_work(context,tmp_p
         ledger=summary(c,successor.id,shared=True)
         older=summary(c,g.id,shared=True)
     assert ledger==older
-    assert ledger['request_counts']['dispatch']==151
-    assert Decimal(ledger['reserved_cost_usd'])==Decimal('0.131920')*151
-    assert Decimal(ledger['reserved_cost_usd'])+Decimal('0.131920')>20
+    assert ledger['request_counts']['dispatch']==prefill_dispatches+1
+    assert Decimal(ledger['reserved_cost_usd'])==RESERVED_COST*(prefill_dispatches+1)
+    assert Decimal(ledger['reserved_cost_usd'])+RESERVED_COST>20
     raises('action_unresolved',lambda:post(context,detail.conversation,'No refill'))

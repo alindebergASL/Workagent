@@ -11,7 +11,8 @@ from workagent import public_retrieval as reader
 from workagent.errors import DomainError
 
 
-def test_public_read_and_prepared_work_can_settle_one_checkin(context,tmp_path,monkeypatch):
+@pytest.mark.parametrize('read_first',[False,True])
+def test_public_read_and_prepared_work_can_settle_one_checkin(context,tmp_path,monkeypatch,read_first):
     s,p,ws,_,_=context
     cv,art,a,g,_=setup(context)
     calls=transport(monkeypatch,[wire(b'<p>Use clear headings.</p>')])
@@ -24,7 +25,10 @@ def test_public_read_and_prepared_work_can_settle_one_checkin(context,tmp_path,m
                              next_action={'kind':'await_event','description':'Wait for human feedback.'},
                              wait={'kind':'person','reason':'Review the draft.'},next_check_in_at=None)
         return result
-    fake=AlphaProvider([{'kind':'fetch_public_url','url':'https://synthetic.example/guidance'},
+    target={'artifact_id':art.id,'revision_id':art.current_revision_id,
+            'body_hash':s.get_artifact(p,ws,art.id).current_revision.body_hash}
+    actions=([{'kind':'read_saved_work','target':target}] if read_first else [])
+    fake=AlphaProvider(actions+[{'kind':'fetch_public_url','url':'https://synthetic.example/guidance'},
                         draft('Source-backed draft'),followthrough,
                         {'kind':'reply','text':'Prepared a draft from the public source. Awaiting your review.'}])
     d,_,w=dispatch(context,tmp_path,g,fake)
@@ -37,11 +41,27 @@ def test_public_read_and_prepared_work_can_settle_one_checkin(context,tmp_path,m
     assert life.state=='waiting_person' and life.next_check_in_at is None
     assert len(calls)==1
     evidence=life.outcome_evidence['evidence']
-    assert [e['basis'] for e in evidence]==['public_read_not_goal_verification','observed_preparation_not_goal_verification']
+    assert [e['basis'] for e in evidence]==(['retained_read_not_goal_verification'] if read_first else [])+['public_read_not_goal_verification','observed_preparation_not_goal_verification']
     assert s.get_artifact(p,ws,art.id).current_revision_id==art.current_revision_id
     before=list(fake.calls)
     w.work(p,ws,rid)
     assert fake.calls==before and len(calls)==1
+
+
+@pytest.mark.parametrize('kind',['read_saved_work','read_context','discover_saved_work','search_work_context','inspect_json','load_skill','discover_capabilities'])
+def test_authorized_retained_reads_are_observations_not_goal_proof(kind):
+    from types import SimpleNamespace
+    from workagent.responsibility_action import followthrough_evidence
+    from workagent.service import digest
+    ref=SimpleNamespace(phase='selection',operation_hash='a'*64)
+    result={'value':'An already-authorized retained observation.'}
+    observed={'status':'reply','decision':{'kind':kind},'binding':{'operation_hash':ref.operation_hash},
+              'capability_result':{'capability':kind,'version':'1','result':result}}
+    evidence=followthrough_evidence(observed,ref)
+    assert evidence['basis']=='retained_read_not_goal_verification' and evidence['body_hash']==digest(result)
+    for field,value in [('version','invented'),('capability','mismatch'),('result',None),('result',[])]:
+        invalid={**observed,'capability_result':{**observed['capability_result'],field:value}}
+        with pytest.raises(DomainError):followthrough_evidence(invalid,ref)
 
 
 @pytest.mark.parametrize('status',['ok','error'])

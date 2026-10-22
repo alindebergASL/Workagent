@@ -20,7 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 MODEL = 'gpt-6.1-sol'
 READ_TOOL = 'read_scoped_context'
 OFFICIAL_ORIGIN = 'https://api.openai.com'
-MAX_INPUT_TOKENS = 20_000
+MAX_INPUT_TOKENS = 50_000
 MAX_OUTPUT_TOKENS = 8192
 # These are reservation rates, NOT a claim about actual billed/cache-discount cost.
 INPUT_RESERVATION_RATE = '2.5'
@@ -224,8 +224,10 @@ def _validate_request(request: PreparedRequest) -> dict:
         from .general_schema import DECISION_SCHEMA, EXPLANATION_SCHEMA
         if request.policy=='adaptive-local-v1':
             from .adaptive import DECISION_SCHEMA
-            from .composition import DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA
-            if request.schema in (ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA):
+            from .composition import (DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA,
+                                      LEGACY_DECISION_SCHEMA, LEGACY_CONTINUITY_DECISION_SCHEMA)
+            if request.schema in (ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
+                                   LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True
         expected=DECISION_SCHEMA if request.phase!='final' else EXPLANATION_SCHEMA

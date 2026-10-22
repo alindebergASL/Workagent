@@ -90,7 +90,9 @@ def turn_state(run,c=None):
             count_problem=next((r['data'] for r in reversed(problems) if r['data'].get('operation')=='count'),None)
             if count_problem:
                 if count_problem.get('code')=='input_count_exceeds_limit' and count_problem.get('received') is True:
-                    reason='Input exceeds the 20000-token per-request limit. No generation was sent for this phase; saved work is unchanged. No automatic retry.'
+                    limit=count_problem.get('limit')
+                    bound=f'{limit}-token' if type(limit) is int and limit in (20000,50000) else 'recorded input'
+                    reason=f'Input exceeds the {bound} per-request limit. No generation was sent for this phase; saved work is unchanged. No automatic retry.'
                 else:
                     reason='Token count could not be confirmed; the count attempt is retained. No generation was sent for this phase. No automatic retry.'
         if run.state=='cancelled': state='cancelled'; reason='Turn cancelled; any sent provider reservations remain retained.'
@@ -541,17 +543,26 @@ class Products:
         from .responses_ledger import Ledger, observations
         from .general_responses import check_pins
         from .outcomes import acknowledge
-        from .adaptive import enabled, BUDGET_STOP_REASON
+        from .adaptive import BUDGET_STOP_REASON
+        from .service import encoded
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv=self._check_capability(c,cap)
             bound,attempt,origin=ledger._auth(c,cap)
-            if bound.id!=run.id or not enabled(check_pins(c,run)):
+            if bound.id!=run.id:
                 raise DomainError('unsupported_operation')
+            check_pins(c,run)
             # Includes current human target, scope and original context pins.
             self._general_context(c,cap)
             steps=observations(c,attempt.id)
             received=any(x.state in ('received','invalid') for x in steps)
+            # Only a zero-step attempt is proven never prepared for any provider
+            # I/O. The run lock fences concurrent preparation. Count-only,
+            # generation and all prepared-request histories remain unresolved.
+            if not steps and attempt.state=='prepared':
+                attempt.state='failed'
+                c.execute("UPDATE provider_attempts SET data=%s,abandonment_reason='unsent_abandoned' WHERE id=%s",
+                          (encoded(attempt),attempt.id))
             # Budget exhaustion is not evidence of an unsent/abandoned attempt.
             # Preserve its state and every receipt, including known completed
             # phases; only exact final publication may reconcile the attempt.

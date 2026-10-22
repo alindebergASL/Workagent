@@ -284,7 +284,9 @@ class ProviderAttempts:
                 FROM responses_events WHERE attempt_id=%s''',(attempt.id,)).fetchall()
             phases={}
             for row in rows:phases.setdefault(row['phase'],{})[row['kind']]=row['result_state']
-            if not any('result' in events or 'identity' in events for events in phases.values()):return False
+            if not any('result' in events or 'identity' in events or
+                       ('count_send' in events and 'count_result' in events and 'dispatch' not in events)
+                       for events in phases.values()):return False
             from .responses_io import active
             for phase,events in phases.items():
                 if any(active(c,attempt.id,phase,kind) for kind in ('count_send','dispatch','read','cancel')):return False

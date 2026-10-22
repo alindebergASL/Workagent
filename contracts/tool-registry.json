@@ -2517,7 +2517,12 @@
           "stop_reason": {
             "anyOf": [
               {
-                "const": "budget_limit",
+                "enum": [
+                  "budget_limit",
+                  "blocked",
+                  "waiting_for_user",
+                  "step_limit"
+                ],
                 "type": "string"
               },
               {

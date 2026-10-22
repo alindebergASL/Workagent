@@ -4,3 +4,4 @@ psycopg[binary]==3.2.9
 uvicorn==0.34.3
 httpx==0.28.1
 pytest==8.3.5
+tiktoken==0.12.0
