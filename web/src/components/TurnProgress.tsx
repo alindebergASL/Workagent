@@ -162,12 +162,15 @@ export function RuntimeRequest({
 export function TurnOutcome({
   state,
   progress,
+  savedWork = false,
 }: {
   state: TurnState;
   progress?: TurnProgress;
+  /** The turn saved work of its own, shown beside this line. */
+  savedWork?: boolean;
 }) {
   if (state !== "replied") return null;
-  const view = adaptivePresentation(state, progress);
+  const view = adaptivePresentation(state, progress, savedWork);
   if (!view) return null;
   return (
     <p className="msg-outcome small" data-testid="turn-outcome">

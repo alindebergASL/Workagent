@@ -211,6 +211,21 @@ describe("honest adaptive presentation", () => {
       expect(value?.title).not.toContain("saved");
       expect(value?.note).toContain("not saved");
     });
+  it("never says nothing was saved beside work the turn did save", () => {
+    for (const outcome of [
+      "step_limit",
+      "budget_limit",
+      "blocked",
+      "waiting_for_user",
+    ] as const) {
+      const p = progress();
+      p.adaptive!.outcome = outcome;
+      p.retained_local_result!.published = false;
+      const value = adaptivePresentation("failed", p, true);
+      expect(value?.note).not.toMatch(/not saved/i);
+      expect(value?.note).toMatch(/what it saved/i);
+    }
+  });
   it("does not call several phases a changed approach", () => {
     const p = progress();
     p.adaptive!.steps!.push({

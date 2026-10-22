@@ -332,7 +332,12 @@ export function ConversationPeek({
                 if (m.author !== "agent") return null;
                 const turnNow = d.turns.find((t) => t.run_id === m.run_id);
                 const state = turnNow?.state ?? "replied";
-                const view = adaptivePresentation(state, turnNow?.progress);
+                const saved = Boolean(m.products?.length);
+                const view = adaptivePresentation(
+                  state,
+                  turnNow?.progress,
+                  saved,
+                );
                 // Beside the work, how far it was checked and what was
                 // recorded are routine: they sit under Details. Anything
                 // else (stopped, blocked, needs input) stays in view.
@@ -343,7 +348,11 @@ export function ConversationPeek({
                 return (
                   <>
                     {inline ? (
-                      <TurnOutcome state={state} progress={turnNow?.progress} />
+                      <TurnOutcome
+                        state={state}
+                        progress={turnNow?.progress}
+                        savedWork={saved}
+                      />
                     ) : null}
                     <RecordingReceipts
                       progress={turnNow?.progress}

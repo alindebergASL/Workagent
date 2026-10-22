@@ -334,6 +334,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                       ? adaptivePresentation(
                           turnNow?.state ?? "replied",
                           turnNow?.progress,
+                          Boolean(m.products?.length),
                         )
                       : null;
                     // Routine outcomes say how far the work was checked, or
@@ -372,6 +373,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                           <TurnOutcome
                             state={turnNow?.state ?? "replied"}
                             progress={turnNow?.progress}
+                            savedWork={Boolean(m.products?.length)}
                           />
                         ) : null}
                         {replied ? (

@@ -59,6 +59,8 @@ function selectionOrder(phase: string): number {
 export function adaptivePresentation(
   state: TurnState,
   progress?: TurnProgress,
+  /** The turn saved work of its own (shown beside it), whatever its local result. */
+  savedWork = false,
 ) {
   const adaptive = progress?.adaptive;
   if (
@@ -200,8 +202,9 @@ export function adaptivePresentation(
   if (!title) return null;
   return {
     title,
-    note:
-      local && !local.published
+    note: savedWork
+      ? "Review what it saved before continuing, and decide the next step."
+      : local && !local.published
         ? "Local evidence is retained, not saved as work. Review it before continuing."
         : "Review the recorded outcome and decide the next step.",
     checks,
