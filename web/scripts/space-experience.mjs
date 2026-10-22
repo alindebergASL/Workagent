@@ -133,6 +133,44 @@ try {
   const item = (aid) =>
     page.locator(`.space-work-item[data-artifact="${aid}"]`);
 
+  // ---- A wide proposed table, expanded in full on a desktop work page,
+  // scrolls inside its own box; the page never grows wider than the
+  // screen (Hermes day/week evaluation: 1689px at a 1440px window). First,
+  // while the fixture's budget proposal is still pending ----
+  {
+    const w = ids.workshop;
+    const desk = await browser.newPage({
+      viewport: { width: 1440, height: 1000 },
+    });
+    await desk.goto(
+      `${origin}/conversations/${w.conversation_id}/artifacts/${w.budget_id}?workspace=${ids.workspace}`,
+    );
+    await desk.locator("#work-tab-changes").click({ timeout: 20000 });
+    await desk
+      .locator("summary", { hasText: "The whole proposed version" })
+      .first()
+      .click();
+    const region = desk
+      .locator("details[open] .product-scroll[role='region']")
+      .first();
+    await expect(region).toBeVisible();
+    // As wide as many columns of long text would make it.
+    await region.locator("table").evaluate((t) => {
+      t.style.minWidth = "2000px";
+    });
+    const m = await region.evaluate((el) => ({
+      inner: el.scrollWidth > el.clientWidth + 100,
+      page: document.documentElement.scrollWidth - innerWidth,
+    }));
+    assert.ok(m.inner, "the table scrolls inside its own box");
+    assert.equal(m.page, 0, "the page doesn't grow wider than the screen");
+    await shot(desk, "16-wide-proposal-desktop");
+    await desk.close();
+    pass(
+      "a wide proposed table expanded in full on a desktop work page scrolls inside its own box; the page stays the screen's width",
+    );
+  }
+
   // Leave and return: Spaces lists projects by what they're for.
   await page.goto(`${origin}/spaces`);
   await expect(page.getByTestId("demo-banner")).toBeVisible();

@@ -10,6 +10,9 @@
 .product-scroll {
   max-width: 100%;
   overflow: auto;
+  /* A wide table scrolls inside the space it's given; its width never
+     pushes the grid or flex boxes around it wider than the screen. */
+  contain: inline-size;
   border: 1px solid var(--line, #ddd);
   border-radius: 8px;
 }
@@ -689,6 +692,7 @@ textarea.fit-text {
 .work-card-table {
   overflow-x: auto;
   max-width: 100%;
+  contain: inline-size;
 }
 .work-card-table table {
   border-collapse: collapse;
