@@ -1,5 +1,28 @@
 # WorkAgent — authoritative delivery status
 
+## Latest: changing supplier assignment — PARTIAL, evidence continuity gap
+
+Step 1 was exercised live on installed runtime `8137e18`, with five synthetic source
+texts, a human requirement correction, and one unattended check-in. WorkAgent
+correctly recommended Alder at $11,360 initially, then Birch at $13,920 after the
+quantity/budget change and later signed amendment. The human note and historical
+assessment were preserved; the revised proposal remains unaccepted.
+
+The scheduled run completed, but its attachment context was empty, work-area
+context null, and saved-work discovery exposed only the accepted document. It
+could not reread the amendment or its own pending proposal, honestly disclosed the
+gap, and asked for the already-supplied amendment again. This is NOT a full product
+pass. The earlier two-item timing proof remains valid but does not cover this gap.
+
+Full report: [changing assignment evaluation](docs/CEDAR_CHANGING_ASSIGNMENT_EVALUATION.md).
+Evidence: `/home/ubuntu/workagent-real-assignment-evidence/verified-results.json`
+(`full_step1_product_pass=false`; parent verifier executed successfully).
+Grant `-13`: aggregate allocation $78.44924 within the same $100; reservations
+$53.34320, not billing; historical unknown generations remain three. No code or
+frontend changes; no default-branch merge or production deployment. Evaluation
+complete; no engineering successor active. Next concrete engineering target:
+authorized attachment/pending-proposal continuity across scheduled work.
+
 ## Active continuation: repeated ongoing work
 
 Andrew reaffirmed that routine steps do not need incremental approval. Development
