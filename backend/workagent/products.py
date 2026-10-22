@@ -155,7 +155,7 @@ class Products:
                  'annotations':{'openWorldHint':False,'destructiveHint':False}}
                 for name,model in [('reconcile_csv',ReconcileCSV),('run_wasm',RunWasm),('publish_artifact',PublishArtifact)]]
 
-    def _product_base(self,c,p,ws,cv,operation,*,validate_edit=True):
+    def _product_base(self,c,p,ws,cv,operation,*,validate_edit=True,validate_kind=True):
         if isinstance(operation,PublishArtifact):
             self._validate_flexible_body(c,p,ws,cv,operation.body)
         if operation.artifact_id is None:
@@ -166,7 +166,7 @@ class Products:
         self._cas(row,operation.base_revision_id)
         base=self._revision(c,p,ws,row,owner,operation.base_revision_id)
         expected=type(operation.body) if isinstance(operation,PublishArtifact) else (TableBody if operation.kind=='reconcile_csv' else ToolBody)
-        if not isinstance(base.body,expected):
+        if (validate_kind or not isinstance(operation,PublishArtifact)) and not isinstance(base.body,expected):
             raise DomainError('unsupported_operation')
         if isinstance(operation,PublishArtifact) and validate_edit:
             self._validate_flexible_edit(base.body,operation.body)
@@ -190,6 +190,8 @@ class Products:
         if isinstance(operation,PublishArtifact):
             # Only validate/retain inert data; NEVER evaluate generated source.
             from .flexible_models import StructuredTableBody,check_table_edit,check_document_model_edit
+            if base and not isinstance(base.body,type(operation.body)):
+                raise ValueError('An existing artifact cannot change kind')
             if base: check_document_model_edit(base.body,operation.body)
             if base and isinstance(base.body,StructuredTableBody) and isinstance(operation.body,StructuredTableBody):
                 # In-scope invalid edits are local input rejections, not lost
@@ -263,6 +265,8 @@ class Products:
         from .outcomes import acknowledge
         if isinstance(operation,PublishArtifact) and base:
             # Publication remains strict even if a staged body were forged.
+            if not isinstance(base.body,type(operation.body)) or not isinstance(base.body,type(body)):
+                raise DomainError('unsupported_operation')
             self._validate_flexible_edit(base.body,body)
             from .flexible_models import check_document_model_edit
             try: check_document_model_edit(base.body,body)
