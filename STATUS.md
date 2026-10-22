@@ -15,11 +15,37 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## Latest: cancelled-response settlement fix published, not yet installed
+## Latest: cancelled-receipt fix installed and live-verified
+
+- Runtime is now candidate `cancelled-receipts-20261022` at
+  **8137e18479e92114b9e6f064da1054eeb51cc77f** (was `standing-capacity-20261022` @
+  `646ed09`). Install used the standing pattern: preconditions matched the reviewed
+  manifest (migration046 SHA-256 `ff5993a6…`), services stopped, exclusive `pg_dump`
+  backup `before-cancelled-receipts.dump`, additive 046 applied once with all retained
+  rows and budget provably unchanged across the migration, config root switched, services
+  restarted ready. No new allowance; grant `workagent-continuation-20261022-11` unchanged.
+- Live settlement verified against the pre-install baseline: the cancelled repair-day run
+  `a4163ad3` stayed cancelled with byte-identical run/step/event history; exactly one new
+  terminal `result` matching the stored identity and usage; one honest
+  `cancelled_unapplied` disposition; no dispatch/count/tool_result additions; both human
+  revisions unchanged. Unknown generations dropped **4 → 3** (only the three historical
+  unknowns remain — the cancelled attempt genuinely settled; nothing was rewritten).
+- Post-settlement the responsibility admitted one NEW run `e70c305f` through ordinary
+  gates, bound to the LATEST human revision `7cdd3027` (wave-2 note with the
+  bicycle-puncture/east-doorway update). That run completed three selections
+  (publish_artifact, advance_responsibility, reply), wrote the second readiness note
+  `96bddf1b` using the human's wave-2 constraints, and ended `waiting_person` with no
+  further check-in. Desktop and 390px-phone readbacks confirm the note content and no
+  overflow (`recovered-note-*.png/json`). Reservations $43.41104, not billing.
+- This closes the live stall discovered by exercise #3: human edit preserved, no resend,
+  honest unapplied disposition, then ordinary continuation with the newest saved context.
+  Exercise #3 as a whole still is NOT the changed-between-waves proof (its timing miss is
+  documented above); a fresh exercise with ordering proven from DB timestamps is still
+  owed. Residual reviewer-noted gap: broader source-access/revocation coverage.
 
 - Private feature branch `hermes/cancelled-response-receipts` HEAD
-  **8137e18479e92114b9e6f064da1054eeb51cc77f** (parent of installed runtime `646ed09`),
-  pushed and read back. Installs nothing; live services still run `646ed09`.
+  **8137e18479e92114b9e6f064da1054eeb51cc77f**, now the INSTALLED runtime (see above);
+  pushed and read back. (Superseded by the install section above.)
 - Diagnosis chain, all parent-verified: a human edit correctly cancelled an in-flight
   scheduled run and preserved the edit, but the retained exact provider identity had no
   terminal receipt, so all later responsibility admission waited forever. No request was
@@ -48,8 +74,8 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
   NEW ordinary admission bound to the latest human revision.
 - Commit `8137e18` freezes exactly the reviewed bytes (Python/tests match the v1 manifest;
   migration046 SHA-256 `ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad`).
-  Live settlement verification script is prepared but **not run** — install, then
-  `verify_live_settlement.py`, then a fresh changed-between-waves cycle remain outstanding.
+  Install + live-settlement verification completed (see top section); a fresh
+  changed-between-waves cycle remains outstanding.
 - Evidence: `/home/ubuntu/workagent-cancelled-receipt-evidence/` (diagnosis, tasks,
   worker logs, RED/GREEN XML, replay reproduction, live baseline hashes, review results,
   final manifest). Disposable DBs `b2c1fc9a1169` (v2, old checksum) and `f55cf72dfe42` (v3)
