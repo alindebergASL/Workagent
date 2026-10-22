@@ -187,7 +187,15 @@ class GeneralWorker:
             cap=s.claim_run(p,ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
         deadline=phases._visit_deadline(cap)
-        context=s.conversation_worker_context(cap)
+        try:
+            context=s.conversation_worker_context(cap)
+        except DomainError as exc:
+            # A restart may encounter a committed draft before staging got to
+            # revalidate its request projection. Settle against frozen authority,
+            # without replaying any retained step or creating a new attempt.
+            if exc.code.value!='budget_exhausted' or receipt is None:
+                raise
+            return self._terminal_readback(p,ws,s.stop_general_budget(cap,receipt))
         from .adaptive import enabled,contract
         from .models import ProviderGrant
         with s.db.transaction() as c:
@@ -269,6 +277,7 @@ class GeneralWorker:
                     with s.db.transaction() as c:
                         ledger._auth(c,cap)
                         observations=retained(c,receipt.attempt_id)
+                    context=s.conversation_worker_context(cap)
                     from .request_packing import prepare_selection
                     selection=prepare_selection(continuation_context(context,observations,bound),instructions=POLICY,
                         read_schema=DECISION_SCHEMA,

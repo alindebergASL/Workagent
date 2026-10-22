@@ -69,7 +69,7 @@ def recording(c,run):
     return saved
 
 
-def offer(c,run,cv,message,config):
+def offer(c,run,cv,message,config,*,exclude_artifacts=()):
     # Continuation authority comes from its own exact request/dependencies. An
     # unavailable human-only action must not add volatile unrelated artifacts to
     # the existing continuation context hash.
@@ -91,8 +91,13 @@ def offer(c,run,cv,message,config):
                   for r in cv.selected_source_refs]
     dependencies += [{'kind':'artifact_revision','object_id':r['id'],'expected_version':r['current_revision_id']}
         for r in c.execute('SELECT id,current_revision_id FROM artifacts WHERE workspace_id=%s '
-            'AND conversation_id=%s AND current_revision_id IS NOT NULL ORDER BY id LIMIT 50',
-            (run.workspace_id,cv.id)).fetchall()]
+            'AND conversation_id=%s AND current_revision_id IS NOT NULL AND NOT (id=ANY(%s)) '
+            # Keep new exact own references usable even when the older catalog
+            # fills the bounded offer. This changes priority, never access scope.
+            'ORDER BY EXISTS (SELECT 1 FROM product_observations po WHERE po.workspace_id=artifacts.workspace_id '
+            "AND po.artifact_id=artifacts.id AND po.run_id=%s AND po.data->>'revision_id'=artifacts.current_revision_id "
+            "AND po.data->'output'->>'kind'='artifact_draft') DESC,id LIMIT 50",
+            (run.workspace_id,cv.id,list(exclude_artifacts),run.id)).fetchall()]
     return {'available':message.author_kind=='human' and not config.get('responsibility'),
         'conversation_work_version':version,'dependencies':dependencies}
 
@@ -107,10 +112,20 @@ def authorize(service,c,p,run,cv,message,decision,config):
     allowed=offer(c,run,cv,message,config)
     if not allowed['available'] or cv.state!='open': deny()
     offered={(d['kind'],d['object_id'],d['expected_version']) for d in allowed['dependencies']}
-    if any((d.kind,d.object_id,d.expected_version) not in offered for d in decision.plan.dependencies): deny()
     saved=recording(c,run)
     if saved and (saved['decision_sha256']!=digest(decision) or saved['request']!=request_provenance(message)):
         raise DomainError('command_conflict')
+    if saved:
+        # Exact retained selections keep their original dependency window when
+        # this run's verified new drafts take priority in the current offer.
+        # Reconstruct that window BEFORE its limit; never widen a new selection
+        # or hide changed human revisions, foreign additions, or recording CAS.
+        own=[m['artifact_id'] for m in service._own_new_drafts(c,p,run,cv)]
+        baseline=offer(c,run,cv,message,config,exclude_artifacts=own)
+        dependencies=baseline.get('dependencies')
+        if not isinstance(dependencies,list): raise DomainError('not_found_or_not_authorized')
+        offered.update((d['kind'],d['object_id'],d['expected_version']) for d in dependencies)
+    if any((d.kind,d.object_id,d.expected_version) not in offered for d in decision.plan.dependencies): deny()
     return allowed,saved
 
 
