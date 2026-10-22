@@ -1,5 +1,5 @@
 """Append-only two-step durable authority. Every network slot commits before I/O."""
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from decimal import Decimal
 from hashlib import sha256
 from .errors import DomainError
@@ -33,14 +33,27 @@ class ReservationDeferred(Exception):
     """The uncommitted reservation was rolled back before any external I/O."""
 
 
+@dataclass(frozen=True)
+class ObservationAuthority:
+    """Current principal authority, independent of the write-only receipt."""
+    principal: object
+
+
 class Ledger:
     def __init__(self,service,receipt):
         self.service=service
         self.receipt=receipt
 
-    def _auth(self,c,cap=None):
+    def _auth(self,c,cap=None,*,observation=False):
         run,attempt,origin=self.service._receipt_binding(c,self.receipt)
-        if cap is not None:
+        if isinstance(cap,ObservationAuthority):
+            if not observation:raise DomainError('unsupported_operation')
+            self.service._scope(c,cap.principal,run.workspace_id,write=True)
+            if cap.principal.id!=run.principal_id or not c.execute(
+                    'SELECT cancelled_response_observation_permits(%s) permitted',
+                    (attempt.id,)).fetchone()['permitted']:
+                raise DomainError('not_found_or_not_authorized')
+        elif cap is not None:
             _,current,_=self.service._check_capability(c,cap)
             if current.id!=run.id:
                 raise DomainError('not_found_or_not_authorized')
@@ -58,8 +71,9 @@ class Ledger:
         return event_id
 
     def snapshot(self,phase,cap):
+        if cap is None:raise DomainError('not_found_or_not_authorized')
         with self.service.db.transaction() as c:
-            run,_,_=self._auth(c,cap)
+            run,_,_=self._auth(c,cap,observation=True)
             row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
                           (self.receipt.attempt_id,phase)).fetchone()
             if not row:
@@ -69,7 +83,13 @@ class Ledger:
                 from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
                 from .general_responses import check_pins
                 from .adaptive import enabled,CAPABILITY
-                config=check_pins(c,run)
+                if isinstance(cap,ObservationAuthority):
+                    config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                        (run.workspace_id,run.id)).fetchone()['data']
+                    from .provider_attempts import check_grant
+                    check_grant(c,run,config)
+                else:
+                    config=check_pins(c,run)
                 if enabled(config):
                     from .adaptive import DECISION_SCHEMA
                     from .composition import enabled as alpha_enabled, continuity_enabled
@@ -114,11 +134,14 @@ class Ledger:
                        sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
 
     def reserve_operation(self,request,kind,cap,*,ready=None):
+        if cap is None:raise DomainError('not_found_or_not_authorized')
         if kind not in ('count_send','dispatch','read','cancel'):
             raise ValueError('invalid operation')
         with self.service.db.transaction() as c:
-            run,attempt,_=self._auth(c,cap)
-            if run.profile=='general-responses-v1':
+            run,attempt,_=self._auth(c,cap,observation=True)
+            if isinstance(cap,ObservationAuthority):
+                if kind!='read':raise DomainError('unsupported_operation')
+            elif run.profile=='general-responses-v1':
                 self.service._general_context(c,cap)
             events=self._events(c,request.phase)
             stored=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -151,6 +174,8 @@ class Ledger:
             if n >= limit:
                 raise DomainError('budget_exhausted')
             data={'input_token_limit':MAX_INPUT_TOKENS} if kind=='count_send' else {}
+            if isinstance(cap,ObservationAuthority):
+                data={'cancelled_observation':True}
             if kind=='dispatch':
                 # Same lock/order and isolation as the DB guard. Check after the
                 # lock so a racing workspace yields a typed budget stop, not SQL
