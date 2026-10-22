@@ -113,6 +113,17 @@ def _deduplicate_bodies(context):
 
 def project_context(context):
     projected=deepcopy({k:v for k,v in context.items() if k not in ('instructions','tools')})
+    # Evidence bodies are available through read_context; send only their bounded
+    # manifest initially, avoiding duplicate attachments/proposals in every prompt.
+    evidence=projected.get('evidence_context')
+    if evidence:
+        for section,groups in (('attachments',('items','sources')),('work_area',('proposals',))):
+            for group in groups:
+                for item in evidence[section][group]:
+                    if not item['body_omitted']:
+                        item['body']=None
+                        item['body_in_read_context']=True
+            evidence[section]['read']={'kind':'read_context','section':section}
     # Full detail reads stay full in observations; summarize ONLY the initial index.
     for item in projected.get('work_area_context',{}).get('responsibilities',[]):
         life=item.get('lifecycle')
