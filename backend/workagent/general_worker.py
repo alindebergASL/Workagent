@@ -158,6 +158,48 @@ class GeneralWorker:
         # remove only the redundant control-plane copies from the user payload.
         return {k:v for k,v in context.items() if k not in ('instructions','tools')}
 
+    def _observe_cancelled(self,p,ws,run):
+        from dataclasses import asdict
+        from .provider_attempts import ReceiptCapability, check_grant
+        from .responses_ledger import Ledger, ObservationAuthority, parsed_data
+        from .responses_transport import TransportError
+        saved=self.phases.state.load(ws,run.id)
+        if not saved or not saved.get('receipt'):return
+        ledger=Ledger(self.service,ReceiptCapability(**saved['receipt']))
+        authority=ObservationAuthority(p)
+        def fresh(request=None):
+            with self.service.db.transaction() as c:
+                current,attempt,_=ledger._auth(c,authority,observation=True)
+                config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                    (ws,run.id)).fetchone()['data']
+                check_grant(c,current,config)
+                self.phases._authorize_transport(config)
+                if request is not None:
+                    events=ledger._events(c,request.phase)
+                    if events['identity']['provenance']!=asdict(self.transport.provenance):
+                        raise DomainError('action_unresolved')
+                return attempt
+        try:
+            attempt=fresh()
+            with self.service.db.transaction() as c:
+                phases=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY phase',
+                                 (attempt.id,)).fetchall()
+            # One GET per visit, under the existing private run lock. All reads
+            # use the original prepared bytes/schema and shared read counter.
+            for row in phases:
+                request,events=ledger.snapshot(row['phase'],authority)
+                if 'result' in events or 'identity' not in events:continue
+                if self.phases.poll_limit==0:return
+                fresh(request)
+                ledger.reserve_operation(request,'read',authority)
+                fresh(request)  # Independently recheck after reservation commit.
+                response=self.transport.retrieve(events['identity']['response_id'],request=request)
+                if response.state not in ('queued','in_progress'):
+                    ledger.retain(request,'result',parsed_data(response))
+                return
+        except (DomainError,TransportError):
+            return  # No replay, refund, execution, publication or lease mutation.
+
     def _responses_work(self,p,ws,run):
         from dataclasses import asdict
         from .provider_attempts import ReceiptCapability
@@ -167,7 +209,10 @@ class GeneralWorker:
         from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
         from .responses_ledger import Ledger
         s=self.service; phases=self.phases; rid=run.id
-        if run.state in ('ready','partial','cancelled'):
+        if run.state=='cancelled':
+            self._observe_cancelled(p,ws,run)
+            return self._terminal_readback(p,ws,run)
+        if run.state in ('ready','partial'):
             return self._terminal_readback(p,ws,run)
         with s.db.transaction() as c:
             config=check_pins(c,run)

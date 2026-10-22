@@ -204,14 +204,22 @@ def completed_steps_are_settled(c,attempt_id):
                        (attempt_id,step['phase'])).fetchall()
         if not rows:continue
         events={r['kind']:r['data'] for r in rows if r['kind']!='read'}
-        if not required<=set(events) or set(events)-required-{'tool_result'}:return False
+        if not required<=set(events) or set(events)-required-{'tool_result','cancelled_unapplied'}:return False
         identity=events['identity'];result=events['result'];count=events['count_result']
+        usage=result.get('usage')
+        if (not isinstance(usage,dict)
+                or any(type(usage.get(k)) is not int or usage[k]<0
+                       for k in ('input_tokens','output_tokens','total_tokens','cached_input_tokens','reasoning_tokens'))
+                or usage['total_tokens']!=usage['input_tokens']+usage['output_tokens']
+                or usage['cached_input_tokens']>usage['input_tokens']
+                or usage['reasoning_tokens']>usage['output_tokens']):return False
         if (not identity.get('response_id') or result.get('response_id')!=identity['response_id']
                 or result.get('usage') is None
                 or any(item.get('metadata')!=step['metadata'] for item in (identity,result,count))
                 or any(item.get('request_sha256')!=step['request_sha256'] for item in (identity,result,count))
                 or result.get('state') not in ('function_call','completed')
-                or (result['state']=='function_call' and 'tool_result' not in events)):return False
+                or (result['state']=='function_call' and 'tool_result' not in events
+                    and 'cancelled_unapplied' not in events)):return False
         observed=True
     return observed
 
