@@ -42,8 +42,17 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
   `32a69429-27ae-4caf-83fe-b5eea1724790`. They request two check-ins, latest saved
   edits, separate preparation notes and a final human-decision hold, with no external
   effects. Desktop/phone edits, restart, repeated continuation and pause isolation
-  remain to be demonstrated on this fresh cycle. The earlier repaired cycle stays
-  failed evidence, not a pass. Current grant and cumulative $100 ceiling unchanged.
+  remain to be demonstrated on this fresh cycle. Both drafts were actually saved
+  and bound in their initial model turns. Repair café's human note was saved at
+  390px and survived reload. Library selected a table, then attempted an existing-
+  artifact table-to-document conversion; its received selection_5 is repeatedly
+  rejected as `unsupported_operation` without terminal settlement. Library's
+  responsibility was paused through the UI and read back paused. The full two-item
+  exercise is therefore not a pass. Repair café remains independently scheduled
+  while an isolated Astra diagnostic reproduces the new rejection failure.
+  Private worker was restarted before the scheduled check-in, with readiness
+  confirmed and source unchanged; the browser was left on about:blank. The earlier
+  repaired cycle also stays failed evidence. Current grant/$100 ceiling unchanged.
 - Evidence: `/home/ubuntu/workagent-draft-binding-evidence` — `test-summary.json`,
   `window-review-verdict.txt`, `installed.json`, `installation-verified.json`,
   `before-draft-binding.dump`, `fresh-live-requests.json`.
