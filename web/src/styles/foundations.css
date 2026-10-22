@@ -497,3 +497,12 @@
   display: inline;
   margin-right: var(--sp-1);
 }
+
+/* Choosing how times show: a label and its choice on one line, at the
+   start of the header (the sidebar's stacked zone style isn't for here). */
+header .zone.row {
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-start;
+  gap: var(--sp-2);
+}

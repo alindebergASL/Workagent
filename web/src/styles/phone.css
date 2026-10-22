@@ -69,6 +69,13 @@
     padding-bottom: calc(56px + env(safe-area-inset-bottom));
   }
 
+  /* A project's kind and workspace go under its name, never beside it
+     squeezing the name into a sliver. */
+  .work-row:has(.project-meta) > .work-row-main,
+  .work-row > .project-meta {
+    flex: 1 1 100%;
+  }
+
   /* ---- Home: a short greeting, then the one-line message box ---- */
   .agent-intro {
     gap: 4px;
@@ -190,6 +197,71 @@
       :has(.delegate[aria-expanded="true"])
     )
     :is(.composer-files, .delegate) {
+    display: none;
+  }
+
+  /* ---- Beside the work: the conversation's reply docked too ----
+     Fixed just above the tab bar while the Conversation view shows: the
+     work's header can sit tall above the conversation, which would hold a
+     sticky box below the screen's edge. The pane keeps room at its end so
+     nothing is hidden under the box. */
+  .working-surface[data-pane="agent"] > .working-agent {
+    padding-bottom: 128px;
+  }
+  .working-surface[data-pane="agent"] .peek-ask {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(53px + env(safe-area-inset-bottom));
+    z-index: 15;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    padding: 8px var(--gutter);
+    box-shadow: 0 -8px 20px -14px rgb(0 0 0 / 0.3);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    /* Send fills the space beside the line it sends. */
+    grid-auto-flow: row dense;
+    align-items: center;
+    gap: 6px 8px;
+  }
+  .working-surface[data-pane="agent"] .peek-ask > * {
+    grid-column: 1 / -1;
+  }
+  .working-surface[data-pane="agent"] .peek-ask > textarea {
+    grid-column: 1;
+    min-height: 44px;
+    max-height: 35vh;
+    field-sizing: content;
+    resize: none;
+    background: var(--surface-2);
+    border-radius: 22px;
+    padding: 11px 16px;
+    font-size: 1rem;
+  }
+  .working-surface[data-pane="agent"] .peek-ask .ask-bar {
+    display: contents;
+  }
+  .working-surface[data-pane="agent"] .peek-ask .ask-bar > * {
+    grid-column: 1 / -1;
+  }
+  .working-surface[data-pane="agent"] .peek-ask .ask-bar > .send-round {
+    grid-column: 2;
+    width: 40px;
+    height: 40px;
+  }
+  .working-surface[data-pane="agent"] .peek-ask .ask-bar .hint[data-routine] {
+    display: none;
+  }
+  .working-surface[data-pane="agent"]
+    .peek-ask:not(:focus-within):not(
+      :has(textarea:not(:placeholder-shown))
+    ):not(:has(.file-chip)):not(:has([role="alert"]))
+    .composer-files {
     display: none;
   }
 }

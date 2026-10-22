@@ -487,7 +487,19 @@ export function ConversationPeek({
             </p>
           ) : null}
           <div className="ask-bar">
-            <span className="hint">
+            <span
+              className="hint"
+              // Only the plain prompt: a phone's docked box leaves it out.
+              data-routine={
+                reply.uncertain ||
+                lastUnresolved(d.turns) ||
+                (target && unsavedEdits) ||
+                unlinked ||
+                lastStopped(d.turns)
+                  ? undefined
+                  : ""
+              }
+            >
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
                 : lastUnresolved(d.turns)
