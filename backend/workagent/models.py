@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, AwareDatetime, field_validator, model_validator, model_serializer
 
-from .model_base import Model, Id, Text, Hash
+from .model_base import Model, Id, Text, AssistantOutputText, Hash
 from .acceptance_checks import AcceptanceSpec
 Version = Annotated[int, Field(strict=True, ge=1, le=2147483647)]
 
@@ -196,7 +196,9 @@ class ResponsesBinding(Model):
     count_limit: Literal[4] = 4
     read_limit: Literal[40] = 40
     cancel_limit: Literal[4] = 4
-    input_limit: Literal[80000] = 80000
+    # Historical serialized grants retain their original cap. NEW fixed grants
+    # allow their existing generation count at the new 50k request reservation.
+    input_limit: Literal[80000,200000] = 200000
     output_limit: Literal[32768] = 32768
     cost_limit_usd: Literal['20.00'] = '20.00'
 
@@ -213,7 +215,7 @@ class GeneralResponsesBinding(Model):
     count_limit: Literal[8] = 8
     read_limit: Literal[80] = 80
     cancel_limit: Literal[0] = 0
-    input_limit: Literal[160000] = 160000
+    input_limit: Literal[160000,400000] = 400000
     output_limit: Literal[65536] = 65536
     cost_limit_usd: Literal['20.00'] = '20.00'
     conversation_ids: list[Id] = Field(min_length=1,max_length=2)
@@ -236,7 +238,7 @@ class AdaptiveResponsesBinding(Model):
     count_limit: Literal[50] = 50
     read_limit: Literal[500] = 500
     cancel_limit: Literal[0] = 0
-    input_limit: Literal[1000000] = 1000000
+    input_limit: Literal[1000000,2500000] = 2500000
     output_limit: Literal[409600] = 409600
     cost_limit_usd: Literal['20.00'] = '20.00'
     conversation_ids: list[Id] = Field(min_length=1,max_length=2)
@@ -252,14 +254,23 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     are supplied for new authority: omitting a reviewed cap must fail closed.
     """
     runtime_extension: Literal['general-alpha-v1']
+    continuity_version: Literal['sustained-v1'] | None = None
     max_steps: int = Field(default=4, strict=True, ge=1, le=8)
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
     read_limit: int = Field(strict=True, ge=0, le=4096)
-    input_limit: int = Field(strict=True, ge=0, le=5120000)
+    # 256 authorized generations, each reserving up to 50,000 input tokens.
+    input_limit: int = Field(strict=True, ge=0, le=12800000)
     output_limit: int = Field(strict=True, ge=0, le=2097152)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
     conversation_ids: list[Id] = Field(strict=True, min_length=1, max_length=10)
+
+    @model_serializer(mode='wrap')
+    def preserve_legacy_continuity(self,handler):
+        data=handler(self)
+        if self.continuity_version is None:
+            data.pop('continuity_version',None)
+        return data
 
     @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
     @classmethod
@@ -285,22 +296,48 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         return value
 
 
+class StandingResponsesBinding(GeneralAlphaResponsesBinding):
+    """Explicit opt-in: own source-free conversations in this principal/workspace.
+
+    Execution scope is not cross-conversation recall authority. All cumulative
+    provider caps remain required; historical scoped bindings keep their shape.
+    """
+    # Finite cumulative capacity: 1024 reservations at unchanged 50k/8192 units.
+    generation_limit: int = Field(strict=True, ge=0, le=1024)
+    count_limit: int = Field(strict=True, ge=0, le=1024)
+    input_limit: int = Field(strict=True, ge=0, le=51200000)
+    output_limit: int = Field(strict=True, ge=0, le=8388608)
+    cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]{0,2})(\.[0-9]{1,6})?$')
+    admission_policy: Literal['principal-workspace-v1']
+    conversation_ids: list[Id] = Field(strict=True, max_length=0)
+
+    @field_validator('cost_limit_usd')
+    @classmethod
+    def bounded_cost(cls, value):
+        from decimal import Decimal
+        if Decimal(value) > Decimal('100.00'):
+            raise ValueError('standing cost exceeds cumulative development ceiling')
+        return value
+
+
 class ProviderGrant(Model):
     id: Id
     workspace_id: Id
     principal_id: Id
     profile: Literal['openai-agents-v1', 'openai-responses-v1', 'general-responses-v1'] = 'openai-agents-v1'
-    responses: ResponsesBinding | GeneralResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
+    responses: ResponsesBinding | GeneralResponsesBinding | StandingResponsesBinding | GeneralAlphaResponsesBinding | AdaptiveResponsesBinding | None = None
     model: Id
     consumer_sha256: Hash
     expires_at: AwareDatetime | None
-    max_runs: int = Field(default=1, strict=True, ge=1, le=10)
+    max_runs: int = Field(default=1, strict=True, ge=1, le=256)
     # Local receipt-validation ceiling, NOT a provider-enforced generation budget.
     max_received_output_tokens: int = Field(default=4096, strict=True, ge=1, le=16384)
 
 
     @model_validator(mode='after')
     def exact_responses_binding(self):
+        if self.max_runs > 10 and not isinstance(self.responses, StandingResponsesBinding):
+            raise ValueError('standing admission policy required for expanded run bounds')
         if self.profile == 'general-responses-v1':
             if (not isinstance(self.responses,(GeneralResponsesBinding,AdaptiveResponsesBinding)) or self.expires_at is not None or
                 self.model!='gpt-6.1-sol' or (self.max_runs>4 and not isinstance(self.responses,AdaptiveResponsesBinding)) or self.max_received_output_tokens!=16384):
@@ -395,7 +432,7 @@ class Run(Model):
     tool_registry_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     provider_session_id: Id | None = None
     provider_turn_id: Id | None = None
-    stop_reason: Literal['budget_limit'] | None = None
+    stop_reason: Literal['budget_limit', 'blocked', 'waiting_for_user', 'step_limit'] | None = None
     cursor: int = Field(default=0, ge=0)
     budget_units: int = Field(default=1, ge=0, le=100)
     used_units: int = Field(default=0, ge=0, le=100)
@@ -502,13 +539,13 @@ class DelegateConversation(Command):
 
 class TextResult(Model):
     kind: Literal['text'] = 'text'
-    text: Text
+    text: AssistantOutputText
 
 
 class TurnResult(Model):
     # Extend this typed result family when a broker-backed operation is implemented.
     # No opaque dicts, simulated files/tools, or authority/acceptance fields.
-    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=3)
+    results: list[TextResult | ProductResult] = Field(min_length=1, max_length=17)
     work_area: WorkAreaIdentification | None = None
 
     @model_serializer(mode='wrap')
@@ -529,7 +566,7 @@ class ConversationMessage(Model):
     sequence: Version
     author_id: Id
     author_kind: Literal['human', 'assistant', 'system']
-    text: Text
+    text: AssistantOutputText
     evidence_origin: Literal['human', 'runtime', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
     result: TurnResult | None = None
     operation: LocalOperation | None = None
@@ -539,6 +576,15 @@ class ConversationMessage(Model):
     responsibility_origin: ResponsibilityOrigin | None = None
     acceptance_checks: AcceptanceSpec | None = None
     created_at: AwareDatetime = Field(default_factory=now)
+
+    @field_validator('text', 'author_kind')
+    @classmethod
+    def author_text_bound(cls, value, info):
+        kind = value if info.field_name == 'author_kind' else info.data.get('author_kind')
+        text = value if info.field_name == 'text' else info.data.get('text', '')
+        if kind != 'assistant' and len(text) > 10000:
+            raise ValueError('human and system message text must have at most 10000 characters')
+        return value
 
     @model_validator(mode='after')
     def human_checks_only(self):

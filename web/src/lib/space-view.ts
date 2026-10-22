@@ -186,7 +186,8 @@ export function spaceStanding({
     });
     const group = holdGroup(entry);
     if (group === "attention") needs.push(line("attention"));
-    else if (group === "holding") underway.push(line("quiet"));
+    else if (group === "handling" || group === "holding")
+      underway.push(line("quiet"));
     else if (entry?.kind === "unknown" || entry?.kind === "denied")
       underway.push(line("quiet"));
   }

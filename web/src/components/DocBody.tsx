@@ -40,7 +40,11 @@ export function DocRead({
                 tabIndex={-1}
               />
             ) : null}
-            {b.kind === "heading" ? <h3>{b.text}</h3> : <span>{b.text}</span>}
+            {b.kind === "heading" ? (
+              <h3>{b.text}</h3>
+            ) : (
+              <span className="doc-line">{b.text}</span>
+            )}
           </div>
           <SourceMarks block={b} onSourceMark={onSourceMark} />
         </div>
@@ -370,7 +374,7 @@ export function DocDiff({
                 {op.block.kind === "heading" ? (
                   <h3>{op.block.text}</h3>
                 ) : (
-                  <span>{op.block.text}</span>
+                  <span className="doc-line">{op.block.text}</span>
                 )}
               </div>
               <span />

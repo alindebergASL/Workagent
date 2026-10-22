@@ -20,7 +20,7 @@ class CountFailure(Provider):
                 return httpx.Response(429,json={'error':'SECRET body'})
             if self.mode=='malformed':
                 return httpx.Response(200,content='SECRET not JSON')
-            return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':20001})
+            return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':50001})
         return super().handle(request)
 
 
@@ -44,8 +44,10 @@ def test_count_failure_keeps_safe_diagnostic_and_no_retry(context,tmp_path,mode,
     assert 'dispatch' not in events and 'count_result' not in events
     turn=s.get_conversation(p,ws,cv.id).turns[0]
     assert turn.response_steps[0].state==step_state
-    assert ('20000' in turn.reason) if mode=='excessive' else ('count' in turn.reason.lower())
-    if mode=='excessive': assert events['problem']['input_tokens']==20001
+    assert ('per-request limit' in turn.reason) if mode=='excessive' else ('count' in turn.reason.lower())
+    if mode=='excessive':
+        assert events['problem']['input_tokens']==50001
+        assert events['problem']['limit']==50000
     if mode=='http': assert events['problem']['http_status']==429
     calls=len(fake.calls)
     worker(context,fake,tmp_path).work(p,ws,q.run.id)
@@ -74,7 +76,7 @@ def test_alpha_final_count_limit_preserves_stage_and_never_retries(context,tmp_p
         def handle(self,request):
             if request.url.path.endswith('input_tokens') and json.loads(request.content)['tools']==[]:
                 self.calls.append((request.method,request.url.path))
-                return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':20001})
+                return httpx.Response(200,json={'object':'response.input_tokens','input_tokens':50001})
             return super().handle(request)
     s,p,ws,_,_=context;cv=conversation(context);g=alpha_activate(context,cv)
     fake=FinalExcessive([{'kind':'reply','text':'A useful response retained before final counting.'}])
@@ -84,7 +86,7 @@ def test_alpha_final_count_limit_preserves_stage_and_never_retries(context,tmp_p
     assert len(detail.messages)==1 and not detail.artifact_ids
     assert turn.response_steps[-1].phase=='final' and turn.response_steps[-1].state=='invalid'
     assert turn.retained_local_result is not None and not turn.retained_local_result.published
-    assert '20000' in turn.reason
+    assert '50000' in turn.reason
     assert all('instructions' not in ctx and 'tools' not in ctx for ctx in fake.contexts)
     before=list(fake.calls);worker(context,fake,tmp_path).work(p,ws,q.run.id);assert fake.calls==before
     assert totals(s,g)['request_counts']=={'count_send':2,'dispatch':1,'read':0,'cancel':0}
@@ -123,8 +125,8 @@ def unresolved_count(context,tmp_path,monkeypatch):
     data={
         'problem':{'operation':'count','code':'observation_unavailable','received':False},
         'count_result':{k:step[k] for k in ('request_sha256','count_sha256','metadata')},
-        'dispatch':{'reserved_input_tokens':20000,'reserved_output_tokens':8192,
-                    'reserved_cost_usd':'0.131920','billed_cost_usd':None},
+        'dispatch':{'reserved_input_tokens':50000,'reserved_output_tokens':8192,
+                    'reserved_cost_usd':'0.206920','billed_cost_usd':None},
     }
     data['count_result']['input_tokens']=700
     return s,g,step['attempt_id'],data
@@ -145,9 +147,9 @@ def assert_count_winner(s,g,aid,winner):
     assert kinds==({'count_send','count_result','dispatch'} if dispatched else {'count_send','problem'})
     t=totals(s,g)
     assert t['request_counts']=={'count_send':1,'dispatch':int(dispatched),'read':0,'cancel':0}
-    assert t['reserved_input_tokens']==(20000 if dispatched else 0)
+    assert t['reserved_input_tokens']==(50000 if dispatched else 0)
     assert t['reserved_output_tokens']==(8192 if dispatched else 0)
-    assert Decimal(t['reserved_cost_usd'])==(Decimal('0.131920') if dispatched else 0)
+    assert Decimal(t['reserved_cost_usd'])==(Decimal('0.206920') if dispatched else 0)
 
 
 @pytest.mark.parametrize('isolation',['REPEATABLE READ','SERIALIZABLE'])
@@ -217,8 +219,8 @@ def test_sql_count_diagnostic_shape_and_terminal_slot(context,tmp_path,monkeypat
         aid=c.execute('SELECT id FROM provider_attempts WHERE run_id=%s',(q.run.id,)).fetchone()['id']
     valid={'operation':'count','code':'observation_unavailable','received':False}
     for bad in [valid|{'operation':None},valid|{'code':None},valid|{'received':True},
-                valid|{'body':'must not store'},valid|{'http_status':429},valid|{'input_tokens':20001},
-                {'operation':'count','code':'input_count_exceeds_limit','received':True,'input_tokens':True,'limit':20000}]:
+                valid|{'body':'must not store'},valid|{'http_status':429},valid|{'input_tokens':50001},
+                {'operation':'count','code':'input_count_exceeds_limit','received':True,'input_tokens':True,'limit':50000}]:
         with pytest.raises(psycopg.Error):
             with s.db.transaction() as c:
                 c.execute("INSERT INTO responses_events(id,attempt_id,phase,kind,data) VALUES (%s,%s,'selection','problem',%s)",(new_id(),aid,encoded(bad)))

@@ -26,6 +26,7 @@ class AlphaStep(Model):
     outcome: Literal['continue','answered','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation']
     capability_result: dict | None = None
     mutation_result: ResponsibilityMutationResult | None = None
+    followthrough_result: dict | None = None
 
 
 class AlphaExecution(Model):
@@ -37,7 +38,7 @@ class AlphaExecution(Model):
     outcome: Literal['pending','continue','answered','completed','waiting_for_user','blocked','step_limit','budget_limit','needs_validation','cancelled']
     steps: list[AlphaStep] = Field(default_factory=list,max_length=8)
     shared_reserved_cost_usd: str
-    shared_cost_limit_usd: str = Field(pattern=r'^(0|[1-9][0-9]?)(\.[0-9]{1,6})?$')
+    shared_cost_limit_usd: str = Field(pattern=r'^(0|[1-9][0-9]{0,2})(\.[0-9]{1,6})?$')
     cost_basis: Literal['worst_case_reservations_not_billing'] = 'worst_case_reservations_not_billing'
 
 

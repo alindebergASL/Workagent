@@ -1,6 +1,7 @@
 """Tight alpha authority: real restricted PostgreSQL, synthetic transport only."""
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict
+from decimal import Decimal
 from hashlib import sha256
 import pytest
 import psycopg
@@ -20,7 +21,7 @@ from workagent.service import encoded
 from workagent.responses_ledger import summary, RESERVED_INPUT, RESERVED_OUTPUT, RESERVED_COST
 
 CAPS=dict(generation_limit=50,count_limit=50,read_limit=500,input_limit=1000000,output_limit=409600,cost_limit_usd='20.00')
-CEILINGS=dict(generation_limit=256,count_limit=256,read_limit=4096,input_limit=5120000,output_limit=2097152,cost_limit_usd='20.00')
+CEILINGS=dict(generation_limit=256,count_limit=256,read_limit=4096,input_limit=256*RESERVED_INPUT,output_limit=2097152,cost_limit_usd='20.00')
 
 
 def binding(cvs, project, **limits):
@@ -88,7 +89,7 @@ def test_each_limit_python_and_direct_sql(context,tmp_path,field,value,kind):
     if kind=='read': reserve(x,'dispatch'); identity(x,f)
     raises('budget_exhausted',lambda:reserve(x,kind))
     with pytest.raises(psycopg.Error,match='(request limit|reservation limit|project budget exhausted)'):
-        raw(x,kind,DISPATCH if kind=='dispatch' else {})
+        raw(x,kind,DISPATCH if kind=='dispatch' else {'input_token_limit':RESERVED_INPUT} if kind=='count_send' else {})
     with context[0].db.transaction() as c:
         assert summary(c,g.id)['request_counts'][kind]==0
 
@@ -119,7 +120,7 @@ def test_conversations_explicit_unique_ten_and_historical_literals():
 
 
 @pytest.mark.parametrize('field,value',[(f,v) for f in CAPS for v in ('missing',None,True)] + [
-    ('generation_limit',257),('read_limit',4097),('input_limit',5120001),('output_limit',2097153),
+    ('generation_limit',257),('read_limit',4097),('input_limit',256*RESERVED_INPUT+1),('output_limit',2097153),
     ('count_limit','50'),('cost_limit_usd','20.000001'),('cost_limit_usd','NaN'),
     ('max_steps','4'),('synthetic_data_only','true'),('conversation_ids',['duplicate','duplicate']),
     ('runtime_extension','unknown')])
@@ -135,7 +136,7 @@ def test_sql_alpha_config_rejected_before_install(context,field,value):
 
 @pytest.mark.parametrize('field,value,kind',[
     ('count_limit',1,'count_send'),('generation_limit',1,'dispatch'),('read_limit',1,'read'),
-    ('input_limit',20000,'dispatch'),('output_limit',8192,'dispatch'),('cost_limit_usd','0.263839','dispatch')])
+    ('input_limit',RESERVED_INPUT,'dispatch'),('output_limit',8192,'dispatch'),('cost_limit_usd',str(RESERVED_COST*2-Decimal('0.000001')),'dispatch')])
 def test_cross_grant_shared_limits(context,tmp_path,field,value,kind):
     project='proj_shared_'+new_id()
     g1,f1,x1=prepared(context,tmp_path/'one',project=project)
@@ -145,7 +146,7 @@ def test_cross_grant_shared_limits(context,tmp_path,field,value,kind):
     if kind=='read': reserve(x2,'dispatch'); identity(x2,f2)
     raises('budget_exhausted',lambda:reserve(x2,kind))
     with pytest.raises(psycopg.Error,match='(request limit|reservation limit|project budget exhausted)'):
-        raw(x2,kind,DISPATCH if kind=='dispatch' else {})
+        raw(x2,kind,DISPATCH if kind=='dispatch' else {'input_token_limit':RESERVED_INPUT} if kind=='count_send' else {})
     with context[0].db.transaction() as c:
         assert summary(c,g2.id,shared=True)['unknown_usage_steps']>=1
 
@@ -166,7 +167,7 @@ def test_carry_applies_to_alpha_lower_cost(context,tmp_path):
 
 @pytest.mark.parametrize('field,value,kind',[
     ('count_limit',1,'count_send'),('generation_limit',1,'dispatch'),('read_limit',1,'read'),
-    ('input_limit',20000,'dispatch'),('output_limit',8192,'dispatch'),('cost_limit_usd','0.263839','dispatch')])
+    ('input_limit',RESERVED_INPUT,'dispatch'),('output_limit',8192,'dispatch'),('cost_limit_usd',str(RESERVED_COST*2-Decimal('0.000001')),'dispatch')])
 @pytest.mark.parametrize('direct',[True,False])
 def test_simultaneous_last_shared_reservation(context,tmp_path,field,value,kind,direct):
     from threading import Barrier
@@ -180,7 +181,7 @@ def test_simultaneous_last_shared_reservation(context,tmp_path,field,value,kind,
     def attempt(x):
         barrier.wait(timeout=10)
         try:
-            if direct: raw(x,kind,DISPATCH if kind=='dispatch' else {})
+            if direct: raw(x,kind,DISPATCH if kind=='dispatch' else {'input_token_limit':RESERVED_INPUT} if kind=='count_send' else {})
             else: reserve(x,kind)
             return 'reserved'
         except psycopg.Error as e:
@@ -211,7 +212,7 @@ def test_last_count_exact_phase_recovery_and_replay(context,tmp_path):
     with s.db.transaction() as c:
         t=summary(c,g.id)
         assert t['request_counts']['count_send']==t['request_counts']['dispatch']==1
-        assert t['reserved_input_tokens']==20000
+        assert t['reserved_input_tokens']==RESERVED_INPUT
     worker(context,f,tmp_path).work(p,ws,q.run.id)
     assert len(f.calls)==2
 
@@ -267,7 +268,8 @@ def test_four_selections_plus_one_final_and_no_extra_reservation(context,tmp_pat
     q=post(context,cv,'Explore only the bounded capability catalog.')
     f=AlphaProvider([{'kind':'discover_capabilities'}]*4)
     w=worker(context,f,tmp_path)
-    assert w.work(p,ws,q.run.id).state=='partial'
+    from test_adaptive_execution import finish_safe_visits
+    assert finish_safe_visits(context,w,q.run.id).state=='partial'
     with s.db.transaction() as c:
         phases=c.execute('SELECT phase FROM responses_steps WHERE grant_id=%s ORDER BY phase',(g.id,)).fetchall()
         assert {r['phase'] for r in phases}=={'selection','selection_2','selection_3','selection_4','final'}
@@ -305,7 +307,14 @@ def test_additive_018_upgrade_preserves_unknowns_carry_pins_and_acl(tmp_path,mon
     with monkeypatch.context() as historical:
         historical.setattr('workagent.responsibility_action.recording',lambda c,run:None)
         g,f,x=prepared(ctx,tmp_path/'worker',project=project)
-        count(x,f); reserve(x,'dispatch')  # no identity/result: irrevocable unknown liability
+        # Insert the actual historical policy/reservation under the old SQL;
+        # today's Python correctly refuses to under-reserve a NEW dispatch.
+        raw(x,'count_send',{})
+        r=x['request']
+        x['ledger'].retain(r,'count_result',dict(request_sha256=r.sha256,count_sha256=sha256(r.count_body()).hexdigest(),
+            input_tokens=700,metadata=r.metadata.model_dump(),provenance=asdict(f.transport().provenance)))
+        raw(x,'dispatch',dict(reserved_input_tokens=20000,reserved_output_tokens=8192,
+            reserved_cost_usd='0.131920',billed_cost_usd=None))
     def snapshot():
         with ctx[0].db.transaction() as c:
             return (summary(c,g.id,shared=True),c.execute('SELECT data FROM provider_grants WHERE id=%s',(g.id,)).fetchone(),

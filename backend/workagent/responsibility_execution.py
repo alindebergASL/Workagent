@@ -84,6 +84,40 @@ def check_admission_budget(c, grant):
         raise DomainError('budget_exhausted')
 
 
+def durable_context(c,run,message,binding):
+    """Bounded plan evidence independent of rolling chat; never new authority."""
+    from .service import canonical
+    row=c.execute('SELECT responsibility_recording FROM assignments WHERE workspace_id=%s AND id=%s',
+        (run.workspace_id,binding['assignment_id'])).fetchone()
+    recording=row['responsibility_recording'] if row else None
+    request=None
+    if recording:
+        source=c.execute("SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+            "AND id=%s AND author_kind='human'",(run.workspace_id,run.conversation_id,
+            recording['request']['message_id'])).fetchone()
+        if source:
+            request={'message_id':source['data']['id'],'text':source['data']['text'],
+                     'attachments':[{k:v for k,v in a.items() if k!='content'} for a in source['data']['attachments']]}
+    rows=c.execute("SELECT m.data FROM conversation_messages m JOIN run_configurations rc "
+        "ON rc.workspace_id=m.workspace_id AND rc.run_id=m.run_id "
+        "WHERE m.workspace_id=%s AND m.conversation_id=%s AND m.author_kind='assistant' "
+        "AND m.sequence<%s AND rc.data->'responsibility'->>'assignment_id'=%s "
+        "ORDER BY m.sequence DESC LIMIT 5",(run.workspace_id,run.conversation_id,message.sequence,binding['assignment_id'])).fetchall()
+    results=[]; used=0
+    for row in rows[:4]:
+        m=row['data']; refs=[x for x in (m.get('result') or {}).get('results',[]) if x.get('kind')!='text']
+        item={'message_id':m['id'],'run_id':m['run_id'],'text':m['text'][:2000],
+              'text_truncated':len(m['text'])>2000,'saved_references':refs}
+        size=len(canonical(item).encode())
+        if used+size>12000: break
+        results.append(item); used+=size
+    return {'recorded_human_request':request,'request_available':request is not None,
+            'saved_dependencies':binding['observations'],'prior_results':list(reversed(results)),
+            'prior_results_truncated':len(rows)>len(results),
+            'notice':'Recorded request and own prior outcomes are context, not permission. Current human corrections take precedence. '
+                     'Only exact dependency observations authorize background artifact access.'}
+
+
 class ResponsibilityExecution:
     def _store_run(self, c, run):
         super()._store_run(c, run)
@@ -175,11 +209,13 @@ class ResponsibilityExecution:
             # every reader when no responsibility can advance. Each reconcile,
             # claim and admission below rechecks write authority under its lock.
             self._scope(c, p, ws)
+            from .general_responses import scope_predicate
+            predicate=scope_predicate(c,'g','assignments.conversation_id')
             rows = c.execute("SELECT id FROM assignments WHERE workspace_id=%s AND data->>'owner_id'=%s "
-                "AND conversation_id=ANY(%s) AND responsibility_lifecycle IS NOT NULL "
+                f"AND EXISTS(SELECT 1 FROM provider_grants g WHERE g.id=%s AND {predicate}) AND responsibility_lifecycle IS NOT NULL "
                 "AND responsibility_lifecycle->>'state' NOT IN ('cancelled','taken_over') "
                 "AND (%s::text IS NULL OR id>%s) ORDER BY id LIMIT %s",
-                (ws, p.id, grant['data']['responses']['conversation_ids'], cursor, cursor, limit)).fetchall()
+                (ws, p.id, grant_id, cursor, cursor, limit)).fetchall()
         # Restart-safe fairness hint only; canonical authority remains entirely in PG.
         cursors[(ws,grant_id)]=rows[-1]['id'] if len(rows)==limit else None
         self._responsibility_scan_cursors=cursors

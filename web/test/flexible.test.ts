@@ -5,11 +5,15 @@ import {
   bindingStates,
   canRemoveRow,
   cellValue,
+  cardLabel,
   changeSummary,
+  editsSinceWorkagent,
+  plainReason,
   fieldHeading,
   longTextFields,
   flexibleKind,
   formatCell,
+  unitLegend,
   isEmptyPayload,
   pinsVersions,
   notesFrom,
@@ -90,6 +94,38 @@ describe("self-describing work", () => {
     expect(formatCell(field({ type: "boolean" }), false)).toBe("No");
     expect(formatCell(field({ type: "integer" }), null)).toBe("—");
     expect(formatCell(field({ type: "integer" }), 0)).toBe("0");
+  });
+
+  it("says a long unit once above a phone's cards, keeping short ones beside the label", () => {
+    const long = "count (pairs counted as one)";
+    const fields = [
+      field({ key: "name", label: "Name" }),
+      field({ key: "a", label: "Have", type: "integer", unit: long }),
+      field({ key: "b", label: "Want", type: "integer", unit: long }),
+      field({ key: "c", label: "Cost", type: "decimal", unit: "EUR" }),
+      field({ key: "d", label: "Weight in kilograms", unit: "kilograms" }),
+      field({
+        key: "e",
+        label: "Span",
+        type: "integer",
+        unit: "metres along the path",
+      }),
+    ];
+    expect(fields.map(cardLabel)).toEqual([
+      "Name",
+      "Have",
+      "Want",
+      "Cost (EUR)",
+      "Weight in kilograms",
+      "Span",
+    ]);
+    // Wider screens keep each unit in its column heading.
+    expect(fieldHeading(fields[1]!)).toBe(`Have (${long})`);
+    expect(unitLegend(fields)).toEqual([
+      { unit: long, labels: ["Have", "Want"] },
+      { unit: "metres along the path", labels: ["Span"] },
+    ]);
+    expect(unitLegend(venues.fields)).toEqual([]);
   });
 
   it("parses typed input with the service's own bounds", () => {
@@ -385,5 +421,78 @@ describe("long text cells", () => {
     );
     expect([...longTextFields(long)]).toContain(text.key);
     expect(longTextFields(long).has(other.key)).toBe(false);
+  });
+});
+
+describe("values changed since Workagent's version", () => {
+  const rev = (
+    id: string,
+    parent: string | null,
+    author_kind: "human" | "worker",
+    capacity: number,
+  ) => {
+    const body = structuredClone(venues);
+    const cell = body.rows[0]!.cells.find((c) => c.field_key === "capacity")!;
+    cell.value = capacity;
+    return {
+      id,
+      parent_revision_id: parent,
+      author_kind,
+      body,
+    } as unknown as Parameters<typeof editsSinceWorkagent>[0] & object;
+  };
+  it("names the cells a person changed after Workagent's latest version", () => {
+    const agent = rev("a", null, "worker", 80);
+    const human1 = rev("h1", "a", "human", 90);
+    const human2 = rev("h2", "h1", "human", 95);
+    const out = editsSinceWorkagent(human2, [agent, human1, human2]);
+    expect([...(out?.cells ?? [])]).toEqual([
+      `${venues.rows[0]!.row_id}\u001fcapacity`,
+    ]);
+  });
+  it("treats a version made by applying Workagent's proposal as Workagent's", () => {
+    const agent = rev("a", null, "worker", 80);
+    const applied = rev("p", "a", "human", 70);
+    expect(
+      editsSinceWorkagent(applied, [agent, applied], new Set(["p"])),
+    ).toBeNull();
+    const edit = rev("h", "p", "human", 75);
+    const out = editsSinceWorkagent(
+      edit,
+      [agent, applied, edit],
+      new Set(["p"]),
+    );
+    expect(out?.cells.size).toBe(1);
+  });
+  it("says nothing when Workagent saved last, or no version of its is read", () => {
+    const agent = rev("a", null, "worker", 80);
+    expect(editsSinceWorkagent(agent, [agent])).toBeNull();
+    const human = rev("h", "missing", "human", 90);
+    expect(editsSinceWorkagent(human, [human])).toBeNull();
+    // The same values as Workagent's: nothing changed.
+    const same = rev("s", "a", "human", 80);
+    expect(editsSinceWorkagent(same, [agent, same])).toBeNull();
+  });
+});
+
+describe("plainReason", () => {
+  it("says who prepared a proposal in plain words, keeping the fact", () => {
+    expect(
+      plainReason(
+        "Model-selected proposed revision. Review before acceptance.",
+      ),
+    ).toBe("Prepared by the model. Nothing changes until you apply it.");
+    expect(
+      plainReason(
+        "Controlled local proposed revision. Review before acceptance.",
+      ),
+    ).toBe(
+      "Prepared locally, without a model. Nothing changes until you apply it.",
+    );
+  });
+  it("shows any other reason as written", () => {
+    expect(plainReason("Shortened the lantern loan as asked.")).toBe(
+      "Shortened the lantern loan as asked.",
+    );
   });
 });

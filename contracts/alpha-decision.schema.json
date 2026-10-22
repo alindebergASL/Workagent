@@ -331,7 +331,7 @@
       "title": "DraftAction",
       "type": "object"
     },
-    "DraftBlock": {
+    "DraftChecklistBlock": {
       "additionalProperties": false,
       "properties": {
         "block_id": {
@@ -353,12 +353,7 @@
           "title": "Checked"
         },
         "kind": {
-          "enum": [
-            "heading",
-            "paragraph",
-            "checklist",
-            "protected_note"
-          ],
+          "const": "checklist",
           "title": "Kind",
           "type": "string"
         },
@@ -375,7 +370,7 @@
         "text",
         "checked"
       ],
-      "title": "DraftBlock",
+      "title": "DraftChecklistBlock",
       "type": "object"
     },
     "DraftDocument": {
@@ -383,7 +378,14 @@
       "properties": {
         "blocks": {
           "items": {
-            "$ref": "#/$defs/DraftBlock"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/DraftTextBlock"
+              },
+              {
+                "$ref": "#/$defs/DraftChecklistBlock"
+              }
+            ]
           },
           "maxItems": 200,
           "minItems": 1,
@@ -600,6 +602,45 @@
       "title": "DraftTable",
       "type": "object"
     },
+    "DraftTextBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "block_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Block Id",
+          "type": "string"
+        },
+        "checked": {
+          "title": "Checked",
+          "type": "null"
+        },
+        "kind": {
+          "enum": [
+            "heading",
+            "paragraph",
+            "protected_note"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block_id",
+        "kind",
+        "text",
+        "checked"
+      ],
+      "title": "DraftTextBlock",
+      "type": "object"
+    },
     "DraftView": {
       "additionalProperties": false,
       "properties": {
@@ -668,6 +709,29 @@
       "additionalProperties": false,
       "properties": {},
       "title": "EmptyPayload",
+      "type": "object"
+    },
+    "FetchPublicURL": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fetch_public_url",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "FetchPublicURL",
       "type": "object"
     },
     "FormField": {
@@ -811,7 +875,8 @@
           "enum": [
             "messages",
             "target",
-            "attachments"
+            "attachments",
+            "work_area"
           ],
           "title": "Section",
           "type": "string"
@@ -1282,6 +1347,9 @@
         },
         {
           "$ref": "#/$defs/InspectJSON"
+        },
+        {
+          "$ref": "#/$defs/FetchPublicURL"
         },
         {
           "$ref": "#/$defs/RecordResponsibility"

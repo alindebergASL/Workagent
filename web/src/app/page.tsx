@@ -1,6 +1,11 @@
 "use client";
 import Link from "next/link";
-import { scopedHref } from "@/lib/scope";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { scopedHref, WORKSPACE_PARAM } from "@/lib/scope";
+import { DESTINATION_KEY, homeDestination } from "@/lib/home-destination";
+import { executionApi, useExecution } from "@/lib/client/execution";
+import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
 import { useHomeOverview } from "@/lib/client/overview";
 import {
@@ -59,9 +64,9 @@ function lede(
   if (items.some((i) => phaseOf(i) === "paused" && !isRecordedHandover(i)))
     return "Some work is paused. Resume it whenever you’re ready, or start something new.";
   if (holding)
-    return "Some responsibilities are recorded as mine to carry. Nothing runs for them on its own yet.";
+    return "Some responsibilities are recorded as mine to carry. Nothing is running for them right now.";
   if (items.some(isRecordedHandover))
-    return "You’ve handed over work I can’t start on my own yet. It’s recorded and waiting.";
+    return "You’ve recorded paused hand-overs. Nothing runs for them until they’re picked up.";
   if (made.length)
     return "Your work is saved below. Pick it up, or start something new.";
   return "Ask, think something through, or hand over something you’d like finished.";
@@ -130,9 +135,97 @@ function SinceYouLeft({
   );
 }
 
-export default function AgentHome() {
-  const { workspace, workspaces, error: wsError, zone } = useWorkspace();
-  const wsId = workspace?.id ?? null;
+/**
+ * Where a message started here goes, said plainly, with the person's way to
+ * another workspace when this one can't take work now. The service's own
+ * execution read decides "can't"; nothing is assumed from names or history.
+ */
+function useHomeDestination() {
+  const { workspaces } = useWorkspace();
+  const router = useRouter();
+  const named = useSearchParams().get(WORKSPACE_PARAM);
+  const [remembered, setRemembered] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      setRemembered(localStorage.getItem(DESTINATION_KEY));
+    } catch {
+      /* storage unavailable: the address or the default decides */
+    }
+  }, []);
+  const id = homeDestination({ named, remembered, openable: workspaces });
+  const choose = (next: string) => {
+    setRemembered(next);
+    try {
+      localStorage.setItem(DESTINATION_KEY, next);
+    } catch {
+      /* storage unavailable: the address still carries it */
+    }
+    router.replace(`/?${WORKSPACE_PARAM}=${encodeURIComponent(next)}`, {
+      scroll: false,
+    });
+  };
+  const exec = useExecution(id);
+  const cannot = exec.data?.can_advance_authorized_work === false;
+  // Only when this one can't take work: one read of each other workspace,
+  // to offer one that can.
+  const others = workspaces.filter((w) => w.id !== id).map((w) => w.id);
+  const elsewhere = useResource<string | null>(
+    cannot && others.length ? `ready-elsewhere:${others.join(",")}` : null,
+    async (signal) => {
+      for (const ws of others) {
+        try {
+          const st = await executionApi.get(ws, signal);
+          if (st.can_advance_authorized_work) return ws;
+        } catch {
+          /* unreadable: not offered */
+        }
+      }
+      return null;
+    },
+  );
+  const name = (ws: string | null) =>
+    workspaces.find((w) => w.id === ws)?.name ?? "this workspace";
+  const alt = cannot ? elsewhere.data : null;
+  const note = cannot ? (
+    <p className="hint" role="status" data-testid="home-destination-note">
+      Workagent can’t take on work in {name(id)} right now.
+      {alt ? (
+        <>
+          {" "}
+          <button
+            type="button"
+            className="link-quiet small"
+            data-testid="home-destination-switch"
+            onClick={() => choose(alt)}
+          >
+            Start in {name(alt)} instead
+          </button>
+        </>
+      ) : null}
+    </p>
+  ) : null;
+  return {
+    id,
+    choose,
+    note,
+    options: workspaces.map((w) => ({ id: w.id, name: w.name })),
+  };
+}
+
+// The address may name where a new conversation starts, so Home reads it;
+// everything here is the person's own data, read in the browser.
+export default function AgentHomePage() {
+  return (
+    <Suspense fallback={<div className="agent-col" aria-busy="true" />}>
+      <AgentHome />
+    </Suspense>
+  );
+}
+
+function AgentHome() {
+  const { workspaces, error: wsError, zone } = useWorkspace();
+  const destination = useHomeDestination();
+  const wsId = destination.id;
   // Handed-over work in every workspace this person can open.
   const workspaceIds = workspaces.map((w) => w.id);
   const overview = useHomeOverview(workspaceIds);
@@ -169,9 +262,12 @@ export default function AgentHome() {
   const holding = others.filter((i) => groupOf(i) === "holding");
   const legacy = others.filter((i) => groupOf(i) === null);
   // A recorded hand-over that can't start yet is never shown as being handled.
-  const handling = legacy.filter(
-    (i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i),
-  );
+  // What Workagent is actually doing: admitted responsibilities queued or
+  // running, and older work still in progress.
+  const handling = [
+    ...others.filter((i) => groupOf(i) === "handling"),
+    ...legacy.filter((i) => HANDLING.has(phaseOf(i)) && !isRecordedHandover(i)),
+  ];
   const approved = legacy.filter((i) => phaseOf(i) === "approved");
   const stopped = [
     ...legacy.filter((i) => phaseOf(i) === "stopped"),
@@ -185,9 +281,14 @@ export default function AgentHome() {
         isRecordedHandover(i),
     ),
   ];
-  const rows = (list: AssignmentSummary[]) =>
+  const rows = (list: AssignmentSummary[], quietIdle = false) =>
     list.map((item) => (
-      <WorkRow key={item.id} item={item} hold={holds[item.id]} />
+      <WorkRow
+        key={item.id}
+        item={item}
+        hold={holds[item.id]}
+        quietIdle={quietIdle}
+      />
     ));
   const madeRows = (list: ConversationWork[]) =>
     list.map((w) => (
@@ -216,23 +317,24 @@ export default function AgentHome() {
   const groups = [
     {
       key: "handling",
-      label: "I’m handling",
+      label: "I’m working on",
       dot: "dot-live",
       rows: rows(handling),
     },
     {
       key: "ready",
-      label: "Ready for you",
+      label: "Needs you",
       dot: "dot-attn",
       rows: [...madeRows(madeDecisions), ...rows(ready)],
     },
     {
-      // Recorded as Workagent's to carry. Held isn't running: each row says
-      // whether anything runs for it.
+      // Recorded as Workagent's to carry and waiting (on someone, an event
+      // or its check-in). The heading says nothing is being worked on now;
+      // a row says more only when its run does.
       key: "holding",
-      label: "Responsibilities I’m holding",
+      label: "I’m keeping track of",
       dot: "",
-      rows: rows(holding),
+      rows: rows(holding, true),
     },
     {
       key: "made",
@@ -248,8 +350,9 @@ export default function AgentHome() {
     },
     { key: "stopped", label: "Stopped", dot: "", rows: rows(stopped) },
   ].filter((g) => g.rows.length);
-  // Open the most useful group first: what I'm carrying, else what's ready.
-  const openKey = groups[0]?.key;
+  const primary = groups.some(
+    (g) => g.key === "ready" || g.key === "handling" || g.key === "holding",
+  );
 
   if (wsError) {
     return (
@@ -266,10 +369,6 @@ export default function AgentHome() {
 
   return (
     <div className="agent-col">
-      <p className="context-line">
-        <span className="dot" aria-hidden="true" />
-        Your agent · Work continues here
-      </p>
       <section className="agent-intro" aria-labelledby="home-title">
         <div className="agent-presence" aria-hidden="true" />
         <h1 id="home-title">Good to see you.</h1>
@@ -280,7 +379,12 @@ export default function AgentHome() {
         </p>
       </section>
 
-      <Composer wsId={wsId} />
+      <Composer
+        wsId={wsId}
+        destinations={destination.options}
+        onDestination={destination.choose}
+        destinationNote={destination.note}
+      />
 
       {/* Each feed says its own state: the work conversations made is read
           separately from handed-over work, and either can fail alone. */}
@@ -343,11 +447,17 @@ export default function AgentHome() {
             <p className="eyebrow-caps">Waiting for you</p>
             <StatusBadge label="Decision needed" tone="status-attention" />
           </div>
-          <h2 id="decision-title">A proposed version is ready</h2>
-          <p className="small clamp-2">{shortTitle(leadDecision.title)}</p>
+          {/* Named by the work, as people think of it; what's waiting
+              says so in a line. */}
+          <h2 id="decision-title" className="clamp-2">
+            {shortTitle(leadDecision.title)}
+          </h2>
+          <p className="small">
+            A proposed version is ready. Your saved version stays until you
+            apply it.
+          </p>
           <p className="small muted">
-            From “{leadDecision.conversation_title}”. Your saved version stays
-            until you apply it.
+            From “{leadDecision.conversation_title}”
           </p>
           <Link
             className="btn btn-on-soft"
@@ -393,7 +503,15 @@ export default function AgentHome() {
             <details
               key={g.key}
               className={`since-group since-${g.key}`}
-              open={g.key === openKey && (!attention || g.key === "handling")}
+              // What needs the person and what Workagent is handling read
+              // open, as sections; the rest is a step away, unless it's all
+              // there is.
+              open={
+                g.key === "ready" ||
+                g.key === "handling" ||
+                g.key === "holding" ||
+                (!primary && g === groups[0])
+              }
             >
               <summary>
                 <span className={`dot ${g.dot}`} aria-hidden="true" />

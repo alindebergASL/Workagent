@@ -5,6 +5,22 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { chromium, expect } from "@playwright/test";
+
+// A piece of work opens on its result; editing is its Edit tab (remembered
+// for that work in the tab). Pages without one are left as they are.
+const openEdit = async (page) => {
+  const edit = page.getByRole("tab", { name: "Edit", exact: true });
+  await edit
+    .first()
+    .waitFor({ timeout: 15000 })
+    .catch(() => {});
+  if (
+    (await edit.count()) &&
+    (await edit.getAttribute("aria-selected")) !== "true"
+  )
+    await edit.click();
+};
+
 const directory = process.argv[2];
 const root = path.resolve("..");
 const py = path.join(root, "backend/.venv/bin/python");
@@ -132,6 +148,7 @@ try {
     artifact.current_revision.body_hash,
   ];
   // Human edit through browser, then exact saved target through TUI HTTP.
+  await openEdit(page);
   const textareas = page.locator("textarea");
   await expect(textareas.first()).toBeVisible();
   const humanField = page
@@ -182,6 +199,7 @@ try {
     artifact.current_revision_id,
   );
   await page.goto(`${fixture.web}/conversations/${cid}/artifacts/${aid}`);
+  await openEdit(page);
   await expect(
     page.locator("textarea").filter({ hasText: "Human constraints:" }),
   ).toHaveValue(draftText);

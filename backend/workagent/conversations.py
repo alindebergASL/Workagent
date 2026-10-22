@@ -81,11 +81,13 @@ class Conversations:
             self._source(c,p,ws,ref,versions)
         return cv
 
-    def _conversation_preview(self,c,ws,cv):
+    def _conversation_preview(self,c,ws,cv,p=None):
         messages=self._conversation_messages(c,ws,cv.id)
         cv.updated_at=messages[-1].created_at if messages else cv.created_at
         cv.last_message_preview=messages[-1].text[:240] if messages else None
-        activation=c.execute("SELECT active FROM provider_grants WHERE workspace_id=%s AND data->>'profile'='general-responses-v1' AND data->'responses'->'conversation_ids' ? %s ORDER BY active DESC,id LIMIT 1",(ws,cv.id)).fetchone()
+        from .general_responses import scope_predicate
+        predicate=scope_predicate(c,'g','%s')
+        activation=c.execute(f"SELECT active FROM provider_grants g WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'='general-responses-v1' AND {predicate} ORDER BY active DESC,id LIMIT 1",(ws,p.id if p else cv.owner_id,cv.id)).fetchone()
         if activation:
             cv.execution_profile='general-responses-v1'
             cv.model_activation='active' if activation['active'] else 'revoked'
@@ -138,7 +140,7 @@ class Conversations:
                   WHERE s.workspace_id=cv.workspace_id AND s.conversation_id=cv.id
                   AND (g.active IS DISTINCT FROM true OR (src.data->>'available')::boolean IS DISTINCT FROM true))
                 ORDER BY cv.id LIMIT %s''',(ws,cursor or '',p.id,limit+1)).fetchall()
-            items=[self._conversation_preview(c,ws,self._conversation(c,p,ws,r['id'])) for r in rows[:limit]]
+            items=[self._conversation_preview(c,ws,self._conversation(c,p,ws,r['id']),p) for r in rows[:limit]]
             return ConversationPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
     def get_conversation(self,p,ws,cid):
@@ -152,7 +154,7 @@ class Conversations:
             from .products import turn_state
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
-            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
+            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -176,12 +178,10 @@ class Conversations:
         self._conversation(c,p,ws,cid,True)
         from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
         try:
-            grant=admission(self,c,p,ws,cv,cmd)
+            grant=admission(self,c,p,ws,cv,cmd,human_steering=responsibility is None)
         except DomainError as exc:
-            if responsibility is not None and exc.code.value=='action_unresolved' and c.execute(
-                "SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id "
-                "WHERE r.workspace_id=%s AND r.conversation_id=%s AND a.data->>'state' NOT IN ('reconciled','failed') LIMIT 1",
-                (ws,cid)).fetchone():
+            from .general_responses import has_unresolved_attempt
+            if responsibility is not None and exc.code.value=='action_unresolved' and has_unresolved_attempt(c,ws,cid):
                 from .responsibility_execution import ContinuationAdmissionPending
                 raise ContinuationAdmissionPending() from exc
             raise
@@ -203,9 +203,11 @@ class Conversations:
                      'next':cmd.model_dump(mode='json'),
                      'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
                      'tools':self.local_tool_registry() if cmd.operation else []}
-        if responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+        from .general_responses import standing
+        bounded=grant is not None and standing(grant.responses)
+        if not bounded and responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
             raise DomainError('budget_exhausted')
-        if sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
+        if not bounded and sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
             raise DomainError('budget_exhausted')
         if responsibility is None:
             self._cancel_conversation_runs(c,ws,cid)  # Only human steering supersedes other work.
@@ -220,6 +222,9 @@ class Conversations:
         if grant:
             pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
                 max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
+        if grant and getattr(grant.responses,'runtime_extension',None)=='general-alpha-v1':
+            from .evidence_context import VERSION
+            pinned['evidence_context_version']=VERSION
         if responsibility is not None:
             pinned['responsibility']=responsibility.model_dump(mode='json')
         c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
@@ -237,6 +242,10 @@ class Conversations:
         if responsibility is None:
             cv.work_version+=1
             self._store_conversation(c,cv)
+        if bounded and responsibility is None:
+            # Validate the exact bounded context in the admission transaction.
+            # Oversized current intent rolls back rather than being truncated.
+            self._materialize_general_context(c,p,run,cv)
         self._event(c,p,ws,'post_message' if responsibility is None else 'responsibility_run_queued',run.id)
         if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
         return MessageQueued(conversation=cv,message=message,run=run)
@@ -275,23 +284,80 @@ class Conversations:
         self._event(c,p,ws,'delegate_conversation',a.id)
         return a
 
-    def _general_context(self,c,cap):
+    def _validate_general_context(self,c,cap):
+        """Validate frozen authority and every own addition, without projecting it."""
         from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
-        context,sources=self._materialize_general_context(c,p,run,cv)
+        materials=self._own_new_drafts(c,p,run,cv) if run.profile=='general-responses-v1' else []
+        own=[m['artifact_id'] for m in materials]
+        context,sources=self._materialize_general_context(c,p,run,cv,exclude_artifacts=own)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
         if 'work_area_context' in context:
             observation['work_area_context']=context['work_area_context']
         if 'work_context_index' in context:
             observation['work_context_index']=context['work_context_index']
+        if 'evidence_context' in context:
+            observation['evidence_context']=context['evidence_context']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
+        if own and not previous:
+            raise DomainError('source_changed')
         if previous and previous['data']!=observation:
             raise DomainError('source_changed')
         if not previous:
             c.execute('INSERT INTO run_contexts(workspace_id,run_id,data) VALUES (%s,%s,%s)',(run.workspace_id,run.id,encoded(observation)))
+        return p,run,cv,context,materials
+
+    def _general_context(self,c,cap,*,request_projection=False):
+        """Authority callers also validate additions; only new requests need packing.
+
+        In particular lease reclamation must succeed before a worker can settle
+        an oversized projection against its new fenced capability.
+        """
+        p,run,cv,context,materials=self._validate_general_context(c,cap)
+        own=[m['artifact_id'] for m in materials]
+        if own:
+            context['published_preparations']=materials
+            # Baseline above stays byte-for-byte frozen. Only this run's verified
+            # additions are projected for the next step, never arbitrary new work.
+            from .general_responses import check_pins
+            config=check_pins(c,run)
+            if not config.get('responsibility') and 'work_area_context' in context:
+                from copy import deepcopy
+                from .responsibility_action import offer
+                latest=next(m for m in self._conversation_messages(c,run.workspace_id,cv.id)
+                            if m.run_id==run.id and m.author_kind=='human')
+                context['responsibility_offer']=offer(c,run,cv,latest,config)
+                snapshot=deepcopy(context['work_area_context'])
+                known={a['artifact_id'] for a in snapshot['artifacts']}
+                additions=[a for a in own if a not in known]
+                room=max(0,12-len(known))
+                snapshot['artifacts'] += [{'artifact_id':a} for a in additions[:room]]
+                snapshot['omissions']['artifacts']+=len(additions[room:])
+                projection=self._work_area_context(c,p,run.workspace_id,cv,snapshot=snapshot,
+                    work_version=context['responsibility_offer']['conversation_work_version']).model_dump(mode='json')
+                # New work is discoverable; same-turn revisions still require
+                # the existing discovery + complete-read SQL authorization.
+                projection['offered_targets']=context['work_area_context']['offered_targets']
+                context['work_area_context']=projection
+                # Bindable references use the same validated current revisions.
+                for item in projection['artifacts']:
+                    body=item['body']
+                    if item['artifact_id'] in own and body and ('blocks' in body or body.get('kind')=='structured_table'):
+                        context['bindable_artifacts'].append({**{k:item[k] for k in ('artifact_id','revision_id','body_hash')},'title':body['title']})
+            # Pack optional history with the verified additions already present.
+            # Re-read the full message pool so omission counts remain truthful;
+            # never re-pack an already shortened history as if it were complete.
+            if request_projection and 'history_window' in context and not config.get('responsibility'):
+                from .conversation_context import bound_context
+                context['messages']=[m.model_dump(mode='json',exclude={'acceptance_checks'})
+                    for m in self._conversation_messages(c,run.workspace_id,cv.id)]
+                bound_context(context,run.id,profile(run.profile)['max_context_bytes'])
+            from .service import canonical
+            if request_projection and len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
+                raise DomainError('budget_exhausted')
         return context
 
-    def _materialize_general_context(self,c,p,run,cv):
+    def _materialize_general_context(self,c,p,run,cv,*,exclude_artifacts=()):
         """Shared exact context and bounds, without claiming or observing a run."""
         from .service import canonical
         if run.profile not in (PROFILE,PRODUCT_PROFILE,'general-responses-v1'):
@@ -322,14 +388,22 @@ class Conversations:
                            [{'name':'choose_general_action','inputSchema':schema.model.model_json_schema()}])
             if alpha:
                 from .responsibility_action import offer
-                context['composition']=context_catalog()
-                context['responsibility_offer']=offer(c,run,cv,latest,config)
+                from .composition import continuity_enabled
+                context['composition']=context_catalog(continuity_enabled(config))
+                context['responsibility_offer']=offer(c,run,cv,latest,config,exclude_artifacts=exclude_artifacts)
             context['access_generation']=run.access_generation
             if config.get('responsibility'):
                 context['messages']=[m for m in context['messages'] if m['run_id']==run.id]
                 context['sources']=[]
                 sources=[]
                 context['responsibility']=config['responsibility']
+                from .composition import continuity_enabled
+                if continuity_enabled(config):
+                    from .responsibility_execution import durable_context
+                    context['durable_work']=durable_context(c,run,latest,config['responsibility'])
+                    steering=next((m for m in reversed(messages) if m.author_kind=='human' and m.sequence<latest.sequence),None)
+                    if steering:
+                        context['durable_work']['latest_human_steering']={'message_id':steering.id,'text':steering.text}
                 context['dependencies']=[]
                 for dep in config['responsibility']['observations']:
                     if dep['kind']=='artifact_revision':
@@ -343,9 +417,9 @@ class Conversations:
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
                 for r in c.execute('''SELECT rev.* FROM artifacts art JOIN revisions rev
                     ON rev.workspace_id=art.workspace_id AND rev.artifact_id=art.id AND rev.id=art.current_revision_id
-                    WHERE art.workspace_id=%s AND art.conversation_id=%s
+                    WHERE art.workspace_id=%s AND art.conversation_id=%s AND NOT (art.id=ANY(%s))
                     AND (rev.data->'body'->>'kind'='structured_table' OR rev.data->'body' ? 'blocks')
-                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id)).fetchall()]
+                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id,list(exclude_artifacts))).fetchall()]
             if config.get('responsibility'):
                 permitted={d['object_id'] for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'}
                 context['bindable_artifacts']=[a for a in context['bindable_artifacts'] if a['artifact_id'] in permitted]
@@ -371,6 +445,25 @@ class Conversations:
                     snapshot=previous['data'].get('work_context_index') if previous else None)
                 from .work_context import validate_consumed
                 validate_consumed(self,c,p,run,config)
+        if run.profile=='general-responses-v1':
+            from .evidence_context import VERSION, materialize
+            if config.get('evidence_context_version')==VERSION:
+                previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
+                    (run.workspace_id,run.id)).fetchone()
+                context['evidence_context']=materialize(self,c,p,run,cv,latest,messages,config,context,
+                    snapshot=previous['data'].get('evidence_context') if previous else None)
+            from .general_responses import standing
+            from .composition import continuity_enabled
+            from .saved_work import revalidate_reads
+            revalidate_reads(self,c,p,run,cv)
+            if continuity_enabled(config):
+                context['saved_work_discovery']={'capability':'discover_saved_work',
+                    'scope':'responsibility_dependencies' if config.get('responsibility') else 'current_conversation',
+                    'first_page':{'kind':'discover_saved_work','after_artifact_id':None,'limit':12},
+                    'notice':'Snapshot omission is not absence. Page descriptors, then read an exact target.'}
+            if standing(grant.responses):
+                from .conversation_context import bound_context
+                bound_context(context,run.id,profile(run.profile)['max_context_bytes'])
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
             if context.get('responsibility'):
                 from .responsibility_execution import ContinuationContextTooLarge
@@ -380,7 +473,7 @@ class Conversations:
 
     def conversation_worker_context(self,cap):
         with self.db.transaction() as c:
-            return self._general_context(c,cap)
+            return self._general_context(c,cap,request_projection=True)
 
     def complete_conversation_turn(self,cap,result):
         """Trusted fenced worker seam. No HTTP/model tool exposes this operation."""

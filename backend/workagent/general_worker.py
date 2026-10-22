@@ -158,6 +158,48 @@ class GeneralWorker:
         # remove only the redundant control-plane copies from the user payload.
         return {k:v for k,v in context.items() if k not in ('instructions','tools')}
 
+    def _observe_cancelled(self,p,ws,run):
+        from dataclasses import asdict
+        from .provider_attempts import ReceiptCapability, check_grant
+        from .responses_ledger import Ledger, ObservationAuthority, parsed_data
+        from .responses_transport import TransportError
+        saved=self.phases.state.load(ws,run.id)
+        if not saved or not saved.get('receipt'):return
+        ledger=Ledger(self.service,ReceiptCapability(**saved['receipt']))
+        authority=ObservationAuthority(p)
+        def fresh(request=None):
+            with self.service.db.transaction() as c:
+                current,attempt,_=ledger._auth(c,authority,observation=True)
+                config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                    (ws,run.id)).fetchone()['data']
+                check_grant(c,current,config)
+                self.phases._authorize_transport(config)
+                if request is not None:
+                    events=ledger._events(c,request.phase)
+                    if events['identity']['provenance']!=asdict(self.transport.provenance):
+                        raise DomainError('action_unresolved')
+                return attempt
+        try:
+            attempt=fresh()
+            with self.service.db.transaction() as c:
+                phases=c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s ORDER BY phase',
+                                 (attempt.id,)).fetchall()
+            # One GET per visit, under the existing private run lock. All reads
+            # use the original prepared bytes/schema and shared read counter.
+            for row in phases:
+                request,events=ledger.snapshot(row['phase'],authority)
+                if 'result' in events or 'identity' not in events:continue
+                if self.phases.poll_limit==0:return
+                fresh(request)
+                ledger.reserve_operation(request,'read',authority)
+                fresh(request)  # Independently recheck after reservation commit.
+                response=self.transport.retrieve(events['identity']['response_id'],request=request)
+                if response.state not in ('queued','in_progress'):
+                    ledger.retain(request,'result',parsed_data(response))
+                return
+        except (DomainError,TransportError):
+            return  # No replay, refund, execution, publication or lease mutation.
+
     def _responses_work(self,p,ws,run):
         from dataclasses import asdict
         from .provider_attempts import ReceiptCapability
@@ -167,7 +209,10 @@ class GeneralWorker:
         from .responses_transport import RequestMetadata,build_tool_selection,build_final,TransportError
         from .responses_ledger import Ledger
         s=self.service; phases=self.phases; rid=run.id
-        if run.state in ('ready','partial','cancelled'):
+        if run.state=='cancelled':
+            self._observe_cancelled(p,ws,run)
+            return self._terminal_readback(p,ws,run)
+        if run.state in ('ready','partial'):
             return self._terminal_readback(p,ws,run)
         with s.db.transaction() as c:
             config=check_pins(c,run)
@@ -187,7 +232,15 @@ class GeneralWorker:
             cap=s.claim_run(p,ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
         deadline=phases._visit_deadline(cap)
-        context=s.conversation_worker_context(cap)
+        try:
+            context=s.conversation_worker_context(cap)
+        except DomainError as exc:
+            # A restart may encounter a committed draft before staging got to
+            # revalidate its request projection. Settle against frozen authority,
+            # without replaying any retained step or creating a new attempt.
+            if exc.code.value!='budget_exhausted' or receipt is None:
+                raise
+            return self._terminal_readback(p,ws,s.stop_general_budget(cap,receipt))
         from .adaptive import enabled,contract
         from .models import ProviderGrant
         with s.db.transaction() as c:
@@ -204,13 +257,14 @@ class GeneralWorker:
         ledger=Ledger(s,receipt)
         if enabled(config):
             return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
-        selection,_=ledger.snapshot('selection',cap)
-        if selection is None:
-            selection=build_tool_selection(instructions=POLICY,source_context=canonical(self._request_context(context)),
-                read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
-                policy='general-responses-v1')
-            ledger.prepare(selection,cap)
         try:
+            selection,_=ledger.snapshot('selection',cap)
+            if selection is None:
+                from .request_packing import prepare_selection
+                selection=prepare_selection(context,instructions=POLICY,
+                    read_schema=DECISION_SCHEMA,metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='selection'),
+                    policy='general-responses-v1')
+                ledger.prepare(selection,cap)
             selected=phases._step(ledger,selection,cap,deadline)
             if selected is None or selected.state!='function_call':
                 return s.get_run(p,ws,rid)
@@ -221,6 +275,8 @@ class GeneralWorker:
                 final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(staged,selected),
                     instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                     metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                from .request_packing import check_final
+                check_final(final)
                 ledger.prepare(final,cap)
             generated=phases._step(ledger,final,cap,deadline)
             if generated is None or generated.state!='completed':
@@ -233,7 +289,10 @@ class GeneralWorker:
             # Ambiguous count/send is kept in the exact journal. No controlled
             # failure message, new turn, repair, regenerated decision or refund.
             return s.get_run(p,ws,rid)
-        except DomainError:
+        except DomainError as error:
+            if error.code.value=='budget_exhausted':
+                result=s.stop_general_budget(cap,receipt)
+                return self._terminal_readback(p,ws,result)
             raise
         except Exception:
             # Read back a potentially committed result; never fail/retry generation.
@@ -263,8 +322,9 @@ class GeneralWorker:
                     with s.db.transaction() as c:
                         ledger._auth(c,cap)
                         observations=retained(c,receipt.attempt_id)
-                    selection=build_tool_selection(instructions=POLICY,
-                        source_context=canonical(continuation_context(self._request_context(context),observations,bound)),
+                    context=s.conversation_worker_context(cap)
+                    from .request_packing import prepare_selection
+                    selection=prepare_selection(continuation_context(context,observations,bound),instructions=POLICY,
                         read_schema=DECISION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id=phase),
                         policy=CAPABILITY,phase=phase)
@@ -279,6 +339,8 @@ class GeneralWorker:
                     final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(for_model(staged),selected),
                         instructions=POLICY,artifact_schema=EXPLANATION_SCHEMA,
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id='final'))
+                    from .request_packing import check_final
+                    check_final(final)
                     ledger.prepare(final,cap)
                 generated=phases._step(ledger,final,cap,deadline)
                 if generated is None or generated.state!='completed': return s.get_run(p,ws,rid)

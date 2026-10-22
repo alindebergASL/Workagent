@@ -85,7 +85,9 @@ describe("runtime continuation requests (F1)", () => {
     );
     const text = html.replace(/<[^>]+>/g, " ");
     expect(text).not.toMatch(/You:/);
-    expect(text).toContain("Continuation request from a hand-over");
+    // One plain line up front; its own wording a step away.
+    expect(text).toContain("Workagent picked a hand-over back up.");
+    expect(html).toMatch(/<details[^>]*>.*Confirm the room\./s);
     expect(text).toContain("not by you");
     expect(text).toContain("Wake wake-1 · hand-over version 3");
     expect(html).toContain('href="/assignments/asg-1"');
@@ -109,20 +111,22 @@ describe("execution status, claiming no more than recorded (F2)", () => {
     check_in_due: false,
     wake_status: "none",
   });
+  // The short line never overclaims; Details carries the full account.
   it("queued isn't started; running isn't done", () => {
-    expect(responsibilityView(life("queued")).execution).toMatch(
-      /Queued isn’t the same as started/,
-    );
-    expect(responsibilityView(life("running", "run-9")).execution).toMatch(
-      /Running isn’t the same as done/,
-    );
-    expect(responsibilityView(life("running", "run-9")).runId).toBe("run-9");
+    const queued = responsibilityView(life("queued"));
+    expect(queued.execution).toMatch(/hasn’t started/);
+    expect(queued.executionDetail).toMatch(/Queued isn’t the same as started/);
+    const running = responsibilityView(life("running", "run-9"));
+    expect(running.execution).toMatch(/not done yet/);
+    expect(running.executionDetail).toMatch(/Running isn’t the same as done/);
+    expect(running.runId).toBe("run-9");
   });
   it("settled isn't accepted or complete; blocked may have done work", () => {
-    const settled = responsibilityView(life("settled", "run-9")).execution;
-    expect(settled).toMatch(/isn’t accepted/);
-    expect(settled).toMatch(/goal isn’t marked done/);
-    expect(responsibilityView(life("blocked")).execution).toMatch(
+    const settled = responsibilityView(life("settled", "run-9"));
+    expect(settled.execution).toMatch(/needs your review/);
+    expect(settled.executionDetail).toMatch(/isn’t accepted/);
+    expect(settled.executionDetail).toMatch(/goal isn’t marked done/);
+    expect(responsibilityView(life("blocked")).executionDetail).toMatch(
       /Some work may already have happened/,
     );
   });

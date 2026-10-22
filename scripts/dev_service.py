@@ -171,8 +171,15 @@ def main():
         print(json.dumps({'installed':c['name'],'started':False,'resources_retained':True}))
     elif a.action=='status':
         result=status(c);print(json.dumps(result));return 0 if result['ready'] else 2
+    elif a.component:
+        control(a.action,c['name']+'-'+a.component+'.service')
+    elif a.action in ('stop','restart'):
+        # Waiting only on the target can return while PartOf services still
+        # stop. Account/identity changes require every named service quiescent.
+        control('stop',c['name']+'.target',*[c['name']+'-'+x+'.service' for x in COMPONENTS])
+        if a.action=='restart':control('start',c['name']+'.target')
     else:
-        control(a.action,c['name']+'.target')
+        control('start',c['name']+'.target')
     return 0
 
 

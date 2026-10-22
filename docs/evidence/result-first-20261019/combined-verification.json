@@ -1,0 +1,26 @@
+{
+  "running_source": "a8be0900a372e067226655edc790fd294cf6e8a3",
+  "web_build": "lk4BYZ8UTVn1Z3csBZ2ls",
+  "grant_id": "workagent-standing-20261019-08",
+  "data_and_budget_unchanged_on_activation": true,
+  "targeted_backend_unique_cases": 70,
+  "targeted_backend_all_pass_after_rerun": true,
+  "full_backend_suite_run": false,
+  "web_tests": 341,
+  "typecheck": "passed",
+  "lint": "passed",
+  "production_build": "passed",
+  "physical_phone_tested": false,
+  "viewports": [
+    1440,
+    390,
+    320
+  ],
+  "live_journey": "FAILED: continuation began 71.057242 seconds early and was cancelled at due-time invalidation; fix subsequently installed and tested with synthetic provider, not live re-proven",
+  "retained_human_revision_count": 3,
+  "product_reserved_delta_usd": "1.45112",
+  "unknown_usage_steps": 3,
+  "additional_allocation_usd": "0",
+  "remaining_ui_issue": "Long current_outcome before prepared result on phone; sole frontend owner asked for concise expandable treatment in6278283661",
+  "independent_review": "Scoped no-blocker review of prior capability/status/route changes; later timing fix self-reviewed only"
+}

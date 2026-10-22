@@ -56,9 +56,19 @@ function selectionOrder(phase: string): number {
   return m ? Number(m[1]) : -Infinity;
 }
 
+/** Outcomes where the turn stopped short: why outranks what it recorded. */
+const STOPS = new Set([
+  "step_limit",
+  "budget_limit",
+  "blocked",
+  "waiting_for_user",
+]);
+
 export function adaptivePresentation(
   state: TurnState,
   progress?: TurnProgress,
+  /** The turn saved work of its own (shown beside it), whatever its local result. */
+  savedWork = false,
 ) {
   const adaptive = progress?.adaptive;
   if (
@@ -105,10 +115,12 @@ export function adaptivePresentation(
   }).length;
   const local = progress.retained_local_result;
   // A responsibility the turn saved, with no product output: say what was
-  // saved and what isn't known, never "calculated but not saved".
+  // saved and what isn't known, never "calculated but not saved". A turn
+  // that then stopped says why it stopped instead; its receipt still shows.
   const recorded = recordedResponsibilities(progress);
   if (
     recorded.length &&
+    !STOPS.has(adaptive.outcome) &&
     !hasProductOutput(local) &&
     state !== "queued" &&
     state !== "responding"
@@ -189,6 +201,28 @@ export function adaptivePresentation(
       checks,
       changedAttempts,
     };
+  // Its last attempt was refused and that is why it stopped (out of steps
+  // trying, or blocked): say so, not that a limit was reached. A budget stop
+  // stays a budget stop.
+  if (stoppedByRefusal(progress)) {
+    // Only the last attempt is known to be refused. Earlier steps may have
+    // saved a preparation, and the turn may still have a real final reply.
+    const earlier = steps.slice(0, -1).some((s) => s.status === "observed");
+    const replied = state === "replied" || Boolean(progress?.explanation);
+    return {
+      title: "Stopped: what it tried wasn’t possible here",
+      note: [
+        "Its last attempt was refused, so nothing from that attempt was applied.",
+        savedWork || earlier || recorded.length
+          ? "Review what it saved before continuing."
+          : replied
+            ? "You can ask for it another way."
+            : "It stopped without a final reply; you can ask for it another way.",
+      ].join(" "),
+      checks: null,
+      changedAttempts,
+    };
+  }
   const titles: Partial<Record<typeof adaptive.outcome, string>> = {
     step_limit: "Stopped at the step limit",
     budget_limit: "Stopped at the budget limit",
@@ -201,9 +235,11 @@ export function adaptivePresentation(
   return {
     title,
     note:
-      local && !local.published
-        ? "Local evidence is retained, not saved as work. Review it before continuing."
-        : "Review the recorded outcome and decide the next step.",
+      savedWork || recorded.length
+        ? "Review what it saved before continuing, and decide the next step."
+        : local && !local.published
+          ? "Local evidence is retained, not saved as work. Review it before continuing."
+          : "Review the recorded outcome and decide the next step.",
     checks,
     changedAttempts,
   };
@@ -243,6 +279,26 @@ export function receiptSays(
 export const STOPPED_HINT =
   "The stopped request isn’t sent again. A new message starts a new request.";
 
+/** Said beside the composer while the latest request's outcome is unknown. */
+export const UNRESOLVED_HINT =
+  "Whether your last request went through couldn’t be confirmed, so this conversation takes no new message until that’s resolved. Your draft is kept.";
+
+/**
+ * Whether the latest request's outcome couldn't be confirmed. The service
+ * takes no new message until it's resolved (it answers "action_unresolved"),
+ * so sending is held and nothing is replayed; re-reading is what's left.
+ */
+export function lastUnresolved(
+  turns: readonly { state: TurnState; progress?: TurnProgress }[],
+): boolean {
+  const last = turns.at(-1);
+  if (!last) return false;
+  return (
+    last.state === "outcome_unknown" ||
+    last.progress?.provider_observation === "outcome_unknown"
+  );
+}
+
 /**
  * Whether the latest request stopped in a way that is kept as it is: its
  * answer couldn't be used, or whether it went through is unknown. Such a
@@ -275,5 +331,18 @@ const CAPABILITY_WORDS: Record<string, string> = {
 export function capabilityUse(name: string): string {
   return (
     CAPABILITY_WORDS[name] ?? `Used ${name.replace(/[_.-]+/g, " ").trim()}`
+  );
+}
+
+/**
+ * A turn that stopped because what it tried was refused: its last step was
+ * rejected and it then ran out of steps or was blocked. Not a budget stop.
+ */
+export function stoppedByRefusal(progress?: TurnProgress): boolean {
+  const adaptive = progress?.adaptive;
+  if (!adaptive) return false;
+  return (
+    (adaptive.outcome === "step_limit" || adaptive.outcome === "blocked") &&
+    adaptive.steps?.at(-1)?.status === "rejected"
   );
 }

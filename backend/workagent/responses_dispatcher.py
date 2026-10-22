@@ -71,6 +71,7 @@ class ResponsesDispatcher:
         # Same durable outbox and existing local worker. This cursor is only a
         # fairness hint; restart safely scans again, never a second work ledger.
         self.cursor=0
+        self.observation_cursor=0
         from .dispatcher import Dispatcher
         self.local_dispatcher=Dispatcher(worker.service,workspace=workspace,general_controlled=True)
 
@@ -110,28 +111,72 @@ class ResponsesDispatcher:
                   AND r.data->>'profile'=%s AND rc.data->>'grant_id'=%s
                 ORDER BY d.cursor LIMIT 100''',(self.workspace,self.cursor,'general-responses-v1' if hasattr(self.worker,'phases') else 'openai-responses-v1',self.grant_id)).fetchall()
         self.cursor=rows[-1]['cursor'] if len(rows)==100 else 0
+        if hasattr(self.worker,'phases'):
+            with service.db.transaction() as c:
+                recovering=c.execute("""SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
+                    JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
+                    JOIN provider_attempts a ON a.workspace_id=r.workspace_id AND a.run_id=r.id
+                    JOIN provider_grants g ON g.id=a.grant_id
+                    WHERE d.workspace_id=%s AND a.grant_id=%s AND d.cursor>%s
+                      AND r.data->>'state'='cancelled' AND cancelled_response_observation_permits(a.id)
+                      AND (SELECT count(*) FROM responses_events used JOIN responses_steps step USING(attempt_id,phase)
+                        WHERE used.kind='read' AND step.grant_id IN (SELECT responses_budget_grants(g.id)))
+                          < (g.data->'responses'->>'read_limit')::integer
+                      AND EXISTS (SELECT 1 FROM responses_events e WHERE e.attempt_id=a.id AND e.kind='identity'
+                        AND NOT EXISTS (SELECT 1 FROM responses_events done WHERE done.attempt_id=e.attempt_id
+                          AND done.phase=e.phase AND done.kind='result'))
+                    ORDER BY d.cursor LIMIT 10""",(self.workspace,self.grant_id,self.observation_cursor)).fetchall()
+            self.observation_cursor=recovering[-1]['cursor'] if len(recovering)==10 else 0
+            rows.extend(recovering)
         results=[]
         for row in rows:
+            from .models import now
+            from .execution_status import FAILURES, record_dispatch_failure
+            checked_at=now()
             self.progress(run_id=row['run_id'],status='visiting')
             observation=None
+            reason=None
+            failure=None
+            checked=False
             try:
                 status=self._blocked_status(row)
                 if status is not None:
-                    pass
+                    failure='authority_unavailable' if status=='authority_unavailable' else None
+                    checked=True
                 elif hasattr(self.worker,'phases'):
                     from .service import Principal
                     run=self.worker.work(Principal(row['data']['principal_id'],'worker'),self.workspace,row['run_id'])
                     detail=service.get_conversation(Principal(row['data']['principal_id']),self.workspace,run.conversation_id)
                     observation=next(t for t in detail.turns if t.run_id==run.id)
                     status=general_dispatch_status(run,observation)
-                else: status=self.worker.run(self.workspace,row['run_id'])
-            except (DomainError,BundleDenied,TransportError,BlockingIOError): status='denied_or_deferred'
+                    checked=True
+                else:
+                    status=self.worker.run(self.workspace,row['run_id'])
+                    checked=True
+            except (DomainError,BundleDenied,TransportError,BlockingIOError) as error:
+                status='denied_or_deferred'
+                if isinstance(error,DomainError):
+                    reason=error.code.value  # Closed enum only; never exception text.
+                    if reason in FAILURES:
+                        failure=reason; checked=True
+                    elif reason in ('unsupported_operation','unauthenticated'):
+                        failure='authority_unavailable'; checked=True
+                elif isinstance(error,BundleDenied):
+                    failure='authority_unavailable'; checked=True
             except Exception as error:
                 # CLI reporting boundary: never render DB/private-state/model values.
                 # Direct worker tests still expose programmer failures to the test runner.
                 logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,row['run_id'])))
                 status='internal_error'
+                failure='internal_error'; checked=True
+            # Lock contention, unresolved leases and transport exceptions do not
+            # prove recovery. Successful canonical work/readback clears a prior
+            # denial; the diagnostic is never consulted when scheduling work.
+            if checked:
+                record_dispatch_failure(service.db,self.workspace,row['run_id'],failure,checked_at)
             result={'run_id':row['run_id'],'status':status}
+            if reason is not None:
+                result['reason']=reason
             # Detailed evidence belongs in authenticated canonical readback,
             # never stdout of a continuous operator process.
             results.append(result)
@@ -169,6 +214,24 @@ def authority(path,*,general=False):
     return record
 
 
+def current_route_authority(path,grant,expected_runtime):
+    """Reload operator-verified evidence; never refresh its timestamp ourselves.
+
+    A standing process must observe a renewed record rather than permanently
+    holding the startup copy. Rebinding credentials/project/model still requires
+    an explicit restart; expired/missing/malformed evidence remains fail closed.
+    """
+    try:
+        current=authority(path,general=True)
+        if current.get('grant_id')!=grant.id or current['runtime']!=expected_runtime:
+            raise TransportError('grant_route_mismatch')
+        from .general_responses import verify_route_record
+        verify_route_record(current,grant)
+        return current
+    except (OSError,ValueError,KeyError,TypeError):
+        raise TransportError('route_verification_unavailable') from None
+
+
 def general_status(db,workspace,grant_id):
     """Local operator readback only; no private request/receipt/key material."""
     from .responses_ledger import summary
@@ -182,7 +245,9 @@ def general_status(db,workspace,grant_id):
         runs=c.execute("SELECT r.data FROM runs r JOIN run_configurations rc ON rc.workspace_id=r.workspace_id AND rc.run_id=r.id WHERE r.workspace_id=%s AND rc.data->>'grant_id'=%s ORDER BY r.id",(workspace,grant_id)).fetchall()
         return {'grant_id':grant.id,'workspace_id':workspace,'active':row['active'],
             'profile':grant.profile,'mode':grant.responses.transport_mode,'expires_at':None,
-            'conversation_ids':grant.responses.conversation_ids,'budget':summary(c,grant.id),
+            'conversation_ids':grant.responses.conversation_ids,
+            'admission_policy':getattr(grant.responses,'admission_policy','explicit-conversations'),
+            'budget':summary(c,grant.id),
             'shared_budget':summary(c,grant.id,shared=True),
             'turns':[turn_state(Run.model_validate(r['data']),c).model_dump(mode='json',exclude={'retained_local_result'}) for r in runs]}
 
@@ -323,8 +388,7 @@ def main():
                 dispatcher=ResponsesDispatcher(worker,workspace=args.workspace,grant_id=args.grant_id,status_path=os.environ.get('WORKAGENT_EXECUTION_STATUS'))
                 if args.serve:
                     def verify():
-                        from .general_responses import verify_route_record
-                        verify_route_record(record,grant)
+                        current_route_authority(args.authority_record,grant,record['runtime'])
                         with db.transaction() as c:
                             row=c.execute('SELECT active FROM provider_grants WHERE id=%s',(grant.id,)).fetchone()
                             if not row or not row['active']: raise TransportError('operator_grant_required')

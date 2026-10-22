@@ -15,6 +15,8 @@ class DB:
     def transaction(self):
         yield self
     def execute(self, sql, params):
+        if 'UPDATE run_dispatches SET failure_reason=' in sql:
+            return None  # Diagnostic only; real persistence is covered with PostgreSQL.
         if 'FROM run_dispatches' in sql:
             return SimpleNamespace(fetchall=lambda:self.rows)
         if 'FROM provider_attempts' in sql:

@@ -1,0 +1,25 @@
+{
+  "artifact_refresh_pass": true,
+  "responsibility_refresh_link_pass": true,
+  "phone_responsibility": {
+    "url": "http://127.0.0.1:3152/assignments/ca1246d2-312a-4f16-98d3-e98a330d67b7?workspace=overnight-1a6b0b4cea30",
+    "title": "Workagent",
+    "w": 390,
+    "h": 844,
+    "sx": 0,
+    "sy": 931,
+    "pw": 390,
+    "ph": 1775
+  },
+  "phone_result": {
+    "url": "http://127.0.0.1:3152/conversations/17e886ef-b952-41a1-b4b1-4c3aebb19125/artifacts/0c3b5475-ee24-4a18-85d6-1abce53f7aca?workspace=overnight-1a6b0b4cea30",
+    "title": "Workagent",
+    "w": 390,
+    "h": 844,
+    "sx": 0,
+    "sy": 0,
+    "pw": 390,
+    "ph": 1530
+  },
+  "physical_phone_tested": false
+}

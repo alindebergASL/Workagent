@@ -118,7 +118,12 @@ def test_reservation_delay_rolls_back_observation_slot(context, tmp_path, monkey
     from test_responses_worker import setup
     grant, queued, fake, w = setup(context, tmp_path, queued=True)
     w.poll_limit = 0
+    # Fixture setup is not the timeout probe. Its synthetic HTTP is immediate;
+    # restore the production allowance before exercising the short lease.
+    timeout = w.transport._client.timeout
+    w.transport._client.timeout = httpx.Timeout(1)
     assert w.run(context[2], queued.run.id) == 'provider_pending'
+    w.transport._client.timeout = timeout
     saved = w.state.load(context[2], queued.run.id)
     cap = WorkerCapability(**saved['worker'])
     ledger = Ledger(context[0], ReceiptCapability(**saved['receipt']))
@@ -144,7 +149,18 @@ def test_reservation_delay_rolls_back_observation_slot(context, tmp_path, monkey
         w.poll_limit = 1
         assert w.run(context[2], queued.run.id) == 'provider_pending'
     assert totals(context[0], grant) == before and fake.calls == calls
-    assert ledger.snapshot('selection', cap)[1]['identity'] == events['identity']
+    # A safe returned-ID handoff may have ended this exact lease. Do not use
+    # the retired worker capability as a read credential; inspect the retained
+    # immutable identity through the human-authorized fixture database instead.
+    with context[0].db.transaction() as c:
+        retained = c.execute("SELECT data FROM responses_events WHERE attempt_id=%s "
+                             "AND phase='selection' AND kind='identity'",
+                             (saved['receipt']['attempt_id'],)).fetchone()['data']
+    assert retained == events['identity']
+    current = context[0].get_run(context[1], context[2], queued.run.id)
+    if current.lease_expires_at <= now():
+        with pytest.raises(DomainError):
+            ledger.snapshot('selection', cap)
 
 
 def remaining(context, rid, seconds):
@@ -154,13 +170,45 @@ def remaining(context, rid, seconds):
                   ((now() + timedelta(seconds=seconds)).isoformat(), context[2], rid))
 
 
+def drive_settled_visits(context, w, rid, *, until, step=None):
+    """Separate functional recovery from one-visit wall-clock assumptions.
+
+    Only synthetic, returned operations may have their lease advanced here.
+    Unknown/in-flight operations fail the probe rather than being replayed.
+    Exact total send counts and stale-fence assertions remain in each caller.
+    """
+    from workagent.responses_io import active
+    for _ in range(12):
+        result = step() if step else visit(context, w, rid)
+        if until():
+            return result
+        with context[0].db.transaction() as c:
+            rows = c.execute('SELECT a.id,e.phase,e.kind FROM provider_attempts a '
+                             'LEFT JOIN responses_events e ON e.attempt_id=a.id '
+                             'WHERE a.run_id=%s', (rid,)).fetchall()
+            for phase in {r['phase'] for r in rows if r['phase']}:
+                events = {r['kind'] for r in rows if r['phase'] == phase}
+                assert not events.intersection({'problem', 'cancel'})
+                assert 'count_send' not in events or 'count_result' in events
+                assert 'dispatch' not in events or 'identity' in events
+                assert not any(active(c, rows[0]['id'], phase, kind)
+                               for kind in ('count_send', 'dispatch', 'read', 'cancel'))
+        expire(context, rid)
+    raise AssertionError('Synthetic settled recovery did not reach its asserted condition')
+
+
 def test_short_lease_does_not_reserve_cancel(context, tmp_path):
     from test_responses_worker import setup
     from workagent.provider_attempts import ReceiptCapability
     from workagent.responses_ledger import Ledger
     grant, queued, fake, w = setup(context, tmp_path, queued=True)
     w.poll_limit = 0
+    # Fixture setup is not the timeout probe. Its synthetic HTTP is immediate;
+    # restore the production allowance before exercising the short lease.
+    timeout = w.transport._client.timeout
+    w.transport._client.timeout = httpx.Timeout(1)
     assert w.run(context[2], queued.run.id) == 'provider_pending'
+    w.transport._client.timeout = timeout
     saved = w.state.load(context[2], queued.run.id)
     cap = WorkerCapability(**saved['worker'])
     ledger = Ledger(context[0], ReceiptCapability(**saved['receipt']))
@@ -196,8 +244,11 @@ def test_short_saved_lease_defers_without_reserving_and_reclaims(context, tmp_pa
     assert s.get_run(p, ws, queued.run.id).fence == old.fence
     expire(context, queued.run.id)
     visit(context, w, queued.run.id)
-    assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')
     assert s.get_run(p, ws, queued.run.id).fence == old.fence + 1
+    if s.get_run(p, ws, queued.run.id).state == 'running':
+        drive_settled_visits(context, w, queued.run.id,
+            until=lambda: s.get_run(p, ws, queued.run.id).state in ('ready', 'partial'))
+    assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')
     assert totals(s, grant)['request_counts']['count_send'] == 2
     with pytest.raises(DomainError):
         with s.db.transaction() as c:
@@ -212,8 +263,11 @@ def test_receiptless_interrupted_claim_uses_existing_claim_authority(context, tm
     phases.state.save(ws, queued.run.id, {'worker': asdict(cap), 'receipt': None})
     expire(context, queued.run.id)
     visit(context, w, queued.run.id)
-    assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')
     assert s.get_run(p, ws, queued.run.id).fence == cap.fence + 1
+    if s.get_run(p, ws, queued.run.id).state == 'running':
+        drive_settled_visits(context, w, queued.run.id,
+            until=lambda: s.get_run(p, ws, queued.run.id).state in ('ready', 'partial'))
+    assert s.get_run(p, ws, queued.run.id).state in ('ready', 'partial')
 
 
 @pytest.mark.parametrize('family', ['intake', 'general', 'adaptive'])
@@ -254,18 +308,22 @@ def test_final_delivered_after_lease_expiry_is_retained_not_regenerated(context,
     s, p, ws, _, _ = context
     grant, queued, fake, w, phases = setup_family(context, tmp_path, family)
     original = fake.handle
+    final_returned = []
     def expires_during_final(request):
         response = original(request)
         if request.method == 'POST' and request.url.path == '/v1/responses':
             if json.loads(request.content)['metadata']['step_id'] == 'final':
                 expire(context, queued.run.id)
+                final_returned.append(True)
         return response
     transport = ResponsesTransport.synthetic(httpx.MockTransport(expires_during_final))
     phases.transport = transport
     if hasattr(w, 'phases'):
         w.transport = transport
     dispatcher = ResponsesDispatcher(w, workspace=ws, grant_id=grant.id)
-    assert dispatcher.once()['results'] == [{'run_id': queued.run.id, 'status': 'denied_or_deferred'}]
+    first = drive_settled_visits(context, w, queued.run.id,
+        until=lambda: bool(final_returned), step=dispatcher.once)
+    assert first['results'] == [{'run_id': queued.run.id, 'status': 'denied_or_deferred'}]
     with s.db.transaction() as c:
         retained = c.execute("SELECT e.kind FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id "
                              "WHERE a.run_id=%s AND e.phase='final'", (queued.run.id,)).fetchall()

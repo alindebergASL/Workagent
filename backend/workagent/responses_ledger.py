@@ -1,20 +1,42 @@
 """Append-only two-step durable authority. Every network slot commits before I/O."""
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from decimal import Decimal
 from hashlib import sha256
 from .errors import DomainError
 from .models import new_id
 from .service import encoded, digest
 from .responses_transport import (PreparedRequest, RequestMetadata, DispatchPermit, ParsedResponse,
-                                  Provenance, Usage, MODEL)
+                                  Provenance, Usage, MODEL, MAX_INPUT_TOKENS, MAX_OUTPUT_TOKENS,
+                                  INPUT_RESERVATION_RATE, OUTPUT_RESERVATION_RATE)
 from .responses_schema import READ_SCHEMA, FINAL_SCHEMA
 
-RESERVED_INPUT=20000
-RESERVED_OUTPUT=8192
-RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal('2.5')+Decimal(RESERVED_OUTPUT)*Decimal('10'))/Decimal(1000000)
+RESERVED_INPUT=MAX_INPUT_TOKENS
+RESERVED_OUTPUT=MAX_OUTPUT_TOKENS
+RESERVED_COST=(Decimal(RESERVED_INPUT)*Decimal(INPUT_RESERVATION_RATE)+
+               Decimal(RESERVED_OUTPUT)*Decimal(OUTPUT_RESERVATION_RATE))/Decimal(1000000)
+
+
+def count_input_limit(send):
+    """Read immutable send policy, not today's ceiling, for historical receipts.
+
+    Pre-041 count sends stored exactly {}; new SQL inserts require an explicit
+    50k policy. Never treat a missing send or malformed policy as legacy evidence.
+    """
+    if send == {}:
+        return 20000
+    if (isinstance(send,dict) and set(send)=={'input_token_limit'}
+            and type(send['input_token_limit']) is int and send['input_token_limit']==50000):
+        return 50000
+    raise DomainError('command_conflict')
 
 class ReservationDeferred(Exception):
     """The uncommitted reservation was rolled back before any external I/O."""
+
+
+@dataclass(frozen=True)
+class ObservationAuthority:
+    """Current principal authority, independent of the write-only receipt."""
+    principal: object
 
 
 class Ledger:
@@ -22,9 +44,16 @@ class Ledger:
         self.service=service
         self.receipt=receipt
 
-    def _auth(self,c,cap=None):
+    def _auth(self,c,cap=None,*,observation=False):
         run,attempt,origin=self.service._receipt_binding(c,self.receipt)
-        if cap is not None:
+        if isinstance(cap,ObservationAuthority):
+            if not observation:raise DomainError('unsupported_operation')
+            self.service._scope(c,cap.principal,run.workspace_id,write=True)
+            if cap.principal.id!=run.principal_id or not c.execute(
+                    'SELECT cancelled_response_observation_permits(%s) permitted',
+                    (attempt.id,)).fetchone()['permitted']:
+                raise DomainError('not_found_or_not_authorized')
+        elif cap is not None:
             _,current,_=self.service._check_capability(c,cap)
             if current.id!=run.id:
                 raise DomainError('not_found_or_not_authorized')
@@ -42,8 +71,9 @@ class Ledger:
         return event_id
 
     def snapshot(self,phase,cap):
+        if cap is None:raise DomainError('not_found_or_not_authorized')
         with self.service.db.transaction() as c:
-            run,_,_=self._auth(c,cap)
+            run,_,_=self._auth(c,cap,observation=True)
             row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
                           (self.receipt.attempt_id,phase)).fetchone()
             if not row:
@@ -53,14 +83,32 @@ class Ledger:
                 from .general_schema import DECISION_SCHEMA,EXPLANATION_SCHEMA
                 from .general_responses import check_pins
                 from .adaptive import enabled,CAPABILITY
-                config=check_pins(c,run)
+                if isinstance(cap,ObservationAuthority):
+                    config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                        (run.workspace_id,run.id)).fetchone()['data']
+                    from .provider_attempts import check_grant
+                    check_grant(c,run,config)
+                else:
+                    config=check_pins(c,run)
                 if enabled(config):
                     from .adaptive import DECISION_SCHEMA
-                    from .composition import enabled as alpha_enabled
+                    from .composition import enabled as alpha_enabled, continuity_enabled
                     if alpha_enabled(config):
                         from .composition import DECISION_SCHEMA
+                    if continuity_enabled(config):
+                        from .composition import CONTINUITY_DECISION_SCHEMA as DECISION_SCHEMA
                     policy=CAPABILITY
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
+                if phase!='final' and enabled(config) and alpha_enabled(config):
+                    # Restore an exact recognized historical validator, never
+                    # rewrite stored schemas or parse old bytes as a new request.
+                    import json
+                    from .service import canonical
+                    from .composition import LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA
+                    legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
+                    stored=json.loads(row['request_bytes'])['tools'][0]['parameters']
+                    if canonical(stored).encode()==legacy.material:
+                        schema=legacy
             else:
                 schema=READ_SCHEMA if phase=='selection' else FINAL_SCHEMA
             request=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),phase,schema,policy)
@@ -86,11 +134,14 @@ class Ledger:
                        sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
 
     def reserve_operation(self,request,kind,cap,*,ready=None):
+        if cap is None:raise DomainError('not_found_or_not_authorized')
         if kind not in ('count_send','dispatch','read','cancel'):
             raise ValueError('invalid operation')
         with self.service.db.transaction() as c:
-            run,attempt,_=self._auth(c,cap)
-            if run.profile=='general-responses-v1':
+            run,attempt,_=self._auth(c,cap,observation=True)
+            if isinstance(cap,ObservationAuthority):
+                if kind!='read':raise DomainError('unsupported_operation')
+            elif run.profile=='general-responses-v1':
                 self.service._general_context(c,cap)
             events=self._events(c,request.phase)
             stored=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -122,7 +173,9 @@ class Ledger:
             limit={'count_send':b.count_limit,'dispatch':b.generation_limit,'read':b.read_limit,'cancel':b.cancel_limit}[kind]
             if n >= limit:
                 raise DomainError('budget_exhausted')
-            data={}
+            data={'input_token_limit':MAX_INPUT_TOKENS} if kind=='count_send' else {}
+            if isinstance(cap,ObservationAuthority):
+                data={'cancelled_observation':True}
             if kind=='dispatch':
                 # Same lock/order and isolation as the DB guard. Check after the
                 # lock so a racing workspace yields a typed budget stop, not SQL
@@ -194,9 +247,6 @@ class Ledger:
         data={'operation':'count','code':code,'received':False}
         if code=='http_error' and type(error.http_status) is int and 100<=error.http_status<=599:
             data['http_status']=error.http_status
-        if (code=='input_count_exceeds_limit' and type(error.input_tokens) is int
-                and error.input_tokens>RESERVED_INPUT):
-            data.update(received=True,input_tokens=error.input_tokens,limit=RESERVED_INPUT)
         with self.service.db.transaction() as c:
             self._auth(c)
             row=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -205,6 +255,10 @@ class Ledger:
             if (not row or row['request_sha256']!=request.sha256 or 'count_send' not in events
                     or 'count_result' in events or 'dispatch' in events):
                 raise DomainError('command_conflict')
+            limit=count_input_limit(events['count_send'])
+            if (code=='input_count_exceeds_limit' and type(error.input_tokens) is int
+                    and error.input_tokens>limit):
+                data.update(received=True,input_tokens=error.input_tokens,limit=limit)
             if 'problem' in events:
                 if events['problem']!=data: raise DomainError('command_conflict')
                 return
@@ -305,6 +359,11 @@ def observations(c,attempt_id):
         receipt=e.get('corrected_readback',e.get('result',{})); usage=receipt.get('usage'); identity=e.get('identity',{})
         state=('received' if receipt.get('state') in ('function_call','completed') else 'invalid') if receipt else (
             'accepted' if identity else 'outcome_unknown' if 'dispatch' in e else 'counted' if 'count_result' in e else 'count_unknown' if 'count_send' in e else 'prepared')
+        if state in ('count_unknown','outcome_unknown') and 'problem' not in e:
+            from .responses_io import active
+            kind='count_send' if state=='count_unknown' else 'dispatch'
+            if active(c,attempt_id,step['phase'],kind):
+                state='counting' if kind=='count_send' else 'dispatching'
         if e.get('problem',{}).get('received') and not receipt: state='invalid'
         decision=(receipt.get('value') or {}).get('decision',{})
         if (target is not None and receipt.get('state')=='function_call' and 'tool_result' not in e
@@ -323,23 +382,26 @@ def observations(c,attempt_id):
 
 def summary(c,grant_id,*,shared=False):
     predicate='s.grant_id IN (SELECT responses_budget_grants(%s))' if shared else 's.grant_id=%s'
-    # Accounting needs reservations and usage, never retained response/tool bodies.
-    # Keep the scope predicate and exact Decimal calculation below unchanged.
-    rows=c.execute('''SELECT e.kind, CASE e.kind
-        WHEN 'dispatch' THEN jsonb_build_object(
-            'reserved_input_tokens',e.data->'reserved_input_tokens',
-            'reserved_output_tokens',e.data->'reserved_output_tokens',
-            'reserved_cost_usd',e.data->'reserved_cost_usd')
-        WHEN 'result' THEN jsonb_build_object('usage',e.data->'usage')
-        ELSE '{}'::jsonb END AS data
+    # One aggregate row, not one Python/JSON object for every historical event.
+    # Keep the exact grant/project predicate, unknown reservations and carry;
+    # no cache may hide a reservation committed by another worker.
+    totals=c.execute('''SELECT
+        count(*) FILTER (WHERE e.kind='count_send') AS count_send,
+        count(*) FILTER (WHERE e.kind='dispatch') AS dispatch,
+        count(*) FILTER (WHERE e.kind='read') AS read,
+        count(*) FILTER (WHERE e.kind='cancel') AS cancel,
+        coalesce(sum((e.data->>'reserved_input_tokens')::bigint) FILTER (WHERE e.kind='dispatch'),0) AS reserved_input,
+        coalesce(sum((e.data->>'reserved_output_tokens')::bigint) FILTER (WHERE e.kind='dispatch'),0) AS reserved_output,
+        coalesce(sum((e.data->>'reserved_cost_usd')::numeric) FILTER (WHERE e.kind='dispatch'),0) AS reserved_cost,
+        count(*) FILTER (WHERE e.kind='result' AND e.data->'usage'->>'input_tokens' IS NOT NULL) AS usages,
+        coalesce(sum((e.data->'usage'->>'input_tokens')::bigint) FILTER (WHERE e.kind='result'),0) AS reported_input,
+        coalesce(sum((e.data->'usage'->>'output_tokens')::bigint) FILTER (WHERE e.kind='result'),0) AS reported_output
         FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)
-        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchall()
-    counts={k:sum(r['kind']==k for r in rows) for k in ('count_send','dispatch','read','cancel')}
-    reservations=[r['data'] for r in rows if r['kind']=='dispatch']
-    receipts=[r['data'] for r in rows if r['kind']=='result']
-    usages=[r['usage'] for r in receipts if r.get('usage')]
-    unknown=len(reservations)-len(usages)
-    calculated=sum((Decimal(u['input_tokens'])*Decimal('2.5')+Decimal(u['output_tokens'])*Decimal('10'))/Decimal(1000000) for u in usages)
+        WHERE '''+predicate+" AND e.kind IN ('count_send','dispatch','read','cancel','result')",(grant_id,)).fetchone()
+    counts={k:totals[k] for k in ('count_send','dispatch','read','cancel')}
+    unknown=counts['dispatch']-totals['usages']
+    calculated=((Decimal(totals['reported_input'])*Decimal('2.5')+Decimal(totals['reported_output'])*Decimal('10'))/Decimal(1000000)
+                if totals['usages'] else 0)
     carried = Decimal(0)
     carry_fields = {}
     if shared:
@@ -350,9 +412,9 @@ def summary(c,grant_id,*,shared=False):
         carried = carry['cost']
         if carry['n']:
             carry_fields = {'carried_reserved_cost_usd':str(carried)}
-    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':sum(r['reserved_input_tokens'] for r in reservations),
-            'reserved_output_tokens':sum(r['reserved_output_tokens'] for r in reservations),
-            'reserved_cost_usd':str(carried+sum((Decimal(r['reserved_cost_usd']) for r in reservations),Decimal(0))),
-            'reported_usage':{'input_tokens':sum(u['input_tokens'] for u in usages),'output_tokens':sum(u['output_tokens'] for u in usages)},
+    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
+            'reserved_output_tokens':int(totals['reserved_output']),
+            'reserved_cost_usd':str(carried+totals['reserved_cost']),
+            'reported_usage':{'input_tokens':int(totals['reported_input']),'output_tokens':int(totals['reported_output'])},
             'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

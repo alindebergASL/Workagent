@@ -21,9 +21,8 @@ describe("a recorded responsibility, in plain words", () => {
   it("never implies work is running while execution isn't admitted", () => {
     const v = responsibilityView(life());
     expect(v.state).toBe("Recorded as yours to carry forward");
-    expect(v.execution).toBe(
-      "Not admitted to run: nothing runs in the background for it right now.",
-    );
+    expect(v.execution).toBe("Nothing is running for it right now.");
+    expect(v.executionDetail).toMatch(/hasn’t been admitted to run/);
     expect(v.execution).not.toMatch(/can’t|never/);
     expect(v.next).toBe("Draft the agenda.");
     expect(v.allowed).toEqual(["pause", "cancel", "takeover"]);
@@ -47,11 +46,11 @@ describe("a recorded responsibility, in plain words", () => {
         wake_status: "queued",
       }),
     );
+    expect(v.waiting).toBe("Asha to confirm the room.");
     expect(v.lines).toEqual([
-      "Waiting: Asha to confirm the room.",
       "1 thing it depends on changed since it was recorded.",
-      "Needs your review.",
     ]);
+    expect(v.needsYou).toBe("Your review of its result.");
     expect(v.reviewQueued).toBe(true);
   });
   it("a paused one can resume; a stopped or taken-back one offers nothing", () => {
@@ -72,10 +71,54 @@ describe("a recorded responsibility, in plain words", () => {
       expect(v.next).toBeNull();
     }
   });
+  it("a decision it asks for is what it needs from you, said once", () => {
+    const v = responsibilityView(
+      life({
+        state: "waiting_person",
+        next_action: {
+          kind: "request_decision",
+          description: "Choose the Tuesday or Thursday slot.",
+        },
+      }),
+    );
+    expect(v.needsYou).toBe("Choose the Tuesday or Thursday slot.");
+    expect(v.next).toBeNull();
+    // A review still comes first, and then the decision is its next step.
+    const r = responsibilityView(
+      life({
+        review_required: true,
+        next_action: { kind: "request_decision", description: "Choose." },
+      }),
+    );
+    expect(r.needsYou).toBe("Your review of its result.");
+    expect(r.next).toBe("Choose.");
+  });
   it("names a blocker plainly", () => {
     expect(
       responsibilityView(life({ state: "blocked", blocker: "grant_required" }))
-        .lines,
-    ).toEqual(["It needs a permission that hasn’t been granted."]);
+        .needsYou,
+    ).toBe("It needs a permission that hasn’t been granted.");
+  });
+});
+
+describe("what it's doing, in one line", () => {
+  it("says Workagent is on it only while a run is queued or running", () => {
+    expect(
+      responsibilityView(life({ execution_status: "running" })).state,
+    ).toBe("Workagent is on it");
+    expect(responsibilityView(life({ execution_status: "queued" })).state).toBe(
+      "Workagent is on it",
+    );
+    expect(responsibilityView(life()).state).toBe(
+      "Recorded as yours to carry forward",
+    );
+    expect(
+      responsibilityView(life({ state: "paused", execution_status: "queued" }))
+        .state,
+    ).toBe("Paused");
+    // A finished run needs the person: its result isn't accepted.
+    expect(
+      responsibilityView(life({ execution_status: "settled" })).needsYou,
+    ).toBe("Your review of its result.");
   });
 });

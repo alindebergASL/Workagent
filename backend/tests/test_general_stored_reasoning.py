@@ -39,22 +39,13 @@ def test_stored_background_reasoning_failure_repair_and_final_replay(context,tmp
     assert sum(method=='POST' and path.endswith('/responses') for method,path in fake.calls)==3
 
 
-def test_reviewed_successor_reads_original_pending_response_without_regeneration(context,tmp_path,monkeypatch):
-    from datetime import timedelta
-    from workagent.responses_recovery import SuccessorApproval,install_successor
-    from workagent.models import now
-    from workagent.db import Database
-    from workagent.service import digest
+def test_code_only_install_reads_original_pending_response_without_regeneration(context,tmp_path,monkeypatch):
     import workagent.general_responses as general
     s,p,ws,_,admin=context
     cv=conversation(context);grant=activate(context,cv);fake=StoredReasoningProvider();fake.pending=True
     q=post(context,cv,'Build and test the calculator.')
     assert worker(context,fake,tmp_path,poll_limit=1).work(p,ws,q.run.id).state=='running'
     monkeypatch.setattr(general,'consumer_hash',lambda:'f'*64)
-    approval=SuccessorApproval(grant_id=grant.id,original_consumer_sha256=grant.consumer_sha256,
-        successor_consumer_sha256=general.consumer_hash(),original_grant_sha256=digest(grant),
-        expires_at=now()+timedelta(minutes=30),reason='Reviewed exact stored reasoning parser correction; preserve prior response and budgets.')
-    assert install_successor(Database(admin),approval)==approval
     fake.pending=False
     assert worker(context,fake,tmp_path).work(p,ws,q.run.id).state=='partial'
     assert sum(method=='POST' and path.endswith('/responses') for method,path in fake.calls)==3
@@ -62,4 +53,6 @@ def test_reviewed_successor_reads_original_pending_response_without_regeneration
         phases=c.execute("SELECT phase,count(*) AS n FROM responses_events WHERE attempt_id IN (SELECT id FROM provider_attempts WHERE run_id=%s) AND kind='dispatch' GROUP BY phase",(q.run.id,)).fetchall()
         uses=c.execute('SELECT * FROM responses_consumer_uses WHERE grant_id=%s',(grant.id,)).fetchall()
     assert {r['phase']:r['n'] for r in phases}=={'selection':1,'selection_2':1,'final':1}
-    assert len(uses)==1 and uses[0]['actual_consumer_sha256']=='f'*64
+    assert uses==[]
+    with s.db.transaction() as c:
+        assert not c.execute('SELECT * FROM provider_consumer_successors WHERE grant_id=%s',(grant.id,)).fetchall()

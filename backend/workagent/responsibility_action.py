@@ -38,7 +38,7 @@ class _Recording(Closed):
 
 RECORDING_REASON=('Local responsibility recorded; the outcome still needs validation. '
     'External inboxes are not monitored; no booking or message was sent. '
-    'Future execution requires separate current grant and budget authority.')
+    'At each local check-in, the dispatcher rechecks the current grant, budget and saved plan before execution.')
 
 
 def recording(c,run):
@@ -69,7 +69,7 @@ def recording(c,run):
     return saved
 
 
-def offer(c,run,cv,message,config):
+def offer(c,run,cv,message,config,*,exclude_artifacts=()):
     # Continuation authority comes from its own exact request/dependencies. An
     # unavailable human-only action must not add volatile unrelated artifacts to
     # the existing continuation context hash.
@@ -91,8 +91,13 @@ def offer(c,run,cv,message,config):
                   for r in cv.selected_source_refs]
     dependencies += [{'kind':'artifact_revision','object_id':r['id'],'expected_version':r['current_revision_id']}
         for r in c.execute('SELECT id,current_revision_id FROM artifacts WHERE workspace_id=%s '
-            'AND conversation_id=%s AND current_revision_id IS NOT NULL ORDER BY id LIMIT 50',
-            (run.workspace_id,cv.id)).fetchall()]
+            'AND conversation_id=%s AND current_revision_id IS NOT NULL AND NOT (id=ANY(%s)) '
+            # Keep new exact own references usable even when the older catalog
+            # fills the bounded offer. This changes priority, never access scope.
+            'ORDER BY EXISTS (SELECT 1 FROM product_observations po WHERE po.workspace_id=artifacts.workspace_id '
+            "AND po.artifact_id=artifacts.id AND po.run_id=%s AND po.data->>'revision_id'=artifacts.current_revision_id "
+            "AND po.data->'output'->>'kind'='artifact_draft') DESC,id LIMIT 50",
+            (run.workspace_id,cv.id,list(exclude_artifacts),run.id)).fetchall()]
     return {'available':message.author_kind=='human' and not config.get('responsibility'),
         'conversation_work_version':version,'dependencies':dependencies}
 
@@ -107,10 +112,20 @@ def authorize(service,c,p,run,cv,message,decision,config):
     allowed=offer(c,run,cv,message,config)
     if not allowed['available'] or cv.state!='open': deny()
     offered={(d['kind'],d['object_id'],d['expected_version']) for d in allowed['dependencies']}
-    if any((d.kind,d.object_id,d.expected_version) not in offered for d in decision.plan.dependencies): deny()
     saved=recording(c,run)
     if saved and (saved['decision_sha256']!=digest(decision) or saved['request']!=request_provenance(message)):
         raise DomainError('command_conflict')
+    if saved:
+        # Exact retained selections keep their original dependency window when
+        # this run's verified new drafts take priority in the current offer.
+        # Reconstruct that window BEFORE its limit; never widen a new selection
+        # or hide changed human revisions, foreign additions, or recording CAS.
+        own=[m['artifact_id'] for m in service._own_new_drafts(c,p,run,cv)]
+        baseline=offer(c,run,cv,message,config,exclude_artifacts=own)
+        dependencies=baseline.get('dependencies')
+        if not isinstance(dependencies,list): raise DomainError('not_found_or_not_authorized')
+        offered.update((d['kind'],d['object_id'],d['expected_version']) for d in dependencies)
+    if any((d.kind,d.object_id,d.expected_version) not in offered for d in decision.plan.dependencies): deny()
     return allowed,saved
 
 
@@ -149,3 +164,110 @@ def stage(service,c,cap,receipt,phase,resolved,ledger):
     if resolve_selection(service,c,cap,receipt,phase)[5]!=binding:
         raise DomainError('source_changed')
     return staged
+
+
+def followthrough_evidence(observed,ref):
+    """Describe a retained local result without upgrading source claims to truth."""
+    from .service import digest
+    if observed.get('binding',{}).get('operation_hash')!=ref.operation_hash:
+        deny()
+    if observed.get('status')=='observed' and observed.get('body') is not None:
+        body=observed['body'];basis='observed_preparation_not_goal_verification'
+    else:
+        cap=observed.get('capability_result') or {}
+        result=cap.get('result')
+        kind=observed.get('decision',{}).get('kind')
+        if (observed.get('status')!='reply' or not kind
+                or cap.get('capability')!=kind or not isinstance(result,dict)):
+            deny()
+        if kind=='fetch_public_url':
+            if (result.get('status') not in ('ok','error')
+                    or result.get('trust')!='untrusted_external_content'):deny()
+            basis='public_read_not_goal_verification'
+        elif cap.get('version')=='1':
+            # Prior receipt retention already checks the read's exact scope and
+            # body. Citing it grants no new access and verifies no goal claim.
+            basis='retained_read_not_goal_verification'
+        else:deny()
+        body=result
+    return {'phase':ref.phase,'operation_hash':ref.operation_hash,
+            'body_hash':digest(body),'basis':basis}
+
+
+def authorize_advance(service,c,run,decision,config,ledger,phase):
+    """A plan for this exact wake only, citing actual earlier local observations."""
+    from .composition import continuity_enabled
+    from .responsibility_execution import validate_binding
+    from .models import now
+    if not continuity_enabled(config) or not config.get('responsibility'):
+        deny()
+    validate_binding(c,run,config)
+    binding=config['responsibility']
+    if decision.expected_work_version!=binding['work_version']:
+        raise DomainError('version_conflict')
+    expected=[{'kind':d['kind'],'object_id':d['object_id'],'expected_version':d['observed_version']}
+              for d in binding['observations']]
+    if [d.model_dump(mode='json') for d in decision.plan.dependencies]!=expected:
+        deny()  # No new data access, omitted dependencies or stale plan input.
+    if decision.plan.next_action.kind=='request_decision' and (
+            decision.plan.wait is None or decision.plan.wait.kind!='person'):
+        raise DomainError('unsupported_operation')
+    if decision.plan.next_action.kind=='await_event' and decision.plan.wait is None:
+        raise DomainError('unsupported_operation')
+    saved=ledger._events(c,phase).get('tool_result')
+    if (not saved and decision.plan.next_check_in_at is not None
+            and decision.plan.next_check_in_at<=now()):
+        raise DomainError('unsupported_operation')
+    evidence=[]
+    for ref in decision.evidence:
+        if ref.phase>=phase or any(x['phase']==ref.phase for x in evidence):
+            deny()
+        observed=ledger._events(c,ref.phase).get('tool_result',{})
+        evidence.append(followthrough_evidence(observed,ref))
+    return {'assignment_id':binding['assignment_id'],'work_version':binding['work_version'],
+            'evidence':evidence,'status':'staged_until_settlement'}
+
+
+def apply_advance(service,c,run,config):
+    """Apply one retained plan after final publication, inside that transaction.
+
+    The immutable run binding is checked before any plan/version/fence change,
+    while the old run is still leased and its final publication is reconciled.
+    No new run or provider action is admitted here; the canonical dispatcher owns
+    the next wake. Stop/budget/unknown-effect outcomes never auto-resume a plan.
+    """
+    from .composition import AdvanceResponsibility, continuity_enabled
+    from .responsibility_execution import validate_binding
+    from .service import Principal, encoded
+    from .models import now
+    if not continuity_enabled(config) or not config.get('responsibility'):
+        return False
+    if run.state not in ('ready','partial') or run.stop_reason in ('budget_limit','blocked','waiting_for_user','step_limit'):
+        return False
+    row=c.execute("SELECT e.data FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id "
+        "WHERE a.workspace_id=%s AND a.run_id=%s AND a.data->>'state'='reconciled' "
+        "AND e.kind='tool_result' AND e.data ? 'followthrough_result' ORDER BY e.phase DESC LIMIT 1",
+        (run.workspace_id,run.id)).fetchone()
+    if not row: return False
+    validate_binding(c,run,config)
+    staged=row['data']
+    decision=AdvanceResponsibility.model_validate(staged['decision'])
+    p=Principal(run.principal_id,'worker')
+    a,cv=service._responsibility_assignment(c,p,run.workspace_id,config['responsibility']['assignment_id'])
+    service._responsibility_cas(a,decision.expected_work_version)
+    old=service._lifecycle(c,run.workspace_id,a.id)
+    life=service._new_responsibility_plan(c,p,a,cv,decision.plan)
+    life.outcome_status='evidenced_preparation'
+    life.outcome_evidence={'run_id':run.id,'attempt_id':staged['binding']['attempt_id'],
+                           'evidence':staged['followthrough_result']['evidence']}
+    life.current_outcome=decision.plan.current_outcome
+    service._retire_responsibility_wake(c,run.workspace_id,old)
+    a.work_version+=1
+    a.unresolved=['Preparation retained; continuing under the saved scoped plan.']
+    service._queue_responsibility_wake(c,p,a,life)
+    a.observed_at=now()
+    c.execute('UPDATE assignments SET data=%s, responsibility_lifecycle=%s, responsibility_lease=NULL, '
+              'responsibility_fence=responsibility_fence+1 WHERE workspace_id=%s AND id=%s',
+              (encoded(a.model_dump(mode='json',exclude={'responsibility'})),encoded(life),run.workspace_id,a.id))
+    service._event(c,p,run.workspace_id,'responsibility_advanced',a.id)
+    return True

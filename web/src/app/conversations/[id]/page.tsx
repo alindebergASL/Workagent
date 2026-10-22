@@ -4,11 +4,14 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
-import { useConversationReply } from "@/lib/client/conversation-reply";
+import {
+  carryDraftHome,
+  useConversationReply,
+} from "@/lib/client/conversation-reply";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
 import type { WorkspaceScope } from "@/lib/client/workspace";
-import { scopedHref } from "@/lib/scope";
+import { scopedHref, WORKSPACE_PARAM } from "@/lib/scope";
 import { backTo, ScopedRecord } from "@/components/ScopedRecord";
 import { useExecution } from "@/lib/client/execution";
 import { turnExecution } from "@/lib/execution-view";
@@ -16,7 +19,7 @@ import { ExecutionLine } from "@/components/ExecutionLine";
 import { resultState, useResultStates } from "@/lib/client/result-states";
 import { resultLink } from "@/lib/result-links";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
-import { holdStatus } from "@/lib/hold-view";
+import { holdStatus, idleHold } from "@/lib/hold-view";
 import { recordedResponsibilities } from "@/lib/contract/natural";
 import { shortTitle } from "@/lib/work-state";
 import { ApiError, describeSendError } from "@/lib/contract/errors";
@@ -36,7 +39,9 @@ import {
   cardStatus,
   receiptSays,
   lastStopped,
+  lastUnresolved,
   STOPPED_HINT,
+  UNRESOLVED_HINT,
 } from "@/lib/adaptive-presentation";
 import {
   AgentReply,
@@ -45,7 +50,6 @@ import {
   TurnProgressDetails,
   RecordingReceipts,
   TurnSummary,
-  replyTag,
 } from "@/components/TurnProgress";
 
 const PENDING: Record<Exclude<TurnState, "replied">, string> = {
@@ -111,7 +115,8 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       res.reconnecting ||
       !res.data ||
       res.data.conversation.state !== "open" ||
-      res.data.conversation.model_activation === "revoked",
+      res.data.conversation.model_activation === "revoked" ||
+      lastUnresolved(res.data.turns),
   });
   const { text, setText, sending, send } = reply;
   const sendError = reply.error;
@@ -192,8 +197,11 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   };
 
   // ---- end the conversation ----
-  const [confirmEnd, setConfirmEnd] = useState(false);
+  // Arriving with ?stop=1 (from beside the work) opens the stop confirmation.
+  const [confirmEnd, setConfirmEnd] = useState(search.get("stop") === "1");
   const [ending, setEnding] = useState(false);
+  const [carried, setCarried] = useState(false);
+  const endRef = useRef<HTMLDetailsElement>(null);
   const [endError, setEndError] = useState<unknown>(null);
   const endCmd = usePendingCommand<{
     command_id: string;
@@ -212,6 +220,11 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       await conversationApi.cancel(wsId, id, endCmd.current!);
       endCmd.set(null);
       setConfirmEnd(false);
+      // An unsent message goes to Home rather than staying in a closed box.
+      if (carryDraftHome(wsId, text)) {
+        setText("");
+        setCarried(true);
+      }
       await res.refresh();
     } catch (e) {
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) endCmd.set(null);
@@ -321,6 +334,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                       ? adaptivePresentation(
                           turnNow?.state ?? "replied",
                           turnNow?.progress,
+                          Boolean(m.products?.length),
                         )
                       : null;
                     // Routine outcomes say how far the work was checked, or
@@ -359,6 +373,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                           <TurnOutcome
                             state={turnNow?.state ?? "replied"}
                             progress={turnNow?.progress}
+                            savedWork={Boolean(m.products?.length)}
                           />
                         ) : null}
                         {replied ? (
@@ -369,12 +384,8 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                         ) : null}
                         {replied ? (
                           <div className="msg-meta row wrap">
-                            {replyTag(m.origin) ? (
-                              <span className="msg-tag">
-                                {replyTag(m.origin)}
-                              </span>
-                            ) : null}
                             <TurnProgressDetails
+                              origin={m.origin}
                               progress={turnNow?.progress}
                               recorded={m.text}
                               outcome={folded ? view : null}
@@ -432,7 +443,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         })}
       </ol>
 
-      <ExecutionLine execution={execution} />
+      <ExecutionLine execution={execution} perTurn />
       {res.reconnecting ? (
         <p role="status" data-state="reconnecting">
           Connection lost. Showing what was last read; sending waits until it
@@ -498,9 +509,14 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                             tone={status.tone}
                           />
                         ) : null}
-                        <span className="work-row-note">
-                          {status?.note ?? "Open it to see where it stands."}
-                        </span>
+                        {/* Held and idle: the heading already says it's
+                            handed over; the row doesn't repeat that
+                            nothing runs for it. */}
+                        {idleHold(holds[aid]) ? null : (
+                          <span className="work-row-note">
+                            {status?.note ?? "Open it to see where it stands."}
+                          </span>
+                        )}
                       </span>
                     </span>
                     <span className="work-row-go" aria-hidden="true">
@@ -526,20 +542,24 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       {back}
       <header className="stack">
         <h1 className="h1-long">{d.conversation.title}</h1>
-        <div className="row">
-          <StatusBadge
-            label={open ? (inFlight ? "Waiting for a reply" : "Open") : "Ended"}
-            tone={open ? (inFlight ? "status-working" : "") : ""}
-          />
-          {d.conversation.context_count ? (
-            <span className="small muted">
-              Uses {d.conversation.context_count} record
-              {d.conversation.context_count === 1 ? "" : "s"} you chose
-            </span>
-          ) : (
-            <span className="small muted">No context attached</span>
-          )}
-        </div>
+        {/* Only what's worth knowing: an open, idle conversation needs no
+            badge, and having no chosen records needs no line. */}
+        {!open || inFlight || d.conversation.context_count ? (
+          <div className="row">
+            {!open || inFlight ? (
+              <StatusBadge
+                label={open ? "Waiting for a reply" : "Ended"}
+                tone={open ? "status-working" : ""}
+              />
+            ) : null}
+            {d.conversation.context_count ? (
+              <span className="small muted">
+                Uses {d.conversation.context_count} record
+                {d.conversation.context_count === 1 ? "" : "s"} you chose
+              </span>
+            ) : null}
+          </div>
+        ) : null}
       </header>
 
       {wsId ? (
@@ -613,18 +633,47 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             <span className="hint">
               {uncertainSend
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : inFlight
-                  ? "Sending now replaces the reply in progress; your earlier messages stay."
-                  : lastStopped(d.turns)
-                    ? STOPPED_HINT
-                    : "Ask, steer, or add detail."}
+                : lastUnresolved(d.turns)
+                  ? UNRESOLVED_HINT
+                  : inFlight
+                    ? "Sending now replaces the reply in progress; your earlier messages stay."
+                    : lastStopped(d.turns)
+                      ? STOPPED_HINT
+                      : "Ask, steer, or add detail."}
+              {!uncertainSend && lastUnresolved(d.turns) ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-check"
+                    onClick={() => void res.refresh()}
+                  >
+                    Check again
+                  </button>{" "}
+                  ·{" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-stop"
+                    onClick={() => {
+                      setConfirmEnd(true);
+                      requestAnimationFrame(() =>
+                        endRef.current?.scrollIntoView({ block: "center" }),
+                      );
+                    }}
+                  >
+                    Stop this conversation…
+                  </button>
+                </>
+              ) : null}
             </span>
             <button
               type="button"
               className="btn btn-sm delegate"
               onClick={() => setHandoverOpen((v) => !v)}
               aria-expanded={handoverOpen}
-              title="Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
+              title="Records it as a paused hand-over; nothing runs for this record. To have Workagent work on something, ask it in a conversation."
             >
               Record a hand-over
             </button>
@@ -640,8 +689,21 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
           </div>
         </form>
       ) : (
-        <p className="hint">
+        <p className="hint" role="status">
           This conversation has ended. Its history is kept.
+          {carried ? (
+            <>
+              {" "}
+              Your unsent message is waiting on{" "}
+              {/* Home starts new work in this workspace, where the draft waits. */}
+              <Link
+                href={`/?${WORKSPACE_PARAM}=${encodeURIComponent(wsId ?? "")}`}
+              >
+                Home
+              </Link>
+              .
+            </>
+          ) : null}
         </p>
       )}
 
@@ -664,9 +726,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
         >
           <h2 id="handover-title">Record a hand-over</h2>
           <p className="small muted">
-            This saves what to carry forward, linked to this conversation. I
-            can’t work on it on my own yet: it stays paused, and nothing happens
-            until it’s picked up here.
+            This records what to carry forward as a paused hand-over, linked to
+            this conversation. Nothing runs for this record by itself. To have
+            Workagent work on something, ask it here in the conversation.
           </p>
           <label className="field">
             <span className="field-label">What to carry forward</span>
@@ -716,12 +778,18 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       ) : null}
 
       {open ? (
-        <details className="ids-details" open={endPending || undefined}>
+        <details
+          ref={endRef}
+          className="ids-details"
+          open={endPending || confirmEnd || undefined}
+        >
           <summary>End this conversation</summary>
           <div className="stack-sm" style={{ marginTop: 8 }}>
             <p className="small muted">
-              Ending stops any reply in progress. The history and anything you
-              handed over are kept.
+              Ending closes this conversation, so nothing new is added to it.
+              Its history and anything you handed over are kept, and an unsent
+              message moves to Home. A request already sent may still be
+              processed by the model service; ending doesn’t undo it.
             </p>
             {endPending ? (
               <p className="hint" role="status">

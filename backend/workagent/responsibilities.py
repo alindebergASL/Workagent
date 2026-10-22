@@ -96,6 +96,12 @@ class Responsibilities(ResponsibilityExecution):
             # Changed context can require human review, but cannot supply the
             # decision this responsibility explicitly waits for.
             life.state = 'waiting_person'
+        elif (life.next_check_in_at is not None and not life.check_in_due
+              and (life.wait is None or life.wait.kind == 'check_in')):
+            # A scheduled next action waits even if the optional wait object was
+            # omitted. Explicit person/dependency waits retain their own semantics.
+            # Edits and restart cannot cross the agreed not-before time.
+            life.state = 'waiting_event'
         elif life.review_required or life.check_in_due or life.wait is None:
             life.state = 'active'
         else:
@@ -120,15 +126,17 @@ class Responsibilities(ResponsibilityExecution):
             return
         if life.blocker in ('tool_required', 'authority_unavailable', 'conversation_closed'):
             return
+        from .general_responses import scope_predicate
+        predicate=scope_predicate(c,'g','%s')
         rows = c.execute("SELECT g.id FROM provider_grants g WHERE g.workspace_id=%s "
             "AND g.principal_id=%s AND g.active AND g.data->>'profile'='general-responses-v1' "
-            "AND g.data->'responses'->'conversation_ids' ? %s "
+            f"AND {predicate} "
             "AND (SELECT count(*) FROM run_configurations rc WHERE rc.workspace_id=g.workspace_id "
             "AND rc.data->>'grant_id'=g.id) < (g.data->>'max_runs')::integer"
             if life.execution_status not in ('queued', 'running') else
             "SELECT g.id FROM provider_grants g WHERE g.workspace_id=%s AND g.principal_id=%s "
             "AND g.active AND g.data->>'profile'='general-responses-v1' "
-            "AND g.data->'responses'->'conversation_ids' ? %s",
+            f"AND {predicate}",
             (a.workspace_id, p.id, a.conversation_id)).fetchall()
         if len(rows) != 1:
             life.blocker = 'grant_required'
@@ -292,6 +300,10 @@ class Responsibilities(ResponsibilityExecution):
                 if life.state != 'paused' or cv.state != 'open':
                     raise DomainError('unsupported_operation')
                 life.state = 'active'
+                # Resume is a new human-controlled wake, never a replay of the
+                # cancelled run. Admission still checks every unresolved send.
+                life.run_id = None
+                life.execution_status = 'not_admitted'
                 self._refresh_responsibility(c, p, a, cv, life)
                 self._responsibility_state(life)
             else:
@@ -325,6 +337,8 @@ class Responsibilities(ResponsibilityExecution):
             a, _ = self._responsibility_assignment(c, p, ws, assignment_id)
             life = self._lifecycle(c, ws, a.id)
             self._responsibility_observations(c, p, a, life.dependencies)
+            from .outcomes import project_responsibility_artifacts
+            project_responsibility_artifacts(self,c,p,a)
             return self._responsibility_detail(a, life)
 
     def _refresh_responsibility(self, c, p, a, cv, life):
@@ -355,7 +369,10 @@ class Responsibilities(ResponsibilityExecution):
         if not person_wait or context_changed or due_changed or blocker_changed or cv.state != 'open':
             life.review_required = True
             life.outcome_status = 'needs_review'
-        if not person_wait:
+        # A wake invalidates evidence, not the saved plan. Keep an executable
+        # human/agent-maintained next action instead of replacing it with boilerplate.
+        # Non-executable waits still become a scoped review when their event arrives.
+        if not person_wait and life.next_action.kind not in ('continue_work','review_dependency'):
             life.next_action = ResponsibilityNextAction(kind='review_dependency',
                 description='Review changed saved context or the due check-in before continuing.')
         # Retain an explicit human wait and its next action verbatim. Ordinary

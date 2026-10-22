@@ -18,8 +18,11 @@ def main():
     from workagent.conversations import profile
     from workagent.adaptive import AdaptiveDecision
     from workagent.message_models import attachment_contract
-    from workagent.composition import AlphaDecision, descriptors
-    outputs={'alpha-decision.schema.json':AlphaDecision.model_json_schema(),
+    from workagent.composition import AlphaDecision, ContinuityDecision, descriptors
+    from workagent.models import ProviderGrant
+    outputs={'provider-grant.schema.json':ProviderGrant.model_json_schema(),
+             'continuity-decision.schema.json':ContinuityDecision.model_json_schema(),
+             'alpha-decision.schema.json':AlphaDecision.model_json_schema(),
              'alpha-capability-catalog.json':descriptors(),
              'message-attachments.json':attachment_contract(),
              'adaptive-decision.schema.json':AdaptiveDecision.model_json_schema(),

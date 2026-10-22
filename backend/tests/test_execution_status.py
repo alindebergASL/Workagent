@@ -15,6 +15,20 @@ from workagent.db import Database
 from workagent.service import Principal
 
 
+def test_recent_runs_do_not_sort_by_random_id(context,tmp_path,monkeypatch):
+    from test_conversations import conversation, post
+    import workagent.conversations as conversations
+    s,p,ws,_,_=context
+    ids=iter(range(9999,0,-1))
+    monkeypatch.setattr(conversations,'new_id',lambda:f'ordering-{next(ids):04d}')
+    runs=[]
+    for _ in range(41):
+        cv=conversation(context)
+        runs.append(post(context,cv,'Synthetic ordering regression.').run.id)
+    status=read(s,p,ws,str(tmp_path/'no-worker.json'))
+    assert [r.run_id for r in status.runs]==list(reversed(runs))[:40]
+
+
 def test_heartbeat_no_secrets_stale_wrong_workspace_and_dead_pid(tmp_path):
     path=tmp_path/'execution.json'
     publish(path,'ws','grant',authorized=True,run_id='run',status='visiting')
@@ -62,11 +76,21 @@ def test_http_readiness_and_revocation_scope(context,tmp_path,monkeypatch):
         assert not client.get(url,headers=headers).json()['can_advance_authorized_work']
 
 
+def settled_visit(dispatcher,service,p,ws,run_id):
+    """Bounded visits may yield between phases; keep real journal/lease gates."""
+    for _ in range(5):
+        result=dispatcher.once()
+        if service.get_run(p,ws,run_id).state not in ('queued','running'):
+            return result
+    pytest.fail('run did not settle after five ordinary dispatcher visits')
+
+
 def test_dispatcher_records_progress_without_payload(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path)
     path=tmp_path/'execution.json'
-    result=ResponsesDispatcher(w,workspace=ws,grant_id=g.id,status_path=path).once()
+    d=ResponsesDispatcher(w,workspace=ws,grant_id=g.id,status_path=path)
+    result=settled_visit(d,s,p,ws,q.run.id)
     h=heartbeat(path,ws)
     assert h['run_id']==q.run.id and h['status']==result['results'][0]['status']
     assert set(h)=={'workspace_id','grant_id','pid','consumer_sha256','at','authorized','run_id','status'}
@@ -123,7 +147,8 @@ def test_canonical_blocked_is_not_a_human_review_wait(context,tmp_path):
     s,p,ws,_,_=context
     cv,g,fake,q,w=setup(context,tmp_path,lie=True)
     path=tmp_path/'execution.json'
-    result=ResponsesDispatcher(w,workspace=ws,grant_id=g.id,status_path=path).once()
+    d=ResponsesDispatcher(w,workspace=ws,grant_id=g.id,status_path=path)
+    result=settled_visit(d,s,p,ws,q.run.id)
     assert result['results'][0]['status']=='blocked'
     current=read(s,p,ws,str(path))
     assert current.runs[0].state=='blocked'
@@ -144,7 +169,7 @@ def test_quarantine_does_not_stop_unrelated_authorized_conversation(context,tmp_
     assert read(s,p,ws,str(path)).can_advance_authorized_work
     fake.lose_id=False
     other=post(context,second,'An unrelated authorized request.')
-    result=d.once()
+    result=settled_visit(d,s,p,ws,other.run.id)
     statuses={r['run_id']:r['status'] for r in result['results']}
     assert statuses[q.run.id]=='outcome_unknown'
     assert statuses[other.run.id]=='completed'

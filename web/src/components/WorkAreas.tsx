@@ -336,20 +336,48 @@ export function SpaceDetails({
   );
 }
 
-export function WorkAreaList({ ws }: { ws: string }) {
-  return API_MODE === "real" ? <RealWorkAreaList ws={ws} /> : null;
+type SpaceRef = { id: string; name: string };
+type AreaRow = Awaited<ReturnType<typeof workAreas.list>>[number] & {
+  ws: SpaceRef;
+};
+
+/**
+ * The person's projects in one list, however many workspaces hold them: a
+ * row names its workspace only when there is more than one. A workspace
+ * that can't be read is said once; the others still show.
+ */
+export function WorkAreaList({ spaces }: { spaces: SpaceRef[] }) {
+  return API_MODE === "real" && spaces.length ? (
+    <RealWorkAreaList spaces={spaces} />
+  ) : null;
 }
 
-function RealWorkAreaList({ ws }: { ws: string }) {
+function RealWorkAreaList({ spaces }: { spaces: SpaceRef[] }) {
   const router = useRouter();
-  const res = useResource(`work-areas:${ws}`, (signal) =>
-    workAreas.list(ws, signal),
-  );
+  const key = spaces.map((w) => w.id).join(",");
+  const res = useResource(`work-areas:${key}`, async (signal) => {
+    const read = await Promise.allSettled(
+      spaces.map((w) => workAreas.list(w.id, signal)),
+    );
+    if (read.every((r) => r.status === "rejected"))
+      throw (read[0] as PromiseRejectedResult).reason;
+    const rows: AreaRow[] = [];
+    let unreadable = 0;
+    read.forEach((r, i) => {
+      if (r.status === "fulfilled")
+        rows.push(...r.value.map((cv) => ({ ...cv, ws: spaces[i]! })));
+      else unreadable++;
+    });
+    return { rows, unreadable };
+  });
   const [creating, setCreating] = useState(false);
+  const [target, setTarget] = useState(spaces[0]!.id);
+  const many = spaces.length > 1;
+  const into = spaces.find((w) => w.id === target) ?? spaces[0]!;
   return (
     <section className="stack" aria-labelledby="projects-heading">
       <div className="row wrap">
-        <h2 id="projects-heading">Projects and workflows</h2>
+        <h2 id="projects-heading">Projects</h2>
         <button
           type="button"
           className="btn btn-sm"
@@ -360,39 +388,76 @@ function RealWorkAreaList({ ws }: { ws: string }) {
         </button>
       </div>
       {creating ? (
-        <AreaForm
-          draftKey={`workagent:space-new:${ws}`}
-          label="Create project"
-          onCancel={() => setCreating(false)}
-          submit={async (attempt) => {
-            const cv = await workAreas.create(
-              ws,
-              { title: attempt.title, goal: attempt.goal, kind: attempt.kind },
-              attempt.command_id,
-            );
-            router.push(areaHref(ws, cv.id));
-          }}
-        />
+        <>
+          {many ? (
+            <label className="field">
+              <span className="field-label">Workspace</span>
+              <select
+                value={into.id}
+                onChange={(e) => setTarget(e.target.value)}
+              >
+                {spaces.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <AreaForm
+            key={into.id}
+            draftKey={`workagent:space-new:${into.id}`}
+            label="Create project"
+            onCancel={() => setCreating(false)}
+            submit={async (attempt) => {
+              const cv = await workAreas.create(
+                into.id,
+                {
+                  title: attempt.title,
+                  goal: attempt.goal,
+                  kind: attempt.kind,
+                },
+                attempt.command_id,
+              );
+              router.push(areaHref(into.id, cv.id));
+            }}
+          />
+        </>
       ) : null}
       {res.error ? <ErrorNotice error={res.error} /> : null}
       {res.loading && !res.data ? <p role="status">Loading projects…</p> : null}
-      <ul className="work-list">
-        {res.data?.map((cv) => (
-          <li key={cv.id}>
-            <Link className="work-row" href={areaHref(ws, cv.id)}>
-              <strong>{cv.work_area?.title ?? cv.title}</strong>
-              {cv.work_area?.goal ? (
-                <span className="clamp-2">{cv.work_area.goal}</span>
-              ) : null}
-              <span className="small muted">
-                {cv.work_area ? KIND[cv.work_area.kind] : "Project"}
-                {cv.state === "cancelled" ? " · ended" : ""}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {res.data?.length === 0 ? (
+      {res.data?.unreadable ? (
+        <p className="small muted" role="status">
+          Projects in{" "}
+          {res.data.unreadable === 1
+            ? "one workspace"
+            : `${res.data.unreadable} workspaces`}{" "}
+          couldn’t be read, so they aren’t listed.
+        </p>
+      ) : null}
+      {res.data?.rows.length ? (
+        <ul className="work-list">
+          {res.data.rows.map((cv) => (
+            <li key={`${cv.ws.id}/${cv.id}`}>
+              <Link className="work-row" href={areaHref(cv.ws.id, cv.id)}>
+                <span className="work-row-main">
+                  <strong className="work-row-title">
+                    {cv.work_area?.title ?? cv.title}
+                  </strong>
+                  {cv.work_area?.goal ? (
+                    <span className="clamp-2 muted">{cv.work_area.goal}</span>
+                  ) : null}
+                </span>
+                <span className="small muted project-meta">
+                  {cv.work_area ? KIND[cv.work_area.kind] : "Project"}
+                  {many ? ` · ${cv.ws.name}` : ""}
+                  {cv.state === "cancelled" ? " · ended" : ""}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : res.data ? (
         <p className="muted">
           No projects yet. A project keeps related work and its conversation
           together. Quick questions don’t need one.

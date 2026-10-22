@@ -10,7 +10,7 @@ import {
 } from "@/lib/work-state";
 import type { AssignmentSummary } from "@/lib/contract/types";
 import type { HoldEntry } from "@/lib/client/responsibility";
-import { holdStatus } from "@/lib/hold-view";
+import { holdStatus, idleHold } from "@/lib/hold-view";
 import { responsibilityView } from "@/lib/responsibility-view";
 import { scopedHref } from "@/lib/scope";
 import { StatusBadge } from "./ui";
@@ -23,11 +23,18 @@ import { StatusBadge } from "./ui";
 export function WorkRow({
   item,
   hold,
+  quietIdle = false,
 }: {
   item: AssignmentSummary;
   hold?: HoldEntry;
+  /**
+   * Under a heading that already says it's being kept track of, an idle
+   * responsibility doesn't repeat that nothing runs for it.
+   */
+  quietIdle?: boolean;
 }) {
   const held = holdStatus(hold);
+  const idle = quietIdle && idleHold(hold);
   const phase = phaseOf(item);
   const review = decisionArtifactId(item);
   const run = currentRun(item);
@@ -39,7 +46,9 @@ export function WorkRow({
   );
   const status = held ?? statusOf(item);
   const note = held
-    ? held.note
+    ? idle
+      ? null
+      : held.note
     : phase === "decision"
       ? run?.state === "decision_stale"
         ? "A proposal is based on an older version"

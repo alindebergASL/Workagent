@@ -117,21 +117,27 @@ export function useResource<T>(
         timer = setTimeout(() => void tick(), base);
       }
     };
-    const tick = (): Promise<T | null> => {
-      if (stopped || !key) return Promise.resolve(null);
-      if (inFlight) return inFlight;
+    const start = (): Promise<T | null> => {
       if (timer) clearTimeout(timer);
       timer = null;
-      inFlight = load(controller.signal).finally(() => {
+      const read: Promise<T | null> = load(controller.signal).finally(() => {
+        if (inFlight !== read) return;
         inFlight = null;
         schedule();
       });
-      return inFlight;
+      inFlight = read;
+      return read;
     };
-    // A refresh after a mutation waits out an existing read, then gets fresh state.
+    const tick = (): Promise<T | null> => {
+      if (stopped || !key) return Promise.resolve(null);
+      return inFlight ?? start();
+    };
+    // A refresh after a mutation starts a new read at once. A read already
+    // under way was sent before the mutation, so its answer is dropped (each
+    // read supersedes the ones before it) rather than shown over the new state.
     refreshRef.current = async () => {
-      if (inFlight) await inFlight;
-      return tick();
+      if (stopped || !key) return null;
+      return start();
     };
     scheduleRef.current = schedule;
     const refreshVisible = () => {

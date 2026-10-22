@@ -83,7 +83,12 @@ class Provider:
 
 
 def worker(ctx,fake,tmp_path,**kwargs):
-    return GeneralWorker(ctx[0],transport=fake.transport(),state=tmp_path/'state',enable_responses=True,**kwargs)
+    transport=fake.transport()
+    # In-process MockTransport has no live-network timeout budget. Keep the
+    # production HTTP/lease admission margins intact, including on loaded CI.
+    assert isinstance(transport._client._transport,httpx.MockTransport)
+    transport._client.timeout=httpx.Timeout(0.1)
+    return GeneralWorker(ctx[0],transport=transport,state=tmp_path/'state',enable_responses=True,**kwargs)
 
 
 def totals(s,g):
@@ -136,7 +141,8 @@ def test_four_natural_language_turns_actual_worker_csv_generated_wat(context,tmp
     assert s.get_artifact(p,ws,art.id).current_revision_id==saved.current_revision_id
     t=totals(s,grant)
     assert t['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
-    assert t['reserved_input_tokens']==160000 and t['reserved_output_tokens']==65536
+    from workagent.responses_ledger import RESERVED_INPUT,RESERVED_OUTPUT
+    assert t['reserved_input_tokens']==8*RESERVED_INPUT and t['reserved_output_tokens']==8*RESERVED_OUTPUT
     before=len(fake.calls)
     assert worker(context,fake,tmp_path).work(p,ws,fourth.run.id).state=='ready'
     assert len(fake.calls)==before

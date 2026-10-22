@@ -139,6 +139,8 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
   // it switches panes) and put the cursor in its reply box, about this work.
   // The box takes focus only once its pane shows, so try for a few frames.
   const [askForChange, setAskForChange] = useState(0);
+  // A request the work suggests (recheck after edits): filled in, not sent.
+  const [suggestion, setSuggestion] = useState<{ text: string; n: number }>();
   useEffect(() => {
     if (!askForChange) return;
     let frames = 0;
@@ -287,13 +289,18 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
                 stale={resource.reconnecting}
                 refresh={resource.refresh}
                 onDirtyChange={setUnsaved}
-                onAskForChange={() => setAskForChange((n) => n + 1)}
+                onAskForChange={(text) => {
+                  if (text)
+                    setSuggestion((s) => ({ text, n: (s?.n ?? 0) + 1 }));
+                  setAskForChange((n) => n + 1);
+                }}
               />
             )
           }
           agent={
             <ConversationPeek
               conversation={resource.data.conversation}
+              suggest={suggestion}
               artifactId={artifactId}
               wsId={ws!}
               refreshWork={resource.refresh}
@@ -360,23 +367,27 @@ function ProductEditor({
         (other) => other?.observation.id === read?.observation.id,
       ) === index,
   );
-  function keep(next: Draft) {
+  /** Journals the draft; false when the browser refused to store it. */
+  function keep(next: Draft): boolean {
     setDraft(next);
     try {
       sessionStorage.setItem(key, JSON.stringify(next));
+      return true;
     } catch {
       setNotice(
         "Browser storage unavailable. Keep this tab open to retain the draft and retry information.",
       );
+      return false;
     }
   }
   async function submit(action: Pending) {
     if (busy || (!draft.pending && inputsError)) return;
     const exact = draft.pending ?? action;
-    keep({ ...draft, pending: exact });
+    const journaled = keep({ ...draft, pending: exact });
     setBusy(true);
     setError("");
-    setNotice("");
+    // A storage failure was just reported by keep(); do not erase that warning.
+    if (journaled) setNotice("");
     try {
       if (exact.kind === "save") {
         const saved = await productApi.save(

@@ -6,6 +6,7 @@ import {
   capabilityUse,
   hasProductOutput,
   modelExamples,
+  stoppedByRefusal,
 } from "@/lib/adaptive-presentation";
 import {
   recordedResponsibilities,
@@ -31,7 +32,16 @@ export function TurnSummary({
   const said = execution ? (
     <span data-testid="turn-execution">{execution.text}</span>
   ) : null;
-  if (execution?.replaces) return said;
+  // The service's run line replaces the outcome, except when the outcome
+  // says more exactly why it stopped: what it tried was refused.
+  if (execution?.replaces && !(view && stoppedByRefusal(progress))) return said;
+  if (execution?.replaces && view)
+    return (
+      <div className="stack-sm" data-testid="adaptive-summary">
+        <span>{view.title}</span>
+        <span className="hint">{view.note}</span>
+      </div>
+    );
   if (!view)
     return said ? (
       <span className="stack-sm">
@@ -124,29 +134,32 @@ export function RuntimeRequest({
   const inScope = useScopedHref();
   return (
     <div className="stack-xs runtime-request" data-testid="runtime-request">
-      <p className="eyebrow-caps">Continuation request from a hand-over</p>
-      <p>
-        <span className="sr-only">Workagent’s continuation request: </span>
-        {text}
-      </p>
-      {origin ? (
-        <p className="small muted">
-          Asked by Workagent for a recorded hand-over, not by you.{" "}
+      <p className="small">
+        <strong>
+          {origin
+            ? "Workagent picked a hand-over back up."
+            : "Workagent continued on its own."}
+        </strong>{" "}
+        Started by Workagent, not by you.{" "}
+        {origin ? (
           <Link href={inScope(`/assignments/${origin.assignment_id}`)}>
             Open the hand-over
           </Link>
+        ) : null}
+      </p>
+      {/* Its own wording is for checking what it was asked, not reading. */}
+      <details className="ids-details">
+        <summary>What it asked for</summary>
+        <p className="small">
+          <span className="sr-only">Workagent’s continuation request: </span>
+          {text}
         </p>
-      ) : (
-        <p className="small muted">Asked by Workagent, not by you.</p>
-      )}
-      {origin ? (
-        <details className="ids-details">
-          <summary>Request details</summary>
+        {origin ? (
           <p className="ids">
             Wake {origin.wake_id} · hand-over version {origin.work_version}
           </p>
-        </details>
-      ) : null}
+        ) : null}
+      </details>
     </div>
   );
 }
@@ -159,12 +172,15 @@ export function RuntimeRequest({
 export function TurnOutcome({
   state,
   progress,
+  savedWork = false,
 }: {
   state: TurnState;
   progress?: TurnProgress;
+  /** The turn saved work of its own, shown beside this line. */
+  savedWork?: boolean;
 }) {
   if (state !== "replied") return null;
-  const view = adaptivePresentation(state, progress);
+  const view = adaptivePresentation(state, progress, savedWork);
   if (!view) return null;
   return (
     <p className="msg-outcome small" data-testid="turn-outcome">
@@ -208,20 +224,37 @@ export function TurnProgressDetails({
   progress,
   recorded,
   outcome,
+  origin,
 }: {
   progress?: TurnProgress;
+  /** Where a reply came from when it isn't a live model's answer. */
+  origin?: string | null;
   /** The message exactly as recorded, when the answer shown is the retained explanation. */
   recorded?: string;
   /** A routine outcome note folded in here rather than shown inline. */
   outcome?: { title: string; note: string } | null;
 }) {
-  if (!progress) return null;
+  const tag = origin ? replyTag(origin) : null;
+  if (!progress)
+    return tag ? (
+      <details className="ids-details">
+        <summary>Details</summary>
+        <p className="small" data-testid="reply-origin">
+          {tag}: not a live model’s answer.
+        </p>
+      </details>
+    ) : null;
   const local = progress.retained_local_result;
   const showRecorded =
     recorded !== undefined && replyText(recorded, progress).explanation;
   return (
     <details className="ids-details">
       <summary>Details</summary>
+      {tag ? (
+        <p className="small" data-testid="reply-origin">
+          {tag}: not a live model’s answer.
+        </p>
+      ) : null}
       {outcome ? (
         <p className="small" data-testid="turn-outcome">
           <strong>{outcome.title}.</strong> {outcome.note}

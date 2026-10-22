@@ -165,6 +165,13 @@ try {
     await page.goto("https://products.test/");
     await page.addScriptTag({ content: code });
   }
+  // Shows the stand-in page and waits until it is on screen, so the work
+  // mounted next is a fresh mount. Two renders sent back to back can be
+  // batched by React into one, and the work would then never unmount.
+  async function away() {
+    await page.evaluate(() => window.mount("away"));
+    await expect(page.getByText("Navigation away")).toBeVisible();
+  }
   async function mount(mode = "operation", ws = "w", cid = "c", version = 7) {
     await page.evaluate(
       (args) => window.mount(...args),
@@ -1604,6 +1611,86 @@ try {
     "PASS each request beside the work keeps its own failed/unknown state and reason after later turns, with a link once out of view",
   );
 
+  {
+    // While the latest request's outcome is unknown the service takes no new
+    // message, so the pane says so, holds sending and offers a re-read;
+    // it never says a new message starts a new request. A known unusable
+    // answer isn't held: a new message can be sent.
+    const showLast = (state, observation) =>
+      page.evaluate(
+        ([state, observation]) => {
+          const conv = structuredClone(window.resource.data.conversation);
+          conv.messages.push({
+            id: "msg-orient",
+            author: "person",
+            text: "Change the orientation.",
+            created_at: "2026-10-13T00:00:00Z",
+            sequence: 995,
+            run_id: "run-orient",
+            origin: "human",
+          });
+          conv.turns.push({
+            run_id: "run-orient",
+            state,
+            reason: null,
+            message_id: "msg-orient",
+            ...(observation
+              ? {
+                  progress: {
+                    provider_observation: observation,
+                    evidence_origin: "unverified",
+                  },
+                }
+              : {}),
+          });
+          window.peek = {
+            data: conv,
+            error: null,
+            reconnecting: false,
+            refresh: async () => null,
+          };
+          window.mount("away");
+          window.mount("product");
+        },
+        [state, observation],
+      );
+    const pane = page.locator(".agent-pane");
+    const box = pane.locator("#peek-reply");
+    // Linked or not, the pane's own send button.
+    const send = pane
+      .locator(".peek-ask")
+      .getByRole("button", { name: /^Send/ });
+    await showLast("outcome_unknown", null);
+    await box.fill("Make it landscape instead.");
+    await expect(pane.locator(".ask-bar .hint")).toContainText(
+      "Whether your last request went through couldn’t be confirmed",
+    );
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "A new message starts a new request",
+    );
+    await expect(send).toBeDisabled();
+    await expect(pane.getByTestId("unresolved-check")).toBeVisible();
+    // The backend's permitted way out: stop this conversation, confirmed
+    // in the full conversation; nothing is cancelled from the pane itself.
+    await expect(pane.getByTestId("unresolved-stop")).toHaveAttribute(
+      "href",
+      /\/conversations\/[^/?]+\?stop=1/,
+    );
+    await page.keyboard.press("Control+Enter");
+    await showLast("failed", "invalid");
+    await expect(pane.locator(".ask-bar .hint")).not.toContainText(
+      "couldn’t be confirmed",
+    );
+    await expect(box).toHaveValue("Make it landscape instead.");
+    await expect(send).toBeEnabled();
+    await expect(pane.getByTestId("unresolved-check")).toHaveCount(0);
+    await expect(pane.getByTestId("unresolved-stop")).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS beside the work, an unconfirmed request holds sending with a re-read and never invites a new request; a known stop isn't held",
+  );
+
   // Natural admission: a reply beside the work names the exact saved
   // version (never the unsaved working copy), and an unconfirmed reply
   // replays the same frozen target after the saved version moves on.
@@ -2012,19 +2099,24 @@ try {
     };
     return { status: 200, json: next };
   };
-  async function showFlex(data) {
+  // Flexible work opens on its result; these cases edit it, so each opens
+  // on the Edit tab the way a person who chose it last time would.
+  async function showFlex(data, mode = "edit") {
     flexPosts = [];
-    await page.evaluate((data) => {
-      sessionStorage.clear();
-      window.resource = {
-        data,
-        error: null,
-        reconnecting: false,
-        refresh: window.refresh,
-      };
-      window.mount("away");
-    }, data);
-    // Separate steps, so React really unmounts the previous work.
+    await page.evaluate(
+      ([data, mode]) => {
+        sessionStorage.clear();
+        if (mode) sessionStorage.setItem("workagent:product:w:c:a:mode", mode);
+        window.resource = {
+          data,
+          error: null,
+          reconnecting: false,
+          refresh: window.refresh,
+        };
+      },
+      [data, mode],
+    );
+    await away();
     await page.evaluate(() => window.mount("product"));
   }
 
@@ -2179,6 +2271,235 @@ try {
   );
 
   {
+    // A phone's row cards: what the row is heads the card, its values sit
+    // side by side under short labels, and a long unit is said once above
+    // the cards instead of on every row. Each box still names its unit for
+    // assistive tech, and wider screens keep the unit in the heading.
+    const long = "count (pairs counted as one)";
+    const num = (key, label) => ({
+      key,
+      label,
+      type: "integer",
+      editable: true,
+      unit: long,
+      scale: null,
+      enum: null,
+    });
+    const units = {
+      ...tableRev,
+      body: {
+        kind: "structured_table",
+        version: "structured-table/v1",
+        title: "Stock count",
+        notes: [],
+        fields: [
+          {
+            key: "item",
+            label: "Item",
+            type: "text",
+            editable: true,
+            unit: null,
+            scale: null,
+            enum: null,
+          },
+          num("have", "Have"),
+          num("want", "Want"),
+          num("short", "Still to find"),
+        ],
+        rows: ["Lamp", "Ladder", "Rope", "Tape"].map((name, i) => ({
+          row_id: `r${i}`,
+          cells: [
+            { field_key: "item", value: name },
+            { field_key: "have", value: i + 1 },
+            { field_key: "want", value: 10 },
+            { field_key: "short", value: 9 - i },
+          ],
+        })),
+      },
+    };
+    await page.addStyleTag({
+      path: path.join(web, "src", "styles", "products.css"),
+    });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await showFlex(flexData(units));
+    const have = page.getByLabel("Lamp Have", { exact: true });
+    await expect(have).toBeVisible({ timeout: 15000 });
+    await expect(have).toHaveAccessibleDescription(`In ${long}`);
+    await expect(page.locator("[data-testid=unit-legend]:visible")).toHaveText(
+      `Have, Want, Still to find: ${long}`,
+    );
+    const said = await page.evaluate((long) => {
+      // Only text a person sees: not the visually hidden column headings.
+      let n = 0;
+      const walk = document.createTreeWalker(document.body, 4);
+      while (walk.nextNode()) {
+        const el = walk.currentNode.parentElement;
+        const r = el.getBoundingClientRect();
+        if (
+          !el.closest("thead") &&
+          el.checkVisibility() &&
+          r.width > 2 &&
+          r.height > 2 &&
+          walk.currentNode.textContent.includes(long)
+        )
+          n++;
+      }
+      return n;
+    }, long);
+    assert.equal(said, 1, `the unit is said ${said} times on a phone`);
+    const card = have.locator("xpath=ancestor::tr[1]");
+    const box = await card.boundingBox();
+    assert.ok(box.height <= 180, `a row card is ${box.height}px tall`);
+    const name = page
+      .getByLabel("Row 1 Item", { exact: true })
+      .locator("xpath=..");
+    const [nameBox, haveBox, wantBox] = await Promise.all([
+      name.boundingBox(),
+      have.boundingBox(),
+      page.getByLabel("Lamp Want", { exact: true }).boundingBox(),
+    ]);
+    assert.ok(
+      nameBox.y + nameBox.height <= haveBox.y,
+      "the name heads the card",
+    );
+    assert.ok(
+      Math.abs(haveBox.y - wantBox.y) < 2,
+      "values sit side by side under their labels",
+    );
+    assert.ok(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    );
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(
+      page.getByRole("columnheader", { name: `Have (${long})`, exact: true }),
+    ).toBeVisible();
+    await expect(page.locator("[data-testid=unit-legend]:visible")).toHaveCount(
+      0,
+    );
+  }
+  passed++;
+  console.log(
+    "PASS phone row cards: name first, values side by side, a long unit said once and kept for assistive tech",
+  );
+
+  {
+    // The work reads first: its result, with how it was made folded away
+    // and less-used actions in one menu. Editing is one tab away; leaving
+    // the tab keeps unsaved edits, and reopening goes back to them.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(flexData(tableRev), null);
+    const tab = (name) => page.getByRole("tab", { name, exact: true });
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(
+      page.getByRole("region", { name: tableRev.body.title }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Editable table" }),
+    ).toHaveCount(0);
+    await expect(page.getByTestId("product-verification")).toBeHidden();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeHidden();
+    await page.getByLabel("More for this work").click();
+    await expect(
+      page.getByRole("button", { name: "Download as CSV" }),
+    ).toBeVisible();
+    await page.getByLabel("More for this work").click();
+    await page.getByText("How this was prepared", { exact: true }).click();
+    await expect(page.getByTestId("product-verification")).toBeVisible();
+
+    await tab("Edit").click();
+    const name = tableRev.body.rows[0].cells.find(
+      (c) => c.field_key === tableRev.body.fields[0].key,
+    ).value;
+    const first = page.getByLabel(`Row 1 ${tableRev.body.fields[0].label}`, {
+      exact: true,
+    });
+    await first.fill(`${name} (edited)`);
+    await tab("Result").click();
+    await expect(page.getByText("Your edits aren’t saved yet.")).toBeVisible();
+    await page.getByRole("button", { name: "Continue editing" }).click();
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true");
+    await expect(first).toHaveValue(`${name} (edited)`);
+    // Keyboard moves between the two.
+    await tab("Edit").focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(tab("Result")).toBeFocused();
+    await expect(tab("Result")).toHaveAttribute("aria-selected", "true");
+    // Reopened with an unsaved edit, it opens where the edit is.
+    await away();
+    await page.evaluate(() => window.mount("product"));
+    await expect(tab("Edit")).toHaveAttribute("aria-selected", "true", {
+      timeout: 15000,
+    });
+    await expect(first).toHaveValue(`${name} (edited)`);
+  }
+  passed++;
+  console.log(
+    "PASS work opens on its result; editing is a tab away, keeps unsaved edits and reopens on them; how it was made is folded",
+  );
+
+  {
+    // A person changed a value in a table Workagent made: what it worked
+    // out from that value isn't recalculated, and the result says so, marks
+    // the changed value and offers to ask for a recheck. The request is put
+    // in the reply box; nothing is sent until the person sends it.
+    const agentRev = {
+      ...tableRev,
+      id: "r-agent",
+      parent_revision_id: null,
+      author_kind: "worker",
+    };
+    const body = structuredClone(tableRev.body);
+    const num = body.fields.find((f) => f.type === "integer");
+    const cell = body.rows[0].cells.find((c) => c.field_key === num.key);
+    cell.value = (cell.value ?? 0) + 7;
+    const humanRev = {
+      ...tableRev,
+      id: "r-human",
+      parent_revision_id: "r-agent",
+      author_kind: "human",
+      body,
+    };
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(
+      flexData(humanRev, {
+        history: [
+          { ...agentRev, artifact_id: "a" },
+          { ...humanRev, artifact_id: "a" },
+        ],
+      }),
+      null,
+    );
+    const stale = page.getByTestId("maybe-stale");
+    await expect(stale).toContainText("You changed 1 value", {
+      timeout: 15000,
+    });
+    await expect(stale).toContainText("hasn’t been recalculated");
+    await expect(page.locator('td[data-edited="true"]')).toHaveCount(1);
+    await page.getByTestId("ask-recheck").click();
+    await expect(page.locator("#peek-reply")).toHaveValue(
+      /recheck anything worked out from them/,
+    );
+    assert.equal(flexPosts.length, 0, "asking to recheck sends nothing");
+    // Workagent's own latest version says nothing of the kind.
+    await showFlex(flexData(agentRev), null);
+    await expect(page.getByRole("tab", { name: "Result" })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByTestId("maybe-stale")).toHaveCount(0);
+    await expect(page.locator('td[data-edited="true"]')).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS values a person changed since Workagent's version are marked, what it worked out is said not to be recalculated, and a recheck is one click to the reply box",
+  );
+
+  {
     // Notes over the service's limit are refused visibly, never cut short.
     const table = tableRev.body;
     await page.setViewportSize({ width: 1280, height: 800 });
@@ -2202,7 +2523,7 @@ try {
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
-    await page.evaluate(() => window.mount("away"));
+    await away();
     await page.evaluate(() => window.mount("product"));
     await expect(notes).toHaveValue(eleven);
     await expect(page.getByTestId("draft-problem")).toBeVisible();
@@ -2223,6 +2544,105 @@ try {
   passed++;
   console.log(
     "PASS notes over the limit are refused visibly and kept through reload, never truncated on save",
+  );
+
+  {
+    // When the browser refuses to keep the pending save, the person is told
+    // so while it is in flight and after an unconfirmed outcome, since only
+    // this tab then holds the exact retry.
+    const table = tableRev.body;
+    await showFlex(flexData(tableRev));
+    await page
+      .getByLabel("Notes (one per line)", { exact: true })
+      .fill([...table.notes, "Kept only in this tab"].join("\n"));
+    await page.evaluate(() => {
+      window.realSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === "workagent:product:w:c:a")
+          throw new DOMException("full", "QuotaExceededError");
+        return window.realSetItem.call(this, key, value);
+      };
+    });
+    let held;
+    const hold = (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      held = route;
+    };
+    await page.route("**/v1/workspaces/**", hold);
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    const warning = page.getByText("Browser storage unavailable.", {
+      exact: false,
+    });
+    await expect.poll(() => Boolean(held)).toBe(true);
+    await expect(warning).toBeVisible();
+    // The acknowledgement is lost: the outcome is unknown and only this tab
+    // can retry it exactly, so the warning stays.
+    await held.abort("failed");
+    await expect(
+      page.getByRole("button", { name: /Retry|Try again/ }).first(),
+    ).toBeVisible();
+    await expect(warning).toBeVisible();
+    await page.unroute("**/v1/workspaces/**", hold);
+    await page.evaluate(() => {
+      Storage.prototype.setItem = window.realSetItem;
+    });
+  }
+  passed++;
+  console.log(
+    "PASS a work editor that can't keep its pending save says so while saving and after an unconfirmed outcome",
+  );
+
+  {
+    // The same for a tool: its editor keeps the warning while the save of a
+    // changed input is in flight.
+    await page.evaluate((data) => {
+      sessionStorage.clear();
+      window.resource = {
+        data,
+        error: null,
+        reconnecting: false,
+        refresh: window.refresh,
+      };
+      window.mount("away");
+    }, data);
+    await page.evaluate(() => window.mount("product"));
+    await page.getByLabel("Quantity", { exact: true }).fill("5");
+    await page.evaluate(() => {
+      window.realSetItem = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (key, value) {
+        if (key === "workagent:product:w:c:a")
+          throw new DOMException("full", "QuotaExceededError");
+        return window.realSetItem.call(this, key, value);
+      };
+    });
+    let held;
+    const hold = (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      held = route;
+    };
+    await page.route("**/v1/workspaces/**", hold);
+    await page
+      .getByRole("button", { name: "Save my edits", exact: true })
+      .click();
+    await expect.poll(() => Boolean(held)).toBe(true);
+    await expect(
+      page.getByText("Browser storage unavailable.", { exact: false }),
+    ).toBeVisible();
+    await held.abort("failed");
+    await expect(
+      page.getByText("Browser storage unavailable.", { exact: false }),
+    ).toBeVisible();
+    await page.unroute("**/v1/workspaces/**", hold);
+    await page.evaluate(() => {
+      Storage.prototype.setItem = window.realSetItem;
+      sessionStorage.clear();
+    });
+  }
+  passed++;
+  console.log(
+    "PASS a tool editor that can't keep its pending save says so while saving and after an unconfirmed outcome",
   );
 
   {
@@ -2448,10 +2868,24 @@ try {
     await expect(items.nth(1)).toHaveText(
       "Willow Hall · Travel time (supplied fact) (minutes): 15 → 20",
     );
+    // A reason the service wrote itself is shown as written.
+    await expect(card).toContainText(
+      "Synthetic proposal under a changed budget",
+    );
+    // With Changes open, the same cells aren't repeated in the card.
+    await page.getByRole("tab", { name: /^Changes/ }).click();
+    await expect(card.getByTestId("proposal-changes")).toHaveText(
+      "2 values changed",
+    );
+    await expect(card.getByTestId("proposal-cell-changes")).toHaveCount(0);
+    await expect(card.getByTestId("review-changes")).toHaveCount(0);
+    await page.getByRole("tab", { name: "Result" }).click();
+    await expect(card.getByTestId("proposal-cell-changes")).toBeVisible();
+    await expect(card.getByTestId("review-changes")).toBeVisible();
   }
   passed++;
   console.log(
-    "PASS a proposal to a corrected table lists each value it changes and marks the person's own",
+    "PASS a proposal to a corrected table lists each value it changes and marks the person's own; Changes doesn't repeat them",
   );
 
   {
@@ -2558,7 +2992,7 @@ try {
       [viewRev, true],
       [loose, false],
     ]) {
-      await page.evaluate(() => window.mount("away"));
+      await away();
       await page.evaluate(
         ({ rev, bound }) => {
           window.inPlace = {

@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { api } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import { useResponsibility } from "@/lib/client/responsibility";
+import { useResponsibilityOutputs } from "@/lib/client/responsibility-outputs";
 import { ResponsibilityPanel } from "@/components/ResponsibilityPanel";
 import type { WorkspaceScope } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
@@ -24,7 +25,9 @@ import {
   statusOf,
   waitingSummary,
 } from "@/lib/work-state";
+import { readableTitle } from "@/lib/titles";
 import { Ownership } from "@/components/Ownership";
+import { OutcomeLede } from "@/components/OutcomeLede";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -70,6 +73,13 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   // says there is no responsibility here; never while it's unknown, denied,
   // or an earlier "none" can't be re-read.
   const legacy = rs.kind === "absent";
+  // Its published outputs live in its conversation; only the rich read
+  // projects them, and each opens at its canonical conversation address.
+  const outputs = useResponsibilityOutputs(
+    wsId,
+    id,
+    rs.kind === "ready" ? rs.detail.assignment : null,
+  );
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const artifactTitles = useMemo(
@@ -113,6 +123,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   // criteria and version are authoritative over the summary read earlier,
   // so a human edit is never masked by an older copy.
   const current = rs.kind === "ready" ? rs.detail.assignment : null;
+  // A recorded responsibility leads with what it prepared and what's next.
+  const rich = rs.kind === "ready" ? rs.detail : null;
   const goal = current?.goal ?? a.goal;
   const criteria = current?.completion_criteria ?? a.completion_criteria;
   const badge =
@@ -195,10 +207,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
                 tone: "done",
                 text: "You handed this over from a conversation. It’s recorded, but nothing has been admitted to run for it, so it stays paused.",
               }
-            : {
-                tone: "done",
-                text: "You handed this over from a conversation. Where it stands is shown below.",
-              }
+            : // The responsibility panel below says where it stands.
+              { tone: "done", text: "" }
           : {
               tone: "done",
               text: "Paused. Nothing new is prepared until you resume. Saved results are kept.",
@@ -234,26 +244,38 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
       {back}
       <header className="agent-intro stack">
         <div className="agent-presence agent-presence-sm" aria-hidden="true" />
-        <p className="eyebrow">
-          Updated {formatTime(a.updated_at || a.observed_at, zone)}
-          {res.reconnecting ? " · reconnecting…" : ""}
-        </p>
+        {rich ? null : (
+          <p className="eyebrow">
+            Updated {formatTime(a.updated_at || a.observed_at, zone)}
+            {res.reconnecting ? " · reconnecting…" : ""}
+          </p>
+        )}
         <h1>{shortTitle(current?.goal ?? a.title)}</h1>
-        <div className="row">
-          <StatusBadge label={badge.label} tone={badge.tone} />
-          {a.conversation_id ? (
-            <Link
-              className="link-quiet small"
-              href={scopedHref(`/conversations/${a.conversation_id}`, wsId)}
-            >
-              From a conversation ↗
-            </Link>
-          ) : null}
-        </div>
-        <p className="status-line" data-tone={statusLine.tone} role="status">
-          <span className="dot" aria-hidden="true" />
-          <span>{statusLine.text}</span>
-        </p>
+        {rich ? (
+          // Where it stands is the panel's; the header leads with what it has
+          // done so far, in its own recorded words.
+          rich.lifecycle.current_outcome ? (
+            <OutcomeLede text={rich.lifecycle.current_outcome} />
+          ) : null
+        ) : (
+          <div className="row">
+            <StatusBadge label={badge.label} tone={badge.tone} />
+            {a.conversation_id ? (
+              <Link
+                className="link-quiet small"
+                href={scopedHref(`/conversations/${a.conversation_id}`, wsId)}
+              >
+                From a conversation ↗
+              </Link>
+            ) : null}
+          </div>
+        )}
+        {statusLine.text ? (
+          <p className="status-line" data-tone={statusLine.tone} role="status">
+            <span className="dot" aria-hidden="true" />
+            <span>{statusLine.text}</span>
+          </p>
+        ) : null}
         {phase === "unknown" ? (
           <div className="row">
             <button
@@ -272,6 +294,77 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           </details>
         ) : null}
       </header>
+
+      {rich && (outputs.loading || outputs.outputs.length) ? (
+        <section
+          aria-labelledby="prepared-title"
+          className="stack"
+          data-testid="responsibility-prepared"
+        >
+          <h2 id="prepared-title" className="section-title">
+            Prepared for you
+          </h2>
+          {outputs.loading ? (
+            <p
+              className="hint"
+              role="status"
+              data-testid="responsibility-outputs-loading"
+            >
+              Looking for what it prepared…
+            </p>
+          ) : null}
+          {outputs.outputs.length ? (
+            <>
+              <ul className="work-list" data-testid="responsibility-outputs">
+                {outputs.outputs.map((o) => (
+                  <li key={o.id}>
+                    {o.kind === "ready" || o.kind === "unread" ? (
+                      <Link
+                        className="work-row"
+                        href={scopedHref(o.href, wsId)}
+                        data-phase="completed"
+                      >
+                        <span className="work-row-main">
+                          <span className="work-row-title">
+                            {o.kind === "ready"
+                              ? readableTitle(o.title)
+                              : "A saved result (not read yet)"}
+                          </span>
+                          <span className="work-row-status">
+                            {o.kind === "ready" && o.stale
+                              ? "As last read · open to see it now"
+                              : "Open to review or edit"}
+                          </span>
+                        </span>
+                        <span className="work-row-go" aria-hidden="true">
+                          ↗
+                        </span>
+                      </Link>
+                    ) : o.kind === "denied" ? (
+                      <p className="notice-line small">
+                        A saved result this responsibility published can’t be
+                        opened by you right now.
+                      </p>
+                    ) : (
+                      <p className="notice-line small">
+                        A saved result couldn’t be read just now, so nothing
+                        about it is shown.{" "}
+                        <button
+                          type="button"
+                          className="link-quiet small"
+                          onClick={() => void outputs.refresh()}
+                        >
+                          Check again
+                        </button>
+                      </p>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </section>
+      ) : null}
 
       {phase === "decision" && review ? (
         <section className="decision-card" aria-labelledby="next-title">
@@ -342,6 +435,7 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           detail={rs.detail}
           observedAt={rs.observedAt}
           stale={rs.stale}
+          doneWhen={criteria.length ? criteria.join(" ") : null}
           refresh={async () => {
             const [assignment, read] = await Promise.all([
               res.refresh(),
@@ -389,58 +483,58 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         assignment={current ? { ...a, goal, completion_criteria: criteria } : a}
         onChanged={res.refresh}
         legacy={legacy}
+        inPanel={Boolean(rich)}
       />
 
-      <section aria-labelledby="saved-title" className="stack">
-        <h2 id="saved-title" className="section-title">
-          Saved work
-        </h2>
-        {a.artifacts.length === 0 ? (
-          <p className="muted">
-            {rs.kind === "ready"
-              ? "No documents or files are attached to it yet. The responsibility itself is saved, above."
-              : phase === "working" ||
-                  phase === "unknown" ||
-                  phase === "waiting"
+      {rich && !a.artifacts.length ? null : (
+        <section aria-labelledby="saved-title" className="stack">
+          <h2 id="saved-title" className="section-title">
+            Saved work
+          </h2>
+          {a.artifacts.length === 0 && !rich ? (
+            <p className="muted">
+              {phase === "working" || phase === "unknown" || phase === "waiting"
                 ? "No documents or files saved yet."
                 : "No documents or files were saved."}
-          </p>
-        ) : (
-          <ul className="work-list">
-            {a.artifacts.map((x) => {
-              const s = artifactStatus(
-                x.state,
-                x.partial,
-                Boolean(x.approved_revision_id),
-              );
-              return (
-                <li key={x.id}>
-                  <Link
-                    className="work-row"
-                    href={scopedHref(
-                      `/assignments/${a.id}/artifacts/${x.id}`,
-                      wsId,
-                    )}
-                    data-phase={
-                      x.state === "needs_review" ? "decision" : "completed"
-                    }
-                  >
-                    <span className="work-row-main">
-                      <span className="work-row-title">{x.title}</span>
-                      <span className="work-row-status">
-                        <StatusBadge label={s.label} tone={s.tone} />
+            </p>
+          ) : null}
+          {a.artifacts.length ? (
+            <ul className="work-list">
+              {a.artifacts.map((x) => {
+                const s = artifactStatus(
+                  x.state,
+                  x.partial,
+                  Boolean(x.approved_revision_id),
+                );
+                return (
+                  <li key={x.id}>
+                    <Link
+                      className="work-row"
+                      href={scopedHref(
+                        `/assignments/${a.id}/artifacts/${x.id}`,
+                        wsId,
+                      )}
+                      data-phase={
+                        x.state === "needs_review" ? "decision" : "completed"
+                      }
+                    >
+                      <span className="work-row-main">
+                        <span className="work-row-title">{x.title}</span>
+                        <span className="work-row-status">
+                          <StatusBadge label={s.label} tone={s.tone} />
+                        </span>
                       </span>
-                    </span>
-                    <span className="work-row-go" aria-hidden="true">
-                      ↗
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+                      <span className="work-row-go" aria-hidden="true">
+                        ↗
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </section>
+      )}
 
       <details className="disclosure">
         <summary>What I checked</summary>

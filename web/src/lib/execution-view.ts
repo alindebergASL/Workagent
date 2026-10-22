@@ -21,12 +21,41 @@ const STOPPED: Record<NonNullable<RunExecution["failure_category"]>, string> = {
   unknown_external_outcome:
     "Stopped: it couldn’t confirm whether a step went through, so nothing is retried on its own.",
   invalid_response: "Stopped: the answer it got couldn’t be used.",
+  // A permission or a spending limit: which one isn't known here, so it
+  // isn't said to be a spent budget.
   authority_or_budget:
-    "Stopped: it reached the limit it’s allowed for this. Your message is kept.",
+    "Stopped: it isn’t allowed to go further with this right now. Your message is kept.",
   internal_error: "Stopped by an internal error. Your message is kept.",
   worker_unavailable: NOT_RUNNING,
   work_blocked: "Stopped: the work can’t go further as asked.",
 };
+
+/** Why the service stopped a run, when it says, in plain words. */
+const REASON: Record<NonNullable<RunExecution["failure_reason"]>, string> = {
+  source_changed: "Stopped: something it was working from has changed.",
+  source_unavailable: "Stopped: something it needs to read can’t be reached.",
+  version_conflict: "Stopped: the saved work changed while it was working.",
+  not_found_or_not_authorized:
+    "Stopped: it no longer has access to something it needs.",
+  budget_exhausted: "Stopped: it reached the spending limit allowed for this.",
+  connection_required: "Stopped: it needs a connection that isn’t set up.",
+  authority_unavailable: "Stopped: it isn’t allowed to run this right now.",
+  internal_error: "Stopped by an internal error.",
+};
+
+/**
+ * A stopped run: the service's reason when it gives one, else its category,
+ * then the service's own fixed next step (never error or model text).
+ */
+function stoppedText(run: RunExecution | undefined): string {
+  const said = run?.failure_reason
+    ? `${REASON[run.failure_reason]} Your message is kept.`
+    : run?.failure_category
+      ? STOPPED[run.failure_category]
+      : "Stopped.";
+  const next = run?.next_action?.trim();
+  return next ? `${said} ${next}` : said;
+}
 
 /**
  * A pending turn's run, as the service last checked it. Only for turns not
@@ -46,12 +75,7 @@ export function turnExecution(
     case "unavailable":
       return { text: NOT_RUNNING, replaces: true };
     case "blocked":
-      return {
-        text: run?.failure_category
-          ? STOPPED[run.failure_category]
-          : "Stopped.",
-        replaces: true,
-      };
+      return { text: stoppedText(run), replaces: true };
     case "awaiting_provider":
       return { text: "Waiting for the model’s answer.", replaces: false };
     case "recovering":
@@ -78,6 +102,12 @@ export function turnExecution(
 export function workspaceExecution(
   status: ExecutionStatus | null | undefined,
   unreadable: boolean,
+  /**
+   * Where each request already says how its own run stands (a
+   * conversation), "working somewhere in this workspace" says nothing
+   * about this page and outlives its answers, so it isn't shown.
+   */
+  perTurn = false,
 ): { state: string; text: string } | null {
   if (!status)
     return unreadable
@@ -102,7 +132,9 @@ export function workspaceExecution(
     case "working":
     case "awaiting_provider":
     case "recovering":
-      return { state: "working", text: "Workagent is working on a request." };
+      return perTurn
+        ? null
+        : { state: "working", text: "Workagent is working on a request." };
     default:
       return null;
   }

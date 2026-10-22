@@ -43,6 +43,39 @@ export function fieldHeading(field: TableField): string {
     : field.label;
 }
 
+/** A unit longer than this is said once above a phone's row cards. */
+const LONG_UNIT = 14;
+const longUnit = (field: TableField) =>
+  Boolean(field.unit && field.unit.trim().length > LONG_UNIT) &&
+  fieldHeading(field) !== field.label;
+
+/**
+ * A field's label on a phone's row card: a short unit stays beside it
+ * ("Deposit (EUR)"); a long one is said once above the cards instead of on
+ * every row (see `unitLegend`).
+ */
+export function cardLabel(field: TableField): string {
+  return longUnit(field) ? field.label : fieldHeading(field);
+}
+
+/**
+ * The long units a phone's row cards leave out of their labels, once each,
+ * with the fields measured in them, in field order.
+ */
+export function unitLegend(
+  fields: TableField[],
+): { unit: string; labels: string[] }[] {
+  const out: { unit: string; labels: string[] }[] = [];
+  for (const f of fields) {
+    if (!longUnit(f)) continue;
+    const unit = f.unit!.trim();
+    const at = out.find((u) => u.unit === unit);
+    if (at) at.labels.push(f.label);
+    else out.push({ unit, labels: [f.label] });
+  }
+  return out;
+}
+
 /**
  * Text columns whose values are long enough that a one-line box would hide
  * most of them; these are edited in a box that wraps.
@@ -306,6 +339,49 @@ export function cellAuthors(
   return out;
 }
 
+/**
+ * The values a person changed in a table since Workagent's latest version
+ * of it, read from the saved history: what it worked out from those values
+ * (totals, shortages, notes) hasn't been recalculated since. Null when the
+ * current version is Workagent's, or no earlier version of its is read.
+ */
+export function editsSinceWorkagent(
+  current: S["Revision"] | undefined,
+  history: S["Revision"][],
+  /** Versions made by applying one of Workagent's proposals: its content. */
+  applied: ReadonlySet<string> = new Set(),
+): { cells: Set<string>; notes: boolean } | null {
+  const body = current?.body as StructuredTable | undefined;
+  if (!current || body?.kind !== "structured_table") return null;
+  const workagents = (r: S["Revision"]) =>
+    r.author_kind !== "human" || applied.has(r.id);
+  if (workagents(current)) return null;
+  const byId = new Map(history.map((r) => [r.id, r]));
+  let base = current.parent_revision_id
+    ? byId.get(current.parent_revision_id)
+    : undefined;
+  while (base && !workagents(base))
+    base = base.parent_revision_id
+      ? byId.get(base.parent_revision_id)
+      : undefined;
+  const before = base?.body as StructuredTable | undefined;
+  if (!base || before?.kind !== "structured_table") return null;
+  const cells = new Set<string>();
+  for (const r of body.rows) {
+    const old = before.rows.find((x) => x.row_id === r.row_id);
+    if (!old) continue;
+    for (const f of body.fields)
+      if (
+        JSON.stringify(cellValue(r, f.key) ?? null) !==
+        JSON.stringify(cellValue(old, f.key) ?? null)
+      )
+        cells.add(cellAt(r.row_id, f.key));
+  }
+  const notes =
+    JSON.stringify(body.notes ?? []) !== JSON.stringify(before.notes ?? []);
+  return cells.size ? { cells, notes } : null;
+}
+
 export function changeSummary(c: ReturnType<typeof tableChanges>): string {
   const parts = [
     c.cells ? `${c.cells} value${c.cells === 1 ? "" : "s"} changed` : "",
@@ -474,4 +550,19 @@ export function rebind(
         : b;
     }),
   };
+}
+
+/**
+ * The service's fixed provenance notes on a proposal, in plain words: who
+ * prepared it, and that nothing changes until it's applied. Any other
+ * reason is shown as written.
+ */
+const PLAIN_REASON: Record<string, string> = {
+  "Model-selected proposed revision. Review before acceptance.":
+    "Prepared by the model. Nothing changes until you apply it.",
+  "Controlled local proposed revision. Review before acceptance.":
+    "Prepared locally, without a model. Nothing changes until you apply it.",
+};
+export function plainReason(reason: string): string {
+  return PLAIN_REASON[reason.trim()] ?? reason;
 }

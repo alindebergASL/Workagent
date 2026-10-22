@@ -8,6 +8,21 @@ import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+// A piece of work opens on its result; editing is its Edit tab (remembered
+// for that work in the tab). Pages without one are left as they are.
+const openEdit = async (page) => {
+  const edit = page.getByRole("tab", { name: "Edit", exact: true });
+  await edit
+    .first()
+    .waitFor({ timeout: 15000 })
+    .catch(() => {});
+  if (
+    (await edit.count()) &&
+    (await edit.getAttribute("aria-selected")) !== "true"
+  )
+    await edit.click();
+};
+
 const out = path.resolve(process.argv[2]);
 const phase = process.argv[3] ?? "create";
 await mkdir(out, { recursive: true });
@@ -236,6 +251,7 @@ try {
     await expect(page.getByTestId("product-verification")).toHaveText(
       "Draft made by Workagent. Its shape was checked; what it says hasn’t been verified.",
     );
+    await openEdit(page);
     const grid = page.getByRole("region", { name: "Editable table" });
     for (const h of [
       "Ref",
@@ -376,6 +392,7 @@ try {
     });
     ids.doc = doc.artifact_id;
     await page.goto(`${origin}/conversations/${cid}/artifacts/${ids.doc}`);
+    await openEdit(page);
     await page.getByLabel("Mark done: Hand out lanyards").check();
     await page
       .getByRole("button", { name: "Save my edits", exact: true })
@@ -479,6 +496,7 @@ try {
     // 5. A person saves the rota: the view can no longer read it, the
     // service refuses, and the shell (not the view) says so.
     await page.goto(`${origin}/conversations/${cid}/artifacts/${ids.table}`);
+    await openEdit(page);
     await page.getByLabel("Asha Hours", { exact: true }).fill("5");
     await page
       .getByRole("button", { name: "Save my edits", exact: true })
@@ -554,6 +572,17 @@ try {
     await page.goto(
       `${origin}/conversations/${ids.cid}/artifacts/${ids.table}`,
     );
+    // Reopened, the saved values read on the Result tab and are the ones
+    // the editor starts from.
+    await expect(
+      page
+        .getByRole("region", { name: "Saturday volunteer rota" })
+        .getByRole("cell", {
+          name: "Evening",
+          exact: true,
+        }),
+    ).not.toHaveCount(0, { timeout: 15000 });
+    await openEdit(page);
     await expect(page.getByLabel("Ben Hours", { exact: true })).toHaveValue(
       "6",
     );

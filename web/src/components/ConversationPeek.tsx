@@ -18,7 +18,9 @@ import {
   cardStatus,
   receiptSays,
   lastStopped,
+  lastUnresolved,
   STOPPED_HINT,
+  UNRESOLVED_HINT,
 } from "@/lib/adaptive-presentation";
 import { ErrorNotice } from "@/components/ui";
 import { useExecution } from "@/lib/client/execution";
@@ -31,7 +33,6 @@ import {
   TurnSummary,
   TurnProgressDetails,
   RecordingReceipts,
-  replyTag,
 } from "@/components/TurnProgress";
 
 const TURN_TEXT: Partial<Record<string, string>> = {
@@ -115,7 +116,6 @@ const inFlight = (d: ConversationDetailView | null) =>
  */
 export function ConversationPeek({
   conversation: initial,
-  artifactId,
   wsId,
   refreshWork,
   target,
@@ -127,6 +127,7 @@ export function ConversationPeek({
   compact = false,
   held: heldByPage = false,
   paused,
+  suggest,
 }: {
   conversation: ConversationDetailView;
   /** The work shown beside this pane, if one is. */
@@ -161,6 +162,12 @@ export function ConversationPeek({
    * goes on. For example, the work a reply is about is being re-read.
    */
   paused?: string;
+  /**
+   * A request the page suggests (e.g. "recheck what you worked out"): put
+   * in the reply box when it's empty, each time `n` changes. Never sent
+   * until the person sends it.
+   */
+  suggest?: { text: string; n: number };
 }) {
   const cid = initial.conversation.id;
   const execution = useExecution(wsId);
@@ -197,7 +204,13 @@ export function ConversationPeek({
     // Files go with a reply only where a reply names its exact version.
     attach: target !== undefined,
     // Admission, not just the button: no key or retry sends while held.
-    held: revoked || staleRead || !open || answersOff || Boolean(paused),
+    held:
+      revoked ||
+      staleRead ||
+      !open ||
+      answersOff ||
+      Boolean(paused) ||
+      Boolean(d && lastUnresolved(d.turns)),
   });
 
   // Any turn that settles after this pane opened may carry new work, even
@@ -221,6 +234,14 @@ export function ConversationPeek({
     fresh.forEach((k) => known.add(k));
     void refreshWork();
   }, [settled, refreshWork]);
+
+  const suggested = suggest?.n ?? 0;
+  const setReplyText = reply.setText;
+  const replyEmpty = !reply.text.trim();
+  useEffect(() => {
+    if (suggested && suggest && replyEmpty) setReplyText(suggest.text);
+    // Only a new suggestion fills the box; typing afterwards is the person's.
+  }, [suggested]);
 
   // Without an exact saved version (older services), a reply here can't
   // name the version it's about. It is held until the person sends it
@@ -311,7 +332,12 @@ export function ConversationPeek({
                 if (m.author !== "agent") return null;
                 const turnNow = d.turns.find((t) => t.run_id === m.run_id);
                 const state = turnNow?.state ?? "replied";
-                const view = adaptivePresentation(state, turnNow?.progress);
+                const saved = Boolean(m.products?.length);
+                const view = adaptivePresentation(
+                  state,
+                  turnNow?.progress,
+                  saved,
+                );
                 // Beside the work, how far it was checked and what was
                 // recorded are routine: they sit under Details. Anything
                 // else (stopped, blocked, needs input) stays in view.
@@ -322,21 +348,19 @@ export function ConversationPeek({
                 return (
                   <>
                     {inline ? (
-                      <TurnOutcome state={state} progress={turnNow?.progress} />
-                    ) : null}
-                    {artifactId &&
-                    m.products?.some((p) => p.artifact_id === artifactId) ? (
-                      <span className="msg-tag">This work</span>
+                      <TurnOutcome
+                        state={state}
+                        progress={turnNow?.progress}
+                        savedWork={saved}
+                      />
                     ) : null}
                     <RecordingReceipts
                       progress={turnNow?.progress}
                       names={names}
                     />
                     <div className="msg-meta row wrap">
-                      {replyTag(m.origin) ? (
-                        <span className="msg-tag">{replyTag(m.origin)}</span>
-                      ) : null}
                       <TurnProgressDetails
+                        origin={m.origin}
                         progress={turnNow?.progress}
                         recorded={m.text}
                         outcome={inline ? null : view}
@@ -466,13 +490,36 @@ export function ConversationPeek({
             <span className="hint">
               {reply.uncertain
                 ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : target && unsavedEdits
-                  ? "Your unsaved edits aren’t included. Replies work from your saved version."
-                  : unlinked
-                    ? "Nothing is sent until you choose to."
-                    : lastStopped(d.turns)
-                      ? STOPPED_HINT
-                      : idleHint}
+                : lastUnresolved(d.turns)
+                  ? UNRESOLVED_HINT
+                  : target && unsavedEdits
+                    ? "Your unsaved edits aren’t included. Replies work from your saved version."
+                    : unlinked
+                      ? "Nothing is sent until you choose to."
+                      : lastStopped(d.turns)
+                        ? STOPPED_HINT
+                        : idleHint}
+              {!reply.uncertain && lastUnresolved(d.turns) ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    className="link-quiet small"
+                    data-testid="unresolved-check"
+                    onClick={() => void refreshBoth()}
+                  >
+                    Check again
+                  </button>{" "}
+                  ·{" "}
+                  <Link
+                    className="link-quiet small"
+                    data-testid="unresolved-stop"
+                    href={scopedHref(`/conversations/${cid}?stop=1`, wsId)}
+                  >
+                    Stop this conversation…
+                  </Link>
+                </>
+              ) : null}
             </span>
             {unlinked ? (
               <button

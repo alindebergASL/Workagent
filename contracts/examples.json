@@ -108,7 +108,7 @@
           "provider_turn_id": null,
           "state": "queued",
           "stop_reason": null,
-          "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+          "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
           "unresolved": [],
           "used_units": 0,
           "workspace_id": "workspace-example"
@@ -368,7 +368,7 @@
         "provider_turn_id": null,
         "state": "running",
         "stop_reason": null,
-        "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+        "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -718,7 +718,7 @@
         "provider_turn_id": null,
         "state": "queued",
         "stop_reason": null,
-        "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+        "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
         "unresolved": [],
         "used_units": 0,
         "workspace_id": "workspace-example"
@@ -796,7 +796,7 @@
       "provider_turn_id": null,
       "state": "partial",
       "stop_reason": null,
-      "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+      "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
       "unresolved": [
         "No usable intake rows supplied; the baseline cannot be quantified."
       ],
@@ -826,7 +826,7 @@
       "provider_turn_id": null,
       "state": "running",
       "stop_reason": null,
-      "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+      "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
       "unresolved": [],
       "used_units": 0,
       "workspace_id": "workspace-example"

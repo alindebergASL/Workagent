@@ -1,16 +1,14 @@
 "use client";
 import { CAPABILITIES } from "./capabilities";
 import { useResource, type Resource } from "./hooks";
-import { isProduct, productApi } from "./products";
-import { flexibleKind } from "@/lib/flexible";
-import { conversationApi } from "./real-api";
+import { all, client, meta, unwrap } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
 
 /**
- * A product a conversation owns, with any decision waiting on it. Read only
- * from existing records: the conversation's own `artifact_ids`, the artifact's
- * current saved revision, and its pending proposals. Nothing here creates an
- * assignment or invents a Space; a Space is exactly the workspace.
+ * A product a conversation owns, with any decision waiting on it, from the
+ * service's per-workspace summary: the artifact's current saved revision and
+ * its newest readable pending proposal. Nothing here creates an assignment
+ * or invents a Space; a Space is exactly the workspace.
  */
 export interface ConversationWork {
   workspace_id: string;
@@ -43,80 +41,40 @@ export async function loadConversationWork(
   ws: string,
   signal?: AbortSignal,
 ): Promise<ConversationWork[]> {
-  const conversations = await conversationApi.list(ws, signal);
-  const perConversation = await Promise.all(
-    conversations.map(async (c) => {
-      let detail;
-      try {
-        detail = await conversationApi.get(ws, c.id, signal);
-      } catch (e) {
-        if (hidden(e)) return [];
-        throw e;
-      }
-      const rows = await Promise.all(
-        detail.artifact_ids.map(async (aid): Promise<ConversationWork[]> => {
-          try {
-            const [artifact, proposals] = await Promise.all([
-              productApi.get(ws, aid, signal),
-              productApi.proposals(ws, aid, signal),
-            ]);
-            // Only work this conversation owns in this workspace.
-            if (
-              artifact.workspace_id !== ws ||
-              artifact.conversation_id !== c.id
-            )
-              return [];
-            const body = artifact.current_revision.body;
-            const kind = isProduct(body) ? body.kind : flexibleKind(body);
-            if (!kind) return [];
-            const pending = proposals
-              .filter((p) => p.status === "pending")
-              .sort((a, b) =>
-                (b.created_at ?? "").localeCompare(a.created_at ?? ""),
-              )[0];
-            return [
-              {
-                workspace_id: ws,
-                conversation_id: c.id,
-                conversation_title: c.title,
-                artifact_id: artifact.id,
-                title: body.title,
-                kind,
-                revision_id: artifact.current_revision_id,
-                updated_at: artifact.current_revision.created_at ?? "",
-                saved_by:
-                  artifact.current_revision.author_kind === "human"
-                    ? "you"
-                    : "agent",
-                decision: pending
-                  ? {
-                      proposal_id: pending.id,
-                      fresh:
-                        pending.base_revision_id ===
-                        artifact.current_revision_id,
-                      created_at: pending.created_at ?? "",
-                    }
-                  : null,
-              },
-            ];
-          } catch (e) {
-            if (hidden(e)) return [];
-            throw e;
-          }
-        }),
-      );
-      return rows.flat();
-    }),
+  // One paged summary read per workspace: each conversation-owned artifact's
+  // current saved revision and its newest readable pending proposal. Pages
+  // are in artifact order, so all are read before sorting by attention.
+  const items = await all((cursor) =>
+    unwrap(
+      client.GET("/v1/workspaces/{workspace_id}/conversation-work", {
+        params: {
+          path: { workspace_id: ws },
+          header: meta(),
+          query: { limit: 100, cursor },
+        },
+        signal,
+      }),
+    ),
   );
-  const seen = new Set<string>();
-  return perConversation
-    .flat()
-    .filter((w) => {
-      const key = `${w.workspace_id}:${w.artifact_id}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
+  return items
+    .map((w): ConversationWork => ({
+      workspace_id: w.workspace_id,
+      conversation_id: w.conversation_id,
+      conversation_title: w.conversation_title,
+      artifact_id: w.artifact_id,
+      title: w.title,
+      kind: w.kind,
+      revision_id: w.revision_id,
+      updated_at: w.updated_at,
+      saved_by: w.author_kind === "human" ? "you" : "agent",
+      decision: w.decision
+        ? {
+            proposal_id: w.decision.proposal_id,
+            fresh: w.decision.fresh,
+            created_at: w.decision.created_at,
+          }
+        : null,
+    }))
     .sort(byAttention);
 }
 

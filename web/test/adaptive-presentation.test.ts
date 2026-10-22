@@ -9,13 +9,16 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   adaptivePresentation,
+  stoppedByRefusal,
   lastStopped,
+  lastUnresolved,
   modelExamples,
 } from "../src/lib/adaptive-presentation";
 import {
   TurnOutcome,
   TurnProgressDetails,
   replyText,
+  TurnSummary,
 } from "../src/components/TurnProgress";
 
 const hash = "a".repeat(64);
@@ -210,6 +213,105 @@ describe("honest adaptive presentation", () => {
       expect(value?.title).not.toContain("saved");
       expect(value?.note).toContain("not saved");
     });
+  it("never says nothing was saved beside work the turn did save", () => {
+    for (const outcome of [
+      "step_limit",
+      "budget_limit",
+      "blocked",
+      "waiting_for_user",
+    ] as const) {
+      const p = progress();
+      p.adaptive!.outcome = outcome;
+      p.retained_local_result!.published = false;
+      const value = adaptivePresentation("failed", p, true);
+      expect(value?.note).not.toMatch(/not saved/i);
+      expect(value?.note).toMatch(/what it saved/i);
+    }
+  });
+  it("says a stop after a refused attempt was a refusal, not a limit", () => {
+    // Only the last attempt is known to be refused; an earlier step may have
+    // saved a preparation, and the turn may still have a real reply.
+    const refused = (
+      outcome: "step_limit" | "blocked",
+      earlier: "observed" | "rejected",
+    ) => {
+      const p = progress();
+      p.adaptive!.outcome = outcome;
+      p.retained_local_result!.published = false;
+      p.adaptive!.steps![0]!.status = earlier;
+      p.adaptive!.steps!.push({
+        ...p.adaptive!.steps![0]!,
+        phase: "selection_2",
+        status: "rejected",
+        outcome,
+      });
+      return p;
+    };
+    for (const outcome of ["step_limit", "blocked"] as const) {
+      // Nothing earlier observed, no reply, nothing saved.
+      const bare = refused(outcome, "rejected");
+      const v = adaptivePresentation("failed", bare)!;
+      expect(v.title).toBe("Stopped: what it tried wasn’t possible here");
+      expect(v.title + v.note).not.toMatch(/limit|budget/i);
+      expect(v.note).toBe(
+        "Its last attempt was refused, so nothing from that attempt was applied. It stopped without a final reply; you can ask for it another way.",
+      );
+      expect(stoppedByRefusal(bare)).toBe(true);
+      // A real final reply is never denied.
+      const replied = refused(outcome, "rejected");
+      replied.explanation = { text: "I couldn’t convert the table." } as never;
+      expect(adaptivePresentation("replied", replied)!.note).not.toMatch(
+        /without a final reply|didn’t reply/,
+      );
+      // An earlier observed step, or work saved by the turn: point at it,
+      // never claim saved work is untouched.
+      for (const [p, saved] of [
+        [refused(outcome, "observed"), false],
+        [refused(outcome, "rejected"), true],
+      ] as const) {
+        const n = adaptivePresentation("failed", p, saved)!.note;
+        expect(n).toMatch(/Review what it saved before continuing/);
+        expect(n).not.toMatch(/unchanged|not saved/i);
+      }
+    }
+    // A real budget stop stays a budget stop, refused last step or not.
+    const b = progress();
+    b.adaptive!.outcome = "budget_limit";
+    b.adaptive!.steps![0]!.status = "rejected";
+    expect(adaptivePresentation("failed", b)!.title).toBe(
+      "Stopped at the budget limit",
+    );
+    expect(stoppedByRefusal(b)).toBe(false);
+  });
+  it("shows a refusal outcome rather than the generic run-stopped line", () => {
+    const p = progress();
+    p.adaptive!.outcome = "step_limit";
+    p.adaptive!.steps![0]!.status = "rejected";
+    const html = renderToStaticMarkup(
+      createElement(TurnSummary, {
+        state: "failed",
+        progress: p,
+        execution: {
+          text: "Stopped: it isn’t allowed to go further with this right now. Your message is kept.",
+          replaces: true,
+        },
+      }),
+    );
+    expect(html).toContain("Stopped: what it tried wasn’t possible here");
+    expect(html).not.toContain("isn’t allowed to go further");
+    // Any other stopped run keeps the service's own line.
+    const q = progress();
+    q.adaptive!.outcome = "budget_limit";
+    expect(
+      renderToStaticMarkup(
+        createElement(TurnSummary, {
+          state: "failed",
+          progress: q,
+          execution: { text: "Stopped by the service.", replaces: true },
+        }),
+      ),
+    ).toContain("Stopped by the service.");
+  });
   it("does not call several phases a changed approach", () => {
     const p = progress();
     p.adaptive!.steps!.push({
@@ -460,6 +562,34 @@ describe("lastStopped", () => {
     // An earlier stop with a later answer is history, not the current state.
     expect(
       lastStopped([{ state: "outcome_unknown" }, { state: "replied" }]),
+    ).toBe(false);
+  });
+});
+
+describe("lastUnresolved", () => {
+  it("is true only while the latest request's outcome is unknown", () => {
+    expect(lastUnresolved([])).toBe(false);
+    expect(lastUnresolved([{ state: "outcome_unknown" }])).toBe(true);
+    expect(
+      lastUnresolved([
+        {
+          state: "failed",
+          progress: { ...progress(), provider_observation: "outcome_unknown" },
+        },
+      ]),
+    ).toBe(true);
+    // A known, unusable answer is stopped, not unresolved: a new message can
+    // start a new request.
+    expect(
+      lastUnresolved([
+        {
+          state: "failed",
+          progress: { ...progress(), provider_observation: "invalid" },
+        },
+      ]),
+    ).toBe(false);
+    expect(
+      lastUnresolved([{ state: "outcome_unknown" }, { state: "replied" }]),
     ).toBe(false);
   });
 });

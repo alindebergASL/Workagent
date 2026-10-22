@@ -2291,3 +2291,380 @@ assignments are still served:
   - 38 DOM regressions;
   - full gate at `4dbeffe` with 0 failures (same as baseline);
   - mock e2e 15/15.
+
+## Phone table cards and the notes box (review 6229665117)
+
+### Row cards
+**Problem.** At 390px each table row was a stack of full-width "label | value" lines. A long unit
+was repeated in every label on every row, e.g. "On hand (item count (gloves counted in pairs))".
+One four-column row nearly filled the first screen.
+
+**Change** (generic; nothing about any one kind of table):
+- `flexible.ts`:
+  - `cardLabel(field)` keeps a short unit beside the label, e.g. "Deposit (EUR)". A unit longer
+    than 14 characters is left out of the card label.
+  - `unitLegend(fields)` says each such unit once, above the cards, with the fields measured in it:
+    "Have, Want, Still to find: count (pairs counted as one)".
+  - Wider screens keep every unit in the column heading, so the legend shows only on a phone.
+- **Accessible names stay complete.** Every box whose field has a unit is described by it
+  (`aria-describedby` → "In <unit>"). The name cell's label is visually hidden, not removed.
+- **Card hierarchy** (`products.css`, phone only):
+  - what the row is (its name field) heads the card, with Remove beside it;
+  - values sit side by side, each under its label;
+  - text columns with values longer than about a number get two places;
+  - long text stays full width.
+  - Measured on the real lending-desk table: 193px per card (six fields, long notes below), down
+    from 224px before Remove moved up.
+  - A name + three numbers card is under 180px; the reviewed layout was about 290px.
+
+**Regression** (products-review-regressions, stubbed): a four-row table whose three number fields
+share a long unit, at 390px. It asserts:
+- the unit is described on each box;
+- the legend reads once, and the unit is painted exactly once on the page;
+- the card is ≤ 180px tall;
+- the name sits above the values, and the values share a line;
+- no sideways scroll;
+- at 1280px the full column heading carries the unit and the legend is hidden.
+
+**Results.**
+- RED without the source change: the box has no unit description.
+- GREEN: 39 DOM regressions.
+
+### Notes separators: not reproduced while typing
+In the real browser, against the real service, on the table notes box at 1280 and 390, every
+step kept exactly what was typed:
+- Enter, and Enter twice for a blank line;
+- leading and trailing spaces;
+- a real Ctrl+V paste with blank lines and a trailing newline;
+- Enter in the middle of a line;
+- `fill()`;
+- switching Work → Conversation → Work;
+- 8s of idle background re-reads (the fieldset was never disabled).
+
+**What does change is the save:**
+- blank lines and outer spaces are dropped, because the service accepts notes only as a list of
+  non-empty lines;
+- reopening shows the saved list, e.g. `"Line 1\n\nLine 3\n"` → `"Line 1\nLine 3"`.
+
+That happened silently. The box now says so: "Each line is saved as one note; blank lines aren't
+kept." If the evaluated session saw a collapse before saving, the exact input path is still
+needed. This probe did not find it.
+
+## Coherent default experience, increment 1 (Andrew's rejection 6229753182, direction 6229889011)
+
+Compared side by side with the 15 October concepts (`docs/design/alpha-intelligent-ui-20261015`)
+using actual real-service screens at 1440px and 390px. Changed in this increment:
+
+### Work page: result first (concept 01)
+- **One quiet header:** title, then "Table · made by Workagent". "Download as CSV" and "Check for
+  updates" are behind a "⋯" menu ("More for this work").
+- **The "3 rows · 6 columns" card and verification caveat are gone from the top.** They now sit,
+  with the checks and saved history, under one closed **How this was prepared** at the bottom.
+  "Nothing checks this automatically" no longer leads the page.
+- **Result | Edit tabs** for tables and documents:
+  - the work opens on **Result**, a read view: a table reads as a table and a document as text;
+  - **Edit** holds the existing editor, unchanged;
+  - the choice is remembered per work in the tab;
+  - with an unsaved edit, the page opens on Edit, and the tab shows a dot;
+  - the Result tab says "Your edits aren't saved yet. Continue editing";
+  - arrow keys move between the tabs;
+  - nothing about saving, drafts or Ctrl+S changed.
+- **Long note lists:** a table's notes show three, with "N more notes" a step away.
+- **Views** keep their own surface, as before.
+
+### Conversation beside the work
+- **"Synthetic test reply" / "Test reply"** moved into each message's **Details**, as "Test reply:
+  not a live model's answer". The Demonstration banner still labels the whole build.
+- **The "This work" chip beside the work is removed**, since that conversation is about the work.
+
+### Navigation
+- **Sidebar "Your work"** replaces the workspace list. It shows the six most recently changed
+  projects across every workspace the person can open, so current work is one click away.
+- **Workspaces** stay on Spaces.
+- **"Personal · Private" and the time-zone select** moved off every page; the time zone is now on
+  Activity & details.
+
+### Spaces: one list
+- **The page said "Projects and workflows" once per workspace with no workspace name**, giving
+  repeated (and possibly empty) sections. Now there is:
+  - one **Projects** heading and one **New project** button;
+  - a workspace chooser when there's more than one workspace;
+  - the workspace named on each row when there are several;
+  - one "couldn't be read" line if a workspace fails;
+  - one empty message only when there are truly none.
+- Rows read name over purpose. Workspace cards lost the large decorative banner.
+
+### Home
+- **"Try the intake example"** (a legacy intake sample) shows only in the mock build, never
+  against the real service.
+
+### Tests
+- **New stubbed regression:**
+  - the work opens on Result, with the read view, no editor, the verification folded and CSV in
+    the menu;
+  - Edit works;
+  - leaving the tab keeps the edit, and Continue editing returns to it;
+  - arrow keys switch tabs;
+  - a remount with an unsaved edit reopens on Edit.
+  - RED without the change; GREEN with it.
+- **Existing suites that edit work now open its Edit tab first:**
+  - `products-review-regressions`, through `showFlex`;
+  - `space-experience`;
+  - `flexible-journey`, `flexible-live-records` and `space-journey`, with a tolerant `openEdit`.
+- **`workspace-routing`:**
+  - it now treats the sidebar's project-list read as navigation;
+  - every page's own record reads are still asserted to stay in the page's workspace;
+  - the sidebar never reads a workspace the person can't open.
+- **Results:**
+  - 40 DOM regressions;
+  - routing 7 + Space 28;
+  - 309 unit tests;
+  - lint and prettier clean.
+
+**Flexible journey.** The reopen half runs in a fresh browser, where no Edit choice is remembered.
+It now checks that the saved values read on Result, then opens Edit to check the editor starts from
+them. With `WORKAGENT_FIXTURE_MODE=true` and a plain build, as the gate runs it:
+- flexible create PASS;
+- flexible reopen PASS.
+
+An earlier "Open table" timeout came from running it without fixture mode. It was not a defect.
+
+**Full gate:** the same as baseline apart from the reopen line, now fixed. Mock e2e 15/15.
+
+**Still open toward the concepts:**
+- the decision card copy, and a Changes tab with the full comparison;
+- moving Home's "Ready for you" items into "Since you left" / "I'm handling" sections;
+- the composer's secondary buttons;
+- stale dependent values (with Hermes);
+- phone bottom tabs.
+
+## Coherent default experience, increment 2
+
+- **Changes tab (concept 01's "Changes · 1"):**
+  - while something is proposed, the work has a third tab with the full comparison and the
+    whole proposed version;
+  - the decision card keeps only the summary (up to three cells inline), Apply / Keep / Ask
+    for a different change, and **Review the changes**, which opens that tab;
+  - "Compare in full" and "See the proposed version" are no longer inside the decision;
+  - arrow keys cycle all three tabs;
+  - with nothing proposed, a remembered Changes choice falls back to Result.
+- **Home:**
+  - the decision card is named by the work, e.g. "Lending desk", followed by "A proposed
+    version is ready…" and then "From …";
+  - the group "Ready for you" is now **Needs you**;
+  - Needs you and I'm handling read open as sections, while the others stay a step away.
+- **Conversation header:**
+  - an open, idle conversation no longer shows an "Open" badge;
+  - "No context attached" is gone;
+  - Ended, Waiting for a reply and "Uses N records you chose" still show.
+- **Composer:**
+  - "Attach a file" is a paperclip icon, still named "Attach a file" for assistive tech;
+  - "Your context" shows only when there are records to choose, some are chosen, or one is
+    needed.
+- **Tests:**
+  - the phone-review case in `space-experience` asserts there is no comparison inside the
+    decision card, and that Review the changes selects "Changes · 1" with the diff;
+  - 40 DOM regressions, routing 7 + Space 28, typecheck and lint clean.
+- **Gate follow-up for increment 2:**
+  - When Home has nothing under Needs you or I'm handling, its first group opens again. Without
+    this, a Home holding only "Made in your conversations" read as empty; `flexible-journey`
+    caught it.
+  - `conversation-journey` now reads the test-reply label under Details.
+  - Results: conversation journey PASS, flexible create and reopen PASS, routing 7 + Space 28;
+    mock e2e 15/15 earlier in the run.
+
+## Review 6238326550: Home classification, ownership copy, unresolved requests
+
+**Home misclassified actual agent work.**
+- **Before:** "I'm handling" was built only from legacy items. Admitted responsibilities that
+  were queued or running fell into "holding" (recorded, not running).
+- **Now:** `holdGroup` returns **handling** for queued or running responsibilities that aren't
+  paused, and Home lists them under I'm handling.
+  - Recorded responsibilities that aren't admitted, and paused ones, stay held.
+  - Waiting on a person, blocked, or needing review still go to Needs you; closed stays
+    closed.
+  - Space's standing card lists handling with what's underway.
+- **Tests:** the unit test fails without the change ("holding" instead of "handling") and
+  passes with it. The responsibility-recording journey is 9/9.
+
+**Ownership said every next action was the person's.**
+- **Before:** "You own: Approving changes and any next action. Nothing is carried out without
+  you."
+- **Now:** for work without a responsibility, the line follows the recorded phase:
+  - deciding on the proposed change;
+  - reviewing prepared work;
+  - providing what's missing;
+  - otherwise, approving any proposed change before it's applied.
+- With a responsibility, its own panel says who holds what. The Ownership card shows only
+  "Done when", or nothing at all.
+
+**A request whose outcome is unknown had no usable exit.**
+- **Before:** the composer said "A new message starts a new request". The service actually
+  refuses new messages with `action_unresolved` until the earlier request is resolved.
+- **Now:** `lastUnresolved(turns)` is true when the last turn's state or provider observation
+  is `outcome_unknown`. On the conversation page and beside the work:
+  - sending is held, and the draft is kept and editable;
+  - the hint says "Whether your last request went through couldn't be confirmed, so a new
+    message waits until that's resolved. Your draft is kept.";
+  - **Check again** re-reads;
+  - nothing is replayed.
+- A known unusable answer (`invalid`) isn't held: a new message can still be sent, with the
+  usual "starts a new request" hint.
+- **Tests:**
+  - new stubbed DOM regression, RED without the change and GREEN with it;
+  - unit test for `lastUnresolved`;
+  - 41 DOM regressions, 310 unit tests, routing 7 + Space 28.
+
+**Left to Hermes from the same review:**
+- continuing work that loses its saved-plan reference;
+- deciding when an unresolved request becomes resolved, which the UI then simply re-reads.
+
+The ResponsibilityPanel copy simplification is the next frontend step.
+
+## Coordination handoff 6243584073: responsibility panel, stale dependent values
+
+### ResponsibilityPanel: what it's handling, what it needs, the control
+**Headline**
+- "Workagent is on it" while queued or running.
+- Otherwise the state: Recorded as yours to carry forward / Waiting for a person / Paused /
+  Stopped / You took this back.
+
+**One short status line**
+- "Nothing is running for it right now."
+- "Queued to run; it hasn't started."
+- "Running now; not done yet."
+- "Its latest run finished. The result needs your review."
+- "Its run is blocked."
+
+**Rows, each only when there is something to say**
+- **Needs from you:** a blocker, or a review of its result.
+- **Waiting on:** the recorded reason.
+- **Next.**
+- **So far.**
+- **Checks in.**
+
+**Below the rows**
+- Changed dependencies, as one line.
+- The steering controls, unchanged: Pause / Resume / Stop / Take this back, with the same
+  compare-and-swap and unresolved-command handling.
+- Freshness is one quiet "Checked HH:MM · Check again" line. Stale and reply-only warnings stay
+  prominent.
+
+**Details**
+- The full account: admitted is not dispatched, queued is not started, running is not done,
+  and a settled result isn't accepted.
+- The run link.
+- The readiness-review note.
+
+**Test changes, coordinated in this change**
+- `responsibility-journey`, `responsibility-recovery`, `test/responsibility-view.test.ts` and
+  `test/continuation.test.ts` now assert the short line.
+- Each truthfulness clause is still asserted on the Details text (`responsibility-why`).
+- The copy no longer exists to satisfy tests.
+
+### Dependent values: visible stale status
+**What the contract lacks.** It says nothing about which fields are worked out from others, so
+the web can't recompute them, or know exactly which become stale.
+
+**What the web does now.** After a person saves values in a table Workagent made,
+`editsSinceWorkagent(current, history)` compares the current version with Workagent's latest
+version. The Result tab then:
+- marks each changed value: a light tint with a dotted underline (the same in the table and in
+  phone cards), plus "(changed by you)" for assistive tech;
+- says "You changed N values since Workagent's last version. Anything it worked out from them,
+  such as totals or notes, hasn't been recalculated.";
+- offers **Ask Workagent to recheck** while the conversation is open.
+
+That button brings the conversation forward and puts a recheck request in its empty reply box.
+Nothing is sent until the person sends it. The notice disappears once Workagent saves a newer
+version, or has a proposal against the current one.
+
+**Tests**
+- Stubbed DOM regression: RED without the change, GREEN with it.
+- `flexible` unit tests for the helper.
+
+**Smallest backend capability requested from Hermes:** an optional `derived_from: string[]` on
+`TableField` (and, if cheap, a small arithmetic `formula`). With it the web marks exactly the
+dependent cells stale (or recomputes them in the draft), instead of the whole table.
+
+### Unconfirmed requests: the backend's permitted way out (Hermes 6243714238)
+**The backend's rule.** When the latest request's outcome is unknown, the conversation takes no
+new message. No retry is safe.
+
+**What the backend permits.** `POST /conversations/{id}/cancel` stops the conversation:
+- it fences with a compare-and-swap, and keeps saved work and the journal;
+- it does not cancel the provider's execution or refund anything.
+
+**What the web does now**
+- **Full conversation:** beside the held composer, "Check again · Stop this conversation…".
+  The stop opens the existing end confirmation; nothing is cancelled without that second click.
+- **Beside the work (peek):** the same pair. The stop links to `/conversations/{id}?stop=1`,
+  which opens that confirmation. The pane never cancels by itself.
+- **Ending carries the draft:** an unsent message moves to Home's composer for that workspace;
+  a draft already there is never overwritten. The ended notice says "Your unsent message is
+  waiting on Home."
+- **Truthful end copy:** the old line "Ending stops any reply in progress" is gone. It now says a
+  request already sent may still be processed by the model service, and that ending doesn't
+  undo it.
+- **Hint copy:** the hint no longer implies that Check again resolves anything. The service
+  still decides.
+
+**Tests**
+- Stubbed regression (peek link, href `?stop=1`, gone once resolved): RED/GREEN.
+- `test/draft-carry.test.ts`.
+- Real stack: `conversation-journey` arrives with `?stop=1`, types a draft, ends, and finds the
+  draft in Home's composer.
+- An unknown outcome itself can't be produced on the local stack without a provider, so the held
+  state is exercised only in the stubbed regression.
+
+### Assignment page
+- **One status statement.** When the responsibility panel is shown, the header drops its
+  "Where it stands is shown below" line; the badge and the panel carry the status.
+
+### Decision card on a work page
+- **Plain provenance.** The service's two fixed proposal notes ("Model-selected… / Controlled
+  local proposed revision…") read "Prepared by the model / Prepared locally, without a model.
+  Nothing changes until you apply it." Any other reason is shown as written.
+- **No duplicate diff.** With the Changes tab open, the card no longer repeats the cell diff
+  or the "Review the changes" link.
+- **Tests:** stubbed regression, RED/GREEN.
+
+## Live blocker 6243959390: Home sends to the workspace it names (HA1)
+**Cause.** Home's composer used the personal workspace, else the first listed, and ignored
+`?workspace=`. On the candidate this sent a new conversation to a historical workspace with no
+grant (422).
+
+**Where it now starts, in order**
+1. the workspace the address names (`/?workspace=…`), if the person can open it;
+2. the one they last chose on Home (a per-device convenience);
+3. their personal workspace, or the first they can open.
+
+A workspace they can't open is never used.
+
+**Visible destination.** When there's more than one workspace, the composer shows "Starts in
+[workspace]".
+- Changing it updates the address and keeps the draft.
+- Records chosen as context are cleared, since they belong to the old workspace.
+- The choice is locked while a request's outcome is still being settled.
+
+**Usable authority, from the service.**
+- `GET /workspaces/{id}/execution` returns `can_advance_authorized_work`. When it is false
+  for the destination, Home says "Workagent can't take on work in {name} right now."
+- Only then does it read the other workspaces once, and offers "Start in {name} instead" for
+  one that can.
+- Nothing is inferred from names or history, and no authority is widened. The service still
+  decides on send.
+
+**Other changes**
+- **Ending a conversation:** its "Home" link names that conversation's workspace, so the
+  carried draft is in the composer that opens.
+- **Home's read storm:** per-conversation and per-artifact reads now go at most six at a
+  time, so a send isn't queued behind about a hundred reads.
+
+**Tests**
+- Real stack, `workspace-routing`:
+  - `/?workspace=<second>` creates the conversation in `<second>`. This was RED on the old
+    Home: it went to `local-workspace`.
+  - Switching keeps the draft.
+  - The note matches the service's `can_advance_authorized_work`.
+- Unit tests: `test/home-destination.test.ts`, covering destination order and the limiter.

@@ -1,0 +1,88 @@
+{
+  "source": "8d37f75bb365140dc5b971f806349e6ad87e93cc",
+  "backend_fresh_cases": [
+    {
+      "name": "backend.tests.test_sustained_continuity::test_multiple_useful_actions_publish_all_and_explain_once",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_followthrough_schedules_checkin_and_restart_not_human_review",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_legacy_publication_still_stops_after_first_artifact",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_restart_after_plan_staged_applies_once_without_duplicate_preparation",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_human_plan_change_rejects_staged_followthrough",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_proposals_remain_unaccepted_across_multiple_actions",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_unknown_effect_never_applies_staged_plan",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_sustained_continuity::test_budget_stop_retains_evidence_without_advancing_plan",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[running-steps0-True-expected0]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[running-steps1-True-expected1]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[running-steps2-True-expected2]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[running-steps3-True-expected3]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[queued-steps4-False-expected4]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[partial-steps5-True-expected5]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_status_categories[ready-steps6-False-expected6]",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_http_readiness_and_revocation_scope",
+      "passed": true
+    },
+    {
+      "name": "backend.tests.test_execution_status::test_retained_count_can_dispatch_without_another_count_slot",
+      "passed": true
+    }
+  ],
+  "frontend_fresh_tests": 337,
+  "frontend_typecheck": true,
+  "frontend_lint": true,
+  "production_build": true,
+  "product_model_calls": 0,
+  "claude_development_cost_reported_usd": 10.584019999999999,
+  "cost_basis": "CLI-reported development tool cost; separate from product ledger, not verified invoice",
+  "files": {
+    "refresh-phone.json": "3a68b99c427b36fd4858473808a2d2364fca9975f6eac2b1da3ad48c0a156ced",
+    "responsibility-saved-link.png": "3e0b7d733d4dc2b2c949a74cf733bcc692f7ce678f1602e45bea6cc4acac7911",
+    "verified-delivery.json": "4c646e510ca22de79a056ce421005a1058bc598dc9c0326d2769ec8409de6841",
+    "home-desktop.png": "7f0e54eb16233af0acba7a853f5186da8bc1aaa0927881ddb8f28bad9d3ddbee",
+    "checklist-desktop.png": "c682a4716931a252f710d65e8d60063a5f20ec962816dbb38c6f07ead989751b",
+    "checklist-phone.png": "181a232a5fa33bcf697192e58b7411765e42e8b27f313fb803adf603bf4e6796"
+  }
+}

@@ -45,7 +45,61 @@ describe("a pending turn, as the service checked it", () => {
       ]),
     );
     expect(t).toMatchObject({ replaces: true });
-    expect(t?.text).toMatch(/limit/);
+    // Without a reason, a refusal isn't said to be a spent budget.
+    expect(t?.text).toMatch(/isn’t allowed to go further/);
+    expect(t?.text).not.toMatch(/budget|limit/);
+  });
+  it("says the service's reason and its fixed next step when it gives them", () => {
+    const blocked = (
+      failure_reason: NonNullable<
+        Parameters<typeof turnExecution>[1]
+      >["runs"][number]["failure_reason"],
+      next_action: string | null,
+    ) =>
+      turnExecution(
+        "r",
+        status("blocked", [
+          {
+            run_id: "r",
+            state: "blocked",
+            failure_category: "authority_or_budget",
+            failure_reason,
+            next_action,
+          },
+        ]),
+      )?.text;
+    const budget =
+      "Review the remaining authorized budget and retained requests before continuing.";
+    expect(blocked("budget_exhausted", budget)).toBe(
+      `Stopped: it reached the spending limit allowed for this. Your message is kept. ${budget}`,
+    );
+    // A refusal for another reason never reads as a spent budget.
+    const authority =
+      "Review current worker authority and configuration before continuing.";
+    const text = blocked("authority_unavailable", authority)!;
+    expect(text).toBe(
+      `Stopped: it isn’t allowed to run this right now. Your message is kept. ${authority}`,
+    );
+    expect(text).not.toMatch(/limit|budget exhausted|spent/);
+    expect(blocked("connection_required", null)).toBe(
+      "Stopped: it needs a connection that isn’t set up. Your message is kept.",
+    );
+    // Guidance without a reason still follows the category's line.
+    expect(
+      turnExecution(
+        "r",
+        status("blocked", [
+          {
+            run_id: "r",
+            state: "blocked",
+            failure_category: "internal_error",
+            next_action: "The worker needs repair.",
+          },
+        ]),
+      )?.text,
+    ).toBe(
+      "Stopped by an internal error. Your message is kept. The worker needs repair.",
+    );
   });
   it("adds to in-progress wording while waiting on the model or recovering", () => {
     expect(
@@ -96,5 +150,18 @@ describe("the workspace line", () => {
   it("says when it couldn't check, and nothing more", () => {
     expect(workspaceExecution(null, true)?.state).toBe("unknown");
     expect(workspaceExecution(null, false)).toBeNull();
+  });
+  it("in a conversation, never says it's working: each request shows its own run", () => {
+    for (const s of ["working", "awaiting_provider", "recovering"] as const) {
+      expect(workspaceExecution(status(s, [], true), false)?.state).toBe(
+        "working",
+      );
+      expect(workspaceExecution(status(s, [], true), false, true)).toBeNull();
+    }
+    // What affects every request still shows there.
+    expect(workspaceExecution(status("unavailable"), false, true)?.state).toBe(
+      "unavailable",
+    );
+    expect(workspaceExecution(null, true, true)?.state).toBe("unknown");
   });
 });

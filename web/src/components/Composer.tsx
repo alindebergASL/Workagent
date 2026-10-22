@@ -1,7 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
-import { api, newCommandId } from "@/lib/client/api";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { API_MODE, api, newCommandId } from "@/lib/client/api";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { useResource } from "@/lib/client/hooks";
 import { useWorkspace } from "@/lib/client/workspace";
@@ -89,9 +96,21 @@ function writeDraftFiles(scope: string, files: MessageAttachment[]): void {
 export function Composer({
   wsId,
   contextLabel = "Your context",
+  destinations,
+  onDestination,
+  destinationNote,
 }: {
   wsId: string | null;
   contextLabel?: string;
+  /**
+   * Where a new conversation can start, when there is a choice (Home). The
+   * draft stays as it is when the destination changes; the choice is locked
+   * while a request's outcome is still being settled.
+   */
+  destinations?: readonly { id: string; name: string }[];
+  onDestination?: (id: string) => void;
+  /** What the person should know about the chosen destination. */
+  destinationNote?: ReactNode;
 }) {
   const router = useRouter();
   const { loading: wsLoading } = useWorkspace();
@@ -532,8 +551,28 @@ export function Composer({
         ) : null}
         <div className="composer-bar">
           {natural ? (
-            <label className="chip-toggle file-pick" data-disabled={locked}>
-              Attach a file
+            <label
+              className="chip-toggle file-pick icon-pick"
+              data-disabled={locked}
+              title="Attach a file"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M21 11.5l-8.6 8.6a5.5 5.5 0 01-7.8-7.8l8.6-8.6a3.7 3.7 0 015.2 5.2l-8.6 8.6a1.8 1.8 0 01-2.6-2.6l8-8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span className="sr-only">Attach a file</span>
               <input
                 type="file"
                 className="sr-only"
@@ -547,24 +586,27 @@ export function Composer({
               />
             </label>
           ) : null}
-          <button
-            type="button"
-            className="chip-toggle"
-            aria-expanded={contextOpen}
-            aria-controls={panelId}
-            data-filled={selected.length ? "true" : "false"}
-            onClick={() => setContextOpen((v) => !v)}
-            disabled={locked}
-          >
-            {contextText}
-          </button>
+          {/* Choosing records only matters when there are some. */}
+          {sources.data?.length || selected.length || needsContext ? (
+            <button
+              type="button"
+              className="chip-toggle"
+              aria-expanded={contextOpen}
+              aria-controls={panelId}
+              data-filled={selected.length ? "true" : "false"}
+              onClick={() => setContextOpen((v) => !v)}
+              disabled={locked}
+            >
+              {contextText}
+            </button>
+          ) : null}
           <span className="composer-spacer" />
           <button
             type="button"
             className="btn btn-sm delegate"
             title={
               pausedOnly
-                ? "Saves what to carry forward. It stays paused: I can’t work on it on my own yet."
+                ? "Records it as a paused hand-over; nothing runs for this record. To have Workagent work on something, ask it in a conversation."
                 : undefined
             }
             onClick={() => void delegate()}
@@ -590,6 +632,30 @@ export function Composer({
             <span aria-hidden="true">↑</span>
           </button>
         </div>
+        {destinations && destinations.length > 1 && onDestination ? (
+          <div className="composer-destination small">
+            <label>
+              <span className="muted">Starts in </span>
+              <select
+                value={wsId ?? ""}
+                onChange={(e) => {
+                  // Records chosen as context belong to the old workspace.
+                  setSelected([]);
+                  onDestination(e.target.value);
+                }}
+                disabled={locked || Boolean(chat.current) || submitting}
+                data-testid="home-destination"
+              >
+                {destinations.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
+        {destinationNote}
         <div id={panelId} className="context-panel" hidden={!contextOpen}>
           <fieldset
             className="field"
@@ -710,14 +776,16 @@ export function Composer({
             {st.label} ↗
           </button>
         ))}
-        <button
-          type="button"
-          className="link-quiet starter-quiet"
-          onClick={useSample}
-          disabled={!sources.data?.length || locked}
-        >
-          Try the intake example ↗
-        </button>
+        {API_MODE !== "real" && sources.data?.length ? (
+          <button
+            type="button"
+            className="link-quiet starter-quiet"
+            onClick={useSample}
+            disabled={locked}
+          >
+            Try the intake example ↗
+          </button>
+        ) : null}
       </div>
     </div>
   );

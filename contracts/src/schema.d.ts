@@ -261,6 +261,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/conversation-work": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Conversation Work */
+        get: operations["list_conversation_work"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/conversations": {
         parameters: {
             query?: never;
@@ -770,6 +787,10 @@ export interface components {
         AlphaStep: {
             /** Capability Result */
             capability_result?: {
+                [key: string]: unknown;
+            } | null;
+            /** Followthrough Result */
+            followthrough_result?: {
                 [key: string]: unknown;
             } | null;
             mutation_result?: components["schemas"]["ResponsibilityMutationResult"] | null;
@@ -1578,6 +1599,84 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** HomeConversationWork */
+        HomeConversationWork: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Author Id */
+            author_id: string;
+            /**
+             * Author Kind
+             * @enum {string}
+             */
+            author_kind: "human" | "worker";
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Conversation State
+             * @enum {string}
+             */
+            conversation_state: "open" | "cancelled";
+            /** Conversation Title */
+            conversation_title: string;
+            /**
+             * Conversation Updated At
+             * Format: date-time
+             */
+            conversation_updated_at: string;
+            /** Conversation Work Version */
+            conversation_work_version: number;
+            decision?: components["schemas"]["HomePendingProposal"] | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "table" | "tool" | "file" | "document" | "structured_table" | "custom_view";
+            /** Revision Id */
+            revision_id: string;
+            /** Revision Number */
+            revision_number: number;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Workspace Id */
+            workspace_id: string;
+        };
+        /** HomeConversationWorkPage */
+        HomeConversationWorkPage: {
+            /** Has More */
+            has_more: boolean;
+            /** Items */
+            items: components["schemas"]["HomeConversationWork"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+        };
+        /** HomePendingProposal */
+        HomePendingProposal: {
+            /** Base Revision Id */
+            base_revision_id: string;
+            /** Base Work Version */
+            base_work_version: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Fresh */
+            fresh: boolean;
+            /** Proposal Id */
+            proposal_id: string;
+            /**
+             * Status
+             * @default pending
+             * @constant
+             */
+            status: "pending";
+        };
         /** HumanSave */
         HumanSave: {
             /** Body */
@@ -1985,7 +2084,7 @@ export interface components {
              * State
              * @enum {string}
              */
-            state: "prepared" | "count_unknown" | "counted" | "outcome_unknown" | "accepted" | "received" | "invalid";
+            state: "prepared" | "counting" | "count_unknown" | "counted" | "dispatching" | "outcome_unknown" | "accepted" | "received" | "invalid";
         };
         /** ResponsibilityDependency */
         ResponsibilityDependency: {
@@ -2039,12 +2138,16 @@ export interface components {
             next_check_in_at?: string | null;
             /** Observations */
             observations?: components["schemas"]["DependencyObservation"][];
+            /** Outcome Evidence */
+            outcome_evidence?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Outcome Status
              * @default unverified
              * @enum {string}
              */
-            outcome_status: "unverified" | "needs_review";
+            outcome_status: "unverified" | "needs_review" | "evidenced_preparation";
             /**
              * Review Required
              * @default false
@@ -2295,7 +2398,7 @@ export interface components {
              */
             state: "queued" | "running" | "ready" | "partial" | "cancelled";
             /** Stop Reason */
-            stop_reason?: "budget_limit" | null;
+            stop_reason?: ("budget_limit" | "blocked" | "waiting_for_user" | "step_limit") | null;
             /** Tool Registry Hash */
             tool_registry_hash: string;
             /** Unresolved */
@@ -2312,8 +2415,18 @@ export interface components {
         RunExecution: {
             /** Failure Category */
             failure_category?: ("unknown_external_outcome" | "invalid_response" | "authority_or_budget" | "internal_error" | "worker_unavailable" | "work_blocked") | null;
+            /**
+             * Failure Reason
+             * @description Last actionable dispatcher denial, not a terminal outcome or permission to retry.
+             */
+            failure_reason?: ("source_changed" | "source_unavailable" | "version_conflict" | "not_found_or_not_authorized" | "budget_exhausted" | "connection_required" | "authority_unavailable" | "internal_error") | null;
             /** Last Progress At */
             last_progress_at?: string | null;
+            /**
+             * Next Action
+             * @description Fixed safe guidance; never exception or provider text.
+             */
+            next_action?: string | null;
             /** Phase */
             phase?: string | null;
             /** Run Id */
@@ -4066,7 +4179,7 @@ export interface operations {
                      *         "provider_turn_id": null,
                      *         "state": "queued",
                      *         "stop_reason": null,
-                     *         "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                     *         "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -4709,6 +4822,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaskReceipt"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_conversation_work: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HomeConversationWorkPage"];
                 };
             };
             /** @description Missing or invalid local authentication */
@@ -5994,7 +6192,7 @@ export interface operations {
                      *       "provider_turn_id": null,
                      *       "state": "running",
                      *       "stop_reason": null,
-                     *       "tool_registry_hash": "a9ea51fa72a5029e62129d1b204c92e9777816fc385852bc5f702ab0d6cb009c",
+                     *       "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

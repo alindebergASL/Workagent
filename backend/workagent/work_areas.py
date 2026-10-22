@@ -85,8 +85,29 @@ class WorkAreas:
             life=self._lifecycle(c,ws,aid)
             self._responsibility_observations(c,p,a,life.dependencies)
             material=bounded(life)
-            responsibilities.append(WorkAreaResponsibility(assignment_id=aid,work_version=a.work_version,
-                owner_id=a.owner_id,lifecycle_sha256=digest(life),lifecycle=material,lifecycle_omitted=material is None))
+            projected=WorkAreaResponsibility(assignment_id=aid,work_version=a.work_version,
+                owner_id=a.owner_id,lifecycle_sha256=digest(life),lifecycle=material,lifecycle_omitted=material is None)
+            if snapshot and work_version is not None and cv.work_version==work_version+1:
+                # offer() permits this version delta only for this run's exact
+                # receipt-bound recording. The scheduler may have refreshed an
+                # older waiting responsibility in response to that own mutation.
+                # Preserve the input projection only when *nothing else* changed;
+                # actual edits, controls, due events and authority changes still
+                # invalidate the frozen context. Never rewrite stored history.
+                prior=next(r for r in snapshot['responsibilities'] if r['assignment_id']==aid)
+                before=prior.get('lifecycle')
+                after=projected.model_dump(mode='json')['lifecycle']
+                bookkeeping={'conversation_work_version','last_change_key'}
+                if (before is not None and after is not None
+                        and before['state'] in ('waiting_person','paused')
+                        and prior['owner_id']==a.owner_id
+                        and a.work_version==prior['work_version']+1
+                        and before['conversation_work_version']==work_version
+                        and after['conversation_work_version']==cv.work_version
+                        and {k:v for k,v in before.items() if k not in bookkeeping}
+                            =={k:v for k,v in after.items() if k not in bookkeeping}):
+                    projected=WorkAreaResponsibility.model_validate(prior)
+            responsibilities.append(projected)
         omissions=WorkAreaOmissions(artifacts=omitted_artifacts,proposals=omitted_proposals,
             responsibilities=omitted_responsibilities,saved_bodies=sum(a.body_omitted for a in artifacts),
             lifecycles=sum(a.lifecycle_omitted for a in responsibilities))

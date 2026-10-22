@@ -162,12 +162,17 @@ try {
   record.worker_batches.push(worker());
   await page.goto(`${origin}/conversations/${cid}`);
   await expect(thread.locator(".msg-agent")).toHaveCount(1, { timeout: 15000 });
-  await expect(thread.locator(".msg-tag")).toHaveText("Test reply");
+  // Where the reply came from is said under its Details, not as a chip.
+  await expect(thread.getByTestId("reply-origin")).toHaveText(
+    "Test reply: not a live model’s answer.",
+  );
   await expect(page.getByText("Waiting for a reply.")).toHaveCount(0);
   detail = (await api(`/conversations/${cid}`)).body;
   const reply = detail.messages.find((m) => m.author_kind === "assistant");
   expect(reply.evidence_origin).toBe("controlled_transport");
-  await expect(thread.locator(".msg-agent p")).toContainText(reply.text);
+  await expect(thread.locator(".msg-agent p").first()).toContainText(
+    reply.text,
+  );
   await shot(page, "02-conversation-replied-desktop");
 
   // ---- follow-up, then steering: a newer message stops the unfinished turn ----
@@ -302,10 +307,12 @@ try {
   await expect(page.getByRole("button", { name: "Stop…" })).toBeVisible();
   await shot(page, "05-handover-assignment-desktop");
 
-  // Home never presents it as being handled.
+  // Home never presents it as being handled: once its current record is
+  // read, it says what the conversation page says.
   await page.goto(origin);
   await expect(page.locator(`[data-assignment="${aid}"] .status`)).toHaveText(
-    "Handed over",
+    "Paused hand-over",
+    { timeout: 15000 },
   );
   await expect(page.locator(".since-handling")).toHaveCount(0);
   await shot(page, "06-home-desktop");
@@ -372,13 +379,26 @@ try {
   await page.getByRole("button", { name: "Not now" }).click();
 
   // ---- end the conversation ----
-  await page.goto(`${origin}/conversations/${cid}`);
-  await page.getByText("End this conversation").click();
-  await page.getByRole("button", { name: "End…" }).click();
+  // Arriving to stop it (the way out of an unconfirmed request) opens the
+  // confirmation; an unsent message moves to Home rather than being lost.
+  await page.goto(`${origin}/conversations/${cid}?stop=1`);
+  await page.locator("#follow-up").fill("Book the room swap instead.");
   await page.getByRole("button", { name: "End conversation" }).click();
   await expect(
     page.getByText("This conversation has ended. Its history is kept."),
   ).toBeVisible();
+  await expect(
+    page.getByText("Your unsent message is waiting on"),
+  ).toBeVisible();
+  await page
+    .getByRole("status")
+    .getByRole("link", { name: "Home", exact: true })
+    .click();
+  await expect(page.locator("#request")).toHaveValue(
+    "Book the room swap instead.",
+  );
+  await page.locator("#request").fill("");
+  await page.goto(`${origin}/conversations/${cid}`);
   expect((await api(`/conversations/${cid}`)).body.conversation.state).toBe(
     "cancelled",
   );

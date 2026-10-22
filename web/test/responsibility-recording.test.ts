@@ -10,7 +10,7 @@ import {
   adaptivePresentation,
   hasProductOutput,
 } from "../src/lib/adaptive-presentation";
-import { holdGroup, holdStatus } from "../src/lib/hold-view";
+import { holdGroup, idleHold, holdStatus } from "../src/lib/hold-view";
 import type { HoldEntry } from "../src/lib/client/responsibility";
 
 type S = components["schemas"];
@@ -92,6 +92,40 @@ describe("a recording is not a calculation", () => {
     // While the turn is still running, nothing is claimed yet.
     expect(adaptivePresentation("responding", progress)).toBeNull();
   });
+  it("a later stop outranks the recording, and the receipt is kept", () => {
+    // Hermes 6331047570: a genuine receipt, no product output, then the
+    // last step refused (blocked) or the budget ran out.
+    const stopped = (outcome: "blocked" | "budget_limit") => {
+      const steps = turn.adaptive!.steps!;
+      return turnProgress({
+        ...turn,
+        adaptive: {
+          ...turn.adaptive!,
+          outcome,
+          steps: [...steps, { ...steps.at(-1)!, status: "rejected" }] as never,
+        },
+      })!;
+    };
+    const blocked = stopped("blocked");
+    expect(hasProductOutput(blocked.retained_local_result)).toBe(false);
+    expect(recordedResponsibilities(blocked)).toHaveLength(1);
+    const refused = adaptivePresentation("replied", blocked, false)!;
+    expect(refused.title).toBe("Stopped: what it tried wasn’t possible here");
+    expect(refused.note).toMatch(/Review what it saved/);
+    const budget = adaptivePresentation(
+      "replied",
+      stopped("budget_limit"),
+      false,
+    )!;
+    expect(budget.title).toBe("Stopped at the budget limit");
+    // A recording is never "local evidence not saved as work".
+    expect(budget.note).not.toMatch(/Local evidence/);
+    expect(budget.note).toMatch(/Review what it saved/);
+    for (const view of [refused, budget])
+      expect(view.title).not.toMatch(/recorded/i);
+    // Still running: nothing is claimed yet.
+    expect(adaptivePresentation("responding", blocked)).toBeNull();
+  });
   it("mixed output keeps the product result's own presentation", () => {
     const progress = turnProgress({
       ...turn,
@@ -149,6 +183,12 @@ describe("where a hand-over stands, on every list", () => {
     expect(holdStatus(ready({ execution_status: "running" }))!.note).toMatch(
       /in progress; not done/,
     );
+    // Admitted and queued or running, it's being handled; paused isn't.
+    expect(holdGroup(ready({ execution_status: "running" }))).toBe("handling");
+    expect(holdGroup(ready({ execution_status: "queued" }))).toBe("handling");
+    expect(
+      holdGroup(ready({ state: "paused", execution_status: "queued" })),
+    ).toBe("holding");
   });
   it("says what it waits on, else what comes next, never once closed", () => {
     expect(holdStatus(ready({}))!.next).toBe("Next: Draft.");
@@ -179,13 +219,60 @@ describe("where a hand-over stands, on every list", () => {
     expect(holdStatus(ready({ state: "cancelled" }))!.next).toBeNull();
     expect(holdStatus({ kind: "denied" })!.next).toBeUndefined();
   });
-  it("waiting for a person needs attention; closed is closed", () => {
-    expect(holdGroup(ready({ state: "waiting_person" }))).toBe("attention");
+  it("waiting on someone else is kept track of; a blocker or review needs you; closed is closed", () => {
+    expect(holdGroup(ready({ state: "waiting_person" }))).toBe("holding");
+    expect(
+      holdGroup(ready({ state: "waiting_person", review_required: true })),
+    ).toBe("attention");
+    expect(
+      holdGroup(ready({ state: "waiting_person", blocker: "grant_required" })),
+    ).toBe("attention");
     expect(holdGroup(ready({ state: "taken_over" }))).toBe("closed");
     expect(holdGroup(ready({ state: "cancelled" }))).toBe("closed");
     expect(holdStatus(ready({ state: "taken_over" }))!.label).toBe(
       "You took this back",
     );
+  });
+  it("a decision it asks for needs you, even without a review or a blocker", () => {
+    const asks = ready({
+      state: "waiting_person",
+      wait: { kind: "person", reason: "Waiting on your choice." },
+      next_action: {
+        kind: "request_decision",
+        description: "Choose the Tuesday or Thursday slot.",
+      },
+    });
+    expect(holdGroup(asks)).toBe("attention");
+    expect(holdStatus(asks)!.next).toBe(
+      "Needs your decision: Choose the Tuesday or Thursday slot.",
+    );
+    expect(holdStatus(asks)!.tone).toBe("status-attention");
+    // Waiting on someone without a decision asked of the person stays tracked.
+    expect(
+      holdGroup(
+        ready({
+          state: "waiting_person",
+          wait: { kind: "person", reason: "Waiting on your choice." },
+        }),
+      ),
+    ).toBe("holding");
+    // Once it's closed, nothing is asked any more.
+    expect(
+      holdGroup(
+        ready({
+          state: "cancelled",
+          next_action: { kind: "request_decision", description: "Choose." },
+        }),
+      ),
+    ).toBe("closed");
+  });
+  it("idle means read now, nothing running and nothing to review", () => {
+    expect(idleHold(ready({}))).toBe(true);
+    expect(idleHold(ready({}, true))).toBe(false);
+    expect(idleHold(ready({ execution_status: "queued" }))).toBe(false);
+    expect(idleHold(ready({ review_required: true }))).toBe(false);
+    expect(idleHold(ready({ outcome_status: "needs_review" }))).toBe(false);
+    expect(idleHold({ kind: "unknown", lastAbsent: false })).toBe(false);
   });
   it("a canonical pause is the record's, not the coarse state", () => {
     expect(holdStatus(ready({ state: "paused" }))!.label).toBe("Paused");

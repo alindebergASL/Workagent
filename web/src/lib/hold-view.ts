@@ -26,7 +26,17 @@ export interface HoldStatus {
 
 /** The one line that says what is being handled: its wait, else its next step. */
 function nextLine(life: HoldDetailLifecycle): string | null {
-  if (life.wait?.reason) return life.wait.reason;
+  // A decision it asks for is what the person reads first, unless its
+  // result is waiting on their review.
+  if (
+    life.next_action.kind === "request_decision" &&
+    !life.review_required &&
+    life.outcome_status !== "needs_review"
+  )
+    return `Needs your decision: ${life.next_action.description.trim()}`;
+  // A scheduled check-in says what it will do then, not why it waits.
+  if (life.wait?.reason && life.wait.kind !== "check_in")
+    return life.wait.reason;
   if (life.blocker) return BLOCKER[life.blocker];
   if ((life.observations ?? []).some((o) => o.changed))
     return "Something it depends on has changed since it was recorded.";
@@ -37,7 +47,7 @@ function nextLine(life: HoldDetailLifecycle): string | null {
   return next ? `Next: ${next}` : null;
 }
 
-const RUN: Record<string, string> = {
+const RUN: Record<HoldDetailLifecycle["execution_status"], string> = {
   not_admitted: "Nothing runs for it right now.",
   queued: "Queued to run; not started.",
   running: "A run is in progress; not done.",
@@ -58,7 +68,7 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
         ? view.execution
         : review
           ? `Needs your review before it continues. ${RUN[life.execution_status]}`
-          : `${RUN[life.execution_status]} Outcome not verified.`;
+          : RUN[life.execution_status];
       return {
         label: view.state,
         next: view.closed ? null : nextLine(life),
@@ -69,7 +79,8 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
           ? ""
           : life.state === "waiting_person" ||
               life.state === "blocked" ||
-              life.review_required
+              life.review_required ||
+              life.next_action.kind === "request_decision"
             ? "status-attention"
             : life.execution_status === "running" ||
                 life.execution_status === "queued"
@@ -105,25 +116,49 @@ export function holdStatus(entry: HoldEntry | undefined): HoldStatus | null {
 }
 
 /**
- * Which Home group a read responsibility belongs in: needing the person,
- * held (recorded, not running) or closed. Null when there is no current
- * responsibility read, so the item keeps its usual place.
+ * Which Home group a read responsibility belongs in: needing the person (a
+ * review, a decision it asks for, or something blocking it), being worked on (admitted and queued or
+ * running), kept track of (recorded and waiting on someone, an event or its
+ * check-in; nothing running) or closed. Waiting on someone else is not the
+ * person's to act on. Null when there is no current responsibility read, so
+ * the item keeps its usual place.
  */
 export function holdGroup(
   entry: HoldEntry | undefined,
-): "attention" | "holding" | "closed" | null {
+): "attention" | "handling" | "holding" | "closed" | null {
   if (entry?.kind !== "ready") return null;
   const life = entry.detail.lifecycle;
   if (life.state === "cancelled" || life.state === "taken_over")
     return "closed";
   if (
-    life.state === "waiting_person" ||
     life.state === "blocked" ||
+    Boolean(life.blocker) ||
     life.review_required ||
     life.outcome_status === "needs_review" ||
+    life.next_action.kind === "request_decision" ||
     life.execution_status === "settled" ||
     life.execution_status === "blocked"
   )
     return "attention";
+  if (
+    life.state !== "paused" &&
+    (life.execution_status === "queued" || life.execution_status === "running")
+  )
+    return "handling";
   return "holding";
+}
+
+/**
+ * A current, read responsibility with nothing running and nothing for the
+ * person to review: under a heading that already says it's held, its row
+ * needn't repeat that nothing runs for it.
+ */
+export function idleHold(entry: HoldEntry | undefined): boolean {
+  if (entry?.kind !== "ready" || entry.stale) return false;
+  const life = entry.detail.lifecycle;
+  return (
+    life.execution_status === "not_admitted" &&
+    !life.review_required &&
+    life.outcome_status !== "needs_review"
+  );
 }

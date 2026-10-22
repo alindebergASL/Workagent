@@ -27,6 +27,17 @@ function keep(key: string, text: string): void {
   }
 }
 
+/**
+ * Moves an unsent message to Home's composer for this workspace, so ending a
+ * conversation never loses it. Home's own draft wins if it has one.
+ */
+export function carryDraftHome(wsId: string, text: string): boolean {
+  const key = `workagent:composer-draft:${wsId}`;
+  if (!text.trim() || readKept(key).trim()) return false;
+  keep(key, text);
+  return readKept(key) === text;
+}
+
 function readKeptFiles(key: string): MessageAttachment[] {
   try {
     const raw = sessionStorage.getItem(key);
