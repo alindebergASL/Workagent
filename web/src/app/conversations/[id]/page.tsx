@@ -30,6 +30,7 @@ import type {
 } from "@/lib/contract/types";
 import { WorkAreaHeader } from "@/components/WorkAreas";
 import { OperationComposer } from "@/components/OperationComposer";
+import { landAtLatest } from "@/lib/client/landing";
 import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
@@ -142,6 +143,24 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     el.focus();
     el.scrollIntoView({ block: "center" });
   });
+
+  // On a phone the conversation opens at its latest exchange, once, unless
+  // the person came here for a particular place in it.
+  const landed = useRef(false);
+  const hasData = Boolean(d);
+  useEffect(() => {
+    if (landed.current || !hasData) return;
+    landed.current = true;
+    const requests = document.querySelectorAll<HTMLElement>(
+      ".thread > .thread-turn[id^='run-']",
+    );
+    return landAtLatest(requests[requests.length - 1] ?? null, {
+      purposeful:
+        location.hash !== "" ||
+        search.get("stop") === "1" ||
+        search.get("handover") === "1",
+    });
+  }, [hasData, search]);
 
   // ---- explicit hand-over ----
   const [handoverOpen, setHandoverOpen] = useState(

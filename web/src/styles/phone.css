@@ -129,6 +129,11 @@
     text-overflow: ellipsis;
   }
 
+  /* ---- Conversation: opens at the latest request, with a little air ---- */
+  .thread > .thread-turn {
+    scroll-margin-top: 12px;
+  }
+
   /* ---- Conversation: the reply box docked at the bottom ---- */
   .conversation-page > .conversation-ask {
     position: sticky;

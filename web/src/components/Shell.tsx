@@ -8,6 +8,8 @@ import { useResource } from "@/lib/client/hooks";
 import { areaHref, workAreas } from "@/lib/client/work-areas";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { EXECUTION } from "@/lib/execution";
+// Notes back/forward steps from the start, so pages can tell them apart.
+import "@/lib/client/landing";
 
 function Mark() {
   return (

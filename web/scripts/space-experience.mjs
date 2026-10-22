@@ -2331,6 +2331,63 @@ try {
     "a plain question gets its answer without becoming a project; an ordinary chat or unknown id isn't shown as one; a chat can be kept as one; a project's chat links back",
   );
 
+  // ---- On a phone a conversation opens at its latest exchange: the last
+  // request at the top of the screen, focus untouched. A link to a place in
+  // it, a step back and a desktop screen keep their own positions ----
+  {
+    const sup = ids.supplier;
+    const conv = `${origin}/conversations/${sup.conversation_id}?workspace=${sup.workspace}`;
+    const phone = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+    });
+    const requests = phone.locator(".thread > .thread-turn[id^='run-']");
+    const topOf = (loc) =>
+      loc.evaluate((el) => Math.round(el.getBoundingClientRect().top));
+    const ready = async () => {
+      await expect(requests.last()).toBeAttached({ timeout: 20000 });
+      await phone.waitForTimeout(2500);
+    };
+    await phone.goto(conv);
+    await ready();
+    const top = await topOf(requests.last());
+    assert.ok(top >= 0 && top <= 40, `latest request at the top (${top})`);
+    assert.ok(await phone.evaluate(() => scrollY > 0));
+    assert.ok(
+      await phone.evaluate(() => document.activeElement === document.body),
+      "focus is not moved",
+    );
+    await shot(phone, "15-conversation-latest-phone");
+    const first = await requests.first().getAttribute("id");
+    await phone.goto(`${conv}#${first}`);
+    await ready();
+    const own = await topOf(requests.first());
+    assert.ok(own >= -5 && own <= 60, `a link lands at its own place (${own})`);
+    await phone.goto(conv);
+    await ready();
+    await phone.evaluate(() => scrollTo(0, 0));
+    await phone.locator(".thread a[href*='/artifacts/']").first().click();
+    await phone.waitForURL(/\/artifacts\//);
+    await phone.waitForTimeout(1500);
+    await phone.goBack();
+    await ready();
+    assert.ok(
+      (await phone.evaluate(() => scrollY)) < 50,
+      "back keeps the position it had",
+    );
+    await phone.setViewportSize({ width: 1440, height: 1000 });
+    await phone.goto(conv);
+    await ready();
+    assert.equal(
+      await phone.evaluate(() => scrollY),
+      0,
+      "desktop opens at the top",
+    );
+    await phone.close();
+    pass(
+      "on a phone a conversation opens at its latest request, focus untouched; a link to a place in it, a step back and a desktop screen keep their own positions",
+    );
+  }
+
   assert.deepEqual(errors, []);
   await writeFile(
     path.join(out, "space-experience.json"),
