@@ -2398,7 +2398,7 @@ export interface components {
              */
             state: "queued" | "running" | "ready" | "partial" | "cancelled";
             /** Stop Reason */
-            stop_reason?: "budget_limit" | null;
+            stop_reason?: ("budget_limit" | "blocked" | "waiting_for_user" | "step_limit") | null;
             /** Tool Registry Hash */
             tool_registry_hash: string;
             /** Unresolved */
@@ -4179,7 +4179,7 @@ export interface operations {
                      *         "provider_turn_id": null,
                      *         "state": "queued",
                      *         "stop_reason": null,
-                     *         "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
+                     *         "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
                      *         "unresolved": [],
                      *         "used_units": 0,
                      *         "workspace_id": "workspace-example"
@@ -6192,7 +6192,7 @@ export interface operations {
                      *       "provider_turn_id": null,
                      *       "state": "running",
                      *       "stop_reason": null,
-                     *       "tool_registry_hash": "9d842bbf2bad38833b8e7494920b411bbe06ba62adb07bdfb3d99c7bb78dd305",
+                     *       "tool_registry_hash": "9aefca80064f0c9388bfe28f7dc6599e823ca9e903963e726375a049dc2c54ef",
                      *       "unresolved": [],
                      *       "used_units": 0,
                      *       "workspace_id": "workspace-example"

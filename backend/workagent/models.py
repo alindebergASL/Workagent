@@ -427,7 +427,7 @@ class Run(Model):
     tool_registry_hash: str = Field(pattern=r'^[0-9a-f]{64}$')
     provider_session_id: Id | None = None
     provider_turn_id: Id | None = None
-    stop_reason: Literal['budget_limit'] | None = None
+    stop_reason: Literal['budget_limit', 'blocked', 'waiting_for_user', 'step_limit'] | None = None
     cursor: int = Field(default=0, ge=0)
     budget_units: int = Field(default=1, ge=0, le=100)
     used_units: int = Field(default=0, ge=0, le=100)
