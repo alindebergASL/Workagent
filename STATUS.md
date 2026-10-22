@@ -15,7 +15,47 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## Latest: known kind-rejection fix installed; historical pause respected
+## Latest: combined runtime installed; fresh two-item proof active
+
+- Private source `646ed0914be8f97d26a828e7d62dbb8cea83e89c`, candidate
+  `standing-capacity-20261022`, combines Claude's `d52928a` UI and the standing
+  capacity correction (`1122d83`, integration `646ed09`). Migration045 installed
+  with backup and exact retained-state/budget verification. No default-branch or
+  production deployment.
+- Standing-only cumulative schema ceilings now allow 1,024 generations/counts and
+  matching token totals. This does not allocate money or change per-request limits.
+  Scoped/fixed caps, explicit lower grants, $100 monetary ceiling and unknown-send
+  protections remain. Parent PostgreSQL run: **265 passed, one deliberately
+  deselected legacy database-provisioning case**; independent Astra review PASS.
+  No full backend-suite claim; reviewer noted an unrelated pre-existing SQL/Python
+  `cancel_limit=0.0` parity caveat, not a new regression or an exhaustive parity pass.
+- Both UI review issues are corrected: a real reply is not denied, and an earlier
+  responsibility receipt no longer hides a later refusal/budget stop. Parent reran
+  all **350 owner unit tests**, three independent review reproductions, typecheck,
+  lint and formatting on `d52928a`. Canonical combined webpack build/TypeScript passed
+  with `NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1`, without credentials in build env.
+  Installed desktop/phone readback confirms saved human notes and a working reply
+  composer (enabled with text, disabled empty); no message sent by that UI probe.
+- Native successor `workagent-continuation-20261022-11` is activated for NEW work.
+  Allocated authority is **$69.34476 of the same cumulative $100**, not billing.
+  Activation preserved all historical requests, events, attempts, pauses and budget
+  carry, including three unknown generations and Garden's unresolved count. Old
+  attempts remain bound to their original, now-revoked send authority; none resumed
+  or rebound. Activation itself made zero provider requests; fresh work is separate.
+- Fresh repair-day and book-swap requests both saved/bound documents and completed
+  their initial replies. Human notes persisted after phone reloads. Book-swap was
+  paused through the UI before its first due check-in; repair-day remains scheduled.
+  The actual worker was restarted with readiness/PID change verified, source unchanged;
+  all app tabs are now left. The planned between-wave edits/pause isolation/second
+  check-ins are **in progress, not passed**. Prior Library and Garden failures remain
+  failed evidence; old repair-café independently passed its narrower cycle.
+- Evidence: `/home/ubuntu/workagent-request-capacity-evidence/` (tests/review/build,
+  migration backup/install readback and browser captures),
+  `/home/ubuntu/workagent-frontend-verification-evidence/` (owner fix regressions),
+  `/home/ubuntu/workagent-fresh-ownership-evidence/` (authority, two requests,
+  human edits, pause, restart, leave-app and read-only observations).
+
+## Earlier: known kind-rejection fix installed; historical pause respected
 
 - Private source `fd110a77e87203d15a8ce4384721bc77b1feb351`, candidate
   `local-rejection-20261022`; feature integration `3dcc886`. Pure artifact-kind
