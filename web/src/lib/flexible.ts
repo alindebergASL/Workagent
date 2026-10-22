@@ -258,7 +258,39 @@ export function tableChanges(before: StructuredTable, after: StructuredTable) {
   const removed = before.rows.filter((r) => !now.has(r.row_id)).length;
   const keys = new Set(before.fields.map((f) => f.key));
   const fields = after.fields.filter((f) => !keys.has(f.key)).length;
-  return { added, removed, cells, fields };
+  // What it takes away counts as much as what it adds.
+  const kept = new Set(after.fields.map((f) => f.key));
+  const dropped = before.fields.filter((f) => !kept.has(f.key)).length;
+  const still = new Set(after.notes ?? []);
+  const notes = (before.notes ?? []).filter((n) => !still.has(n)).length;
+  return { added, removed, cells, fields, dropped, notes };
+}
+
+/**
+ * How many values the person set themselves (per `cellAuthors`) a proposed
+ * table would change or take away: changed in place, or gone with a removed
+ * row or column.
+ */
+export function yourValuesChanged(
+  before: StructuredTable,
+  after: StructuredTable,
+  authors: Record<string, "human" | "worker">,
+): number {
+  const rows = new Map(after.rows.map((r) => [r.row_id, r]));
+  const fields = new Set(after.fields.map((f) => f.key));
+  let n = 0;
+  for (const r of before.rows)
+    for (const f of before.fields) {
+      if (authors[cellAt(r.row_id, f.key)] !== "human") continue;
+      const now = rows.get(r.row_id);
+      if (
+        !now ||
+        !fields.has(f.key) ||
+        cellValue(now, f.key) !== cellValue(r, f.key)
+      )
+        n++;
+    }
+  return n;
 }
 
 /** One value a proposed table changes, in a row both versions have. */
@@ -388,6 +420,8 @@ export function changeSummary(c: ReturnType<typeof tableChanges>): string {
     c.added ? `${c.added} row${c.added === 1 ? "" : "s"} added` : "",
     c.removed ? `${c.removed} row${c.removed === 1 ? "" : "s"} removed` : "",
     c.fields ? `${c.fields} new column${c.fields === 1 ? "" : "s"}` : "",
+    c.dropped ? `${c.dropped} column${c.dropped === 1 ? "" : "s"} removed` : "",
+    c.notes ? `${c.notes} note${c.notes === 1 ? "" : "s"} removed` : "",
   ].filter(Boolean);
   return parts.length ? parts.join(" · ") : "No changes to the values";
 }

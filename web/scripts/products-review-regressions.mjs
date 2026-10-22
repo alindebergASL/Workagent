@@ -2695,6 +2695,113 @@ try {
   );
 
   {
+    // Two proposals for the same saved version: the newest is the decision;
+    // the earlier one says so, and applying it is a deliberate step. Values
+    // the person set themselves are counted on the card however many cells
+    // change (Hermes day/week evaluation: an earlier candidate dropped notes
+    // and was offered beside the later ones as an equal choice).
+    const body = structuredClone(tableRev.body);
+    const editable = body.fields.filter((f) => f.editable);
+    const bump = (b, row, key, to) => {
+      const cell = b.rows[row].cells.find((c) => c.field_key === key);
+      cell.value =
+        typeof cell.value === "number"
+          ? cell.value + 1
+          : (to ?? `${cell.value ?? ""} (changed)`);
+    };
+    const workerRev = {
+      ...tableRev,
+      id: "w1",
+      author_kind: "worker",
+      parent_revision_id: null,
+    };
+    const mine = structuredClone(body);
+    bump(mine, 0, editable[0].key, "Set by me");
+    const humanRev = {
+      ...tableRev,
+      id: "h1",
+      author_kind: "human",
+      parent_revision_id: "w1",
+      body: mine,
+      body_hash: "c".repeat(64),
+    };
+    const olderBody = structuredClone(mine);
+    bump(olderBody, 0, editable[0].key, "Replaced");
+    for (let i = 1; i <= 3; i++)
+      bump(
+        olderBody,
+        i % olderBody.rows.length,
+        editable[i % editable.length].key,
+      );
+    const newerBody = structuredClone(mine);
+    bump(newerBody, 1, editable[1 % editable.length].key);
+    const proposal = (id, b, at) => ({
+      id,
+      status: "pending",
+      base_revision_id: "h1",
+      body: b,
+      body_hash: id.padEnd(64, "0"),
+      reason: "Synthetic proposal",
+      created_at: at,
+    });
+    flexReply = () => ({
+      status: 404,
+      json: { code: "not_found_or_not_authorized" },
+    });
+    await showFlex(
+      flexData(humanRev, {
+        history: [
+          { ...workerRev, artifact_id: "a" },
+          { ...humanRev, artifact_id: "a" },
+        ],
+        // Listed oldest first, as a service might.
+        proposals: [
+          proposal("older", olderBody, "2026-11-02T10:00:00Z"),
+          proposal("newer", newerBody, "2026-11-02T11:00:00Z"),
+        ],
+      }),
+      null,
+    );
+    const cards = page.getByTestId("product-proposal");
+    await expect(cards).toHaveCount(2);
+    const newest = cards.nth(0);
+    const older = cards.nth(1);
+    await expect(newest.getByRole("heading")).toHaveText(
+      "A proposed version is ready",
+    );
+    await expect(
+      newest.getByRole("button", { name: "Apply proposed version" }),
+    ).toBeVisible();
+    await expect(older.getByRole("heading")).toHaveText("An earlier proposal");
+    await expect(older.getByTestId("proposal-earlier")).toContainText(
+      "A newer proposal was made after this one.",
+    );
+    await expect(
+      older.getByRole("button", { name: "Apply proposed version" }),
+    ).toHaveCount(0);
+    await expect(
+      older.getByRole("button", { name: "Apply this earlier proposal" }),
+    ).toBeHidden();
+    await expect(older.getByTestId("proposal-yours")).toHaveText(
+      "It changes or removes a value you set yourself. Applying it replaces it.",
+    );
+    await older
+      .getByRole("button", { name: "Dismiss this earlier proposal" })
+      .click();
+    await expect.poll(() => flexPosts.length).toBe(1);
+    assert.match(flexPosts[0].url, /\/proposals\/older\/dismiss$/);
+    assert.equal(flexPosts[0].body.resolution, "dismiss");
+    await older.getByText("Apply this earlier proposal instead…").click();
+    await expect(
+      older.getByRole("button", { name: "Apply this earlier proposal" }),
+    ).toBeVisible();
+  }
+  passed++;
+  console.log(
+    "PASS of two proposals for the same version the newest is the decision; the earlier is labelled, applying it is a deliberate step, and values the person set are counted on its card",
+  );
+
+  {
     const view = viewRev.body;
     const binding = view.bindings[0];
     const action = view.actions[0];

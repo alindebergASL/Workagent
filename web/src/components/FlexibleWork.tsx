@@ -62,6 +62,7 @@ import {
   setCell,
   slug,
   tableChanges,
+  yourValuesChanged,
   unitLegend,
   tableCsv,
   viewActionRequest,
@@ -377,7 +378,24 @@ export function FlexibleEditor({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [dirty]);
-  const pendingProposals = proposals.filter((p) => p.status === "pending");
+  // Newest first. Of the proposals that could still apply, only the newest
+  // is the decision; one made before it may not include what came after,
+  // so it's labelled earlier and applying it takes a deliberate step.
+  const pendingProposals = proposals
+    .filter((p) => p.status === "pending")
+    .map((p, i) => ({ p, i }))
+    .sort(
+      (a, b) =>
+        Date.parse(b.p.created_at ?? "") - Date.parse(a.p.created_at ?? "") ||
+        a.i - b.i,
+    )
+    .map(({ p }) => p);
+  const newestCurrent = pendingProposals.find(
+    (p) => p.base_revision_id === artifact.current_revision_id,
+  )?.id;
+  const earlier = (p: S["Proposal"]) =>
+    p.base_revision_id === artifact.current_revision_id &&
+    p.id !== newestCurrent;
   const byWorkagent = artifact.current_revision.author_kind !== "human";
   // The work reads first; editing is one step away and comes back on its
   // own while anything is unsaved. A view has its own surface instead.
@@ -494,6 +512,19 @@ export function FlexibleEditor({
           ? cellChanges(saved as StructuredTable, proposed as StructuredTable)
               .length
           : 0;
+        const yours = tableProposal
+          ? yourValuesChanged(
+              saved as StructuredTable,
+              proposed as StructuredTable,
+              savedCellAuthors,
+            )
+          : 0;
+        const older = earlier(p);
+        const cellsShown = !(
+          outdated ||
+          cellCount > 3 ||
+          (tabbed && mode === "changes")
+        );
         const docParts =
           proposed &&
           !outdated &&
@@ -524,8 +555,20 @@ export function FlexibleEditor({
             <h2 id={`proposal-${p.id}`}>
               {outdated
                 ? "This proposal is out of date"
-                : "A proposed version is ready"}
+                : older
+                  ? "An earlier proposal"
+                  : "A proposed version is ready"}
             </h2>
+            {older ? (
+              <p
+                className="decision-question"
+                role="status"
+                data-testid="proposal-earlier"
+              >
+                A newer proposal was made after this one. Look at the newest
+                first: this one may not include what came after.
+              </p>
+            ) : null}
             {outdated ? (
               <p className="decision-question" role="status">
                 It was made from an earlier saved version, so it can’t replace
@@ -550,15 +593,22 @@ export function FlexibleEditor({
                   )}
                 </p>
                 {/* The Changes tab shows the same cells; not twice. */}
-                {outdated ||
-                cellCount > 3 ||
-                (tabbed && mode === "changes") ? null : (
+                {cellsShown ? (
                   <TableProposalCells
                     saved={saved as StructuredTable}
                     proposed={proposed as StructuredTable}
                     authors={savedCellAuthors}
                   />
-                )}
+                ) : null}
+                {/* What it would do to values the person set themselves is
+                    said on the card, however many cells change. */}
+                {yours && !cellsShown && !outdated ? (
+                  <p className="small" data-testid="proposal-yours">
+                    {yours === 1
+                      ? "It changes or removes a value you set yourself. Applying it replaces it."
+                      : `It changes or removes ${yours} values you set yourself. Applying it replaces them.`}
+                  </p>
+                ) : null}
               </>
             ) : null}
             {docParts?.summary}
@@ -572,7 +622,7 @@ export function FlexibleEditor({
               />
             ) : null}
             <div className="row proposal-decision">
-              {outdated ? null : (
+              {outdated || older ? null : (
                 <button
                   className="btn btn-on-soft"
                   disabled={locked || dirty}
@@ -597,13 +647,17 @@ export function FlexibleEditor({
                     id: crypto.randomUUID(),
                     pid: p.id,
                     base: artifact.current_revision_id,
-                    resolution: outdated ? "dismiss" : "keep_current",
+                    resolution: outdated || older ? "dismiss" : "keep_current",
                   })
                 }
               >
-                {outdated ? "Dismiss proposal" : "Keep my current version"}
+                {outdated
+                  ? "Dismiss proposal"
+                  : older
+                    ? "Dismiss this earlier proposal"
+                    : "Keep my current version"}
               </button>
-              {onAskForChange ? (
+              {older || !onAskForChange ? null : (
                 <button
                   type="button"
                   className="btn btn-quiet"
@@ -612,8 +666,32 @@ export function FlexibleEditor({
                 >
                   Ask for a different change
                 </button>
-              ) : null}
+              )}
             </div>
+            {older ? (
+              <details
+                className="ids-details"
+                data-testid="proposal-earlier-apply"
+              >
+                <summary>Apply this earlier proposal instead…</summary>
+                <div className="row" style={{ marginTop: 8 }}>
+                  <button
+                    className="btn btn-sm"
+                    disabled={locked || dirty}
+                    onClick={() =>
+                      void submit({
+                        kind: "accept",
+                        id: crypto.randomUUID(),
+                        pid: p.id,
+                        base: artifact.current_revision_id,
+                      })
+                    }
+                  >
+                    Apply this earlier proposal
+                  </button>
+                </div>
+              </details>
+            ) : null}
             {!outdated && dirty ? (
               <p className="small">Save or discard your changes first.</p>
             ) : null}
@@ -692,6 +770,10 @@ export function FlexibleEditor({
                   <p className="small" role="status">
                     Made from an earlier saved version, so it can’t replace your
                     current one.
+                  </p>
+                ) : earlier(p) ? (
+                  <p className="small" role="status">
+                    An earlier proposal: a newer one was made after it.
                   </p>
                 ) : null}
                 {kind === "structured_table" ? (
