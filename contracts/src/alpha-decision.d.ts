@@ -321,7 +321,7 @@ export interface components {
              * Section
              * @enum {string}
              */
-            section: "messages" | "target" | "attachments";
+            section: "messages" | "target" | "attachments" | "work_area";
         };
         /** ReadSavedWork */
         ReadSavedWork: {

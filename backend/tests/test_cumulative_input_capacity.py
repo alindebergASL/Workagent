@@ -59,6 +59,9 @@ def test_other_limits_and_exact_types_still_rejected(context, standing, field, v
     if standing:
         cls = StandingResponsesBinding
         data.update(admission_policy='principal-workspace-v1', conversation_ids=[])
+        value = {('input_limit', 256 * RESERVED_INPUT + 1): 1024 * RESERVED_INPUT + 1,
+                 ('generation_limit', 257): 1025, ('count_limit', 257): 1025,
+                 ('output_limit', 2097153): 1024 * 8192 + 1}.get((field, value), value)
     data[field] = value
     with pytest.raises(ValidationError):
         cls.model_validate(data)

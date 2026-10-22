@@ -302,6 +302,11 @@ class StandingResponsesBinding(GeneralAlphaResponsesBinding):
     Execution scope is not cross-conversation recall authority. All cumulative
     provider caps remain required; historical scoped bindings keep their shape.
     """
+    # Finite cumulative capacity: 1024 reservations at unchanged 50k/8192 units.
+    generation_limit: int = Field(strict=True, ge=0, le=1024)
+    count_limit: int = Field(strict=True, ge=0, le=1024)
+    input_limit: int = Field(strict=True, ge=0, le=51200000)
+    output_limit: int = Field(strict=True, ge=0, le=8388608)
     cost_limit_usd: str = Field(..., strict=True, pattern=r'^(0|[1-9][0-9]{0,2})(\.[0-9]{1,6})?$')
     admission_policy: Literal['principal-workspace-v1']
     conversation_ids: list[Id] = Field(strict=True, max_length=0)
