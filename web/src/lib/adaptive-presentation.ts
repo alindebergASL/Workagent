@@ -56,6 +56,14 @@ function selectionOrder(phase: string): number {
   return m ? Number(m[1]) : -Infinity;
 }
 
+/** Outcomes where the turn stopped short: why outranks what it recorded. */
+const STOPS = new Set([
+  "step_limit",
+  "budget_limit",
+  "blocked",
+  "waiting_for_user",
+]);
+
 export function adaptivePresentation(
   state: TurnState,
   progress?: TurnProgress,
@@ -107,10 +115,12 @@ export function adaptivePresentation(
   }).length;
   const local = progress.retained_local_result;
   // A responsibility the turn saved, with no product output: say what was
-  // saved and what isn't known, never "calculated but not saved".
+  // saved and what isn't known, never "calculated but not saved". A turn
+  // that then stopped says why it stopped instead; its receipt still shows.
   const recorded = recordedResponsibilities(progress);
   if (
     recorded.length &&
+    !STOPS.has(adaptive.outcome) &&
     !hasProductOutput(local) &&
     state !== "queued" &&
     state !== "responding"
@@ -203,7 +213,7 @@ export function adaptivePresentation(
       title: "Stopped: what it tried wasn’t possible here",
       note: [
         "Its last attempt was refused, so nothing from that attempt was applied.",
-        savedWork || earlier
+        savedWork || earlier || recorded.length
           ? "Review what it saved before continuing."
           : replied
             ? "You can ask for it another way."
@@ -224,11 +234,12 @@ export function adaptivePresentation(
   if (!title) return null;
   return {
     title,
-    note: savedWork
-      ? "Review what it saved before continuing, and decide the next step."
-      : local && !local.published
-        ? "Local evidence is retained, not saved as work. Review it before continuing."
-        : "Review the recorded outcome and decide the next step.",
+    note:
+      savedWork || recorded.length
+        ? "Review what it saved before continuing, and decide the next step."
+        : local && !local.published
+          ? "Local evidence is retained, not saved as work. Review it before continuing."
+          : "Review the recorded outcome and decide the next step.",
     checks,
     changedAttempts,
   };

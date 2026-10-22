@@ -92,6 +92,40 @@ describe("a recording is not a calculation", () => {
     // While the turn is still running, nothing is claimed yet.
     expect(adaptivePresentation("responding", progress)).toBeNull();
   });
+  it("a later stop outranks the recording, and the receipt is kept", () => {
+    // Hermes 6331047570: a genuine receipt, no product output, then the
+    // last step refused (blocked) or the budget ran out.
+    const stopped = (outcome: "blocked" | "budget_limit") => {
+      const steps = turn.adaptive!.steps!;
+      return turnProgress({
+        ...turn,
+        adaptive: {
+          ...turn.adaptive!,
+          outcome,
+          steps: [...steps, { ...steps.at(-1)!, status: "rejected" }] as never,
+        },
+      })!;
+    };
+    const blocked = stopped("blocked");
+    expect(hasProductOutput(blocked.retained_local_result)).toBe(false);
+    expect(recordedResponsibilities(blocked)).toHaveLength(1);
+    const refused = adaptivePresentation("replied", blocked, false)!;
+    expect(refused.title).toBe("Stopped: what it tried wasn’t possible here");
+    expect(refused.note).toMatch(/Review what it saved/);
+    const budget = adaptivePresentation(
+      "replied",
+      stopped("budget_limit"),
+      false,
+    )!;
+    expect(budget.title).toBe("Stopped at the budget limit");
+    // A recording is never "local evidence not saved as work".
+    expect(budget.note).not.toMatch(/Local evidence/);
+    expect(budget.note).toMatch(/Review what it saved/);
+    for (const view of [refused, budget])
+      expect(view.title).not.toMatch(/recorded/i);
+    // Still running: nothing is claimed yet.
+    expect(adaptivePresentation("responding", blocked)).toBeNull();
+  });
   it("mixed output keeps the product result's own presentation", () => {
     const progress = turnProgress({
       ...turn,
