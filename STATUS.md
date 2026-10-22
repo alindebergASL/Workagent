@@ -15,6 +15,20 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
 
 ## Repeated-work verification and live capacity correction
 
+Latest: final capacity/alpha-budget/repeated-work run **101 passed, zero failed,
+errored or skipped**; full-diff independent Astra re-review PASS after the drift
+fix. Private candidate `cumulative-input-capacity-20261021` at
+`bd6aed7d130e2279900fd24402c871cf5071afd3` is installed and read back ready/idle;
+migration 043 checksum, exact tested files and unchanged pre-install accounting
+were verified. Parent feature branch contains the correction as `0dc09370`.
+Web is unchanged. Successor `workagent-continuation-20261021-10` provides at most
+32 further generation reservations ($6.62144), with aggregate allocated authority
+$63.75792 within the existing cumulative $100. This is allocation, not billing.
+Two fresh Home conversations are now exercising real repeated preparation:
+Garden `da14559b-4d3a-4a96-9077-acdddeeafdf1` and Reading-room
+`9d41e296-c4f7-40f5-84d2-1d6cce8f8806`. Live cycle and phone proof remain in progress.
+The bullets below retain the pre-fix diagnostic sequence, not current blockers.
+
 - Controlled PostgreSQL/HTTP verification: **18 passed, zero failed/skipped**
   across repeated ownership, sustained continuation and check-in boundaries.
   One shared grant drove five runs across two responsibilities: changed human
