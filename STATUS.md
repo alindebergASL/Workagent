@@ -13,6 +13,39 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
+## 2026-10-22: live stop/publication failure fixed; draft binding active
+
+- Installed private candidate `stop-reasons-20261022` at
+  `3e83495eb2c702273b3e130ab519079ad625c9d8`; parent integration `227e9a6`.
+  `Run.stop_reason` now accepts the three outcomes already emitted by the worker.
+  Three real PostgreSQL RED cases reproduced the rollback; **11 targeted cases
+  passed** after the fix, including retained work and no-send replay. Independent
+  review found stale generated TypeScript; regeneration, schema-drift checks,
+  TypeScript compilation and canonical Python checks resolved that finding.
+- The original Reading-room turn recovered automatically from its existing final
+  receipts: state `partial`, reason `waiting_for_user`, one saved document and one
+  assistant reply. Exact prepared-request and event journals are unchanged;
+  **zero new product requests or reservations** were needed for recovery.
+  The document is `45f11fee-9dd2-44dd-ba36-c664b980355a`. It was opened on desktop
+  and phone; a protected human note was saved through the 390px phone editor and
+  verified after reload in both editor and result views, with no horizontal overflow.
+- This does **not** make the failed scheduled cycle a pass. Same-turn draft
+  discovery/binding remains broken (two actual RED cases, proposal control GREEN).
+  One Astra implementation worker is active in
+  `/home/ubuntu/workagent-draft-binding-20261022`, implementing receipt-bound early
+  publication of new drafts while retaining human-edit and context fences.
+- Garden's responsibility remains UI-confirmed paused, and its unresolved
+  count-only attempt remains untouched. No historical unknown was cleared.
+  Product generation reservations added by this failed exercise: **$1.86228**,
+  not billed spend. Current reservation total $34.51348; cumulative allocated
+  authority $63.75792 of the unchanged $100 ceiling. Developer-tool billing is
+  separate and not available here.
+- UI follow-up for Claude: the partial-turn banner says work is not saved despite
+  displaying the recovered saved document, and the document-side reply cannot link
+  its version. Neither was edited or counted as resolved. Evidence:
+  `/home/ubuntu/workagent-stop-reasons-evidence` (XML, review, installation,
+  `live-recovery-verified.json`, desktop/phone captures, `phone-edit-verified.json`).
+
 ## Repeated-work verification and live capacity correction
 
 Latest: final capacity/alpha-budget/repeated-work run **101 passed, zero failed,
@@ -24,10 +57,26 @@ were verified. Parent feature branch contains the correction as `0dc09370`.
 Web is unchanged. Successor `workagent-continuation-20261021-10` provides at most
 32 further generation reservations ($6.62144), with aggregate allocated authority
 $63.75792 within the existing cumulative $100. This is allocation, not billing.
-Two fresh Home conversations are now exercising real repeated preparation:
-Garden `da14559b-4d3a-4a96-9077-acdddeeafdf1` and Reading-room
-`9d41e296-c4f7-40f5-84d2-1d6cce8f8806`. Live cycle and phone proof remain in progress.
-The bullets below retain the pre-fix diagnostic sequence, not current blockers.
+The fresh Home exercise **failed** before the requested repeated-work cycle:
+Garden `da14559b-4d3a-4a96-9077-acdddeeafdf1` drafted an artifact, but subsequent
+saved-work discovery could not see it; it recorded an unbound responsibility with
+an already-due check-in. Responsibility `6b388f51-3d87-46d9-ba3d-e50afc8297c4`
+was paused through the UI and read back confirmed. Garden's selection_5 has a
+count reservation without a terminal count receipt; the worker logged HTTP window
+closed before I/O. It remains unresolved, not replayed or rewritten.
+Reading-room `9d41e296-c4f7-40f5-84d2-1d6cce8f8806` reached a receipted final
+answer but publication repeats a runtime failure. Parent reproduced all three
+continuity stop variants failing at products.py:464: `Run.stop_reason` allowed
+only `budget_limit`, while the worker writes `blocked`, `waiting_for_user` and
+`step_limit`. The narrow model/contract fix and replay tests are running in
+`/home/ubuntu/workagent-stop-reasons-20261022`; independent review is active.
+Astra is separately preparing an executable same-turn draft-discovery/binding
+regression in `/home/ubuntu/workagent-draft-binding-20261022`.
+Twelve stale automated preview tabs were closed, leaving one. Their polling
+confounds latency; observed database timeouts are not yet fully attributed.
+No fresh repeated-cycle or complete phone-use pass is claimed. Development
+continues; the failed exercise is retained as evidence rather than repaired into
+an apparent pass. The bullets below retain the earlier capacity diagnostic sequence.
 
 - Controlled PostgreSQL/HTTP verification: **18 passed, zero failed/skipped**
   across repeated ownership, sustained continuation and check-in boundaries.
