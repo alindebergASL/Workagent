@@ -244,6 +244,10 @@ _SAFE_KERNEL_DETAILS=frozenset({
 def rejection_diagnostic(exc):
     from .wasm_tool import ToolRejected
     from .local_operations import OperationRejected
+    if isinstance(exc,ValueError) and str(exc)=='An existing artifact cannot change kind':
+        return {'code':'artifact_kind_rejected','detail':
+            'An existing artifact cannot change kind. Preserve the saved artifact; '
+            'publish a separate new artifact for a different kind.'}
     if isinstance(exc,ValueError) and str(exc) in {
         'existing field type/unit/scale/enum/editability is immutable; use a new key',
         'read-only field cannot be deleted',

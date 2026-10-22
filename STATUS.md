@@ -6,15 +6,50 @@ Andrew reaffirmed that routine steps do not need incremental approval. Developme
 has resumed; a green batch is not a mission stop. Next: two responsibilities across
 multiple check-ins, worker recreation, changed human input and pause, with saved
 edits and duplicate-effect protection preserved, followed by actual desktop/phone
-verification and coherent integration. Same-turn draft binding is now installed
-in the private runtime; a fresh two-responsibility Home exercise is active.
+verification and coherent integration. Repair café independently completed its
+repeated cycle; the two-item exercise failed at Library. Draft binding and bounded
+kind-rejection settlement are installed privately; a fresh full proof remains due.
 Evidence lives at `/home/ubuntu/workagent-draft-binding-evidence` and
 `/home/ubuntu/workagent-repeated-continuation-evidence`. Parent owns real PostgreSQL
 execution and fixes; Claude retains web ownership. No new paid route, private-data
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## Latest: same-turn draft binding installed; fresh live cycle underway
+## Latest: known kind-rejection fix installed; historical pause respected
+
+- Private source `fd110a77e87203d15a8ce4384721bc77b1feb351`, candidate
+  `local-rejection-20261022`; feature integration `3dcc886`. Pure artifact-kind
+  compatibility rejection now reaches the existing durable rejected-observation
+  and bounded continuation/finalization path. Access/CAS/receipt identity and
+  unknown sends remain fail-closed; actual publication still forbids kind changes.
+- Independent Astra source review PASS; **77 distinct focused cases passed**:
+  37 settlement/authority/draft-binding cases, 36 existing edit/recovery cases,
+  and four independent selected-versus-staged publication guards. No failures,
+  errors or skips in those batches; no full-suite claim.
+- Installed with a database backup and no migration. All retained state matched
+  before worker restart; independent readback verified running source, readiness,
+  immutable old request/event rows, protected human revisions, exact responsibility
+  lifecycles, unchanged grant/route, and zero new provider requests/reservations.
+- **Library was not recovered.** Its deliberate Pause after responsibility recording
+  changed work version 2 to 4 and state `waiting_event` to `paused`. Read-only
+  execution of the exact authority guard now proves `version_conflict` before the
+  kind-rejection stage. That is an authorization barrier, not permission to rewrite
+  history, undo Pause or weaken CAS. The historical run still has no assistant reply;
+  the failed two-item test remains failed. Live correction behavior needs a fresh
+  authorized request; controlled PostgreSQL recovery is already verified.
+- Repair café remains waiting for a person with its two saved notes; Garden remains
+  paused with its unresolved count receipt. Three historical unknown generations
+  remain. Product grant and cumulative $100 ceiling unchanged; billing unavailable.
+- Claude's new web branch `9dce8ef` supplies refusal/saved-work wording and existing
+  `failure_reason`/`next_action` guidance. It is not installed. Next combined build
+  must set `NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1`; Claude retains web ownership.
+- Evidence: `/home/ubuntu/workagent-local-rejection-evidence/` —
+  `test-summary.json`, `review-verdict.txt`, `installed.json`,
+  `installation-verified.json`, `before-local-rejection.dump`. The installation
+  verifier explicitly reports `known_kind_rejection_retained=false` and the pause
+  barrier; it does not turn an installation success into a recovery claim.
+
+## Earlier: same-turn draft binding installed; fresh live cycle
 
 - Private runtime `draft-binding-20261022` is installed at
   `fa2448310db7b378c94373f8880438ae309e954a`; feature integration `0da661b`.
@@ -53,9 +88,30 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
   Private worker was restarted before the scheduled check-in, with readiness
   confirmed and source unchanged; the browser was left on about:blank. The earlier
   repaired cycle also stays failed evidence. Current grant/$100 ceiling unchanged.
+- **Repair café independently completed the repeated cycle without runtime changes.**
+  After the phone edit, leaving the app and worker restart, scheduled runs
+  `50fe3f92-515f-4cd4-a3d1-c395341d8be7` and
+  `f7cc145e-61b8-43b6-b62d-5c103db65d1b` both finished `ready`, saving distinct
+  first/second readiness notes. Both used human revision
+  `95440418-b5f7-489f-b5e0-595b2a2d8cff`, which stayed unchanged. The responsibility
+  ended `waiting_person`, with no next check-in; Library remained paused with no
+  background admission. Independent DB verification passed, then both notes were
+  reopened on desktop/390px phone with their human constraints visible and no
+  horizontal overflow. This proves one repeated responsibility plus pause isolation,
+  **not** the requested full two-responsibility/changed-between-waves exercise.
+  Whole fresh exercise reservation increase was $3.72456 to $38.23804, not billing;
+  historical unknown-generation count returned to three after current work settled.
+- Library's known-rejection defect is independently reproduced in two PostgreSQL
+  cases after restart. The correct kind-change denial happens before durable local
+  rejection retention, causing repeated dispatch instead of settlement. An isolated
+  Astra implementation is extending the existing rejected-observation path; no
+  kind conversion, proposal acceptance, receipt rewriting or unknown replay is allowed.
+  That correction is not installed. No live history was changed to force success.
 - Evidence: `/home/ubuntu/workagent-draft-binding-evidence` — `test-summary.json`,
   `window-review-verdict.txt`, `installed.json`, `installation-verified.json`,
-  `before-draft-binding.dump`, `fresh-live-requests.json`.
+  `before-draft-binding.dump`, `fresh-live-requests.json`, `repair-cycle-verified.json`,
+  `repair-ui-readbacks.json`, desktop/phone note captures. Rejection reproduction:
+  `/home/ubuntu/workagent-local-rejection-evidence/actual-red.xml` and `.log`.
 
 ## Earlier checkpoint: live stop/publication failure fixed; draft binding active
 
