@@ -9,6 +9,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   adaptivePresentation,
+  stoppedByRefusal,
   lastStopped,
   lastUnresolved,
   modelExamples,
@@ -17,6 +18,7 @@ import {
   TurnOutcome,
   TurnProgressDetails,
   replyText,
+  TurnSummary,
 } from "../src/components/TurnProgress";
 
 const hash = "a".repeat(64);
@@ -225,6 +227,65 @@ describe("honest adaptive presentation", () => {
       expect(value?.note).not.toMatch(/not saved/i);
       expect(value?.note).toMatch(/what it saved/i);
     }
+  });
+  it("says a stop after refused attempts was a refusal, not a limit", () => {
+    for (const outcome of ["step_limit", "blocked"] as const) {
+      const p = progress();
+      p.adaptive!.outcome = outcome;
+      p.retained_local_result!.published = false;
+      p.adaptive!.steps!.push({
+        ...p.adaptive!.steps![0]!,
+        phase: "selection_2",
+        status: "rejected",
+        outcome,
+      });
+      const v = adaptivePresentation("failed", p)!;
+      expect(v.title).toBe("Stopped: what it tried wasn’t possible here");
+      expect(v.title + v.note).not.toMatch(/limit|budget/i);
+      expect(v.note).toMatch(/nothing from (them|it) was applied/i);
+      expect(stoppedByRefusal(p)).toBe(true);
+      // With work it did save, the note points at that work instead.
+      const saved = adaptivePresentation("failed", p, true)!;
+      expect(saved.note).toMatch(/what it saved/i);
+      expect(saved.note).not.toMatch(/not saved/i);
+    }
+    // A real budget stop stays a budget stop, refused last step or not.
+    const b = progress();
+    b.adaptive!.outcome = "budget_limit";
+    b.adaptive!.steps![0]!.status = "rejected";
+    expect(adaptivePresentation("failed", b)!.title).toBe(
+      "Stopped at the budget limit",
+    );
+    expect(stoppedByRefusal(b)).toBe(false);
+  });
+  it("shows a refusal outcome rather than the generic run-stopped line", () => {
+    const p = progress();
+    p.adaptive!.outcome = "step_limit";
+    p.adaptive!.steps![0]!.status = "rejected";
+    const html = renderToStaticMarkup(
+      createElement(TurnSummary, {
+        state: "failed",
+        progress: p,
+        execution: {
+          text: "Stopped: it isn’t allowed to go further with this right now. Your message is kept.",
+          replaces: true,
+        },
+      }),
+    );
+    expect(html).toContain("Stopped: what it tried wasn’t possible here");
+    expect(html).not.toContain("isn’t allowed to go further");
+    // Any other stopped run keeps the service's own line.
+    const q = progress();
+    q.adaptive!.outcome = "budget_limit";
+    expect(
+      renderToStaticMarkup(
+        createElement(TurnSummary, {
+          state: "failed",
+          progress: q,
+          execution: { text: "Stopped by the service.", replaces: true },
+        }),
+      ),
+    ).toContain("Stopped by the service.");
   });
   it("does not call several phases a changed approach", () => {
     const p = progress();

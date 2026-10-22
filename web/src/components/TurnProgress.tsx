@@ -6,6 +6,7 @@ import {
   capabilityUse,
   hasProductOutput,
   modelExamples,
+  stoppedByRefusal,
 } from "@/lib/adaptive-presentation";
 import {
   recordedResponsibilities,
@@ -31,7 +32,16 @@ export function TurnSummary({
   const said = execution ? (
     <span data-testid="turn-execution">{execution.text}</span>
   ) : null;
-  if (execution?.replaces) return said;
+  // The service's run line replaces the outcome, except when the outcome
+  // says more exactly why it stopped: what it tried was refused.
+  if (execution?.replaces && !(view && stoppedByRefusal(progress))) return said;
+  if (execution?.replaces && view)
+    return (
+      <div className="stack-sm" data-testid="adaptive-summary">
+        <span>{view.title}</span>
+        <span className="hint">{view.note}</span>
+      </div>
+    );
   if (!view)
     return said ? (
       <span className="stack-sm">

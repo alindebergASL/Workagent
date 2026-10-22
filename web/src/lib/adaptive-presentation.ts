@@ -191,6 +191,18 @@ export function adaptivePresentation(
       checks,
       changedAttempts,
     };
+  // Its last attempt was refused and that is why it stopped (out of steps
+  // trying, or blocked): say so, not that a limit was reached. A budget stop
+  // stays a budget stop.
+  if (stoppedByRefusal(progress))
+    return {
+      title: "Stopped: what it tried wasn’t possible here",
+      note: savedWork
+        ? "Its last attempt was refused, so nothing from it was applied. Review what it saved before continuing."
+        : "Its attempts were refused, so nothing from them was applied and it didn’t reply. Your saved work is unchanged; you can ask for it another way.",
+      checks: null,
+      changedAttempts,
+    };
   const titles: Partial<Record<typeof adaptive.outcome, string>> = {
     step_limit: "Stopped at the step limit",
     budget_limit: "Stopped at the budget limit",
@@ -298,5 +310,18 @@ const CAPABILITY_WORDS: Record<string, string> = {
 export function capabilityUse(name: string): string {
   return (
     CAPABILITY_WORDS[name] ?? `Used ${name.replace(/[_.-]+/g, " ").trim()}`
+  );
+}
+
+/**
+ * A turn that stopped because what it tried was refused: its last step was
+ * rejected and it then ran out of steps or was blocked. Not a budget stop.
+ */
+export function stoppedByRefusal(progress?: TurnProgress): boolean {
+  const adaptive = progress?.adaptive;
+  if (!adaptive) return false;
+  return (
+    (adaptive.outcome === "step_limit" || adaptive.outcome === "blocked") &&
+    adaptive.steps?.at(-1)?.status === "rejected"
   );
 }
