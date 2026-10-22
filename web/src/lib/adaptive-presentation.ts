@@ -194,15 +194,25 @@ export function adaptivePresentation(
   // Its last attempt was refused and that is why it stopped (out of steps
   // trying, or blocked): say so, not that a limit was reached. A budget stop
   // stays a budget stop.
-  if (stoppedByRefusal(progress))
+  if (stoppedByRefusal(progress)) {
+    // Only the last attempt is known to be refused. Earlier steps may have
+    // saved a preparation, and the turn may still have a real final reply.
+    const earlier = steps.slice(0, -1).some((s) => s.status === "observed");
+    const replied = state === "replied" || Boolean(progress?.explanation);
     return {
       title: "Stopped: what it tried wasn’t possible here",
-      note: savedWork
-        ? "Its last attempt was refused, so nothing from it was applied. Review what it saved before continuing."
-        : "Its attempts were refused, so nothing from them was applied and it didn’t reply. Your saved work is unchanged; you can ask for it another way.",
+      note: [
+        "Its last attempt was refused, so nothing from that attempt was applied.",
+        savedWork || earlier
+          ? "Review what it saved before continuing."
+          : replied
+            ? "You can ask for it another way."
+            : "It stopped without a final reply; you can ask for it another way.",
+      ].join(" "),
       checks: null,
       changedAttempts,
     };
+  }
   const titles: Partial<Record<typeof adaptive.outcome, string>> = {
     step_limit: "Stopped at the step limit",
     budget_limit: "Stopped at the budget limit",

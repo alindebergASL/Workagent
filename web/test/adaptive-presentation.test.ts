@@ -228,26 +228,51 @@ describe("honest adaptive presentation", () => {
       expect(value?.note).toMatch(/what it saved/i);
     }
   });
-  it("says a stop after refused attempts was a refusal, not a limit", () => {
-    for (const outcome of ["step_limit", "blocked"] as const) {
+  it("says a stop after a refused attempt was a refusal, not a limit", () => {
+    // Only the last attempt is known to be refused; an earlier step may have
+    // saved a preparation, and the turn may still have a real reply.
+    const refused = (
+      outcome: "step_limit" | "blocked",
+      earlier: "observed" | "rejected",
+    ) => {
       const p = progress();
       p.adaptive!.outcome = outcome;
       p.retained_local_result!.published = false;
+      p.adaptive!.steps![0]!.status = earlier;
       p.adaptive!.steps!.push({
         ...p.adaptive!.steps![0]!,
         phase: "selection_2",
         status: "rejected",
         outcome,
       });
-      const v = adaptivePresentation("failed", p)!;
+      return p;
+    };
+    for (const outcome of ["step_limit", "blocked"] as const) {
+      // Nothing earlier observed, no reply, nothing saved.
+      const bare = refused(outcome, "rejected");
+      const v = adaptivePresentation("failed", bare)!;
       expect(v.title).toBe("Stopped: what it tried wasn’t possible here");
       expect(v.title + v.note).not.toMatch(/limit|budget/i);
-      expect(v.note).toMatch(/nothing from (them|it) was applied/i);
-      expect(stoppedByRefusal(p)).toBe(true);
-      // With work it did save, the note points at that work instead.
-      const saved = adaptivePresentation("failed", p, true)!;
-      expect(saved.note).toMatch(/what it saved/i);
-      expect(saved.note).not.toMatch(/not saved/i);
+      expect(v.note).toBe(
+        "Its last attempt was refused, so nothing from that attempt was applied. It stopped without a final reply; you can ask for it another way.",
+      );
+      expect(stoppedByRefusal(bare)).toBe(true);
+      // A real final reply is never denied.
+      const replied = refused(outcome, "rejected");
+      replied.explanation = { text: "I couldn’t convert the table." } as never;
+      expect(adaptivePresentation("replied", replied)!.note).not.toMatch(
+        /without a final reply|didn’t reply/,
+      );
+      // An earlier observed step, or work saved by the turn: point at it,
+      // never claim saved work is untouched.
+      for (const [p, saved] of [
+        [refused(outcome, "observed"), false],
+        [refused(outcome, "rejected"), true],
+      ] as const) {
+        const n = adaptivePresentation("failed", p, saved)!.note;
+        expect(n).toMatch(/Review what it saved before continuing/);
+        expect(n).not.toMatch(/unchanged|not saved/i);
+      }
     }
     // A real budget stop stays a budget stop, refused last step or not.
     const b = progress();
