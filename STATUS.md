@@ -1,6 +1,32 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: changing supplier assignment — PARTIAL, evidence continuity gap
+## Latest: evidence fix installed; day/week test completed with qualified results
+
+- Installed private runtime `4b55cc5` after 56/56 selected tests and independent
+  follow-up review PASS. Integrated backend/web bytes match `9324205` on this branch.
+  No migration, default-branch merge, production deployment or frontend edits.
+- Supplier scheduled recheck PASS: original attachments and complete pending
+  proposal reread with ZERO resupply; old human state, proposal and receipts unchanged.
+- Fresh day-plan → nine saved tasks → human completion/availability update → weekly
+  outlook → unattended follow-up completed. Final proposed allocations pass overlap,
+  effort/dependency/deadline checks; T7 correctly flagged 60 minutes short; only T1
+  complete; 180 optional minutes proposed and 720 deferred. All three source files
+  and prior proposals reread; saved human revision unchanged; waiting_person/no schedule.
+- Overall product verdict remains PARTIAL: three pending proposals remain, including
+  an inferior first candidate that omits human/historical notes; corrected later
+  versions do not remove that apply choice. Expanded desktop review overflows
+  (1689px at 1440px viewport); phone page-width check passes. Weekly reply took
+  299.26 seconds. No proposal accepted and no saved human notes lost.
+- Full report: [fix and day/week evaluation](docs/EVIDENCE_CONTINUITY_DAY_WEEK_EVALUATION.md).
+  Live verifiers: `/home/ubuntu/workagent-evidence-continuity-evidence/supplier-live-verified.json`
+  and `/home/ubuntu/workagent-day-week-evidence/verified-results.json`.
+- Grant -14: allocation $84.44992 within original $100; reservations $59.34388,
+  NOT billing; historical unknown generations remain three. Day/week used17
+  generations ($3.51764 reserved). Requested fix/evaluation complete; wider mission
+  unfinished. No engineering successor active. Next: unsafe intermediate-candidate
+  presentation/note preservation and web-owner desktop review containment.
+
+## Historical: changing supplier assignment — PARTIAL, evidence continuity gap
 
 Step 1 was exercised live on installed runtime `8137e18`, with five synthetic source
 texts, a human requirement correction, and one unattended check-in. WorkAgent
