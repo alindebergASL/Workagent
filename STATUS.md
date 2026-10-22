@@ -15,6 +15,27 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
+## Latest: fresh exercise #4 PASSED on the installed cancelled-receipt runtime
+
+- Full two-item changed-between-waves proof completed on runtime `8137e18` (exercise #4;
+  `exercise4-verified.json`, parent-executed read-only DB verification):
+  bake-sale (`d5ea6d4c`…/doc `95a355e0`…) and garden-fair (`29b68e16`…/doc `9459296b`…).
+- For BOTH items the DB timestamps prove the intended ordering: wave-1 human edit
+  (04:37:53/04:37:58Z) → first check-in note (04:44:32/04:44:13Z) → wave-2 human edit
+  (04:46:45/04:46:50Z) → second check-in note (04:52:44/04:53:49Z). Second runs
+  (`a31e3e2e`, `dd432e0a`) bound the wave-2 revisions; second notes carry both the
+  original human constraints and the wave-2 updates (nut-free + gluten-free/ramp; native
+  plants + pollinator/path). Both responsibilities ended `waiting_person` with no further
+  check-in; zero proposals; desktop + 390px-phone readbacks pass with no overflow.
+- Successor grant `-12` activated before the exercise (allocated authority **$74.93160**
+  of the same cumulative $100, +$5.58684 technical envelope; aggregate never reset;
+  reservations $48.99788 not billing; unknown generations back to the three historical).
+  Activation preserved all retained state byte-for-byte; predecessor revoked for new
+  sends only; no old attempts rebound.
+- This closes the cycle broken in exercise #3 (timing miss) and the stall fixed by
+  `8137e18`: the full Ask → work → edit → leave → continue → return-proven loop now has
+  a live PASS with DB-timestamp ordering evidence on both items.
+
 ## Latest: cancelled-receipt fix installed and live-verified
 
 - Runtime is now candidate `cancelled-receipts-20261022` at
@@ -74,8 +95,8 @@ Existing cumulative $100 product-evaluation ceiling remains in force.
   NEW ordinary admission bound to the latest human revision.
 - Commit `8137e18` freezes exactly the reviewed bytes (Python/tests match the v1 manifest;
   migration046 SHA-256 `ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad`).
-  Install + live-settlement verification completed (see top section); a fresh
-  changed-between-waves cycle remains outstanding.
+  Install + live-settlement verification completed; the fresh changed-between-waves
+  cycle passed as exercise #4 (see top section).
 - Evidence: `/home/ubuntu/workagent-cancelled-receipt-evidence/` (diagnosis, tasks,
   worker logs, RED/GREEN XML, replay reproduction, live baseline hashes, review results,
   final manifest). Disposable DBs `b2c1fc9a1169` (v2, old checksum) and `f55cf72dfe42` (v3)
