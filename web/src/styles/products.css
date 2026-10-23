@@ -953,6 +953,17 @@ textarea.fit-text {
 .proposal-earlier {
   box-shadow: none;
 }
+/* An acknowledgement reads as one line: its box beside its words, which
+   wrap beside it rather than under it. */
+.proposal-gate label.row {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+.proposal-gate label.row input {
+  flex: none;
+  margin-top: 0.2em;
+}
 
 /* A value the person changed since Workagent's last version. */
 /* A tint and underline read the same in the table and in phone cards. */

@@ -1099,9 +1099,17 @@ try {
       };
     });
     assert.ok(!order.diffInCard, "the full comparison sits in the decision");
+    // Visible without scrolling once the card is at the top of the
+    // screen: above the phone's tab bar, acknowledgements included.
+    const room = await page.evaluate(
+      () =>
+        innerHeight -
+        (document.querySelector(".tabbar")?.getBoundingClientRect().height ??
+          0),
+    );
     assert.ok(
-      order.applyAt <= 700,
-      `Apply is ${Math.round(order.applyAt)}px into the proposal on a phone`,
+      order.applyAt <= room,
+      `Apply is ${Math.round(order.applyAt)}px into the proposal on a phone (room ${Math.round(room)}px)`,
     );
     await expect(proposal.getByTestId("proposal-name")).toHaveText(
       "Proposed: Findings so far: the 10-day option",
@@ -1149,9 +1157,17 @@ try {
       "the others need two to three weeks.",
     ]);
     await expect(diff).not.toContainText("late twice last October");
-    await expect(
-      proposal.getByRole("button", { name: "Apply proposed version" }),
-    ).toBeEnabled();
+    // It replaces the person's own edit, so applying waits until they say
+    // they understand what it removes.
+    const applyIt = proposal.getByRole("button", {
+      name: "Apply proposed version",
+    });
+    await expect(applyIt).toBeDisabled();
+    await expect(proposal.getByTestId("proposal-removed")).toContainText(
+      "Lark & Co can deliver in 6 days",
+    );
+    await proposal.getByTestId("ack-removed").check();
+    await expect(applyIt).toBeEnabled();
     await proposal.scrollIntoViewIfNeeded();
     await page.screenshot({
       path: path.join(out, "08b-proposal-against-your-edit.png"),
