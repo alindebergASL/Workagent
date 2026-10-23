@@ -314,7 +314,7 @@ def test_latest_and_historical_approval_stay_separate(context):
     a,art=ready(context)
     q=s.request_revision(p,ws,art.id,cmd(RequestRevision,expected_work_version=a.work_version,base_revision_id=art.current_revision_id,instruction='Review next action'))
     cap=s.claim_run(p,ws,q.run.id); run=s.complete_run(cap,receipt().bodies)
-    accepted=s.accept_proposal(p,ws,run.proposal_id,cmd(AcceptProposal,expected_current_revision_id=art.current_revision_id))
+    accepted=s.accept_proposal(p,ws,run.proposal_id,cmd(AcceptProposal,expected_current_revision_id=art.current_revision_id,acknowledge_removed_content=True))
     edited=s.human_save(p,ws,art.id,cmd(HumanSave,expected_current_revision_id=accepted.current_revision_id,body=Body(title='Later human text',blocks=[Block(block_id='h',kind='paragraph',text='Preserve me')])))
     a=s.get_assignment(p,ws,a.id)
     new=s.request_revision(p,ws,art.id,cmd(RequestRevision,expected_work_version=a.work_version,base_revision_id=edited.current_revision_id,instruction='A later run'))

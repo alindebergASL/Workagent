@@ -194,13 +194,30 @@ export const productApi = {
         },
       ),
     ),
-  accept: (ws: string, pid: string, id: string, base: string) =>
+  accept: (
+    ws: string,
+    pid: string,
+    id: string,
+    base: string,
+    // Unacknowledged by default; only the person's given acks are true.
+    acks: {
+      acknowledge_removed_content?: true;
+      acknowledge_older_proposal?: true;
+    } = {},
+  ) =>
     unwrap(
       client.POST(
         "/v1/workspaces/{workspace_id}/proposals/{proposal_id}/accept",
         {
           params: { path: { workspace_id: ws, proposal_id: pid } },
-          body: { ...command(id), expected_current_revision_id: base },
+          body: {
+            ...command(id),
+            expected_current_revision_id: base,
+            acknowledge_removed_content:
+              acks.acknowledge_removed_content === true,
+            acknowledge_older_proposal:
+              acks.acknowledge_older_proposal === true,
+          },
         },
       ),
     ),

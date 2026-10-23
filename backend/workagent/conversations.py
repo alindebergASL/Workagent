@@ -47,7 +47,7 @@ def profile(name=PROFILE):
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('composition.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
+        for name in ('composition.py', 'proposal_review.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):

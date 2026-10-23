@@ -258,7 +258,7 @@ def test_requested_rename_replacement_current_first_and_exact_history_approval(c
     history = s.history(p, ws, art.id).items
     assert any(r.id == art.current_revision_id and r.body == initial for r in history)
     assert any(r.id == human.current_revision_id and r.body == human_body for r in history)
-    approved = s.accept_proposal(p, ws, proposal.id, cmd(AcceptProposal, expected_current_revision_id=human.current_revision_id))
+    approved = s.accept_proposal(p, ws, proposal.id, cmd(AcceptProposal, expected_current_revision_id=human.current_revision_id, acknowledge_removed_content=True))
     assert approved.current_revision.body == proposal.body
     assert s.get_assignment(p, ws, a.id).responsibility.runs[-1].state == 'readback_verified'
     assert 'requested title' in POLICY and 'replacement' in POLICY and 'history' in POLICY

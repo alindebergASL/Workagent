@@ -31,6 +31,7 @@ export type ErrorCode =
   | "unsupported_operation"
   | "action_unresolved"
   | "command_conflict"
+  | "review_required"
   // adapter-level codes (documented, not domain semantics)
   | "unauthenticated"
   | "invalid_request"

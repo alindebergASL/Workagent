@@ -366,7 +366,7 @@ def test_prepared_and_approved_products_never_complete_responsibility(lifecycle)
     prepared = s.get_responsibility(p, ws, a.id)
     assert prepared.lifecycle.outcome_status != 'completed'
     approved = s.accept_proposal(p, ws, proposal.id, cmd(AcceptProposal,
-        expected_current_revision_id=table.current_revision_id))
+        expected_current_revision_id=table.current_revision_id,acknowledge_removed_content=True))
     current = s.get_responsibility(p, ws, a.id)
     assert current.lifecycle.observations[0].observed_version == approved.current_revision_id
     assert current.lifecycle.review_required and current.lifecycle.outcome_status == 'needs_review'

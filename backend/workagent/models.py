@@ -26,6 +26,7 @@ class ErrorCode(str, Enum):
     source_unavailable = 'source_unavailable'
     decision_required = 'decision_required'
     decision_stale = 'decision_stale'
+    review_required = 'review_required'
     budget_exhausted = 'budget_exhausted'
     connection_required = 'connection_required'
     unsupported_operation = 'unsupported_operation'
@@ -654,6 +655,18 @@ class Artifact(Model):
     observed_at: AwareDatetime = Field(default_factory=now)
 
 
+class RemovedContent(Model):
+    path: str
+    before: str = Field(max_length=500)
+
+
+class ProposalReview(Model):
+    latest_pending_proposal_id: Id | None
+    is_latest: bool
+    removed_content: list[RemovedContent] = Field(max_length=20)
+    removed_content_count: int = Field(ge=0)
+
+
 class Proposal(Model):
     id: Id
     workspace_id: Id
@@ -669,6 +682,8 @@ class Proposal(Model):
     status: Literal['pending', 'accepted', 'dismissed'] = 'pending'
     accepted_revision_id: Id | None = None
     created_at: AwareDatetime = Field(default_factory=now)
+    # Read projection only; never part of persisted proposal bytes.
+    review: ProposalReview | None = None
 
 
 class HumanSave(Command):
@@ -684,6 +699,8 @@ class RequestRevision(Command):
 
 class AcceptProposal(Command):
     expected_current_revision_id: Id
+    acknowledge_removed_content: bool = False
+    acknowledge_older_proposal: bool = False
 
 
 class DismissProposal(Command):

@@ -9,6 +9,7 @@ MESSAGES = {
     'not_found_or_not_authorized': ('Resource unavailable.', 'Check your workspace and current access.'),
     'unauthenticated': ('Authentication required.', 'Provide the configured local bearer credential.'),
     'version_conflict': ('The current version changed.', 'Refresh current work and review a new proposal against that base.'),
+    'review_required': ('This proposal needs explicit review.', 'Refresh proposals and acknowledge removed content or the older candidate choice before accepting.'),
     'command_conflict': ('This command ID has a different payload.', 'Use the original payload or a new command ID for a different intent.'),
     'source_changed': ('A selected source version changed.', 'Refresh sources and start scoped work with current dependencies.'),
     'source_unavailable': ('A selected source is unavailable.', 'Restore source access before continuing.'),

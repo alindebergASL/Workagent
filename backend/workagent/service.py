@@ -39,6 +39,8 @@ def fixture_pins():
 
 
 def encoded(value):
+    if isinstance(value, Proposal):
+        return Jsonb(value.model_dump(mode='json', exclude={'review'}))
     return Jsonb(value.model_dump(mode='json') if isinstance(value, Model) else value)
 
 
@@ -172,6 +174,10 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
+        if op=='accept_proposal':
+            # Default-false additive flags preserve historical receipt hashes.
+            for flag in ('acknowledge_removed_content', 'acknowledge_older_proposal'):
+                if not payload.get(flag): payload.pop(flag, None)
         if op=='post_message':
             # Additive optional inputs must not change legacy command replay hashes.
             if payload.get('operation') is None: payload.pop('operation',None)
@@ -315,10 +321,35 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
     def proposals(self,p,ws,artifact_id,cursor=None,limit=25):
         with self.db.transaction() as c:
             self._scope(c,p,ws)
-            self._artifact(c,p,ws,artifact_id)
+            artifact,owner=self._artifact(c,p,ws,artifact_id)
+            latest=self._latest_review_candidate(c,p,ws,artifact,owner)
             rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
-            items=[self._proposal(c,p,ws,r['id'])[0] for r in rows[:limit]]
+            from .proposal_review import review_proposal
+            items=[]
+            for r in rows[:limit]:
+                proposal,_,_=self._proposal(c,p,ws,r['id'])
+                base=self._revision(c,p,ws,artifact,owner,proposal.base_revision_id)
+                items.append(proposal.model_copy(update={'review':review_proposal(proposal,base.body,latest)}))
             return ProposalPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
+
+    def _latest_review_candidate(self,c,p,ws,artifact,owner):
+        # Full same-base set, independent of UUID display pagination. Latest
+        # means chronological only, never best. Scope/authority is checked first.
+        rows=c.execute("""SELECT id,data->'source_dependencies' AS source_dependencies
+            FROM proposals WHERE workspace_id=%s
+            AND artifact_id=%s AND base_revision_id=%s AND data->>'status'='pending'
+            ORDER BY (data->>'created_at')::timestamptz DESC,id DESC""",
+            (ws,artifact['id'],artifact['current_revision_id'])).fetchall()
+        for row in rows:
+            dependencies=[SourceRef.model_validate(ref) for ref in row['source_dependencies']]
+            try:
+                self._dependencies(c,p,ws,owner,dependencies)
+            except DomainError as exc:
+                if exc.code not in (ErrorCode.not_found_or_not_authorized,ErrorCode.source_unavailable):
+                    raise
+                continue
+            return row['id']
+        return None
 
     def _cas(self,row,expected,proposal_id=None):
         if row['current_revision_id'] != expected:
@@ -371,6 +402,10 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
     def accept_proposal(self,p,ws,proposal_id,cmd):
         def mutate(c,state):
             proposal,row,a=state
+            # Workspace lock already serializes domain writers; explicitly lock
+            # and reread the artifact before recomputing the review decision.
+            row=c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s FOR UPDATE',
+                          (ws,proposal.artifact_id)).fetchone()
             self._cas(row,cmd.expected_current_revision_id,proposal.id)
             # Supplying the new current ID is NOT an implicit rebase of old bytes.
             self._cas(row,proposal.base_revision_id,proposal.id)
@@ -378,11 +413,22 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
                 raise DomainError('decision_stale')
             self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
             self._validate_flexible_body(c,p,ws,a,proposal.body)
-            self._validate_flexible_edit(self._revision(c,p,ws,row,a).body,proposal.body)
+            base=self._revision(c,p,ws,row,a)
+            self._validate_flexible_edit(base.body,proposal.body)
+            from .proposal_review import review_proposal
+            review=review_proposal(proposal,base.body,self._latest_review_candidate(c,p,ws,row,a))
+            required=[]
+            if review.removed_content_count and not cmd.acknowledge_removed_content:
+                required.append('acknowledge_removed_content')
+            if not review.is_latest and not cmd.acknowledge_older_proposal:
+                required.append('acknowledge_older_proposal')
+            if required:
+                raise DomainError('review_required',proposal_id=proposal.id,fields=required)
             result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
             proposal.status='accepted'
             proposal.accepted_revision_id=result.current_revision_id
-            c.execute('UPDATE proposals SET data=%s WHERE workspace_id=%s AND id=%s',(encoded(proposal),ws,proposal.id))
+            c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
+                      (encoded({'status':'accepted','accepted_revision_id':result.current_revision_id}),ws,proposal.id))
             self._event(c,p,ws,'accept_proposal',proposal.id)
             return result
         return self._command(p,ws,'accept_proposal',{'proposal_id':proposal_id},cmd,Artifact,lambda c:self._proposal(c,p,ws,proposal_id),mutate)
@@ -394,7 +440,8 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
             if proposal.status != 'pending':
                 raise DomainError('decision_stale')
             proposal.status='dismissed'
-            c.execute('UPDATE proposals SET data=%s WHERE workspace_id=%s AND id=%s',(encoded(proposal),ws,proposal.id))
+            c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
+                      (encoded({'status':'dismissed'}),ws,proposal.id))
             self._event(c,p,ws,cmd.resolution,proposal.id)
             return proposal
         return self._command(p,ws,'dismiss_proposal',{'proposal_id':proposal_id},cmd,Proposal,lambda c:self._proposal(c,p,ws,proposal_id),mutate)

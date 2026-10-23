@@ -100,7 +100,7 @@ def test_human_current_pending_stale_and_resolution(context):
     # The list order is by ID, so select the actual pending record.
     pending = next(pr for pr in s.proposals(p,ws,art.id).items if pr.status == 'pending')
     accepted = s.accept_proposal(p,ws,pending.id,cmd(AcceptProposal,
-        expected_current_revision_id=edited.current_revision_id))
+        expected_current_revision_id=edited.current_revision_id,acknowledge_removed_content=True))
     result = read(s,p,ws).items[0]
     assert result.decision is None and result.revision_id == accepted.current_revision_id
     s.cancel_conversation(p,ws,cv.id,cmd(CancelConversation,expected_work_version=cv.work_version))

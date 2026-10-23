@@ -93,7 +93,7 @@ def test_frozen_pending_evidence_invalidated_on_change(context, change, schedule
         cap, ctx = claim(context, cv)
     assert 'Pending evidence only' in json.dumps(read(ctx, 'work_area'))
     if change == 'accept':
-        s.accept_proposal(p, ws, proposal.id, cmd(AcceptProposal, expected_current_revision_id=art.current_revision_id))
+        s.accept_proposal(p, ws, proposal.id, cmd(AcceptProposal, expected_current_revision_id=art.current_revision_id, acknowledge_removed_content=True))
     elif change == 'dismiss':
         s.dismiss_proposal(p, ws, proposal.id, cmd(DismissProposal,
             expected_current_revision_id=art.current_revision_id, resolution='dismiss'))
@@ -112,7 +112,7 @@ def test_only_current_pending_bodies_enter_evidence(context):
     s.dismiss_proposal(p, ws, dismissed.id, cmd(DismissProposal,
         expected_current_revision_id=art.current_revision_id, resolution='dismiss'))
     accepted = propose(context, cv, art, 'ACCEPTED_BODY')
-    s.accept_proposal(p, ws, accepted.id, cmd(AcceptProposal, expected_current_revision_id=art.current_revision_id))
+    s.accept_proposal(p, ws, accepted.id, cmd(AcceptProposal, expected_current_revision_id=art.current_revision_id, acknowledge_removed_content=True))
     art = s.get_artifact(p, ws, art.id)
     pending = propose(context, cv, art, 'CURRENT_PENDING_BODY')
     activate(context, cv)
