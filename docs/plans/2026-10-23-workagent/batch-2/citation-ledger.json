@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://textual.textualize.io/guide/testing",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 2,
+      "url": "https://textual.textualize.io/guide/workers",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 3,
+      "url": "https://python-prompt-toolkit.readthedocs.io/en/master/pages/advanced_topics/unit_testing.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 4,
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/cli-commands",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 5,
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/slash-commands",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 6,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 7,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/cron",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 8,
+      "url": "https://docs.temporal.io/workflow-execution",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 9,
+      "url": "https://docs.temporal.io/activity-execution",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 10,
+      "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 11,
+      "url": "https://www.postgresql.org/docs/current/sql-notify.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 12,
+      "url": "https://openai.com/index/introducing-dots",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 13,
+      "url": "https://www.meta.com/help/artificial-intelligence/1331373868832401",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 14,
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 15,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/goals",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 16,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/background-sessions",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 17,
+      "url": "https://docs.python.org/3/howto/curses.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 18,
+      "url": "https://datatracker.ietf.org/doc/html/rfc6455",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 19,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/cli",
+      "title": "",
+      "accessed": "2026-10-23"
+    }
+  ]
+}

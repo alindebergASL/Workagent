@@ -1,0 +1,24 @@
+{
+  "batch-2": {
+    "manifest_head": "d4d019c4b9bebca9ca8b49d1466a92fab7514aff",
+    "files_checked": 41,
+    "changed_since_research": [
+      "STATUS.md"
+    ]
+  },
+  "batch-3": {
+    "manifest_head": "d4d019c4b9bebca9ca8b49d1466a92fab7514aff",
+    "files_checked": 32,
+    "changed_since_research": [
+      "STATUS.md"
+    ]
+  },
+  "quotes": {
+    "batch2": 18,
+    "batch3": 42,
+    "unique_substantive_source_urls": 58
+  },
+  "batch2_acceptance_rows": 35,
+  "current_head": "24afaedb7a6bcfe52063c013c4b85557ad256151",
+  "last_migration": "046_cancelled_response_observation.sql"
+}

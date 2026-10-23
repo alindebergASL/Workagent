@@ -1,0 +1,2012 @@
+{
+  "read_at": "2026-10-23T01:31:30.621378+00:00",
+  "repo": "/home/ubuntu/workagent-general-review-20261022",
+  "head": "d4d019c4b9bebca9ca8b49d1466a92fab7514aff",
+  "note": "Concurrent parent safety work; per-file digests identify inspected bytes. No checkout or mutation.",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "84c1accce39332485ec18e423994323aaf24f451ea3814a8e334b288c245e4b0",
+      "lines": 32
+    },
+    {
+      "path": "STATUS.md",
+      "sha256": "21216992dc40b5b18bf8d0406666f51f8c7d859744baf30eea21dd5fccf44534",
+      "lines": 893
+    },
+    {
+      "path": "docs/PRODUCT_CONTRACT.md",
+      "sha256": "91c48fbe3f3ee47f268eddeac504f53f24a39cf7e37f887f21f052c8cc30f505",
+      "lines": 53
+    },
+    {
+      "path": "docs/BUILD_PLAN.md",
+      "sha256": "475b53367249ee52d7df8d255f0214a020e67f03906c61777d25ec70054a717a",
+      "lines": 35
+    },
+    {
+      "path": "docs/EVIDENCE_CONTINUITY_DAY_WEEK_EVALUATION.md",
+      "sha256": "6b76322422d4137eb0d77d142d3871bfe3c2a32d7da240e15916f1b118a9d37c",
+      "lines": 65
+    },
+    {
+      "path": "contracts/alpha-capability-catalog.json",
+      "sha256": "b22360f4cd618bcb285d4f1dc9ad1f3fae68b879c58676bb57f2a700a1169d40",
+      "lines": 1476
+    },
+    {
+      "path": "contracts/message-attachments.json",
+      "sha256": "05fe72cfbafa40e67550c672aff41d545568997324f9d2126c2e0af07778593d",
+      "lines": 40
+    },
+    {
+      "path": "backend/workagent/composition.py",
+      "sha256": "f10ba47830106a1d28d89681fea9781d4fda699e9042a1af03376a04ed73a635",
+      "lines": 307,
+      "definitions": [
+        {
+          "name": "ReadDecision",
+          "line": 12,
+          "end_line": 14
+        },
+        {
+          "name": "DiscoverCapabilities",
+          "line": 21,
+          "end_line": 22
+        },
+        {
+          "name": "LoadSkill",
+          "line": 25,
+          "end_line": 29
+        },
+        {
+          "name": "ReadContext",
+          "line": 32,
+          "end_line": 34
+        },
+        {
+          "name": "ReadSavedWork",
+          "line": 37,
+          "end_line": 39
+        },
+        {
+          "name": "DiscoverSavedWork",
+          "line": 42,
+          "end_line": 45
+        },
+        {
+          "name": "SearchWorkContext",
+          "line": 48,
+          "end_line": 51
+        },
+        {
+          "name": "InspectJSON",
+          "line": 54,
+          "end_line": 58
+        },
+        {
+          "name": "FetchPublicURL",
+          "line": 61,
+          "end_line": 64
+        },
+        {
+          "name": "AlphaReply",
+          "line": 70,
+          "end_line": 72
+        },
+        {
+          "name": "AreaIdentification",
+          "line": 75,
+          "end_line": 78
+        },
+        {
+          "name": "AreaReply",
+          "line": 81,
+          "end_line": 82
+        },
+        {
+          "name": "AreaPublish",
+          "line": 85,
+          "end_line": 86
+        },
+        {
+          "name": "AlphaStop",
+          "line": 89,
+          "end_line": 90
+        },
+        {
+          "name": "RecordingPlan",
+          "line": 93,
+          "end_line": 104
+        },
+        {
+          "name": "RecordResponsibility",
+          "line": 107,
+          "end_line": 111
+        },
+        {
+          "name": "AlphaDecision",
+          "line": 114,
+          "end_line": 117
+        },
+        {
+          "name": "OutcomeEvidence",
+          "line": 120,
+          "end_line": 122
+        },
+        {
+          "name": "AdvanceResponsibility",
+          "line": 125,
+          "end_line": 130
+        },
+        {
+          "name": "ContinuityDecision",
+          "line": 133,
+          "end_line": 134
+        },
+        {
+          "name": "CapabilityDescriptor",
+          "line": 137,
+          "end_line": 145
+        },
+        {
+          "name": "_legacy_read_schema",
+          "line": 171,
+          "end_line": 180
+        },
+        {
+          "name": "continuity_enabled",
+          "line": 187,
+          "end_line": 188
+        },
+        {
+          "name": "enabled",
+          "line": 191,
+          "end_line": 192
+        },
+        {
+          "name": "descriptors",
+          "line": 195,
+          "end_line": 219
+        },
+        {
+          "name": "discovery",
+          "line": 222,
+          "end_line": 231
+        },
+        {
+          "name": "context_catalog",
+          "line": 234,
+          "end_line": 240
+        },
+        {
+          "name": "_discover",
+          "line": 243,
+          "end_line": 244
+        },
+        {
+          "name": "_load",
+          "line": 247,
+          "end_line": 249
+        },
+        {
+          "name": "_read",
+          "line": 252,
+          "end_line": 261
+        },
+        {
+          "name": "_inspect_json",
+          "line": 264,
+          "end_line": 272
+        },
+        {
+          "name": "_fetch_public_url",
+          "line": 275,
+          "end_line": 277
+        },
+        {
+          "name": "execute_read",
+          "line": 284,
+          "end_line": 287
+        },
+        {
+          "name": "publication_text",
+          "line": 290,
+          "end_line": 307
+        },
+        {
+          "name": "timestamp",
+          "line": 102,
+          "end_line": 104
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/general_responses.py",
+      "sha256": "0d4b9bff313d8db94d2a85194aeaf87c46aa5878bc278edc993fc1e84ad106e1",
+      "lines": 404,
+      "definitions": [
+        {
+          "name": "consumer_hash",
+          "line": 19,
+          "end_line": 24
+        },
+        {
+          "name": "verify_route_record",
+          "line": 27,
+          "end_line": 53
+        },
+        {
+          "name": "validate_grant",
+          "line": 56,
+          "end_line": 64
+        },
+        {
+          "name": "check_pins",
+          "line": 67,
+          "end_line": 87
+        },
+        {
+          "name": "standing",
+          "line": 90,
+          "end_line": 91
+        },
+        {
+          "name": "permits_conversation",
+          "line": 94,
+          "end_line": 97
+        },
+        {
+          "name": "scope_predicate",
+          "line": 100,
+          "end_line": 109
+        },
+        {
+          "name": "cancelled_rejection_is_settled",
+          "line": 112,
+          "end_line": 142
+        },
+        {
+          "name": "known_input_rejection_is_settled",
+          "line": 145,
+          "end_line": 181
+        },
+        {
+          "name": "completed_steps_are_settled",
+          "line": 184,
+          "end_line": 224
+        },
+        {
+          "name": "has_unresolved_attempt",
+          "line": 227,
+          "end_line": 247
+        },
+        {
+          "name": "admission",
+          "line": 250,
+          "end_line": 283
+        },
+        {
+          "name": "exact_target",
+          "line": 286,
+          "end_line": 296
+        },
+        {
+          "name": "resolve_selection",
+          "line": 299,
+          "end_line": 404
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/responses_worker.py",
+      "sha256": "dbf5bfcd68353374087b5ea956f2e57bd99b012fbb8b1d3a16fa985f97430b0d",
+      "lines": 439,
+      "definitions": [
+        {
+          "name": "consumer_hash",
+          "line": 26,
+          "end_line": 31
+        },
+        {
+          "name": "dispatch_diagnostic",
+          "line": 34,
+          "end_line": 46
+        },
+        {
+          "name": "instructions",
+          "line": 49,
+          "end_line": 56
+        },
+        {
+          "name": "instruction_hash",
+          "line": 59,
+          "end_line": 60
+        },
+        {
+          "name": "validate_pins",
+          "line": 63,
+          "end_line": 70
+        },
+        {
+          "name": "assemble_metadata_context",
+          "line": 73,
+          "end_line": 92
+        },
+        {
+          "name": "PrivateState",
+          "line": 95,
+          "end_line": 142
+        },
+        {
+          "name": "load_credential",
+          "line": 145,
+          "end_line": 162
+        },
+        {
+          "name": "ResponsesWorker",
+          "line": 165,
+          "end_line": 439
+        },
+        {
+          "name": "__init__",
+          "line": 97,
+          "end_line": 102
+        },
+        {
+          "name": "_name",
+          "line": 104,
+          "end_line": 105
+        },
+        {
+          "name": "_open",
+          "line": 107,
+          "end_line": 113
+        },
+        {
+          "name": "lock",
+          "line": 116,
+          "end_line": 122
+        },
+        {
+          "name": "load",
+          "line": 124,
+          "end_line": 131
+        },
+        {
+          "name": "save",
+          "line": 133,
+          "end_line": 142
+        },
+        {
+          "name": "__init__",
+          "line": 166,
+          "end_line": 173
+        },
+        {
+          "name": "_hook",
+          "line": 175,
+          "end_line": 176
+        },
+        {
+          "name": "_authorize_transport",
+          "line": 178,
+          "end_line": 181
+        },
+        {
+          "name": "run",
+          "line": 183,
+          "end_line": 188
+        },
+        {
+          "name": "_yield_if_settled",
+          "line": 190,
+          "end_line": 202
+        },
+        {
+          "name": "_run",
+          "line": 204,
+          "end_line": 279
+        },
+        {
+          "name": "_deferred",
+          "line": 281,
+          "end_line": 286
+        },
+        {
+          "name": "_fresh",
+          "line": 288,
+          "end_line": 296
+        },
+        {
+          "name": "_visit_deadline",
+          "line": 298,
+          "end_line": 304
+        },
+        {
+          "name": "_http_ready",
+          "line": 306,
+          "end_line": 308
+        },
+        {
+          "name": "_http_window",
+          "line": 310,
+          "end_line": 324
+        },
+        {
+          "name": "_reserve_http",
+          "line": 326,
+          "end_line": 331
+        },
+        {
+          "name": "_after_reservation_ready",
+          "line": 333,
+          "end_line": 350
+        },
+        {
+          "name": "_step",
+          "line": 352,
+          "end_line": 431
+        },
+        {
+          "name": "cancel",
+          "line": 433,
+          "end_line": 439
+        },
+        {
+          "name": "report",
+          "line": 336,
+          "end_line": 340
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/public_retrieval.py",
+      "sha256": "10a667962a7d143766e59495665afba943f6aab40a7e8eaf069838d255bf148d",
+      "lines": 250,
+      "definitions": [
+        {
+          "name": "Rejected",
+          "line": 32,
+          "end_line": 33
+        },
+        {
+          "name": "destination",
+          "line": 36,
+          "end_line": 58
+        },
+        {
+          "name": "public_address",
+          "line": 61,
+          "end_line": 77
+        },
+        {
+          "name": "resolve",
+          "line": 80,
+          "end_line": 86
+        },
+        {
+          "name": "PinnedHTTPS",
+          "line": 89,
+          "end_line": 104
+        },
+        {
+          "name": "PageText",
+          "line": 107,
+          "end_line": 135
+        },
+        {
+          "name": "extract",
+          "line": 138,
+          "end_line": 153
+        },
+        {
+          "name": "empty_result",
+          "line": 156,
+          "end_line": 163
+        },
+        {
+          "name": "retrieve",
+          "line": 166,
+          "end_line": 225
+        },
+        {
+          "name": "fetch_public_url",
+          "line": 228,
+          "end_line": 244
+        },
+        {
+          "name": "__init__",
+          "line": 90,
+          "end_line": 93
+        },
+        {
+          "name": "connect",
+          "line": 95,
+          "end_line": 104
+        },
+        {
+          "name": "__init__",
+          "line": 108,
+          "end_line": 113
+        },
+        {
+          "name": "handle_starttag",
+          "line": 115,
+          "end_line": 121
+        },
+        {
+          "name": "handle_endtag",
+          "line": 123,
+          "end_line": 129
+        },
+        {
+          "name": "handle_data",
+          "line": 131,
+          "end_line": 135
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/local_operations.py",
+      "sha256": "398f8c503c1ff89dbf976b1f3bb7911e8ead6b4602043a02977cd23a868c7e7e",
+      "lines": 74,
+      "definitions": [
+        {
+          "name": "OperationRejected",
+          "line": 13,
+          "end_line": 14
+        },
+        {
+          "name": "reconcile_csv",
+          "line": 22,
+          "end_line": 74
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/wasm_tool.py",
+      "sha256": "4a102ffd9f3dc41bafe453f731cf5d2a8238b2e307f7e052d415b139c4ffdadc",
+      "lines": 80,
+      "definitions": [
+        {
+          "name": "ToolRejected",
+          "line": 19,
+          "end_line": 22
+        },
+        {
+          "name": "run_wasm_tool",
+          "line": 25,
+          "end_line": 80
+        },
+        {
+          "name": "__init__",
+          "line": 20,
+          "end_line": 22
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/product_models.py",
+      "sha256": "eb21d883ce5ed7d604595f721c7c4594616314826e2a5a00e106cfeefe17ff80",
+      "lines": 293,
+      "definitions": [
+        {
+          "name": "InputField",
+          "line": 14,
+          "end_line": 19
+        },
+        {
+          "name": "ProductTarget",
+          "line": 21,
+          "end_line": 28
+        },
+        {
+          "name": "ReconcileCSV",
+          "line": 30,
+          "end_line": 40
+        },
+        {
+          "name": "RunWasm",
+          "line": 42,
+          "end_line": 54
+        },
+        {
+          "name": "PublishArtifact",
+          "line": 56,
+          "end_line": 64
+        },
+        {
+          "name": "TableBody",
+          "line": 69,
+          "end_line": 89
+        },
+        {
+          "name": "FileBody",
+          "line": 91,
+          "end_line": 114
+        },
+        {
+          "name": "ToolBody",
+          "line": 116,
+          "end_line": 128
+        },
+        {
+          "name": "ProductResult",
+          "line": 130,
+          "end_line": 135
+        },
+        {
+          "name": "CSVObservation",
+          "line": 137,
+          "end_line": 145
+        },
+        {
+          "name": "WasmObservation",
+          "line": 147,
+          "end_line": 159
+        },
+        {
+          "name": "ModelSelectionBinding",
+          "line": 161,
+          "end_line": 167
+        },
+        {
+          "name": "ProductObservation",
+          "line": 169,
+          "end_line": 183
+        },
+        {
+          "name": "WasmObservationResponse",
+          "line": 185,
+          "end_line": 198
+        },
+        {
+          "name": "ProductObservationResponse",
+          "line": 200,
+          "end_line": 214
+        },
+        {
+          "name": "ObservationReadback",
+          "line": 216,
+          "end_line": 227
+        },
+        {
+          "name": "ResponseStepObservation",
+          "line": 229,
+          "end_line": 237
+        },
+        {
+          "name": "RetainedLocalResult",
+          "line": 240,
+          "end_line": 247
+        },
+        {
+          "name": "AdaptiveVerificationCheck",
+          "line": 250,
+          "end_line": 253
+        },
+        {
+          "name": "AdaptiveVerification",
+          "line": 255,
+          "end_line": 263
+        },
+        {
+          "name": "AdaptiveStep",
+          "line": 265,
+          "end_line": 271
+        },
+        {
+          "name": "AdaptiveExecution",
+          "line": 273,
+          "end_line": 282
+        },
+        {
+          "name": "TurnState",
+          "line": 284,
+          "end_line": 293
+        },
+        {
+          "name": "paired",
+          "line": 25,
+          "end_line": 28
+        },
+        {
+          "name": "initial",
+          "line": 35,
+          "end_line": 40
+        },
+        {
+          "name": "shape",
+          "line": 49,
+          "end_line": 54
+        },
+        {
+          "name": "bound",
+          "line": 61,
+          "end_line": 64
+        },
+        {
+          "name": "bounded",
+          "line": 79,
+          "end_line": 89
+        },
+        {
+          "name": "exact_bytes",
+          "line": 99,
+          "end_line": 114
+        },
+        {
+          "name": "form",
+          "line": 125,
+          "end_line": 128
+        },
+        {
+          "name": "transport_observation",
+          "line": 222,
+          "end_line": 227
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/products.py",
+      "sha256": "e18963d5302a3f4ac8b6f5a2b6d133af90871040767e2e95a7257011bb61a899",
+      "lines": 735,
+      "definitions": [
+        {
+          "name": "byte_hash",
+          "line": 15,
+          "end_line": 16
+        },
+        {
+          "name": "explanation_readback",
+          "line": 19,
+          "end_line": 29
+        },
+        {
+          "name": "adaptive_readback",
+          "line": 32,
+          "end_line": 66
+        },
+        {
+          "name": "turn_state",
+          "line": 69,
+          "end_line": 148
+        },
+        {
+          "name": "Products",
+          "line": 151,
+          "end_line": 735
+        },
+        {
+          "name": "local_tool_registry",
+          "line": 152,
+          "end_line": 156
+        },
+        {
+          "name": "_product_base",
+          "line": 158,
+          "end_line": 173
+        },
+        {
+          "name": "_local_input",
+          "line": 175,
+          "end_line": 186
+        },
+        {
+          "name": "_calculate_product",
+          "line": 188,
+          "end_line": 225
+        },
+        {
+          "name": "execute_local_product",
+          "line": 227,
+          "end_line": 261
+        },
+        {
+          "name": "_publish_product",
+          "line": 263,
+          "end_line": 315
+        },
+        {
+          "name": "stage_general_product",
+          "line": 317,
+          "end_line": 414
+        },
+        {
+          "name": "_new_draft_results",
+          "line": 416,
+          "end_line": 434
+        },
+        {
+          "name": "_publish_new_draft",
+          "line": 436,
+          "end_line": 452
+        },
+        {
+          "name": "_own_new_drafts",
+          "line": 454,
+          "end_line": 489
+        },
+        {
+          "name": "complete_general_product",
+          "line": 491,
+          "end_line": 596
+        },
+        {
+          "name": "_publish_continuity_materials",
+          "line": 598,
+          "end_line": 616
+        },
+        {
+          "name": "stop_general_budget",
+          "line": 618,
+          "end_line": 664
+        },
+        {
+          "name": "fail_local_turn",
+          "line": 666,
+          "end_line": 674
+        },
+        {
+          "name": "get_product_observation",
+          "line": 676,
+          "end_line": 705
+        },
+        {
+          "name": "download_product",
+          "line": 707,
+          "end_line": 735
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/evidence_context.py",
+      "sha256": "e7fe28f18f8484763195c21814e104a59efd38330468d48ab9e53a100e894359",
+      "lines": 115,
+      "definitions": [
+        {
+          "name": "materialize",
+          "line": 22,
+          "end_line": 115
+        },
+        {
+          "name": "bounded",
+          "line": 37,
+          "end_line": 44
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/work_context.py",
+      "sha256": "d0da994d788327fe60f290757016e04ddebfbdcb7b1baee7ec0566206a854dc1",
+      "lines": 138,
+      "definitions": [
+        {
+          "name": "permitted_conversations",
+          "line": 17,
+          "end_line": 24
+        },
+        {
+          "name": "_eligible",
+          "line": 27,
+          "end_line": 32
+        },
+        {
+          "name": "_material",
+          "line": 35,
+          "end_line": 49
+        },
+        {
+          "name": "index",
+          "line": 52,
+          "end_line": 85
+        },
+        {
+          "name": "_descriptor",
+          "line": 88,
+          "end_line": 92
+        },
+        {
+          "name": "search",
+          "line": 95,
+          "end_line": 121
+        },
+        {
+          "name": "validate_consumed",
+          "line": 124,
+          "end_line": 138
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/conversation_context.py",
+      "sha256": "c6a52c9d1c5b39fa1686c0a1e7117975b20d79cf4b372a868f1159602729eba2",
+      "lines": 57,
+      "definitions": [
+        {
+          "name": "bound_context",
+          "line": 10,
+          "end_line": 57
+        },
+        {
+          "name": "size",
+          "line": 34,
+          "end_line": 35
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/request_packing.py",
+      "sha256": "e130a18b185209b41d96ccb1355d3311200ad715393ae88b25ee7654fab4625b",
+      "lines": 205,
+      "definitions": [
+        {
+          "name": "_encoder",
+          "line": 39,
+          "end_line": 49
+        },
+        {
+          "name": "estimate",
+          "line": 52,
+          "end_line": 54
+        },
+        {
+          "name": "_measure",
+          "line": 57,
+          "end_line": 59
+        },
+        {
+          "name": "request_metrics",
+          "line": 62,
+          "end_line": 81
+        },
+        {
+          "name": "_deduplicate_bodies",
+          "line": 84,
+          "end_line": 111
+        },
+        {
+          "name": "project_context",
+          "line": 114,
+          "end_line": 150
+        },
+        {
+          "name": "_log",
+          "line": 153,
+          "end_line": 162
+        },
+        {
+          "name": "prepare_selection",
+          "line": 165,
+          "end_line": 193
+        },
+        {
+          "name": "check_final",
+          "line": 196,
+          "end_line": 205
+        },
+        {
+          "name": "visit",
+          "line": 87,
+          "end_line": 95
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/saved_work.py",
+      "sha256": "36ed86cbc2121edfebf1b6855e5ef3331323f28eb5356e840f2b763252348f77",
+      "lines": 90,
+      "definitions": [
+        {
+          "name": "index",
+          "line": 12,
+          "end_line": 31
+        },
+        {
+          "name": "authorize",
+          "line": 34,
+          "end_line": 46
+        },
+        {
+          "name": "discover",
+          "line": 49,
+          "end_line": 53
+        },
+        {
+          "name": "reads",
+          "line": 56,
+          "end_line": 62
+        },
+        {
+          "name": "was_read",
+          "line": 65,
+          "end_line": 67
+        },
+        {
+          "name": "revalidate_reads",
+          "line": 70,
+          "end_line": 78
+        },
+        {
+          "name": "result",
+          "line": 81,
+          "end_line": 90
+        },
+        {
+          "name": "number",
+          "line": 59,
+          "end_line": 59
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/skill_catalog.py",
+      "sha256": "3b574970f61ca259f3d73aeb12054ae9a09e1c005e01958bad173e9bac60be26",
+      "lines": 115,
+      "definitions": [
+        {
+          "name": "SkillGuidance",
+          "line": 13,
+          "end_line": 22
+        },
+        {
+          "name": "skill_hash",
+          "line": 100,
+          "end_line": 101
+        },
+        {
+          "name": "catalog",
+          "line": 104,
+          "end_line": 106
+        },
+        {
+          "name": "load",
+          "line": 109,
+          "end_line": 115
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/flexible_work.py",
+      "sha256": "21a820a344a854c65b13411e0e1fe2d266fe6a0e17d732578dc9b7790db52e34",
+      "lines": 66,
+      "definitions": [
+        {
+          "name": "FlexibleWork",
+          "line": 6,
+          "end_line": 66
+        },
+        {
+          "name": "_validate_flexible_edit",
+          "line": 7,
+          "end_line": 12
+        },
+        {
+          "name": "_view_bindings",
+          "line": 14,
+          "end_line": 32
+        },
+        {
+          "name": "_validate_flexible_body",
+          "line": 34,
+          "end_line": 39
+        },
+        {
+          "name": "invoke_view_action",
+          "line": 41,
+          "end_line": 66
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/provider_attempts.py",
+      "sha256": "dbb8bb50112b385389514b0a9b8a66be10b20618bcbf073bd620ad9f927c21d5",
+      "lines": 453,
+      "definitions": [
+        {
+          "name": "_owner",
+          "line": 16,
+          "end_line": 19
+        },
+        {
+          "name": "configure_grant",
+          "line": 22,
+          "end_line": 67
+        },
+        {
+          "name": "revoke_grant",
+          "line": 70,
+          "end_line": 79
+        },
+        {
+          "name": "admission_grant",
+          "line": 82,
+          "end_line": 96
+        },
+        {
+          "name": "check_grant",
+          "line": 99,
+          "end_line": 111
+        },
+        {
+          "name": "attempt_row",
+          "line": 114,
+          "end_line": 116
+        },
+        {
+          "name": "ReceiptCapability",
+          "line": 120,
+          "end_line": 133
+        },
+        {
+          "name": "_receipt_secret",
+          "line": 136,
+          "end_line": 140
+        },
+        {
+          "name": "ProviderAttempts",
+          "line": 143,
+          "end_line": 453
+        },
+        {
+          "name": "_provider_read_authority",
+          "line": 145,
+          "end_line": 156
+        },
+        {
+          "name": "get_provider_attempt",
+          "line": 158,
+          "end_line": 161
+        },
+        {
+          "name": "_store_attempt",
+          "line": 163,
+          "end_line": 166
+        },
+        {
+          "name": "prepare_provider_attempt",
+          "line": 168,
+          "end_line": 219
+        },
+        {
+          "name": "bind_provider_receipt",
+          "line": 221,
+          "end_line": 231
+        },
+        {
+          "name": "_receipt_binding",
+          "line": 233,
+          "end_line": 257
+        },
+        {
+          "name": "yield_settled_responses_lease",
+          "line": 259,
+          "end_line": 303
+        },
+        {
+          "name": "dispatch_provider_attempt",
+          "line": 305,
+          "end_line": 318
+        },
+        {
+          "name": "mark_provider_unknown",
+          "line": 320,
+          "end_line": 328
+        },
+        {
+          "name": "record_provider_identity",
+          "line": 330,
+          "end_line": 348
+        },
+        {
+          "name": "record_provider_result",
+          "line": 350,
+          "end_line": 393
+        },
+        {
+          "name": "fail_provider_attempt",
+          "line": 395,
+          "end_line": 426
+        },
+        {
+          "name": "recover_provider_run",
+          "line": 428,
+          "end_line": 430
+        },
+        {
+          "name": "reconcile_provider_attempt",
+          "line": 432,
+          "end_line": 453
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/responses_ledger.py",
+      "sha256": "27e1c320f1840dfc6f035073d842c5b377c934bca3047bf83ef06916ad6b9649",
+      "lines": 420,
+      "definitions": [
+        {
+          "name": "count_input_limit",
+          "line": 19,
+          "end_line": 30
+        },
+        {
+          "name": "ReservationDeferred",
+          "line": 32,
+          "end_line": 33
+        },
+        {
+          "name": "ObservationAuthority",
+          "line": 37,
+          "end_line": 39
+        },
+        {
+          "name": "Ledger",
+          "line": 42,
+          "end_line": 318
+        },
+        {
+          "name": "parsed_data",
+          "line": 321,
+          "end_line": 326
+        },
+        {
+          "name": "restore_result",
+          "line": 329,
+          "end_line": 335
+        },
+        {
+          "name": "observations",
+          "line": 338,
+          "end_line": 380
+        },
+        {
+          "name": "summary",
+          "line": 383,
+          "end_line": 420
+        },
+        {
+          "name": "__init__",
+          "line": 43,
+          "end_line": 45
+        },
+        {
+          "name": "_auth",
+          "line": 47,
+          "end_line": 60
+        },
+        {
+          "name": "_events",
+          "line": 62,
+          "end_line": 65
+        },
+        {
+          "name": "event",
+          "line": 67,
+          "end_line": 71
+        },
+        {
+          "name": "snapshot",
+          "line": 73,
+          "end_line": 117
+        },
+        {
+          "name": "prepare",
+          "line": 119,
+          "end_line": 134
+        },
+        {
+          "name": "reserve_operation",
+          "line": 136,
+          "end_line": 209
+        },
+        {
+          "name": "retain",
+          "line": 211,
+          "end_line": 240
+        },
+        {
+          "name": "count_problem",
+          "line": 242,
+          "end_line": 265
+        },
+        {
+          "name": "corrected_readback",
+          "line": 267,
+          "end_line": 305
+        },
+        {
+          "name": "tool_result",
+          "line": 307,
+          "end_line": 318
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/service.py",
+      "sha256": "1e8a385b924acf88c23eb912bfa7162bf6b8660dfd03e98d6279c5048992c888",
+      "lines": 719,
+      "definitions": [
+        {
+          "name": "canonical",
+          "line": 23,
+          "end_line": 26
+        },
+        {
+          "name": "digest",
+          "line": 29,
+          "end_line": 30
+        },
+        {
+          "name": "fixture_pins",
+          "line": 33,
+          "end_line": 38
+        },
+        {
+          "name": "encoded",
+          "line": 41,
+          "end_line": 44
+        },
+        {
+          "name": "Principal",
+          "line": 48,
+          "end_line": 50
+        },
+        {
+          "name": "WorkerCapability",
+          "line": 54,
+          "end_line": 59
+        },
+        {
+          "name": "ServiceCore",
+          "line": 68,
+          "end_line": 710
+        },
+        {
+          "name": "Service",
+          "line": 718,
+          "end_line": 719
+        },
+        {
+          "name": "__init__",
+          "line": 69,
+          "end_line": 74
+        },
+        {
+          "name": "_scope",
+          "line": 76,
+          "end_line": 84
+        },
+        {
+          "name": "_source",
+          "line": 86,
+          "end_line": 96
+        },
+        {
+          "name": "_assignment",
+          "line": 98,
+          "end_line": 105
+        },
+        {
+          "name": "_artifact",
+          "line": 107,
+          "end_line": 113
+        },
+        {
+          "name": "_proposal",
+          "line": 115,
+          "end_line": 122
+        },
+        {
+          "name": "_dependencies",
+          "line": 124,
+          "end_line": 129
+        },
+        {
+          "name": "_revision",
+          "line": 131,
+          "end_line": 138
+        },
+        {
+          "name": "_event",
+          "line": 140,
+          "end_line": 148
+        },
+        {
+          "name": "_store_assignment",
+          "line": 150,
+          "end_line": 152
+        },
+        {
+          "name": "_store_run",
+          "line": 154,
+          "end_line": 156
+        },
+        {
+          "name": "_refresh_progress",
+          "line": 158,
+          "end_line": 171
+        },
+        {
+          "name": "_command",
+          "line": 173,
+          "end_line": 197
+        },
+        {
+          "name": "list_workspaces",
+          "line": 199,
+          "end_line": 203
+        },
+        {
+          "name": "list_sources",
+          "line": 205,
+          "end_line": 210
+        },
+        {
+          "name": "get_source",
+          "line": 212,
+          "end_line": 220
+        },
+        {
+          "name": "list_assignments",
+          "line": 222,
+          "end_line": 235
+        },
+        {
+          "name": "get_assignment",
+          "line": 237,
+          "end_line": 241
+        },
+        {
+          "name": "get_run",
+          "line": 243,
+          "end_line": 254
+        },
+        {
+          "name": "_new_run",
+          "line": 256,
+          "end_line": 286
+        },
+        {
+          "name": "create_assignment",
+          "line": 288,
+          "end_line": 303
+        },
+        {
+          "name": "get_artifact",
+          "line": 305,
+          "end_line": 311
+        },
+        {
+          "name": "history",
+          "line": 313,
+          "end_line": 319
+        },
+        {
+          "name": "proposals",
+          "line": 321,
+          "end_line": 333
+        },
+        {
+          "name": "_latest_review_candidate",
+          "line": 335,
+          "end_line": 352
+        },
+        {
+          "name": "_cas",
+          "line": 354,
+          "end_line": 356
+        },
+        {
+          "name": "_append_revision",
+          "line": 358,
+          "end_line": 365
+        },
+        {
+          "name": "human_save",
+          "line": 367,
+          "end_line": 383
+        },
+        {
+          "name": "request_revision",
+          "line": 385,
+          "end_line": 400
+        },
+        {
+          "name": "accept_proposal",
+          "line": 402,
+          "end_line": 434
+        },
+        {
+          "name": "dismiss_proposal",
+          "line": 436,
+          "end_line": 447
+        },
+        {
+          "name": "create_task",
+          "line": 449,
+          "end_line": 466
+        },
+        {
+          "name": "get_task",
+          "line": 468,
+          "end_line": 480
+        },
+        {
+          "name": "control_assignment",
+          "line": 482,
+          "end_line": 510
+        },
+        {
+          "name": "_runtime_pins",
+          "line": 512,
+          "end_line": 520
+        },
+        {
+          "name": "worker_context",
+          "line": 522,
+          "end_line": 525
+        },
+        {
+          "name": "claim_run",
+          "line": 527,
+          "end_line": 529
+        },
+        {
+          "name": "_claim_run",
+          "line": 531,
+          "end_line": 582
+        },
+        {
+          "name": "_check_capability",
+          "line": 584,
+          "end_line": 613
+        },
+        {
+          "name": "worker_inputs",
+          "line": 615,
+          "end_line": 623
+        },
+        {
+          "name": "complete_run",
+          "line": 625,
+          "end_line": 693
+        },
+        {
+          "name": "propose_artifact_revision",
+          "line": 695,
+          "end_line": 710
+        },
+        {
+          "name": "auth",
+          "line": 289,
+          "end_line": 291
+        },
+        {
+          "name": "mutate",
+          "line": 292,
+          "end_line": 302
+        },
+        {
+          "name": "mutate",
+          "line": 368,
+          "end_line": 382
+        },
+        {
+          "name": "mutate",
+          "line": 386,
+          "end_line": 399
+        },
+        {
+          "name": "mutate",
+          "line": 403,
+          "end_line": 433
+        },
+        {
+          "name": "mutate",
+          "line": 437,
+          "end_line": 446
+        },
+        {
+          "name": "auth",
+          "line": 450,
+          "end_line": 456
+        },
+        {
+          "name": "mutate",
+          "line": 457,
+          "end_line": 465
+        },
+        {
+          "name": "mutate",
+          "line": 483,
+          "end_line": 509
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/api.py",
+      "sha256": "c7c98c860a8e7f7e74e72cdb479cd78d76d47d9eb05c0f4c29dc174af0b11273",
+      "lines": 308,
+      "definitions": [
+        {
+          "name": "Settings",
+          "line": 23,
+          "end_line": 41
+        },
+        {
+          "name": "create_app",
+          "line": 47,
+          "end_line": 306
+        },
+        {
+          "name": "environment",
+          "line": 32,
+          "end_line": 35
+        },
+        {
+          "name": "validate",
+          "line": 37,
+          "end_line": 41
+        },
+        {
+          "name": "lifespan",
+          "line": 53,
+          "end_line": 56
+        },
+        {
+          "name": "principal",
+          "line": 64,
+          "end_line": 67
+        },
+        {
+          "name": "query_meta",
+          "line": 69,
+          "end_line": 70
+        },
+        {
+          "name": "boundary",
+          "line": 78,
+          "end_line": 97
+        },
+        {
+          "name": "domain_error",
+          "line": 100,
+          "end_line": 101
+        },
+        {
+          "name": "validation_error",
+          "line": 104,
+          "end_line": 107
+        },
+        {
+          "name": "internal_error",
+          "line": 110,
+          "end_line": 112
+        },
+        {
+          "name": "transport_error",
+          "line": 116,
+          "end_line": 118
+        },
+        {
+          "name": "route",
+          "line": 124,
+          "end_line": 125
+        },
+        {
+          "name": "list_workspaces",
+          "line": 128,
+          "end_line": 129
+        },
+        {
+          "name": "get_execution_status",
+          "line": 134,
+          "end_line": 135
+        },
+        {
+          "name": "list_sources",
+          "line": 138,
+          "end_line": 139
+        },
+        {
+          "name": "get_source",
+          "line": 142,
+          "end_line": 143
+        },
+        {
+          "name": "get_work_area_context",
+          "line": 148,
+          "end_line": 149
+        },
+        {
+          "name": "list_work_areas",
+          "line": 152,
+          "end_line": 153
+        },
+        {
+          "name": "create_work_area",
+          "line": 156,
+          "end_line": 157
+        },
+        {
+          "name": "get_work_area",
+          "line": 160,
+          "end_line": 161
+        },
+        {
+          "name": "promote_work_area",
+          "line": 164,
+          "end_line": 165
+        },
+        {
+          "name": "list_conversation_work",
+          "line": 170,
+          "end_line": 171
+        },
+        {
+          "name": "list_conversations",
+          "line": 174,
+          "end_line": 175
+        },
+        {
+          "name": "create_conversation",
+          "line": 178,
+          "end_line": 179
+        },
+        {
+          "name": "get_conversation",
+          "line": 182,
+          "end_line": 183
+        },
+        {
+          "name": "post_message",
+          "line": 186,
+          "end_line": 187
+        },
+        {
+          "name": "cancel_conversation",
+          "line": 190,
+          "end_line": 191
+        },
+        {
+          "name": "delegate_conversation",
+          "line": 194,
+          "end_line": 195
+        },
+        {
+          "name": "list_assignments",
+          "line": 198,
+          "end_line": 199
+        },
+        {
+          "name": "create_assignment",
+          "line": 202,
+          "end_line": 203
+        },
+        {
+          "name": "get_assignment",
+          "line": 206,
+          "end_line": 207
+        },
+        {
+          "name": "control_assignment",
+          "line": 210,
+          "end_line": 211
+        },
+        {
+          "name": "activate_responsibility",
+          "line": 214,
+          "end_line": 215
+        },
+        {
+          "name": "update_responsibility",
+          "line": 218,
+          "end_line": 219
+        },
+        {
+          "name": "control_responsibility",
+          "line": 222,
+          "end_line": 223
+        },
+        {
+          "name": "get_responsibility",
+          "line": 226,
+          "end_line": 227
+        },
+        {
+          "name": "get_run",
+          "line": 230,
+          "end_line": 231
+        },
+        {
+          "name": "get_artifact",
+          "line": 234,
+          "end_line": 235
+        },
+        {
+          "name": "observation",
+          "line": 238,
+          "end_line": 239
+        },
+        {
+          "name": "download",
+          "line": 242,
+          "end_line": 246
+        },
+        {
+          "name": "history",
+          "line": 249,
+          "end_line": 250
+        },
+        {
+          "name": "view_action",
+          "line": 253,
+          "end_line": 254
+        },
+        {
+          "name": "proposals",
+          "line": 257,
+          "end_line": 258
+        },
+        {
+          "name": "save",
+          "line": 261,
+          "end_line": 262
+        },
+        {
+          "name": "revise",
+          "line": 265,
+          "end_line": 266
+        },
+        {
+          "name": "accept",
+          "line": 269,
+          "end_line": 270
+        },
+        {
+          "name": "dismiss",
+          "line": 273,
+          "end_line": 274
+        },
+        {
+          "name": "create_task",
+          "line": 277,
+          "end_line": 278
+        },
+        {
+          "name": "get_task",
+          "line": 281,
+          "end_line": 282
+        },
+        {
+          "name": "canonical_openapi",
+          "line": 284,
+          "end_line": 304
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/proposal_review.py",
+      "sha256": "fedb2ea924382ac6f52ec98d7d7c467882c7f2fdafda7abbac7ff04803a44415",
+      "lines": 100,
+      "definitions": [
+        {
+          "name": "_json",
+          "line": 25,
+          "end_line": 26
+        },
+        {
+          "name": "_part",
+          "line": 29,
+          "end_line": 30
+        },
+        {
+          "name": "removed_content",
+          "line": 33,
+          "end_line": 93
+        },
+        {
+          "name": "review_proposal",
+          "line": 96,
+          "end_line": 100
+        },
+        {
+          "name": "record",
+          "line": 40,
+          "end_line": 47
+        },
+        {
+          "name": "walk",
+          "line": 49,
+          "end_line": 90
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/operator_tui.py",
+      "sha256": "1e723ae0675a417106c025e37526203bbde514b86605086b768691c526712fc1",
+      "lines": 156,
+      "definitions": [
+        {
+          "name": "parser",
+          "line": 26,
+          "end_line": 37
+        },
+        {
+          "name": "safe",
+          "line": 40,
+          "end_line": 42
+        },
+        {
+          "name": "interactive",
+          "line": 45,
+          "end_line": 129
+        },
+        {
+          "name": "main",
+          "line": 132,
+          "end_line": 152
+        },
+        {
+          "name": "display",
+          "line": 49,
+          "end_line": 51
+        },
+        {
+          "name": "refresh",
+          "line": 52,
+          "end_line": 55
+        },
+        {
+          "name": "execute",
+          "line": 56,
+          "end_line": 86
+        },
+        {
+          "name": "announce",
+          "line": 78,
+          "end_line": 83
+        },
+        {
+          "name": "put",
+          "line": 91,
+          "end_line": 94
+        }
+      ]
+    },
+    {
+      "path": "backend/workagent/prompt_cli.py",
+      "sha256": "78624d168e9da50c2d3460d3bdfcdbd1da37297b5afe4a76087ff18594822eb9",
+      "lines": 147,
+      "definitions": [
+        {
+          "name": "main",
+          "line": 7,
+          "end_line": 143
+        },
+        {
+          "name": "command",
+          "line": 67,
+          "end_line": 68
+        }
+      ]
+    },
+    {
+      "path": "web/src/lib/sandbox.ts",
+      "sha256": "c773f5cf7e08f5cffb6abaa08dc7e22cbf25b791d245adf16a95097a2363904c",
+      "lines": 246
+    },
+    {
+      "path": "web/src/components/SandboxedView.tsx",
+      "sha256": "34ad91a00a7f3dda365520164ada26bfc68584559799f02be3552603ca597f6f",
+      "lines": 193
+    },
+    {
+      "path": "web/src/components/FlexibleWork.tsx",
+      "sha256": "00b0a9ea8e1310fde89efcc4f16833505695c9f6d7487aef019325379867d921",
+      "lines": 2735
+    }
+  ]
+}

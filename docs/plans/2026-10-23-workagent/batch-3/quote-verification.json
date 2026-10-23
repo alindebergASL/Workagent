@@ -1,0 +1,212 @@
+[
+  {
+    "source": "S01",
+    "quote": "Availability varies by platform, credentials, and enabled toolsets.",
+    "verified": true
+  },
+  {
+    "source": "S02",
+    "quote": "Hermes Agent has bounded, curated memory that persists across sessions.",
+    "verified": true
+  },
+  {
+    "source": "S03",
+    "quote": "Skills are on-demand knowledge documents the agent can load when needed.",
+    "verified": true
+  },
+  {
+    "source": "S04",
+    "quote": "Local stdio servers and remote HTTP MCP servers in the same config",
+    "verified": true
+  },
+  {
+    "source": "S05",
+    "quote": "MCP servers MUST implement OAuth 2.0 Protected Resource Metadata",
+    "verified": true
+  },
+  {
+    "source": "S06",
+    "quote": "Token passthrough",
+    "verified": true
+  },
+  {
+    "source": "S07",
+    "quote": "Tools in MCP are designed to be model-controlled",
+    "verified": true
+  },
+  {
+    "source": "S08",
+    "quote": "You choose which apps dots can access",
+    "verified": true
+  },
+  {
+    "source": "S09",
+    "quote": "Approve critical actions from your agent",
+    "verified": true
+  },
+  {
+    "source": "S10",
+    "quote": "Your Muse may be inaccurate or take unexpected actions.",
+    "verified": true
+  },
+  {
+    "source": "S11",
+    "quote": "Memory must improve ordinary work without making the user operate a memory system.",
+    "verified": true
+  },
+  {
+    "source": "S12",
+    "quote": "information extraction, multi-session reasoning, temporal reasoning, knowledge updates, and abstention.",
+    "verified": true
+  },
+  {
+    "source": "S13",
+    "quote": "we propose virtual context management",
+    "verified": true
+  },
+  {
+    "source": "S14",
+    "quote": "this paper proposes a novel agentic memory system for LLM agents",
+    "verified": true
+  },
+  {
+    "source": "S15",
+    "quote": "They are always visible - no retrieval needed.",
+    "verified": true
+  },
+  {
+    "source": "S16",
+    "quote": "A Framework for Building Temporal Knowledge Graphs",
+    "verified": true
+  },
+  {
+    "source": "S17",
+    "quote": "The Memory Layer for AI Agents",
+    "verified": true
+  },
+  {
+    "source": "S18",
+    "quote": "compares the database state at the end of a conversation with the annotated goal state",
+    "verified": true
+  },
+  {
+    "source": "S19",
+    "quote": "an evaluation framework for agents that execute tools over untrusted data",
+    "verified": true
+  },
+  {
+    "source": "S20",
+    "quote": "additional defense against the exploitation of kernel bugs by untrusted userspace code",
+    "verified": true
+  },
+  {
+    "source": "S21",
+    "quote": "WebAssembly is inherently sandboxed by design",
+    "verified": true
+  },
+  {
+    "source": "S22",
+    "quote": "The installation access token will expire after 1 hour.",
+    "verified": true
+  },
+  {
+    "source": "S23",
+    "quote": "incremental authorization, token revocation",
+    "verified": true
+  },
+  {
+    "source": "S24",
+    "quote": "Best Current Practice for OAuth 2.0 Security",
+    "verified": true
+  },
+  {
+    "source": "S25",
+    "quote": "The current protocol version is 2026-07-28.",
+    "verified": true
+  },
+  {
+    "source": "S26",
+    "quote": "Access tokens MUST NOT be included in the URI query string",
+    "verified": true
+  },
+  {
+    "source": "S27",
+    "quote": "Token passthrough is explicitly forbidden",
+    "verified": true
+  },
+  {
+    "source": "S28",
+    "quote": "clients MUST consider tool annotations to be untrusted unless they come from trusted servers.",
+    "verified": true
+  },
+  {
+    "source": "S29",
+    "quote": "There is no negotiation handshake.",
+    "verified": true
+  },
+  {
+    "source": "S30",
+    "quote": "Revoke an installation access token",
+    "verified": true
+  },
+  {
+    "source": "S31",
+    "quote": "memory is more about how agents manage context than the exact retrieval mechanism used.",
+    "verified": true
+  },
+  {
+    "source": "S32",
+    "quote": "Evaluating Very Long-Term Conversational Memory of LLM Agents",
+    "verified": true
+  },
+  {
+    "source": "S33",
+    "quote": "Zep: A Temporal Knowledge Graph Architecture for Agent Memory",
+    "verified": true
+  },
+  {
+    "source": "S34",
+    "quote": "Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory",
+    "verified": true
+  },
+  {
+    "source": "S35",
+    "quote": "The current source code lives in `letta-ai/letta-code`",
+    "verified": true
+  },
+  {
+    "source": "S36",
+    "quote": "memorization and action are tightly coupled",
+    "verified": true
+  },
+  {
+    "source": "S37",
+    "quote": "Proceedings of the 43rd International Conference on Machine Learning",
+    "verified": true
+  },
+  {
+    "source": "S38",
+    "quote": "premise awareness",
+    "verified": true
+  },
+  {
+    "source": "S39",
+    "quote": "the public evaluation harness, data preparation tools, leaderboard packaging utilities",
+    "verified": true
+  },
+  {
+    "source": "S40",
+    "quote": "conventional experience replay has limited effectiveness for LLM agents",
+    "verified": true
+  },
+  {
+    "source": "S41",
+    "quote": "All context (including memory blocks) is tracked via git.",
+    "verified": true
+  },
+  {
+    "source": "S42",
+    "quote": "MIT License",
+    "verified": true
+  }
+]

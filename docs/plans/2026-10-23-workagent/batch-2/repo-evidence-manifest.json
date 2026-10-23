@@ -1,0 +1,261 @@
+{
+  "retrieved_at": "2026-10-23T01:30:13.088044+00:00",
+  "repository": "/home/ubuntu/workagent-general-review-20261022/",
+  "head": "d4d019c4b9bebca9ca8b49d1466a92fab7514aff",
+  "status": "",
+  "scope": "read-only research; working tree not frozen; no installed-runtime verification",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "84c1accce39332485ec18e423994323aaf24f451ea3814a8e334b288c245e4b0",
+      "bytes": 1974,
+      "lines": 32
+    },
+    {
+      "path": "docs/PRODUCT_CONTRACT.md",
+      "sha256": "91c48fbe3f3ee47f268eddeac504f53f24a39cf7e37f887f21f052c8cc30f505",
+      "bytes": 3261,
+      "lines": 53
+    },
+    {
+      "path": "docs/BUILD_PLAN.md",
+      "sha256": "475b53367249ee52d7df8d255f0214a020e67f03906c61777d25ec70054a717a",
+      "bytes": 2209,
+      "lines": 35
+    },
+    {
+      "path": "STATUS.md",
+      "sha256": "21216992dc40b5b18bf8d0406666f51f8c7d859744baf30eea21dd5fccf44534",
+      "bytes": 64185,
+      "lines": 893
+    },
+    {
+      "path": "backend/workagent/operator_tui.py",
+      "sha256": "1e723ae0675a417106c025e37526203bbde514b86605086b768691c526712fc1",
+      "bytes": 7668,
+      "lines": 156
+    },
+    {
+      "path": "backend/workagent/operator_client.py",
+      "sha256": "2bf597ba56e46bf93dc7a2c2a79143c87f79eda814651b4a65fd54f3ee81c912",
+      "bytes": 10491,
+      "lines": 179
+    },
+    {
+      "path": "backend/workagent/operator_journal.py",
+      "sha256": "51641db9a690a74c7a7428dbb7015b68beb0839a3d4ea03ff1932bb5f8274431",
+      "bytes": 6221,
+      "lines": 141
+    },
+    {
+      "path": "backend/workagent/api.py",
+      "sha256": "c7c98c860a8e7f7e74e72cdb479cd78d76d47d9eb05c0f4c29dc174af0b11273",
+      "bytes": 18684,
+      "lines": 308
+    },
+    {
+      "path": "backend/workagent/message_models.py",
+      "sha256": "bb52fde7a0a59215ad19ce8d4129670624f62d3fc8366c943e11b6dd69d7d7bc",
+      "bytes": 2374,
+      "lines": 52
+    },
+    {
+      "path": "backend/workagent/models.py",
+      "sha256": "3073f69c872b103311932cb48d4b6696353b07d456f0c0503be4e508ad75f53d",
+      "bytes": 29061,
+      "lines": 779
+    },
+    {
+      "path": "backend/workagent/conversations.py",
+      "sha256": "e942a6a31efe487542713429d0bd872852d463d3733229b4f8c55a0f9bf30686",
+      "bytes": 33454,
+      "lines": 506
+    },
+    {
+      "path": "backend/workagent/evidence_context.py",
+      "sha256": "e7fe28f18f8484763195c21814e104a59efd38330468d48ab9e53a100e894359",
+      "bytes": 6615,
+      "lines": 115
+    },
+    {
+      "path": "backend/workagent/service.py",
+      "sha256": "1e8a385b924acf88c23eb912bfa7162bf6b8660dfd03e98d6279c5048992c888",
+      "bytes": 42030,
+      "lines": 719
+    },
+    {
+      "path": "backend/workagent/proposal_review.py",
+      "sha256": "fedb2ea924382ac6f52ec98d7d7c467882c7f2fdafda7abbac7ff04803a44415",
+      "bytes": 4546,
+      "lines": 100
+    },
+    {
+      "path": "backend/workagent/responses_dispatcher.py",
+      "sha256": "a62d83a5883c0ec964601193bda5a062af0e83f0773c04a88a1097e0be77c459",
+      "bytes": 24687,
+      "lines": 405
+    },
+    {
+      "path": "backend/workagent/responses_worker.py",
+      "sha256": "dbf5bfcd68353374087b5ea956f2e57bd99b012fbb8b1d3a16fa985f97430b0d",
+      "bytes": 25408,
+      "lines": 439
+    },
+    {
+      "path": "backend/workagent/responses_ledger.py",
+      "sha256": "27e1c320f1840dfc6f035073d842c5b377c934bca3047bf83ef06916ad6b9649",
+      "bytes": 26739,
+      "lines": 420
+    },
+    {
+      "path": "backend/workagent/provider_attempts.py",
+      "sha256": "dbb8bb50112b385389514b0a9b8a66be10b20618bcbf073bd620ad9f927c21d5",
+      "bytes": 26486,
+      "lines": 453
+    },
+    {
+      "path": "backend/workagent/responsibilities.py",
+      "sha256": "bcd3a59153c320eec175ee4062e971742e9a57d72dbd66d79dc1aba33c08c866",
+      "bytes": 31796,
+      "lines": 561
+    },
+    {
+      "path": "backend/workagent/responsibility_execution.py",
+      "sha256": "79ef632ade6da07412734d186695a6760c3ca599c6c92126d2fadee40292d9fc",
+      "bytes": 19486,
+      "lines": 296
+    },
+    {
+      "path": "backend/workagent/responsibility_models.py",
+      "sha256": "68bc59c9d101d792b91fb0d9c93a0d12ba2c528aa9df8bb59a3a486675de9683",
+      "bytes": 4822,
+      "lines": 135
+    },
+    {
+      "path": "backend/workagent/responsibility_action.py",
+      "sha256": "99eddecfa7f0a992fa7f5803e508c9a25a320da1b4424970cc6634e72948e983",
+      "bytes": 15059,
+      "lines": 273
+    },
+    {
+      "path": "backend/workagent/execution_status.py",
+      "sha256": "0738466a2c27af75917c88180f98ace9f84338e9d1309de192bf5b1a81a96ee9",
+      "bytes": 13287,
+      "lines": 211
+    },
+    {
+      "path": "backend/workagent/home_work_summary.py",
+      "sha256": "5c8146cdaff2cb3b7565862ef43a4eadc8c617b743c52e28defb10d6dbc34802",
+      "bytes": 6109,
+      "lines": 133
+    },
+    {
+      "path": "backend/workagent/general_alpha_models.py",
+      "sha256": "e9b75fe0fdacc0ebc6f15937a756704f557cf7e5fc06b42fa3f7a1918b1e4453",
+      "bytes": 3539,
+      "lines": 73
+    },
+    {
+      "path": "backend/workagent/products.py",
+      "sha256": "e18963d5302a3f4ac8b6f5a2b6d133af90871040767e2e95a7257011bb61a899",
+      "bytes": 50358,
+      "lines": 735
+    },
+    {
+      "path": "backend/workagent/outcomes.py",
+      "sha256": "f071d40915f3c6a366bbea9a0729f5f3f10e6ab11300d8971f62758ad9483216",
+      "bytes": 16958,
+      "lines": 260
+    },
+    {
+      "path": "backend/workagent/db.py",
+      "sha256": "92b9ae73124534b1564faa254a61660baaa8c533f9a5670191817d14e6482fc7",
+      "bytes": 2301,
+      "lines": 46
+    },
+    {
+      "path": "backend/migrations/046_cancelled_response_observation.sql",
+      "sha256": "ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad",
+      "bytes": 9810,
+      "lines": 152
+    },
+    {
+      "path": "backend/README.md",
+      "sha256": "0bfd77c29c5fdc969bb06845d66fa533c16368559d863dea8bdb34cde345b71e",
+      "bytes": 19031,
+      "lines": 314
+    },
+    {
+      "path": "backend/requirements.txt",
+      "sha256": "bc3a63b421255e7ab02ebb448a953badc1c9a68e1487593763441c2a96e9962a",
+      "bytes": 119,
+      "lines": 7
+    },
+    {
+      "path": "web/src/lib/client/hooks.ts",
+      "sha256": "a54958d3c442fa321420a114596baa74155ea0456a4127bd98b975670bfca471",
+      "bytes": 6049,
+      "lines": 183
+    },
+    {
+      "path": "web/src/components/Composer.tsx",
+      "sha256": "336e81cb42313df662847e95fb354893204e69f5dfe87ccb2acf83ec1c0b2a18",
+      "bytes": 26416,
+      "lines": 792
+    },
+    {
+      "path": "web/package.json",
+      "sha256": "0c6bdeab83411f654a0e05a42bce1b0783ec12ccfde91b356266935f2666adfe",
+      "bytes": 1000,
+      "lines": 37
+    },
+    {
+      "path": "contracts/package.json",
+      "sha256": "492c111a7841229bb95486b08ba0fcf911dfbee0be10f15c86d5627465eb7ace",
+      "bytes": 552,
+      "lines": 12
+    },
+    {
+      "path": "contracts/message-attachments.json",
+      "sha256": "05fe72cfbafa40e67550c672aff41d545568997324f9d2126c2e0af07778593d",
+      "bytes": 813,
+      "lines": 40
+    },
+    {
+      "path": "spikes/hermes_bridge/README.md",
+      "sha256": "76ffc50c5cfa5130f8398ab87c16126252c6f739ba2291b320f7400d80d4c418",
+      "bytes": 6121,
+      "lines": 44
+    },
+    {
+      "path": "handoffs/backend/HARNESS_ADOPTION.md",
+      "sha256": "04236227d527ff2a55e3f45c58254aee30239a00fb690566b940dc6bbde3e8e9",
+      "bytes": 15324,
+      "lines": 94
+    },
+    {
+      "path": "web/src/lib/flexible.ts",
+      "sha256": "1d7e91f9bea311b536f1cae6f7fd137b5f5cfacfd1dc74a8cd28b2dbdaa3a6c9",
+      "bytes": 18868,
+      "lines": 568,
+      "observed_at": "2026-10-23T01:45:31.033430+00:00",
+      "reason": "parent structured-note defect follow-up"
+    },
+    {
+      "path": "web/src/components/FlexibleWork.tsx",
+      "sha256": "00b0a9ea8e1310fde89efcc4f16833505695c9f6d7487aef019325379867d921",
+      "bytes": 89685,
+      "lines": 2735,
+      "observed_at": "2026-10-23T01:45:31.034415+00:00",
+      "reason": "parent structured-note defect follow-up"
+    },
+    {
+      "path": "backend/workagent/flexible_models.py",
+      "sha256": "ca88a332d7161fdc92169bdc4b8e7d65d940517b619cbf90350e4ad2f55ecf62",
+      "bytes": 8506,
+      "lines": 196,
+      "observed_at": "2026-10-23T01:45:31.036061+00:00",
+      "reason": "parent structured-note defect follow-up"
+    }
+  ]
+}
