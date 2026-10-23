@@ -30,6 +30,8 @@ test("An unsent request survives pane switches and a reload @journey", async ({
   test.setTimeout(90_000);
   await control(request, "reset");
   await page.goto("/");
+  // On a phone the starters come with the message box once it's used.
+  await page.getByLabel("Message your agent").click();
   await page.getByRole("button", { name: /Try the intake example/ }).click();
   await page.getByRole("button", { name: "Take it from here" }).click();
   await page.waitForURL(/\/assignments\/asg_\d+(?:\?[^#]*)?$/);

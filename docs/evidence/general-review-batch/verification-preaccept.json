@@ -1,0 +1,145 @@
+{
+  "planning": {
+    "conversation": "0409e640-8b4b-4f7c-925f-008d70abb774",
+    "artifact": "8aa13a17-618d-4f43-b92c-55b3ac098d22",
+    "base_revision": "445e6027-37bb-43d1-b4f6-959331cd9f75",
+    "proposal_count": 1,
+    "latest_proposal": "9f07177d-0a73-4813-800c-4f28f3e548b1",
+    "preservation_by_proposal": {
+      "9f07177d-0a73-4813-800c-4f28f3e548b1": false
+    },
+    "latest_safe_to_accept": false,
+    "saved_human_version_unchanged": true,
+    "original_sources_reread_in_full": [
+      "calendar.txt",
+      "tasks.txt",
+      "calendar-status-update.txt"
+    ],
+    "pending_proposals_reread_in_full": 1,
+    "unattended_followup_run": "04b29e1d-85e1-40ee-afa7-e0b3daf3932d",
+    "waiting_person_no_schedule": true,
+    "run_states": [
+      "ready",
+      "partial",
+      "ready"
+    ],
+    "effort_minutes": {
+      "T1": 60,
+      "T2": 45,
+      "T3": 90,
+      "T4": 60,
+      "T5": 240,
+      "T6": 120,
+      "T8": 120,
+      "T9": 30
+    },
+    "optional_deferred_minutes": 780,
+    "no_schedule_overlap": true,
+    "T7_unresolved_conflict": true,
+    "parsed_allocations": {
+      "T1": [
+        [
+          0,
+          570,
+          630
+        ]
+      ],
+      "T2": [
+        [
+          0,
+          645,
+          690
+        ]
+      ],
+      "T3": [
+        [
+          1,
+          600,
+          690
+        ]
+      ],
+      "T4": [
+        [
+          1,
+          900,
+          960
+        ]
+      ],
+      "T5": [
+        [
+          0,
+          780,
+          840
+        ],
+        [
+          1,
+          780,
+          900
+        ],
+        [
+          1,
+          960,
+          1020
+        ]
+      ],
+      "T6": [
+        [
+          2,
+          600,
+          660
+        ],
+        [
+          3,
+          540,
+          600
+        ]
+      ],
+      "T8": [
+        [
+          3,
+          780,
+          840
+        ],
+        [
+          3,
+          840,
+          900
+        ]
+      ],
+      "T9": [
+        [
+          4,
+          960,
+          990
+        ]
+      ]
+    }
+  },
+  "editorial": {
+    "conversation": "7e6b4619-2a6d-4941-bc74-34746a567740",
+    "artifact": "67d14cda-bb7a-428e-98bd-0136e2735562",
+    "base_revision": "be98c22e-b49f-492c-8677-84244c966ecb",
+    "proposal_count": 1,
+    "latest_proposal": "683d874f-0eda-4139-87de-3a644e478058",
+    "preservation_by_proposal": {
+      "683d874f-0eda-4139-87de-3a644e478058": true
+    },
+    "latest_safe_to_accept": true,
+    "saved_human_version_unchanged": true,
+    "original_sources_reread_in_full": [
+      "event-brief.txt",
+      "confirmed-amendment.txt"
+    ],
+    "pending_proposals_reread_in_full": 1,
+    "unattended_followup_run": "5e878f9a-3e04-46b7-ab7a-a36a87f7249a",
+    "waiting_person_no_schedule": true,
+    "run_states": [
+      "ready",
+      "partial",
+      "ready"
+    ],
+    "amended_facts_correct": true,
+    "admission_unresolved": true,
+    "no_invented_booking_link": true
+  }
+}

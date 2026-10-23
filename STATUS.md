@@ -1,5 +1,78 @@
 # WorkAgent — authoritative delivery status
 
+## Latest: general-purpose proposal review installed; fresh acceptance verified
+
+- Private runtime `d4d019c4b9bebca9ca8b49d1466a92fab7514aff`; reviewed-source install,
+  94 focused backend and 69 frontend tests, independent review PASS, production build.
+- Shared older-candidate/removal acknowledgement, latest/history distinction and
+  selected-candidate comparison; full-table desktop/phone width checks PASS.
+- Fresh planning AND editorial assignments: saved human edits, later amendment,
+  unattended reread of original sources/pending proposal, waiting_person/no schedule,
+  explicit browser acknowledgement/acceptance and exact saved-body read-back PASS.
+- Overall product remains PARTIAL: first planning proposal omitted a saved source
+  note; one explicit repair prompt restored all notes before acceptance. Generated
+  multiline notes needed a documented editor formatting workaround. No history lost.
+- No speed improvement: weekly amendment journal span 505.73s vs prior 296.80s;
+  one artifact generation per amendment and zero during either unattended check-in.
+- Reservations $66.58608 (+$7.24220), NOT billing; aggregate allocation $92.10596
+  under unchanged $100 ceiling; five generation slots remain; three historical
+  unknown-usage steps retained. No further paid run in this completed evaluation.
+- [Full batch evaluation](docs/GENERAL_PROPOSAL_REVIEW_BATCH_EVALUATION.md),
+  [machine evidence](docs/evidence/general-review-batch/acceptance-verified.json).
+- Delivery batch complete privately, not the wider mission. Next requested work:
+  researched plans for conversational TUI/attachments/ongoing-work visibility and
+  resumption, then general tools/connectors/cross-assignment memory. Research
+  handoffs await parent synthesis; no implementation of those batches claimed.
+
+## Historical: evidence fix installed; day/week test completed with qualified results
+
+- Installed private runtime `4b55cc5` after 56/56 selected tests and independent
+  follow-up review PASS. Integrated backend/web bytes match `9324205` on this branch.
+  No migration, default-branch merge, production deployment or frontend edits.
+- Supplier scheduled recheck PASS: original attachments and complete pending
+  proposal reread with ZERO resupply; old human state, proposal and receipts unchanged.
+- Fresh day-plan → nine saved tasks → human completion/availability update → weekly
+  outlook → unattended follow-up completed. Final proposed allocations pass overlap,
+  effort/dependency/deadline checks; T7 correctly flagged 60 minutes short; only T1
+  complete; 180 optional minutes proposed and 720 deferred. All three source files
+  and prior proposals reread; saved human revision unchanged; waiting_person/no schedule.
+- Overall product verdict remains PARTIAL: three pending proposals remain, including
+  an inferior first candidate that omits human/historical notes; corrected later
+  versions do not remove that apply choice. Expanded desktop review overflows
+  (1689px at 1440px viewport); phone page-width check passes. Weekly reply took
+  299.26 seconds. No proposal accepted and no saved human notes lost.
+- Full report: [fix and day/week evaluation](docs/EVIDENCE_CONTINUITY_DAY_WEEK_EVALUATION.md).
+  Live verifiers: `/home/ubuntu/workagent-evidence-continuity-evidence/supplier-live-verified.json`
+  and `/home/ubuntu/workagent-day-week-evidence/verified-results.json`.
+- Grant -14: allocation $84.44992 within original $100; reservations $59.34388,
+  NOT billing; historical unknown generations remain three. Day/week used17
+  generations ($3.51764 reserved). Requested fix/evaluation complete; wider mission
+  unfinished. No engineering successor active. Next: unsafe intermediate-candidate
+  presentation/note preservation and web-owner desktop review containment.
+
+## Historical: changing supplier assignment — PARTIAL, evidence continuity gap
+
+Step 1 was exercised live on installed runtime `8137e18`, with five synthetic source
+texts, a human requirement correction, and one unattended check-in. WorkAgent
+correctly recommended Alder at $11,360 initially, then Birch at $13,920 after the
+quantity/budget change and later signed amendment. The human note and historical
+assessment were preserved; the revised proposal remains unaccepted.
+
+The scheduled run completed, but its attachment context was empty, work-area
+context null, and saved-work discovery exposed only the accepted document. It
+could not reread the amendment or its own pending proposal, honestly disclosed the
+gap, and asked for the already-supplied amendment again. This is NOT a full product
+pass. The earlier two-item timing proof remains valid but does not cover this gap.
+
+Full report: [changing assignment evaluation](docs/CEDAR_CHANGING_ASSIGNMENT_EVALUATION.md).
+Evidence: `/home/ubuntu/workagent-real-assignment-evidence/verified-results.json`
+(`full_step1_product_pass=false`; parent verifier executed successfully).
+Grant `-13`: aggregate allocation $78.44924 within the same $100; reservations
+$53.34320, not billing; historical unknown generations remain three. No code or
+frontend changes; no default-branch merge or production deployment. Evaluation
+complete; no engineering successor active. Next concrete engineering target:
+authorized attachment/pending-proposal continuity across scheduled work.
+
 ## Active continuation: repeated ongoing work
 
 Andrew reaffirmed that routine steps do not need incremental approval. Development
@@ -15,7 +88,147 @@ execution and fixes; Claude retains web ownership. No new paid route, private-da
 scope, business effects, default-branch merge or production deployment authorized.
 Existing cumulative $100 product-evaluation ceiling remains in force.
 
-## Latest: known kind-rejection fix installed; historical pause respected
+## Latest: fresh exercise #4 PASSED on the installed cancelled-receipt runtime
+
+- Full two-item changed-between-waves proof completed on runtime `8137e18` (exercise #4;
+  `exercise4-verified.json`, parent-executed read-only DB verification):
+  bake-sale (`d5ea6d4c`…/doc `95a355e0`…) and garden-fair (`29b68e16`…/doc `9459296b`…).
+- For BOTH items the DB timestamps prove the intended ordering: wave-1 human edit
+  (04:37:53/04:37:58Z) → first check-in note (04:44:32/04:44:13Z) → wave-2 human edit
+  (04:46:45/04:46:50Z) → second check-in note (04:52:44/04:53:49Z). Second runs
+  (`a31e3e2e`, `dd432e0a`) bound the wave-2 revisions; second notes carry both the
+  original human constraints and the wave-2 updates (nut-free + gluten-free/ramp; native
+  plants + pollinator/path). Both responsibilities ended `waiting_person` with no further
+  check-in; zero proposals; desktop + 390px-phone readbacks pass with no overflow.
+- Successor grant `-12` activated before the exercise (allocated authority **$74.93160**
+  of the same cumulative $100, +$5.58684 technical envelope; aggregate never reset;
+  reservations $48.99788 not billing; unknown generations back to the three historical).
+  Activation preserved all retained state byte-for-byte; predecessor revoked for new
+  sends only; no old attempts rebound.
+- This closes the cycle broken in exercise #3 (timing miss) and the stall fixed by
+  `8137e18`: the full Ask → work → edit → leave → continue → return-proven loop now has
+  a live PASS with DB-timestamp ordering evidence on both items.
+
+## Latest: cancelled-receipt fix installed and live-verified
+
+- Runtime is now candidate `cancelled-receipts-20261022` at
+  **8137e18479e92114b9e6f064da1054eeb51cc77f** (was `standing-capacity-20261022` @
+  `646ed09`). Install used the standing pattern: preconditions matched the reviewed
+  manifest (migration046 SHA-256 `ff5993a6…`), services stopped, exclusive `pg_dump`
+  backup `before-cancelled-receipts.dump`, additive 046 applied once with all retained
+  rows and budget provably unchanged across the migration, config root switched, services
+  restarted ready. No new allowance; grant `workagent-continuation-20261022-11` unchanged.
+- Live settlement verified against the pre-install baseline: the cancelled repair-day run
+  `a4163ad3` stayed cancelled with byte-identical run/step/event history; exactly one new
+  terminal `result` matching the stored identity and usage; one honest
+  `cancelled_unapplied` disposition; no dispatch/count/tool_result additions; both human
+  revisions unchanged. Unknown generations dropped **4 → 3** (only the three historical
+  unknowns remain — the cancelled attempt genuinely settled; nothing was rewritten).
+- Post-settlement the responsibility admitted one NEW run `e70c305f` through ordinary
+  gates, bound to the LATEST human revision `7cdd3027` (wave-2 note with the
+  bicycle-puncture/east-doorway update). That run completed three selections
+  (publish_artifact, advance_responsibility, reply), wrote the second readiness note
+  `96bddf1b` using the human's wave-2 constraints, and ended `waiting_person` with no
+  further check-in. Desktop and 390px-phone readbacks confirm the note content and no
+  overflow (`recovered-note-*.png/json`). Reservations $43.41104, not billing.
+- This closes the live stall discovered by exercise #3: human edit preserved, no resend,
+  honest unapplied disposition, then ordinary continuation with the newest saved context.
+  Exercise #3 as a whole still is NOT the changed-between-waves proof (its timing miss is
+  documented above); a fresh exercise with ordering proven from DB timestamps is still
+  owed. Residual reviewer-noted gap: broader source-access/revocation coverage.
+
+- Private feature branch `hermes/cancelled-response-receipts` HEAD
+  **8137e18479e92114b9e6f064da1054eeb51cc77f**, now the INSTALLED runtime (see above);
+  pushed and read back. (Superseded by the install section above.)
+- Diagnosis chain, all parent-verified: a human edit correctly cancelled an in-flight
+  scheduled run and preserved the edit, but the retained exact provider identity had no
+  terminal receipt, so all later responsibility admission waited forever. No request was
+  resent or history rewritten. Three-step reproduction: read-only diagnosis; tests-only
+  writer produced `test_cancelled_response_receipts.py` (parent-executed: exactly the two
+  intended REDs plus a passing never-resend control); implementation writer produced the
+  candidate while leaving the RED file untouched.
+- Parent found the implementation initially missed a second SQL guard; first parent run
+  failed 8/25 on `guard_responsibility_phase`. Parent patched the unpublished migration
+  for exact authorized observation there too: v2 disposable DB 25/25 PASS.
+- Independent review returned **HOLD**: a runtime SQL caller could replay an old result
+  through a TEMP-table trigger to forge a `cancelled_unapplied` disposition. Parent
+  executed both that replay and a stronger runtime-created `pg_temp` wrapper trigger:
+  2 genuine REDs (`review-replay-red.xml`). Correction: trusted producer trigger function
+  is now `SECURITY DEFINER` with fixed search path, exact relation/operation/trigger
+  identity checks, public-qualified targets; the disposition guard additionally requires
+  the real table owner's identity. Fresh v3 disposable DB: targeted suite **28/28 PASS**
+  (`parent-v3-final.xml`), migration applied twice idempotently; broader regressions
+  earlier passed **180/180** on the pre-hardening build. Focused follow-up review: **PASS**
+  on the corrected source; residual broader source-access/revocation coverage remains open.
+- Design preserved: cancelled run stays cancelled; human revision, request bytes, identity,
+  grants, budget and unknown liabilities unchanged; no `tool_result` fabrication; only the
+  exact known response may be GET-observed once under current authority with shared read
+  accounting; pre-cancellation results without recorded effects stay ambiguous and
+  blocking; unknown sends without identity stay quarantined; settled receipts unblock only
+  NEW ordinary admission bound to the latest human revision.
+- Commit `8137e18` freezes exactly the reviewed bytes (Python/tests match the v1 manifest;
+  migration046 SHA-256 `ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad`).
+  Install + live-settlement verification completed; the fresh changed-between-waves
+  cycle passed as exercise #4 (see top section).
+- Evidence: `/home/ubuntu/workagent-cancelled-receipt-evidence/` (diagnosis, tasks,
+  worker logs, RED/GREEN XML, replay reproduction, live baseline hashes, review results,
+  final manifest). Disposable DBs `b2c1fc9a1169` (v2, old checksum) and `f55cf72dfe42` (v3)
+  exist; the older request-capacity DB carries the superseded first 046 checksum and must
+  not be reused with this source.
+
+## Latest: combined runtime installed; fresh proof found a cancellation stall
+
+- Private source `646ed0914be8f97d26a828e7d62dbb8cea83e89c`, candidate
+  `standing-capacity-20261022`, combines Claude's `d52928a` UI and the standing
+  capacity correction (`1122d83`, integration `646ed09`). Migration045 installed
+  with backup and exact retained-state/budget verification. No default-branch or
+  production deployment.
+- Standing-only cumulative schema ceilings now allow 1,024 generations/counts and
+  matching token totals. This does not allocate money or change per-request limits.
+  Scoped/fixed caps, explicit lower grants, $100 monetary ceiling and unknown-send
+  protections remain. Parent PostgreSQL run: **265 passed, one deliberately
+  deselected legacy database-provisioning case**; independent Astra review PASS.
+  No full backend-suite claim; reviewer noted an unrelated pre-existing SQL/Python
+  `cancel_limit=0.0` parity caveat, not a new regression or an exhaustive parity pass.
+- Both UI review issues are corrected: a real reply is not denied, and an earlier
+  responsibility receipt no longer hides a later refusal/budget stop. Parent reran
+  all **350 owner unit tests**, three independent review reproductions, typecheck,
+  lint and formatting on `d52928a`. Canonical combined webpack build/TypeScript passed
+  with `NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION=1`, without credentials in build env.
+  Installed desktop/phone readback confirms saved human notes and a working reply
+  composer (enabled with text, disabled empty); no message sent by that UI probe.
+- Native successor `workagent-continuation-20261022-11` is activated for NEW work.
+  Allocated authority is **$69.34476 of the same cumulative $100**, not billing.
+  Activation preserved all historical requests, events, attempts, pauses and budget
+  carry, including three unknown generations and Garden's unresolved count. Old
+  attempts remain bound to their original, now-revoked send authority; none resumed
+  or rebound. Activation itself made zero provider requests; fresh work is separate.
+- Fresh exercise #3 is **NOT a full pass**. Book-swap remained paused beyond its
+  original deadline, then completed both check-ins after Resume (runs `a7849dbc`
+  and `348e4661`), retained two readiness notes and ended `waiting_person` with no
+  further check-in. Both runs bound the first human revision `cfb8bc7d`. Parent DB
+  verification and desktop/390px-phone note readbacks passed. Its second human edit
+  was saved at `03:08:44Z`, AFTER both check-ins, not between them. That late edit
+  persisted, but cannot prove updated input was used in the second check-in.
+- Repair-day completed its first check-in, but a later human edit crossed its second
+  run (`a4163ad3`, dispatch `02:59:20Z`, edit/cancellation `02:59:37Z`). The human edit
+  correctly won; no stale second note was published. A known provider identity and
+  three reads were retained, but no terminal result. Further continuation now waits
+  for that attempt to settle; no unknown request was resent or reclassified. This
+  is genuine mid-flight-edit/stall evidence caused by the test's timing, not a clean
+  between-wave edit pass. Read-only Astra diagnosis is active; no correction claimed.
+- Actual worker restart/readiness/PID change and unchanged source were verified.
+  Latest reservation total **$42.99720**, not billing; unknown generations now **four**
+  (three historical plus the cancelled repair-day attempt). Allocated authority remains
+  $69.34476 of the original cumulative $100. Prior Library/Garden evidence is unchanged.
+  The full fresh changed-between-waves two-item proof remains outstanding.
+- Evidence: `/home/ubuntu/workagent-request-capacity-evidence/` (tests/review/build,
+  migration backup/install readback and browser captures),
+  `/home/ubuntu/workagent-frontend-verification-evidence/` (owner fix regressions),
+  `/home/ubuntu/workagent-fresh-ownership-evidence/` (authority, two requests,
+  human edits, pause, restart, leave-app and read-only observations).
+
+## Earlier: known kind-rejection fix installed; historical pause respected
 
 - Private source `fd110a77e87203d15a8ce4384721bc77b1feb351`, candidate
   `local-rejection-20261022`; feature integration `3dcc886`. Pure artifact-kind

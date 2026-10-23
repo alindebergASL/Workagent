@@ -4,6 +4,16 @@
       "AcceptProposal": {
         "additionalProperties": false,
         "properties": {
+          "acknowledge_older_proposal": {
+            "default": false,
+            "title": "Acknowledge Older Proposal",
+            "type": "boolean"
+          },
+          "acknowledge_removed_content": {
+            "default": false,
+            "title": "Acknowledge Removed Content",
+            "type": "boolean"
+          },
           "command_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -2587,6 +2597,7 @@
           "source_unavailable",
           "decision_required",
           "decision_stale",
+          "review_required",
           "budget_exhausted",
           "connection_required",
           "unsupported_operation",
@@ -4169,6 +4180,16 @@
             "title": "Reason",
             "type": "string"
           },
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProposalReview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "source_dependencies": {
             "items": {
               "$ref": "#/components/schemas/SourceRef"
@@ -4238,6 +4259,50 @@
           "items"
         ],
         "title": "ProposalPage",
+        "type": "object"
+      },
+      "ProposalReview": {
+        "additionalProperties": false,
+        "properties": {
+          "is_latest": {
+            "title": "Is Latest",
+            "type": "boolean"
+          },
+          "latest_pending_proposal_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Pending Proposal Id"
+          },
+          "removed_content": {
+            "items": {
+              "$ref": "#/components/schemas/RemovedContent"
+            },
+            "maxItems": 20,
+            "title": "Removed Content",
+            "type": "array"
+          },
+          "removed_content_count": {
+            "minimum": 0.0,
+            "title": "Removed Content Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "latest_pending_proposal_id",
+          "is_latest",
+          "removed_content",
+          "removed_content_count"
+        ],
+        "title": "ProposalReview",
         "type": "object"
       },
       "PublishArtifact-Input": {
@@ -4479,6 +4544,26 @@
           "kind"
         ],
         "title": "ReconcileCSV",
+        "type": "object"
+      },
+      "RemovedContent": {
+        "additionalProperties": false,
+        "properties": {
+          "before": {
+            "maxLength": 500,
+            "title": "Before",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "before"
+        ],
+        "title": "RemovedContent",
         "type": "object"
       },
       "RequestRevision": {
@@ -12815,6 +12900,8 @@
           "content": {
             "application/json": {
               "example": {
+                "acknowledge_older_proposal": false,
+                "acknowledge_removed_content": false,
                 "command_id": "command-example",
                 "expected_current_revision_id": "revision-1",
                 "request_id": "request-example",

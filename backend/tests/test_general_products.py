@@ -70,7 +70,7 @@ def test_csv_persist_replay_cells_notes_and_exact_proposal(context):
     assert proposal.body.notes==edited.notes and proposal.body.rows[1]['note']=='Human edited row note'
     assert proposal.body.source_csv==CSV and proposal.body.rounding=='ROUND_HALF_EVEN'
     assert s.get_artifact(p,ws,table.artifact_id).current_revision_id==saved.current_revision_id
-    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id))
+    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id,acknowledge_removed_content=True))
     assert accepted.current_revision.body==proposal.body
     assert s.get_product_observation(p,ws,results[0].observation_id).binding_state=='current_revision'
     old=s.get_artifact(p,ws,table.artifact_id,table.revision_id).requested_revision
@@ -92,7 +92,7 @@ def test_wasm_actual_shipping_change_preserves_human_notes(context):
     assert observed.observation.output.value==4250 and observed.binding_state=='pending_proposal'
     proposal=s.proposals(p,ws,tool.artifact_id).items[0]
     assert proposal.body.notes==body.notes and proposal.body.arguments==[3,1250,500]
-    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id))
+    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id,acknowledge_removed_content=True))
     assert s.download_product(p,ws,tool.artifact_id).content==SHIPPING
     assert s.get_product_observation(p,ws,result[0].observation_id).binding_state=='current_revision'
     assert s.get_artifact(p,ws,tool.artifact_id,tool.revision_id).requested_revision.body.code==CODE

@@ -111,7 +111,7 @@ def test_exact_approval_readback_and_concurrent_human_edit(context):
     r=s.complete_run(cap,receipt().bodies)
     outcome=s.get_assignment(p,ws,a.id).responsibility.runs[-1]
     assert outcome.state=='decision_required' and outcome.artifacts[0].body_hash==digest(receipt().bodies[0])
-    accepted=s.accept_proposal(p,ws,r.proposal_id,cmd(AcceptProposal,expected_current_revision_id=art.current_revision_id))
+    accepted=s.accept_proposal(p,ws,r.proposal_id,cmd(AcceptProposal,expected_current_revision_id=art.current_revision_id,acknowledge_removed_content=True))
     verified=s.get_assignment(p,ws,a.id).responsibility.runs[-1]
     assert verified.state=='readback_verified' and verified.artifacts[0].revision_id==accepted.current_revision_id
     assert all(x.status=='passed' for x in verified.checks)

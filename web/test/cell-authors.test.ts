@@ -5,7 +5,6 @@ import {
   cellChanges,
   changeSummary,
   tableChanges,
-  yourValuesChanged,
 } from "@/lib/flexible";
 
 type Rev = Parameters<typeof cellAuthors>[1][number];
@@ -99,7 +98,6 @@ describe("what a proposed table changes", () => {
 
 describe("what a proposal takes away", () => {
   const saved = table("690.00", 6);
-  const yours = { [cellAt("lark", "price")]: "human" as const };
   const without = (key: string) => ({
     ...saved,
     fields: saved.fields.filter((f) => f.key !== key),
@@ -113,14 +111,5 @@ describe("what a proposal takes away", () => {
     const c = tableChanges(noted, { ...without("days"), notes: ["Ask Lark."] });
     expect(c).toMatchObject({ dropped: 1, notes: 1, cells: 0 });
     expect(changeSummary(c)).toBe("1 column removed · 1 note removed");
-  });
-  it("counts the person's own values a proposal changes or removes", () => {
-    expect(yourValuesChanged(saved, saved, yours)).toBe(0);
-    // Someone else's value changing isn't the person's loss.
-    expect(yourValuesChanged(saved, table("690.00", 9), yours)).toBe(0);
-    expect(yourValuesChanged(saved, table("700.00", 6), yours)).toBe(1);
-    // Gone with its column, or with its row.
-    expect(yourValuesChanged(saved, without("price"), yours)).toBe(1);
-    expect(yourValuesChanged(saved, { ...saved, rows: [] }, yours)).toBe(1);
   });
 });

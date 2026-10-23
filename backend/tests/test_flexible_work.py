@@ -48,7 +48,7 @@ def test_structured_lifecycle_uses_existing_revision_proposal_history(context):
     assert current.current_revision_id==saved.current_revision_id
     proposal=s.proposals(p,ws,art.id).items[0]
     assert proposal.status=='pending' and result.proposal_id==proposal.id
-    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id))
+    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id,acknowledge_removed_content=True))
     assert accepted.current_revision.body.title=='Plant trials'
     assert len(s.history(p,ws,art.id).items)==3
     assert s.get_artifact(p,ws,art.id,saved.current_revision_id).requested_revision.body.rows[0].cells[0].value=='Human Oak'
@@ -217,7 +217,7 @@ def test_actual_model_admission_draft_stage_publication(context,tmp_path,adaptiv
     proposal=s.proposals(p,ws,art.id).items[0]
     assert proposal.status=='pending' and s.get_artifact(p,ws,art.id).current_revision.body.title=='Human title'
     assert not detail.messages[-1].text.startswith('Verified')
-    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id))
+    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=saved.current_revision_id,acknowledge_removed_content=True))
     assert len(s.history(p,ws,art.id).items)==3
     assert Service(s.db).get_artifact(p,ws,art.id).current_revision==accepted.current_revision
     assert s.get_artifact(p,ws,art.id,saved.current_revision_id).requested_revision.body.title=='Human title'

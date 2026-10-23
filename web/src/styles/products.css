@@ -933,6 +933,26 @@ textarea.fit-text {
   display: grid;
   gap: var(--sp-2);
 }
+/* A wide comparison scrolls inside its own table region: grid and flex
+   items (and the details around them) may shrink below their content, so
+   a full proposed table never widens the page. */
+.work-result,
+.work-result > *,
+.work-result details,
+.work-result details > *,
+.product-proposal,
+.product-proposal > *,
+.proposal-compare,
+.proposal-compare > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.proposal-removed li {
+  overflow-wrap: anywhere;
+}
+.proposal-earlier {
+  box-shadow: none;
+}
 
 /* A value the person changed since Workagent's last version. */
 /* A tint and underline read the same in the table and in phone cards. */

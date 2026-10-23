@@ -77,7 +77,7 @@ def test_controlled_typed_decision_publication_and_exact_target(context,tmp_path
     proposals=s.proposals(p,ws,a.id).items
     assert len(proposals)==1 and proposals[0].base_revision_id==target.revision_id
     assert s.get_artifact(p,ws,a.id).current_revision.body_hash==target.body_hash
-    result=s.accept_proposal(p,ws,proposals[0].id,cmd(AcceptProposal,expected_current_revision_id=target.revision_id))
+    result=s.accept_proposal(p,ws,proposals[0].id,cmd(AcceptProposal,expected_current_revision_id=target.revision_id,acknowledge_removed_content=True))
     assert 'one-week' in result.current_revision.body.blocks[0].text
 
 

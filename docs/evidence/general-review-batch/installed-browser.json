@@ -1,0 +1,11 @@
+{
+  "desktop": {
+    "width": 1440,
+    "scrollWidth": 1425
+  },
+  "phone": {
+    "width": 390,
+    "scrollWidth": 390
+  },
+  "apply_disabled_without_ack": true
+}

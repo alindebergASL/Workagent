@@ -266,33 +266,6 @@ export function tableChanges(before: StructuredTable, after: StructuredTable) {
   return { added, removed, cells, fields, dropped, notes };
 }
 
-/**
- * How many values the person set themselves (per `cellAuthors`) a proposed
- * table would change or take away: changed in place, or gone with a removed
- * row or column.
- */
-export function yourValuesChanged(
-  before: StructuredTable,
-  after: StructuredTable,
-  authors: Record<string, "human" | "worker">,
-): number {
-  const rows = new Map(after.rows.map((r) => [r.row_id, r]));
-  const fields = new Set(after.fields.map((f) => f.key));
-  let n = 0;
-  for (const r of before.rows)
-    for (const f of before.fields) {
-      if (authors[cellAt(r.row_id, f.key)] !== "human") continue;
-      const now = rows.get(r.row_id);
-      if (
-        !now ||
-        !fields.has(f.key) ||
-        cellValue(now, f.key) !== cellValue(r, f.key)
-      )
-        n++;
-    }
-  return n;
-}
-
 /** One value a proposed table changes, in a row both versions have. */
 export interface CellChange {
   rowId: string;

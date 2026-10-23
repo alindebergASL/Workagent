@@ -559,6 +559,16 @@ export interface components {
     schemas: {
         /** AcceptProposal */
         AcceptProposal: {
+            /**
+             * Acknowledge Older Proposal
+             * @default false
+             */
+            acknowledge_older_proposal: boolean;
+            /**
+             * Acknowledge Removed Content
+             * @default false
+             */
+            acknowledge_removed_content: boolean;
             /** Command Id */
             command_id: string;
             /** Expected Current Revision Id */
@@ -1463,7 +1473,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "not_found_or_not_authorized" | "version_conflict" | "source_changed" | "source_unavailable" | "decision_required" | "decision_stale" | "budget_exhausted" | "connection_required" | "unsupported_operation" | "action_unresolved" | "command_conflict" | "unauthenticated" | "validation_error" | "internal_error";
+        ErrorCode: "not_found_or_not_authorized" | "version_conflict" | "source_changed" | "source_unavailable" | "decision_required" | "decision_stale" | "review_required" | "budget_exhausted" | "connection_required" | "unsupported_operation" | "action_unresolved" | "command_conflict" | "unauthenticated" | "validation_error" | "internal_error";
         /** ErrorDetails */
         ErrorDetails: {
             /** Current Revision Id */
@@ -1949,6 +1959,7 @@ export interface components {
             id: string;
             /** Reason */
             reason: string;
+            review?: components["schemas"]["ProposalReview"] | null;
             /** Source Dependencies */
             source_dependencies: components["schemas"]["SourceRef"][];
             /**
@@ -1966,6 +1977,17 @@ export interface components {
             items: components["schemas"]["Proposal"][];
             /** Next Cursor */
             next_cursor?: string | null;
+        };
+        /** ProposalReview */
+        ProposalReview: {
+            /** Is Latest */
+            is_latest: boolean;
+            /** Latest Pending Proposal Id */
+            latest_pending_proposal_id: string | null;
+            /** Removed Content */
+            removed_content: components["schemas"]["RemovedContent"][];
+            /** Removed Content Count */
+            removed_content_count: number;
         };
         /** PublishArtifact */
         "PublishArtifact-Input": {
@@ -2042,6 +2064,13 @@ export interface components {
              * @enum {string}
              */
             rounding: "ROUND_HALF_UP" | "ROUND_HALF_EVEN";
+        };
+        /** RemovedContent */
+        RemovedContent: {
+            /** Before */
+            before: string;
+            /** Path */
+            path: string;
         };
         /** RequestRevision */
         RequestRevision: {
@@ -5980,6 +6009,8 @@ export interface operations {
         requestBody: {
             content: {
                 /** @example {
+                 *       "acknowledge_older_proposal": false,
+                 *       "acknowledge_removed_content": false,
                  *       "command_id": "command-example",
                  *       "expected_current_revision_id": "revision-1",
                  *       "request_id": "request-example",

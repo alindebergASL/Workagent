@@ -31,6 +31,8 @@ test.describe("S1 journey (mock mode)", () => {
       page.getByText(/hand over something you’d like finished/),
     ).toBeVisible();
     await expect(page.getByText(/I’m working on/)).toHaveCount(0);
+    // On a phone the box's actions come once it's used.
+    await page.getByLabel("Message your agent").click();
     await expect(
       page.getByRole("button", { name: "Take it from here" }),
     ).toBeDisabled();
@@ -58,6 +60,8 @@ test.describe("S1 journey (mock mode)", () => {
       "Draft a plan from nothing",
     );
 
+    // On a phone the starters come with the message box once it's used.
+    await page.getByLabel("Message your agent").click();
     await page.getByRole("button", { name: /Try the intake example/ }).click();
     await expect(page.getByLabel("Message your agent")).toHaveValue(
       /intake log/,
@@ -457,6 +461,8 @@ test.describe("S1 journey (mock mode)", () => {
     request,
   }, info) => {
     await page.goto("/");
+    // On a phone the starters come with the message box once it's used.
+    await page.getByLabel("Message your agent").click();
     await page.getByRole("button", { name: /Try the intake example/ }).click();
     const before = (
       (

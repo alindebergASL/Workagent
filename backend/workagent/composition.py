@@ -251,9 +251,14 @@ def _load(decision,context):
 
 def _read(decision,context):
     current=next(m for m in context['messages'] if m['run_id']==context['run_id'] and m['author_kind'] in ('human','system'))
+    evidence=context.get('evidence_context')
+    work_area=context.get('work_area_context')
+    if evidence:
+        work_area={**(work_area or {}),'pending_proposal_evidence':evidence['work_area']}
     return {'section':decision.section,'value':{'messages':context['messages'],
-            'target':context.get('target_body'),'attachments':current.get('attachments',[]),
-            'work_area':context.get('work_area_context')}[decision.section]}
+            'target':context.get('target_body'),
+            'attachments':evidence['attachments'] if evidence else current.get('attachments',[]),
+            'work_area':work_area}[decision.section]}
 
 
 def _inspect_json(decision,context):

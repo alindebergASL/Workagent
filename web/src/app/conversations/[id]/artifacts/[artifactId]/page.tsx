@@ -36,6 +36,16 @@ import {
   toolInputs,
 } from "@/lib/product-summary";
 import { readableTitle } from "@/lib/titles";
+import {
+  type Acks,
+  ackPayload,
+  acksFor,
+  canAccept,
+  candidates,
+  reviewOf,
+  type ReviewableProposal,
+} from "@/lib/proposal-review";
+import { ProposalReviewGate } from "@/components/ProposalReviewGate";
 import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
 type Data = {
@@ -51,7 +61,13 @@ type Data = {
 };
 type Pending =
   | { kind: "save"; id: string; base: string; body: ProductBody }
-  | { kind: "accept"; id: string; base: string; pid: string }
+  | {
+      kind: "accept";
+      id: string;
+      base: string;
+      pid: string;
+      acks?: ReturnType<typeof ackPayload>;
+    }
   | {
       kind: "dismiss";
       id: string;
@@ -345,6 +361,7 @@ function ProductEditor({
   const key = `workagent:product:${ws}:${cid}:${artifact.id}`;
   const [draft, setDraft] = useState<Draft>(() => readDraft(key, artifact));
   const [busy, setBusy] = useState(false);
+  const [acks, setAcks] = useState<Record<string, Acks>>({});
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const inputsError = inputError(draft);
@@ -415,6 +432,7 @@ function ProductEditor({
           exact.pid,
           exact.id,
           exact.base,
+          exact.acks,
         );
         if (!isProduct(saved.current_revision.body))
           throw new Error("Unexpected document response.");
@@ -584,8 +602,28 @@ function ProductEditor({
         verified={Boolean(verified) && !dirty}
       />
 
-      {pendingProposals.map((p) => {
+      {(() => {
+        // The latest candidate first; earlier ones labelled and gated.
+        const c = candidates(
+          pendingProposals as ((typeof pendingProposals)[number] &
+            ReviewableProposal)[],
+          artifact.current_revision_id,
+        );
+        return [...(c.latest ? [c.latest] : []), ...c.earlier, ...c.outdated];
+      })().map((p) => {
         const outdated = p.base_revision_id !== artifact.current_revision_id;
+        const review = outdated
+          ? null
+          : reviewOf(
+              p as typeof p & ReviewableProposal,
+              artifact.current_revision.body,
+              candidates(
+                pendingProposals as (typeof p & ReviewableProposal)[],
+                artifact.current_revision_id,
+              ).latest?.id ?? null,
+            );
+        const given = review ? acksFor(acks[p.id], review) : null;
+        const earlier = Boolean(review && !review.isLatest);
         // The run bound to exactly this proposed version, if any.
         const proposedRun = stale
           ? undefined
@@ -608,12 +646,21 @@ function ProductEditor({
             data-testid="product-proposal"
             aria-labelledby={`proposal-${p.id}`}
           >
-            <p className="eyebrow-caps">Waiting for you</p>
+            <p className="eyebrow-caps">
+              {earlier ? "Earlier proposal" : "Waiting for you"}
+            </p>
             <h2 id={`proposal-${p.id}`}>
               {outdated
                 ? "This proposal is out of date"
-                : "A proposed version is ready"}
+                : earlier
+                  ? "An earlier proposed version"
+                  : "A proposed version is ready"}
             </h2>
+            {earlier ? (
+              <p className="small" role="note">
+                A later proposal was made for the same saved version.
+              </p>
+            ) : null}
             {outdated ? (
               <p className="decision-question" role="status">
                 It was made from an earlier saved version, so it can’t replace
@@ -649,6 +696,14 @@ function ProductEditor({
                 </details>
               </>
             ) : null}
+            {review && given ? (
+              <ProposalReviewGate
+                review={review}
+                acks={given}
+                disabled={locked || dirty}
+                setAcks={(next) => setAcks((a) => ({ ...a, [p.id]: next }))}
+              />
+            ) : null}
             <div className="row">
               {isProduct(p.body) ? (
                 <button
@@ -667,20 +722,24 @@ function ProductEditor({
                   Download proposed file
                 </button>
               ) : null}
-              {outdated ? null : (
+              {outdated || !review || !given ? null : (
                 <button
-                  className="btn btn-on-soft"
-                  disabled={locked || dirty}
+                  className={earlier ? "btn btn-quiet" : "btn btn-on-soft"}
+                  disabled={locked || dirty || !canAccept(review, given)}
+                  data-testid="apply-proposal"
                   onClick={() =>
                     void submit({
                       kind: "accept",
                       id: crypto.randomUUID(),
                       pid: p.id,
                       base: artifact.current_revision_id,
+                      acks: ackPayload(review, given),
                     })
                   }
                 >
-                  Apply proposed version
+                  {earlier
+                    ? "Apply this earlier version"
+                    : "Apply proposed version"}
                 </button>
               )}
               <button

@@ -2695,11 +2695,11 @@ try {
   );
 
   {
-    // Two proposals for the same saved version: the newest is the decision;
-    // the earlier one says so, and applying it is a deliberate step. Values
-    // the person set themselves are counted on the card however many cells
-    // change (Hermes day/week evaluation: an earlier candidate dropped notes
-    // and was offered beside the later ones as an equal choice).
+    // Two proposals for the same saved version, listed oldest first: the
+    // latest is the decision; an earlier one that replaces the person's
+    // value is a step away and needs both acknowledgements (Hermes day/week
+    // evaluation: an earlier candidate dropped notes and was offered beside
+    // the later ones as an equal choice).
     const body = structuredClone(tableRev.body);
     const editable = body.fields.filter((f) => f.editable);
     const bump = (b, row, key, to) => {
@@ -2762,43 +2762,43 @@ try {
       }),
       null,
     );
-    const cards = page.getByTestId("product-proposal");
-    await expect(cards).toHaveCount(2);
-    const newest = cards.nth(0);
-    const older = cards.nth(1);
-    await expect(newest.getByRole("heading")).toHaveText(
-      "A proposed version is ready",
+    // The latest is the decision, in view; earlier ones are a step away.
+    const latest = page.locator('[data-candidate="latest"]');
+    await expect(latest).toHaveCount(1);
+    await expect(latest.getByRole("heading")).toHaveText(
+      "The latest proposed version",
     );
-    await expect(
-      newest.getByRole("button", { name: "Apply proposed version" }),
-    ).toBeVisible();
-    await expect(older.getByRole("heading")).toHaveText("An earlier proposal");
-    await expect(older.getByTestId("proposal-earlier")).toContainText(
-      "A newer proposal was made after this one.",
+    await expect(latest.getByTestId("apply-proposal")).toHaveText(
+      "Apply proposed version",
     );
-    await expect(
-      older.getByRole("button", { name: "Apply proposed version" }),
-    ).toHaveCount(0);
-    await expect(
-      older.getByRole("button", { name: "Apply this earlier proposal" }),
-    ).toBeHidden();
-    await expect(older.getByTestId("proposal-yours")).toHaveText(
-      "It changes or removes a value you set yourself. Applying it replaces it.",
+    const earlierList = page.getByTestId("earlier-proposals");
+    const older = page.locator('[data-candidate="earlier"]');
+    await expect(older).toBeHidden();
+    await earlierList.locator(":scope > summary").click();
+    await expect(older.getByRole("heading")).toHaveText(
+      "An earlier proposed version",
     );
-    await older
-      .getByRole("button", { name: "Dismiss this earlier proposal" })
-      .click();
+    // It replaces a value the person set, and isn't the latest: applying it
+    // waits for both acknowledgements, and sends them.
+    const apply = older.getByTestId("apply-proposal");
+    await expect(apply).toHaveText("Apply this earlier version");
+    await expect(apply).toBeDisabled();
+    await expect(older.getByTestId("proposal-removed")).toContainText(
+      "Set by me",
+    );
+    await older.getByTestId("ack-older").check();
+    await expect(apply).toBeDisabled();
+    await older.getByTestId("ack-removed").check();
+    await expect(apply).toBeEnabled();
+    await apply.click();
     await expect.poll(() => flexPosts.length).toBe(1);
-    assert.match(flexPosts[0].url, /\/proposals\/older\/dismiss$/);
-    assert.equal(flexPosts[0].body.resolution, "dismiss");
-    await older.getByText("Apply this earlier proposal instead…").click();
-    await expect(
-      older.getByRole("button", { name: "Apply this earlier proposal" }),
-    ).toBeVisible();
+    assert.match(flexPosts[0].url, /\/proposals\/older\/accept$/);
+    assert.equal(flexPosts[0].body.acknowledge_older_proposal, true);
+    assert.equal(flexPosts[0].body.acknowledge_removed_content, true);
   }
   passed++;
   console.log(
-    "PASS of two proposals for the same version the newest is the decision; the earlier is labelled, applying it is a deliberate step, and values the person set are counted on its card",
+    "PASS of two proposals for the same version the latest is the decision; an earlier one is a step away and applying it waits for both acknowledgements, which it sends",
   );
 
   {

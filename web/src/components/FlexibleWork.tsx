@@ -5,6 +5,17 @@ import {
   yourNotes,
   type ChangeItem,
 } from "@/lib/proposal-changes";
+import {
+  type Acks,
+  ackPayload,
+  acksFor,
+  canAccept,
+  candidates,
+  reviewOf,
+  type ReviewableProposal,
+  selectedComparison,
+} from "@/lib/proposal-review";
+import { ProposalReviewGate } from "./ProposalReviewGate";
 import { scopedHref } from "@/lib/scope";
 import {
   Fragment,
@@ -62,7 +73,6 @@ import {
   setCell,
   slug,
   tableChanges,
-  yourValuesChanged,
   unitLegend,
   tableCsv,
   viewActionRequest,
@@ -82,7 +92,13 @@ export type Bound = Record<
 
 type Pending =
   | { kind: "save"; id: string; base: string; body: FlexibleBody }
-  | { kind: "accept"; id: string; base: string; pid: string }
+  | {
+      kind: "accept";
+      id: string;
+      base: string;
+      pid: string;
+      acks?: ReturnType<typeof ackPayload>;
+    }
   | {
       kind: "dismiss";
       id: string;
@@ -314,6 +330,7 @@ export function FlexibleEditor({
           exact.pid,
           exact.id,
           exact.base,
+          exact.acks,
         );
         if (!isFlexible(next.current_revision.body))
           throw new Error("Unexpected response.");
@@ -378,24 +395,19 @@ export function FlexibleEditor({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [dirty]);
-  // Newest first. Of the proposals that could still apply, only the newest
-  // is the decision; one made before it may not include what came after,
-  // so it's labelled earlier and applying it takes a deliberate step.
-  const pendingProposals = proposals
-    .filter((p) => p.status === "pending")
-    .map((p, i) => ({ p, i }))
-    .sort(
-      (a, b) =>
-        Date.parse(b.p.created_at ?? "") - Date.parse(a.p.created_at ?? "") ||
-        a.i - b.i,
-    )
-    .map(({ p }) => p);
-  const newestCurrent = pendingProposals.find(
-    (p) => p.base_revision_id === artifact.current_revision_id,
-  )?.id;
-  const earlier = (p: S["Proposal"]) =>
-    p.base_revision_id === artifact.current_revision_id &&
-    p.id !== newestCurrent;
+  const pendingProposals = proposals.filter((p) => p.status === "pending");
+  // One latest candidate for the saved version; earlier ones stay reachable
+  // but secondary, and out-of-date ones can only be dismissed.
+  const cand = candidates(
+    pendingProposals as (S["Proposal"] & ReviewableProposal)[],
+    artifact.current_revision_id,
+  );
+  const [acks, setAcks] = useState<Record<string, Acks>>({});
+  // The proposal whose changes the person asked to review, for the saved
+  // version it was chosen on; otherwise Changes opens on the latest.
+  const [reviewing, setReviewing] = useState<{ id: string; base: string }>();
+  const reviewingId =
+    reviewing?.base === artifact.current_revision_id ? reviewing.id : null;
   const byWorkagent = artifact.current_revision.author_kind !== "human";
   // The work reads first; editing is one step away and comes back on its
   // own while anything is unsaved. A view has its own surface instead.
@@ -500,224 +512,222 @@ export function FlexibleEditor({
         </p>
       ) : null}
 
-      {pendingProposals.map((p) => {
-        const outdated = p.base_revision_id !== artifact.current_revision_id;
-        const proposed = isFlexible(p.body) ? p.body : null;
-        const tableProposal = Boolean(
-          proposed &&
-          flexibleKind(proposed) === "structured_table" &&
-          kind === "structured_table",
-        );
-        const cellCount = tableProposal
-          ? cellChanges(saved as StructuredTable, proposed as StructuredTable)
-              .length
-          : 0;
-        const yours = tableProposal
-          ? yourValuesChanged(
-              saved as StructuredTable,
-              proposed as StructuredTable,
-              savedCellAuthors,
-            )
-          : 0;
-        const older = earlier(p);
-        const cellsShown = !(
-          outdated ||
-          cellCount > 3 ||
-          (tabbed && mode === "changes")
-        );
-        const docParts =
-          proposed &&
-          !outdated &&
-          flexibleKind(proposed) === "document" &&
-          kind === "document"
-            ? documentProposalParts(
-                saved as DocumentBody,
-                proposed as DocumentBody,
-                savedNoteAuthors,
-                artifact.current_revision.author_kind === "human",
-              )
-            : null;
-        // A proposal that renames the work is named, so it's clear which
-        // version is proposed while the saved one keeps its own title.
-        const proposedTitle = (proposed as { title?: string } | null)?.title;
-        const proposedName =
-          proposedTitle && proposedTitle !== (saved as { title?: string }).title
-            ? readableTitle(proposedTitle)
-            : null;
-        return (
-          <section
-            key={p.id}
-            className="card decision-card product-proposal"
-            data-testid="product-proposal"
-            aria-labelledby={`proposal-${p.id}`}
-          >
-            <p className="eyebrow-caps">Waiting for you</p>
-            <h2 id={`proposal-${p.id}`}>
-              {outdated
-                ? "This proposal is out of date"
-                : older
-                  ? "An earlier proposal"
-                  : "A proposed version is ready"}
-            </h2>
-            {older ? (
-              <p
-                className="decision-question"
-                role="status"
-                data-testid="proposal-earlier"
-              >
-                A newer proposal was made after this one. Look at the newest
-                first: this one may not include what came after.
+      {(() => {
+        const renderCard = (p: S["Proposal"] & ReviewableProposal) => {
+          const outdated = p.base_revision_id !== artifact.current_revision_id;
+          const review = outdated
+            ? null
+            : reviewOf(p, saved, cand.latest?.id ?? null);
+          const given = review ? acksFor(acks[p.id], review) : null;
+          const earlier = Boolean(review && !review.isLatest);
+          const proposed = isFlexible(p.body) ? p.body : null;
+          const tableProposal = Boolean(
+            proposed &&
+            flexibleKind(proposed) === "structured_table" &&
+            kind === "structured_table",
+          );
+          const cellCount = tableProposal
+            ? cellChanges(saved as StructuredTable, proposed as StructuredTable)
+                .length
+            : 0;
+          const docParts =
+            proposed &&
+            !outdated &&
+            flexibleKind(proposed) === "document" &&
+            kind === "document"
+              ? documentProposalParts(
+                  saved as DocumentBody,
+                  proposed as DocumentBody,
+                  savedNoteAuthors,
+                  artifact.current_revision.author_kind === "human",
+                )
+              : null;
+          // A proposal that renames the work is named, so it's clear which
+          // version is proposed while the saved one keeps its own title.
+          const proposedTitle = (proposed as { title?: string } | null)?.title;
+          const proposedName =
+            proposedTitle &&
+            proposedTitle !== (saved as { title?: string }).title
+              ? readableTitle(proposedTitle)
+              : null;
+          return (
+            <section
+              key={p.id}
+              className={`card decision-card product-proposal${earlier ? " proposal-earlier" : ""}`}
+              data-testid="product-proposal"
+              data-candidate={
+                outdated ? "outdated" : earlier ? "earlier" : "latest"
+              }
+              aria-labelledby={`proposal-${p.id}`}
+            >
+              <p className="eyebrow-caps">
+                {earlier ? "Earlier proposal" : "Waiting for you"}
               </p>
-            ) : null}
-            {outdated ? (
-              <p className="decision-question" role="status">
-                It was made from an earlier saved version, so it can’t replace
-                your current one. Dismiss it, or ask for a new one in the
-                conversation.
-              </p>
-            ) : null}
-            {proposedName ? (
-              <p className="proposal-name" data-testid="proposal-name">
-                Proposed: <strong>{proposedName}</strong>
-              </p>
-            ) : null}
-            {p.reason ? <p className="small">{plainReason(p.reason)}</p> : null}
-            {tableProposal ? (
-              <>
-                <p className="decision-question" data-testid="proposal-changes">
-                  {changeSummary(
-                    tableChanges(
-                      saved as StructuredTable,
-                      proposed as StructuredTable,
-                    ),
-                  )}
-                </p>
-                {/* The Changes tab shows the same cells; not twice. */}
-                {cellsShown ? (
-                  <TableProposalCells
-                    saved={saved as StructuredTable}
-                    proposed={proposed as StructuredTable}
-                    authors={savedCellAuthors}
-                  />
-                ) : null}
-                {/* What it would do to values the person set themselves is
-                    said on the card, however many cells change. */}
-                {yours && !cellsShown && !outdated ? (
-                  <p className="small" data-testid="proposal-yours">
-                    {yours === 1
-                      ? "It changes or removes a value you set yourself. Applying it replaces it."
-                      : `It changes or removes ${yours} values you set yourself. Applying it replaces them.`}
-                  </p>
-                ) : null}
-              </>
-            ) : null}
-            {docParts?.summary}
-            {proposed &&
-            flexibleKind(proposed) === "custom_view" &&
-            kind === "custom_view" ? (
-              <ViewProposal
-                saved={saved as CustomView}
-                proposed={proposed as CustomView}
-                bound={bound}
-              />
-            ) : null}
-            <div className="row proposal-decision">
-              {outdated || older ? null : (
-                <button
-                  className="btn btn-on-soft"
-                  disabled={locked || dirty}
-                  onClick={() =>
-                    void submit({
-                      kind: "accept",
-                      id: crypto.randomUUID(),
-                      pid: p.id,
-                      base: artifact.current_revision_id,
-                    })
-                  }
-                >
-                  Apply proposed version
-                </button>
-              )}
-              <button
-                className="btn btn-quiet"
-                disabled={locked}
-                onClick={() =>
-                  void submit({
-                    kind: "dismiss",
-                    id: crypto.randomUUID(),
-                    pid: p.id,
-                    base: artifact.current_revision_id,
-                    resolution: outdated || older ? "dismiss" : "keep_current",
-                  })
-                }
-              >
+              <h2 id={`proposal-${p.id}`}>
                 {outdated
-                  ? "Dismiss proposal"
-                  : older
-                    ? "Dismiss this earlier proposal"
-                    : "Keep my current version"}
-              </button>
-              {older || !onAskForChange ? null : (
-                <button
-                  type="button"
-                  className="btn btn-quiet"
-                  onClick={() => onAskForChange()}
-                  data-testid="ask-for-change"
-                >
-                  Ask for a different change
-                </button>
-              )}
-            </div>
-            {older ? (
-              <details
-                className="ids-details"
-                data-testid="proposal-earlier-apply"
-              >
-                <summary>Apply this earlier proposal instead…</summary>
-                <div className="row" style={{ marginTop: 8 }}>
+                  ? "This proposal is out of date"
+                  : earlier
+                    ? "An earlier proposed version"
+                    : cand.earlier.length
+                      ? "The latest proposed version"
+                      : "A proposed version is ready"}
+              </h2>
+              {earlier ? (
+                <p className="small" role="note">
+                  A later proposal was made for the same saved version.
+                </p>
+              ) : null}
+              {outdated ? (
+                <p className="decision-question" role="status">
+                  It was made from an earlier saved version, so it can’t replace
+                  your current one. Dismiss it, or ask for a new one in the
+                  conversation.
+                </p>
+              ) : null}
+              {proposedName ? (
+                <p className="proposal-name" data-testid="proposal-name">
+                  Proposed: <strong>{proposedName}</strong>
+                </p>
+              ) : null}
+              {p.reason ? (
+                <p className="small">{plainReason(p.reason)}</p>
+              ) : null}
+              {tableProposal ? (
+                <>
+                  <p
+                    className="decision-question"
+                    data-testid="proposal-changes"
+                  >
+                    {changeSummary(
+                      tableChanges(
+                        saved as StructuredTable,
+                        proposed as StructuredTable,
+                      ),
+                    )}
+                  </p>
+                  {/* The Changes tab shows the same cells; not twice. */}
+                  {outdated ||
+                  cellCount > 3 ||
+                  (tabbed && mode === "changes") ? null : (
+                    <TableProposalCells
+                      saved={saved as StructuredTable}
+                      proposed={proposed as StructuredTable}
+                      authors={savedCellAuthors}
+                    />
+                  )}
+                </>
+              ) : null}
+              {docParts?.summary}
+              {proposed &&
+              flexibleKind(proposed) === "custom_view" &&
+              kind === "custom_view" ? (
+                <ViewProposal
+                  saved={saved as CustomView}
+                  proposed={proposed as CustomView}
+                  bound={bound}
+                />
+              ) : null}
+              {review && given ? (
+                <ProposalReviewGate
+                  review={review}
+                  acks={given}
+                  disabled={locked || dirty}
+                  setAcks={(next) => setAcks((a) => ({ ...a, [p.id]: next }))}
+                />
+              ) : null}
+              <div className="row proposal-decision">
+                {outdated || !review || !given ? null : (
                   <button
-                    className="btn btn-sm"
-                    disabled={locked || dirty}
+                    className={earlier ? "btn btn-quiet" : "btn btn-on-soft"}
+                    disabled={locked || dirty || !canAccept(review, given)}
+                    data-testid="apply-proposal"
                     onClick={() =>
                       void submit({
                         kind: "accept",
                         id: crypto.randomUUID(),
                         pid: p.id,
                         base: artifact.current_revision_id,
+                        acks: ackPayload(review, given),
                       })
                     }
                   >
-                    Apply this earlier proposal
+                    {earlier
+                      ? "Apply this earlier version"
+                      : "Apply proposed version"}
                   </button>
-                </div>
+                )}
+                <button
+                  className="btn btn-quiet"
+                  disabled={locked}
+                  onClick={() =>
+                    void submit({
+                      kind: "dismiss",
+                      id: crypto.randomUUID(),
+                      pid: p.id,
+                      base: artifact.current_revision_id,
+                      resolution: outdated ? "dismiss" : "keep_current",
+                    })
+                  }
+                >
+                  {outdated ? "Dismiss proposal" : "Keep my current version"}
+                </button>
+                {onAskForChange ? (
+                  <button
+                    type="button"
+                    className="btn btn-quiet"
+                    onClick={() => onAskForChange()}
+                    data-testid="ask-for-change"
+                  >
+                    Ask for a different change
+                  </button>
+                ) : null}
+              </div>
+              {!outdated && dirty ? (
+                <p className="small">Save or discard your changes first.</p>
+              ) : null}
+              {tabbed &&
+              mode !== "changes" &&
+              proposed &&
+              flexibleKind(proposed) === kind ? (
+                // The full comparison is its own tab, so the decision here
+                // stays short however much changed.
+                <button
+                  type="button"
+                  className="link-quiet small"
+                  data-testid="review-changes"
+                  onClick={() => {
+                    setReviewing({
+                      id: p.id,
+                      base: artifact.current_revision_id,
+                    });
+                    show("changes");
+                    document
+                      .getElementById("work-tab-changes")
+                      ?.scrollIntoView({ block: "start" });
+                  }}
+                >
+                  Review the changes
+                </button>
+              ) : null}
+            </section>
+          );
+        };
+        return (
+          <>
+            {cand.latest ? renderCard(cand.latest) : null}
+            {cand.earlier.length ? (
+              <details className="ids-details" data-testid="earlier-proposals">
+                <summary>
+                  {plural(cand.earlier.length, "earlier proposal")} for this
+                  version
+                </summary>
+                <div className="stack-sm">{cand.earlier.map(renderCard)}</div>
               </details>
             ) : null}
-            {!outdated && dirty ? (
-              <p className="small">Save or discard your changes first.</p>
-            ) : null}
-            {tabbed &&
-            mode !== "changes" &&
-            proposed &&
-            flexibleKind(proposed) === kind ? (
-              // The full comparison is its own tab, so the decision here
-              // stays short however much changed.
-              <button
-                type="button"
-                className="link-quiet small"
-                data-testid="review-changes"
-                onClick={() => {
-                  show("changes");
-                  document
-                    .getElementById("work-tab-changes")
-                    ?.scrollIntoView({ block: "start" });
-                }}
-              >
-                Review the changes
-              </button>
-            ) : null}
-          </section>
+            {cand.outdated.map(renderCard)}
+          </>
         );
-      })}
+      })()}
 
       {kind === "custom_view" ? (
         <ViewSurface
@@ -760,50 +770,89 @@ export function FlexibleEditor({
           aria-labelledby="work-tab-changes"
           data-testid="work-changes"
         >
-          {comparable.map((p) => {
-            const proposed = p.body as FlexibleBody;
-            const outdated =
-              p.base_revision_id !== artifact.current_revision_id;
-            return (
-              <div key={p.id} className="stack-sm">
-                {outdated ? (
-                  <p className="small" role="status">
-                    Made from an earlier saved version, so it can’t replace your
-                    current one.
-                  </p>
-                ) : earlier(p) ? (
-                  <p className="small" role="status">
-                    An earlier proposal: a newer one was made after it.
-                  </p>
-                ) : null}
-                {kind === "structured_table" ? (
-                  <TableProposalCells
-                    saved={saved as StructuredTable}
-                    proposed={proposed as StructuredTable}
-                    authors={savedCellAuthors}
-                  />
-                ) : kind === "document" ? (
-                  documentProposalParts(
-                    saved as DocumentBody,
-                    proposed as DocumentBody,
-                    savedNoteAuthors,
-                    artifact.current_revision.author_kind === "human",
-                  ).diff
-                ) : null}
-                <details className="ids-details">
-                  <summary>The whole proposed version</summary>
-                  <ReadOnly
-                    body={proposed}
-                    authors={proposedNoteAuthors(
-                      saved,
-                      proposed,
-                      savedNoteAuthors,
-                    )}
-                  />
-                </details>
-              </div>
+          {(() => {
+            // The chosen (or else latest) comparison shows; others are one
+            // step away. Choosing an earlier one keeps its warning.
+            const first = selectedComparison(
+              comparable,
+              reviewingId,
+              cand.latest?.id ?? null,
             );
-          })}
+            const rest = comparable.filter((p) => p !== first);
+            const compare = (p: S["Proposal"]) => {
+              const proposed = p.body as FlexibleBody;
+              const outdated =
+                p.base_revision_id !== artifact.current_revision_id;
+              return (
+                <div
+                  key={p.id}
+                  className="stack-sm proposal-compare"
+                  data-testid="proposal-compare"
+                  data-proposal-id={p.id}
+                >
+                  {p === first ? (
+                    <h3 className="small" data-testid="compare-title">
+                      {outdated
+                        ? "Proposal from an earlier saved version"
+                        : p.id === cand.latest?.id
+                          ? "Latest proposal"
+                          : "Earlier proposal you chose to review"}
+                      {proposed.title ? ` · ${proposed.title}` : ""}
+                    </h3>
+                  ) : null}
+                  {p.id !== cand.latest?.id && !outdated ? (
+                    <p className="small" role="note">
+                      An earlier proposal for this saved version.
+                    </p>
+                  ) : null}
+                  {outdated ? (
+                    <p className="small" role="status">
+                      Made from an earlier saved version, so it can’t replace
+                      your current one.
+                    </p>
+                  ) : null}
+                  {kind === "structured_table" ? (
+                    <TableProposalCells
+                      saved={saved as StructuredTable}
+                      proposed={proposed as StructuredTable}
+                      authors={savedCellAuthors}
+                    />
+                  ) : kind === "document" ? (
+                    documentProposalParts(
+                      saved as DocumentBody,
+                      proposed as DocumentBody,
+                      savedNoteAuthors,
+                      artifact.current_revision.author_kind === "human",
+                    ).diff
+                  ) : null}
+                  <details className="ids-details">
+                    <summary>The whole proposed version</summary>
+                    <ReadOnly
+                      body={proposed}
+                      authors={proposedNoteAuthors(
+                        saved,
+                        proposed,
+                        savedNoteAuthors,
+                      )}
+                    />
+                  </details>
+                </div>
+              );
+            };
+            return (
+              <>
+                {first ? compare(first) : null}
+                {rest.length ? (
+                  <details className="ids-details">
+                    <summary>
+                      {plural(rest.length, "other proposal")} to compare
+                    </summary>
+                    <div className="stack">{rest.map(compare)}</div>
+                  </details>
+                ) : null}
+              </>
+            );
+          })()}
         </section>
       ) : null}
       {tabbed && mode === "result" ? (
@@ -1667,7 +1716,22 @@ export function TableProposalCells({
   authors: Record<string, "human" | "worker">;
 }) {
   const changes = cellChanges(saved, proposed);
-  if (!changes.length) return null;
+  // Notes the proposal leaves out are changes too, said in full.
+  const kept = new Set(proposed.notes ?? []);
+  const lostNotes = (saved.notes ?? []).filter((n) => !kept.has(n));
+  const notesLine = lostNotes.length ? (
+    <div className="small" data-testid="proposal-removed-notes">
+      <p>
+        It removes {plural(lostNotes.length, "note")} from the saved version:
+      </p>
+      <ul className="proposal-removed">
+        {lostNotes.map((n, i) => (
+          <li key={i}>{n}</li>
+        ))}
+      </ul>
+    </div>
+  ) : null;
+  if (!changes.length) return notesLine;
   const yours = (c: CellChange) => authors[cellAt(c.rowId, c.key)] === "human";
   const theirs = changes.filter(yours);
   const shown = [...theirs, ...changes.filter((c) => !yours(c))].slice(0, 12);
@@ -1696,6 +1760,7 @@ export function TableProposalCells({
             It changes a value you set yourself. Applying it replaces it.
           </p>
         ) : null}
+        {notesLine}
       </div>
     );
   }
@@ -1720,6 +1785,7 @@ export function TableProposalCells({
       {changes.length > shown.length ? (
         <p className="small muted">…and {changes.length - shown.length} more</p>
       ) : null}
+      {notesLine}
     </div>
   );
 }

@@ -85,7 +85,7 @@ def test_proposal_status_bases_staleness_and_acceptance_current_revision(context
     dismissed=propose(context,cv,a)
     s.dismiss_proposal(p,ws,dismissed.id,cmd(DismissProposal,expected_current_revision_id=a.current_revision_id,resolution='dismiss'))
     accepted=propose(context,cv,a)
-    s.accept_proposal(p,ws,accepted.id,cmd(AcceptProposal,expected_current_revision_id=a.current_revision_id))
+    s.accept_proposal(p,ws,accepted.id,cmd(AcceptProposal,expected_current_revision_id=a.current_revision_id,acknowledge_removed_content=True))
     projection=Service(Database()).get_work_area_context(p,ws,cv.id)
     items={item.proposal_id:item for item in projection.proposals}
     assert items[dismissed.id].status=='dismissed' and not items[dismissed.id].stale
@@ -142,7 +142,7 @@ def test_inferred_target_freshness_fences(context,tmp_path,change,when):
         if change=='human_save':
             s.human_save(p,ws,a.id,cmd(HumanSave,expected_current_revision_id=a.current_revision_id,body=document('Human revision wins')))
         elif change=='accept':
-            s.accept_proposal(p,ws,prior.id,cmd(AcceptProposal,expected_current_revision_id=a.current_revision_id))
+            s.accept_proposal(p,ws,prior.id,cmd(AcceptProposal,expected_current_revision_id=a.current_revision_id,acknowledge_removed_content=True))
         elif change=='purpose':
             s.promote_work_area(p,ws,cv.id,cmd(PromoteWorkArea,expected_work_version=q.conversation.work_version,
                 title='Changed human purpose',goal='Do not pursue the old goal',kind='project'))

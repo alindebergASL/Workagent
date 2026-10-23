@@ -71,7 +71,7 @@ def test_initial_human_edit_revision_exact_approval(context,tmp_path):
     assert 'earlier agent recommendations superseded' in proposal.body.blocks[6].text
     assert proposal.body.blocks[7:]==body.blocks
     assert s.get_artifact(p,ws,art.id).current_revision_id==human.current_revision_id
-    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=human.current_revision_id))
+    accepted=s.accept_proposal(p,ws,proposal.id,cmd(AcceptProposal,expected_current_revision_id=human.current_revision_id,acknowledge_removed_content=True))
     outcome=s.get_assignment(p,ws,a.id).responsibility.runs[-1]
     assert outcome.state=='readback_verified' and outcome.outcome_gate==outcome.safety_gate=='passed'
     assert accepted.current_revision.body==proposal.body and not outcome.underlying_action_performed

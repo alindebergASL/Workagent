@@ -770,6 +770,10 @@ export const realApi = {
             body: {
               ...command(c.command_id),
               expected_current_revision_id: c.expected_current_revision_id,
+              // This path has no review step; the service answers
+              // review_required when a proposal needs acknowledging.
+              acknowledge_removed_content: false,
+              acknowledge_older_proposal: false,
             },
           },
         ),

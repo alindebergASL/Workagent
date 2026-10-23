@@ -26,7 +26,7 @@ POLICY='''This profile offers only read_scoped_context, replacing the general re
 def consumer_hash():
     names=('responsibility_execution.py','responsibilities.py','responsibility_models.py','general_alpha_models.py',
            'responses_worker.py','responses_io.py','responses_ledger.py','responses_schema.py','responses_transport.py',
-           'broker.py','provider_attempts.py','runtime_config.py','service.py','models.py','outcomes.py',
+           'broker.py','provider_attempts.py','runtime_config.py','service.py','proposal_review.py','models.py','outcomes.py',
            'responses_dispatcher.py','responses_recovery.py','tool_registry.py')
     return digest({name:sha256(Path(__file__).with_name(name).read_bytes()).hexdigest() for name in names})
 

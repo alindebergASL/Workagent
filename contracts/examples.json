@@ -3,6 +3,8 @@
   "operations": {
     "accept_revision": {
       "request": {
+        "acknowledge_older_proposal": false,
+        "acknowledge_removed_content": false,
         "command_id": "command-example",
         "expected_current_revision_id": "revision-1",
         "request_id": "request-example",
@@ -930,6 +932,7 @@
       "created_at": "2026-10-02T00:00:00Z",
       "id": "proposal-example",
       "reason": "Make the next action concrete",
+      "review": null,
       "source_dependencies": [
         {
           "external_version": "1",

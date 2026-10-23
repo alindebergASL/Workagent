@@ -19,8 +19,8 @@ POLICY += FLEXIBLE_POLICY
 def consumer_hash():
     from .service import digest
     names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
-           'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py',
-           'conversation_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
+           'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py','proposal_review.py',
+           'conversation_context.py','evidence_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
 
 
@@ -204,14 +204,22 @@ def completed_steps_are_settled(c,attempt_id):
                        (attempt_id,step['phase'])).fetchall()
         if not rows:continue
         events={r['kind']:r['data'] for r in rows if r['kind']!='read'}
-        if not required<=set(events) or set(events)-required-{'tool_result'}:return False
+        if not required<=set(events) or set(events)-required-{'tool_result','cancelled_unapplied'}:return False
         identity=events['identity'];result=events['result'];count=events['count_result']
+        usage=result.get('usage')
+        if (not isinstance(usage,dict)
+                or any(type(usage.get(k)) is not int or usage[k]<0
+                       for k in ('input_tokens','output_tokens','total_tokens','cached_input_tokens','reasoning_tokens'))
+                or usage['total_tokens']!=usage['input_tokens']+usage['output_tokens']
+                or usage['cached_input_tokens']>usage['input_tokens']
+                or usage['reasoning_tokens']>usage['output_tokens']):return False
         if (not identity.get('response_id') or result.get('response_id')!=identity['response_id']
                 or result.get('usage') is None
                 or any(item.get('metadata')!=step['metadata'] for item in (identity,result,count))
                 or any(item.get('request_sha256')!=step['request_sha256'] for item in (identity,result,count))
                 or result.get('state') not in ('function_call','completed')
-                or (result['state']=='function_call' and 'tool_result' not in events)):return False
+                or (result['state']=='function_call' and 'tool_result' not in events
+                    and 'cancelled_unapplied' not in events)):return False
         observed=True
     return observed
 

@@ -71,6 +71,7 @@ class ResponsesDispatcher:
         # Same durable outbox and existing local worker. This cursor is only a
         # fairness hint; restart safely scans again, never a second work ledger.
         self.cursor=0
+        self.observation_cursor=0
         from .dispatcher import Dispatcher
         self.local_dispatcher=Dispatcher(worker.service,workspace=workspace,general_controlled=True)
 
@@ -110,6 +111,23 @@ class ResponsesDispatcher:
                   AND r.data->>'profile'=%s AND rc.data->>'grant_id'=%s
                 ORDER BY d.cursor LIMIT 100''',(self.workspace,self.cursor,'general-responses-v1' if hasattr(self.worker,'phases') else 'openai-responses-v1',self.grant_id)).fetchall()
         self.cursor=rows[-1]['cursor'] if len(rows)==100 else 0
+        if hasattr(self.worker,'phases'):
+            with service.db.transaction() as c:
+                recovering=c.execute("""SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
+                    JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
+                    JOIN provider_attempts a ON a.workspace_id=r.workspace_id AND a.run_id=r.id
+                    JOIN provider_grants g ON g.id=a.grant_id
+                    WHERE d.workspace_id=%s AND a.grant_id=%s AND d.cursor>%s
+                      AND r.data->>'state'='cancelled' AND cancelled_response_observation_permits(a.id)
+                      AND (SELECT count(*) FROM responses_events used JOIN responses_steps step USING(attempt_id,phase)
+                        WHERE used.kind='read' AND step.grant_id IN (SELECT responses_budget_grants(g.id)))
+                          < (g.data->'responses'->>'read_limit')::integer
+                      AND EXISTS (SELECT 1 FROM responses_events e WHERE e.attempt_id=a.id AND e.kind='identity'
+                        AND NOT EXISTS (SELECT 1 FROM responses_events done WHERE done.attempt_id=e.attempt_id
+                          AND done.phase=e.phase AND done.kind='result'))
+                    ORDER BY d.cursor LIMIT 10""",(self.workspace,self.grant_id,self.observation_cursor)).fetchall()
+            self.observation_cursor=recovering[-1]['cursor'] if len(recovering)==10 else 0
+            rows.extend(recovering)
         results=[]
         for row in rows:
             from .models import now

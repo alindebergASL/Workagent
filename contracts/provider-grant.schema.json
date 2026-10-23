@@ -570,19 +570,19 @@
           "type": "string"
         },
         "count_limit": {
-          "maximum": 256,
+          "maximum": 1024,
           "minimum": 0,
           "title": "Count Limit",
           "type": "integer"
         },
         "generation_limit": {
-          "maximum": 256,
+          "maximum": 1024,
           "minimum": 0,
           "title": "Generation Limit",
           "type": "integer"
         },
         "input_limit": {
-          "maximum": 12800000,
+          "maximum": 51200000,
           "minimum": 0,
           "title": "Input Limit",
           "type": "integer"
@@ -600,7 +600,7 @@
           "type": "integer"
         },
         "output_limit": {
-          "maximum": 2097152,
+          "maximum": 8388608,
           "minimum": 0,
           "title": "Output Limit",
           "type": "integer"

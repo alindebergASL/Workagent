@@ -103,6 +103,12 @@ export function describeError(err: unknown): {
           nextAction:
             "Review the current version before saving again. Your draft is kept.",
         };
+      case "review_required":
+        return {
+          title: "This proposal needs review before it can be used",
+          nextAction:
+            "It removes or replaces saved content, or isn’t the latest proposal. Open the work to compare and confirm. Nothing was changed.",
+        };
       case "command_conflict":
         return {
           title: "This request was already sent with different content",

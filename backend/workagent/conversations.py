@@ -47,7 +47,7 @@ def profile(name=PROFILE):
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('composition.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
+        for name in ('composition.py', 'proposal_review.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):
@@ -222,6 +222,9 @@ class Conversations:
         if grant:
             pinned.update(grant_id=grant.id,model=grant.model,consumer_sha256=grant.consumer_sha256,
                 max_received_output_tokens=grant.max_received_output_tokens,responses=grant.responses.model_dump(mode='json'))
+        if grant and getattr(grant.responses,'runtime_extension',None)=='general-alpha-v1':
+            from .evidence_context import VERSION
+            pinned['evidence_context_version']=VERSION
         if responsibility is not None:
             pinned['responsibility']=responsibility.model_dump(mode='json')
         c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
@@ -293,6 +296,8 @@ class Conversations:
             observation['work_area_context']=context['work_area_context']
         if 'work_context_index' in context:
             observation['work_context_index']=context['work_context_index']
+        if 'evidence_context' in context:
+            observation['evidence_context']=context['evidence_context']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')
@@ -441,6 +446,12 @@ class Conversations:
                 from .work_context import validate_consumed
                 validate_consumed(self,c,p,run,config)
         if run.profile=='general-responses-v1':
+            from .evidence_context import VERSION, materialize
+            if config.get('evidence_context_version')==VERSION:
+                previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
+                    (run.workspace_id,run.id)).fetchone()
+                context['evidence_context']=materialize(self,c,p,run,cv,latest,messages,config,context,
+                    snapshot=previous['data'].get('evidence_context') if previous else None)
             from .general_responses import standing
             from .composition import continuity_enabled
             from .saved_work import revalidate_reads
