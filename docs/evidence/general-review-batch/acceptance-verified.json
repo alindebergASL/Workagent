@@ -1,0 +1,42 @@
+{
+  "planning": {
+    "accepted_proposal": "a9f665ce-09bf-4fd4-a297-a3e0d877af43",
+    "saved_revision": "b78c59b9-906a-4f07-8853-3483c9e1cb0d",
+    "saved_body_exactly_matches_reviewed_proposal": true,
+    "explicit_acknowledgement": true,
+    "prior_revisions_and_proposals_retained": true,
+    "one_new_human_revision": true,
+    "no_active_runs_or_schedule": true,
+    "outcome_status_after_acceptance": "needs_review",
+    "viewports": {
+      "desktop": {
+        "width": 1440,
+        "scrollWidth": 1425
+      },
+      "phone": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    }
+  },
+  "editorial": {
+    "accepted_proposal": "683d874f-0eda-4139-87de-3a644e478058",
+    "saved_revision": "1e581361-7d21-435e-a2b8-bdbfe9bb3a9d",
+    "saved_body_exactly_matches_reviewed_proposal": true,
+    "explicit_acknowledgement": true,
+    "prior_revisions_and_proposals_retained": true,
+    "one_new_human_revision": true,
+    "no_active_runs_or_schedule": true,
+    "outcome_status_after_acceptance": "needs_review",
+    "viewports": {
+      "desktop": {
+        "width": 1440,
+        "scrollWidth": 1425
+      },
+      "phone": {
+        "width": 390,
+        "scrollWidth": 390
+      }
+    }
+  }
+}

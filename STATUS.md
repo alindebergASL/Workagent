@@ -1,6 +1,30 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: evidence fix installed; day/week test completed with qualified results
+## Latest: general-purpose proposal review installed; fresh acceptance verified
+
+- Private runtime `d4d019c4b9bebca9ca8b49d1466a92fab7514aff`; reviewed-source install,
+  94 focused backend and 69 frontend tests, independent review PASS, production build.
+- Shared older-candidate/removal acknowledgement, latest/history distinction and
+  selected-candidate comparison; full-table desktop/phone width checks PASS.
+- Fresh planning AND editorial assignments: saved human edits, later amendment,
+  unattended reread of original sources/pending proposal, waiting_person/no schedule,
+  explicit browser acknowledgement/acceptance and exact saved-body read-back PASS.
+- Overall product remains PARTIAL: first planning proposal omitted a saved source
+  note; one explicit repair prompt restored all notes before acceptance. Generated
+  multiline notes needed a documented editor formatting workaround. No history lost.
+- No speed improvement: weekly amendment journal span 505.73s vs prior 296.80s;
+  one artifact generation per amendment and zero during either unattended check-in.
+- Reservations $66.58608 (+$7.24220), NOT billing; aggregate allocation $92.10596
+  under unchanged $100 ceiling; five generation slots remain; three historical
+  unknown-usage steps retained. No further paid run in this completed evaluation.
+- [Full batch evaluation](docs/GENERAL_PROPOSAL_REVIEW_BATCH_EVALUATION.md),
+  [machine evidence](docs/evidence/general-review-batch/acceptance-verified.json).
+- Delivery batch complete privately, not the wider mission. Next requested work:
+  researched plans for conversational TUI/attachments/ongoing-work visibility and
+  resumption, then general tools/connectors/cross-assignment memory. Research
+  handoffs await parent synthesis; no implementation of those batches claimed.
+
+## Historical: evidence fix installed; day/week test completed with qualified results
 
 - Installed private runtime `4b55cc5` after 56/56 selected tests and independent
   follow-up review PASS. Integrated backend/web bytes match `9324205` on this branch.
