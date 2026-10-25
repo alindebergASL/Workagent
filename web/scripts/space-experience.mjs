@@ -146,10 +146,15 @@ try {
       `${origin}/conversations/${w.conversation_id}/artifacts/${w.budget_id}?workspace=${ids.workspace}`,
     );
     await desk.locator("#work-tab-changes").click({ timeout: 20000 });
-    await desk
-      .locator("summary", { hasText: "The whole proposed version" })
-      .first()
-      .click();
+    // Open unless it already is (a table change with no changed values
+    // opens on its own).
+    const whole = desk.locator("details", {
+      has: desk.locator(":scope > summary", {
+        hasText: "The whole proposed version",
+      }),
+    });
+    if ((await whole.first().getAttribute("open")) === null)
+      await whole.first().locator(":scope > summary").click();
     const region = desk
       .locator("details[open] .product-scroll[role='region']")
       .first();

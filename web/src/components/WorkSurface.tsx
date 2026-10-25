@@ -11,9 +11,15 @@ export function WorkSurface({
   agent,
   focusAgent,
   focusWork = 0,
+  title,
 }: {
   document: ReactNode;
   agent: ReactNode;
+  /**
+   * The work's name, when the page's heading is inside the work pane: on a
+   * phone the conversation pane shows it instead while the work is hidden.
+   */
+  title?: string;
   /** Increment to bring the agent pane forward (e.g. "Request revision"). */
   focusAgent: number;
   /** Increment to return to the document (e.g. after a request is sent). */
@@ -50,9 +56,10 @@ export function WorkSurface({
           Conversation
         </button>
       </div>
-      <aside className="working-agent" aria-label="Conversation">
+      <section className="working-agent" aria-label="Conversation">
+        {title ? <h1 className="working-agent-title">{title}</h1> : null}
         {agent}
-      </aside>
+      </section>
       <div className="working-document">{document}</div>
     </section>
   );

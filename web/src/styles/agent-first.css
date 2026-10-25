@@ -14,8 +14,8 @@
   --line-strong: #cdd4df;
   --ink: #202632;
   --ink-2: #4d5868;
-  --ink-3: #6b7382;
-  --muted: #707886;
+  --ink-3: #646b78;
+  --muted: #646b78;
   --blue: #3e63dc;
   --soft: #edf2ff;
   --soft-line: #c9d6fb;
@@ -32,6 +32,16 @@
   --content-w: 1120px;
   --shadow-soft: 0 10px 34px -18px rgba(32, 54, 85, 0.22);
   --radius-xl: 22px;
+}
+/* Native controls (checkboxes, selects, scrollbars) follow the theme. */
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -857,6 +867,10 @@ details.disclosure.card {
   position: sticky;
   top: 20px;
 }
+/* Shown only on a phone, while the work (and its own heading) is hidden. */
+.working-agent-title {
+  display: none;
+}
 .agent-pane {
   padding: 4px 2px;
 }
@@ -992,6 +1006,10 @@ details.disclosure.card {
   }
   .working-surface[data-pane="work"] > .working-agent {
     display: none;
+  }
+  .working-surface[data-pane="agent"] .working-agent-title {
+    display: block;
+    margin-bottom: 8px;
   }
   .working-surface[data-pane="agent"] > .working-document {
     display: none;

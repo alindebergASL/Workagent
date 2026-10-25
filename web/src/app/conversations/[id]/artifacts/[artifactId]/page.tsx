@@ -264,6 +264,10 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
       ) : (
         <WorkSurface
           focusAgent={askForChange}
+          title={readableTitle(
+            (resource.data.artifact.current_revision.body as { title?: string })
+              .title ?? "",
+          )}
           document={
             isProduct(resource.data.artifact.current_revision.body) ? (
               <ProductEditor

@@ -825,7 +825,19 @@ export function FlexibleEditor({
                       artifact.current_revision.author_kind === "human",
                     ).diff
                   ) : null}
-                  <details className="ids-details">
+                  <details
+                    className="ids-details"
+                    // Rows, columns or notes added or taken away aren't in
+                    // the value-by-value list: the whole version shows them.
+                    open={
+                      (kind === "structured_table" &&
+                        !cellChanges(
+                          saved as StructuredTable,
+                          proposed as StructuredTable,
+                        ).length) ||
+                      undefined
+                    }
+                  >
                     <summary>The whole proposed version</summary>
                     <ReadOnly
                       body={proposed}
