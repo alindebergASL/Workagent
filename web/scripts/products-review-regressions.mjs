@@ -2113,6 +2113,9 @@ try {
   // on the Edit tab the way a person who chose it last time would.
   async function showFlex(data, mode = "edit") {
     flexPosts = [];
+    // The last case's work leaves first: still mounted, it can write its
+    // draft back after storage is cleared, and this one would open on it.
+    await away();
     await page.evaluate(
       ([data, mode]) => {
         sessionStorage.clear();
@@ -2126,7 +2129,6 @@ try {
       },
       [data, mode],
     );
-    await away();
     await page.evaluate(() => window.mount("product"));
   }
 
@@ -2582,6 +2584,71 @@ try {
   passed++;
   console.log(
     "PASS notes stop at the limit; a version already over it is refused visibly, kept through reload, and never truncated on save",
+  );
+
+  {
+    // Removing a note or a row keeps the keyboard where the person was (the
+    // next one, else the one before, else Add), never the top of the page,
+    // and what was removed is announced from a region already on the page.
+    const table = tableRev.body;
+    await showFlex(flexData(tableRev));
+    const box = notesGroup(page, "Notes");
+    await expect(box.getByRole("status")).toHaveCount(1);
+    await expect(box.getByRole("status")).toHaveText("");
+    const before = table.notes.length;
+    for (const [i, text] of ["First added", "Second added"].entries()) {
+      await box
+        .getByRole("button", { name: "Add a note", exact: true })
+        .click();
+      await box
+        .getByRole("textbox", { name: `Note ${before + i + 1}`, exact: true })
+        .fill(text);
+    }
+    await box
+      .getByRole("button", { name: `Remove note ${before + 1}`, exact: true })
+      .press("Enter");
+    const took = box.getByRole("textbox", {
+      name: `Note ${before + 1}`,
+      exact: true,
+    });
+    await expect(took).toBeFocused();
+    await expect(took).toHaveValue("Second added");
+    await expect(box.getByRole("status")).toHaveText(
+      "Removed “First added”. Undo",
+    );
+    await box
+      .getByRole("button", { name: `Remove note ${before + 1}`, exact: true })
+      .press("Enter");
+    await expect(
+      before
+        ? box.getByRole("textbox", { name: `Note ${before}`, exact: true })
+        : box.getByRole("button", { name: "Add a note", exact: true }),
+    ).toBeFocused();
+    const region = page.getByRole("region", { name: "Editable table" });
+    const firstField = region
+      .locator("tbody > tr:not(.long-row)")
+      .first()
+      .locator("input, select, textarea")
+      .first();
+    const rowStatus = page
+      .getByRole("status")
+      .filter({ hasText: /^$|Removed/ });
+    assert.ok((await rowStatus.count()) >= 2, "a row status is on the page");
+    await region
+      .getByRole("button", { name: /^Remove / })
+      .first()
+      .press("Enter");
+    await expect(firstField).toBeFocused();
+    const undoRow = page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo", exact: true });
+    await undoRow.press("Enter");
+    await expect(firstField).toBeFocused();
+    await expect(page.getByTestId("undo-remove")).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS removing a note or a row keeps the keyboard beside it, undo returns it there, and the removal is announced",
   );
 
   {

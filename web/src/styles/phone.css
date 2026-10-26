@@ -129,6 +129,13 @@
     text-overflow: ellipsis;
   }
 
+  /* A note's move and remove buttons sit close together: full-size
+     targets so a thumb hits the one it means. */
+  .notes-item-actions .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
   /* ---- Conversation: opens at the latest request, with a little air ---- */
   .thread > .thread-turn {
     scroll-margin-top: 12px;

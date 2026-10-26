@@ -2244,7 +2244,25 @@ function TableEditor({
       { ...raw, ...restorable.typed },
     );
     setRemovedRow(null);
+    setFocusRow(at);
   };
+  // After a row is removed the cursor goes to the row that takes its place
+  // (or the one before), else to Add a row; never to the top of the page.
+  const [focusRow, setFocusRow] = useState<number | null>(null);
+  const addRowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (focusRow === null) return;
+    const rows = regionRef.current?.querySelectorAll<HTMLElement>(
+      "tbody > tr:not(.long-row)",
+    );
+    const tr = rows?.[Math.min(focusRow, rows.length - 1)];
+    const target =
+      tr?.querySelector<HTMLElement>(
+        "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])",
+      ) ?? addRowRef.current;
+    target?.focus();
+    setFocusRow(null);
+  }, [focusRow, body]);
   const overflows = useOverflows(regionRef, body);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
@@ -2434,6 +2452,7 @@ function TableEditor({
                             }
                             setRemovedRow({ row: r, at: i, name, typed });
                             update(removeRow(body, r.row_id), next);
+                            setFocusRow(i);
                           }}
                         >
                           Remove
@@ -2454,14 +2473,17 @@ function TableEditor({
           </tbody>
         </table>
       </div>
-      {restorable ? (
-        <p className="small undo-line" role="status" data-testid="undo-remove">
-          Removed “{restorable.name}”.{" "}
-          <button type="button" className="link-quiet" onClick={undoRemove}>
-            Undo
-          </button>
-        </p>
-      ) : null}
+      {/* Always present, so what changes inside it is announced. */}
+      <div role="status">
+        {restorable ? (
+          <p className="small undo-line" data-testid="undo-remove">
+            Removed “{restorable.name}”.{" "}
+            <button type="button" className="link-quiet" onClick={undoRemove}>
+              Undo
+            </button>
+          </p>
+        ) : null}
+      </div>
       {errors.length ? (
         <ul className="small cell-errors" role="alert">
           {errors.map(([k, c]) => {
@@ -2483,6 +2505,7 @@ function TableEditor({
             <button
               type="button"
               className="btn btn-sm"
+              ref={addRowRef}
               disabled={body.rows.length >= 200}
               onClick={() =>
                 update(addRow(body, `row-${crypto.randomUUID()}`), raw)

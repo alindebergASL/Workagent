@@ -396,9 +396,12 @@ textarea.fit-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* No numbers show, so no indent for them: the boxes line up with the
+   heading and Add a note. */
 .notes-items {
   margin: 0;
-  padding-left: 1.8em;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: var(--sp-2);
   min-width: 0;
@@ -415,6 +418,11 @@ textarea.fit-text {
 }
 .notes-item-actions {
   gap: var(--sp-2);
+}
+/* Undo is a small link; give it room to be hit. */
+.undo-line .link-quiet {
+  padding: 4px 2px;
+  margin: -4px 0;
 }
 .view-fallback {
   white-space: pre-wrap;
