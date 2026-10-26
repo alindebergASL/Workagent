@@ -20,6 +20,13 @@ const openEdit = async (page) => {
   if ((await edit.getAttribute("aria-selected")) !== "true") await edit.click();
 };
 
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
 const out = path.resolve(process.argv[2]);
 const ids = JSON.parse(await readFile(process.argv[3], "utf8"));
 await mkdir(out, { recursive: true });
@@ -1810,20 +1817,32 @@ try {
     await step2.fill(longer);
     m = await fits();
     assert.ok(m.steps[1].hidden <= 1, "an edited step grows to stay readable");
-    // Notes, one per line, read whole too.
-    const notesBox = page.getByLabel("Notes (one per line)", { exact: true });
+    // Notes, each in its own box, read whole too.
+    const notesBox = notesGroup(page);
     const notes = [
       "Paper sheets are in the top drawer of the welcome desk.",
       "Use a blue pen so the entries are easy to read later.",
       "The studio manager keeps the spare laptop charger.",
       "Ask the second volunteer to count the totals.",
-      "Shred the sheet once the entries are checked.",
-    ].join("\n");
-    await notesBox.fill(notes);
-    assert.ok(
-      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
-      "notes scroll inside their box",
-    );
+      "Shred the sheet once the entries are checked. Keep the totals in the folder by the till, and write the date on the cover so the next volunteer can find the week quickly.",
+    ];
+    const before = (await notesOf(page)).length;
+    for (const [i, text] of notes.entries()) {
+      await notesBox
+        .getByRole("button", { name: "Add a note", exact: true })
+        .click();
+      await notesBox
+        .getByRole("textbox", { name: `Note ${before + i + 1}`, exact: true })
+        .fill(text);
+    }
+    const hidden = () =>
+      notesBox
+        .locator("textarea")
+        .evaluateAll((els) =>
+          Math.max(...els.map((t) => t.scrollHeight - t.clientHeight)),
+        );
+    assert.ok((await hidden()) <= 1, "notes don't scroll inside their boxes");
+    const all = await notesOf(page);
     await page
       .getByRole("button", { name: "Save my edits", exact: true })
       .click();
@@ -1832,11 +1851,8 @@ try {
     });
     await page.reload();
     await expect(step2).toHaveValue(longer, { timeout: 15000 });
-    await expect(notesBox).toHaveValue(notes);
-    assert.ok(
-      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
-      "saved notes reopen whole",
-    );
+    await expect.poll(() => notesOf(page)).toEqual(all);
+    assert.ok((await hidden()) <= 1, "saved notes reopen whole");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
     m = await fits();

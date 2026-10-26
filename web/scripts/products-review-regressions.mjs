@@ -7,6 +7,27 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, expect } from "@playwright/test";
 
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Your notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Your notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
+async function setNotes(scope, list, name = "Your notes") {
+  const g = notesGroup(scope, name);
+  while (
+    (await g.getByRole("button", { name: /^Remove note \d+$/ }).count()) > 0
+  )
+    await g.getByRole("button", { name: "Remove note 1", exact: true }).click();
+  for (const [i, text] of list.entries()) {
+    await g.getByRole("button", { name: "Add a note", exact: true }).click();
+    await g
+      .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
+      .fill(text);
+  }
+}
+
 const web = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const viteRequire = createRequire(require.resolve("vitest/package.json"));
@@ -654,9 +675,7 @@ try {
     await expect(
       page.getByRole("button", { name: "Apply proposed version", exact: true }),
     ).toBeDisabled();
-    await page
-      .getByRole("textbox", { name: "Your notes (one per line)", exact: true })
-      .fill("Keep my note");
+    await setNotes(page, ["Keep my note"]);
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
@@ -683,12 +702,7 @@ try {
           exact: true,
         }),
       ).toHaveValue(invalid === "value" ? "3.5" : "");
-      await expect(
-        page.getByRole("textbox", {
-          name: "Your notes (one per line)",
-          exact: true,
-        }),
-      ).toHaveValue("Keep my note");
+      await expect.poll(() => notesOf(page)).toEqual(["Keep my note"]);
       await expect(
         page.getByRole("button", { name: "Save my edits", exact: true }),
       ).toBeDisabled();
@@ -709,12 +723,7 @@ try {
       "Quantity",
     );
     await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
-    await expect(
-      page.getByRole("textbox", {
-        name: "Your notes (one per line)",
-        exact: true,
-      }),
-    ).toHaveValue("");
+    await expect.poll(() => notesOf(page)).toEqual([]);
     await expect(
       page.getByRole("button", { name: "Run saved tool", exact: true }),
     ).toBeEnabled();
@@ -1707,9 +1716,7 @@ try {
     revision_id: window.resource.data.artifact.current_revision_id,
     body_hash: window.resource.data.artifact.current_revision.body_hash,
   }));
-  await page
-    .getByLabel("Your notes (one per line)")
-    .fill("Unsaved working note");
+  await setNotes(page, ["Unsaved working note"]);
   await expect(
     page.getByText(
       "Your unsaved edits aren’t included. Replies work from your saved version.",
@@ -2185,17 +2192,32 @@ try {
         exact: true,
       })
       .pressSequentially("Added by a person");
-    // Typed key by key, notes keep their spaces and line breaks exactly.
-    const notes = page.getByLabel("Notes (one per line)", { exact: true });
-    await notes.focus();
-    await page.keyboard.press("Control+End");
+    // Typed key by key, each note is its own box and keeps its spaces and
+    // line breaks exactly.
+    const notesBox = notesGroup(page, "Notes");
+    const before = (table.notes ?? []).length;
+    await notesBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    const first = notesBox.getByRole("textbox", {
+      name: `Note ${before + 1}`,
+      exact: true,
+    });
+    await first.pressSequentially("Hello world");
     await page.keyboard.press("Enter");
-    await notes.pressSequentially("Hello world");
-    await page.keyboard.press("Enter");
-    await notes.pressSequentially("Second note ");
-    const typedNotes =
-      (table.notes ?? []).join("\n") + "\nHello world\nSecond note ";
-    await expect(notes).toHaveValue(typedNotes);
+    await first.pressSequentially("  indented");
+    await notesBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    await notesBox
+      .getByRole("textbox", { name: `Note ${before + 2}`, exact: true })
+      .pressSequentially("Second note ");
+    const typedNotes = [
+      ...(table.notes ?? []),
+      "Hello world\n  indented",
+      "Second note ",
+    ];
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(typedNotes);
     // Survives leaving and coming back before saving.
     await page.evaluate(() => {
       window.mount("away");
@@ -2203,7 +2225,7 @@ try {
     await page.evaluate(() => window.mount("product"));
     // What the person typed is kept as typed; the body holds the normalized value.
     await expect(decInput).toHaveValue("199");
-    await expect(notes).toHaveValue(typedNotes);
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(typedNotes);
     flexReply = (url, body) =>
       artifactAfterSave("saved-2", body.body, "e".repeat(64));
     await page
@@ -2227,12 +2249,8 @@ try {
     assert.equal(cell(sentRow, dec.key), `199.${"0".repeat(dec.scale)}`);
     assert.equal(cell(sentRow, bool.key), false);
     assert.equal(cell(sent.rows.at(-1), textField.key), "Added by a person");
-    // Only the saved list is tidied: blank lines and outer spaces dropped.
-    assert.deepEqual(sent.notes, [
-      ...(table.notes ?? []),
-      "Hello world",
-      "Second note",
-    ]);
+    // Saved exactly as written: nothing trimmed or split.
+    assert.deepEqual(sent.notes, typedNotes);
     // Every other saved value is untouched.
     for (const r of table.rows)
       for (const c of r.cells)
@@ -2501,34 +2519,54 @@ try {
 
   {
     // Notes over the service's limit are refused visibly, never cut short.
+    // A person can't add an eleventh; a version that already holds more
+    // (written elsewhere) is kept whole until they choose what goes.
     const table = tableRev.body;
     await page.setViewportSize({ width: 1280, height: 800 });
     await showFlex(flexData(tableRev));
-    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    const box = notesGroup(page, "Notes");
+    const add = box.getByRole("button", { name: "Add a note", exact: true });
+    await expect(box.getByTestId("notes-hint")).toContainText("Up to 10.");
+    for (let i = table.notes.length; i < 10; i++) {
+      await add.click();
+      await box
+        .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
+        .fill(`Human note ${i + 1}`);
+    }
+    await expect(add).toBeDisabled();
     const extra = Array.from(
       { length: 11 - table.notes.length },
       (_, i) => `Human note ${table.notes.length + i + 1}`,
     );
-    await notes.focus();
-    await page.keyboard.press("Control+End");
-    for (const line of extra) {
-      await page.keyboard.press("Enter");
-      await notes.pressSequentially(line);
-    }
-    const eleven = [...table.notes, ...extra].join("\n");
-    await expect(notes).toHaveValue(eleven);
+    const elevenNotes = [...table.notes, ...extra];
+    const overRev = {
+      ...tableRev,
+      id: "over-limit",
+      body: { ...table, notes: elevenNotes },
+    };
+    await showFlex(flexData(overRev));
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(elevenNotes);
+    await expect(add).toBeDisabled();
+    // Any edit shows why it can't be saved yet; nothing is removed.
+    await box
+      .getByRole("textbox", { name: "Note 1", exact: true })
+      .fill(`${elevenNotes[0]} (checked)`);
+    const edited = [`${elevenNotes[0]} (checked)`, ...elevenNotes.slice(1)];
     await expect(page.getByTestId("draft-problem")).toHaveText(
-      "Keep notes to 10 lines. There are 11; nothing has been removed.",
+      "Keep to 10 notes. There are 11; nothing has been removed.",
     );
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
     await away();
     await page.evaluate(() => window.mount("product"));
-    await expect(notes).toHaveValue(eleven);
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(edited);
     await expect(page.getByTestId("draft-problem")).toBeVisible();
-    // Removing one line makes it savable, with all ten kept.
-    await notes.fill([...table.notes, ...extra].slice(0, 10).join("\n"));
+    // Removing one makes it savable, with the other ten kept as they are.
+    await box
+      .getByRole("button", { name: "Remove note 11", exact: true })
+      .click();
+    await expect(page.getByTestId("draft-problem")).toHaveCount(0);
     flexPosts = [];
     flexReply = (url, body) =>
       artifactAfterSave("saved-3", body.body, "f".repeat(64));
@@ -2536,14 +2574,11 @@ try {
       .getByRole("button", { name: "Save my edits", exact: true })
       .click();
     await expect(page.getByText("Your edits are saved.")).toBeVisible();
-    assert.deepEqual(
-      flexPosts[0].body.body.notes,
-      [...table.notes, ...extra].slice(0, 10),
-    );
+    assert.deepEqual(flexPosts[0].body.body.notes, edited.slice(0, 10));
   }
   passed++;
   console.log(
-    "PASS notes over the limit are refused visibly and kept through reload, never truncated on save",
+    "PASS notes stop at the limit; a version already over it is refused visibly, kept through reload, and never truncated on save",
   );
 
   {
@@ -2552,9 +2587,16 @@ try {
     // this tab then holds the exact retry.
     const table = tableRev.body;
     await showFlex(flexData(tableRev));
-    await page
-      .getByLabel("Notes (one per line)", { exact: true })
-      .fill([...table.notes, "Kept only in this tab"].join("\n"));
+    const tabBox = notesGroup(page, "Notes");
+    await tabBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    await tabBox
+      .getByRole("textbox", {
+        name: `Note ${table.notes.length + 1}`,
+        exact: true,
+      })
+      .fill("Kept only in this tab");
     await page.evaluate(() => {
       window.realSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {

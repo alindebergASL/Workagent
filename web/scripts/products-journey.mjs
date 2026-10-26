@@ -3,6 +3,26 @@ import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Your notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Your notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
+async function setNotes(scope, list, name = "Your notes") {
+  const g = notesGroup(scope, name);
+  while (
+    (await g.getByRole("button", { name: /^Remove note \d+$/ }).count()) > 0
+  )
+    await g.getByRole("button", { name: "Remove note 1", exact: true }).click();
+  for (const [i, text] of list.entries()) {
+    await g.getByRole("button", { name: "Add a note", exact: true }).click();
+    await g
+      .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
+      .fill(text);
+  }
+}
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -98,9 +118,7 @@ try {
   await page
     .getByLabel("Row 2 note", { exact: true })
     .fill("Human credit note retained");
-  await page
-    .getByLabel("Your notes (one per line)")
-    .fill("Human review note retained");
+  await setNotes(page, ["Human review note retained"]);
   await page
     .getByLabel("Rounding", { exact: true })
     .selectOption("ROUND_HALF_EVEN");
@@ -186,10 +204,8 @@ try {
   // Two browser pages retain exact bases; stale save must not overwrite newer human text.
   const other = await browser.newPage();
   await other.goto(tableURL);
-  await other
-    .getByLabel("Your notes (one per line)")
-    .fill("Stale second-tab draft");
-  await page.getByLabel("Your notes (one per line)").fill("Newest human note");
+  await setNotes(other, ["Stale second-tab draft"]);
+  await setNotes(page, ["Newest human note"]);
   await page
     .getByRole("button", { name: "Save my edits", exact: true })
     .click();
@@ -203,9 +219,7 @@ try {
     .getByRole("button", { name: "Save my edits", exact: true })
     .click();
   await expect(other.getByRole("alert").first()).toBeVisible();
-  await expect(other.getByLabel("Your notes (one per line)")).toHaveValue(
-    "Stale second-tab draft",
-  );
+  await expect.poll(() => notesOf(other)).toEqual(["Stale second-tab draft"]);
   expect(
     (await get("/artifacts/" + tableId)).current_revision.body.notes,
   ).toEqual(["Newest human note"]);
@@ -225,9 +239,7 @@ try {
   const toolId = new URL(toolURL).pathname.split("/").pop();
   report.tool_id = toolId;
   await expect(page.getByTestId("observed-return")).toHaveText("3750");
-  await page
-    .getByLabel("Your notes (one per line)")
-    .fill("Human: all amounts are cents");
+  await setNotes(page, ["Human: all amounts are cents"]);
   // Code is collapsed by default; open it to edit.
   await page.getByText("Tool code", { exact: true }).click();
   await page
@@ -280,14 +292,16 @@ try {
   await expect(page.getByTestId("product-verification")).toHaveText(
     "Checked against this saved version.",
   );
-  await expect(page.getByLabel("Your notes (one per line)")).toHaveValue(
-    "Human: all amounts are cents",
-  );
+  await expect
+    .poll(() => notesOf(page))
+    .toEqual(["Human: all amounts are cents"]);
   await shot(page, "03-tool-shipping");
   // Reply from beside the work: the message is recorded and answered without
   // leaving the product, and an unsaved edit survives the round trip.
-  const notes = page.getByLabel("Your notes (one per line)");
-  await notes.fill("Human: all amounts are cents\nUnsaved while replying");
+  await setNotes(page, [
+    "Human: all amounts are cents",
+    "Unsaved while replying",
+  ]);
   const peek = page.locator(".agent-pane");
   await peek
     .getByLabel("Reply about this work", { exact: true })
@@ -307,12 +321,14 @@ try {
   ).toHaveCount(1, { timeout: 20000 });
   await expect(peek.locator(".msg-pending")).toHaveCount(0);
   expect(page.url()).toBe(toolURL);
-  await expect(notes).toHaveValue(
-    "Human: all amounts are cents\nUnsaved while replying",
-  );
+  await expect
+    .poll(() => notesOf(page))
+    .toEqual(["Human: all amounts are cents", "Unsaved while replying"]);
   await shot(page, "03b-tool-reply-beside");
   await page.getByRole("button", { name: "Discard my changes" }).click();
-  await expect(notes).toHaveValue("Human: all amounts are cents");
+  await expect
+    .poll(() => notesOf(page))
+    .toEqual(["Human: all amounts are cents"]);
   const thread = await get("/conversations/" + toolCid);
   expect(
     thread.messages.some(
@@ -349,9 +365,9 @@ try {
   const reopened = await browser.newPage();
   await reopened.goto(toolURL);
   await expect(reopened.getByTestId("observed-return")).toHaveText("4250");
-  await expect(reopened.getByLabel("Your notes (one per line)")).toHaveValue(
-    "Human: all amounts are cents",
-  );
+  await expect
+    .poll(() => notesOf(reopened))
+    .toEqual(["Human: all amounts are cents"]);
   await reopened.close();
   await page.setViewportSize({ width: 1440, height: 1000 });
   const maliciousCid = await start(
