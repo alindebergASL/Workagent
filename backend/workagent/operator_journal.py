@@ -3,6 +3,11 @@
 No credentials are stored. New IDs are exclusive; existing envelopes cannot be
 replaced by a new invocation. Only outcome/receipt metadata may change. POSIX
 no-follow directory handles keep untrusted paths and symlinks out of writes.
+
+The record's format selects the client's validation grammar, not a storage
+migration. Format-1 records and their digests remain unchanged; format-2 new
+accepts carry explicit review booleans. Never insert defaults into stored bodies
+here: outcome updates must preserve the original record and its payload bytes.
 """
 from contextlib import contextmanager
 import fcntl

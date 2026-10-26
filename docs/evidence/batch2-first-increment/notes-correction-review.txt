@@ -1,0 +1,7 @@
+**PASS — no remaining material defect found in this narrow rereview.**
+
+- [NotesList.tsx:85](/home/ubuntu/workagent-batch2-20261026/web/src/components/NotesList.tsx:85) actually invokes `syncNotesUi` and clears pending focus on replacement. [flexible.ts:472](/home/ubuntu/workagent-batch2-20261026/web/src/lib/flexible.ts:472) resets IDs and removed-note history for external replacements. Editor-originated typing/reorder preserve identities and genuine Undo.
+- Both callers preserve the emitted notes array reference: [FlexibleWork.tsx:928](/home/ubuntu/workagent-batch2-20261026/web/src/components/FlexibleWork.tsx:928) and [legacy page.tsx:989](/home/ubuntu/workagent-batch2-20261026/web/src/app/conversations/[id]/artifacts/[artifactId]/page.tsx:989). Their discard handlers supply cloned saved bodies at [FlexibleWork.tsx:1010](/home/ubuntu/workagent-batch2-20261026/web/src/components/FlexibleWork.tsx:1010) and [page.tsx:1032](/home/ubuntu/workagent-batch2-20261026/web/src/app/conversations/[id]/artifacts/[artifactId]/page.tsx:1032).
+- [table-notes.test.ts:95](/home/ubuntu/workagent-batch2-20261026/web/test/table-notes.test.ts:95) covers stale Undo reset, fresh identities, typing preservation, and empty-list cases. [Browser regression:35](/home/ubuntu/workagent-batch2-20261026/scripts/verify_structured_notes.mjs:35) checks removal → discard → no Undo, then genuine Undo.
+
+Focused Vitest execution was blocked before tests ran by `EROFS` writing `.vite-temp`; no bypass attempted. Browser/API/PostgreSQL verification was not run here. No files changed.

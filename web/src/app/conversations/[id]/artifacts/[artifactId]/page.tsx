@@ -26,7 +26,13 @@ import { WorkSurface } from "@/components/WorkSurface";
 import { ProductView } from "@/components/ProductView";
 import { areaHref } from "@/lib/client/work-areas";
 import { FlexibleEditor, type Bound } from "@/components/FlexibleWork";
-import { flexibleKind, isFlexible, type CustomView } from "@/lib/flexible";
+import { NotesList } from "@/components/NotesList";
+import {
+  flexibleKind,
+  isFlexible,
+  notesProblem,
+  type CustomView,
+} from "@/lib/flexible";
 import type { ConversationDetailView } from "@/lib/contract/types";
 import {
   isReconciliation,
@@ -84,6 +90,8 @@ type Draft = {
   // UI-only raw edits: invalid values never enter the contractual Body.
   toolInputs?: InputRows;
 };
+/** The service's limit on a saved table's or tool's notes. */
+const PRODUCT_NOTES = 30;
 function inputError(draft: Draft): string {
   if (draft.body.kind !== "tool" || !draft.toolInputs) return "";
   try {
@@ -368,6 +376,10 @@ function ProductEditor({
   const [acks, setAcks] = useState<Record<string, Acks>>({});
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const notesError =
+    draft.body.kind === "file"
+      ? ""
+      : notesProblem(draft.body.notes ?? [], PRODUCT_NOTES);
   const inputsError = inputError(draft);
   const dirty =
     Boolean(inputsError) ||
@@ -402,7 +414,12 @@ function ProductEditor({
     }
   }
   async function submit(action: Pending) {
-    if (busy || (!draft.pending && inputsError)) return;
+    if (
+      busy ||
+      (!draft.pending &&
+        (inputsError || (action.kind === "save" && notesError)))
+    )
+      return;
     const exact = draft.pending ?? action;
     const journaled = keep({ ...draft, pending: exact });
     setBusy(true);
@@ -969,28 +986,26 @@ function ProductEditor({
                 </details>
               </>
             )}
-            <label className="field">
-              <span className="field-label">Your notes (one per line)</span>
-              <textarea
-                value={(draft.body.notes ?? []).join("\n")}
-                onChange={(e) => {
-                  if (draft.body.kind !== "file")
-                    keep({
-                      ...draft,
-                      body: {
-                        ...draft.body,
-                        notes: e.target.value ? e.target.value.split("\n") : [],
-                      },
-                    });
-                }}
-              />
-            </label>
+            <NotesList
+              label="Your notes"
+              notes={draft.body.notes ?? []}
+              max={PRODUCT_NOTES}
+              onChange={(notes) => {
+                if (draft.body.kind !== "file")
+                  keep({ ...draft, body: { ...draft.body, notes } });
+              }}
+            />
+            {notesError ? (
+              <p role="alert" className="small">
+                {notesError}
+              </p>
+            ) : null}
           </fieldset>
           <div className="row product-actions">
             {dirty ? (
               <button
                 className="btn btn-primary"
-                disabled={locked || Boolean(inputsError)}
+                disabled={locked || Boolean(inputsError || notesError)}
                 onClick={() =>
                   void submit({
                     kind: "save",

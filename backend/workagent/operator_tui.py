@@ -17,6 +17,7 @@ ACTIONS={
     'follow':('conversation','text'), 'promote':('conversation','title','goal','kind'),
     'cancel':('conversation',), 'run':('run',), 'observation':('observation',),
     'artifact':('artifact',), 'history':('artifact',), 'proposals':('artifact',),
+    'review':('proposal','artifact','revision'),
     'accept':('proposal','artifact','revision'), 'dismiss':('proposal','artifact','revision'),
     'revise':('artifact','revision','version','instruction'),
     'replay':('id',), 'command':('id',),
@@ -29,10 +30,17 @@ def parser():
     p.add_argument('--command-id',help='New exclusive ID; use replay ID to resend the saved exact envelope after an uncertain outcome')
     subs=p.add_subparsers(dest='action')
     for action,fields in ACTIONS.items():
-        help_text={'replay':'Explicitly resend a private saved envelope; never refresh CAS', 'command':'Inspect private saved scope, original payload and receipt (sensitive text)'}
+        help_text={'replay':'Explicitly resend a private saved envelope; never refresh CAS', 'command':'Inspect private saved scope, original payload and receipt (sensitive text)',
+                   'review':'Read the exact candidate/base and server review policy before accepting',
+                   'accept':'Accept the reviewed candidate/base; neither completes the goal nor publishes externally'}
         sub=subs.add_parser(action,help=help_text.get(action))
         for field in fields: sub.add_argument(field)
         if action=='follow': sub.add_argument('--target',nargs=3,metavar=('ARTIFACT','REVISION','SHA256'))
+        if action=='accept':
+            sub.add_argument('--acknowledge-removed-content',action='store_true',
+                help='Explicitly permit removed/replaced content after reviewing this exact candidate/base')
+            sub.add_argument('--acknowledge-older-proposal',action='store_true',
+                help='Explicitly choose this older candidate after reviewing this exact candidate/base')
     subs.add_parser('interactive')
     return p
 
@@ -72,6 +80,15 @@ def interactive(screen,client,ws):
             if selected is None: raise OperatorError('Select a conversation first')
             args=[selected]
         if action not in ACTIONS: raise OperatorError('Unknown command; use CLI --help for arguments')
+        acknowledgements={'acknowledge_removed_content':False,'acknowledge_older_proposal':False}
+        if action=='accept':
+            # Per-command switches only: refresh, selection and replay never
+            # retain or infer consent from a previously inspected proposal.
+            for field in acknowledgements:
+                flag='--'+field.replace('_','-')
+                if flag in args:
+                    acknowledgements[field]=True
+                    args.remove(flag)
         expected=len(ACTIONS[action])
         if len(args)!=expected and not (action=='follow' and len(args)==5):
             raise OperatorError('Arguments: '+action+' '+' '.join(ACTIONS[action]))
@@ -81,7 +98,7 @@ def interactive(screen,client,ws):
             try: screen.addnstr(0,0,'Sending command '+value['command_id']+'; no automatic retry',max(0,screen.getmaxyx()[1]-1))
             except curses.error: pass
             screen.refresh()
-        result=client.run(ws,action,args,announce=announce)
+        result=client.run(ws,action,args,announce=announce,**acknowledgements)
         if action in ('create','chat'): selected=result['receipt']['id']
         display(result)
     try: refresh()
@@ -100,7 +117,7 @@ def interactive(screen,client,ws):
             put(4,'> '+items[index]['title']+' ['+items[index]['id']+']')
         visible=max(0,height-7)
         for y,line in enumerate(lines[offset:offset+visible],5): put(y,line)
-        put(height-2,'Commands: prompt/target/artifact/proposals/accept/dismiss/cancel | command ID | replay ID')
+        put(height-2,'review P A REV before accept P A REV [--acknowledge-removed-content] [--acknowledge-older-proposal] | command ID | replay ID')
         put(height-1,': '+entry if entry is not None else 'Ready. Writes are never retried automatically.')
         screen.refresh()
         key=screen.get_wch()
@@ -141,6 +158,8 @@ def main(argv=None):
             fields=[getattr(args,key) for key in ACTIONS[args.action]]
             if args.action=='follow' and args.target: fields.extend(args.target)
             result=client.run(args.workspace,args.action,fields,command_id=args.command_id,
+                acknowledge_removed_content=getattr(args,'acknowledge_removed_content',False),
+                acknowledge_older_proposal=getattr(args,'acknowledge_older_proposal',False),
                 announce=lambda value:print(safe(value),file=sys.stderr,flush=True))
             print(safe(result))
         return 0

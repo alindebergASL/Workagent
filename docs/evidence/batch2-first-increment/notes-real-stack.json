@@ -1,0 +1,70 @@
+{
+  "mode": "real_browser_real_api_real_postgresql_controlled_synthetic_fixture",
+  "live_provider_calls": 0,
+  "results": [
+    {
+      "viewport": "desktop",
+      "width": 1440,
+      "artifact": "00e4b3dd-890c-45f5-87e1-e4a38be917dd",
+      "status": "pass",
+      "checks": [
+        "untouched-five-note-seventeen-line-save",
+        "reload",
+        "discard-clears-stale-undo",
+        "genuine-undo",
+        "single-note-edit",
+        "reorder",
+        "remove",
+        "empty-blocked-not-erased",
+        "whitespace",
+        "discard",
+        "ten-note-bound",
+        "real-api-readback",
+        "no-horizontal-overflow"
+      ]
+    },
+    {
+      "viewport": "mobile",
+      "width": 390,
+      "artifact": "66567894-8e4b-4c70-972e-d31783649dc3",
+      "status": "pass",
+      "checks": [
+        "untouched-five-note-seventeen-line-save",
+        "reload",
+        "discard-clears-stale-undo",
+        "genuine-undo",
+        "single-note-edit",
+        "reorder",
+        "remove",
+        "empty-blocked-not-erased",
+        "whitespace",
+        "discard",
+        "ten-note-bound",
+        "real-api-readback",
+        "no-horizontal-overflow"
+      ]
+    },
+    {
+      "viewport": "narrow",
+      "width": 320,
+      "artifact": "8b561d41-e88f-4e87-a14b-878972a04c6a",
+      "status": "pass",
+      "checks": [
+        "untouched-five-note-seventeen-line-save",
+        "reload",
+        "discard-clears-stale-undo",
+        "genuine-undo",
+        "single-note-edit",
+        "reorder",
+        "remove",
+        "empty-blocked-not-erased",
+        "whitespace",
+        "discard",
+        "ten-note-bound",
+        "real-api-readback",
+        "no-horizontal-overflow"
+      ]
+    }
+  ],
+  "errors": []
+}
