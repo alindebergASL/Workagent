@@ -19,10 +19,15 @@
   unknown-usage steps retained. No further paid run in this completed evaluation.
 - [Full batch evaluation](docs/GENERAL_PROPOSAL_REVIEW_BATCH_EVALUATION.md),
   [machine evidence](docs/evidence/general-review-batch/acceptance-verified.json).
-- Delivery batch complete privately, not the wider mission. Next requested work:
-  researched plans for conversational TUI/attachments/ongoing-work visibility and
-  resumption, then general tools/connectors/cross-assignment memory. Research
-  handoffs await parent synthesis; no implementation of those batches claimed.
+- Delivery batch complete privately, not the wider mission. Research-backed plans
+  for the next two batches are complete: [controlling sequence and full scope](docs/plans/2026-10-23-workagent-next-two-batches.md).
+  Batch 2 covers conversational TUI, document attachments and reliable work
+  visibility/resumption; Batch 3 covers reusable tools/connectors and scoped memory.
+  Detailed code maps, task plans, source ledgers and varied-task evaluation included.
+  Parent verified source quotations/code manifests and checked current MCP guidance.
+  No Batch 2/3 implementation worker or paid trial has been started. Recommended
+  first execution unit: reconcile the separate Claude candidate, CLI review parity,
+  lossless structured-note editing; then continue through the full planned scope.
 
 ## Historical: evidence fix installed; day/week test completed with qualified results
 

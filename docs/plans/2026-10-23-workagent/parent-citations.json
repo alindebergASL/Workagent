@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://textual.textualize.io/guide/testing",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "The `run_test()` method is an async context manager which returns a `Pilot` object.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "url": "https://textual.textualize.io/guide/workers",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "Similarly if you exit the app, any running tasks will be cancelled.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "The `Last-Event-ID`` HTTP request header reports an `EventSource` object's last event ID string to the server when the user agent is to reestablish the connection.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/kanban",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "A commit or diff alone never automatically completes a task.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "Validate the file type, don't trust the Content-Type header as it can be spoofed",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "url": "https://modelcontextprotocol.io/specification/versioning",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "The current protocol version is 2026-07-28.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/lifecycle",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "There is no negotiation handshake.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "url": "https://gvisor.dev/docs/architecture_guide/security",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "additional defense against the exploitation of kernel bugs by untrusted userspace code",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "url": "https://arxiv.org/abs/2410.10813",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "information extraction, multi-session reasoning, temporal reasoning, knowledge updates, and abstention.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "url": "https://proceedings.mlr.press/v306/he26am.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "Proceedings of the 43rd International Conference on Machine Learning",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "url": "https://arxiv.org/abs/2605.12493",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "Long-term memory is crucial for agents in specialized web environments, where success depends on recalling interface affordances, state dynamics, workflows, and recurring failure modes.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "url": "https://openai.com/index/introducing-dots",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "You choose which apps dots can access",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "url": "https://www.meta.com/help/artificial-intelligence/1331373868832401",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "Your Muse may be inaccurate or take unexpected actions.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "url": "https://pypdf.readthedocs.io/en/stable/user/extract-text.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "pypdf is not OCR software.",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "url": "https://python-docx.readthedocs.io/en/latest/user/documents.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "(.doc files from Word 2003 and earlier won’t work).",
+          "added": "2026-10-23"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "url": "https://openpyxl.readthedocs.io/en/stable/index.html",
+      "title": "",
+      "accessed": "2026-10-23",
+      "quotes": [
+        {
+          "text": "By default openpyxl does not guard against quadratic blowup or billion laughs xml attacks.",
+          "added": "2026-10-23"
+        }
+      ]
+    }
+  ]
+}
