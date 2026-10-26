@@ -72,6 +72,7 @@ import {
   rowName,
   setCell,
   slug,
+  rowsAddedRemoved,
   tableChanges,
   unitLegend,
   tableCsv,
@@ -781,6 +782,13 @@ export function FlexibleEditor({
             const rest = comparable.filter((p) => p !== first);
             const compare = (p: S["Proposal"]) => {
               const proposed = p.body as FlexibleBody;
+              const rows =
+                kind === "structured_table"
+                  ? rowsAddedRemoved(
+                      saved as StructuredTable,
+                      proposed as StructuredTable,
+                    )
+                  : null;
               const outdated =
                 p.base_revision_id !== artifact.current_revision_id;
               return (
@@ -825,6 +833,11 @@ export function FlexibleEditor({
                       artifact.current_revision.author_kind === "human",
                     ).diff
                   ) : null}
+                  {rows?.removed.length ? (
+                    <p className="small" data-testid="proposal-removed-rows">
+                      Takes out {rows.removed.map((n) => `“${n}”`).join(", ")}.
+                    </p>
+                  ) : null}
                   <details
                     className="ids-details"
                     // Rows, columns or notes added or taken away aren't in
@@ -841,6 +854,7 @@ export function FlexibleEditor({
                     <summary>The whole proposed version</summary>
                     <ReadOnly
                       body={proposed}
+                      added={rows?.added}
                       authors={proposedNoteAuthors(
                         saved,
                         proposed,
@@ -1954,16 +1968,21 @@ export function ReadOnly({
   body,
   authors,
   edited,
+  added,
 }: {
   body: FlexibleBody;
   /** Who added each kept note, where known. */
   authors?: NoteAuthors;
   /** Table cells the person changed since Workagent's latest version. */
   edited?: Set<string>;
+  /** Rows a proposed table adds to the saved one, marked as new. */
+  added?: Set<string>;
 }) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
-    return <TableRead body={body as StructuredTable} edited={edited} />;
+    return (
+      <TableRead body={body as StructuredTable} edited={edited} added={added} />
+    );
   if (kind === "document")
     return (
       <DocRead blocks={viewBlocks((body as DocumentBody).blocks, authors)} />
@@ -1974,12 +1993,16 @@ export function ReadOnly({
 function TableRead({
   body,
   edited,
+  added,
 }: {
   body: StructuredTable;
   edited?: Set<string>;
+  added?: Set<string>;
 }) {
   const longText = longTextFields(body);
   const nameKey = rowNameField(body)?.key;
+  // "New" goes on the row's name, or its first cell: a word, not a colour.
+  const labelKey = nameKey ?? body.fields[0]?.key;
   return (
     <>
       <UnitLegend fields={body.fields} />
@@ -2006,7 +2029,10 @@ function TableRead({
           </thead>
           <tbody>
             {body.rows.map((r) => (
-              <tr key={r.row_id}>
+              <tr
+                key={r.row_id}
+                data-added={added?.has(r.row_id) ? "true" : undefined}
+              >
                 {body.fields.map((f) => (
                   <td
                     key={f.key}
@@ -2018,6 +2044,14 @@ function TableRead({
                       edited?.has(cellAt(r.row_id, f.key)) ? "true" : undefined
                     }
                   >
+                    {added?.has(r.row_id) && f.key === labelKey ? (
+                      <>
+                        <span className="row-new" data-testid="row-new">
+                          New
+                        </span>
+                        <span className="sr-only">: </span>
+                      </>
+                    ) : null}
                     {formatCell(f, cellValue(r, f.key))}
                     {edited?.has(cellAt(r.row_id, f.key)) ? (
                       <span className="sr-only"> (changed by you)</span>

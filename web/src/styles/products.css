@@ -972,3 +972,34 @@ textarea.fit-text {
   text-decoration: underline dotted var(--attn);
   text-underline-offset: 3px;
 }
+
+/* A row a proposal adds: marked "New" in words, with a light tint. */
+.flex-table tr[data-added="true"] > td {
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+}
+.row-new {
+  display: inline-block;
+  /* Its own width, also where a phone card stacks a cell's contents. */
+  width: fit-content;
+  justify-self: start;
+  align-self: start;
+  margin-right: var(--sp-2);
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--ok) 55%, transparent);
+  border-radius: 6px;
+  color: var(--ok);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 1px;
+}
+@media (max-width: 640px) {
+  /* On a phone a row is a card: the card carries the tint. */
+  .flex-table tbody tr[data-added="true"] {
+    background: color-mix(in srgb, var(--ok) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  .flex-table tbody tr[data-added="true"] > td {
+    background: transparent;
+  }
+}

@@ -2802,6 +2802,60 @@ try {
   );
 
   {
+    // A table proposal that adds one row and takes another out, with no
+    // value changed in place: the Changes tab opens the whole version, marks
+    // the added row "New" on its name, and names the row it takes out.
+    const body = structuredClone(tableRev.body);
+    const gone = body.rows[0];
+    const goneName = gone.cells.find((c) => c.field_key === "venue").value;
+    const fresh = structuredClone(body.rows[1]);
+    fresh.row_id = "venue-birch-barn";
+    fresh.cells.find((c) => c.field_key === "venue").value = "Birch Barn";
+    const proposedBody = { ...body, rows: [...body.rows.slice(1), fresh] };
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(
+      flexData(tableRev, {
+        proposals: [
+          {
+            id: "rows",
+            status: "pending",
+            base_revision_id: tableRev.id,
+            body: proposedBody,
+            body_hash: "d".repeat(64),
+            reason: "Synthetic proposal",
+            created_at: "2026-11-02T10:00:00Z",
+          },
+        ],
+      }),
+      "changes",
+    );
+    const panel = page.locator("#work-panel-changes");
+    await expect(
+      panel.locator("details[open] > summary", {
+        hasText: "The whole proposed version",
+      }),
+    ).toHaveCount(1);
+    const added = panel.locator('tr[data-added="true"]');
+    await expect(added).toHaveCount(1);
+    await expect(added).toContainText("Birch Barn");
+    await expect(
+      added.locator('td[data-name="true"] [data-testid="row-new"]'),
+    ).toHaveText("New");
+    await expect(panel.getByTestId("row-new")).toHaveCount(1);
+    await expect(panel.getByTestId("proposal-removed-rows")).toHaveText(
+      `Takes out “${goneName}”.`,
+    );
+    // On a phone the row is a card, still marked in words.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(added.getByTestId("row-new")).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  passed++;
+  console.log(
+    "PASS a table proposal's Changes tab marks the rows it adds as New, names the rows it takes out, and opens the whole version when no value changes in place",
+  );
+
+  {
     const view = viewRev.body;
     const binding = view.bindings[0];
     const action = view.actions[0];
