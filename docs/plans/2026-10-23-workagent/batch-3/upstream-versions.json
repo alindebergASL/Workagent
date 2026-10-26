@@ -1,0 +1,32 @@
+[
+  {
+    "repo": "NousResearch/hermes-agent",
+    "sha": "73efa6753de3ec82fbdbf2e4cb6acefdf46531ec",
+    "commit_date": "2026-10-23T01:26:53Z",
+    "url": "https://github.com/NousResearch/hermes-agent/commit/73efa6753de3ec82fbdbf2e4cb6acefdf46531ec"
+  },
+  {
+    "repo": "getzep/graphiti",
+    "sha": "345e73161a61b0a4400f80c64e5bba6a584acb7b",
+    "commit_date": "2026-10-22T20:17:33Z",
+    "url": "https://github.com/getzep/graphiti/commit/345e73161a61b0a4400f80c64e5bba6a584acb7b"
+  },
+  {
+    "repo": "mem0ai/mem0",
+    "sha": "2c81af3bbe27d9bccb09c772d583df9e9be72ee5",
+    "commit_date": "2026-10-21T01:16:17Z",
+    "url": "https://github.com/mem0ai/mem0/commit/2c81af3bbe27d9bccb09c772d583df9e9be72ee5"
+  },
+  {
+    "repo": "letta-ai/letta-code",
+    "sha": "1422a633a5b0fc46141f3bb2d9de7182600b85de",
+    "commit_date": "2026-10-22T23:47:45Z",
+    "url": "https://github.com/letta-ai/letta-code/commit/1422a633a5b0fc46141f3bb2d9de7182600b85de"
+  },
+  {
+    "repo": "xiaowu0162/LongMemEval-V2",
+    "sha": "2cc8c540bdb87fe6761629b585e727e1c4704520",
+    "commit_date": "2026-08-09T22:31:22Z",
+    "url": "https://github.com/xiaowu0162/LongMemEval-V2/commit/2cc8c540bdb87fe6761629b585e727e1c4704520"
+  }
+]

@@ -1,0 +1,50 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+ExpectError: expect(locator).toHaveCount(expected) failed
+
+Locator:  getByTestId('notes-list').getByTestId('notes-undo')
+Expected: 0
+Received: 1
+Timeout:  5000ms
+
+Call log:
+  - Expect "to.have.count" with timeout 5000ms
+  - waiting for getByTestId('notes-list').getByTestId('notes-undo')
+    14 × locator resolved to 1 element
+       - unexpected value "1"
+
+    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)
+    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)
+    at Object.toHaveCount (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)
+    at /home/ubuntu/workagent-batch2-20261026/scripts/verify_structured_notes.mjs:39:50 {
+  matcherResult: {
+    actual: 1,
+    expected: 0,
+    message: 'expect(locator).toHaveCount(expected) failed\n' +
+      '\n' +
+      "Locator:  getByTestId('notes-list').getByTestId('notes-undo')\n" +
+      'Expected: 0\n' +
+      'Received: 1\n' +
+      'Timeout:  5000ms\n' +
+      '\n' +
+      'Call log:\n' +
+      '  - Expect "to.have.count" with timeout 5000ms\n' +
+      "  - waiting for getByTestId('notes-list').getByTestId('notes-undo')\n" +
+      '    14 × locator resolved to 1 element\n' +
+      '       - unexpected value "1"\n',
+    name: 'toHaveCount',
+    pass: false,
+    log: [
+      '  - Expect "to.have.count" with timeout 5000ms',
+      "  - waiting for getByTestId('notes-list').getByTestId('notes-undo')",
+      '    14 × locator resolved to 1 element',
+      '       - unexpected value "1"'
+    ],
+    timeout: 5000,
+    ariaSnapshot: undefined
+  }
+}
+
+Node.js v22.22.2

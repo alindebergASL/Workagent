@@ -1,0 +1,16 @@
+{
+  "base_commit": "24afaedb7a6bcfe52063c013c4b85557ad256151",
+  "research_quote_matches": 60,
+  "code_snapshot_changes": [
+    "STATUS.md only"
+  ],
+  "markdown_files": 12,
+  "relative_links_verified": 51,
+  "json_documents_validated_before_this_record": 13,
+  "planned_acceptance_cases": 43,
+  "parent_sources_with_evidence": 16,
+  "citations": "info: stats: 265 prose sentence(s), 6 with declared provenance (2%) \u2014 6 cited, 0 marked [unverified] (a sentence may be both); 16 distinct source(s) cited, 16 in ledger (16 with evidence quotes)\ncitations OK\n",
+  "implementation_tests_run_for_plans": false,
+  "plans_only": true,
+  "document_scope": "Parent synthesis overrides appendix first-milestone scope; binary document ingestion remains in full Batch2; raw research snapshots retained locally"
+}

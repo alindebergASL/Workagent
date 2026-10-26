@@ -1,0 +1,263 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": 1,
+      "url": "https://hermes-agent.nousresearch.com/docs/reference/tools-reference",
+      "title": "Built-in Tools Reference | Hermes Agent",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 2,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/memory",
+      "title": "Persistent Memory | Hermes Agent",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 3,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/skills",
+      "title": "Skills System | Hermes Agent",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 4,
+      "url": "https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp",
+      "title": "MCP (Model Context Protocol) | Hermes Agent",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 5,
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization",
+      "title": "Authorization - Model Context Protocol",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 6,
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/basic/security_best_practices",
+      "title": "Security Best Practices",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 7,
+      "url": "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+      "title": "Tools - Model Context Protocol",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 8,
+      "url": "https://openai.com/index/introducing-dots",
+      "title": "Introducing dots | OpenAI",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 9,
+      "url": "https://www.meta.com/help/artificial-intelligence/1331373868832401",
+      "title": "How to get started with Muse | Meta Help Center | Meta",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 10,
+      "url": "https://github.com/alindebergASL/Workagent/issues/10",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 11,
+      "url": "https://arxiv.org/abs/2410.10813",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 12,
+      "url": "https://arxiv.org/abs/2310.08560",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 13,
+      "url": "https://arxiv.org/abs/2502.12110",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 14,
+      "url": "https://docs.letta.com/guides/agents/memory-blocks",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 15,
+      "url": "https://github.com/getzep/graphiti",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 16,
+      "url": "https://github.com/mem0ai/mem0",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 17,
+      "url": "https://arxiv.org/abs/2406.12045",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 18,
+      "url": "https://arxiv.org/abs/2406.13352",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 19,
+      "url": "https://gvisor.dev/docs/architecture_guide/security",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 20,
+      "url": "https://docs.wasmtime.dev/security.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 21,
+      "url": "https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 22,
+      "url": "https://developers.google.com/identity/protocols/oauth2/web-server",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 23,
+      "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 24,
+      "url": "https://modelcontextprotocol.io/specification/versioning",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 25,
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 26,
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/security_best_practices",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 27,
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/server/tools",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 28,
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/lifecycle",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 29,
+      "url": "https://docs.github.com/en/rest/apps/installations",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 30,
+      "url": "https://www.letta.com/blog/benchmarking-ai-agent-memory",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 31,
+      "url": "https://arxiv.org/abs/2402.17753",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 32,
+      "url": "https://arxiv.org/abs/2501.13956",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 33,
+      "url": "https://arxiv.org/abs/2504.19413",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 34,
+      "url": "https://github.com/letta-ai/letta",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 35,
+      "url": "https://memoryarena.github.io",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 36,
+      "url": "https://proceedings.mlr.press/v306/he26am.html",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 37,
+      "url": "https://arxiv.org/abs/2605.12493",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 38,
+      "url": "https://github.com/xiaowu0162/LongMemEval-V2",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 39,
+      "url": "https://arxiv.org/abs/2505.11942",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 40,
+      "url": "https://github.com/letta-ai/letta-code",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 41,
+      "url": "https://github.com/NousResearch/hermes-agent/blob/main/LICENSE",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 42,
+      "url": "https://ai.meta.com/muse/productivity",
+      "title": "",
+      "accessed": "2026-10-23"
+    },
+    {
+      "id": 43,
+      "url": "https://ai.meta.com/muse",
+      "title": "",
+      "accessed": "2026-10-23"
+    }
+  ]
+}

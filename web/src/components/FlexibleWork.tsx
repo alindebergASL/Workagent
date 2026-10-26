@@ -31,6 +31,7 @@ import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { ApiError } from "@/lib/contract/errors";
 import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
 import { countChanges, diffBlocks } from "@/lib/diff";
+import { NotesList, useFitHeight } from "@/components/NotesList";
 import { ObservedOutput } from "@/components/ObservedOutput";
 import { SandboxedView, type ViewActions } from "@/components/SandboxedView";
 import {
@@ -65,7 +66,7 @@ import {
   viewChanges,
   viewChangeSummary,
   pinsVersions,
-  notesFrom,
+  notesProblem,
   parseCell,
   rebind,
   removeRow,
@@ -114,11 +115,6 @@ type Draft = {
   body: FlexibleBody;
   pending: Pending | null;
   raw?: Record<string, RawCell>;
-  /**
-   * Notes exactly as typed. The body gets the tidied list (blank lines and
-   * outer spaces dropped, as the service requires); the box keeps the text.
-   */
-  notesText?: string;
 };
 const cellKey = (rowId: string, key: string) => `${rowId}\u001f${key}`;
 
@@ -156,11 +152,11 @@ function draftProblem(draft: Draft): string {
     return `Fix ${bad.length === 1 ? "the highlighted value" : `the ${bad.length} highlighted values`} before saving.`;
   const b = draft.body;
   if (flexibleKind(b) === "structured_table") {
-    const notes = (b as StructuredTable).notes ?? [];
-    if (notes.length > LIMITS.notes)
-      return `Keep notes to ${LIMITS.notes} lines. There are ${notes.length}; nothing has been removed.`;
-    if (notes.some((n) => n.length > LIMITS.noteChars))
-      return `Keep each note under ${LIMITS.noteChars.toLocaleString("en")} characters.`;
+    const notes = notesProblem(
+      (b as StructuredTable).notes ?? [],
+      LIMITS.notes,
+    );
+    if (notes) return notes;
   }
   if (flexibleKind(b) === "document") {
     const doc = b as DocumentBody;
@@ -943,15 +939,10 @@ export function FlexibleEditor({
                 body={draft.body as StructuredTable}
                 raw={draft.raw ?? {}}
                 update={(body, raw) => keep({ ...draft, body, raw })}
-                notesText={draft.notesText}
-                updateNotes={(notesText) =>
+                updateNotes={(notes) =>
                   keep({
                     ...draft,
-                    notesText,
-                    body: {
-                      ...(draft.body as StructuredTable),
-                      notes: notesFrom(notesText),
-                    },
+                    body: { ...(draft.body as StructuredTable), notes },
                   })
                 }
               />
@@ -1671,7 +1662,6 @@ function ViewInput({
           body={draft.body as StructuredTable}
           raw={draft.raw ?? {}}
           update={(body, raw) => keep({ ...draft, body, raw })}
-          notesText={draft.notesText}
           updateNotes={() => {}}
         />
       </fieldset>
@@ -2170,35 +2160,6 @@ function useOverflows(
 }
 
 /**
- * Keeps a text box as tall as its text, so it reads whole instead of
- * scrolling inside itself. Refits when the text changes or the box's width
- * does (a resize, a phone's card layout); its own height change isn't a
- * reason to measure again.
- */
-function useFitHeight(
-  ref: React.RefObject<HTMLTextAreaElement | null>,
-  value: string,
-) {
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fit = () => {
-      el.style.height = "auto";
-      el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
-    };
-    fit();
-    let width = el.clientWidth;
-    const seen = new ResizeObserver(() => {
-      if (el.clientWidth === width) return;
-      width = el.clientWidth;
-      fit();
-    });
-    seen.observe(el);
-    return () => seen.disconnect();
-  }, [ref, value]);
-}
-
-/**
  * A long text value, edited where it can be read whole. It stays one value;
  * Enter doesn't start a new line.
  */
@@ -2228,28 +2189,6 @@ function LongTextCell({
   );
 }
 
-/** A table's notes, one per line, in a box as tall as they are. */
-function NotesField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (text: string) => void;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useFitHeight(ref, value);
-  return (
-    <textarea
-      ref={ref}
-      className="fit-text"
-      rows={2}
-      aria-label="Notes (one per line)"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  );
-}
-
 /**
  * Edit a table by its declared fields: each cell gets the input its type
  * calls for, read-only cells stay as text, and a value the service would
@@ -2260,7 +2199,6 @@ function TableEditor({
   body,
   raw,
   update,
-  notesText,
   updateNotes,
   valuesOnly = false,
 }: {
@@ -2268,8 +2206,7 @@ function TableEditor({
   body: StructuredTable;
   raw: Record<string, RawCell>;
   update: (body: StructuredTable, raw: Record<string, RawCell>) => void;
-  notesText: string | undefined;
-  updateNotes: (text: string) => void;
+  updateNotes: (notes: string[]) => void;
   /** Only the values can change here: no rows added or removed, no notes. */
   valuesOnly?: boolean;
 }) {
@@ -2554,16 +2491,11 @@ function TableEditor({
               Add a row
             </button>
           </div>
-          <label className="field">
-            <span className="field-label">Notes (one per line)</span>
-            <NotesField
-              value={notesText ?? (body.notes ?? []).join("\n")}
-              onChange={updateNotes}
-            />
-            <span className="hint" data-testid="notes-hint">
-              Each line is saved as one note; blank lines aren’t kept.
-            </span>
-          </label>
+          <NotesList
+            notes={body.notes ?? []}
+            max={LIMITS.notes}
+            onChange={updateNotes}
+          />
         </>
       )}
     </>

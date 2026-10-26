@@ -1,6 +1,32 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: general-purpose proposal review installed; fresh acceptance verified
+## Latest: Batch 2 implementation active; first integration candidate verified
+
+- The two-batch plan is being executed, not replanned or reduced. Full scope and
+  remaining slices: [execution checkpoint](docs/BATCH_2_3_EXECUTION.md).
+- B2.0 reconciles Claude web head `0929a25` and published plan `37f0051` at
+  `0cb205c`; 370 web unit tests, 83 PostgreSQL checks, generated-contract checks,
+  mock production build and all 15 desktop/mobile/narrow browser journeys pass.
+- B2.1 candidate has versioned explicit CLI/curses acknowledgements, frozen legacy
+  replay, and lossless structured note editing. Final parent rerun: 100 targeted
+  backend checks including real HTTP/PostgreSQL accept/replay; web has 381 passing tests,
+  production webpack/TypeScript build, lint and format checks.
+- Actual note-editor browser saves/readbacks pass at 1440/390/320px with synthetic
+  controlled fixtures and real PostgreSQL. Reusable seed/browser scripts also
+  passed a separate fresh-fixture rerun. Independent review found stale Undo
+  after removing/discarding a note; Claude corrected it, narrow independent rereview
+  passed, and a new parent browser run passed the exact regression at all widths.
+  [Retained green/red/review evidence](docs/evidence/batch2-first-increment/).
+  Verified feature candidate only: not installed and not a completed batch.
+- B2.2 has tested Textual/local-file staging groundwork only; durable draft/replay,
+  target/review and full cross-client experience remain unfinished. Later Batch 2
+  and all Batch 3 slices remain in scope. No batch-completion claim.
+- No product-model spend, private-account expansion, default merge, production
+  replacement or database maintenance. Existing cumulative $100 authority remains.
+  Claude Opus 5.5's resumed session reported a $3.0002948 total-cost counter;
+  development-tool list cost is tracked separately and is not verified billing.
+
+## Historical: general-purpose proposal review installed; fresh acceptance verified
 
 - Private runtime `d4d019c4b9bebca9ca8b49d1466a92fab7514aff`; reviewed-source install,
   94 focused backend and 69 frontend tests, independent review PASS, production build.
@@ -19,10 +45,15 @@
   unknown-usage steps retained. No further paid run in this completed evaluation.
 - [Full batch evaluation](docs/GENERAL_PROPOSAL_REVIEW_BATCH_EVALUATION.md),
   [machine evidence](docs/evidence/general-review-batch/acceptance-verified.json).
-- Delivery batch complete privately, not the wider mission. Next requested work:
-  researched plans for conversational TUI/attachments/ongoing-work visibility and
-  resumption, then general tools/connectors/cross-assignment memory. Research
-  handoffs await parent synthesis; no implementation of those batches claimed.
+- Delivery batch complete privately, not the wider mission. Research-backed plans
+  for the next two batches are complete: [controlling sequence and full scope](docs/plans/2026-10-23-workagent-next-two-batches.md).
+  Batch 2 covers conversational TUI, document attachments and reliable work
+  visibility/resumption; Batch 3 covers reusable tools/connectors and scoped memory.
+  Detailed code maps, task plans, source ledgers and varied-task evaluation included.
+  Parent verified source quotations/code manifests and checked current MCP guidance.
+  No Batch 2/3 implementation worker or paid trial has been started. Recommended
+  first execution unit: reconcile the separate Claude candidate, CLI review parity,
+  lossless structured-note editing; then continue through the full planned scope.
 
 ## Historical: evidence fix installed; day/week test completed with qualified results
 

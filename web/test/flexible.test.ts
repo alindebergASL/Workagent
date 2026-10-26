@@ -16,7 +16,8 @@ import {
   unitLegend,
   isEmptyPayload,
   pinsVersions,
-  notesFrom,
+  editNotes,
+  notesProblem,
   viewChanges,
   viewChangeSummary,
   parseCell,
@@ -234,8 +235,9 @@ describe("self-describing work", () => {
     );
   });
 
-  it("drops blank note lines, which the service would refuse", () => {
-    expect(notesFrom("a\n\n  b  \n")).toEqual(["a", "b"]);
+  it("refuses an empty note visibly instead of dropping it", () => {
+    expect(notesProblem(["a", "", "  b  "], 10)).toMatch(/note 2/);
+    expect(notesProblem(["a", "  b  "], 10)).toBe("");
   });
 });
 
@@ -377,9 +379,10 @@ describe("version-pinned views", () => {
 });
 
 describe("nothing typed is silently dropped", () => {
-  it("keeps every note line; the limit is enforced visibly elsewhere", () => {
+  it("keeps every note; the limit is refused visibly, nothing removed", () => {
     const lines = Array.from({ length: 11 }, (_, i) => `Human note ${i + 1}`);
-    expect(notesFrom(lines.join("\n"))).toEqual(lines);
+    expect(editNotes.set(lines, 3, lines[3]!)).toEqual(lines);
+    expect(notesProblem(lines, 10)).toMatch(/There are 11; nothing/);
   });
 });
 

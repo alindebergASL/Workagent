@@ -1,0 +1,125 @@
+{
+  "verified_at": "2026-10-23T01:47:46.231340+00:00",
+  "scope": "document/source integrity only; no product tests or implementation",
+  "acceptance_matrix_count": 35,
+  "unique_acceptance_ids": true,
+  "source_entries": 19,
+  "substantive_retrieved_sources": 18,
+  "failed_guessed_sources": 1,
+  "existing_regression_test_paths_checked": 19,
+  "local_document_links_ok": true,
+  "citation_ids_resolve": true,
+  "quotes": [
+    {
+      "source_id": 1,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 2,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 3,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 4,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 5,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 6,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 7,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 8,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 9,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 10,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 11,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 12,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 13,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 14,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 15,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 17,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 18,
+      "exact_quote_present": true
+    },
+    {
+      "source_id": 19,
+      "exact_quote_present": true
+    }
+  ],
+  "checks": {
+    "structured_note_regression_present": true,
+    "legacy_consent_preservation_present": true,
+    "no_unknown_send_retry_requirement": true
+  },
+  "documents": [
+    {
+      "path": "CODE_MAP.md",
+      "bytes": 19776,
+      "words": 2283,
+      "sha256": "6846d2a770cda872011c2f425195f42ca38581cc4bd9956604ec87b4fa48ce00"
+    },
+    {
+      "path": "IMPLEMENTATION.md",
+      "bytes": 39880,
+      "words": 4766,
+      "sha256": "92976faccea11268ffc08397b561e170f1bcfc3af2418e3336ae55b215f7c30b"
+    },
+    {
+      "path": "PLAN.md",
+      "bytes": 55026,
+      "words": 7298,
+      "sha256": "8e62be3b16fa658c8d9148dc1f1c2a82ebc29b3ca821bb9d7ebf089bf866f318"
+    },
+    {
+      "path": "README.md",
+      "bytes": 3206,
+      "words": 382,
+      "sha256": "9b6e9cfc46b1275ce2c19d94a9b1dc692e6ac68f802e674a52d8f8ddbf5a08d7"
+    },
+    {
+      "path": "SOURCE_EVIDENCE.md",
+      "bytes": 21380,
+      "words": 2604,
+      "sha256": "135bb21ff0fd401ad60523cecc71b747bdf9a4737d516d635b9fdeb824a89985"
+    }
+  ],
+  "total_markdown_words": 17333,
+  "citation_registry_list_command": "succeeded; initial unsupported dump command corrected to list"
+}

@@ -450,13 +450,65 @@ export function slug(title: string, fallback: string): string {
   );
 }
 
-/** Notes as people edit them: one per line, blank lines dropped. */
-export function notesFrom(text: string): string[] {
-  // Never shortened here: a list over the limit is refused visibly instead.
-  return text
-    .split("\n")
-    .map((x) => x.trim())
-    .filter(Boolean);
+/**
+ * Notes as people edit them: each note its own string, kept exactly as typed
+ * (line breaks and spaces included). Only adding, removing or moving a note
+ * changes how many there are or their order; nothing is trimmed or split.
+ */
+export const editNotes = {
+  set: (notes: string[], i: number, text: string) =>
+    notes.map((n, j) => (j === i ? text : n)),
+  add: (notes: string[]) => [...notes, ""],
+  remove: (notes: string[], i: number) => notes.filter((_, j) => j !== i),
+  move: (notes: string[], i: number, by: -1 | 1) => {
+    const to = i + by;
+    if (i < 0 || i >= notes.length || to < 0 || to >= notes.length)
+      return notes;
+    const next = [...notes];
+    [next[i], next[to]] = [next[to]!, next[i]!];
+    return next;
+  },
+};
+
+/**
+ * What a notes editor remembers between renders: the list it last sent (or
+ * was given), each box's identity, and the note it last removed (for Undo).
+ */
+export interface NotesUi {
+  source: string[];
+  ids: string[];
+  removed: { id: string; text: string; at: number } | null;
+}
+
+/**
+ * The editor's memory for the list its parent now shows. The list it sent
+ * itself keeps identities and Undo; any other list (a discard, a newer saved
+ * version) starts fresh, so a stale Undo can't put back a note it already has.
+ */
+export function syncNotesUi(
+  ui: NotesUi,
+  notes: string[],
+  fresh: () => string,
+): NotesUi {
+  if (notes === ui.source) return ui;
+  // A parent showing "no notes" may hand over a new empty list each time.
+  if (!notes.length && !ui.source.length && !ui.removed) return ui;
+  return { source: notes, ids: notes.map(fresh), removed: null };
+}
+
+/**
+ * Why the service would refuse these notes, in plain words, or "". Nothing
+ * is removed or shortened to fit: the person decides what to change.
+ */
+export function notesProblem(notes: string[], max: number): string {
+  if (notes.length > max)
+    return `Keep to ${max} notes. There are ${notes.length}; nothing has been removed.`;
+  const empty = notes.findIndex((n) => n === "");
+  if (empty >= 0)
+    return `Write something in note ${empty + 1}, or remove it, before saving.`;
+  if (notes.some((n) => n.length > LIMITS.noteChars))
+    return `Keep each note under ${LIMITS.noteChars.toLocaleString("en")} characters.`;
+  return "";
 }
 
 /** The service's limits on what people type (structured-table/v1, custom-view/v1). */

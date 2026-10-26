@@ -392,6 +392,30 @@ textarea.fit-text {
   margin: 0;
   padding: var(--sp-2) var(--sp-3) var(--sp-2) 1.8em;
 }
+.table-notes li {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.notes-items {
+  margin: 0;
+  padding-left: 1.8em;
+  display: grid;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.notes-item {
+  display: grid;
+  gap: var(--sp-1, 4px);
+  min-width: 0;
+}
+.notes-item textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.notes-item-actions {
+  gap: var(--sp-2);
+}
 .view-fallback {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

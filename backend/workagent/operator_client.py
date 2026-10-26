@@ -64,7 +64,9 @@ class OperatorClient:
             if cursor in seen: raise OperatorError('Pagination did not advance')
             seen.add(cursor)
 
-    def run(self,ws,action,args,*,command_id=None,announce=lambda x:None):
+    def run(self,ws,action,args,*,command_id=None,announce=lambda x:None,
+            acknowledge_removed_content=False,acknowledge_older_proposal=False):
+        acknowledgements=self.acknowledgements(action,acknowledge_removed_content,acknowledge_older_proposal)
         root='/'+identifier(ws)
         if action in ('areas','conversations'):
             return self.all(root+('/work-areas' if action=='areas' else '/conversations'))
@@ -73,6 +75,8 @@ class OperatorClient:
             return self.request(root+'/'+kind+'/'+identifier(args[0]))
         if action in ('history','proposals'):
             return self.all(root+'/artifacts/'+identifier(args[0])+'/'+action)
+        if action=='review':
+            return self.review(root,args)
         if action in ('replay','command'):
             if command_id is not None:
                 raise OperatorError('Use replay ID or command ID without --command-id')
@@ -87,19 +91,57 @@ class OperatorClient:
         version=None
         if action in ('follow','cancel','promote'):
             version=self.request(root+'/conversations/'+identifier(args[0]))['conversation']['work_version']
-        path,fields=self.payload(action,args,version)
+        path,fields=self.payload(action,args,version,**acknowledgements)
         if action in ('accept','dismiss'):
             proposals=self.all(root+'/artifacts/'+identifier(args[1])+'/proposals')['items']
             if not any(p['id']==args[0] and p['artifact_id']==args[1] for p in proposals):
                 raise OperatorError('Proposal is not part of the inspected artifact')
         body={'schema_version':'workagent/v1','request_id':cid,'command_id':cid,**fields}
-        record={'format':1,'command_id':cid,'base':self.base,'workspace':ws,
+        record={'format':2,'command_id':cid,'base':self.base,'workspace':ws,
                 'action':action,'args':list(args),'path':root+path,'body':body}
         self.journal.reserve(record) # durable, exclusive, BEFORE first POST
         return self.execute(record,announce)
 
-    def payload(self,action,args,version):
-        """Pure payload builder. Replay validates stored fields, never refreshes CAS."""
+    @staticmethod
+    def acknowledgements(action,removed,older):
+        if type(removed) is not bool or type(older) is not bool:
+            raise OperatorError('Review acknowledgements must be explicit booleans')
+        if action!='accept' and (removed or older):
+            raise OperatorError('Review acknowledgements are only valid for a new accept command')
+        return {'acknowledge_removed_content':removed,'acknowledge_older_proposal':older}
+
+    def review(self,root,args):
+        """Read exact candidate/base and the server's policy, never infer consent."""
+        if len(args)!=3: raise OperatorError('Arguments: review proposal artifact revision')
+        proposal,artifact,revision=map(identifier,args)
+        proposals=self.all(root+'/artifacts/'+artifact+'/proposals')['items']
+        candidate=next((p for p in proposals if p['id']==proposal and p['artifact_id']==artifact),None)
+        if candidate is None:
+            raise OperatorError('Proposal is not part of the inspected artifact')
+        if candidate.get('base_revision_id')!=revision or candidate.get('status')!='pending':
+            raise OperatorError('Proposal base/status changed; inspect the exact candidate again')
+        if not isinstance(candidate.get('review'),dict):
+            raise OperatorError('Server review policy unavailable; review refused')
+        base=self.request(root+'/artifacts/'+artifact+'?revision_id='+revision)
+        if (base.get('id')!=artifact or base.get('current_revision_id')!=revision or
+                base.get('current_revision',{}).get('id')!=revision):
+            raise OperatorError('Artifact base changed; review refused')
+        return {'proposal':candidate,'base':base,'review':candidate['review'],
+                'next_action':'Compare the full candidate and base before accept. Select each acknowledgement explicitly; accepting does not complete the goal or publish externally.'}
+
+    def payload(self,action,args,version,*,acknowledge_removed_content=False,acknowledge_older_proposal=False):
+        """Format-2 builder. Defaults are explicit; replay sends the stored body."""
+        acknowledgements=self.acknowledgements(action,acknowledge_removed_content,acknowledge_older_proposal)
+        path,fields=self.payload_v1(action,args,version)
+        if action=='accept': fields.update(acknowledgements)
+        return path,fields
+
+    def payload_v1(self,action,args,version):
+        """FROZEN format-1 validation grammar. Never add new fields/defaults here.
+
+        This reconstructs only an expected value for validation. The original
+        journal body (including absent flags and empty attachments) is sent.
+        """
         counts={'create':3,'chat':1,'follow':2,'cancel':1,'promote':4,'accept':3,'dismiss':3,'revise':4}
         if action not in counts or (len(args)!=counts[action] and not (action=='follow' and len(args)==5)):
             raise OperatorError('Invalid command arguments')
@@ -131,12 +173,18 @@ class OperatorClient:
     def validate_record(self,record,ws):
         try:
             if (set(record)!={'format','command_id','base','workspace','action','args','path','body'} or
-                    record['format']!=1 or record['base']!=self.base or record['workspace']!=ws):
+                    record['format'] not in (1,2) or record['base']!=self.base or record['workspace']!=ws):
                 raise OperatorError('Command scope mismatch or corrupt record; replay refused')
             cid=identifier(record['command_id']); body=record['body']
             if not isinstance(body,dict) or not isinstance(record['args'],list) or not all(isinstance(a,str) for a in record['args']):
                 raise OperatorError('Corrupt command envelope; replay refused')
-            path,fields=self.payload(record['action'],record['args'],body.get('expected_work_version'))
+            if record['format']==1:
+                path,fields=self.payload_v1(record['action'],record['args'],body.get('expected_work_version'))
+            else:
+                acknowledgements={}
+                if record['action']=='accept':
+                    acknowledgements={key:body[key] for key in ('acknowledge_removed_content','acknowledge_older_proposal')}
+                path,fields=self.payload(record['action'],record['args'],body.get('expected_work_version'),**acknowledgements)
             if (record['path']!='/'+identifier(ws)+path or
                     body!={'schema_version':'workagent/v1','request_id':cid,'command_id':cid,**fields}):
                 raise OperatorError('Corrupt command envelope; replay refused')
