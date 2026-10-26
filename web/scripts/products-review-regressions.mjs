@@ -16,6 +16,8 @@ const notesOf = (scope, name = "Your notes") =>
     .evaluateAll((els) => els.map((e) => e.value));
 async function setNotes(scope, list, name = "Your notes") {
   const g = notesGroup(scope, name);
+  // The list arrives with the work; count it only once it's there.
+  await g.waitFor();
   while (
     (await g.getByRole("button", { name: /^Remove note \d+$/ }).count()) > 0
   )
@@ -26,6 +28,7 @@ async function setNotes(scope, list, name = "Your notes") {
       .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
       .fill(text);
   }
+  await expect.poll(() => notesOf(scope, name)).toEqual(list);
 }
 
 const web = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
