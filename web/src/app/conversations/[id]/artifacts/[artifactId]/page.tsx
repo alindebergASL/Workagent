@@ -709,10 +709,21 @@ function ProductEditor({
                   <summary>See the proposed version</summary>
                   <ProductView body={p.body} />
                   {p.body.kind !== "file" ? (
-                    <p className="small">
-                      Your notes kept:{" "}
-                      {(p.body.notes ?? []).join("; ") || "none"}
-                    </p>
+                    // Each note as written: one to an item, line breaks kept.
+                    <div className="small" data-testid="proposal-kept-notes">
+                      {p.body.notes?.length ? (
+                        <>
+                          <p>Your notes kept:</p>
+                          <ul className="table-notes">
+                            {p.body.notes.map((n, i) => (
+                              <li key={i}>{n}</li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        <p>Your notes kept: none</p>
+                      )}
+                    </div>
                   ) : null}
                 </details>
               </>

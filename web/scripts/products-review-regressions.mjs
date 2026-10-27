@@ -2081,6 +2081,18 @@ try {
     ...extra,
   });
   // Writes go through the real client; the network answers per test.
+  // Writes still in flight are counted: their answers update what the
+  // client keeps in storage, even after the work that sent them has left.
+  let inFlight = 0;
+  const isWrite = (r) =>
+    r.method() === "POST" && r.url().includes("/v1/workspaces/");
+  page.on("request", (r) => {
+    if (isWrite(r)) inFlight++;
+  });
+  for (const done of ["requestfinished", "requestfailed"])
+    page.on(done, (r) => {
+      if (isWrite(r)) inFlight--;
+    });
   let flexPosts = [];
   let flexReply = () => ({ status: 500, json: {} });
   await page.route("**/v1/workspaces/**", async (route) => {
@@ -2112,9 +2124,12 @@ try {
   // Flexible work opens on its result; these cases edit it, so each opens
   // on the Edit tab the way a person who chose it last time would.
   async function showFlex(data, mode = "edit") {
+    // The last case settles first: its writes answered and handled, and its
+    // work gone. Otherwise either can write its draft back after storage is
+    // cleared, and this case would open on it.
+    await expect.poll(() => inFlight).toBe(0);
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 50)));
     flexPosts = [];
-    // The last case's work leaves first: still mounted, it can write its
-    // draft back after storage is cleared, and this one would open on it.
     await away();
     await page.evaluate(
       ([data, mode]) => {
@@ -2584,6 +2599,94 @@ try {
   passed++;
   console.log(
     "PASS notes stop at the limit; a version already over it is refused visibly, kept through reload, and never truncated on save",
+  );
+
+  {
+    // A note can run over several lines; wherever it's shown outside the
+    // editor it reads as written, one note to an item, never run together.
+    await page.addStyleTag({
+      path: path.join(web, "src", "styles", "products.css"),
+    });
+    const twoLines =
+      "Call Priya at the hall.\nAsk for the hold to be extended.";
+    const saved = {
+      ...tableRev,
+      id: "notes-saved",
+      body: { ...tableRev.body, notes: [twoLines, "Keep the receipt."] },
+    };
+    await showFlex(
+      flexData(saved, {
+        proposals: [
+          {
+            id: "drops-note",
+            status: "pending",
+            base_revision_id: saved.id,
+            body: { ...saved.body, notes: ["Keep the receipt."] },
+            body_hash: "c".repeat(64),
+            reason: "Synthetic proposal",
+            created_at: "2026-11-02T10:00:00Z",
+          },
+        ],
+      }),
+      "changes",
+    );
+    const lost = page.getByTestId("proposal-removed-notes").locator("li");
+    await expect(lost).toHaveCount(1);
+    for (const li of [
+      lost,
+      page.getByTestId("proposal-removed").locator("li").first(),
+    ]) {
+      assert.equal(
+        await li.evaluate((e) => getComputedStyle(e).whiteSpace),
+        "pre-wrap",
+      );
+      assert.match(await li.innerText(), /hall\.\nAsk for/);
+    }
+    // A tool's proposal lists the notes it keeps, each as written.
+    const toolBody = {
+      kind: "tool",
+      title: "Saved tool",
+      code: '(module (func (export "total") (result i64) i64.const 1))',
+      entrypoint: "total",
+      arguments: [],
+      input_form: [],
+      notes: [twoLines, "Amounts; in cents"],
+    };
+    const rev = {
+      id: "tool-r",
+      artifact_id: "a",
+      revision_number: 1,
+      body: toolBody,
+      body_hash: "e".repeat(64),
+      author_kind: "worker",
+      author_id: "worker",
+      source_dependencies: [],
+    };
+    await showFlex(
+      flexData(rev, {
+        proposals: [
+          {
+            id: "tool-p",
+            status: "pending",
+            base_revision_id: rev.id,
+            body: toolBody,
+            body_hash: "e".repeat(64),
+            reason: "Synthetic proposal",
+          },
+        ],
+      }),
+      null,
+    );
+    const card = page.getByTestId("product-proposal");
+    await card.getByText("See the proposed version").click();
+    const kept = card.getByTestId("proposal-kept-notes").locator("li");
+    await expect(kept).toHaveCount(2);
+    assert.match(await kept.first().innerText(), /hall\.\nAsk for/);
+    await expect(kept.nth(1)).toHaveText("Amounts; in cents");
+  }
+  passed++;
+  console.log(
+    "PASS a note over several lines reads as written where a proposal removes or keeps it",
   );
 
   {

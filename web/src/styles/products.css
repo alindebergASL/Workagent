@@ -979,7 +979,9 @@ textarea.fit-text {
   min-width: 0;
   max-width: 100%;
 }
+/* A removed value or note reads as it was written, line breaks kept. */
 .proposal-removed li {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .proposal-earlier {
