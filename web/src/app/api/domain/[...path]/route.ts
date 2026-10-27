@@ -85,6 +85,59 @@ async function route(
       offset += chunk.length;
     }
   }
+  // A live event stream stays open for as long as the page reads it: no
+  // overall timeout (only until the stream starts), the browser leaving
+  // closes it upstream, and nothing in between may buffer it.
+  if (
+    request.method === "GET" &&
+    path.length === 5 &&
+    path[3] === "events" &&
+    path[4] === "stream"
+  ) {
+    const opened = new AbortController();
+    const started = setTimeout(() => opened.abort(), 15000);
+    request.signal.addEventListener("abort", () => opened.abort(), {
+      once: true,
+    });
+    try {
+      const upstream = await fetch(
+        `${backend}/${path.join("/")}${request.nextUrl.search}`,
+        {
+          headers: {
+            Authorization: `Bearer ${bearer}`,
+            Accept: "text/event-stream",
+            "X-Schema-Version": "workagent/v1",
+            "X-Request-Id":
+              request.headers.get("x-request-id") ?? crypto.randomUUID(),
+          },
+          cache: "no-store",
+          redirect: "error",
+          signal: opened.signal,
+        },
+      );
+      clearTimeout(started);
+      const stream =
+        upstream.ok &&
+        upstream.headers.get("content-type")?.split(";")[0] ===
+          "text/event-stream";
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: {
+          ...noStore,
+          "Content-Type": stream ? "text/event-stream" : "application/json",
+          ...(stream ? { "X-Accel-Buffering": "no" } : {}),
+          "X-Request-Id": upstream.headers.get("x-request-id") ?? "local-proxy",
+        },
+      });
+    } catch {
+      clearTimeout(started);
+      return error(
+        502,
+        "action_unresolved",
+        "Could not open live updates. The page keeps its last view.",
+      );
+    }
+  }
   try {
     const upstream = await fetch(
       `${backend}/${path.join("/")}${request.nextUrl.search}`,
