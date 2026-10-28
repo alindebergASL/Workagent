@@ -45,6 +45,25 @@ import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
 import {readAttachment} from '@/lib/contract/natural';
 import {bindMockIdentity} from '@/lib/client/session-scope';
+import {StopRun, QueuedMessages, DocumentPicker} from '@/components/Batch2Controls';
+import {setFetch} from '@/lib/client/batch2-api';
+// Batch 2 controls write through their own client: answer every write.
+window.b2calls = [];
+setFetch(async (url, init) => {
+  window.b2calls.push({url: String(url), method: init?.method ?? 'GET'});
+  return new Response(JSON.stringify(window.b2reply ?? {}), {status: 200, headers: {'content-type': 'application/json'}});
+});
+function Queue() {
+  const [items, setItems] = React.useState(window.queueItems);
+  return <QueuedMessages ws="w" cid="c" items={items} refresh={() => setItems(window.queueAfter(items))}/>;
+}
+function Docs() {
+  const [docs, setDocs] = React.useState(window.docItems);
+  return <DocumentPicker docs={docs} error="" locked={false} onAdd={() => {}} onRemove={i => setDocs(d => d.filter((_, j) => j !== i))}/>;
+}
+function Stop() {
+  return <><section data-testid="current-work" tabIndex={-1}>Current work</section><StopRun ws="w" cid="c" runId="run-1" version={3} refresh={() => {}}/></>;
+}
 // No ScopeGate in the fixture: bind the demo scope before the first render.
 bindMockIdentity();
 window.sk = (k) => 'workagent:scope:v1:' + '0'.repeat(64) + ':' + k;
@@ -62,7 +81,7 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
   window.scope = {ws,cid};
   root.render(mode === 'operation'
     ? <OperationComposer ws={ws} cid={cid} version={version} refresh={window.refresh}/>
-    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
+    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : mode === 'stop' ? <Stop/> : mode === 'queue' ? <Queue/> : mode === 'docs' ? <Docs/> : <div>Navigation away</div>);
 };
 window.reads = {};
 const realArrayBuffer = File.prototype.arrayBuffer;
@@ -2701,6 +2720,106 @@ try {
   passed++;
   console.log(
     "PASS a note over several lines reads as written where a proposal removes or keeps it",
+  );
+
+  {
+    // Batch 2 controls keep the keyboard beside what the person pressed:
+    // Stop's confirmation swaps buttons in place (and a stop lands on the
+    // work's status); a cancelled queued message or a removed document
+    // hands focus to the next one, else the one before, else a heading or
+    // the attach control. Never the top of the page.
+    const focused = () =>
+      page.evaluate(() => {
+        const a = document.activeElement;
+        return a === document.body
+          ? "body"
+          : a.getAttribute("aria-label") ||
+              a.getAttribute("data-testid") ||
+              a.textContent.trim();
+      });
+    await away();
+    await page.evaluate(() => window.mount("stop"));
+    await page.getByRole("button", { name: "Stop this run…" }).press("Enter");
+    expect(await focused()).toBe("Stop this run");
+    await page.getByRole("button", { name: "Keep going" }).press("Enter");
+    expect(await focused()).toBe("Stop this run…");
+    await page.getByRole("button", { name: "Stop this run…" }).press("Enter");
+    await page.getByRole("button", { name: "Stop this run" }).press("Enter");
+    await expect.poll(focused).toBe("current-work");
+
+    const queued = (id, position) => ({
+      id,
+      conversation_id: "c",
+      owner_id: "h",
+      position,
+      queue_version: 1,
+      created_at: "2026-10-28T00:00:00Z",
+      intent: { text: `Queued ${id}` },
+      admission_work_version: 1,
+      access_generation: 1,
+      dependency_fingerprint: "f",
+      state: "pending",
+      reason: null,
+      run_id: null,
+    });
+    await away();
+    await page.evaluate(
+      ([a, b]) => {
+        window.queueItems = [a, b];
+        // The service answers with the cancelled message no longer open.
+        window.queueAfter = (items) =>
+          items.map((q) =>
+            window.b2calls.some((c) => c.url.includes(q.id))
+              ? { ...q, state: "cancelled" }
+              : q,
+          );
+        window.mount("queue");
+      },
+      [queued("q1", 1), queued("q2", 2)],
+    );
+    const cancels = page.getByRole("button", {
+      name: "Cancel this queued message",
+    });
+    await cancels.first().press("Enter");
+    await expect(cancels).toHaveCount(1);
+    await expect.poll(focused).toBe("Cancel this queued message");
+    await cancels.first().press("Enter");
+    await expect(cancels).toHaveCount(0);
+    await expect.poll(focused).toBe("Queued for later");
+
+    const staged = (name, n) => ({
+      doc: {
+        filename: name,
+        byte_length: 1000 + n,
+        sha256: String(n).repeat(64),
+      },
+      generation: `g${n}`,
+      staged_at: n,
+      durable: true,
+      state: "staged",
+      ref: null,
+      upload: null,
+    });
+    await away();
+    await page.evaluate(
+      (docs) => {
+        window.docItems = docs;
+        window.mount("docs");
+      },
+      [staged("brief.pdf", 1), staged("budget.xlsx", 2)],
+    );
+    await page.getByRole("button", { name: "Remove brief.pdf" }).press("Enter");
+    await expect.poll(focused).toBe("Remove budget.xlsx");
+    await page
+      .getByRole("button", { name: "Remove budget.xlsx" })
+      .press("Enter");
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.type))
+      .toBe("file");
+  }
+  passed++;
+  console.log(
+    "PASS Stop's confirmation, cancelling a queued message and removing a document keep the keyboard beside them",
   );
 
   {

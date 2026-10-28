@@ -176,8 +176,10 @@ function QueuedRow({
             type="button"
             className="link-quiet small"
             data-queue-cancel
-            onClick={() => void cancel()}
-            disabled={busy}
+            // Not disabled while busy: a disabled button drops focus to the
+            // page before the row can hand it on.
+            onClick={() => void (busy || cancel())}
+            aria-disabled={busy || undefined}
           >
             {busy ? "Cancelling…" : "Cancel this queued message"}
           </button>
