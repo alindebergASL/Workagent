@@ -27,7 +27,9 @@ import {
 } from "@/lib/work-state";
 import { readableTitle } from "@/lib/titles";
 import { Ownership } from "@/components/Ownership";
-import { OutcomeLede } from "@/components/OutcomeLede";
+import { LatestNote } from "@/components/LatestNote";
+import { useSnapshotRead } from "@/lib/client/latest-note";
+import { latestNote } from "@/lib/latest-note";
 import { SourcesDrawer } from "@/components/SourcesDrawer";
 import { artifactStatus, ErrorNotice, StatusBadge } from "@/components/ui";
 
@@ -80,6 +82,13 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
     id,
     rs.kind === "ready" ? rs.detail.assignment : null,
   );
+  // When the agent's latest note was recorded comes from the conversation's
+  // work snapshot, read only once the rich responsibility read is in.
+  const snapshotRead = useSnapshotRead(
+    wsId,
+    rs.kind === "ready" ? (a?.conversation_id ?? null) : null,
+    rs.kind === "ready" ? rs.detail.lifecycle.current_outcome : "",
+  );
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const sourcesBtn = useRef<HTMLButtonElement>(null);
   const artifactTitles = useMemo(
@@ -125,6 +134,9 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   const current = rs.kind === "ready" ? rs.detail.assignment : null;
   // A recorded responsibility leads with what it prepared and what's next.
   const rich = rs.kind === "ready" ? rs.detail : null;
+  const note = rich
+    ? latestNote(rich.lifecycle.current_outcome, id, snapshotRead)
+    : null;
   const goal = current?.goal ?? a.goal;
   const criteria = current?.completion_criteria ?? a.completion_criteria;
   const badge =
@@ -252,10 +264,10 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         )}
         <h1>{shortTitle(current?.goal ?? a.title)}</h1>
         {rich ? (
-          // Where it stands is the panel's; the header leads with what it has
-          // done so far, in its own recorded words.
-          rich.lifecycle.current_outcome ? (
-            <OutcomeLede text={rich.lifecycle.current_outcome} />
+          // Where it stands is the panel's; the header leads with the agent's
+          // latest note, in its own recorded words, labelled as that.
+          note ? (
+            <LatestNote note={note} zone={zone} />
           ) : null
         ) : (
           <div className="row">

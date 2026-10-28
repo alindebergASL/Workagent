@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { chromium, expect } from "@playwright/test";
+import { scopedHeaders } from "./lib/scope.mjs";
 
 const out = path.resolve(process.argv[2]);
 const r = JSON.parse(await readFile(process.argv[3], "utf8"));
@@ -48,6 +49,31 @@ try {
   await expect(page.getByTestId("responsibility-outcome")).toHaveText(
     "Prepared a brief and a second checklist. No external outcome claimed.",
   );
+  // It's labelled as the agent's latest recorded note, with the time from
+  // this assignment's own observation in the conversation's work snapshot,
+  // or "time not recorded"; it sits apart from what's prepared.
+  const snap = await (
+    await fetch(
+      `${origin}/api/domain/v1/workspaces/${r.workspace}/work-snapshot?conversation_id=${r.conversation_id}`,
+      {
+        headers: await scopedHeaders(origin, {
+          "X-Workagent-Client": "local-ui",
+        }),
+      },
+    )
+  ).json();
+  const obs = snap.responsibility?.find(
+    (x) => x.assignment_id === r.assignment_id,
+  )?.historical_observation;
+  const note = page.getByTestId("latest-note");
+  await expect(note).toContainText("Agent’s latest recorded note");
+  await expect(note).toHaveAttribute(
+    "data-time",
+    obs?.observed_at ? "known" : "unknown",
+    { timeout: 15000 },
+  );
+  if (!obs?.observed_at) await expect(note).toContainText("time not recorded");
+  await expect(prepared.getByTestId("latest-note")).toHaveCount(0);
   // Then what it prepared, each opening where it lives.
   for (const aid of r.outputs)
     await expect(
@@ -116,6 +142,23 @@ try {
     page.getByRole("heading", { level: 1, name: "Readiness brief" }),
   ).toBeVisible({ timeout: 20000 });
   pass("opening a prepared result reaches the work");
+
+  // The snapshot can't be read: the record's note stays, with its time
+  // unknown; the page's own read time is never offered instead.
+  await page.route(/\/work-snapshot(\?|$)/, (route) => route.abort("failed"));
+  await page.goto(page_);
+  const unread = page.getByTestId("latest-note");
+  await expect(unread).toHaveAttribute("data-time", "unknown", {
+    timeout: 20000,
+  });
+  await expect(unread).toContainText("time not recorded");
+  await expect(page.getByTestId("responsibility-outcome")).toHaveText(
+    "Prepared a brief and a second checklist. No external outcome claimed.",
+  );
+  await page.unroute(/\/work-snapshot(\?|$)/);
+  pass(
+    "the agent's latest recorded note is labelled with its own observation's time, or time not recorded; an unreadable snapshot keeps the note with no time borrowed; it sits apart from what's prepared",
+  );
 
   // Home keeps track of it; it isn't listed as needing the person.
   await page.goto(`${origin}/`);
