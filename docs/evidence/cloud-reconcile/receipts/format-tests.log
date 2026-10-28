@@ -1,0 +1,15 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv5.0.3 [39m[90m/home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/web[39m
+
+ [32m✓[39m test/workspace-files-races.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 2597[2mms[22m[39m
+   [32m✓[39m workspace files replay/remount races (R3/R4) [2m(9)[22m
+     [33m[2m✓[22m[39m R3: an unresolved save's exact replay never deletes newer human edits[33m 324[2mms[22m[39m
+     [33m[2m✓[22m[39m R4: a late create-A completion cannot clear a newer unresolved create B[33m 429[2mms[22m[39m
+     [33m[2m✓[22m[39m R4: create A sent, remounted and replayed; old A first — both successes resolve A[33m 308[2mms[22m[39m
+     [33m[2m✓[22m[39m R4: create A sent, remounted and replayed; live replay first — both successes resolve A[33m 301[2mms[22m[39m
+     [33m[2m✓[22m[39m R4: old A success after remount never touches a newer unresolved create B[33m 406[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m   Start at [22m 20:11:58
+[2m   Duration [22m 3.09s[2m (tests 86%, import 9%, transform 4%)[22m

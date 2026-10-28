@@ -369,6 +369,12 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def get_task(workspace_id:Id,task_id:Id,p:P,meta:Meta,expected_version:Annotated[int | None,Query(ge=1,le=2147483647)]=None,expected_desired_result:Text | None=None):
         return service.get_task(p,workspace_id,task_id,expected_version,expected_desired_result)
 
+    from .capabilities.api import register as register_capabilities
+    register_capabilities(app,service,principal,query_meta,errors)
+
+    from .workspace_file_api import register as register_workspace_files
+    register_workspace_files(app,service,principal,query_meta,errors)
+
     def canonical_openapi():
         if app.openapi_schema:
             return app.openapi_schema

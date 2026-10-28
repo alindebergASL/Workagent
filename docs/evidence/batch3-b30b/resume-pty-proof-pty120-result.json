@@ -1,0 +1,125 @@
+{
+  "size": [
+    120,
+    40
+  ],
+  "actions": [
+    {
+      "keys": "Unsent conversation pty120 preserve me"
+    },
+    {
+      "keys": "\u001b[<0;24;4M\u001b[<0;24;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;6;21M\u001b[<0;6;21m"
+    },
+    {
+      "keys": "\u0001"
+    },
+    {
+      "keys": "\u000b"
+    },
+    {
+      "keys": "native120.txt"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "Original human annotation pty120"
+    },
+    {
+      "keys": "\u0013"
+    },
+    {
+      "keys": "\u0012"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " Saved human edit pty120"
+    },
+    {
+      "keys": "\u0013"
+    },
+    {
+      "keys": "\u0012"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<0;3;39M\u001b[<0;3;39m"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<0;5;38M\u001b[<0;5;38m"
+    },
+    {
+      "keys": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/resume-pty-proof/pty120-download.txt"
+    },
+    {
+      "keys": "\u001b[<65;115;35M"
+    },
+    {
+      "keys": "\u001b[<0;3;39M\u001b[<0;3;39m"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;7;28M\u001b[<0;7;28m"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " UNSENT file draft pty120"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u0011"
+    },
+    {
+      "keys": "\u001b[<0;24;4M\u001b[<0;24;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    }
+  ],
+  "pass_": true,
+  "download_sha256": "e2dbbd5d390af2d27249e2b44d011fdfc4131164ee2b4363c8d18f99ac54d783",
+  "download_bytes": 56
+}

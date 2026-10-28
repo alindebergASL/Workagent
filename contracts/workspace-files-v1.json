@@ -1,0 +1,1575 @@
+{
+  "$defs": {
+    "AcceptFileProposal": {
+      "additionalProperties": false,
+      "properties": {
+        "acknowledge_older_proposal": {
+          "default": false,
+          "title": "Acknowledge Older Proposal",
+          "type": "boolean"
+        },
+        "acknowledge_removed_content": {
+          "default": false,
+          "title": "Acknowledge Removed Content",
+          "type": "boolean"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_current_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Current Revision Id",
+          "type": "string"
+        },
+        "expected_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_current_revision_id",
+        "expected_sha256"
+      ],
+      "title": "AcceptFileProposal",
+      "type": "object"
+    },
+    "AttachmentEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "attachment",
+          "title": "Kind",
+          "type": "string"
+        },
+        "message_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Message Id",
+          "type": "string"
+        },
+        "ref": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "message_id",
+        "ref",
+        "sha256"
+      ],
+      "title": "AttachmentEvidence",
+      "type": "object"
+    },
+    "Coverage": {
+      "additionalProperties": false,
+      "properties": {
+        "covered_pages": {
+          "anyOf": [
+            {
+              "maximum": 50,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Covered Pages"
+        },
+        "covered_rows": {
+          "anyOf": [
+            {
+              "maximum": 1000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Covered Rows"
+        },
+        "covered_sheets": {
+          "anyOf": [
+            {
+              "maximum": 10,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Covered Sheets"
+        },
+        "empty_pages_needing_ocr": {
+          "anyOf": [
+            {
+              "items": {
+                "maximum": 50,
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxItems": 50,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Empty Pages Needing Ocr"
+        },
+        "omissions": {
+          "items": {
+            "maxLength": 320,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Omissions",
+          "type": "array"
+        },
+        "omitted_pages": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Omitted Pages"
+        },
+        "omitted_paragraphs": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Omitted Paragraphs"
+        },
+        "omitted_sheets": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Omitted Sheets"
+        },
+        "omitted_tables": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Omitted Tables"
+        },
+        "paragraphs_covered": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Paragraphs Covered"
+        },
+        "partial_last_block": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Partial Last Block"
+        },
+        "partial_last_page": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Partial Last Page"
+        },
+        "sheets": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/SheetCoverage"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sheets"
+        },
+        "tables_covered": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tables Covered"
+        },
+        "total_pages": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Pages"
+        },
+        "total_paragraphs": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Paragraphs"
+        },
+        "total_sheets": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Sheets"
+        },
+        "total_tables": {
+          "anyOf": [
+            {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Total Tables"
+        },
+        "visited_cells": {
+          "anyOf": [
+            {
+              "maximum": 10000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visited Cells"
+        }
+      },
+      "required": [
+        "omissions"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "CreateWorkspaceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_version_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Version Id"
+        },
+        "expected_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "refresh_workspace_file_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Refresh Workspace File Id"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "discriminator": {
+            "mapping": {
+              "attachment": "#/$defs/AttachmentEvidence",
+              "document": "#/$defs/DocumentEvidence",
+              "text": "#/$defs/WorkingText"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/WorkingText"
+            },
+            {
+              "$ref": "#/$defs/DocumentEvidence"
+            },
+            {
+              "$ref": "#/$defs/AttachmentEvidence"
+            }
+          ],
+          "title": "Source"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_work_version",
+        "source"
+      ],
+      "title": "CreateWorkspaceFile",
+      "type": "object"
+    },
+    "DocumentEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "document_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Document Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "document",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "document_id",
+        "sha256"
+      ],
+      "title": "DocumentEvidence",
+      "type": "object"
+    },
+    "EditWorkspaceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "base_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Base Sha256",
+          "type": "string"
+        },
+        "base_version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Base Version Id",
+          "type": "string"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "expected_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "sha256",
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_work_version",
+        "base_version_id",
+        "base_sha256"
+      ],
+      "title": "EditWorkspaceFile",
+      "type": "object"
+    },
+    "ExportArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "body_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Body Hash",
+          "type": "string"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "revision_id",
+        "body_hash",
+        "format"
+      ],
+      "title": "ExportArtifact",
+      "type": "object"
+    },
+    "ExportFile": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "version_id",
+        "sha256",
+        "format"
+      ],
+      "title": "ExportFile",
+      "type": "object"
+    },
+    "ExportManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "enum": [
+            "included",
+            "not_present",
+            "explicit_omissions"
+          ],
+          "title": "Annotations",
+          "type": "string"
+        },
+        "artifact_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Artifact Id"
+        },
+        "blob": {
+          "$ref": "#/$defs/GeneratedBlobRef"
+        },
+        "conversation_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Conversation Id"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "export_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Export Id",
+          "type": "string"
+        },
+        "exporter_version": {
+          "const": "basic-exports-v1",
+          "default": "basic-exports-v1",
+          "title": "Exporter Version",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 85,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "input_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Sha256",
+          "type": "string"
+        },
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Omissions",
+          "type": "array"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "source_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Source Snapshot Id"
+        },
+        "tool_attempt_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Attempt Id"
+        },
+        "workspace_file_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Workspace File Id"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "export_id",
+        "workspace_id",
+        "conversation_id",
+        "artifact_id",
+        "revision_id",
+        "input_sha256",
+        "workspace_file_id",
+        "source_snapshot_id",
+        "format",
+        "filename",
+        "blob",
+        "created_at",
+        "annotations",
+        "omissions"
+      ],
+      "title": "ExportManifest",
+      "type": "object"
+    },
+    "FileComparison": {
+      "additionalProperties": false,
+      "properties": {
+        "diff": {
+          "title": "Diff",
+          "type": "string"
+        },
+        "diff_bytes": {
+          "minimum": 0,
+          "title": "Diff Bytes",
+          "type": "integer"
+        },
+        "diff_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Diff Sha256",
+          "type": "string"
+        },
+        "identical": {
+          "title": "Identical",
+          "type": "boolean"
+        },
+        "left": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "left_omitted_ranges": {
+          "items": {
+            "$ref": "#/$defs/OmittedByteRange"
+          },
+          "title": "Left Omitted Ranges",
+          "type": "array"
+        },
+        "omitted_diff_ranges": {
+          "items": {
+            "$ref": "#/$defs/OmittedByteRange"
+          },
+          "title": "Omitted Diff Ranges",
+          "type": "array"
+        },
+        "right": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "right_omitted_ranges": {
+          "items": {
+            "$ref": "#/$defs/OmittedByteRange"
+          },
+          "title": "Right Omitted Ranges",
+          "type": "array"
+        }
+      },
+      "required": [
+        "left",
+        "right",
+        "identical",
+        "diff",
+        "diff_sha256",
+        "diff_bytes",
+        "omitted_diff_ranges",
+        "left_omitted_ranges",
+        "right_omitted_ranges"
+      ],
+      "title": "FileComparison",
+      "type": "object"
+    },
+    "FileRange": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "chunk_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Chunk Sha256",
+          "type": "string"
+        },
+        "has_utf8_bom": {
+          "title": "Has Utf8 Bom",
+          "type": "boolean"
+        },
+        "newline": {
+          "enum": [
+            "none",
+            "lf",
+            "crlf",
+            "cr",
+            "mixed"
+          ],
+          "title": "Newline",
+          "type": "string"
+        },
+        "next_offset": {
+          "minimum": 0,
+          "title": "Next Offset",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "omitted_ranges": {
+          "items": {
+            "$ref": "#/$defs/OmittedByteRange"
+          },
+          "title": "Omitted Ranges",
+          "type": "array"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "source_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Snapshot Id"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "text",
+        "offset",
+        "next_offset",
+        "byte_length",
+        "chunk_sha256",
+        "omitted_ranges",
+        "has_utf8_bom",
+        "newline"
+      ],
+      "title": "FileRange",
+      "type": "object"
+    },
+    "FileVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "version_id",
+        "sha256"
+      ],
+      "title": "FileVersionRef",
+      "type": "object"
+    },
+    "GeneratedBlobRef": {
+      "additionalProperties": false,
+      "description": "Bytes live separately from FileBody; future office exporters can reuse this.",
+      "properties": {
+        "blob_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Blob Id",
+          "type": "string"
+        },
+        "byte_length": {
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "generated_blob",
+          "default": "generated_blob",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blob_id",
+        "sha256",
+        "byte_length",
+        "mime_type"
+      ],
+      "title": "GeneratedBlobRef",
+      "type": "object"
+    },
+    "OmittedByteRange": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "sha256"
+      ],
+      "title": "OmittedByteRange",
+      "type": "object"
+    },
+    "ProposeFilePatch": {
+      "additionalProperties": false,
+      "properties": {
+        "base_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Base Sha256",
+          "type": "string"
+        },
+        "base_version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Base Version Id",
+          "type": "string"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "expected_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "sha256",
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_work_version",
+        "base_version_id",
+        "base_sha256",
+        "reason"
+      ],
+      "title": "ProposeFilePatch",
+      "type": "object"
+    },
+    "SheetCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "covered_rows": {
+          "maximum": 1000,
+          "minimum": 0,
+          "title": "Covered Rows",
+          "type": "integer"
+        },
+        "last_cell": {
+          "anyOf": [
+            {
+              "maxLength": 20,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Cell"
+        },
+        "merged_ranges": {
+          "items": {
+            "maxLength": 40,
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Merged Ranges",
+          "type": "array"
+        },
+        "name": {
+          "maxLength": 31,
+          "title": "Name",
+          "type": "string"
+        },
+        "omitted_cell_positions": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Omitted Cell Positions",
+          "type": "integer"
+        },
+        "omitted_merged_ranges": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Omitted Merged Ranges",
+          "type": "integer"
+        },
+        "omitted_rows": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Omitted Rows",
+          "type": "integer"
+        },
+        "partial_last_row": {
+          "title": "Partial Last Row",
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "visible",
+            "hidden",
+            "veryHidden"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "total_columns": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Total Columns",
+          "type": "integer"
+        },
+        "total_rows": {
+          "maximum": 9007199254740991,
+          "minimum": 0,
+          "title": "Total Rows",
+          "type": "integer"
+        },
+        "visited_cells": {
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Visited Cells",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "state",
+        "total_rows",
+        "total_columns",
+        "covered_rows",
+        "merged_ranges",
+        "omitted_merged_ranges",
+        "visited_cells",
+        "last_cell",
+        "partial_last_row",
+        "omitted_rows",
+        "omitted_cell_positions"
+      ],
+      "title": "SheetCoverage",
+      "type": "object"
+    },
+    "SourceSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "coverage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Coverage"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extraction_byte_length": {
+          "minimum": 0,
+          "title": "Extraction Byte Length",
+          "type": "integer"
+        },
+        "extraction_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Extraction Sha256",
+          "type": "string"
+        },
+        "extraction_status": {
+          "title": "Extraction Status",
+          "type": "string"
+        },
+        "locator": {
+          "discriminator": {
+            "mapping": {
+              "attachment": "#/$defs/AttachmentEvidence",
+              "document": "#/$defs/DocumentEvidence"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/DocumentEvidence"
+            },
+            {
+              "$ref": "#/$defs/AttachmentEvidence"
+            }
+          ],
+          "title": "Locator"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Omissions",
+          "type": "array"
+        },
+        "original_byte_length": {
+          "minimum": 0,
+          "title": "Original Byte Length",
+          "type": "integer"
+        },
+        "original_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Original Sha256",
+          "type": "string"
+        },
+        "parent_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Snapshot Id"
+        },
+        "parser_version": {
+          "title": "Parser Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "trust_label": {
+          "const": "untrusted_evidence",
+          "default": "untrusted_evidence",
+          "title": "Trust Label",
+          "type": "string"
+        },
+        "version_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version At"
+        },
+        "version_number": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Version Number",
+          "type": "integer"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "workspace_file_id",
+        "workspace_id",
+        "conversation_id",
+        "version_number",
+        "parent_snapshot_id",
+        "locator",
+        "observed_at",
+        "version_at",
+        "original_sha256",
+        "extraction_sha256",
+        "original_byte_length",
+        "extraction_byte_length",
+        "parser_version",
+        "extraction_status",
+        "coverage",
+        "omissions"
+      ],
+      "title": "SourceSnapshot",
+      "type": "object"
+    },
+    "WorkingText": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 85,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "kind": {
+          "const": "text",
+          "default": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "enum": [
+            "text/plain",
+            "text/markdown",
+            "text/csv",
+            "application/json"
+          ],
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "content",
+        "sha256",
+        "filename",
+        "mime_type"
+      ],
+      "title": "WorkingText",
+      "type": "object"
+    },
+    "WorkspaceFile": {
+      "additionalProperties": false,
+      "properties": {
+        "byte_length": {
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "current": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "editable": {
+          "title": "Editable",
+          "type": "boolean"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "storage": {
+          "enum": [
+            "artifact_revision",
+            "source_snapshot"
+          ],
+          "title": "Storage",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "workspace_id",
+        "conversation_id",
+        "filename",
+        "mime_type",
+        "storage",
+        "current",
+        "byte_length",
+        "editable"
+      ],
+      "title": "WorkspaceFile",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "accept": {
+      "$ref": "#/$defs/AcceptFileProposal"
+    },
+    "comparison": {
+      "$ref": "#/$defs/FileComparison"
+    },
+    "create": {
+      "$ref": "#/$defs/CreateWorkspaceFile"
+    },
+    "edit": {
+      "$ref": "#/$defs/EditWorkspaceFile"
+    },
+    "export": {
+      "$ref": "#/$defs/ExportManifest"
+    },
+    "export_artifact": {
+      "$ref": "#/$defs/ExportArtifact"
+    },
+    "export_file": {
+      "$ref": "#/$defs/ExportFile"
+    },
+    "file": {
+      "$ref": "#/$defs/WorkspaceFile"
+    },
+    "propose": {
+      "$ref": "#/$defs/ProposeFilePatch"
+    },
+    "range": {
+      "$ref": "#/$defs/FileRange"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SourceSnapshot"
+    }
+  },
+  "required": [
+    "file",
+    "range",
+    "comparison",
+    "snapshot",
+    "export",
+    "create",
+    "edit",
+    "propose",
+    "accept",
+    "export_file",
+    "export_artifact"
+  ],
+  "title": "WorkspaceFilesContract",
+  "type": "object"
+}

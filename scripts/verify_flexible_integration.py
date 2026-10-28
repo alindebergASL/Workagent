@@ -33,6 +33,7 @@ def main():
             assert sock.connect_ex(('127.0.0.1', port)) != 0, 'Port occupied; no process changed'
     args.output.mkdir(parents=True, mode=0o700)
     env = launcher.environment(args.env.resolve())
+    env['WORKAGENT_FIXTURE_MODE'] = 'true'
     origin = f'http://127.0.0.1:{args.web_port}'
     env.update(WORKAGENT_WEB_ORIGIN=origin, FRONTEND_ORIGIN=origin,
                WORKAGENT_BACKEND_URL=f'http://127.0.0.1:{args.api_port}')
@@ -65,12 +66,11 @@ def main():
         while time.monotonic() < deadline:
             assert all(p.poll() is None for p in children), 'Owned process exited'
             try:
-                request = urllib.request.Request(origin+'/api/domain/v1/workspaces', headers={'X-Workagent-Client':'local-ui'})
-                with urllib.request.urlopen(request, timeout=2) as response:
-                    if response.status == 200 and json.load(response)['items']:
-                        return
+                if launcher.scoped_ready(origin):
+                    return
             except (OSError, ValueError, KeyError):
-                time.sleep(.2)
+                pass
+            time.sleep(.2)
         raise RuntimeError('Owned stack readiness deadline exceeded')
 
     head = subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()

@@ -92,12 +92,14 @@ def offer(c,run,cv,message,config,*,exclude_artifacts=()):
     dependencies += [{'kind':'artifact_revision','object_id':r['id'],'expected_version':r['current_revision_id']}
         for r in c.execute('SELECT id,current_revision_id FROM artifacts WHERE workspace_id=%s '
             'AND conversation_id=%s AND current_revision_id IS NOT NULL AND NOT (id=ANY(%s)) '
+            'AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=artifacts.workspace_id '
+            'AND f.artifact_id=artifacts.id AND f.owner_id<>%s) '
             # Keep new exact own references usable even when the older catalog
             # fills the bounded offer. This changes priority, never access scope.
             'ORDER BY EXISTS (SELECT 1 FROM product_observations po WHERE po.workspace_id=artifacts.workspace_id '
             "AND po.artifact_id=artifacts.id AND po.run_id=%s AND po.data->>'revision_id'=artifacts.current_revision_id "
             "AND po.data->'output'->>'kind'='artifact_draft') DESC,id LIMIT 50",
-            (run.workspace_id,cv.id,list(exclude_artifacts),run.id)).fetchall()]
+            (run.workspace_id,cv.id,list(exclude_artifacts),run.principal_id,run.id)).fetchall()]
     return {'available':message.author_kind=='human' and not config.get('responsibility'),
         'conversation_work_version':version,'dependencies':dependencies}
 

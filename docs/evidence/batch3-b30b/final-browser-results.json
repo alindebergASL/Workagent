@@ -1,0 +1,167 @@
+{
+  "scope": "real optimized Next + actual restricted-PG API; ACK delayed/lost after real HTTP response; synthetic text only",
+  "harness_sha256": "d3cb59811815273e54e58c9b53efb65e507d00d03634b54afb6ac46a793c38d2",
+  "fixture": "r34-final4-fixture.json (private local synthetic fixture)",
+  "browser_env": {
+    "R34_OUT": "r34-browser4",
+    "R34_FIXTURE": "r34-final4-fixture.json"
+  },
+  "rows": [
+    {
+      "width": 1440,
+      "pass": true,
+      "page_errors": [],
+      "layout": {
+        "width": 1440,
+        "scrollWidth": 1440
+      },
+      "retry_save_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 548,
+          "y": 432.515625,
+          "width": 170.46875,
+          "height": 34
+        }
+      },
+      "retry_create_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 523,
+          "y": 433.015625,
+          "width": 182.140625,
+          "height": 34
+        }
+      },
+      "R3": {
+        "pass": true,
+        "editing_blocked_while_unknown": true,
+        "exact_replay": true,
+        "envelope_sha256": "d515dbaf8dc39e1a39a8f2174cee38f994c335147786b2c4277427ea2f19ef19",
+        "newer_draft_reload_preserved": true,
+        "separate_composer_preserved": true
+      },
+      "R4": {
+        "pass": true,
+        "late_A_preserved_B_journal_and_draft": true,
+        "exact_B_replay_sha256": "6becd4f738f1f2f4f3f9860871ab211eabe3140a4fe8c9a1f43c7b9ace907c76",
+        "one_file_each": true
+      },
+      "R4_old_first": {
+        "pass": true,
+        "exact_replay": true,
+        "envelope_sha256": "87e9a5bf2e22238b87d8fb6ad1a3cb5a1350d1c09beb72bf498cda1b2f52663e",
+        "old_completion_preserved_live_journal": true,
+        "live_creator_recovered": true
+      }
+    },
+    {
+      "width": 390,
+      "pass": true,
+      "page_errors": [],
+      "layout": {
+        "width": 390,
+        "scrollWidth": 390
+      },
+      "retry_save_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 50,
+          "y": 405,
+          "width": 170.46875,
+          "height": 34
+        }
+      },
+      "retry_create_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 33,
+          "y": 404.5,
+          "width": 182.140625,
+          "height": 34
+        }
+      },
+      "R3": {
+        "pass": true,
+        "editing_blocked_while_unknown": true,
+        "exact_replay": true,
+        "envelope_sha256": "7b9e3d56b0e85ad48256b902a2c507ccae6e7e4b4ca83f2c37953ec42ac3e7d6",
+        "newer_draft_reload_preserved": true,
+        "separate_composer_preserved": true
+      },
+      "R4": {
+        "pass": true,
+        "late_A_preserved_B_journal_and_draft": true,
+        "exact_B_replay_sha256": "574ccd2443fbaf863da661f99188ecb1925cbde13b6c1be5004bd3db78a1e61e",
+        "one_file_each": true
+      },
+      "R4_old_first": {
+        "pass": true,
+        "exact_replay": true,
+        "envelope_sha256": "2cc78af2e2782226baab2ac5972234a8768fd6f0b6103c5f67bfe64d9eb95134",
+        "old_completion_preserved_live_journal": true,
+        "live_creator_recovered": true
+      }
+    },
+    {
+      "width": 320,
+      "pass": true,
+      "page_errors": [],
+      "layout": {
+        "width": 320,
+        "scrollWidth": 320
+      },
+      "retry_save_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 50,
+          "y": 405,
+          "width": 170.46875,
+          "height": 34
+        }
+      },
+      "retry_create_control": {
+        "visible": true,
+        "unobscured": true,
+        "focused": true,
+        "rect": {
+          "x": 33,
+          "y": 405,
+          "width": 182.140625,
+          "height": 34
+        }
+      },
+      "R3": {
+        "pass": true,
+        "editing_blocked_while_unknown": true,
+        "exact_replay": true,
+        "envelope_sha256": "d0df4e138e5bd09282e9efc1f72a9a490e1fafd77739ce4afb26d95f43af9923",
+        "newer_draft_reload_preserved": true,
+        "separate_composer_preserved": true
+      },
+      "R4": {
+        "pass": true,
+        "late_A_preserved_B_journal_and_draft": true,
+        "exact_B_replay_sha256": "3312ec71515f0e20563b61d2fa449c45d56f3ba501ea6276aae917eeb8034bbe",
+        "one_file_each": true
+      },
+      "R4_old_first": {
+        "pass": true,
+        "exact_replay": true,
+        "envelope_sha256": "b148ec1825ab363809e5e6ad21484fe6e8335f9d2bbcd1d587f59a89facf8983",
+        "old_completion_preserved_live_journal": true,
+        "live_creator_recovered": true
+      }
+    }
+  ]
+}

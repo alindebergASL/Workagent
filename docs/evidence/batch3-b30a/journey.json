@@ -1,0 +1,168 @@
+{
+  "evidence_level": "controlled_adapter_real_tcp_pg",
+  "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a",
+  "attempt_id": "c783d55e-000c-4f4e-be76-c89c26a26702",
+  "output_sha256": "e1d26d0d6ff5483c1a02e13cfa61897ab2e14b6ea076cd2d75cb0859b5703055",
+  "checkpoint_hashes": [
+    "569addb09d74145c3d34ade8045e3ed70151bb49b188f47e65bd55ff4ee74b13",
+    "2232d00156d5287f9e996c83a3c347b566ec6fc821be0b52c426c62a989756ea",
+    "8c023eec9ab8de8bd94b4c247029996cc231325e9deae6cab82e75023e8d93d2"
+  ],
+  "events": [
+    {
+      "event_id": "dc1b6ee1-7047-42fc-9736-5846a35b8ab9",
+      "run_id": null
+    },
+    {
+      "event_id": "7e181c4d-baf8-4a9f-a91c-04722ab22ff1",
+      "run_id": null
+    },
+    {
+      "event_id": "c1126881-4eca-428a-b88d-d310b2694176",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "3818c5dc-62af-4728-9606-cb324a766e63",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "9718fa2d-bb40-4a03-99ae-b938eb669b96",
+      "run_id": null
+    },
+    {
+      "event_id": "c27f57fe-3f40-4c2a-8852-7390af84e635",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "3def41b6-5905-4fc6-8172-cf8b533f4ff5",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "26546a2f-a44f-4898-b4a8-b5d9969062c0",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "7b0136fd-e818-41d2-8457-6ade1a1f1136",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "083fa85c-4246-4efa-a89f-d1b4a0fdefc9",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "c85e0f43-a11a-4cf5-a827-53cc36b6a779",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "ad514443-d7f8-40a9-8a4e-8fd20ef82990",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "041626cc-40ec-4307-a795-c2b84e56bb75",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "5a38abfb-c3c1-4bc2-950c-4de9f4d10efb",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "0fe95d66-7d83-40e0-8af9-869b4933130c",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "4034e738-d674-4777-bdaf-40a1fcd6b288",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "11eb28e3-f492-4437-b043-fe1ca47372f6",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "549347a8-4c4a-4184-81d8-e451b1e19d0d",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "01369538-9a46-4f87-a0d1-e92c3909846d",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "17ee4e6e-b9bb-4940-a04a-228bad307b55",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "accc14ea-d43d-4512-8378-830f034974e6",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "236c7d9f-418d-4584-b0a9-65399f3ead98",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "a4180736-a31a-49ee-8614-aa7827daed6f",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "1befb337-ad37-4856-a6e9-ca765bd2a874",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "61f58959-1abe-481b-a11c-744df26c15df",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "692774cb-a75c-4322-9057-9a4ee63b9ae7",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "a12813a9-19cf-4f39-8e5f-b6a6f26eb811",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "92ab23a3-1636-40ae-9072-8a74b5e80cd7",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "6127ca70-12a7-41e3-b268-bcc6096713a4",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "f2fbb63e-a0c8-40ce-b00d-0b68657c4619",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "ac083bd2-071d-4076-bded-ce4c2c937da8",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "6689a86a-3690-4831-82e9-7d95ddae84d7",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "8b65a49d-5e93-4ec9-a7f0-7b77dd1e0afe",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "7ca8d2dc-965c-424c-bdf0-a2fa5d861199",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "518ad188-48fb-4a5c-9ce5-908ef1ec8eac",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "6ce12dc1-90b9-467b-a388-ccf4c8719805",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "150c2ed5-61d1-4af0-9741-79410ee8df0b",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    },
+    {
+      "event_id": "b02f29a2-e459-4369-8e01-859f8806c659",
+      "run_id": "b21292a2-644f-4a2c-b713-b2f548065d1a"
+    }
+  ],
+  "restart_equal": true,
+  "revoked_detail_status": 404,
+  "paid_product_calls": 0
+}

@@ -1,6 +1,83 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: Batch 2 implementation active; first integration candidate verified
+## Latest: pinned Cloud/B3 integration and verifier handoff reconciled
+
+- Integrated Cloud `dff9dc068b4227018612f7a99866e7f565130fa0` onto accepted B3.1a
+  `307c184d1fcffa244165bf727631fa5ccbf6f878`, preserving newer shared-files,
+  export, gateway and computation work. The two overlapping web files merged
+  cleanly; no Cloud features were reimplemented. Later Cloud `88bf984`/`4f75f5d`
+  are **not integrated**. [Exact handoff/evidence](docs/evidence/cloud-reconcile/HANDOFF.md).
+- Canonical session + scoped domain readiness repairs A14 verifier failures;
+  four reported note verifiers now use exact NotesList arrays, not line splitting.
+  Analogous active verifier scope probes are corrected. Controlled fixture mode
+  is explicit, and isolated configurable ports protect installed services.
+- Real EC2 production-build/PostgreSQL/browser general integration passes, including
+  controlled-consumer outage and all-process restart. Exact multiline/trailing-space
+  note array save/reload/API readback passes at390px; invalid empty notes are retained
+  and saving refused.21 launcher tests,58 focused web tests,49 Cloud DOM regressions,
+  optimized build/typecheck/lint pass; source-bound independent material review PASS.
+  Two preexisting B3 test/config format failures were corrected by bounded Opus5.5,
+  checked for equivalent parsed AST, and rechecked (format +9 race tests PASS).
+- Responsibility observation time records **changed text**, not freshness/revision
+  verification; legacy NULL remains unknown. Existing retained explanation is reused
+  in the proposed typed list-preview contract. No backend contract was changed here;
+  [semantics and proposal](docs/evidence/cloud-reconcile/CONTRACTS.md) distinguish
+  existing fields from deferred additions. Primary Cloud owner retains UI ownership.
+- No product-provider calls, installed-data maintenance, public deployment or default
+  merge. Feature-branch publication/CI identities are recorded in the task/GitHub
+  checkpoint; saved runtime installations are not promoted by publication.
+- Sequencing correction: B3.1a did **not** release memory directly; this integration
+  card `t_481afd69` was inserted as an additional dependency. Completing this bounded
+  handoff releases existing `t_b7f7aa98` (B3.1b typed memory), not Batch3 completion.
+
+## Previous: B3.1a real confined computation accepted locally
+
+- B3.1a adds a real pinned gVisor/Python3.12 stdlib service and run-bound
+  `compute.python` adapter on `hermes/b2-conversational-client`, following B3.0b
+  `3cc340e6efea385000acac65a3b678a8d132a6a7`. [Acceptance and exact evidence](docs/evidence/batch3-b31a/ACCEPTANCE.md)
+  pins35 changed source/contracts/test/install files; [backend handoff](docs/evidence/batch3-b31a/HANDOFF.md).
+- Current real restricted-PG/service publication/gateway/worker/HTTP checks:
+  **14PASS exit0**; bounded predecessor gateway/file-worker compatibility:
+  **27PASS exit0**.57 migration checksums and current descriptor match on a fresh
+  disposable database; no historical database migrated.
+- Non-invoice Decimal/null/unit/timezone/group/join CSV passes an independent
+  Fraction oracle and actual authenticated HTTP download digest check. Supplied
+  code tests, durable worker checkpoint/restart, post-I/O revocation costs without
+  publication, and service-death unknown receipt/no resend are verified.
+- One narrow independent R1/R2 correction rereview PASS.19 actual unchanged-profile
+  attack records reused with explicit limits; changed client restart/disconnect
+  tests rerun. Inode workload hit gofer FD exhaustion, not proven inode enforcement.
+  Historical failed/incomplete runs remain indexed; no whole-suite-green claim.
+- Candidate is **local-only, not pushed or promoted**. Owned proof service stopped
+  with exact readback; immutable root-owned snapshot preserved. Transient unit
+  unloaded; saved config is retained. Three original API runtimes are unchanged.
+  No product provider calls, budget/cap increases, public exposure or default merge.
+- Existing successor `t_b7f7aa98` is scoped typed memory, released by this slice's
+  completion. Batch3 and combined computation/memory remain unfinished. Separate
+  Claude Cloud frontend overlap is a later integration gate; no web changes here.
+
+## Previous: B3.0b files/evidence/basic exports accepted locally
+
+- B3.0b is accepted on `hermes/b2-conversational-client`, following B3.0a
+  `8d90e353e92a403eed521e9feea43b037997f307`. [Exact-source acceptance](docs/evidence/batch3-b30b/ACCEPTANCE.md)
+  pins64 source/contracts/test files and preserves historical failures.
+- R3/R4 replay races are corrected by the sole Claude web owner, using requested
+  Opus5.5 on the same account.45 focused web tests, typecheck/full lint,10 parent
+  handler probes and one narrow independent Astra rereview pass.
+- New isolated optimized build and real API/browser lost/delayed-ACK journeys
+  pass at1440/390/320, including opposite remount completion orders, exact replay,
+  newer draft preservation, independent composer and reachable retry controls.
+- Unchanged backend/native/export proofs are explicitly rebound:163 transport/gateway
+  passes;13 final worker/R1/R2 passes; qualified core123PASS/1test-typoFAIL plus
+  corrected rerun; actual PTY80/120 and four-format download proof retained.
+  No whole-suite-green or paid-model-usefulness claim.
+- Candidate is locally committed, not remotely pushed or installed/promoted by
+  this task. Owned proof services stopped; original runtimes preserved. No product
+  provider calls, installed-data maintenance, default merge or private-account expansion.
+- Existing `t_ae17ebd1` owns computation next. Only B3.0b is complete; Batch3 and
+  the broader product mission remain active. Product budget/unknown liabilities unchanged.
+
+## Historical: Batch 2 first integration candidate verified
 
 - The two-batch plan is being executed, not replanned or reduced. Full scope and
   remaining slices: [execution checkpoint](docs/BATCH_2_3_EXECUTION.md).

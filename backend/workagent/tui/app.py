@@ -66,6 +66,14 @@ class WorkagentApp(App):
         self.lifecycle_receipts={}
         self.timeline_snapshot=None;self.stale_timeline=False
 
+    def check_action(self, action, parameters):
+        # App priority bindings otherwise precede modal bindings. A file-editor
+        # shortcut must never submit the hidden conversation composer.
+        from .files_screen import WorkingFilesScreen
+        if isinstance(self.screen, WorkingFilesScreen) and action in ('send', 'refresh'):
+            return False
+        return super().check_action(action, parameters)
+
     @property
     def pending_command(self):
         pending=self.session.draft['pending'] if self.session else None
@@ -102,6 +110,7 @@ class WorkagentApp(App):
                         yield Button('Dismiss',id='dismiss',disabled=True)
             with TabPane('Files',id='files-panel'):
                 with VerticalScroll():
+                    yield Button('Working files',id='working-files')
                     yield Input(placeholder='Local UTF-8 file path (inert snapshot)',id='file-path')
                     with Horizontal(classes='actions'):
                         yield Button('Stage file',id='stage-file')
@@ -630,6 +639,11 @@ class WorkagentApp(App):
                 if self.queue_back:self.queue_after=self.queue_back.pop();self.action_refresh(deliberate=False)
             elif action in ('stop','continue','seen','queue-cancel'):self.start_write(self.continuity_write(action,self.control_selection()))
             elif action in LIFECYCLE_ACTIONS:self.start_write(self.lifecycle_write(action,self.lifecycle_selection()))
+            elif action=='working-files':
+                if not self.session or not self.conversation or not self.read_authorized:
+                    raise OperatorError('Open an authenticated conversation before editing working files')
+                from .files_screen import WorkingFilesScreen
+                self.push_screen(WorkingFilesScreen(self.client,self.workspace,self.session.principal,self.conversation))
             elif action=='download-document':self.start_write(self.download_original())
             elif action=='stage-document':
                 if not self.session:raise OperatorError('Authenticated identity required for staging')

@@ -1,0 +1,36 @@
+{
+  "hashes": {
+    "backend/migrations/056_file_alias_visibility.sql": "b0d2c4205674845d35e8b81390f501e8f23facccb92d294c29c91499728e0472",
+    "backend/workagent/conversations.py": "ef13db1f8a8d6b75b73dd5aa9d2ce8b4b6c8e2d9bdd84dacf1d09d32841a3e54",
+    "backend/workagent/home_work_summary.py": "ce78eff1c1960a695b170c47c68d4a725471529de56289e765a6d8f6d74775da",
+    "backend/workagent/work_areas.py": "b48ac94f67b9d79e764c5bf8eb27c0c91ccc8e4e892640e60fb26c1eac4d508b",
+    "backend/workagent/work_context.py": "0fceff1df1a92320c31af9860690d609cbb2574e218fc480e1e6879592a392ef",
+    "backend/workagent/responsibility_action.py": "81a35c88e6b073902a7749a5a842bca0e80b562c79c8f220d5d66f17f49eb16d",
+    "backend/workagent/run_successors.py": "e6fc7934631643908dc940cb687eef19b86bb9b61dcc99ce21d8ba4026974ff5",
+    "backend/workagent/tui/files.py": "fbccf0de893b6acfecf18063715865175b46c694c6f59f78e7792e05268b4043",
+    "backend/workagent/tui/files_screen.py": "8743153a2c82e174f07125f32c74167b9a554baad2c85fc124b42b49b45aaa6a",
+    "backend/workagent/workspace_file_models.py": "6dab78c2cc1a54109a7c00ca7c1c776eff7a2b6279d73801c543080c119e8291",
+    "backend/workagent/responses_transport.py": "a6d47fa26ea33485fe8309482fdf41eaba0dc59355c32b855925cfceec980011",
+    "backend/workagent/responses_ledger.py": "10764516045b587c59902887042e376f93c29cefb90d917a8d4db013c9ee348c",
+    "backend/workagent/products.py": "ce49e3316f4cb982b8bf18fc0b930bb0c4ddfb91b0659cfdef850ab81f611830",
+    "backend/workagent/workspace_files.py": "e24f7a9a83fded58405dba496c582eb0eaadb33728d3168b5c0d2328ff7bbd00",
+    "web/src/app/api/domain/[...path]/route.ts": "d632958a7b10e83860b9c1e8f20d7ecb952be24ba8409a947b7c1d0bf3b1ed6a",
+    "web/src/app/conversations/[id]/page.tsx": "0f4545aa9bd157ffd68b2d09d677fe59839ddaca0828bcff7cb2a786a108215e",
+    "web/src/components/ToolActivity.tsx": "dc0b230620c0ef7b5a71aa2c9fbe0583377913614f16710e09612d83597606f0",
+    "web/src/components/WorkspaceFiles.tsx": "d6dbcd37c48f2f5e2a31b77b73affd4b65d3e03501c5c42dea899855a93ffd59",
+    "web/src/lib/client/workspace-files.ts": "c3ca9d55eb075567f8798d6977ed82b6390276a304c6f39b0bed4e1630563e81",
+    "web/src/lib/file-draft.ts": "efa08e301f89e24553c64f545c533e4e7b5d4b6f6132f896f153721fa2667473",
+    "web/src/lib/files-contract.ts": "94187212ad17ad38e8099da17ce932510f53b0506efcd5b59f28ab3bacca8b39",
+    "web/src/lib/tool-activity.ts": "97e1925718f27355dc3c7c50f15a47b3b986927a87228303e9fa72cda36c93ce",
+    "web/src/lib/client/pending-command.ts": "138d4220be8791e0911e7d32eaa68bc832382443c4cc0e9f9bfc8e7b64c3dda1",
+    "web/src/lib/client/session-scope.ts": "afa50119f6d76cafe9d7f97aa889466d6b24844bab17e70da1fd0dab8d4b1cbc",
+    "web/src/lib/client/real-api.ts": "73ae0094a4f51a8f855674a7cd099b1f1fcfdd4e559d183284c1308fcd0fe31d",
+    "web/src/lib/contract/errors.ts": "f19c7a83928d023028d78e857e20d06921233a07ab3a21b370e19b7ea4864dc7",
+    "backend/tests/test_b30b_review_regressions.py": "53ace521cb9b05ee1b070f9d08bd19da94f94f239bbadb9b7d6ae34f628e8425",
+    "backend/tests/test_b30b_final_journeys.py": "c66fcbb4a06807e1bc25c62b346c4b07db627bd3e65b8744f384d41e99a5fdee"
+  },
+  "current_mismatches": [
+    "backend/tests/test_b30b_final_journeys.py"
+  ],
+  "mismatch_explanation": "Only the test fixture ConversationDetail.conversation.work_version accessor was corrected after review; no reviewed production bytes changed."
+}

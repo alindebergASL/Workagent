@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+    "-m",
+    "pytest",
+    "backend/tests/test_capability_residual_checks.py",
+    "backend/tests/test_public_retrieval.py::test_each_redirect_revalidated",
+    "backend/tests/test_public_retrieval.py::test_process_deadline_and_no_inherited_environment",
+    "backend/tests/test_json_inspection_runtime.py::test_only_exact_current_json_attachment_authorized[hash]",
+    "backend/tests/test_json_inspection_runtime.py::test_inspection_does_not_grant_continuation_authority[grant]",
+    "-q",
+    "--tb=short",
+    "--basetemp=.local/batch3/b30a/residual-pytest",
+    "--junitxml=docs/evidence/batch3-b30a/residual.xml"
+  ],
+  "exit": 0,
+  "selected": [
+    "backend/tests/test_capability_residual_checks.py",
+    "backend/tests/test_public_retrieval.py::test_each_redirect_revalidated",
+    "backend/tests/test_public_retrieval.py::test_process_deadline_and_no_inherited_environment",
+    "backend/tests/test_json_inspection_runtime.py::test_only_exact_current_json_attachment_authorized[hash]",
+    "backend/tests/test_json_inspection_runtime.py::test_inspection_does_not_grant_continuation_authority[grant]"
+  ],
+  "scope": "six new aggregate/replay probes and seven deliberate retained denial checks; no full suite"
+}

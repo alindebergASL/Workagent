@@ -326,6 +326,8 @@ class Products:
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            from .capabilities.policy import require_operation
+            require_operation(c,run,operation)
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
@@ -335,6 +337,8 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
+        from .capabilities.file_adapters import FILE_OPERATIONS
+        from .capabilities.compute_adapters import ComputePython
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         from .retained_results import ReadResult, ReadAttachment, read as read_retained
         if isinstance(operation,(ReadResult,ReadAttachment)):
@@ -378,10 +382,10 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS):
-            context=self.conversation_worker_context(cap)
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython,)):
+            from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
-                    'capability_result':execute_read(operation,context)}
+                    'capability_result':execute_composition(self,cap,operation,phase)}
         elif operation is None:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
         else:
@@ -500,6 +504,7 @@ class Products:
                 'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
                 'observation_id':o['id'],'body_hash':o['body_hash'],
                 'validation':'shape_only','goal_status':'needs_validation'})
+        materials.extend(self._own_file_drafts(c,p,run,cv))
         return materials
 
     def complete_general_product(self,cap,receipt,phase='selection'):

@@ -4,6 +4,7 @@ from pathlib import Path
 import argparse
 import json
 import os
+import re
 import shlex
 import signal
 import socket
@@ -57,23 +58,53 @@ def environment(path):
     return env
 
 
-def free_ports():
-    for port in (8000, 3000):
+def free_ports(ports=(8000, 3000)):
+    for port in ports:
         with socket.socket() as s:
             if s.connect_ex(('127.0.0.1', port)) == 0:
                 raise RuntimeError(f'Local port {port} is occupied; stop its owner before continuing. No process was killed.')
 
 
+def scoped_ready(origin):
+    """Prove the canonical session AND an authorized domain read, never HTML.
+
+    Resolve scope afresh on every attempt, so startup retries can recover from a
+    replaced backend session. No bearer credential leaves the proxy.
+    """
+    headers = {'X-Workagent-Client': 'local-ui'}
+    request = urllib.request.Request(origin + '/api/domain/v1/session', headers=headers)
+    with urllib.request.urlopen(request, timeout=2) as response:
+        if response.status != 200:
+            return False
+        session = json.load(response)
+    scope = session.get('scope_id') if isinstance(session, dict) else None
+    if not isinstance(scope, str) or re.fullmatch(r'[a-f0-9]{64}', scope) is None:
+        return False
+    request = urllib.request.Request(origin + '/api/domain/v1/workspaces',
+                                     headers={**headers, 'X-Workagent-Scope': scope})
+    with urllib.request.urlopen(request, timeout=2) as response:
+        if response.status != 200:
+            return False
+        body = json.load(response)
+    return isinstance(body, dict) and isinstance(body.get('items'), list) and bool(body['items'])
+
+
 class Stack:
-    def __init__(self, env):
+    def __init__(self, env, *, web_port=3000, api_port=8000):
         self.env, self.children, self.logs = env, [], []
+        if web_port == api_port or any(not 1 <= p <= 65535 for p in (web_port, api_port)):
+            raise ValueError('Distinct valid loopback ports required')
+        self.web_port, self.api_port = web_port, api_port
+        self.origin = f'http://127.0.0.1:{web_port}'
+        env.update(WORKAGENT_WEB_ORIGIN=self.origin, FRONTEND_ORIGIN=self.origin,
+                   WORKAGENT_BACKEND_URL=f'http://127.0.0.1:{api_port}')
 
     def start(self, worker=False):
-        free_ports()
+        free_ports((self.api_port, self.web_port))
         logdir = ROOT / '.local/logs'
         logdir.mkdir(parents=True, exist_ok=True)
-        commands = [('api', [PYTHON, '-m', 'workagent'], ROOT / 'backend'),
-                    ('web', ['pnpm', 'start'], ROOT / 'web')]
+        commands = [('api', [PYTHON, '-m', 'uvicorn', 'workagent.api:app', '--host', '127.0.0.1', '--port', str(self.api_port), '--no-proxy-headers'], ROOT / 'backend'),
+                    ('web', ['pnpm', 'exec', 'next', 'start', '--hostname', '127.0.0.1', '--port', str(self.web_port)], ROOT / 'web')]
         if worker:
             commands.append(('dispatcher', [PYTHON, '-m', 'workagent.dispatcher', '--general-controlled'], ROOT / 'backend'))
         for name, command, cwd in commands:
@@ -82,17 +113,16 @@ class Stack:
             self.children.append(subprocess.Popen([str(a) for a in command], cwd=cwd, env=self.env,
                                                   stdout=log, stderr=log, start_new_session=True))
         deadline = time.monotonic() + 45
-        url = 'http://127.0.0.1:3000/api/domain/v1/workspaces'
+        origin = self.origin
         while time.monotonic() < deadline:
             if any(p.poll() is not None for p in self.children):
                 raise RuntimeError('Local service exited; inspect .local/logs (not public).')
             try:
-                request = urllib.request.Request(url, headers={'X-Workagent-Client': 'local-ui'})
-                with urllib.request.urlopen(request, timeout=2) as response:
-                    if response.status == 200 and json.load(response)['items']:
-                        return
+                if scoped_ready(origin):
+                    return
             except (OSError, ValueError, KeyError):
-                time.sleep(0.2)
+                pass
+            time.sleep(0.2)
         raise RuntimeError('Local readiness deadline exceeded; inspect .local/logs.')
 
     def stop(self):

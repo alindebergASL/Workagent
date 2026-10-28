@@ -1,0 +1,11 @@
+{
+  "role": {
+    "rolsuper": false,
+    "rolbypassrls": false
+  },
+  "runtime_role_check": "pass",
+  "migration_count": 56,
+  "all_checksums_match_current_source": true,
+  "database_kind": "existing verified disposable acceptance fixture",
+  "installed_database_changed": false
+}

@@ -1,0 +1,50 @@
+PASS attachment A/B race and pending-read admission guard
+PASS reload/navigation scope and exact command/request/work-version replay
+PASS operator switch invalidates pending attachment
+PASS late success cannot erase a newer ambiguous operation after navigation
+PASS late definitive rejection cannot erase a newer ambiguous operation after navigation
+PASS late reply success preserves newer draft and exact pending replay across reload
+PASS late reply definitive rejection preserves newer draft and exact pending replay across reload
+PASS quota-failed journal write resolves successful reply without permanent lock
+PASS quota-failed journal write resolves exact in-memory replay without permanent lock
+PASS signed i64 decimal rendering and saved verification plus pending output
+PASS proposed tool result is shown with its own inputs; the saved card never claims it
+PASS invalid tool value persists across navigation/reload and gates save/run/apply without admitting invalid Body
+PASS invalid tool label persists across navigation/reload and gates save/run/apply without admitting invalid Body
+PASS same-base discard and immediate valid tool input edits
+PASS restored unapplied raw inputs cannot silently use the last-valid Body; editing repairs them immediately
+PASS an unlinked reply beside the work is held with a plain notice, sent only by its explicit button, and replays exactly
+PASS table headline requires saved/proposal observation binding; retained columns never claim current matches
+PASS a non-reconciliation table is fully editable with no recalculation or check claims
+PASS stale proposal is labelled, cannot be applied, and dismiss/keep-current send the current revision
+PASS pane beside the work refreshes once for a fast-settled turn and shows unknown/reconnecting
+PASS pane beside the work holds sending on a stale read and drops its snapshot when access ends
+PASS a runtime continuation beside the work is labelled as Workagent's, not the person's
+PASS a recorded responsibility shows beside the work as a receipt link, under the reply or, with none, under the request
+PASS a stale pane admits no send by button, Ctrl/Cmd+Enter or submit; one deliberate send after it reconnects
+PASS each request beside the work keeps its own failed/unknown state and reason after later turns, with a link once out of view
+PASS beside the work, an unconfirmed request holds sending with a re-read and never invites a new request; a known stop isn't held
+PASS natural reply beside the work sends the exact saved target and replays it frozen
+PASS files beside the work: checked, removable, kept with the draft, held while stale, sent with the exact target, frozen and replayed, cleared on confirmation
+PASS the conversation's own reply sends attached files with no target and clears them on confirmation
+PASS 23 shared attachment vectors read the same in Chromium (dotted names, paths, 85/86 characters, BOM/CRLF exact)
+PASS model replies render as text (lists, emphasis, inert HTML) and long ones fold
+PASS structured table edits by declared field type, refuses invalid values and saves exact identities
+PASS phone row cards: name first, values side by side, a long unit said once and kept for assistive tech
+PASS work opens on its result; editing is a tab away, keeps unsaved edits and reopens on them; how it was made is folded
+PASS values a person changed since Workagent's version are marked, what it worked out is said not to be recalculated, and a recheck is one click to the reply box
+PASS notes stop at the limit; a version already over it is refused visibly, kept through reload, and never truncated on save
+PASS a note over several lines reads as written where a proposal removes or keeps it
+PASS Stop's confirmation, cancelling a queued message and removing a document keep the keyboard beside them
+PASS removing a note or a row keeps the keyboard beside it, undo returns it there, and the removal is announced
+PASS a work editor that can't keep its pending save says so while saving and after an unconfirmed outcome
+PASS a tool editor that can't keep its pending save says so while saving and after an unconfirmed outcome
+PASS a proposed view shows changed code and data sources even when its readable text is unchanged
+PASS of two proposals for the same version the latest is the decision; an earlier one is a step away and applying it waits for both acknowledgements, which it sends
+PASS a table proposal's Changes tab marks the rows it adds as New, names the rows it takes out, and opens the whole version when no value changes in place
+PASS agent-made view reads only through declared actions bound to the saved revision; refusals come from the shell
+PASS a proposal to a corrected table lists each value it changes and marks the person's own; Changes doesn't repeat them
+PASS a view whose bound work changed says so; it is repointed only by an explicit human save, and never when its code pins the old version, here or in place
+PASS initial read failure is unavailable with explicit retry
+PASS attached files beside the work fit a 390px phone
+49 focused DOM regressions passed (fixture transport; no server/provider).

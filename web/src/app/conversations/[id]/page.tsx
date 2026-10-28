@@ -40,6 +40,8 @@ import { contextForMessage } from "@/lib/attachment-context";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkCard } from "@/components/WorkCard";
+import { WorkspaceFiles } from "@/components/WorkspaceFiles";
+import { ToolActivity } from "@/components/ToolActivity";
 import { CurrentWork } from "@/components/CurrentWork";
 import { useWorkState } from "@/lib/client/work-state";
 import {
@@ -760,6 +762,16 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       ) : null}
       {wsId && real ? (
         <ConversationDocuments ws={wsId} cid={id} items={documents.data} />
+      ) : null}
+      {wsId && real ? (
+        <WorkspaceFiles
+          ws={wsId}
+          cid={id}
+          workVersion={d.conversation.work_version}
+        />
+      ) : null}
+      {wsId && real && d.turns.length > 0 ? (
+        <ToolActivity ws={wsId} runId={d.turns[d.turns.length - 1]!.run_id} />
       ) : null}
 
       {open && d.conversation.model_activation === "revoked" ? (

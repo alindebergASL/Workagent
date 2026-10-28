@@ -1,0 +1,42 @@
+[
+  {
+    "name": "R3: an unresolved save's exact replay never deletes newer human edits",
+    "pass": true
+  },
+  {
+    "name": "R3: reload restores the exact envelope; a preexisting newer draft survives its replay",
+    "pass": true
+  },
+  {
+    "name": "R4: a late create-A completion cannot clear a newer unresolved create B",
+    "pass": true
+  },
+  {
+    "name": "R4: a pre-send hash still running when the mount dies never journals a command",
+    "pass": true
+  },
+  {
+    "name": "R4: create A sent, remounted and replayed; old A first — both successes resolve A",
+    "pass": true
+  },
+  {
+    "name": "R4: create A sent, remounted and replayed; live replay first — both successes resolve A",
+    "pass": true
+  },
+  {
+    "name": "R3/R4: save A sent, remounted and replayed; old A first — both acks resolve A",
+    "pass": true
+  },
+  {
+    "name": "R3/R4: save A sent, remounted and replayed; live replay first — both acks resolve A",
+    "pass": true
+  },
+  {
+    "name": "R4: old A success after remount never touches a newer unresolved create B",
+    "pass": true
+  },
+  {
+    "name": "R4 residual: old A settling before live replay must not strand live A",
+    "pass": true
+  }
+]

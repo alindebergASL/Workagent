@@ -227,7 +227,9 @@ def _validate_request(request: PreparedRequest) -> dict:
             from .composition import (DECISION_SCHEMA as ALPHA_SCHEMA, CONTINUITY_DECISION_SCHEMA,
                                       LEGACY_DECISION_SCHEMA, LEGACY_CONTINUITY_DECISION_SCHEMA)
             from .retained_results import SCHEMA as RETAINED_SCHEMA
-            if request.schema in (RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
+            from .capabilities.file_composition import SCHEMA as FILE_SCHEMA
+            from .capabilities.compute_composition import SCHEMA as COMPUTE_SCHEMA
+            if request.schema in (COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
                                    LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True

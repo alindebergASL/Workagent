@@ -1,0 +1,206 @@
+{
+  "mode": "actual-ui-api-postgresql-continuous-controlled-worker",
+  "provider_calls": "not_observed",
+  "runs": [
+    {
+      "conversation": "d917fbc6-ab10-4178-a463-1b10e8f05077",
+      "id": "8c8fd4c3-c8d3-44e9-882f-6f7f497ae310",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "d917fbc6-ab10-4178-a463-1b10e8f05077",
+      "id": "5d8f6e1d-237d-468e-8f7e-c30f452ad6c8",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "d917fbc6-ab10-4178-a463-1b10e8f05077",
+      "id": "61784485-6b17-43a6-8465-d9f22c44e1fc",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "789231e6-8278-4acf-a0d0-918611708e36",
+      "id": "30f167f0-9556-4c16-8cf8-bd9b5fce85fa",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "789231e6-8278-4acf-a0d0-918611708e36",
+      "id": "58bc5458-7076-4dc4-9486-4171ddc438a0",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "789231e6-8278-4acf-a0d0-918611708e36",
+      "id": "3d305b98-79c0-45ce-ab21-57660d1f5037",
+      "state": "ready",
+      "profile": "general-products-controlled-v1"
+    },
+    {
+      "conversation": "789231e6-8278-4acf-a0d0-918611708e36",
+      "id": "02ea66a8-8845-4957-9ea1-ca1a586362a9",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "6472fae2-b7c3-480b-ae71-ad909603527b",
+      "id": "5d9acbd5-40c2-46a4-ad0b-df03a55bd2c4",
+      "state": "ready",
+      "profile": "general-controlled-v1"
+    },
+    {
+      "conversation": "6472fae2-b7c3-480b-ae71-ad909603527b",
+      "id": "b094a60f-0fbe-42b8-b81c-701912606ada",
+      "state": "partial",
+      "profile": "general-products-controlled-v1"
+    }
+  ],
+  "screenshots": [
+    "01-table-human-save.png",
+    "00-home-decision.png",
+    "02-table-recalculated.png",
+    "03-tool-shipping.png",
+    "03b-tool-reply-beside.png",
+    "04-tool-390.png",
+    "05-table-390.png",
+    "04-tool-320.png",
+    "05-table-320.png",
+    "06-rejected-tool.png"
+  ],
+  "csv_conversation": "d917fbc6-ab10-4178-a463-1b10e8f05077",
+  "table_id": "8b901cbc-bba7-41cb-a777-a683db704b6a",
+  "tool_conversation": "789231e6-8278-4acf-a0d0-918611708e36",
+  "tool_id": "1ef0f60c-54bb-44ee-b484-909b4652b6dc",
+  "rejected_conversation": "6472fae2-b7c3-480b-ae71-ad909603527b",
+  "table": {
+    "id": "8b901cbc-bba7-41cb-a777-a683db704b6a",
+    "workspace_id": "local-workspace",
+    "assignment_id": null,
+    "conversation_id": "d917fbc6-ab10-4178-a463-1b10e8f05077",
+    "current_revision_id": "bdaba891-9e28-4160-b4a5-2e37884c93ed",
+    "current_revision": {
+      "id": "bdaba891-9e28-4160-b4a5-2e37884c93ed",
+      "artifact_id": "8b901cbc-bba7-41cb-a777-a683db704b6a",
+      "revision_number": 4,
+      "parent_revision_id": "69bff135-6df3-4dbe-b1ab-33894a6ef244",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "kind": "table",
+        "title": "Reconciled invoices",
+        "source_csv": "id,quantity,unit_price,reported_total,note\nA,2,19.95,39.90,Keep my wording\nB,3,12.50,38.50,Await credit\nC,0,7.25,0.00,\n",
+        "rounding": "ROUND_HALF_EVEN",
+        "columns": [
+          "id",
+          "quantity",
+          "unit_price",
+          "reported_total",
+          "note",
+          "calculated_total",
+          "difference",
+          "check"
+        ],
+        "rows": [
+          {
+            "id": "A",
+            "note": "Keep my wording",
+            "check": "matched",
+            "quantity": "2",
+            "difference": "0.00",
+            "unit_price": "19.95",
+            "reported_total": "39.90",
+            "calculated_total": "39.90"
+          },
+          {
+            "id": "B",
+            "note": "Human credit note retained",
+            "check": "discrepancy",
+            "quantity": "3",
+            "difference": "1.00",
+            "unit_price": "12.50",
+            "reported_total": "38.50",
+            "calculated_total": "37.50"
+          },
+          {
+            "id": "C",
+            "note": "",
+            "check": "matched",
+            "quantity": "0",
+            "difference": "0.00",
+            "unit_price": "7.25",
+            "reported_total": "0.00",
+            "calculated_total": "0.00"
+          }
+        ],
+        "notes": [
+          "Newest human note"
+        ]
+      },
+      "body_hash": "91a005668e2e28525fc5744ab0e59640f56d8126d27c16bfd5fc55f89c8d9c2d",
+      "source_dependencies": [],
+      "created_at": "2026-10-28T20:01:02.422869Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-28T20:01:18.091537Z"
+  },
+  "tool": {
+    "id": "1ef0f60c-54bb-44ee-b484-909b4652b6dc",
+    "workspace_id": "local-workspace",
+    "assignment_id": null,
+    "conversation_id": "789231e6-8278-4acf-a0d0-918611708e36",
+    "current_revision_id": "d08e3993-e423-4965-bb3e-41a2c47cc301",
+    "current_revision": {
+      "id": "d08e3993-e423-4965-bb3e-41a2c47cc301",
+      "artifact_id": "1ef0f60c-54bb-44ee-b484-909b4652b6dc",
+      "revision_number": 3,
+      "parent_revision_id": "5ccc17ce-0ab5-4484-99d4-adfc0168f3f1",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "kind": "tool",
+        "title": "total tool",
+        "code": "(module\n  (func (export \"total\") (param $quantity i64) (param $unit_cents i64) (param $shipping_cents i64) (result i64)\n    local.get $quantity\n    local.get $unit_cents\n    i64.mul\n    local.get $shipping_cents\n    i64.add))\n",
+        "entrypoint": "total",
+        "arguments": [
+          3,
+          1250,
+          500
+        ],
+        "input_form": [
+          {
+            "name": "input_1",
+            "label": "Quantity",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "input_2",
+            "label": "Unit price cents",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          {
+            "name": "input_3",
+            "label": "Shipping cents",
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          }
+        ],
+        "notes": [
+          "Human: all amounts are cents"
+        ]
+      },
+      "body_hash": "7e9d71115771477ee7af641ad1c2236cb258aa65678b9ad273caa17f952ddbf2",
+      "source_dependencies": [],
+      "created_at": "2026-10-28T20:01:08.587072Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-28T20:01:18.106128Z"
+  },
+  "page_errors": []
+}

@@ -1,0 +1,16 @@
+test/workspace-files-races.test.ts(229,37): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+test/workspace-files-races.test.ts(299,7): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(410,5): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(435,12): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(436,12): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(437,7): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(440,5): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(501,12): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(502,12): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(504,5): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(559,18): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(569,12): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(571,5): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(584,18): error TS2532: Object is possibly 'undefined'.
+test/workspace-files-races.test.ts(588,5): error TS2532: Object is possibly 'undefined'.

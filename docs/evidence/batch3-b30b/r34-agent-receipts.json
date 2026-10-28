@@ -1,0 +1,35 @@
+{
+  "invocations": [
+    {
+      "file": "r34-claude-result.json",
+      "exit": 1,
+      "subtype": "error_max_turns",
+      "num_turns": 31,
+      "reported_result": null,
+      "errors": [
+        "Reached maximum number of turns (30)"
+      ],
+      "permission_denials_count": 13,
+      "model_ids": [
+        "claude-fable-5"
+      ],
+      "reported_list_cost_usd": 6.948647
+    },
+    {
+      "file": "r34-claude-continuation.json",
+      "exit": 1,
+      "subtype": "success",
+      "num_turns": 18,
+      "reported_result": "You've hit your session limit \u00b7 resets 5:30pm (UTC)",
+      "errors": null,
+      "permission_denials_count": 0,
+      "model_ids": [
+        "claude-fable-5"
+      ],
+      "reported_list_cost_usd": 5.431436
+    }
+  ],
+  "reported_list_cost_total_usd": 12.380082999999999,
+  "billing": "not measured; development tools outside product ledger",
+  "product_provider_calls": 0
+}

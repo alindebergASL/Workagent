@@ -4,6 +4,8 @@ import { chromium, expect } from '../web/node_modules/@playwright/test/index.mjs
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { readProposal } from './adaptive_proposal_readback.mjs';
+import {scopedHeaders} from '../web/scripts/lib/scope.mjs';
+import {expectNotes} from './notes_controls.mjs';
 import path from 'node:path';
 const prior=path.resolve(process.argv[2]),out=path.resolve(process.argv[3]);
 await mkdir(out,{recursive:true,mode:0o700});
@@ -15,7 +17,7 @@ expect(uiSha,'Explicit tested UI build SHA is required; never guess provenance')
 expect(authority.candidate_sha,'Original runtime SHA comes from retained admission record').toMatch(/^[0-9a-f]{40}$/);
 const ids=await read('conversation-ids.json');
 const origin=process.env.WORKAGENT_REVIEW_ORIGIN || config.origin,base=origin+'/api/domain/v1/workspaces/local-workspace';
-const headers={'X-Workagent-Client':'local-ui'};
+const headers=await scopedHeaders(origin,{'X-Workagent-Client':'local-ui'});
 const get=async p=>{const r=await fetch(base+p,{headers});expect(r.ok,`${p}: HTTP ${r.status}`).toBe(true);return r.json();};
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const product=(d,k)=>d.messages.filter(x=>x.author_kind==='assistant').at(-1).result.results.find(x=>x.kind===k);
@@ -53,7 +55,7 @@ try{
  await page.goto(url);
  await expect(page.getByTestId('product-proposal')).toBeVisible();
  await expect(page.getByTestId('proposal-result')).toContainText('118264581564861424');
- await expect(page.getByLabel('Your notes (one per line)')).toHaveValue(config.human_note);
+ await expectNotes(page,[config.human_note]);
  await expect(page.getByRole('button',{name:'Apply proposed version',exact:true})).toBeVisible();
  await page.screenshot({path:path.join(out,'resumed-proposal-desktop.png'),fullPage:true});
  const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Download proposed file',exact:true}).click();

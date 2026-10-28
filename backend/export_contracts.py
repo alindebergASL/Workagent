@@ -23,7 +23,24 @@ def main():
     from workagent.work_event_fixtures import vectors as work_event_vectors
     from workagent.retained_results import SustainedDecision
     from workagent.checkpoint_models import RunCheckpoint, QueuedMessage
-    outputs={'work-events-fixtures.json':work_event_vectors(),
+    from workagent.capabilities.models import CapabilityDescriptorV2, ToolGrantV1, ToolCallV1, ToolObservationV1
+    from workagent.capabilities.registry import catalog
+    from workagent.workspace_file_models import WorkspaceFilesContract
+    from workagent.capabilities.file_composition import GatewayFilesDecision
+    from workagent.capabilities.compute_composition import GatewayComputeDecision
+    from workagent.capabilities.compute_adapters import ComputePython, ComputeOutput, ComputeExportManifest
+    outputs={'compute-python.schema.json':ComputePython.model_json_schema(),
+             'compute-output.schema.json':ComputeOutput.model_json_schema(),
+             'compute-export-manifest.schema.json':ComputeExportManifest.model_json_schema(),
+             'gateway-compute-decision.schema.json':GatewayComputeDecision.model_json_schema(),
+             'workspace-files-v1.json':WorkspaceFilesContract.model_json_schema(),
+             'gateway-files-decision.schema.json':GatewayFilesDecision.model_json_schema(),
+             'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
+             'tool-grant.schema.json':ToolGrantV1.model_json_schema(),
+             'tool-call.schema.json':ToolCallV1.model_json_schema(),
+             'tool-observation-v1.json':ToolObservationV1.model_json_schema(),
+             'capability-registry-v2.json':[d.model_dump(mode='json') for d in catalog()],
+             'work-events-fixtures.json':work_event_vectors(),
              'run-checkpoint.schema.json':RunCheckpoint.model_json_schema(),
              'queued-message.schema.json':QueuedMessage.model_json_schema(),
              'sustained-decision.schema.json':SustainedDecision.model_json_schema(),
