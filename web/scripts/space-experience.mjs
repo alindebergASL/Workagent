@@ -1255,21 +1255,26 @@ try {
       async (route) => {
         if (route.request().method() !== "GET") return route.continue();
         if (delay) await new Promise((r) => setTimeout(r, delay));
-        if (outcome === "fail") return route.abort("failed");
-        return route.fulfill({
-          status: outcome,
-          contentType: "application/json",
-          body: JSON.stringify({
-            code:
-              outcome === 401
-                ? "unauthenticated"
-                : "not_found_or_not_authorized",
-            message: "Refused.",
-            request_id: "synthetic-refusal",
-            next_action: "Check access.",
-            details: {},
-          }),
-        });
+        // A fenced page reloads while a delayed answer waits: the request it
+        // belonged to is gone by then, which is fine.
+        const gone = () => {};
+        if (outcome === "fail") return route.abort("failed").catch(gone);
+        return route
+          .fulfill({
+            status: outcome,
+            contentType: "application/json",
+            body: JSON.stringify({
+              code:
+                outcome === 401
+                  ? "unauthenticated"
+                  : "not_found_or_not_authorized",
+              message: "Refused.",
+              request_id: "synthetic-refusal",
+              next_action: "Check access.",
+              details: {},
+            }),
+          })
+          .catch(gone);
       };
     const routed = [];
     const on = async (url, handler) => {
@@ -1279,7 +1284,27 @@ try {
     const clear = async () => {
       for (const url of routed.splice(0)) await page.unroute(url);
     };
-    const chosenRefused = async (timeout = 15000) => {
+    // A 401 means access for the page changed (Batch 2, A14): the whole page
+    // is fenced at once (no view, nothing sendable) until a reload.
+    const fenced = async (timeout = 15000) => {
+      await expect(
+        page
+          .getByRole("status")
+          .filter({ hasText: "Access for this page changed" }),
+      ).toBeVisible({ timeout });
+      await expect(frame).toHaveCount(0);
+      await expect(box).toHaveCount(0);
+      assert.equal(new URL(page.url()).searchParams.get("work"), C);
+    };
+    const refusedBack = async () => {
+      await clear();
+      await page.reload();
+      await expect(viewList).toContainText("Lark & Co", { timeout: 20000 });
+      await expect(box).toHaveValue("Draft kept through refusals");
+      await expect(send).toBeEnabled();
+    };
+    const chosenRefused = async (timeout = 15000, status = 404) => {
+      if (status === 401) return fenced(timeout);
       await expect(page.getByTestId("chosen-unavailable")).toBeVisible({
         timeout,
       });
@@ -1318,16 +1343,16 @@ try {
           await on(refusedRead, answer(status, refuseDelay));
           await on(failedRead, answer("fail", failDelay));
           await refreshProject.click();
-          await chosenRefused();
-          await chosenBack();
+          await chosenRefused(15000, status);
+          await (status === 401 ? refusedBack() : chosenBack());
         }
     // Another work's read failing first doesn't hide the chosen one's refusal.
     for (const status of [401, 404]) {
       await on(proposals(E), answer("fail"));
       await on(read(C), answer(status, 300));
       await refreshProject.click();
-      await chosenRefused();
-      await chosenBack();
+      await chosenRefused(15000, status);
+      await (status === 401 ? refusedBack() : chosenBack());
     }
     // A read that never answers (the chosen work's own, or another's) doesn't
     // delay the refusal.
@@ -1374,7 +1399,7 @@ try {
     page.off("request", onSupPost);
     assert.deepEqual(supPosts, [], "nothing was sent");
     pass(
-      "a refusal of the chosen work removes its running view and holds sending at once, for 401 and 404, in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
+      "a refusal of the chosen work removes its running view and holds sending at once (a 401 fences the whole page until a reload, the draft and choice kept), in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
     );
   }
 
