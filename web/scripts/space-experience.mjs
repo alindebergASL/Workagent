@@ -11,6 +11,7 @@ import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sessionScope } from "./lib/scope.mjs";
 
 // A piece of work opens on its result; editing is its Edit tab. The choice
 // is remembered for that work in the tab, so later visits open on it.
@@ -20,16 +21,28 @@ const openEdit = async (page) => {
   if ((await edit.getAttribute("aria-selected")) !== "true") await edit.click();
 };
 
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
 const out = path.resolve(process.argv[2]);
 const ids = JSON.parse(await readFile(process.argv[3], "utf8"));
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const ws = ids.workspace;
 const base = `${origin}/api/domain/v1/workspaces/${ws}`;
+const scope = await sessionScope(origin);
 const headers = {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
+  "X-Workagent-Scope": scope,
 };
+// Home's "Since you left" marker, as since-marker.ts keeps it through
+// scopedLocal: the page's bound scope, then the marker's own key.
+const seenHomeKey = `workagent:scope:v1:${scope}:workagent:seen:home`;
 async function api(p, body) {
   const r = await fetch(base + p, {
     method: body ? "POST" : "GET",
@@ -950,6 +963,23 @@ try {
       await page.route(refusedRead, refuseLater(status, code));
       await page.route(failedRead, fail);
       await refreshBtn.click();
+      if (status === 401) {
+        // A 401 means access for the page changed (Batch 2, A14): the whole
+        // page is fenced at once, the old copy with it, until a reload.
+        await expect(
+          page
+            .getByRole("status")
+            .filter({ hasText: "Access for this page changed" }),
+        ).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText("Venue, two days")).toHaveCount(0);
+        await page.unroute(refusedRead);
+        await page.unroute(failedRead);
+        await page.reload();
+        await expect(latestBudget).toContainText("Venue, two days", {
+          timeout: 15000,
+        });
+        continue;
+      }
       await expect(
         latestBudget.getByTestId("work-card-unavailable"),
       ).toBeVisible({ timeout: 15000 });
@@ -1225,21 +1255,26 @@ try {
       async (route) => {
         if (route.request().method() !== "GET") return route.continue();
         if (delay) await new Promise((r) => setTimeout(r, delay));
-        if (outcome === "fail") return route.abort("failed");
-        return route.fulfill({
-          status: outcome,
-          contentType: "application/json",
-          body: JSON.stringify({
-            code:
-              outcome === 401
-                ? "unauthenticated"
-                : "not_found_or_not_authorized",
-            message: "Refused.",
-            request_id: "synthetic-refusal",
-            next_action: "Check access.",
-            details: {},
-          }),
-        });
+        // A fenced page reloads while a delayed answer waits: the request it
+        // belonged to is gone by then, which is fine.
+        const gone = () => {};
+        if (outcome === "fail") return route.abort("failed").catch(gone);
+        return route
+          .fulfill({
+            status: outcome,
+            contentType: "application/json",
+            body: JSON.stringify({
+              code:
+                outcome === 401
+                  ? "unauthenticated"
+                  : "not_found_or_not_authorized",
+              message: "Refused.",
+              request_id: "synthetic-refusal",
+              next_action: "Check access.",
+              details: {},
+            }),
+          })
+          .catch(gone);
       };
     const routed = [];
     const on = async (url, handler) => {
@@ -1249,7 +1284,27 @@ try {
     const clear = async () => {
       for (const url of routed.splice(0)) await page.unroute(url);
     };
-    const chosenRefused = async (timeout = 15000) => {
+    // A 401 means access for the page changed (Batch 2, A14): the whole page
+    // is fenced at once (no view, nothing sendable) until a reload.
+    const fenced = async (timeout = 15000) => {
+      await expect(
+        page
+          .getByRole("status")
+          .filter({ hasText: "Access for this page changed" }),
+      ).toBeVisible({ timeout });
+      await expect(frame).toHaveCount(0);
+      await expect(box).toHaveCount(0);
+      assert.equal(new URL(page.url()).searchParams.get("work"), C);
+    };
+    const refusedBack = async () => {
+      await clear();
+      await page.reload();
+      await expect(viewList).toContainText("Lark & Co", { timeout: 20000 });
+      await expect(box).toHaveValue("Draft kept through refusals");
+      await expect(send).toBeEnabled();
+    };
+    const chosenRefused = async (timeout = 15000, status = 404) => {
+      if (status === 401) return fenced(timeout);
       await expect(page.getByTestId("chosen-unavailable")).toBeVisible({
         timeout,
       });
@@ -1288,16 +1343,16 @@ try {
           await on(refusedRead, answer(status, refuseDelay));
           await on(failedRead, answer("fail", failDelay));
           await refreshProject.click();
-          await chosenRefused();
-          await chosenBack();
+          await chosenRefused(15000, status);
+          await (status === 401 ? refusedBack() : chosenBack());
         }
     // Another work's read failing first doesn't hide the chosen one's refusal.
     for (const status of [401, 404]) {
       await on(proposals(E), answer("fail"));
       await on(read(C), answer(status, 300));
       await refreshProject.click();
-      await chosenRefused();
-      await chosenBack();
+      await chosenRefused(15000, status);
+      await (status === 401 ? refusedBack() : chosenBack());
     }
     // A read that never answers (the chosen work's own, or another's) doesn't
     // delay the refusal.
@@ -1344,7 +1399,7 @@ try {
     page.off("request", onSupPost);
     assert.deepEqual(supPosts, [], "nothing was sent");
     pass(
-      "a refusal of the chosen work removes its running view and holds sending at once, for 401 and 404, in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
+      "a refusal of the chosen work removes its running view and holds sending at once (a 401 fences the whole page until a reload, the draft and choice kept), in either order, when another read fails first or never answers; the choice and draft stay; only a fresh read restores it; another work's refusal or a plain failure leaves it shown",
     );
   }
 
@@ -1810,20 +1865,32 @@ try {
     await step2.fill(longer);
     m = await fits();
     assert.ok(m.steps[1].hidden <= 1, "an edited step grows to stay readable");
-    // Notes, one per line, read whole too.
-    const notesBox = page.getByLabel("Notes (one per line)", { exact: true });
+    // Notes, each in its own box, read whole too.
+    const notesBox = notesGroup(page);
     const notes = [
       "Paper sheets are in the top drawer of the welcome desk.",
       "Use a blue pen so the entries are easy to read later.",
       "The studio manager keeps the spare laptop charger.",
       "Ask the second volunteer to count the totals.",
-      "Shred the sheet once the entries are checked.",
-    ].join("\n");
-    await notesBox.fill(notes);
-    assert.ok(
-      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
-      "notes scroll inside their box",
-    );
+      "Shred the sheet once the entries are checked. Keep the totals in the folder by the till, and write the date on the cover so the next volunteer can find the week quickly.",
+    ];
+    const before = (await notesOf(page)).length;
+    for (const [i, text] of notes.entries()) {
+      await notesBox
+        .getByRole("button", { name: "Add a note", exact: true })
+        .click();
+      await notesBox
+        .getByRole("textbox", { name: `Note ${before + i + 1}`, exact: true })
+        .fill(text);
+    }
+    const hidden = () =>
+      notesBox
+        .locator("textarea")
+        .evaluateAll((els) =>
+          Math.max(...els.map((t) => t.scrollHeight - t.clientHeight)),
+        );
+    assert.ok((await hidden()) <= 1, "notes don't scroll inside their boxes");
+    const all = await notesOf(page);
     await page
       .getByRole("button", { name: "Save my edits", exact: true })
       .click();
@@ -1832,11 +1899,8 @@ try {
     });
     await page.reload();
     await expect(step2).toHaveValue(longer, { timeout: 15000 });
-    await expect(notesBox).toHaveValue(notes);
-    assert.ok(
-      (await notesBox.evaluate((t) => t.scrollHeight - t.clientHeight)) <= 1,
-      "saved notes reopen whole",
-    );
+    await expect.poll(() => notesOf(page)).toEqual(all);
+    assert.ok((await hidden()) <= 1, "saved notes reopen whole");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.waitForTimeout(300);
     m = await fits();
@@ -2182,16 +2246,14 @@ try {
     });
     await expect(tab.getByTestId("home-unreadable")).toHaveCount(0);
     await expect
-      .poll(() =>
-        tab.evaluate((k) => localStorage.getItem(k), "workagent:seen:home"),
-      )
+      .poll(() => tab.evaluate((k) => localStorage.getItem(k), seenHomeKey))
       .not.toBeNull();
     await expect(since).toHaveCount(0);
 
-    await tab.evaluate(() => {
-      localStorage.setItem("workagent:seen:home", "2000-01-01T00:00:00Z");
+    await tab.evaluate((k) => {
+      localStorage.setItem(k, "2000-01-01T00:00:00Z");
       sessionStorage.clear();
-    });
+    }, seenHomeKey);
     await tab.reload();
     await expect(since).toBeVisible({ timeout: 15000 });
     const entries = await since.locator("li").evaluateAll((lis) =>

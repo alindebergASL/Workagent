@@ -114,8 +114,7 @@ function makeWorld() {
       const inst = world.current!;
       const i = inst.cursor++;
       if (!(i in inst.slots))
-        inst.slots[i] =
-          typeof init === "function" ? (init as () => T)() : init;
+        inst.slots[i] = typeof init === "function" ? (init as () => T)() : init;
       const set = (v: T | ((p: T) => T)) => {
         const prev = inst.slots[i] as T;
         const next = typeof v === "function" ? (v as (p: T) => T)(prev) : v;
@@ -153,8 +152,7 @@ function makeWorld() {
     utf8Length: (s: string) => s.length,
     filenameProblem: () => null,
     contentProblem: () => null,
-    mimeForFilename: (f: string) =>
-      f.endsWith(".txt") ? "text/plain" : null,
+    mimeForFilename: (f: string) => (f.endsWith(".txt") ? "text/plain" : null),
     encodeForSave: (text: string) => ({ content: text, normalizes: false }),
     sha256HexOfText: async (t: string) => {
       if (world.hashGate) await world.hashGate;
@@ -617,9 +615,7 @@ describe("workspace files replay/remount races (R3/R4)", () => {
     await w.settle();
     expect(maybeButton(m3, /Retry the same create/)).not.toBeNull();
     expect(field(m3, "textarea").props.value).toBe("bravo");
-    expect(
-      JSON.parse(w.world.store.get(CREATE_KEY)!).command_id,
-    ).toBe(cmdB);
+    expect(JSON.parse(w.world.store.get(CREATE_KEY)!).command_id).toBe(cmdB);
   });
 
   it("R4: a pre-send hash still running when the mount dies never journals a command", async () => {
@@ -659,7 +655,12 @@ describe("workspace files replay/remount races (R3/R4)", () => {
   for (const order of ["old A first", "live replay first"] as const)
     it(`R4: create A sent, remounted and replayed; ${order} — both successes resolve A`, async () => {
       const w = makeWorld();
-      const props = { ws: "ws1", cid: "c1", workVersion: 7, refreshList: noRefresh };
+      const props = {
+        ws: "ws1",
+        cid: "c1",
+        workVersion: 7,
+        refreshList: noRefresh,
+      };
       const m1 = w.mount(w.FileCreator, props);
       await w.settle();
       click(button(m1, /New file/));
@@ -712,7 +713,12 @@ describe("workspace files replay/remount races (R3/R4)", () => {
   for (const order of ["old A first", "live replay first"] as const)
     it(`R3/R4: save A sent, remounted and replayed; ${order} — both acks resolve A`, async () => {
       const w = makeWorld();
-      const props = { ws: "ws1", file: editorFile, workVersion: 7, refreshList: noRefresh };
+      const props = {
+        ws: "ws1",
+        file: editorFile,
+        workVersion: 7,
+        refreshList: noRefresh,
+      };
       const ed1 = w.mount(w.FileEditor, props);
       await w.settle();
       fire(field(ed1, "textarea"), "first edit");
@@ -734,7 +740,11 @@ describe("workspace files replay/remount races (R3/R4)", () => {
 
       w.world.versions.v2 = "first edit";
       const ack = {
-        current: { workspace_file_id: "wf1", version_id: "v2", sha256: "sha-first edit" },
+        current: {
+          workspace_file_id: "wf1",
+          version_id: "v2",
+          sha256: "sha-first edit",
+        },
       };
       const [first, second] =
         order === "old A first" ? [original, replay] : [replay, original];
@@ -758,7 +768,12 @@ describe("workspace files replay/remount races (R3/R4)", () => {
 
   it("R4: old A success after remount never touches a newer unresolved create B", async () => {
     const w = makeWorld();
-    const props = { ws: "ws1", cid: "c1", workVersion: 7, refreshList: noRefresh };
+    const props = {
+      ws: "ws1",
+      cid: "c1",
+      workVersion: 7,
+      refreshList: noRefresh,
+    };
     const m1 = w.mount(w.FileCreator, props);
     await w.settle();
     click(button(m1, /New file/));
@@ -794,8 +809,12 @@ describe("workspace files replay/remount races (R3/R4)", () => {
       new ApiError("refused", { status: 409, code: "conflict" }),
     );
     await w.settle();
-    expect(JSON.parse(w.world.store.get(CREATE_KEY) ?? "{}").command_id).toBe(cmdB);
-    expect(JSON.parse(w.world.store.get(NEW_KEY) ?? "{}").filename).toBe("b.txt");
+    expect(JSON.parse(w.world.store.get(CREATE_KEY) ?? "{}").command_id).toBe(
+      cmdB,
+    );
+    expect(JSON.parse(w.world.store.get(NEW_KEY) ?? "{}").filename).toBe(
+      "b.txt",
+    );
 
     // B's own success then resolves exactly B.
     nth(w.world.createCalls, 2).d.resolve({});

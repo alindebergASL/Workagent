@@ -52,6 +52,7 @@ export function CurrentWork({
       aria-labelledby="current-work-title"
       data-testid="current-work"
       data-execution={s.execution.state}
+      tabIndex={-1}
     >
       <div className="row wrap">
         <h2 id="current-work-title" className="section-title">

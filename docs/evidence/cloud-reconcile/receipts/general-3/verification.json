@@ -1,0 +1,8 @@
+{
+  "git_commit": "307c184d1fcffa244165bf727631fa5ccbf6f878",
+  "dirty": true,
+  "passed": true,
+  "mode": "real_ui_api_postgresql_continuous_controlled_consumer",
+  "model_calls": "not_performed",
+  "evidence_origin": "controlled_transport"
+}

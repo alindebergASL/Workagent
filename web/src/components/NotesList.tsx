@@ -110,12 +110,17 @@ export function NotesList({
     change(editNotes.add(notes), [...keys, id]);
     setFocus(`[data-note-id="${id}"] textarea`);
   };
-  const remove = (i: number) =>
+  const remove = (i: number) => {
     change(
       editNotes.remove(notes, i),
       keys.filter((_, j) => j !== i),
       { id: keys[i]!, text: notes[i]!, at: i },
     );
+    // The cursor goes to the note that takes its place (or the one before),
+    // never back to the top of the page with the button that was pressed.
+    const near = keys[i + 1] ?? keys[i - 1];
+    setFocus(near ? `[data-note-id="${near}"] textarea` : "[data-notes-add]");
+  };
   const move = (i: number, by: -1 | 1) => {
     const to = i + by;
     const nextIds = [...keys];
@@ -196,23 +201,27 @@ export function NotesList({
       ) : (
         <p className="small muted">No notes.</p>
       )}
-      {removed && !keys.includes(removed.id) ? (
-        <p className="small undo-line" role="status" data-testid="notes-undo">
-          Removed {short(removed.text)}.{" "}
-          <button
-            type="button"
-            className="link-quiet"
-            disabled={notes.length >= max}
-            onClick={undo}
-          >
-            Undo
-          </button>
-        </p>
-      ) : null}
+      {/* Always present, so what changes inside it is announced. */}
+      <div role="status">
+        {removed && !keys.includes(removed.id) ? (
+          <p className="small undo-line" data-testid="notes-undo">
+            Removed {short(removed.text)}.{" "}
+            <button
+              type="button"
+              className="link-quiet"
+              disabled={notes.length >= max}
+              onClick={undo}
+            >
+              Undo
+            </button>
+          </p>
+        ) : null}
+      </div>
       <div className="row wrap">
         <button
           type="button"
           className="btn btn-sm"
+          data-notes-add
           disabled={notes.length >= max}
           onClick={add}
         >

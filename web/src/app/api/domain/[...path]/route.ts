@@ -206,6 +206,19 @@ async function route(
   if (current instanceof Response) return current;
   if (!timingSafeEqual(Buffer.from(expected), Buffer.from(current.browser)))
     return stale();
+  // A stream has no overall limit, but it must start within 15 seconds: a
+  // backend that accepts and never answers would otherwise hold the page on
+  // "connecting" with no fallback. Leaving the page closes it upstream.
+  let opening: ReturnType<typeof setTimeout> | undefined;
+  const streamSignal = (() => {
+    if (!stream) return undefined;
+    const opened = new AbortController();
+    opening = setTimeout(() => opened.abort(), 15000);
+    request.signal.addEventListener("abort", () => opened.abort(), {
+      once: true,
+    });
+    return opened.signal;
+  })();
   try {
     const upstream = await fetch(
       `${backend}/${path.join("/")}${request.nextUrl.search}`,
@@ -224,11 +237,10 @@ async function route(
         body: body as BodyInit | undefined,
         cache: "no-store",
         redirect: "error",
-        signal: stream
-          ? request.signal
-          : AbortSignal.timeout(upload ? 45000 : 15000),
+        signal: streamSignal ?? AbortSignal.timeout(upload ? 45000 : 15000),
       },
     );
+    clearTimeout(opening);
     if (
       stream &&
       upstream.ok &&
@@ -369,6 +381,7 @@ async function route(
       },
     });
   } catch {
+    clearTimeout(opening);
     return error(
       502,
       "action_unresolved",

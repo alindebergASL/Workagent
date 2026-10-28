@@ -74,6 +74,7 @@ import {
   rowName,
   setCell,
   slug,
+  rowsAddedRemoved,
   tableChanges,
   unitLegend,
   tableCsv,
@@ -778,6 +779,13 @@ export function FlexibleEditor({
             const rest = comparable.filter((p) => p !== first);
             const compare = (p: S["Proposal"]) => {
               const proposed = p.body as FlexibleBody;
+              const rows =
+                kind === "structured_table"
+                  ? rowsAddedRemoved(
+                      saved as StructuredTable,
+                      proposed as StructuredTable,
+                    )
+                  : null;
               const outdated =
                 p.base_revision_id !== artifact.current_revision_id;
               return (
@@ -822,6 +830,11 @@ export function FlexibleEditor({
                       artifact.current_revision.author_kind === "human",
                     ).diff
                   ) : null}
+                  {rows?.removed.length ? (
+                    <p className="small" data-testid="proposal-removed-rows">
+                      Takes out {rows.removed.map((n) => `“${n}”`).join(", ")}.
+                    </p>
+                  ) : null}
                   <details
                     className="ids-details"
                     // Rows, columns or notes added or taken away aren't in
@@ -838,6 +851,7 @@ export function FlexibleEditor({
                     <summary>The whole proposed version</summary>
                     <ReadOnly
                       body={proposed}
+                      added={rows?.added}
                       authors={proposedNoteAuthors(
                         saved,
                         proposed,
@@ -1945,16 +1959,21 @@ export function ReadOnly({
   body,
   authors,
   edited,
+  added,
 }: {
   body: FlexibleBody;
   /** Who added each kept note, where known. */
   authors?: NoteAuthors;
   /** Table cells the person changed since Workagent's latest version. */
   edited?: Set<string>;
+  /** Rows a proposed table adds to the saved one, marked as new. */
+  added?: Set<string>;
 }) {
   const kind = flexibleKind(body);
   if (kind === "structured_table")
-    return <TableRead body={body as StructuredTable} edited={edited} />;
+    return (
+      <TableRead body={body as StructuredTable} edited={edited} added={added} />
+    );
   if (kind === "document")
     return (
       <DocRead blocks={viewBlocks((body as DocumentBody).blocks, authors)} />
@@ -1965,12 +1984,16 @@ export function ReadOnly({
 function TableRead({
   body,
   edited,
+  added,
 }: {
   body: StructuredTable;
   edited?: Set<string>;
+  added?: Set<string>;
 }) {
   const longText = longTextFields(body);
   const nameKey = rowNameField(body)?.key;
+  // "New" goes on the row's name, or its first cell: a word, not a colour.
+  const labelKey = nameKey ?? body.fields[0]?.key;
   return (
     <>
       <UnitLegend fields={body.fields} />
@@ -1997,7 +2020,10 @@ function TableRead({
           </thead>
           <tbody>
             {body.rows.map((r) => (
-              <tr key={r.row_id}>
+              <tr
+                key={r.row_id}
+                data-added={added?.has(r.row_id) ? "true" : undefined}
+              >
                 {body.fields.map((f) => (
                   <td
                     key={f.key}
@@ -2009,6 +2035,14 @@ function TableRead({
                       edited?.has(cellAt(r.row_id, f.key)) ? "true" : undefined
                     }
                   >
+                    {added?.has(r.row_id) && f.key === labelKey ? (
+                      <>
+                        <span className="row-new" data-testid="row-new">
+                          New
+                        </span>
+                        <span className="sr-only">: </span>
+                      </>
+                    ) : null}
                     {formatCell(f, cellValue(r, f.key))}
                     {edited?.has(cellAt(r.row_id, f.key)) ? (
                       <span className="sr-only"> (changed by you)</span>
@@ -2211,7 +2245,25 @@ function TableEditor({
       { ...raw, ...restorable.typed },
     );
     setRemovedRow(null);
+    setFocusRow(at);
   };
+  // After a row is removed the cursor goes to the row that takes its place
+  // (or the one before), else to Add a row; never to the top of the page.
+  const [focusRow, setFocusRow] = useState<number | null>(null);
+  const addRowRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (focusRow === null) return;
+    const rows = regionRef.current?.querySelectorAll<HTMLElement>(
+      "tbody > tr:not(.long-row)",
+    );
+    const tr = rows?.[Math.min(focusRow, rows.length - 1)];
+    const target =
+      tr?.querySelector<HTMLElement>(
+        "input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled])",
+      ) ?? addRowRef.current;
+    target?.focus();
+    setFocusRow(null);
+  }, [focusRow, body]);
   const overflows = useOverflows(regionRef, body);
   function edit(rowId: string, key: string, text: string) {
     const field = body.fields.find((f) => f.key === key)!;
@@ -2401,6 +2453,7 @@ function TableEditor({
                             }
                             setRemovedRow({ row: r, at: i, name, typed });
                             update(removeRow(body, r.row_id), next);
+                            setFocusRow(i);
                           }}
                         >
                           Remove
@@ -2421,14 +2474,17 @@ function TableEditor({
           </tbody>
         </table>
       </div>
-      {restorable ? (
-        <p className="small undo-line" role="status" data-testid="undo-remove">
-          Removed “{restorable.name}”.{" "}
-          <button type="button" className="link-quiet" onClick={undoRemove}>
-            Undo
-          </button>
-        </p>
-      ) : null}
+      {/* Always present, so what changes inside it is announced. */}
+      <div role="status">
+        {restorable ? (
+          <p className="small undo-line" data-testid="undo-remove">
+            Removed “{restorable.name}”.{" "}
+            <button type="button" className="link-quiet" onClick={undoRemove}>
+              Undo
+            </button>
+          </p>
+        ) : null}
+      </div>
       {errors.length ? (
         <ul className="small cell-errors" role="alert">
           {errors.map(([k, c]) => {
@@ -2450,6 +2506,7 @@ function TableEditor({
             <button
               type="button"
               className="btn btn-sm"
+              ref={addRowRef}
               disabled={body.rows.length >= 200}
               onClick={() =>
                 update(addRow(body, `row-${crypto.randomUUID()}`), raw)

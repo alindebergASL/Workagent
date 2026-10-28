@@ -61,7 +61,8 @@ try{
  await page.getByRole('button',{name:'Work',exact:true}).click();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:out+'/companion-mobile.png',fullPage:true});
- const response=await fetch(origin+`/api/domain/v1/workspaces/local-workspace/conversations/${cid}`,{headers:{'X-Workagent-Client':'local-ui'}});
+ const {scopedHeaders} = await import('../web/scripts/lib/scope.mjs');
+ const response=await fetch(origin+`/api/domain/v1/workspaces/local-workspace/conversations/${cid}`,{headers:await scopedHeaders(origin,{'X-Workagent-Client':'local-ui'})});
  const cv=await response.json();
  expect(cv.messages.filter(m=>m.author_kind==='human'&&m.text==='Mobile companion draft before pane switch')).toHaveLength(1);
  expect(errors).toEqual([]);

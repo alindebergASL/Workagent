@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import {
   commandBody,
@@ -57,7 +57,7 @@ export function QueuedMessages({
       aria-labelledby="queued-title"
       data-testid="queued"
     >
-      <h2 id="queued-title" className="section-title">
+      <h2 id="queued-title" className="section-title" tabIndex={-1}>
         Queued for later
       </h2>
       {open.length ? (
@@ -113,6 +113,16 @@ function QueuedRow({
   >(`workagent:pending:${ws}:conversation:${cid}:queue-cancel:${q.id}`);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const row = useRef<HTMLLIElement>(null);
+  // A cancelled row leaves the list: the keyboard moves to the next row's
+  // cancel (else the one before, else the list's heading) before it goes.
+  const moveFocusAway = () => {
+    const li = row.current;
+    const near = [li?.nextElementSibling, li?.previousElementSibling]
+      .map((x) => x?.querySelector<HTMLElement>("[data-queue-cancel]"))
+      .find(Boolean);
+    (near ?? document.getElementById("queued-title"))?.focus();
+  };
   const cancel = async () => {
     setBusy(true);
     setError(null);
@@ -123,6 +133,7 @@ function QueuedRow({
     try {
       await queueApi.cancel(ws, cid, q.id, body);
       cmd.clear(body);
+      if (row.current?.contains(document.activeElement)) moveFocusAway();
       refresh();
     } catch (e) {
       if (!unconfirmed(e)) {
@@ -135,7 +146,7 @@ function QueuedRow({
     }
   };
   return (
-    <li className="stack-xs" data-queued={q.id} data-state={q.state}>
+    <li className="stack-xs" data-queued={q.id} data-state={q.state} ref={row}>
       <div className="row wrap">
         <StatusBadge
           label={v.label}
@@ -164,8 +175,11 @@ function QueuedRow({
           <button
             type="button"
             className="link-quiet small"
-            onClick={() => void cancel()}
-            disabled={busy}
+            data-queue-cancel
+            // Not disabled while busy: a disabled button drops focus to the
+            // page before the row can hand it on.
+            onClick={() => void (busy || cancel())}
+            aria-disabled={busy || undefined}
           >
             {busy ? "Cancelling…" : "Cancel this queued message"}
           </button>
@@ -204,6 +218,20 @@ export function StopRun({
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  // Opening or closing the confirmation swaps the buttons: the keyboard
+  // goes to the one that takes the pressed one's place, never the page top.
+  const trigger = useRef<HTMLButtonElement>(null);
+  const confirmButton = useRef<HTMLButtonElement>(null);
+  const toggled = useRef(false);
+  useEffect(() => {
+    if (!toggled.current) return;
+    toggled.current = false;
+    (confirm ? confirmButton : trigger).current?.focus();
+  }, [confirm]);
+  const choose = (open: boolean) => {
+    toggled.current = true;
+    setConfirm(open);
+  };
   const stop = async () => {
     setBusy(true);
     setError(null);
@@ -217,6 +245,11 @@ export function StopRun({
     try {
       await runApi.stop(ws, cid, body);
       cmd.clear(body);
+      // The run's controls go once it's stopped: the keyboard moves to the
+      // work's status, which says what happened, rather than the page top.
+      document
+        .querySelector<HTMLElement>('[data-testid="current-work"]')
+        ?.focus();
       setConfirm(false);
       refresh();
     } catch (e) {
@@ -241,6 +274,7 @@ export function StopRun({
           <button
             type="button"
             className="btn btn-sm btn-danger-quiet"
+            ref={confirmButton}
             onClick={() => void stop()}
             disabled={busy}
           >
@@ -254,7 +288,7 @@ export function StopRun({
             <button
               type="button"
               className="btn btn-sm btn-quiet"
-              onClick={() => setConfirm(false)}
+              onClick={() => choose(false)}
               disabled={busy}
             >
               Keep going
@@ -265,7 +299,8 @@ export function StopRun({
         <button
           type="button"
           className="link-quiet small"
-          onClick={() => setConfirm(true)}
+          ref={trigger}
+          onClick={() => choose(true)}
         >
           Stop this run…
         </button>
@@ -437,13 +472,28 @@ export function DocumentPicker({
   /** Explicit recovery actions for a blocked restoration. */
   recovery?: { label: string; run: () => void }[];
 }) {
+  // Removing a document keeps the keyboard beside it: the next document's
+  // remove (else the one before), else the attach control.
+  const root = useRef<HTMLDivElement>(null);
+  const [focusAt, setFocusAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (focusAt === null) return;
+    const removes =
+      root.current?.querySelectorAll<HTMLElement>("[data-doc-remove]");
+    const target = removes?.length
+      ? removes[Math.min(focusAt, removes.length - 1)]
+      : root.current?.querySelector<HTMLElement>('input[type="file"]');
+    target?.focus();
+    setFocusAt(null);
+  }, [focusAt, docs]);
   return (
-    <div className="stack-xs" data-testid="document-picker">
+    <div className="stack-xs" data-testid="document-picker" ref={root}>
       {docs.length ? (
         <ul className="row wrap" aria-label="Documents to send">
           {docs.map((d, i) => (
             <li key={d.doc.sha256} className="chip small" data-upload={d.state}>
-              {d.doc.filename} · {sizeLabel(d.doc.byte_length)} ·{" "}
+              <span className="doc-name">{d.doc.filename}</span> ·{" "}
+              {sizeLabel(d.doc.byte_length)} ·{" "}
               {d.state === "uploading"
                 ? "Uploading…"
                 : d.state === "uploaded"
@@ -472,7 +522,11 @@ export function DocumentPicker({
                   type="button"
                   className="link-quiet small"
                   aria-label={`Remove ${d.doc.filename}`}
-                  onClick={() => onRemove(i)}
+                  data-doc-remove
+                  onClick={() => {
+                    onRemove(i);
+                    setFocusAt(i);
+                  }}
                 >
                   ×
                 </button>

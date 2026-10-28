@@ -4,6 +4,7 @@ import {
   cellAuthors,
   cellChanges,
   changeSummary,
+  rowsAddedRemoved,
   tableChanges,
 } from "@/lib/flexible";
 
@@ -111,5 +112,26 @@ describe("what a proposal takes away", () => {
     const c = tableChanges(noted, { ...without("days"), notes: ["Ask Lark."] });
     expect(c).toMatchObject({ dropped: 1, notes: 1, cells: 0 });
     expect(changeSummary(c)).toBe("1 column removed · 1 note removed");
+  });
+});
+
+describe("rows a proposal adds and takes out", () => {
+  it("names added rows by id and removed rows by the saved table's names", () => {
+    const saved = table("690.00", 6);
+    const fresh = {
+      ...saved.rows[0]!,
+      row_id: "birch",
+      cells: saved.rows[0]!.cells.map((c) =>
+        c.field_key === "name" ? { ...c, value: "Birch Print" } : c,
+      ),
+    };
+    const swapped = { ...saved, rows: [fresh] };
+    const r = rowsAddedRemoved(saved, swapped);
+    expect([...r.added]).toEqual(["birch"]);
+    expect(r.removed).toEqual(["Lark & Co"]);
+    expect(rowsAddedRemoved(saved, saved)).toEqual({
+      added: new Set(),
+      removed: [],
+    });
   });
 });

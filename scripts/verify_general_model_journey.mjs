@@ -18,7 +18,8 @@ const save = (name, data) => writeFile(path.join(out, name), JSON.stringify(data
 const report = {mode: 'actual_browser_api_postgresql_same_worker_synthetic_http_transport',
   live_provider_calls: 0, model_intelligence: 'NOT TESTED', M3_M4_M5: 'NOT IMPLEMENTED / NOT TESTED',
   requests: [], steps: [], screenshots: [], page_errors: [], external_requests: []};
-const headers = {'X-Workagent-Client': 'local-ui'};
+const {scopedHeaders} = await import('../web/scripts/lib/scope.mjs');
+const headers = await scopedHeaders(origin, {'X-Workagent-Client': 'local-ui'});
 async function get(p) {
   const r = await fetch(base + p, {headers});
   expect(r.status, p).toBe(200); return r.json();

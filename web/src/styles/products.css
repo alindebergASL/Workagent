@@ -396,9 +396,12 @@ textarea.fit-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* No numbers show, so no indent for them: the boxes line up with the
+   heading and Add a note. */
 .notes-items {
   margin: 0;
-  padding-left: 1.8em;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: var(--sp-2);
   min-width: 0;
@@ -415,6 +418,11 @@ textarea.fit-text {
 }
 .notes-item-actions {
   gap: var(--sp-2);
+}
+/* Undo is a small link; give it room to be hit. */
+.undo-line .link-quiet {
+  padding: 4px 2px;
+  margin: -4px 0;
 }
 .view-fallback {
   white-space: pre-wrap;
@@ -971,7 +979,9 @@ textarea.fit-text {
   min-width: 0;
   max-width: 100%;
 }
+/* A removed value or note reads as it was written, line breaks kept. */
 .proposal-removed li {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .proposal-earlier {
@@ -995,4 +1005,35 @@ textarea.fit-text {
   background: color-mix(in srgb, var(--attn) 12%, transparent);
   text-decoration: underline dotted var(--attn);
   text-underline-offset: 3px;
+}
+
+/* A row a proposal adds: marked "New" in words, with a light tint. */
+.flex-table tr[data-added="true"] > td {
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+}
+.row-new {
+  display: inline-block;
+  /* Its own width, also where a phone card stacks a cell's contents. */
+  width: fit-content;
+  justify-self: start;
+  align-self: start;
+  margin-right: var(--sp-2);
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--ok) 55%, transparent);
+  border-radius: 6px;
+  color: var(--ok);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 1px;
+}
+@media (max-width: 640px) {
+  /* On a phone a row is a card: the card carries the tint. */
+  .flex-table tbody tr[data-added="true"] {
+    background: color-mix(in srgb, var(--ok) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  .flex-table tbody tr[data-added="true"] > td {
+    background: transparent;
+  }
 }

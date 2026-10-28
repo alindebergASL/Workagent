@@ -13,6 +13,16 @@ try {
     if (u.origin !== "http://127.0.0.1:38471") return route.abort();
     if (u.pathname.startsWith("/api/")) {
       apiRequests.push({ method: route.request().method(), path: u.pathname });
+      // The page binds a session scope before anything else (A14).
+      if (u.pathname === "/api/domain/v1/session")
+        return route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            principal_id: "alex",
+            scope_id: "0".repeat(64),
+          }),
+        });
       if (route.request().method() !== "GET") return route.abort();
       return route.fulfill({
         status: 200,

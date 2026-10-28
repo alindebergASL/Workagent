@@ -219,19 +219,22 @@ export function DocEdit({
           <SourceMarks block={b} />
         </div>
       ))}
-      {removed && !blocks.some((b) => b.id === removed.block.id) ? (
-        <p className="small undo-line" role="status" data-testid="undo-remove">
-          Removed “{removed.block.text.slice(0, 40) || "an empty part"}”.{" "}
-          <button
-            type="button"
-            className="link-quiet"
-            disabled={disabled}
-            onClick={undo}
-          >
-            Undo
-          </button>
-        </p>
-      ) : null}
+      {/* Always present, so what changes inside it is announced. */}
+      <div role="status">
+        {removed && !blocks.some((b) => b.id === removed.block.id) ? (
+          <p className="small undo-line" data-testid="undo-remove">
+            Removed “{removed.block.text.slice(0, 40) || "an empty part"}”.{" "}
+            <button
+              type="button"
+              className="link-quiet"
+              disabled={disabled}
+              onClick={undo}
+            >
+              Undo
+            </button>
+          </p>
+        ) : null}
+      </div>
       {addable && blocks.length < 200 ? (
         <div
           className="doc-add row wrap"

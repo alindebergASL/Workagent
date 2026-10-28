@@ -208,12 +208,14 @@ export function useWorkState(
         const err = e instanceof ApiError ? e : transport();
         if (current) setStale(true);
         else setError(err);
-        // Before the subscription exists nothing else will retry.
-        if (!subscribed)
-          timer = setTimeout(
-            () => void invalidate(),
-            Math.min(15000, 1000 * 2 ** Math.min(failures, 4)),
-          );
+        // Retry with backoff, before and after subscribing: the stream has
+        // already moved past the event that asked for this read, so nothing
+        // else would bring the view back up to date.
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(
+          () => void invalidate(),
+          Math.min(15000, 1000 * 2 ** Math.min(failures, 4)),
+        );
       }
     };
 

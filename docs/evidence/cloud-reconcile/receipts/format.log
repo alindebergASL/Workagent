@@ -1,0 +1,6 @@
+$ prettier --check .
+Checking formatting...
+[warn] playwright.b30b.config.ts
+[warn] test/workspace-files-races.test.ts
+[warn] Code style issues found in 2 files. Run Prettier with --write to fix.
+[ELIFECYCLE] Command failed with exit code 1.

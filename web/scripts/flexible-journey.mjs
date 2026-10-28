@@ -7,7 +7,15 @@
 import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { scopedHeaders } from "./lib/scope.mjs";
 
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
 // A piece of work opens on its result; editing is its Edit tab (remembered
 // for that work in the tab). Pages without one are left as they are.
 const openEdit = async (page) => {
@@ -29,10 +37,10 @@ await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const root = origin + "/api/domain/v1/workspaces";
 const base = root + "/local-workspace";
-const headers = {
+const headers = await scopedHeaders(origin, {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
-};
+});
 async function api(p, body, url = base) {
   const r = await fetch(url + p, {
     method: body ? "POST" : "GET",
@@ -281,20 +289,28 @@ try {
     await page
       .getByLabel("Chidi Shift", { exact: true })
       .selectOption("Morning");
-    // Notes typed key by key keep their spaces and line breaks.
-    const notes = page.getByLabel("Notes (one per line)", { exact: true });
-    await notes.focus();
-    await page.keyboard.press("Control+End");
+    // Notes typed key by key, each in its own box, keep their spaces and
+    // line breaks.
+    const notes = notesGroup(page);
+    const add = notes.getByRole("button", { name: "Add a note", exact: true });
+    await add.click();
+    const second = notes.getByRole("textbox", { name: "Note 2", exact: true });
+    await second.pressSequentially("Bring hi-vis vests");
     await page.keyboard.press("Enter");
-    await notes.pressSequentially("Bring hi-vis vests");
-    await page.keyboard.press("Enter");
-    await notes.pressSequentially("Keys from Asha ");
-    const typedNotes =
-      "Synthetic rota for testing.\nBring hi-vis vests\nKeys from Asha ";
-    await expect(notes).toHaveValue(typedNotes);
+    await second.pressSequentially("and gloves");
+    await add.click();
+    await notes
+      .getByRole("textbox", { name: "Note 3", exact: true })
+      .pressSequentially("Keys from Asha ");
+    const typedNotes = [
+      "Synthetic rota for testing.",
+      "Bring hi-vis vests\nand gloves",
+      "Keys from Asha ",
+    ];
+    await expect.poll(() => notesOf(page)).toEqual(typedNotes);
     // An unsaved draft survives a reload.
     await page.reload();
-    await expect(notes).toHaveValue(typedNotes);
+    await expect.poll(() => notesOf(page)).toEqual(typedNotes);
     await expect(page.getByLabel("Ben Hours", { exact: true })).toHaveValue(
       "6",
     );
@@ -314,11 +330,8 @@ try {
     expect(cellOf(saved.body, "v2", "confirmed")).toBe(true);
     expect(cellOf(saved.body, "v3", "shift")).toBe("Morning");
     expect(cellOf(saved.body, "v1", "ref")).toBe("v1");
-    expect(saved.body.notes).toEqual([
-      "Synthetic rota for testing.",
-      "Bring hi-vis vests",
-      "Keys from Asha",
-    ]);
+    // Saved exactly as written.
+    expect(saved.body.notes).toEqual(typedNotes);
     expect(saved.body.rows.map((r) => r.row_id)).toEqual(["v1", "v2", "v3"]);
     await shot(page, "01-table-saved");
     await page.setViewportSize({ width: 390, height: 900 });

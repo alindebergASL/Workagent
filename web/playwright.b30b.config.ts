@@ -15,10 +15,7 @@ export default defineConfig({
   retries: 0,
   timeout: 120_000,
   outputDir: `${OUT}/test-output`,
-  reporter: [
-    ["list"],
-    ["json", { outputFile: `${OUT}/e2e-report.json` }],
-  ],
+  reporter: [["list"], ["json", { outputFile: `${OUT}/e2e-report.json` }]],
   use: {
     baseURL: BASE,
     trace: "retain-on-failure",

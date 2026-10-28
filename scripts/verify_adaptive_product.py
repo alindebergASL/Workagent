@@ -60,11 +60,10 @@ class IsolatedStack(Stack):
             if any(p.poll() is not None for p in self.children):
                 raise RuntimeError('Owned service exited; inspect private adaptive-stack logs')
             try:
-                request = urllib.request.Request(ORIGIN+'/api/domain/v1/workspaces', headers={'X-Workagent-Client':'local-ui'})
-                with urllib.request.urlopen(request, timeout=2) as response:
-                    if response.status == 200 and json.load(response)['items']: return
+                if _stack.scoped_ready(ORIGIN): return
             except (OSError, ValueError, KeyError):
-                time.sleep(.2)
+                pass
+            time.sleep(.2)
         raise RuntimeError('Readiness deadline exceeded')
 
 
