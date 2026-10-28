@@ -1,0 +1,59 @@
+{
+  "schema_version": "b30a-correction-review/v1",
+  "verdict": "PASS",
+  "blocking_findings": [],
+  "workspace": "/home/ubuntu/workagent-continuation-20261026",
+  "branch": "hermes/b2-conversational-client",
+  "head": "26e599b3db8a61b73eeeaea4f87a1d3de0b296d9",
+  "tree": "intentional dirty candidate; manifest hashes bind inspected bytes, not HEAD alone",
+  "scope": "Four independent-review corrections plus legacy Broker escape prevention, opted-in composition SQL deny, discovery authority, common implementation pins, and write-only late receipt disclosure. Narrow read-only rereview, not architecture audit.",
+  "verification": {
+    "method": "source/test inspection and retained command evidence; no tests executed by this reviewer",
+    "retained_gateway_log": ".local/batch3/b30a/capabilities-final-3.log",
+    "retained_gateway_result": {"passed": 33, "exit_code": 0},
+    "baseline_summary_failures": "Accepted-base retained log reproduces two trailing-zero decimal string mismatches and obsolete AccountingOnly.rows spy. Not a new gateway blocker.",
+    "limitations": [
+      "No dedicated test found for stale-existing-receipt replay redaction; verified directly in migration053 lines 212-226.",
+      "Opted-in SQL decision denial and common dependency pin list verified by source inspection, without claiming dedicated executed regressions.",
+      "No hot-reload or exhaustive transitive dependency audit.",
+      "No new runtime/DB/network/provider verification in this read-only task."
+    ],
+    "prohibited_actions_performed": []
+  },
+  "checks": [
+    {"id": "completed-observation-reclamation", "verdict": "PASS", "source": ["backend/workagent/capabilities/broker.py:28-44", "backend/migrations/053_capability_gateway.sql:168-172", "backend/migrations/053_capability_gateway.sql:195-203"], "tests": ["backend/tests/test_capability_integration.py:28-36"]},
+    {"id": "revocation-consumption-publication", "verdict": "PASS", "source": ["backend/workagent/service.py:588-619", "backend/workagent/capabilities/policy.py:18-33", "backend/workagent/general_responses.py:301-311", "backend/migrations/053_capability_gateway.sql:275-329"], "tests": ["backend/tests/test_capability_integration.py:75-83", "backend/tests/test_capability_integration.py:202-228"]},
+    {"id": "typed-legacy-datetime", "verdict": "PASS", "source": ["backend/workagent/capabilities/broker.py:49-53"], "tests": ["backend/tests/test_capability_integration.py:39-59"]},
+    {"id": "existing-runtime-role-upgrade", "verdict": "PASS", "source": ["backend/migrations/053_capability_gateway.sql:331-340"], "tests": ["backend/tests/test_capability_upgrade.py:29-82"]},
+    {"id": "legacy-broker-escape", "verdict": "PASS", "source": ["backend/workagent/broker.py:43-63", "backend/workagent/capabilities/registry.py:81-84"], "tests": ["backend/tests/test_capability_integration.py:39-59"]},
+    {"id": "opted-in-composition-deny", "verdict": "PASS", "source": ["backend/workagent/products.py:327-339", "backend/workagent/products.py:383-386", "backend/workagent/capabilities/policy.py:36-42", "backend/migrations/053_capability_gateway.sql:310-319"], "coverage": "source inspection; gateway worker-stage regression is adjacent positive coverage"},
+    {"id": "discovery-authority", "verdict": "PASS", "source": ["backend/workagent/capabilities/registry.py:43-48", "backend/workagent/capabilities/policy.py:91-124"], "tests": ["backend/tests/test_capability_integration.py:191-199"]},
+    {"id": "implementation-pins", "verdict": "PASS", "source": ["backend/workagent/capabilities/registry.py:33-37", "backend/workagent/capabilities/registry.py:58-61", "backend/workagent/capabilities/policy.py:18-33", "backend/workagent/capabilities/policy.py:45-61", "backend/workagent/capabilities/policy.py:147-156"], "coverage": "source inspection of common pin inclusion and enforcement"},
+    {"id": "write-only-late-receipt", "verdict": "PASS", "source": ["backend/migrations/053_capability_gateway.sql:212-226", "backend/migrations/053_capability_gateway.sql:247-256"], "tests": ["backend/tests/test_capability_gateway.py:106-131"], "coverage": "tests cover first late settlement; existing-observation replay redaction is source-inspected"},
+    {"id": "accounting-privacy-supporting-check", "verdict": "PASS", "source": ["backend/workagent/responses_ledger.py:412-457", "backend/workagent/capabilities/observations.py:40-51"], "tests": ["backend/tests/test_capability_integration.py:117-167", "backend/tests/test_ledger_summary_projection.py:36-44", "backend/tests/test_ledger_summary_projection.py:63-64"]}
+  ],
+  "sha256_manifest": [
+    {"path": "backend/workagent/capabilities/models.py", "kind": "production", "inspection": "full", "sha256": "fcd69c43fa8f45dc59fbb4101d2aefe2f5cf2c65ae904baddb488d1c522c4033"},
+    {"path": "backend/workagent/capabilities/registry.py", "kind": "production", "inspection": "full", "sha256": "94cbe7e1f4782d8fe6cf0bb5455138fed6d10ed9ed5500cdc9164c5d80ca2eee"},
+    {"path": "backend/workagent/capabilities/policy.py", "kind": "production", "inspection": "full", "sha256": "fabdb5e9e5c1dd9e73be8a37d47efd1c33f656256f61d2c8b2bec15d5c1d68a1"},
+    {"path": "backend/workagent/capabilities/broker.py", "kind": "production", "inspection": "full", "sha256": "1cb0d47c552e81ae5024fdd9cdf4448f7f05232611be161f892dadeab2219cdc"},
+    {"path": "backend/workagent/capabilities/observations.py", "kind": "production", "inspection": "full", "sha256": "315c2b75f74a172f45212308333654cebc8c641d60d67f08c87bf91c8302396b"},
+    {"path": "backend/workagent/capabilities/api.py", "kind": "production", "inspection": "full", "sha256": "3c52cbd6ba1845e8d764dde772ddb20ff2885bddb96638b1821b36a658275765"},
+    {"path": "backend/migrations/053_capability_gateway.sql", "kind": "production", "inspection": "full", "sha256": "f82b8fe693d1b93c48dfd9d98a886b12f151e315a10fb9d0e703d16bc4527858"},
+    {"path": "backend/workagent/broker.py", "kind": "production", "inspection": "full and diff", "sha256": "a3c0ab9f5b5afa43da69049d244a46de332c5788385e1eef39628e65b8b4cdad"},
+    {"path": "backend/workagent/products.py", "kind": "production", "inspection": "diff and lines 305-444", "sha256": "1a41b94a37e21be66e0ba3e1235b384c96401940acec25f23a25b46c828b6be4"},
+    {"path": "backend/workagent/service.py", "kind": "production", "inspection": "diff and lines 545-659", "sha256": "bb2f893af50e5ae9b323f51e119983aa6ba4b8fb3ef1e5db37db8152b695bf81"},
+    {"path": "backend/workagent/responses_ledger.py", "kind": "production", "inspection": "diff and lines 363-457", "sha256": "261fef80085976f686e1c2b790370dbbe1db30b1912246d8125e17c11d8a29a9"},
+    {"path": "backend/workagent/api.py", "kind": "production", "inspection": "capability registration diff only", "sha256": "2341eaae841637705fde0f06aecb914054f12fcd2952ac63b5311c370e583c04"},
+    {"path": "backend/workagent/general_responses.py", "kind": "production", "inspection": "search excerpt lines 297-311 confirming resolve_selection authority check", "sha256": "1f2741efed6956c83d32d6278fb951f0dd45aae15170bb35a2082b48a1987563"},
+    {"path": "backend/tests/test_capability_gateway.py", "kind": "test", "inspection": "full", "sha256": "b87e69460aa75a94b5466bb67aca039ccb1c8329eced581cda87eb9479fe8391"},
+    {"path": "backend/tests/test_capability_http_journey.py", "kind": "test", "inspection": "full", "sha256": "407017a1e13266121b75aa610457e6ab283de93ec123c130f633ea9e92cfd5d8"},
+    {"path": "backend/tests/test_capability_integration.py", "kind": "test", "inspection": "full", "sha256": "1a5d6a15809742ec9f5b007ac90210628fd8b61b491fb8f3f860b556155b88ab"},
+    {"path": "backend/tests/test_capability_upgrade.py", "kind": "test", "inspection": "full", "sha256": "afe66ad3dec5ac95eddba83e53bad56310cb646c1be574e917d84ed5539726f5"},
+    {"path": "backend/tests/test_ledger_summary_projection.py", "kind": "test", "inspection": "full", "sha256": "d32a7f83003672faa33250c334985dd05cbee481f49d1edf1ba788b52376b45a"},
+    {"path": ".local/batch3/b30a/capabilities-final-3.log", "kind": "evidence", "inspection": "full", "sha256": "f308cc058324d9272c6db14094bd8a38f44b3688606615452cb5c00cc7fa0e52"},
+    {"path": "docs/evidence/batch3-b30a/independent-review.md", "kind": "evidence", "inspection": "full", "sha256": "08a1078f3cc2ce8a8a54ddbe6ce2634c4a2b90859eaafc0a0855a3ace2e9a11c"},
+    {"path": "docs/evidence/batch3-b30a/summary-baseline.log", "kind": "evidence", "inspection": "full", "sha256": "206aa294a6e1b2354d828a321f2be61425262f7ef87cfdf86d46c93492da7709"},
+    {"path": "docs/plans/batch3-tool-memory-contract.md", "kind": "contract", "inspection": "full", "sha256": "5fed1267685540cee90ec285c05d809d205c4d8293335d7b101d5f4be9cdf278"}
+  ]
+}

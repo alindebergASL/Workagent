@@ -326,6 +326,8 @@ class Products:
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            from .capabilities.policy import require_operation
+            require_operation(c,run,operation)
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
@@ -379,9 +381,9 @@ class Products:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
         elif isinstance(operation,READ_DECISIONS):
-            context=self.conversation_worker_context(cap)
+            from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
-                    'capability_result':execute_read(operation,context)}
+                    'capability_result':execute_composition(self,cap,operation,phase)}
         elif operation is None:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
         else:

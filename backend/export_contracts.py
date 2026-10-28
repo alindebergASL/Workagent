@@ -23,7 +23,14 @@ def main():
     from workagent.work_event_fixtures import vectors as work_event_vectors
     from workagent.retained_results import SustainedDecision
     from workagent.checkpoint_models import RunCheckpoint, QueuedMessage
-    outputs={'work-events-fixtures.json':work_event_vectors(),
+    from workagent.capabilities.models import CapabilityDescriptorV2, ToolGrantV1, ToolCallV1, ToolObservationV1
+    from workagent.capabilities.registry import catalog
+    outputs={'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
+             'tool-grant.schema.json':ToolGrantV1.model_json_schema(),
+             'tool-call.schema.json':ToolCallV1.model_json_schema(),
+             'tool-observation-v1.json':ToolObservationV1.model_json_schema(),
+             'capability-registry-v2.json':[d.model_dump(mode='json') for d in catalog()],
+             'work-events-fixtures.json':work_event_vectors(),
              'run-checkpoint.schema.json':RunCheckpoint.model_json_schema(),
              'queued-message.schema.json':QueuedMessage.model_json_schema(),
              'sustained-decision.schema.json':SustainedDecision.model_json_schema(),

@@ -1,0 +1,2266 @@
+[
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "context.read",
+    "implementation_sha256": "fe90f189e4cc0112acef90ab2f20e7c58f41f300784d931c8c99eb823ea5b2e1",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "read_context",
+          "title": "Kind",
+          "type": "string"
+        },
+        "section": {
+          "enum": [
+            "messages",
+            "target",
+            "attachments",
+            "work_area"
+          ],
+          "title": "Section",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "section"
+      ],
+      "title": "ReadContext",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ReadOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "0818bd5bed43f15f43f2f83083836aa1dd428304be472ee4c53d02b990744207",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "files.inspect_json",
+    "implementation_sha256": "53c9a35949c949147450b9f769bb7a140bd3bc440466d3a1d25a0e2309289cbc",
+    "input_schema": {
+      "$defs": {
+        "AttachmentRef": {
+          "additionalProperties": false,
+          "properties": {
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "attachment": {
+          "$ref": "#/$defs/AttachmentRef"
+        },
+        "kind": {
+          "const": "inspect_json",
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "description": "Literal object keys or zero-based array indices; empty path selects the document. Exact current-turn .json attachment only. No code, URLs or filesystem access.",
+          "items": {
+            "maxLength": 128,
+            "type": "string"
+          },
+          "maxItems": 12,
+          "title": "Path",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "attachment",
+        "path"
+      ],
+      "title": "InspectJSON",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ReadOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "71ccdd0e27104c6e6efad3e4a5fd0578b94adfeaf466021651cb61d41d3fff63",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "extraction",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "research.fetch",
+    "implementation_sha256": "ac309f0faa57d9a851d13be8bf01eee9b6c3de05655b4a0a1037c76ac5dcc165",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fetch_public_url",
+          "title": "Kind",
+          "type": "string"
+        },
+        "url": {
+          "description": "One public HTTPS URL. Unauthenticated GET only; no search engine discovery, private accounts, cookies, JS rendering or permission changes.",
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "url"
+      ],
+      "title": "FetchPublicURL",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ReadOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "public"
+    ],
+    "required_permission_template": "public_https",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "3c4059ebc1f7997f0664ef1da65ed00afe0d251b589dc40a764ede224650bc01",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "capabilities.discover_legacy",
+    "implementation_sha256": "c98a51c9bf23c8e1b486c178f2dae5dc09933873e779e40a14674fc056e557ce",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "discover_capabilities",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "DiscoverCapabilities",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ReadOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "557d5248ce42f614bb4dcfc131a3e3697535699d5065c3ff6e9060fa0edb9429",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "procedures.load_legacy",
+    "implementation_sha256": "c98a51c9bf23c8e1b486c178f2dae5dc09933873e779e40a14674fc056e557ce",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "load_skill",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "skill_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Skill Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 32,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "skill_id",
+        "version",
+        "sha256"
+      ],
+      "title": "LoadSkill",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "JsonValue": {}
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ReadOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "8ef785334903d69910a861b54ceb9c62acdc1a2c1fbf1b31eb5728e2d704953a",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "legacy.get_assignment",
+    "implementation_sha256": "07b490b3d12d52efcbeadd688b91c582d09e8edcf89f4099232da576ef6b28ab",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Assignment Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "workspace_id",
+        "assignment_id"
+      ],
+      "title": "GetAssignmentInput",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ArtifactBinding": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "base_revision_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Base Revision Id"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "proposal_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Proposal Id"
+            },
+            "revision_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Revision Id"
+            }
+          },
+          "required": [
+            "artifact_id",
+            "body_hash"
+          ],
+          "title": "ArtifactBinding",
+          "type": "object"
+        },
+        "ExecutionProvenance": {
+          "additionalProperties": false,
+          "properties": {
+            "attempt_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Attempt Id"
+            },
+            "evidence_origin": {
+              "default": "unverified",
+              "enum": [
+                "unverified",
+                "fixture",
+                "synthetic_provider_receipt",
+                "live_provider_receipt",
+                "controlled_transport"
+              ],
+              "title": "Evidence Origin",
+              "type": "string"
+            },
+            "grant_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Grant Id"
+            },
+            "mode": {
+              "enum": [
+                "fixture",
+                "managed"
+              ],
+              "title": "Mode",
+              "type": "string"
+            },
+            "model": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Model"
+            },
+            "profile": {
+              "enum": [
+                "fixture-deterministic-v1",
+                "openai-agents-v1",
+                "openai-responses-v1",
+                "general-controlled-v1",
+                "general-products-controlled-v1",
+                "general-responses-v1"
+              ],
+              "title": "Profile",
+              "type": "string"
+            },
+            "provider_observation": {
+              "default": "not_observed",
+              "enum": [
+                "not_observed",
+                "received"
+              ],
+              "title": "Provider Observation",
+              "type": "string"
+            }
+          },
+          "required": [
+            "mode",
+            "profile"
+          ],
+          "title": "ExecutionProvenance",
+          "type": "object"
+        },
+        "OutcomeCheck": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "enum": [
+                "publication_binding",
+                "saved_body",
+                "exact_base",
+                "current_revision",
+                "provider_result",
+                "authority"
+              ],
+              "title": "Name",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "passed",
+                "failed",
+                "unverified"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "status"
+          ],
+          "title": "OutcomeCheck",
+          "type": "object"
+        },
+        "OutcomeQuestion": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "base_revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Base Revision Id",
+              "type": "string"
+            },
+            "prompt": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Prompt",
+              "type": "string"
+            },
+            "proposal_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "prompt",
+            "artifact_id",
+            "proposal_id",
+            "base_revision_id"
+          ],
+          "title": "OutcomeQuestion",
+          "type": "object"
+        },
+        "ResponseStepObservation": {
+          "additionalProperties": false,
+          "properties": {
+            "billed_cost_usd": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Billed Cost Usd"
+            },
+            "conservatively_calculated_cost_usd": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Conservatively Calculated Cost Usd"
+            },
+            "phase": {
+              "enum": [
+                "selection",
+                "selection_2",
+                "selection_3",
+                "selection_4",
+                "selection_5",
+                "selection_6",
+                "selection_7",
+                "selection_8",
+                "final"
+              ],
+              "title": "Phase",
+              "type": "string"
+            },
+            "reported_input_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reported Input Tokens"
+            },
+            "reported_output_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reported Output Tokens"
+            },
+            "reserved_cost_usd": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reserved Cost Usd"
+            },
+            "response_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Response Id"
+            },
+            "state": {
+              "enum": [
+                "prepared",
+                "counting",
+                "count_unknown",
+                "counted",
+                "dispatching",
+                "outcome_unknown",
+                "accepted",
+                "received",
+                "invalid"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          },
+          "required": [
+            "phase",
+            "state"
+          ],
+          "title": "ResponseStepObservation",
+          "type": "object"
+        },
+        "ResponsibilityOutcome": {
+          "additionalProperties": false,
+          "properties": {
+            "approved_change": {
+              "const": "document_revision_only",
+              "default": "document_revision_only",
+              "title": "Approved Change",
+              "type": "string"
+            },
+            "latest_run_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Latest Run Id"
+            },
+            "runs": {
+              "items": {
+                "$ref": "#/$defs/RunOutcome"
+              },
+              "maxItems": 100,
+              "title": "Runs",
+              "type": "array"
+            },
+            "underlying_action_performed": {
+              "const": false,
+              "default": false,
+              "title": "Underlying Action Performed",
+              "type": "boolean"
+            }
+          },
+          "title": "ResponsibilityOutcome",
+          "type": "object"
+        },
+        "RunOutcome": {
+          "additionalProperties": false,
+          "properties": {
+            "artifacts": {
+              "items": {
+                "$ref": "#/$defs/ArtifactBinding"
+              },
+              "maxItems": 10,
+              "title": "Artifacts",
+              "type": "array"
+            },
+            "attempt_state": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "prepared",
+                    "dispatched",
+                    "outcome_unknown",
+                    "responded",
+                    "reconciled",
+                    "failed"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Attempt State"
+            },
+            "blocker": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "paused",
+                    "cancelled",
+                    "grant_revoked",
+                    "grant_expired",
+                    "source_changed",
+                    "runtime_unavailable",
+                    "consumer_unavailable",
+                    "lease_expired",
+                    "prepared_attempt",
+                    "provider_outcome_unknown",
+                    "provider_response_pending",
+                    "provider_result_rejected",
+                    "publication_pending",
+                    "unsent_abandoned",
+                    "unresolved_items",
+                    "decision_required",
+                    "decision_stale"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Blocker"
+            },
+            "checks": {
+              "items": {
+                "$ref": "#/$defs/OutcomeCheck"
+              },
+              "maxItems": 10,
+              "title": "Checks",
+              "type": "array"
+            },
+            "continuation_available": {
+              "default": false,
+              "title": "Continuation Available",
+              "type": "boolean"
+            },
+            "execution": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExecutionProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "next_action": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Next Action"
+            },
+            "outcome_gate": {
+              "default": "unverified",
+              "enum": [
+                "passed",
+                "failed",
+                "unverified"
+              ],
+              "title": "Outcome Gate",
+              "type": "string"
+            },
+            "question": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OutcomeQuestion"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reason"
+            },
+            "response_steps": {
+              "items": {
+                "$ref": "#/$defs/ResponseStepObservation"
+              },
+              "maxItems": 2,
+              "title": "Response Steps",
+              "type": "array"
+            },
+            "run_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Run Id",
+              "type": "string"
+            },
+            "safety_gate": {
+              "default": "unverified",
+              "enum": [
+                "passed",
+                "failed",
+                "unverified"
+              ],
+              "title": "Safety Gate",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "preparing",
+                "prepared",
+                "decision_required",
+                "decision_stale",
+                "approved",
+                "readback_verified",
+                "outcome_unknown",
+                "waiting",
+                "unverified"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "underlying_action_performed": {
+              "const": false,
+              "default": false,
+              "title": "Underlying Action Performed",
+              "type": "boolean"
+            },
+            "unresolved": {
+              "items": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Unresolved",
+              "type": "array"
+            }
+          },
+          "required": [
+            "run_id",
+            "state"
+          ],
+          "title": "RunOutcome",
+          "type": "object"
+        },
+        "SourceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "external_version": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "External Version",
+              "type": "string"
+            },
+            "observed_at": {
+              "format": "date-time",
+              "title": "Observed At",
+              "type": "string"
+            },
+            "source_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_id",
+            "external_version",
+            "observed_at"
+          ],
+          "title": "SourceRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "artifact_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Artifact Ids",
+          "type": "array"
+        },
+        "completion_criteria": {
+          "items": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 30,
+          "minItems": 1,
+          "title": "Completion Criteria",
+          "type": "array"
+        },
+        "conversation_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conversation Id"
+        },
+        "goal": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Goal",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "owner_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Owner Id",
+          "type": "string"
+        },
+        "responsibility": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResponsibilityOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "run_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Run Ids",
+          "type": "array"
+        },
+        "selected_source_refs": {
+          "items": {
+            "$ref": "#/$defs/SourceRef"
+          },
+          "maxItems": 50,
+          "title": "Selected Source Refs",
+          "type": "array"
+        },
+        "state": {
+          "default": "queued",
+          "enum": [
+            "queued",
+            "running",
+            "ready",
+            "partial",
+            "paused",
+            "cancelled"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "unresolved": {
+          "items": {
+            "maxLength": 10000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Unresolved",
+          "type": "array"
+        },
+        "work_version": {
+          "default": 1,
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Work Version",
+          "type": "integer"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "workspace_id",
+        "owner_id",
+        "goal",
+        "completion_criteria",
+        "selected_source_refs"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "33236df621ec78c22f6db908ad19886c87980639b889b141647853a8b7458d2c",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-read-v1",
+    "id": "legacy.get_artifact",
+    "implementation_sha256": "07b490b3d12d52efcbeadd688b91c582d09e8edcf89f4099232da576ef6b28ab",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision Id"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "workspace_id",
+        "artifact_id"
+      ],
+      "title": "GetArtifactInput",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "Block": {
+          "additionalProperties": false,
+          "properties": {
+            "block_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Block Id",
+              "type": "string"
+            },
+            "checked": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Checked"
+            },
+            "kind": {
+              "enum": [
+                "heading",
+                "paragraph",
+                "checklist",
+                "protected_note"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "text": {
+              "maxLength": 10000,
+              "minLength": 1,
+              "title": "Text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "block_id",
+            "kind",
+            "text"
+          ],
+          "title": "Block",
+          "type": "object"
+        },
+        "Body": {
+          "additionalProperties": false,
+          "properties": {
+            "blocks": {
+              "items": {
+                "$ref": "#/$defs/Block"
+              },
+              "maxItems": 200,
+              "minItems": 1,
+              "title": "Blocks",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "blocks"
+          ],
+          "title": "Body",
+          "type": "object"
+        },
+        "CustomViewBody": {
+          "additionalProperties": false,
+          "properties": {
+            "access_generation": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Access Generation",
+              "type": "integer"
+            },
+            "actions": {
+              "items": {
+                "$ref": "#/$defs/ReadBindingAction"
+              },
+              "maxItems": 8,
+              "title": "Actions",
+              "type": "array"
+            },
+            "bindings": {
+              "items": {
+                "$ref": "#/$defs/ViewBinding"
+              },
+              "maxItems": 4,
+              "title": "Bindings",
+              "type": "array"
+            },
+            "fallback": {
+              "maxLength": 12000,
+              "minLength": 1,
+              "title": "Fallback",
+              "type": "string"
+            },
+            "kind": {
+              "const": "custom_view",
+              "default": "custom_view",
+              "title": "Kind",
+              "type": "string"
+            },
+            "source": {
+              "$ref": "#/$defs/ViewSource"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "version": {
+              "const": "custom-view/v1",
+              "default": "custom-view/v1",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "source",
+            "fallback",
+            "access_generation"
+          ],
+          "title": "CustomViewBody",
+          "type": "object"
+        },
+        "EmptyPayload": {
+          "additionalProperties": false,
+          "properties": {},
+          "title": "EmptyPayload",
+          "type": "object"
+        },
+        "EmptyPayloadSchema": {
+          "additionalProperties": false,
+          "properties": {
+            "additionalProperties": {
+              "const": false,
+              "default": false,
+              "title": "Additionalproperties",
+              "type": "boolean"
+            },
+            "properties": {
+              "$ref": "#/$defs/EmptyPayload"
+            },
+            "type": {
+              "const": "object",
+              "default": "object",
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "title": "EmptyPayloadSchema",
+          "type": "object"
+        },
+        "FileBody": {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "maxLength": 200000,
+              "minLength": 1,
+              "title": "Content",
+              "type": "string"
+            },
+            "content_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Content Sha256",
+              "type": "string"
+            },
+            "filename": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(csv|wat|txt)$",
+              "title": "Filename",
+              "type": "string"
+            },
+            "kind": {
+              "const": "file",
+              "default": "file",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "enum": [
+                "text/csv",
+                "text/plain",
+                "application/wasm-text"
+              ],
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "filename",
+            "mime_type",
+            "content",
+            "content_sha256"
+          ],
+          "title": "FileBody",
+          "type": "object"
+        },
+        "InputField": {
+          "additionalProperties": false,
+          "properties": {
+            "label": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "maximum": {
+              "const": 1000000000,
+              "default": 1000000000,
+              "title": "Maximum",
+              "type": "integer"
+            },
+            "minimum": {
+              "const": -1000000000,
+              "default": -1000000000,
+              "title": "Minimum",
+              "type": "integer"
+            },
+            "name": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            },
+            "type": {
+              "const": "integer",
+              "default": "integer",
+              "title": "Type",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "label"
+          ],
+          "title": "InputField",
+          "type": "object"
+        },
+        "ReadBindingAction": {
+          "additionalProperties": false,
+          "properties": {
+            "binding": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Binding",
+              "type": "string"
+            },
+            "kind": {
+              "const": "read_binding",
+              "default": "read_binding",
+              "title": "Kind",
+              "type": "string"
+            },
+            "name": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            },
+            "payload_schema": {
+              "$ref": "#/$defs/EmptyPayloadSchema"
+            }
+          },
+          "required": [
+            "name",
+            "binding"
+          ],
+          "title": "ReadBindingAction",
+          "type": "object"
+        },
+        "Revision": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "author_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Author Id",
+              "type": "string"
+            },
+            "author_kind": {
+              "enum": [
+                "human",
+                "worker"
+              ],
+              "title": "Author Kind",
+              "type": "string"
+            },
+            "body": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Body"
+                },
+                {
+                  "$ref": "#/$defs/TableBody"
+                },
+                {
+                  "$ref": "#/$defs/FileBody"
+                },
+                {
+                  "$ref": "#/$defs/ToolBody"
+                },
+                {
+                  "$ref": "#/$defs/StructuredTableBody"
+                },
+                {
+                  "$ref": "#/$defs/CustomViewBody"
+                }
+              ],
+              "title": "Body"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "created_at": {
+              "format": "date-time",
+              "title": "Created At",
+              "type": "string"
+            },
+            "id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Id",
+              "type": "string"
+            },
+            "parent_revision_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parent Revision Id"
+            },
+            "revision_number": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Revision Number",
+              "type": "integer"
+            },
+            "source_dependencies": {
+              "items": {
+                "$ref": "#/$defs/SourceRef"
+              },
+              "maxItems": 50,
+              "title": "Source Dependencies",
+              "type": "array"
+            }
+          },
+          "required": [
+            "id",
+            "artifact_id",
+            "revision_number",
+            "parent_revision_id",
+            "author_id",
+            "author_kind",
+            "body",
+            "body_hash",
+            "source_dependencies"
+          ],
+          "title": "Revision",
+          "type": "object"
+        },
+        "SourceRef": {
+          "additionalProperties": false,
+          "properties": {
+            "external_version": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "External Version",
+              "type": "string"
+            },
+            "observed_at": {
+              "format": "date-time",
+              "title": "Observed At",
+              "type": "string"
+            },
+            "source_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_id",
+            "external_version",
+            "observed_at"
+          ],
+          "title": "SourceRef",
+          "type": "object"
+        },
+        "StructuredTableBody": {
+          "additionalProperties": false,
+          "properties": {
+            "fields": {
+              "items": {
+                "$ref": "#/$defs/TableField"
+              },
+              "maxItems": 24,
+              "minItems": 1,
+              "title": "Fields",
+              "type": "array"
+            },
+            "kind": {
+              "const": "structured_table",
+              "default": "structured_table",
+              "title": "Kind",
+              "type": "string"
+            },
+            "notes": {
+              "items": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 10,
+              "title": "Notes",
+              "type": "array"
+            },
+            "rows": {
+              "items": {
+                "$ref": "#/$defs/TableRow"
+              },
+              "maxItems": 200,
+              "title": "Rows",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "version": {
+              "const": "structured-table/v1",
+              "default": "structured-table/v1",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "fields",
+            "rows"
+          ],
+          "title": "StructuredTableBody",
+          "type": "object"
+        },
+        "TableBody": {
+          "additionalProperties": false,
+          "properties": {
+            "columns": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 33,
+              "title": "Columns",
+              "type": "array"
+            },
+            "kind": {
+              "const": "table",
+              "default": "table",
+              "title": "Kind",
+              "type": "string"
+            },
+            "notes": {
+              "items": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Notes",
+              "type": "array"
+            },
+            "rounding": {
+              "enum": [
+                "ROUND_HALF_UP",
+                "ROUND_HALF_EVEN"
+              ],
+              "title": "Rounding",
+              "type": "string"
+            },
+            "rows": {
+              "items": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              "maxItems": 500,
+              "title": "Rows",
+              "type": "array"
+            },
+            "source_csv": {
+              "maxLength": 200000,
+              "minLength": 1,
+              "title": "Source Csv",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "source_csv",
+            "rounding",
+            "columns",
+            "rows"
+          ],
+          "title": "TableBody",
+          "type": "object"
+        },
+        "TableCell": {
+          "additionalProperties": false,
+          "properties": {
+            "field_key": {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "title": "Field Key",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value"
+            }
+          },
+          "required": [
+            "field_key",
+            "value"
+          ],
+          "title": "TableCell",
+          "type": "object"
+        },
+        "TableField": {
+          "additionalProperties": false,
+          "properties": {
+            "editable": {
+              "title": "Editable",
+              "type": "boolean"
+            },
+            "enum": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maxLength": 120,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 30,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Enum"
+            },
+            "key": {
+              "pattern": "^[a-z][a-z0-9_]{0,47}$",
+              "title": "Key",
+              "type": "string"
+            },
+            "label": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Label",
+              "type": "string"
+            },
+            "scale": {
+              "anyOf": [
+                {
+                  "maximum": 6,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Scale"
+            },
+            "type": {
+              "enum": [
+                "text",
+                "integer",
+                "decimal",
+                "boolean",
+                "enum"
+              ],
+              "title": "Type",
+              "type": "string"
+            },
+            "unit": {
+              "anyOf": [
+                {
+                  "maxLength": 40,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Unit"
+            }
+          },
+          "required": [
+            "key",
+            "label",
+            "type",
+            "editable"
+          ],
+          "title": "TableField",
+          "type": "object"
+        },
+        "TableRow": {
+          "additionalProperties": false,
+          "properties": {
+            "cells": {
+              "items": {
+                "$ref": "#/$defs/TableCell"
+              },
+              "maxItems": 24,
+              "title": "Cells",
+              "type": "array"
+            },
+            "row_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Row Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "row_id",
+            "cells"
+          ],
+          "title": "TableRow",
+          "type": "object"
+        },
+        "ToolBody": {
+          "additionalProperties": false,
+          "properties": {
+            "arguments": {
+              "items": {
+                "maximum": 1000000000,
+                "minimum": -1000000000,
+                "type": "integer"
+              },
+              "maxItems": 8,
+              "title": "Arguments",
+              "type": "array"
+            },
+            "code": {
+              "maxLength": 16000,
+              "minLength": 1,
+              "title": "Code",
+              "type": "string"
+            },
+            "entrypoint": {
+              "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$",
+              "title": "Entrypoint",
+              "type": "string"
+            },
+            "input_form": {
+              "items": {
+                "$ref": "#/$defs/InputField"
+              },
+              "maxItems": 8,
+              "title": "Input Form",
+              "type": "array"
+            },
+            "kind": {
+              "const": "tool",
+              "default": "tool",
+              "title": "Kind",
+              "type": "string"
+            },
+            "notes": {
+              "items": {
+                "maxLength": 10000,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Notes",
+              "type": "array"
+            },
+            "title": {
+              "maxLength": 240,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "code",
+            "entrypoint",
+            "arguments",
+            "input_form"
+          ],
+          "title": "ToolBody",
+          "type": "object"
+        },
+        "ViewBinding": {
+          "additionalProperties": false,
+          "properties": {
+            "artifact_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "body_hash": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Body Hash",
+              "type": "string"
+            },
+            "name": {
+              "pattern": "^[a-z][a-z0-9_.-]{0,63}$",
+              "title": "Name",
+              "type": "string"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "artifact_id",
+            "revision_id",
+            "body_hash"
+          ],
+          "title": "ViewBinding",
+          "type": "object"
+        },
+        "ViewSource": {
+          "additionalProperties": false,
+          "properties": {
+            "css": {
+              "default": "",
+              "maxLength": 48000,
+              "title": "Css",
+              "type": "string"
+            },
+            "html": {
+              "maxLength": 48000,
+              "minLength": 1,
+              "title": "Html",
+              "type": "string"
+            },
+            "js": {
+              "default": "",
+              "maxLength": 48000,
+              "title": "Js",
+              "type": "string"
+            }
+          },
+          "required": [
+            "html"
+          ],
+          "title": "ViewSource",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assignment Id"
+        },
+        "conversation_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conversation Id"
+        },
+        "current_revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "current_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Current Revision Id",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "requested_revision": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Revision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "workspace_id",
+        "current_revision_id",
+        "current_revision"
+      ],
+      "title": "Artifact",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "run_context"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "d761b90a5af9f86a98dadd93d65083b7d1884a3097d48648113da388c14a7084",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  }
+]

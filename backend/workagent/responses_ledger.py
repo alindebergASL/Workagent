@@ -441,9 +441,17 @@ def summary(c,grant_id,*,shared=False):
         carried = carry['cost']
         if carry['n']:
             carry_fields = {'carried_reserved_cost_usd':str(carried)}
-    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
+    from .capabilities.observations import accounting
+    tools=accounting(c,grant_id,shared=shared)
+    tool_fields=({'tool_accounting':tools,'model_calculated_cost_usd':str(calculated) if not unknown else None}
+                 if tools else {})
+    tool_reserved=Decimal(tools['reserved_cost_usd']) if tools else Decimal(0)
+    # Local elapsed/CPU measurements do not establish dollars or provider billing.
+    # Never label the model-only calculation as the combined cost.
+    total_calculated=None if tools else (str(calculated) if not unknown else None)
+    return {**carry_fields,**tool_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
             'reserved_output_tokens':int(totals['reserved_output']),
-            'reserved_cost_usd':str(carried+totals['reserved_cost']),
+            'reserved_cost_usd':str(carried+totals['reserved_cost']+tool_reserved),
             'reported_usage':{'input_tokens':int(totals['reported_input']),'output_tokens':int(totals['reported_output'])},
-            'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
+            'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':total_calculated,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

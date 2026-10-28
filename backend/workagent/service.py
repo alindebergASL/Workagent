@@ -614,6 +614,8 @@ class ServiceCore(Documents, WorkAreas, FlexibleWork, Products, ConversationInte
                 row=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',(r.workspace_id,source['id'])).fetchone()
                 if not row or digest(row['content'])!=source['sha256']:
                     raise DomainError('source_changed')
+        from .capabilities.policy import require_run_tools
+        require_run_tools(c,r)
         return p,r,a
 
     def worker_inputs(self,cap):

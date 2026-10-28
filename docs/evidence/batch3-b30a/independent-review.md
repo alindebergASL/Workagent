@@ -1,0 +1,12 @@
+# B3.0a independent risk review and disposition
+
+One read-only independent Astra review inspected the working-tree capability modules, migration053, stage seam and tests. It identified these material issues in the initial candidate; the parent fixed them and added direct regressions. This is not a claim that the reviewer approved later uninspected bytes.
+
+1. **Completed observation could not be reused after lease reclamation.** Broker now reauthorizes current run/installation/grant and reuses the immutable exact-call observation before dispatch; dispatch still rejects old lease ownership. `test_completed_tool_reused_by_reclaimed_worker_without_send` proves one invocation across fences.
+2. **Grant revocation stopped new calls but not all downstream consumption.** Shared Service capability check plus SQL model-event/publication guards enforce active tool grant/current pins. Tests cover context/publication denial and revocation after staged observation before the next model request. Late receipt settlement remains write-only/cost-only.
+3. **Typed legacy output was serialized to JSON then strictly validated as Python, rejecting datetime strings.** Typed instances are now dumped directly; raw JSON is validated with the strict JSON validator. Both assignment/artifact adapters have actual-PG regressions.
+4. **Upgrade gave new-table reads only to freshly provisioned roles.** Migration053 now grants SELECT to the pre-existing restricted runtime role. Accepted052 source/data are created with that old role, historical work/money/receipts snapshotted,053 migrated twice, unchanged snapshots verified and gateway work executed with the SAME role.
+
+Review also called out incomplete evidence for mixed model/tool accounting and a true endpoint/checkpoint journey. Added atomic mixed-reservation tests in both orders/concurrently, historical carry inclusion, and a real TCP API admission/read/event/checkpoint/restart/revocation journey with controlled synthetic transport.
+
+Parent self-review additionally prevented opted-in runs escaping through legacy Broker or uninstalled composition effects, made wrapped discovery current-authority-aware, pinned common implementation dependencies, and prevented write-only late receipt replay from disclosing old output. Targeted tests and canonical checks must pass on the final source; see command receipts. No paid provider, private connector, UI, sandbox or model-usefulness claim is made.
