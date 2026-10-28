@@ -3,6 +3,7 @@ import { chromium, expect } from "@playwright/test";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { scopedHeaders } from "./lib/scope.mjs";
 // Notes are one box each (NotesList), saved exactly as written.
 const notesGroup = (scope, name = "Your notes") =>
   scope.getByRole("group", { name, exact: true });
@@ -34,10 +35,10 @@ const out = path.resolve(process.argv[2]);
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const base = origin + "/api/domain/v1/workspaces/local-workspace";
-const headers = {
+const headers = await scopedHeaders(origin, {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
-};
+});
 async function get(p) {
   const r = await fetch(base + p, { headers });
   expect(r.status).toBe(200);

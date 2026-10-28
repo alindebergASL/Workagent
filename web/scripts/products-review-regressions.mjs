@@ -44,6 +44,10 @@ import {InPlaceView} from '@/components/FlexibleWork';
 import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
 import {readAttachment} from '@/lib/contract/natural';
+import {bindMockIdentity} from '@/lib/client/session-scope';
+// No ScopeGate in the fixture: bind the demo scope before the first render.
+bindMockIdentity();
+window.sk = (k) => 'workagent:scope:v1:' + '0'.repeat(64) + ':' + k;
 function Reply({ws,cid,version}) {
   const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural),held:Boolean(window.replyHeld)});
   return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
@@ -372,14 +376,16 @@ try {
     await expect(page.getByLabel("Test reply")).toHaveValue("Newer reply B");
     assert.equal(
       await page.evaluate(() =>
-        sessionStorage.getItem("workagent:conversation:c"),
+        sessionStorage.getItem(window.sk("workagent:conversation:c")),
       ),
       "Newer reply B",
     );
     assert.deepEqual(
       JSON.parse(
         await page.evaluate(() =>
-          sessionStorage.getItem("workagent:pending:w:conversation:c:send"),
+          sessionStorage.getItem(
+            window.sk("workagent:pending:w:conversation:c:send"),
+          ),
         ),
       ),
       newer.payload,
@@ -408,7 +414,7 @@ try {
       window.ambiguous = ambiguous;
       const original = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key.startsWith("workagent:pending:"))
+        if (key.startsWith(window.sk("workagent:pending:")))
           throw new DOMException("full", "QuotaExceededError");
         return original.call(this, key, value);
       };
@@ -716,7 +722,9 @@ try {
         }),
       ).toBeDisabled();
       const kept = await page.evaluate(() =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")),
+        JSON.parse(
+          sessionStorage.getItem(window.sk("workagent:product:w:c:a")),
+        ),
       );
       assert.deepEqual(kept.body.arguments, [3]);
       assert.equal(kept.body.input_form[0].label, "Quantity");
@@ -745,8 +753,8 @@ try {
   assert.deepEqual(
     await page.evaluate(
       () =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
-          .arguments,
+        JSON.parse(sessionStorage.getItem(window.sk("workagent:product:w:c:a")))
+          .body.arguments,
     ),
     [4],
   );
@@ -757,7 +765,7 @@ try {
   await mount("away");
   await expect(page.getByText("Navigation away")).toBeVisible();
   await page.evaluate(() => {
-    const key = "workagent:product:w:c:a";
+    const key = window.sk("workagent:product:w:c:a");
     const kept = JSON.parse(sessionStorage.getItem(key));
     kept.toolInputs = [{ name: "quantity", label: "Quantity", value: "9" }];
     sessionStorage.setItem(key, JSON.stringify(kept));
@@ -783,8 +791,8 @@ try {
   assert.deepEqual(
     await page.evaluate(
       () =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
-          .arguments,
+        JSON.parse(sessionStorage.getItem(window.sk("workagent:product:w:c:a")))
+          .body.arguments,
     ),
     [4],
   );
@@ -833,7 +841,9 @@ try {
   assert.equal(lost.payload.target, undefined);
   const stored = await page.evaluate(() =>
     sessionStorage.getItem(
-      `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
+      window.sk(
+        `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
+      ),
     ),
   );
   assert.deepEqual(JSON.parse(stored), lost.payload);
@@ -882,7 +892,7 @@ try {
   await mount("away");
   await expect(page.getByText("Navigation away")).toBeVisible();
   await page.evaluate((data) => {
-    sessionStorage.removeItem("workagent:product:w:c:a");
+    sessionStorage.removeItem(window.sk("workagent:product:w:c:a"));
     window.resource = {
       data,
       error: null,
@@ -2134,7 +2144,11 @@ try {
     await page.evaluate(
       ([data, mode]) => {
         sessionStorage.clear();
-        if (mode) sessionStorage.setItem("workagent:product:w:c:a:mode", mode);
+        if (mode)
+          sessionStorage.setItem(
+            window.sk("workagent:product:w:c:a:mode"),
+            mode,
+          );
         window.resource = {
           data,
           error: null,
@@ -2773,7 +2787,7 @@ try {
     await page.evaluate(() => {
       window.realSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key === "workagent:product:w:c:a")
+        if (key === window.sk("workagent:product:w:c:a"))
           throw new DOMException("full", "QuotaExceededError");
         return window.realSetItem.call(this, key, value);
       };
@@ -2827,7 +2841,7 @@ try {
     await page.evaluate(() => {
       window.realSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key === "workagent:product:w:c:a")
+        if (key === window.sk("workagent:product:w:c:a"))
           throw new DOMException("full", "QuotaExceededError");
         return window.realSetItem.call(this, key, value);
       };
@@ -3440,7 +3454,7 @@ try {
     const long =
       "quarterly-volunteer-schedule-with-a-very-long-descriptive-name";
     sessionStorage.setItem(
-      "workagent:conversation:c:files",
+      window.sk("workagent:conversation:c:files"),
       JSON.stringify([
         { filename: `${long}.csv`, mime_type: "text/csv", content: "id\n1\n" },
         {

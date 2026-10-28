@@ -11,6 +11,7 @@ import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sessionScope } from "./lib/scope.mjs";
 
 // A piece of work opens on its result; editing is its Edit tab. The choice
 // is remembered for that work in the tab, so later visits open on it.
@@ -33,10 +34,15 @@ await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
 const ws = ids.workspace;
 const base = `${origin}/api/domain/v1/workspaces/${ws}`;
+const scope = await sessionScope(origin);
 const headers = {
   "X-Workagent-Client": "local-ui",
   "Content-Type": "application/json",
+  "X-Workagent-Scope": scope,
 };
+// Home's "Since you left" marker, as since-marker.ts keeps it through
+// scopedLocal: the page's bound scope, then the marker's own key.
+const seenHomeKey = `workagent:scope:v1:${scope}:workagent:seen:home`;
 async function api(p, body) {
   const r = await fetch(base + p, {
     method: body ? "POST" : "GET",
@@ -2198,16 +2204,14 @@ try {
     });
     await expect(tab.getByTestId("home-unreadable")).toHaveCount(0);
     await expect
-      .poll(() =>
-        tab.evaluate((k) => localStorage.getItem(k), "workagent:seen:home"),
-      )
+      .poll(() => tab.evaluate((k) => localStorage.getItem(k), seenHomeKey))
       .not.toBeNull();
     await expect(since).toHaveCount(0);
 
-    await tab.evaluate(() => {
-      localStorage.setItem("workagent:seen:home", "2000-01-01T00:00:00Z");
+    await tab.evaluate((k) => {
+      localStorage.setItem(k, "2000-01-01T00:00:00Z");
       sessionStorage.clear();
-    });
+    }, seenHomeKey);
     await tab.reload();
     await expect(since).toBeVisible({ timeout: 15000 });
     const entries = await since.locator("li").evaluateAll((lis) =>
