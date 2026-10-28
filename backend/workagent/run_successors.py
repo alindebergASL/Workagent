@@ -37,8 +37,10 @@ def has_new_progress(c,ws,rid,config):
 def scope_fingerprint(service,c,p,ws,cv,config,*,versions=True):
     from .service import digest
     sources=[{'id':ref.source_id,'data':service._source(c,p,ws,ref,versions)['data']} for ref in cv.selected_source_refs]
-    artifacts=c.execute('SELECT id,current_revision_id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',
-        (ws,cv.id)).fetchall()
+    artifacts=c.execute('''SELECT a.id,a.current_revision_id FROM artifacts a WHERE a.workspace_id=%s AND a.conversation_id=%s
+        AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
+            AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',
+        (ws,cv.id,p.id)).fetchall()
     binding=config.get('responsibility')
     if binding:
         allowed={d['object_id'] for d in binding['observations'] if d['kind']=='artifact_revision'}

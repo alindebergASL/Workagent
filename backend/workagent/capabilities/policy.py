@@ -59,11 +59,10 @@ def authorize(service,c,cap,call,adapter):
         or any(ref not in g.resource_selectors for ref in call.input_refs)
         or (d.required_permission_template=='public_https' and g.egress!='public_https')):
         deny()
-    # Exact resource resolvers stay in the legacy scoped handlers. A caller cannot
-    # use an unrelated ref as authority for different arguments.
-    if call.input_refs:
-        # This initial run-context adapter family accepts no file/blob selectors.
-        # Successor adapters must resolve their typed refs here before dispatch.
+    if d.execution_profile == 'native-bounded-files-v1':
+        from .file_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
+    elif call.input_refs:
         deny()
     return p,run,scope,g
 

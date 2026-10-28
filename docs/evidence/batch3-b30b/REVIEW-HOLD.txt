@@ -1,0 +1,15 @@
+B3.0b: HOLD — task t_04c80dd1
+
+Independent Astra review completed. Original R1 privacy/count leakage and R2 native rejection recovery passed scoped review. Two P1 web defects remain:
+R3: replaying an unresolved save can discard newer human edits.
+R4: a late create completion can erase a newer pending command and draft, losing duplicate-effect protection.
+
+Claude owns web, and the task's one bounded correction prompt was already used. A further bounded Claude correction needs an explicit allowance. No additional writer was launched; successor t_ae17ebd1 remains gated.
+
+Verified: 13 final worker/DOCX/R1/R2 checks passed; 163 transport/gateway checks passed. The larger core run remains recorded as 123 passed/1 failed, with that test-accessor failure corrected and covered by the13-pass rerun. Current-source browser journeys passed at1440/390/320 and real PTY journeys at80x24/120x40, with negative harness evidence retained. These happy-path results do not resolve the two review races.
+
+63-file exact-source manifest, commands/exits, build/API identities, review and UI evidence:
+docs/evidence/batch3-b30b/HANDOFF.md
+docs/evidence/batch3-b30b/verification-manifest.json
+
+Owned proof services stopped; old runtimes preserved. No product-provider calls, installed-data maintenance, commit, push or downstream release.

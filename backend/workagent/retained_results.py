@@ -39,6 +39,8 @@ POLICY += ' Original attachments: use read_attachment with message_id, ref and s
 
 
 def enabled(config):
+    from .capabilities.file_composition import enabled as file_enabled
+    if file_enabled(config): return True
     return (config.get('responses',{}).get('continuity_version')=='sustained-v1'
             and config.get('responses',{}).get('scope_tool_sha256')==sha256(SCHEMA.material).hexdigest())
 

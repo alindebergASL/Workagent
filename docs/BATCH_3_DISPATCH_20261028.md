@@ -1,5 +1,9 @@
 # Approved Batch 3 execution dispatch
 
+## Owner-selected Claude model (2026-10-28 update)
+
+The user explicitly requested switching Claude Code CLI to Opus 5.5. All subsequent Workagent Claude invocations must use `--model claude-opus-5-5[1m]`, preserving the existing account, permissions, per-invocation limits and ownership. This supersedes historical Fable model pins and the model-default-change prohibition below solely for this requested selection. Hermes/Astra and the product model are unchanged. Prior execution/model receipts remain historical; do not rewrite them. The quota-reset continuation subsequently executed successfully on the same account; model selection alone is never proof that a quota cleared. B3.0b acceptance is recorded in [its exact-source handoff](evidence/batch3-b30b/ACCEPTANCE.md); B3.1a is the existing next slice.
+
 Status: EXECUTION DISPATCHED, NOT BATCH3 COMPLETE. Parent completed t_e6085a65; t_00258f1e was verified running with a heartbeat at 2026-10-28 10:41 UTC. Parent applied and independently read back max_retries=1 on all20 existing cards using the guarded board API; no global limit or delegated-context guard was changed. All20 Telegram notify+wake subscriptions, bodies, edges, model/runtime bounds and630 baseline source hashes verified. Original worker capability failure remains preserved in graph-manifest.json; authoritative current setup is .local/batch3-dispatch/parent-verified-graph.json. The separate private-consent card is needs_input and has no engineering descendants. Normal completion released the existing first successor; later execution cards remain serially dependency-gated. This is an orchestration handoff, not Batch 3 acceptance. Dispatch task t_e6085a65 follows accepted t_99aaa2a0. Andrew approved recovery steps 1–5 and original Batch 3 execution; historical planning-only/start-approval wording is superseded, not another gate.
 
 ## Verified starting state

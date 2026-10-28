@@ -1,0 +1,146 @@
+{
+  "size": [
+    80,
+    24
+  ],
+  "actions": [
+    {
+      "keys": "Unsent conversation pty80 preserve me"
+    },
+    {
+      "keys": "\u001b[<0;24;4M\u001b[<0;24;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;6;22M\u001b[<0;6;22m"
+    },
+    {
+      "keys": "\u0001"
+    },
+    {
+      "keys": "\u000b"
+    },
+    {
+      "keys": "native80.txt"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "Original human annotation pty80"
+    },
+    {
+      "keys": "\u0013"
+    },
+    {
+      "keys": "\u0012"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " Saved human edit pty80"
+    },
+    {
+      "keys": "\u0013"
+    },
+    {
+      "keys": "\u0012"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<0;3;22M\u001b[<0;3;22m"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<0;5;23M\u001b[<0;5;23m"
+    },
+    {
+      "keys": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/resume-pty-proof/pty80-download.txt"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<0;3;22M\u001b[<0;3;22m"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<65;75;19M"
+    },
+    {
+      "keys": "\u001b[<0;7;23M\u001b[<0;7;23m"
+    },
+    {
+      "keys": "\u001b[1;5F"
+    },
+    {
+      "keys": " UNSENT file draft pty80"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u0011"
+    },
+    {
+      "keys": "\u001b[<0;24;4M\u001b[<0;24;4m"
+    }
+  ],
+  "pass_": false,
+  "download_sha256": "04f868f39b6cc47f980feb92e601566aa5398b9298a37ace3be54fb31575fcdb",
+  "download_bytes": 54
+}

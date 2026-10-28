@@ -51,9 +51,12 @@ class Broker:
             bound=c.execute('SELECT 1 FROM tool_grants WHERE workspace_id=%s AND run_id=%s',
                             (run.workspace_id,run.id)).fetchone()
         if bound:
+            from .capabilities.registry import adapters
+            adapter=adapters().get('legacy.'+name)
+            if adapter is None: raise DomainError('unsupported_operation')
             result=CapabilityBroker(self._service,self._cap).call(ToolCallV1(
                 call_id=digest({'name':name,'arguments':arguments}),capability_id='legacy.'+name,
-                capability_version='1',arguments=arguments,input_refs=[],expected_work_version=scope.work_version))
+                capability_version=adapter.descriptor.version,arguments=arguments,input_refs=[],expected_work_version=scope.work_version))
             if result.status!='observed':
                 raise DomainError('action_unresolved')
             return TOOLS[name][1].model_validate_json(canonical(result.output))

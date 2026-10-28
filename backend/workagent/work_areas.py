@@ -37,6 +37,11 @@ class WorkAreas:
             scope=('artifact_id IN (SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s)'
                    if table=='proposals' else 'conversation_id=%s')
             params=(ws,ws,cv.id) if table=='proposals' else (ws,cv.id)
+            if table in ('artifacts','proposals'):
+                artifact_key='artifacts.id' if table=='artifacts' else 'proposals.artifact_id'
+                scope+=(' AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE '
+                        f'f.workspace_id={table}.workspace_id AND f.artifact_id={artifact_key} AND f.owner_id<>%s)')
+                params=(*params,p.id)
             rows=c.execute(f'SELECT id,count(*) OVER () AS total FROM {table} '
                 'WHERE workspace_id=%s AND '+scope+extra+
                 (' AND id=ANY(%s)' if selected is not None else '')+

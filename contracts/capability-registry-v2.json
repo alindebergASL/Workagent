@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "fe90f189e4cc0112acef90ab2f20e7c58f41f300784d931c8c99eb823ea5b2e1",
+    "implementation_sha256": "b3093f9d1dc97440f9ed195b343314a116126b532de64d9b0e1f3e387474d9f6",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -79,7 +79,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "53c9a35949c949147450b9f769bb7a140bd3bc440466d3a1d25a0e2309289cbc",
+    "implementation_sha256": "c30bf4739a483123a539c19495987d9de6ecee4954f2c715e5ded1076a7355c2",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -190,7 +190,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "ac309f0faa57d9a851d13be8bf01eee9b6c3de05655b4a0a1037c76ac5dcc165",
+    "implementation_sha256": "9b64fe9ab8a52dbea63e8b15ffcd7506a15fecd225ddbd68826b663525fa167f",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -269,7 +269,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "c98a51c9bf23c8e1b486c178f2dae5dc09933873e779e40a14674fc056e557ce",
+    "implementation_sha256": "3ec26f9e4a55472b636424d185c497a8010839b555aa51e60bb28d844c32064a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -340,7 +340,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "c98a51c9bf23c8e1b486c178f2dae5dc09933873e779e40a14674fc056e557ce",
+    "implementation_sha256": "3ec26f9e4a55472b636424d185c497a8010839b555aa51e60bb28d844c32064a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -432,7 +432,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "07b490b3d12d52efcbeadd688b91c582d09e8edcf89f4099232da576ef6b28ab",
+    "implementation_sha256": "87603ef9dc468e5b77bf6278ebc49b27f124a638a965da7cfb3bf81a4ff4ab2e",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1269,7 +1269,7 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
-    "version": "1"
+    "version": "2"
   },
   {
     "availability_reason": "needs_consent",
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "07b490b3d12d52efcbeadd688b91c582d09e8edcf89f4099232da576ef6b28ab",
+    "implementation_sha256": "87603ef9dc468e5b77bf6278ebc49b27f124a638a965da7cfb3bf81a4ff4ab2e",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2258,6 +2258,1490 @@
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
     "schema_sha256": "d761b90a5af9f86a98dadd93d65083b7d1884a3097d48648113da388c14a7084",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "2"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "files.list",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "After"
+        },
+        "kind": {
+          "const": "files_list",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "after",
+        "limit"
+      ],
+      "title": "FilesList",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        },
+        "WorkspaceFile": {
+          "additionalProperties": false,
+          "properties": {
+            "byte_length": {
+              "minimum": 0,
+              "title": "Byte Length",
+              "type": "integer"
+            },
+            "conversation_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            },
+            "current": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "editable": {
+              "title": "Editable",
+              "type": "boolean"
+            },
+            "filename": {
+              "title": "Filename",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "storage": {
+              "enum": [
+                "artifact_revision",
+                "source_snapshot"
+              ],
+              "title": "Storage",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "workspace_id",
+            "conversation_id",
+            "filename",
+            "mime_type",
+            "storage",
+            "current",
+            "byte_length",
+            "editable"
+          ],
+          "title": "WorkspaceFile",
+          "type": "object"
+        },
+        "WorkspaceFilePage": {
+          "additionalProperties": false,
+          "properties": {
+            "items": {
+              "items": {
+                "$ref": "#/$defs/WorkspaceFile"
+              },
+              "title": "Items",
+              "type": "array"
+            },
+            "next_after": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Next After"
+            }
+          },
+          "required": [
+            "items"
+          ],
+          "title": "WorkspaceFilePage",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "files_list",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/WorkspaceFilePage"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "FilesListOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "4dae751ed7acadba68844d366c58511a688b63d9e0827451ad38b79a70c21362",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "files.read_range",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "$defs": {
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_read_range",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 8192,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "offset",
+        "limit"
+      ],
+      "title": "FilesReadRange",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "FileRange": {
+          "additionalProperties": false,
+          "properties": {
+            "byte_length": {
+              "minimum": 0,
+              "title": "Byte Length",
+              "type": "integer"
+            },
+            "chunk_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Chunk Sha256",
+              "type": "string"
+            },
+            "has_utf8_bom": {
+              "title": "Has Utf8 Bom",
+              "type": "boolean"
+            },
+            "newline": {
+              "enum": [
+                "none",
+                "lf",
+                "crlf",
+                "cr",
+                "mixed"
+              ],
+              "title": "Newline",
+              "type": "string"
+            },
+            "next_offset": {
+              "minimum": 0,
+              "title": "Next Offset",
+              "type": "integer"
+            },
+            "offset": {
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            },
+            "omitted_ranges": {
+              "items": {
+                "$ref": "#/$defs/OmittedByteRange"
+              },
+              "title": "Omitted Ranges",
+              "type": "array"
+            },
+            "ref": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "source_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Snapshot Id"
+            },
+            "text": {
+              "title": "Text",
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref",
+            "text",
+            "offset",
+            "next_offset",
+            "byte_length",
+            "chunk_sha256",
+            "omitted_ranges",
+            "has_utf8_bom",
+            "newline"
+          ],
+          "title": "FileRange",
+          "type": "object"
+        },
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        },
+        "OmittedByteRange": {
+          "additionalProperties": false,
+          "properties": {
+            "end": {
+              "minimum": 0,
+              "title": "End",
+              "type": "integer"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "start": {
+              "minimum": 0,
+              "title": "Start",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "start",
+            "end",
+            "sha256"
+          ],
+          "title": "OmittedByteRange",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "files_read_range",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/FileRange"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "FilesReadRangeOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "b134c87e22e4f85c491b271ec7c911c7bd09850fd3e6cf0fce586bede44f98d6",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "draft"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "files.create_draft",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "$defs": {
+        "DraftText": {
+          "additionalProperties": false,
+          "properties": {
+            "content": {
+              "maxLength": 200000,
+              "minLength": 1,
+              "title": "Content",
+              "type": "string"
+            },
+            "filename": {
+              "maxLength": 85,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+              "title": "Filename",
+              "type": "string"
+            },
+            "kind": {
+              "const": "text",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "enum": [
+                "text/plain",
+                "text/markdown",
+                "text/csv",
+                "application/json"
+              ],
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "content",
+            "sha256",
+            "kind",
+            "filename",
+            "mime_type"
+          ],
+          "title": "DraftText",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_create_draft",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/DraftText"
+        }
+      },
+      "required": [
+        "kind",
+        "source"
+      ],
+      "title": "FilesCreateDraft",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        },
+        "WorkspaceFile": {
+          "additionalProperties": false,
+          "properties": {
+            "byte_length": {
+              "minimum": 0,
+              "title": "Byte Length",
+              "type": "integer"
+            },
+            "conversation_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            },
+            "current": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "editable": {
+              "title": "Editable",
+              "type": "boolean"
+            },
+            "filename": {
+              "title": "Filename",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "storage": {
+              "enum": [
+                "artifact_revision",
+                "source_snapshot"
+              ],
+              "title": "Storage",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "workspace_id",
+            "conversation_id",
+            "filename",
+            "mime_type",
+            "storage",
+            "current",
+            "byte_length",
+            "editable"
+          ],
+          "title": "WorkspaceFile",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "files_create_draft",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/WorkspaceFile"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "FilesCreateDraftOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "1bb88253c5f069a3265ba2a6ed68aca58f25f51522d185f779c577325bdc9382",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "draft"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "files.propose_patch",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "$defs": {
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "maxLength": 200000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "kind": {
+          "const": "files_propose_patch",
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "maxLength": 10000,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "ref",
+        "content",
+        "sha256",
+        "reason"
+      ],
+      "title": "FilesProposePatch",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "FilePatchReceipt": {
+          "additionalProperties": false,
+          "properties": {
+            "base": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "proposal_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Proposal Id",
+              "type": "string"
+            },
+            "proposed_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Proposed Sha256",
+              "type": "string"
+            },
+            "status": {
+              "const": "pending",
+              "title": "Status",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "proposal_id",
+            "workspace_file_id",
+            "base",
+            "proposed_sha256",
+            "status"
+          ],
+          "title": "FilePatchReceipt",
+          "type": "object"
+        },
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "files_propose_patch",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/FilePatchReceipt"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "FilesProposePatchOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "a283d4907945e4bdc00cf45e4a9ca8cf9250066dd8f05465e4ce9e6355be1d21",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "files.compare",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "$defs": {
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "files_compare",
+          "title": "Kind",
+          "type": "string"
+        },
+        "left": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "right": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "kind",
+        "left",
+        "right"
+      ],
+      "title": "FilesCompare",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "FileComparison": {
+          "additionalProperties": false,
+          "properties": {
+            "diff": {
+              "title": "Diff",
+              "type": "string"
+            },
+            "diff_bytes": {
+              "minimum": 0,
+              "title": "Diff Bytes",
+              "type": "integer"
+            },
+            "diff_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Diff Sha256",
+              "type": "string"
+            },
+            "identical": {
+              "title": "Identical",
+              "type": "boolean"
+            },
+            "left": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "left_omitted_ranges": {
+              "items": {
+                "$ref": "#/$defs/OmittedByteRange"
+              },
+              "title": "Left Omitted Ranges",
+              "type": "array"
+            },
+            "omitted_diff_ranges": {
+              "items": {
+                "$ref": "#/$defs/OmittedByteRange"
+              },
+              "title": "Omitted Diff Ranges",
+              "type": "array"
+            },
+            "right": {
+              "$ref": "#/$defs/FileVersionRef"
+            },
+            "right_omitted_ranges": {
+              "items": {
+                "$ref": "#/$defs/OmittedByteRange"
+              },
+              "title": "Right Omitted Ranges",
+              "type": "array"
+            }
+          },
+          "required": [
+            "left",
+            "right",
+            "identical",
+            "diff",
+            "diff_sha256",
+            "diff_bytes",
+            "omitted_diff_ranges",
+            "left_omitted_ranges",
+            "right_omitted_ranges"
+          ],
+          "title": "FileComparison",
+          "type": "object"
+        },
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        },
+        "OmittedByteRange": {
+          "additionalProperties": false,
+          "properties": {
+            "end": {
+              "minimum": 0,
+              "title": "End",
+              "type": "integer"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "start": {
+              "minimum": 0,
+              "title": "Start",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "start",
+            "end",
+            "sha256"
+          ],
+          "title": "OmittedByteRange",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "files_compare",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/FileComparison"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "FilesCompareOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "ae87be058818d3a1793a80b0331270a0c4e44bb5f00b56755a4aeff3ed37e761",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "rendering",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "native-bounded-files-v1",
+    "id": "artifacts.export",
+    "implementation_sha256": "1a0606b0b77e9fa89044128562748e535ca8c839905fe7b865c884afa1730c28",
+    "input_schema": {
+      "$defs": {
+        "ExportInputRef": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Id",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "workspace_file",
+                "artifact_revision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "version",
+            "sha256"
+          ],
+          "title": "ExportInputRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "input_ref": {
+          "$ref": "#/$defs/ExportInputRef"
+        },
+        "kind": {
+          "const": "artifacts_export",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "input_ref",
+        "format"
+      ],
+      "title": "ArtifactsExport",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ExportManifest": {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "enum": [
+                "included",
+                "not_present",
+                "explicit_omissions"
+              ],
+              "title": "Annotations",
+              "type": "string"
+            },
+            "artifact_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Artifact Id"
+            },
+            "blob": {
+              "$ref": "#/$defs/GeneratedBlobRef"
+            },
+            "conversation_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Conversation Id"
+            },
+            "created_at": {
+              "format": "date-time",
+              "title": "Created At",
+              "type": "string"
+            },
+            "export_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Export Id",
+              "type": "string"
+            },
+            "exporter_version": {
+              "const": "basic-exports-v1",
+              "default": "basic-exports-v1",
+              "title": "Exporter Version",
+              "type": "string"
+            },
+            "filename": {
+              "maxLength": 85,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+              "title": "Filename",
+              "type": "string"
+            },
+            "format": {
+              "enum": [
+                "txt",
+                "markdown",
+                "csv",
+                "json"
+              ],
+              "title": "Format",
+              "type": "string"
+            },
+            "input_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Input Sha256",
+              "type": "string"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Omissions",
+              "type": "array"
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Snapshot Id"
+            },
+            "tool_attempt_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tool Attempt Id"
+            },
+            "workspace_file_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace File Id"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "export_id",
+            "workspace_id",
+            "conversation_id",
+            "artifact_id",
+            "revision_id",
+            "input_sha256",
+            "workspace_file_id",
+            "source_snapshot_id",
+            "format",
+            "filename",
+            "blob",
+            "created_at",
+            "annotations",
+            "omissions"
+          ],
+          "title": "ExportManifest",
+          "type": "object"
+        },
+        "GeneratedBlobRef": {
+          "additionalProperties": false,
+          "description": "Bytes live separately from FileBody; future office exporters can reuse this.",
+          "properties": {
+            "blob_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Blob Id",
+              "type": "string"
+            },
+            "byte_length": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Byte Length",
+              "type": "integer"
+            },
+            "kind": {
+              "const": "generated_blob",
+              "default": "generated_blob",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "blob_id",
+            "sha256",
+            "byte_length",
+            "mime_type"
+          ],
+          "title": "GeneratedBlobRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "artifacts_export",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ExportManifest"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "ArtifactsExportOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "95a17315772a6b3db2586cd423d253b7d4fff53bfcf0b3fbcb31599344b787ca",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",

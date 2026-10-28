@@ -1,0 +1,89 @@
+[
+  {
+    "width": 1440,
+    "checks": [
+      {
+        "name": "Save",
+        "rect": {
+          "x": 548,
+          "y": 404.515625,
+          "width": 60.375,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      },
+      {
+        "name": "Export this version",
+        "rect": {
+          "x": 658,
+          "y": 404.765625,
+          "width": 157.5625,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      }
+    ],
+    "focus": true,
+    "pass": true
+  },
+  {
+    "width": 390,
+    "checks": [
+      {
+        "name": "Save",
+        "rect": {
+          "x": 50,
+          "y": 405,
+          "width": 60.375,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      },
+      {
+        "name": "Export this version",
+        "rect": {
+          "x": 160,
+          "y": 405.25,
+          "width": 157.5625,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      }
+    ],
+    "focus": true,
+    "pass": true
+  },
+  {
+    "width": 320,
+    "checks": [
+      {
+        "name": "Save",
+        "rect": {
+          "x": 50,
+          "y": 405,
+          "width": 60.375,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      },
+      {
+        "name": "Export this version",
+        "rect": {
+          "x": 50,
+          "y": 404.5,
+          "width": 157.5625,
+          "height": 34
+        },
+        "hit": true,
+        "viewport": 844
+      }
+    ],
+    "focus": true,
+    "pass": true
+  }
+]

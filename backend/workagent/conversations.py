@@ -155,7 +155,10 @@ class Conversations:
             assignments=c.execute('SELECT id FROM assignments WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()
             from .products import turn_state
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
-            artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
+            artifact_ids=[r['id'] for r in c.execute('''SELECT a.id FROM artifacts a
+                WHERE a.workspace_id=%s AND a.conversation_id=%s
+                AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
+                    AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',(ws,cid,p.id)).fetchall()]
             from .original_attachments import projection as attachment_projection
             return ConversationDetail(attachment_context=attachment_projection(c,ws,messages),conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])

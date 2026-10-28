@@ -46,7 +46,8 @@ class CapabilityBroker:
         start=now(); wall=time.monotonic_ns(); cpu=time.thread_time_ns()
         output=None; error=None; status='observed'
         try:
-            result=adapter.invoke(self.service,self.cap,request)
+            result=(adapter.invoke_fenced(self.service,self.cap,request,call) if adapter.invoke_fenced
+                    else adapter.invoke(self.service,self.cap,request))
             if isinstance(result,adapter.output_model):
                 output=result.model_dump(mode='json')
             else:
@@ -101,8 +102,10 @@ def execute_composition(service,cap,operation,phase):
     name=registry.COMPOSITION_IDS.get(operation.kind)
     if not name:
         deny()
-    call=ToolCallV1(call_id=phase,capability_id=name,capability_version='1',
-        arguments=operation.model_dump(mode='json'),input_refs=[],expected_work_version=scope.work_version)
+    from .file_adapters import FILE_OPERATIONS, input_refs
+    refs=input_refs(operation) if isinstance(operation,FILE_OPERATIONS) else []
+    call=ToolCallV1(call_id=phase,capability_id=name,capability_version=registry.adapters()[name].descriptor.version,
+        arguments=operation.model_dump(mode='json'),input_refs=refs,expected_work_version=scope.work_version)
     observation=CapabilityBroker(service,cap).call(call)
     if observation.status!='observed':
         raise DomainError('action_unresolved')

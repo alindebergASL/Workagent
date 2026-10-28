@@ -169,6 +169,13 @@ async function route(
     path[3] === "conversations" &&
     path[5] === "documents" &&
     path[7] === "download";
+  // Exactly /v1/workspaces/:ws/exports/:exportId/download: the four text
+  // export formats, forwarded as the exact bytes the backend produced.
+  const exportDownload =
+    request.method === "GET" &&
+    path.length === 6 &&
+    path[3] === "exports" &&
+    path[5] === "download";
   const maxBody = upload ? Math.ceil((5 * 1024 * 1024) / 3) * 4 + 4096 : 256000;
   let body: Uint8Array | undefined;
   if (request.method === "POST") {
@@ -269,6 +276,59 @@ async function route(
           ...noStore,
           "Content-Type": mime,
           "Content-Disposition": disposition,
+          "X-Content-SHA256": digest,
+          "X-Content-Type-Options": "nosniff",
+          "X-Request-Id": upstream.headers.get("x-request-id") ?? "local-proxy",
+        },
+      });
+    }
+    if (exportDownload && upstream.ok) {
+      // Exact export bytes forwarded unchanged and bounded — never re-encoded,
+      // and a JSON export is bytes here, never parsed as a DTO. The digest is
+      // computed over what is forwarded so the browser can compare it with the
+      // export manifest's own sha256 before saving.
+      const mime = upstream.headers.get("content-type")?.split(";")[0] ?? "";
+      const disposition = upstream.headers.get("content-disposition") ?? "";
+      const ext =
+        /^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json)"$/.exec(
+          disposition,
+        )?.[1];
+      const exportMime: Record<string, string> = {
+        txt: "text/plain",
+        md: "text/markdown",
+        markdown: "text/markdown",
+        csv: "text/csv",
+        json: "application/json",
+      };
+      const bytes = new Uint8Array(await upstream.arrayBuffer());
+      if (
+        !ext ||
+        exportMime[ext] !== mime ||
+        bytes.length === 0 ||
+        bytes.length > 1024 * 1024
+      )
+        return error(
+          502,
+          "action_unresolved",
+          "Download metadata was not safe or complete.",
+        );
+      const digest = Buffer.from(
+        await crypto.subtle.digest("SHA-256", bytes),
+      ).toString("hex");
+      const declared = upstream.headers.get("x-content-sha256");
+      if (declared !== null && declared !== digest)
+        return error(
+          502,
+          "action_unresolved",
+          "The download did not match its declared digest.",
+        );
+      return new Response(bytes, {
+        status: 200,
+        headers: {
+          ...noStore,
+          "Content-Type": mime,
+          "Content-Disposition": disposition,
+          "Content-Length": String(bytes.length),
           "X-Content-SHA256": digest,
           "X-Content-Type-Options": "nosniff",
           "X-Request-Id": upstream.headers.get("x-request-id") ?? "local-proxy",

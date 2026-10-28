@@ -1,0 +1,80 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner/web
+
+ ❯ test/workspace-files-races.test.ts (4 tests | 4 failed) 3834ms
+   ❯ workspace files replay/remount races (R3/R4) (4)
+     × R3: an unresolved save's exact replay never deletes newer human edits 1222ms
+     × R3: reload restores the exact envelope; a preexisting newer draft survives its replay 892ms
+     × R4: a late create-A completion cannot clear a newer unresolved create B 1151ms
+     × R4: a pre-send hash still running when the mount dies never journals a command 549ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/workspace-files-races.test.ts > workspace files replay/remount races (R3/R4) > R3: an unresolved save's exact replay never deletes newer human edits
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/workspace-files-races.test.ts:461:24
+    459|         editorText === NEWER ||
+    460|         (draftRaw !== undefined && JSON.parse(draftRaw).content === NE…
+    461|       expect(survived).toBe(true);
+       |                        ^
+    462|     }
+    463|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  test/workspace-files-races.test.ts > workspace files replay/remount races (R3/R4) > R3: reload restores the exact envelope; a preexisting newer draft survives its replay
+AssertionError: expected undefined to be defined
+ ❯ test/workspace-files-races.test.ts:517:22
+    515|     expect(w.world.store.get(SAVE_KEY)).toBeUndefined();
+    516|     const draftRaw = w.world.store.get(DRAFT_KEY);
+    517|     expect(draftRaw).toBeDefined();
+       |                      ^
+    518|     expect(JSON.parse(draftRaw!).content).toBe(NEWER);
+    519|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  test/workspace-files-races.test.ts > workspace files replay/remount races (R3/R4) > R4: a late create-A completion cannot clear a newer unresolved create B
+AssertionError: expected undefined to be defined
+ ❯ test/workspace-files-races.test.ts:593:21
+    591|     // B's journal and draft are untouched: its exact replay identity …
+    592|     const journal = w.world.store.get(CREATE_KEY);
+    593|     expect(journal).toBeDefined();
+       |                     ^
+    594|     expect(JSON.parse(journal!).command_id).toBe(cmdB);
+    595|     const draft = w.world.store.get(NEW_KEY);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  test/workspace-files-races.test.ts > workspace files replay/remount races (R3/R4) > R4: a pre-send hash still running when the mount dies never journals a command
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ test/workspace-files-races.test.ts:638:43
+    636|
+    637|     // The dead mount neither journals a command nor sends the request.
+    638|     expect(w.world.store.has(CREATE_KEY)).toBe(false);
+       |                                           ^
+    639|     expect(w.world.createCalls).toHaveLength(0);
+    640|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  15:21:56
+   Duration  9.28s (tests 45%, import 40%, transform 13%, setup 2%)
+

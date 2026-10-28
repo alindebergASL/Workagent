@@ -70,8 +70,10 @@ def index(service,c,p,run,config,*,snapshot=None):
         except DomainError: continue  # Excluded objects leave no metadata/count.
         messages=c.execute("SELECT id FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s AND author_kind='human' ORDER BY sequence DESC LIMIT %s",
                            (run.workspace_id,cid,MAX_MESSAGES+1)).fetchall()
-        artifacts=c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id LIMIT %s',
-                            (run.workspace_id,cid,MAX_ARTIFACTS+1)).fetchall()
+        artifacts=c.execute('''SELECT a.id FROM artifacts a WHERE a.workspace_id=%s AND a.conversation_id=%s
+            AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
+                AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id LIMIT %s''',
+                            (run.workspace_id,cid,p.id,MAX_ARTIFACTS+1)).fetchall()
         truncated=truncated or len(messages)>MAX_MESSAGES or len(artifacts)>MAX_ARTIFACTS
         for kind,rows in (('human_message',messages[:MAX_MESSAGES]),('saved_revision',artifacts[:MAX_ARTIFACTS])):
             for row in rows:

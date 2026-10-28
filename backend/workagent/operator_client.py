@@ -112,6 +112,27 @@ class OperatorClient:
         save_download(destination,raw,detail['sha256'])
         return detail
 
+    def download_export(self,ws,manifest,destination):
+        """Download canonical export bytes with bounded verification and no overwrite."""
+        from .workspace_file_models import ExportManifest
+        from .operator_attachments import save_download
+        manifest=ExportManifest.model_validate(manifest)
+        if manifest.workspace_id!=identifier(ws):
+            raise OperatorError('Export workspace mismatch')
+        path='/'+identifier(ws)+'/exports/'+identifier(manifest.export_id)+'/download'
+        req=urllib.request.Request(self.base+'/v1/workspaces'+path,headers={
+            'Authorization':'Bearer '+self.token,'X-Schema-Version':'workagent/v1','X-Request-Id':str(uuid.uuid4())})
+        try:
+            with self.opener.open(req,timeout=15) as response:
+                raw=response.read(1048577)
+                if (len(raw)!=manifest.blob.byte_length or len(raw)>1048576 or
+                    response.headers.get('Content-Type','').split(';')[0]!=manifest.blob.mime_type):
+                    raise OperatorError('Export download metadata mismatch; nothing saved')
+        except (OSError,ValueError,http.client.HTTPException):
+            raise OperatorError('Export download unavailable; nothing saved') from None
+        save_download(destination,raw,manifest.blob.sha256)
+        return manifest.model_dump(mode='json')
+
     def browse(self,path):
         """Finite UI discovery. A server cursor is visible when the sample ends."""
         items=[];seen=set();cursor=None

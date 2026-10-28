@@ -27,7 +27,8 @@ class Adapter:
     descriptor: CapabilityDescriptorV2
     input_model: type[BaseModel]
     output_model: type[BaseModel]
-    invoke: Callable
+    invoke: Callable | None
+    invoke_fenced: Callable | None = None
 
 
 def implementation_hash(*paths):
@@ -55,13 +56,14 @@ def _legacy(name):
     return lambda service,cap,request: Broker(service,cap)._call_legacy(name,request.model_dump(mode='json'))
 
 
-def _adapter(name, inp, out, invoke, paths, *, public=False):
+def _adapter(name, inp, out, invoke, paths, *, public=False, version='2', effects=None, resource_kinds=None,
+             profile='native-bounded-read-v1', category=None):
     ins,outs=inp.model_json_schema(),out.model_json_schema()
-    descriptor=CapabilityDescriptorV2(id=name,version='1',schema_sha256=digest({'input':ins,'output':outs}),
+    descriptor=CapabilityDescriptorV2(id=name,version=version,schema_sha256=digest({'input':ins,'output':outs}),
         implementation_sha256=implementation_hash('capabilities/registry.py',*paths),transport='native',
-        input_schema=ins,output_schema=outs,effects=['read'],resource_kinds=['run_context'],
-        privacy_classes=['public'] if public else ['workspace_private'],execution_profile='native-bounded-read-v1',
-        cost_profile=CostProfile(category='extraction' if public else 'local_compute',reserved_units=1,unit='call'),
+        input_schema=ins,output_schema=outs,effects=effects or ['read'],resource_kinds=resource_kinds or ['run_context'],
+        privacy_classes=['public'] if public else ['workspace_private'],execution_profile=profile,
+        cost_profile=CostProfile(category=category or ('extraction' if public else 'local_compute'),reserved_units=1,unit='call'),
         result_byte_limit=262144,timeout_ms=30000,retry_policy='never_resend_unknown',
         installation_state='installed',availability_reason='needs_consent',
         required_permission_template='public_https' if public else 'run_context')
@@ -82,6 +84,8 @@ def adapters():
         inp,out,_=TOOLS[name]
         key='legacy.'+name
         result[key]=_adapter(key,inp,out,_legacy(name),('broker.py','tool_registry.py','service.py'))
+    from .file_adapters import adapters as file_adapters
+    result.update(file_adapters())
     return result
 
 
@@ -91,3 +95,7 @@ def catalog():
 
 COMPOSITION_IDS={'read_context':'context.read','inspect_json':'files.inspect_json','fetch_public_url':'research.fetch',
                  'discover_capabilities':'capabilities.discover_legacy','load_skill':'procedures.load_legacy'}
+
+# New opt-in operations; frozen legacy descriptor catalogs remain unchanged.
+from .file_adapters import IDS as FILE_IDS
+COMPOSITION_IDS.update(FILE_IDS)

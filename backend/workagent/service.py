@@ -66,9 +66,11 @@ from .flexible_work import FlexibleWork
 
 from .work_areas import WorkAreas
 from .documents import Documents
+from .workspace_files import WorkspaceFiles
+from .artifact_exports import ArtifactExports
 
 
-class ServiceCore(Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
+class ServiceCore(WorkspaceFiles, ArtifactExports, Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
     def __init__(self, db: Database, *, allow_controlled_turns=True):
         self.db = db
         # Historical controlled harnesses remain usable explicitly by their host.
@@ -110,6 +112,10 @@ class ServiceCore(Documents, WorkAreas, FlexibleWork, Products, ConversationInte
     def _artifact(self, c, p, ws, artifact_id):
         row = c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s', (ws, artifact_id)).fetchone()
         if not row:
+            deny()
+        file_owner = c.execute('SELECT owner_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',
+                               (ws, artifact_id)).fetchone()
+        if file_owner and file_owner['owner_id'] != p.id:
             deny()
         a = (self._conversation(c,p,ws,row['conversation_id']) if row.get('conversation_id') else
              self._assignment(c, p, ws, row['assignment_id']))
@@ -403,38 +409,41 @@ class ServiceCore(Documents, WorkAreas, FlexibleWork, Products, ConversationInte
             return RevisionQueued(run=r)
         return self._command(p,ws,'request_revision',{'artifact_id':artifact_id},cmd,RevisionQueued,lambda c:self._artifact(c,p,ws,artifact_id),mutate)
 
+    def _accept_proposal_mutation(self,c,p,ws,cmd,state):
+        proposal,row,a=state
+        # Workspace lock already serializes domain writers; explicitly lock
+        # and reread the artifact before recomputing the review decision.
+        row=c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s FOR UPDATE',
+                      (ws,proposal.artifact_id)).fetchone()
+        self._cas(row,cmd.expected_current_revision_id,proposal.id)
+        # Supplying the new current ID is NOT an implicit rebase of old bytes.
+        self._cas(row,proposal.base_revision_id,proposal.id)
+        if proposal.status != 'pending':
+            raise DomainError('decision_stale')
+        self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
+        self._validate_flexible_body(c,p,ws,a,proposal.body)
+        base=self._revision(c,p,ws,row,a)
+        self._validate_flexible_edit(base.body,proposal.body)
+        from .proposal_review import review_proposal
+        review=review_proposal(proposal,base.body,self._latest_review_candidate(c,p,ws,row,a))
+        required=[]
+        if review.removed_content_count and not cmd.acknowledge_removed_content:
+            required.append('acknowledge_removed_content')
+        if not review.is_latest and not cmd.acknowledge_older_proposal:
+            required.append('acknowledge_older_proposal')
+        if required:
+            raise DomainError('review_required',proposal_id=proposal.id,fields=required)
+        result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
+        proposal.status='accepted'
+        proposal.accepted_revision_id=result.current_revision_id
+        c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
+                  (encoded({'status':'accepted','accepted_revision_id':result.current_revision_id}),ws,proposal.id))
+        self._event(c,p,ws,'accept_proposal',proposal.id)
+        return result
+
     def accept_proposal(self,p,ws,proposal_id,cmd):
         def mutate(c,state):
-            proposal,row,a=state
-            # Workspace lock already serializes domain writers; explicitly lock
-            # and reread the artifact before recomputing the review decision.
-            row=c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s FOR UPDATE',
-                          (ws,proposal.artifact_id)).fetchone()
-            self._cas(row,cmd.expected_current_revision_id,proposal.id)
-            # Supplying the new current ID is NOT an implicit rebase of old bytes.
-            self._cas(row,proposal.base_revision_id,proposal.id)
-            if proposal.status != 'pending':
-                raise DomainError('decision_stale')
-            self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
-            self._validate_flexible_body(c,p,ws,a,proposal.body)
-            base=self._revision(c,p,ws,row,a)
-            self._validate_flexible_edit(base.body,proposal.body)
-            from .proposal_review import review_proposal
-            review=review_proposal(proposal,base.body,self._latest_review_candidate(c,p,ws,row,a))
-            required=[]
-            if review.removed_content_count and not cmd.acknowledge_removed_content:
-                required.append('acknowledge_removed_content')
-            if not review.is_latest and not cmd.acknowledge_older_proposal:
-                required.append('acknowledge_older_proposal')
-            if required:
-                raise DomainError('review_required',proposal_id=proposal.id,fields=required)
-            result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
-            proposal.status='accepted'
-            proposal.accepted_revision_id=result.current_revision_id
-            c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
-                      (encoded({'status':'accepted','accepted_revision_id':result.current_revision_id}),ws,proposal.id))
-            self._event(c,p,ws,'accept_proposal',proposal.id)
-            return result
+            return self._accept_proposal_mutation(c,p,ws,cmd,state)
         return self._command(p,ws,'accept_proposal',{'proposal_id':proposal_id},cmd,Artifact,lambda c:self._proposal(c,p,ws,proposal_id),mutate)
 
     def dismiss_proposal(self,p,ws,proposal_id,cmd):

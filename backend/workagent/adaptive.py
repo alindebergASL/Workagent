@@ -47,6 +47,10 @@ def enabled(config):
 def contract(binding):
     from .general_schema import DECISION_SCHEMA as historical
     from .general_responses import POLICY as policy
+    from .capabilities.file_composition import enabled as file_enabled, POLICY as file_policy, SCHEMA as file_schema
+    if file_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                 'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return file_policy,file_schema
     if getattr(binding,'runtime_extension',None)=='general-alpha-v1':
         if getattr(binding,'continuity_version',None)=='sustained-v1':
             from .retained_results import enabled as retained_enabled, POLICY as retained_policy, SCHEMA as retained_schema
@@ -83,6 +87,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
             'ON rc.workspace_id=a.workspace_id AND rc.run_id=a.run_id WHERE a.id=%s',
             (ledger.receipt.attempt_id,)).fetchone()['data']
         if retained_enabled(config): model=SustainedDecision
+        from .capabilities.file_composition import enabled as file_enabled, GatewayFilesDecision
+        if file_enabled(config): model=GatewayFilesDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
@@ -166,6 +172,9 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
         staged['reason']=('Observation limit reached after reading guidance/context; no answer or operational completion was delivered.'
                           if outcome=='step_limit' else 'Read-only observation retained; no permissions or work-state changed.')
+        from .capabilities.file_adapters import FILE_OPERATIONS
+        if isinstance(operation,FILE_OPERATIONS):
+            staged['reason']='File operation retained with exact references. No human proposal accepted or overall task completion asserted.'
     elif alpha and isinstance(value.decision,Reply):
         outcome='answered'
         staged['reason']='Answer delivered; no external action or independently verified objective completion is asserted.'

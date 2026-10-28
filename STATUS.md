@@ -1,6 +1,27 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: Batch 2 implementation active; first integration candidate verified
+## Latest: B3.0b files/evidence/basic exports accepted locally
+
+- B3.0b is accepted on `hermes/b2-conversational-client`, following B3.0a
+  `8d90e353e92a403eed521e9feea43b037997f307`. [Exact-source acceptance](docs/evidence/batch3-b30b/ACCEPTANCE.md)
+  pins64 source/contracts/test files and preserves historical failures.
+- R3/R4 replay races are corrected by the sole Claude web owner, using requested
+  Opus5.5 on the same account.45 focused web tests, typecheck/full lint,10 parent
+  handler probes and one narrow independent Astra rereview pass.
+- New isolated optimized build and real API/browser lost/delayed-ACK journeys
+  pass at1440/390/320, including opposite remount completion orders, exact replay,
+  newer draft preservation, independent composer and reachable retry controls.
+- Unchanged backend/native/export proofs are explicitly rebound:163 transport/gateway
+  passes;13 final worker/R1/R2 passes; qualified core123PASS/1test-typoFAIL plus
+  corrected rerun; actual PTY80/120 and four-format download proof retained.
+  No whole-suite-green or paid-model-usefulness claim.
+- Candidate is locally committed, not remotely pushed or installed/promoted by
+  this task. Owned proof services stopped; original runtimes preserved. No product
+  provider calls, installed-data maintenance, default merge or private-account expansion.
+- Existing `t_ae17ebd1` owns computation next. Only B3.0b is complete; Batch3 and
+  the broader product mission remain active. Product budget/unknown liabilities unchanged.
+
+## Historical: Batch 2 first integration candidate verified
 
 - The two-batch plan is being executed, not replanned or reduced. Full scope and
   remaining slices: [execution checkpoint](docs/BATCH_2_3_EXECUTION.md).

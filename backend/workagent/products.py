@@ -337,6 +337,7 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
+        from .capabilities.file_adapters import FILE_OPERATIONS
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         from .retained_results import ReadResult, ReadAttachment, read as read_retained
         if isinstance(operation,(ReadResult,ReadAttachment)):
@@ -380,7 +381,7 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS):
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS):
             from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_composition(self,cap,operation,phase)}
@@ -502,6 +503,7 @@ class Products:
                 'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
                 'observation_id':o['id'],'body_hash':o['body_hash'],
                 'validation':'shape_only','goal_status':'needs_validation'})
+        materials.extend(self._own_file_drafts(c,p,run,cv))
         return materials
 
     def complete_general_product(self,cap,receipt,phase='selection'):

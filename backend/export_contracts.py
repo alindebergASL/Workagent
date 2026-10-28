@@ -25,7 +25,11 @@ def main():
     from workagent.checkpoint_models import RunCheckpoint, QueuedMessage
     from workagent.capabilities.models import CapabilityDescriptorV2, ToolGrantV1, ToolCallV1, ToolObservationV1
     from workagent.capabilities.registry import catalog
-    outputs={'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
+    from workagent.workspace_file_models import WorkspaceFilesContract
+    from workagent.capabilities.file_composition import GatewayFilesDecision
+    outputs={'workspace-files-v1.json':WorkspaceFilesContract.model_json_schema(),
+             'gateway-files-decision.schema.json':GatewayFilesDecision.model_json_schema(),
+             'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
              'tool-grant.schema.json':ToolGrantV1.model_json_schema(),
              'tool-call.schema.json':ToolCallV1.model_json_schema(),
              'tool-observation-v1.json':ToolObservationV1.model_json_schema(),

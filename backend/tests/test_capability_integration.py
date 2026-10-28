@@ -49,7 +49,7 @@ def test_legacy_read_adapter_keeps_typed_datetime_results(context,name):
     args={'workspace_id':ws,'assignment_id':a.id} if name=='legacy.get_assignment' else {
         'workspace_id':ws,'artifact_id':artifact.id,'revision_id':None}
     args.update(schema_version='workagent/v1',request_id=new_id())
-    call=ToolCallV1(call_id=new_id(),capability_id=name,capability_version='1',arguments=args,
+    call=ToolCallV1(call_id=new_id(),capability_id=name,capability_version=registry.adapters()[name].descriptor.version,arguments=args,
                    input_refs=[],expected_work_version=a.work_version)
     result=CapabilityBroker(s,cap).call(call)
     assert result.status=='observed' and result.output['id']==(a.id if name=='legacy.get_assignment' else artifact.id)

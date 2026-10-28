@@ -21,7 +21,10 @@ def consumer_hash():
     names=('original_attachments.py','document_models.py','document_sandbox.py','document_parser.py','documents.py','checkpoint_models.py','run_checkpoints.py','run_successors.py','retained_results.py','conversation_intents.py','work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py','proposal_review.py',
            'conversation_context.py','evidence_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
-    return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
+    names += ('workspace_files.py','workspace_file_models.py','source_snapshots.py','artifact_exports.py',
+              'capabilities/registry.py','capabilities/policy.py','capabilities/broker.py','capabilities/file_adapters.py',
+              'capabilities/file_composition.py')
+    return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 
 def verify_route_record(record,grant=None):
@@ -321,7 +324,15 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
     from .retained_results import ReadResult, ReadAttachment, material as retained_material, enabled as retained_enabled, authorize as authorize_retained
-    if isinstance(decision,(ReadResult,ReadAttachment)):
+    from .capabilities.file_adapters import FILE_OPERATIONS
+    from .capabilities.file_composition import enabled as files_enabled
+    if isinstance(decision,FILE_OPERATIONS):
+        if not files_enabled(config): raise DomainError('unsupported_operation')
+        from .capabilities.policy import require_operation
+        require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision,(ReadResult,ReadAttachment)):
         if not retained_enabled(config): raise DomainError('unsupported_operation')
         if isinstance(decision,ReadAttachment): retained_material(service,c,p,run,cv,decision)
         else: authorize_retained(service,c,p,run,cv,decision.run_id)
