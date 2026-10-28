@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "f93a93941d71a804a26ea456fc5db96cd01e01dde63b7ef27f3b8df9134c5781",
+    "implementation_sha256": "23cd44e2fca35f60794438e020f9af3e3f1fef24807a22d22880f2a152978d90",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2500,7 +2500,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2763,7 +2763,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -2986,7 +2986,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3187,7 +3187,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3423,7 +3423,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
+    "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {

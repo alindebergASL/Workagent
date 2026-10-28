@@ -1,0 +1,35 @@
+ Working files · Ctrl+S save · Esc back                                         
+ Exact file loaded; edits are private until Save human edit.                    
+▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔                               
+   Back     Refresh list   Next page   New draft                                
+▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁                               
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  summary.csv · 9811b267-b69e-458b-b474-f207ed244f9c                     ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔                                          
+ Open exact   Read range   Next range                                           
+▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁                                          
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  summary.csv ·                                                          ▼  ▎  
+▊  c7cbc6ab-3196-4b10-86b9-85f14ab894cd:9811b267-b69e-458b-b474-f207ed244    ▎  
+▊  f9c                                                                       ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                  
+ Reopen draft                                                                   
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                  
+ File c7cbc6ab-3196-4b10-86b9-85f14ab894cd                                    ▅▅
+ Version 9811b267-b69e-458b-b474-f207ed244f9c                                   
+ SHA256 191b764d57ea2263bc616e5660d5f0f2e9655ac9720b6ede2df925d5be6ae51d        
+ Complete editor content: 210 UTF-8 bytes. No omitted bytes. Original           
+ newline: lf. BOM retained.                                                     
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  summary.csv                                                               ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ 1  group,unique_valid_observations,total_seconds,mean_seconds              ▎  
+▊ 2  North,2,240.000,120.000                                                 ▎  
+▊ 3  South,1,240.000,240.000                                                 ▎  
+▊ 4                                                                          ▎  
+▊ 5  Human annotation: South remains provisional; retain this exact          ▎  
+▊    wording — reviewed by test operator.                                    ▎  
+ esc Back  ^s Save file  ^r Refresh list                                        

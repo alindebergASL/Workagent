@@ -1,0 +1,35 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work    ▎▊  Summarize duration by group in seconds,          ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊  excluding missing values                            ▎
+ Conversation  Work  Files  Status  Recovery  Details                           
+╸━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Messages 1–2 of 2 · Earlier / Later pages                                      
+                                                                                
+ human: Summarize duration by group in seconds, excluding missing values.       
+ Column mapping:                                                                
+ {"id":"observation_id","group":"zone","value":"latency_seconds","seconds_per_u 
+ nit":"1"}                                                                      
+                                                                                
+   Attached: observations.csv · 84 bytes                                        
+                                                                                
+ assistant: Computed a fresh summary in confined Python. Open summary.csv in    
+ Files to inspect or download; source rows remain unchanged. Controlled         
+ transport demonstrates mechanisms, not live usefulness.                        
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                                                             
+ Earlier    Later                                                               
+▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                                                             
+ Enter adds a line. F5 / Ctrl+Enter sends. Detach leaves server work running.   
+                                                                                
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                            
+    Send · F5       Queue later   Refresh   Detach                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                            
+ ^q Detach  ^⏎ Send  ^r Refresh                                     ▏^p palette 

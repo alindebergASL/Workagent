@@ -268,6 +268,13 @@ class Conversations:
             message=retained_message.model_copy(update={'id':message.id,'run_id':run.id,
                 'sequence':message.sequence,'created_at':message.created_at})
         self._append_message(c,ws,message)
+        # Opted-in file/compute conversations expose the original attachment as
+        # an immutable file, not a copied draft or implicit execution grant.
+        if grant and retained_message is None and message.author_kind == 'human' and p.id == cv.owner_id:
+            from .capabilities.file_composition import enabled as files_enabled
+            if files_enabled(pinned):
+                from .source_snapshots import retain_attachments
+                retain_attachments(self,c,p,ws,cv,message)
         if responsibility is None and continuation is None and queued_intent is None:
             cv.work_version+=1
             self._store_conversation(c,cv)

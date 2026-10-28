@@ -1,0 +1,92 @@
+workagent
+More
+← Back to Private fixture workspace
+Begin a later duration analysis with a new dataset
+Keep as a project
+
+You:
+Begin a later duration analysis with a new dataset.
+
+Agent:
+
+Ready to work with the supplied dataset. Controlled transport; not a live model evaluation.
+
+Details
+
+You:
+Summarize duration by group in seconds, checking duplicates and missing observations. Column mapping: {"id":"record_id","group":"cohort","value":"elapsed_minutes","seconds_per_unit":"60"}
+
+observations.csv · 104 bytes
+Agent:
+
+Computed a fresh summary in confined Python. Open summary.csv in Files to inspect or download; source rows remain unchanged. Controlled transport demonstrates mechanisms, not live usefulness.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 28 Oct, 23:37 UTC
+New version saved
+Mark as seen
+Details
+Files
+summary.csv
+text/csv · 107 bytes
+observations.csv
+text/csv · 104 bytes · read-only evidence
+summary.csv
+Text (107 bytes)
+Save
+Export as
+txt
+markdown
+csv
+json
+Export this version
+
+export.csv · 107 bytes
+
+Download (verified bytes)
+New file…
+Memory
+Remember
+Kind
+Fact
+Preference
+Project convention
+Something that happened
+Procedure
+Applies to
+This conversation only
+This project
+All my work in this workspace
+Remember
+
+Linked to a project. Project memories can be used here.
+
+In use
+Waiting for review
+
+For this duration study: compute each group mean using unique valid observation IDs as the denominator. Missing durations are excluded, not zero. Convert the current input units to seconds before aggregation; never copy prior totals. Recheck renamed columns and duplicates on every new dataset.
+
+Procedure · This project · In use
+
+Why this is here
+This conversation is linked to the project
+You reviewed and accepted this
+Basis: Explicit human statement
+Valid: Since 10/28/2026
+No linked source
+Used in the latest answer
+Correct
+Limit to this conversation only
+Expire
+Forget…
+Tool activity
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

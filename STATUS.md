@@ -1,6 +1,30 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: pinned Cloud/B3 integration and verifier handoff reconciled
+## Latest: B3.1c combined computation and reviewed-memory mechanism verified
+
+- B3.1b typed-memory source `9657a06cfbbcfc5f7c4176a0e8360b12c9e4515d` is the base.
+  A generic opt-in bridge now exposes ordinary human attachments as immutable,
+  exact-reference working files in the admission transaction; no data-specific
+  handler, implicit tool authority, migration or web change.
+- [B3.1c acceptance](docs/evidence/batch3-b31c/ACCEPTANCE.md) records five real
+  confined computations, independent arithmetic/download hashes, exact human
+  annotation retention, reviewed project-memory transfer after process restarts,
+  equal-tools/no-memory and unrelated/confidential project controls, forgetting,
+  and successful/unknown no-repeat checks. Actual1440/390/320 browser and100×45/
+  80×35 PTY journeys,10 targeted tests, production build and one independent
+  narrow risk review pass;362 candidate source hashes verified.
+- Controlled model transport only: zero paid product calls, no live usefulness or
+  causal memory-gain claim. Reuse unaffected B3.0/1a/1b evidence; no full-suite
+  rerun or Batch3-complete claim. Feature publication/CI identities belong to the
+  final task checkpoint, not an installed-runtime promotion.
+- A definite409 can follow an immediate send after memory-project linking;
+  explicit refresh/new send succeeds. Isolated Claude-owner web follow-up
+  `t_8f2dc0c8` is recorded, without changing CAS or auto-replaying unknown writes.
+- Owned EC2 proof API/web/compute stopped, ports refused, lease released; installed
+  API/web PIDs917/918 and saved data unchanged. Main successor is existing
+  `t_2e868b13` (B3.2a research), not mission completion. [Handoff](docs/evidence/batch3-b31c/HANDOFF.md).
+
+## Previous: pinned Cloud/B3 integration and verifier handoff reconciled
 
 - Integrated Cloud `dff9dc068b4227018612f7a99866e7f565130fa0` onto accepted B3.1a
   `307c184d1fcffa244165bf727631fa5ccbf6f878`, preserving newer shared-files,

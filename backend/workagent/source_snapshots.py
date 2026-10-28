@@ -51,6 +51,25 @@ def append(service, c, p, ws, cid, file_id, ref, previous=None):
     return snapshot
 
 
+def retain_attachments(service, c, p, ws, cv, message):
+    """Admission-transaction bridge; command replay cannot duplicate these rows.
+
+    Original stores and their ACLs remain authoritative. Never parse, normalize,
+    execute, or grant tools here. Only NEW human messages use this path; retained
+    continuations continue to reference the first snapshot.
+    """
+    from .workspace_file_models import AttachmentEvidence
+    for item in message.attachments:
+        ref = AttachmentEvidence(kind='attachment', message_id=message.id,
+                                 ref=item.ref, sha256=item.sha256)
+        name, mime, *_ = evidence(service, c, p, ws, cv.id, ref)
+        file_id = new_id()
+        c.execute('INSERT INTO workspace_files(workspace_id,id,conversation_id,owner_id,filename,mime_type) VALUES (%s,%s,%s,%s,%s,%s)',
+                  (ws, file_id, cv.id, p.id, name, mime))
+        append(service, c, p, ws, cv.id, file_id, ref)
+        service._event(c, p, ws, 'source_snapshot_created', cv.id)
+
+
 def read(service, c, p, ws, snapshot_id):
     row = c.execute('SELECT data FROM source_snapshots WHERE workspace_id=%s AND id=%s', (ws, snapshot_id)).fetchone()
     if not row:
