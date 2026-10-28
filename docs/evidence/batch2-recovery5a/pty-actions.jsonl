@@ -1,0 +1,154 @@
+{"action": "mouse", "x": 40, "y": 7}
+{"action": "capture", "name": "pty-01-named-work-80x24", "dimensions": "80x24"}
+{"action": "mouse", "x": 8, "y": 17}
+{"action": "bracketed_paste", "text": "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n"}
+{"action": "keys", "keys": ["C-r"]}
+{"action": "capture", "name": "pty-02-draft-refresh-80x24", "dimensions": "80x24"}
+{"action": "keys", "keys": ["C-Home"]}
+{"action": "capture", "name": "pty-03-exact-draft-top-80x24", "dimensions": "80x24"}
+{"action": "keys", "keys": ["C-q"]}
+{"action": "capture", "name": "pty-04-detach-process-restart-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 17, "y": 4}
+{"action": "capture", "name": "pty-05-work-navigation-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 9}
+{"action": "keys", "keys": ["Down", "Enter"]}
+{"action": "capture", "name": "pty-06-current-human-revision-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 9}
+{"action": "capture", "name": "pty-07-result-menu-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 30, "y": 13}
+{"action": "capture", "name": "pty-08-artifact-current-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 35, "y": 12}
+{"action": "capture", "name": "pty-09-revision-menu-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 17}
+{"action": "capture", "name": "pty-10-earlier-revision-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 12}
+{"action": "mouse", "x": 40, "y": 16}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-11-proposal-control-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 18}
+{"action": "capture", "name": "pty-12-proposal-menu-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 23}
+{"action": "capture", "name": "pty-13-earlier-candidate-review", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-14-deliberate-review-actions", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 28}
+{"action": "capture", "name": "pty-15-default-accept-blocked", "dimensions": "120x40"}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "capture", "name": "pty-16-proposal-reselect", "dimensions": "120x40"}
+{"action": "mouse", "x": 40, "y": 22}
+{"action": "capture", "name": "pty-17-latest-candidate-review", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Space"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-18-explicit-acknowledgement", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "capture", "name": "pty-19-accepted-exact-revision", "dimensions": "120x40"}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["BTab"]}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "keys", "keys": ["Up"]}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "capture", "name": "pty-20-latest-selection", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-21-latest-review-bottom", "dimensions": "120x40"}
+{"action": "mouse", "x": 4, "y": 22}
+{"action": "capture", "name": "pty-22-latest-explicit-title-ack", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 28}
+{"action": "capture", "name": "pty-23-latest-accepted", "dimensions": "120x40"}
+{"action": "mouse", "x": 7, "y": 4}
+{"action": "keys", "keys": ["F5"]}
+{"action": "capture", "name": "pty-24-conflict-preserves-draft", "dimensions": "120x40"}
+{"action": "mouse", "x": 39, "y": 4}
+{"action": "capture", "name": "pty-25-conflict-recovery", "dimensions": "120x40"}
+{"action": "capture", "name": "pty-26-conflict-restart-80x24", "dimensions": "80x24"}
+{"action": "mouse", "x": 39, "y": 4}
+{"action": "capture", "name": "pty-27-conflict-recovery-80x24", "dimensions": "80x24"}
+{"action": "mouse", "x": 8, "y": 13}
+{"action": "keys", "keys": ["C-r"]}
+{"action": "capture", "name": "pty-28-abandon-refresh-retains-draft", "dimensions": "80x24"}
+{"action": "mouse", "x": 27, "y": 22}
+{"action": "capture", "name": "pty-29-queue-exact-draft", "dimensions": "80x24"}
+{"action": "mouse", "x": 31, "y": 4}
+{"action": "capture", "name": "pty-30-current-not-running", "dimensions": "80x24"}
+{"action": "capture", "name": "pty-31-status-controls-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 27, "y": 38}
+{"action": "capture", "name": "pty-32-queue-retry-at-120x40", "dimensions": "120x40"}
+{"action": "mouse", "x": 15, "y": 18}
+{"action": "capture", "name": "pty-33-stop-readback", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 22}
+{"action": "keys", "keys": ["Down"]}
+{"action": "keys", "keys": ["Down"]}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "capture", "name": "pty-34-stopped-checkpoint", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 21}
+{"action": "capture", "name": "pty-35-checkpoint-menu", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 25}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-36-continue-stopped-guard", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "keys", "keys": ["Enter"]}
+{"action": "capture", "name": "pty-37-queue-menu", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 21}
+{"action": "capture", "name": "pty-38-queue-options", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 25}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-39-exact-queued-intent", "dimensions": "120x40"}
+{"action": "mouse", "x": 3, "y": 25}
+{"action": "capture", "name": "pty-40-queue-cancelled", "dimensions": "120x40"}
+{"action": "mouse", "x": 29, "y": 2}
+{"action": "mouse", "x": 29, "y": 6}
+{"action": "capture", "name": "pty-41-proxy-same-work", "dimensions": "80x24"}
+{"action": "mouse", "x": 7, "y": 17}
+{"action": "bracketed_paste", "text": "  Unknown ACK \u96ea\nExact replay only.\n"}
+{"action": "keys", "keys": ["F5"]}
+{"action": "capture", "name": "pty-42-real-socket-ack-lost", "dimensions": "80x24"}
+{"action": "keys", "keys": ["C-r"]}
+{"action": "capture", "name": "pty-43-proxy-fault-armed", "dimensions": "80x24"}
+{"action": "mouse", "x": 7, "y": 17}
+{"action": "bracketed_paste", "text": "  Unknown ACK fault202 \u96ea\nExact replay only.\n"}
+{"action": "keys", "keys": ["F5"]}
+{"action": "capture", "name": "pty-44-real-socket-ack-lost", "dimensions": "80x24"}
+{"action": "keys", "keys": ["C-r"]}
+{"action": "capture", "name": "pty-45-api-offline-draft-retained", "dimensions": "80x24"}
+{"action": "keys", "keys": ["C-q"]}
+{"action": "keys", "keys": ["F5"]}
+{"action": "mouse", "x": 39, "y": 4}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "capture", "name": "pty-46-unknown-restart-inspected", "dimensions": "120x40"}
+{"action": "mouse", "x": 3, "y": 12}
+{"action": "capture", "name": "pty-47-unknown-abandon-refused", "dimensions": "120x40"}
+{"action": "mouse", "x": 28, "y": 9}
+{"action": "capture", "name": "pty-48-explicit-exact-replay", "dimensions": "120x40"}
+{"action": "mouse", "x": 23, "y": 4}
+{"action": "capture", "name": "pty-49-real-document-panel", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 25}
+{"action": "capture", "name": "pty-50-originals-menu", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 31}
+{"action": "keys", "keys": ["Tab"]}
+{"action": "capture", "name": "pty-51-xlsx-coverage-and-locators", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 25}
+{"action": "bracketed_paste", "text": "/home/ubuntu/workagent-continuation-20261026/.local/recovery5a/pty-downloaded.xlsx"}
+{"action": "mouse", "x": 3, "y": 28}
+{"action": "capture", "name": "pty-52-original-downloaded", "dimensions": "120x40"}
+{"action": "keys", "keys": ["C-r"]}
+{"action": "mouse", "x": 31, "y": 4}
+{"action": "capture", "name": "pty-53-current-versus-historical-outcome", "dimensions": "120x40"}
+{"action": "mouse", "x": 3, "y": 29}
+{"action": "capture", "name": "pty-54-attention-seen-not-acceptance", "dimensions": "120x40"}
+{"action": "mouse", "x": 17, "y": 4}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "capture", "name": "pty-55-current-artifact-menu", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 13}
+{"action": "capture", "name": "pty-56-current-human-revision4", "dimensions": "120x40"}
+{"action": "keys", "keys": ["C-q"]}

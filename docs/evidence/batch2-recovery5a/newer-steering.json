@@ -1,0 +1,313 @@
+{
+  "command_id": "295c1807-f859-4bee-ab09-c2910b3affdd",
+  "mode": "admission_only",
+  "worker_execution": "separate",
+  "receipt": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": null,
+      "last_message_preview": null,
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 3,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "message": {
+      "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+      "sequence": 3,
+      "author_id": "local-human",
+      "author_kind": "human",
+      "text": "Newer human steering from a second actual API client.",
+      "evidence_origin": "human",
+      "result": null,
+      "operation": null,
+      "attachments": [],
+      "target": null,
+      "model_receipt": null,
+      "created_at": "2026-10-26T20:24:01.781753Z"
+    },
+    "run": {
+      "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+      "workspace_id": "recovery5a-workspace",
+      "assignment_id": null,
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "principal_id": "local-human",
+      "kind": "conversation_turn",
+      "state": "queued",
+      "fence": 0,
+      "access_generation": 1,
+      "lease_expires_at": null,
+      "profile": "general-controlled-v1",
+      "execution": {
+        "mode": "fixture",
+        "profile": "general-controlled-v1",
+        "model": null,
+        "grant_id": null,
+        "attempt_id": null,
+        "provider_observation": "not_observed",
+        "evidence_origin": "controlled_transport"
+      },
+      "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+      "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "provider_session_id": null,
+      "provider_turn_id": null,
+      "stop_reason": null,
+      "cursor": 0,
+      "budget_units": 1,
+      "used_units": 0,
+      "artifact_id": null,
+      "base_revision_id": null,
+      "instruction": null,
+      "proposal_id": null,
+      "unresolved": [],
+      "observed_at": "2026-10-26T20:24:01.700684Z"
+    }
+  },
+  "readback": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T20:24:01.781753Z",
+      "last_message_preview": "Newer human steering from a second actual API client.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 3,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "queued",
+        "fence": 0,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:24:01.700684Z"
+      }
+    ],
+    "assignment_ids": [],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "queued",
+        "reason": "Waiting for the controlled local consumer; no provider response observed.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "reviewer": "Independent Astra narrow rereviewer (not implementer)",
+  "verdict": "HOLD",
+  "summary": "A14-R1 and A14-R3 are fixed in the reviewed paths. A14-R2 is substantially fixed but remains open: the polling fallback bypasses the new SSE application fence and delivers late event metadata after terminal scope change.",
+  "scope": "Exact candidate2 correction delta for A14-R1/R2/R3 and immediate callers only. No broad audit or full browser acceptance.",
+  "repository": "/home/ubuntu/workagent-continuation-20261026",
+  "manifest": {
+    "path": "docs/evidence/batch2-recovery5d/candidate2-source-manifest.json",
+    "sha256": "fd1c6bdb6d97727d5883d989bc6adb3d9c0690a1d02858f6b58d73377c68746c",
+    "source_files_verified": 610,
+    "mismatches": [],
+    "delta_files_verified": 10,
+    "candidate1_before_hashes_verified": true,
+    "delta_after_hashes_match_source_and_manifest": true,
+    "patch_exactly_reconstructed_from_candidate1_and_candidate2": true,
+    "patch_sha256": "f5d0a5a52357a45d122c2f83ecec2ca7a21e60b71c91a14bbf90612969672efd",
+    "delta_json_sha256": "39e8e2f8dc45e9c6fcd38985c61ecacd6f8ba375c77a743f4158f4e0d33ed049",
+    "post_probe_source_files_verified": 610,
+    "post_probe_mismatches": []
+  },
+  "original_findings": [
+    {
+      "id": "A14-R1",
+      "disposition": "FIXED",
+      "assessment": "Both transports now classify a response fenced after dispatch as transport/ambiguous instead of definitely unsent. uploadAll preserves the original command identity on ambiguous results and ScopeRefused; the captured staging origin can retain it after cleanup without adopting another scope.",
+      "validation": "Inspected correction and independently reran actual-module scope-races tests: delayed upload headers after fence and staging cleanup retain unknown state, exact command/request IDs and digest; same-scope retry sends identical serialized payload. Generated-client sent-then-fenced write rejects with transport. The successful response is a synthetic committed-outcome model, not proof of a real backend commit."
+    },
+    {
+      "id": "A14-R2",
+      "disposition": "PARTIALLY_FIXED_OPEN",
+      "assessment": "Batch2 JSON, original binary/digest, generated unwrap/product download, final download side effects, successful work-state JSON, and SSE apply/reset now carry scope guards. Independently rerun tests pass for covered body/digest/download/SSE cases. However poll() has an independent onChange path with no captured-scope check after res.json(); this is the same late-body class of defect, not a new broad-audit finding.",
+      "remaining_finding": "A14-R2-POLL"
+    },
+    {
+      "id": "A14-R3",
+      "disposition": "FIXED",
+      "assessment": "Explicit proxy preflight failures carry X-Workagent-Identity: unconfirmed; both transports synchronously fence and refuse before returning results. Ordinary upstream 503 remains unmarked and does not fence. Stored drafts and upload identities are preserved rather than adopted/deleted.",
+      "validation": "Independently rerun actual route/transport tests pass: thrown and malformed preflight for GET/POST forward no domain request; both transport implementations fence on the marker; ordinary 503 remains ready; scoped draft hidden but retained; pending upload identity and exact bytes retained without automatic retry."
+    }
+  ],
+  "remaining_findings": [
+    {
+      "id": "A14-R2-POLL",
+      "severity": "medium",
+      "classification": "Residual original finding; incomplete correction, not a newly introduced regression",
+      "title": "Polling fallback applies a late body after terminal scope fencing",
+      "locations": [
+        {"file": "web/src/lib/client/work-stream.ts", "lines": "211-239 (especially 225 and 233-237)"},
+        {"file": "web/src/lib/client/work-state.ts", "lines": "231-241"}
+      ],
+      "reproduction": "Bind A via actual probeSession. Start actual subscribeWork using actual scopedFetch around a synthetic transport. Fail the SSE connection to enter polling. Return successful polling headers and hold the ReadableStream JSON body. Wait until res.json() starts, then fenceScope(), then deliver a valid page containing A event metadata. The callback runs while scopeState().status is changed.",
+      "observed": {
+        "body_started_before_fence": true,
+        "scope_at_callback": "changed",
+        "transport_calls": 2,
+        "late_onChange_calls": 1,
+        "late_event_artifact_id": "A-private-artifact",
+        "onRevoked_calls": 0,
+        "statuses": ["polling"]
+      },
+      "impact_and_limits": "The subscription publishes stale event metadata and advances its cursor after its initiating identity is fenced. The actual useWorkState callback schedules invalidation without its own immediate scope check. It ignores event payloads, canonical reads have additional fences, and ScopeGate normally unmounts the UI. This probe proves a subscription-boundary violation, not a rendered cross-principal canonical-data leak or real browser disclosure. React cleanup is not a substitute for the promised synchronous fence.",
+      "required_fix": "Check the captured subscription scope after polling JSON resolves and before page event filtering/deduplication, cursor mutation or onChange; throw Revoked outside the parser catch so it is not reclassified as Transport. Stop without reset/retry or polling publication when fenced. Consider the abort signal at this application boundary as well.",
+      "required_regression": "Exercise actual subscribeWork plus scopedFetch with stream failure, accepted poll headers, delayed valid poll body, terminal fence, then body release. Assert zero onChange, no post-fence polling status, onRevoked once, and no extra fetch/reset. Cover has_more so a fenced page cannot trigger another page request. Keep existing SSE late-frame test."
+    }
+  ],
+  "new_material_regressions": [],
+  "tests_and_checks": [
+    {
+      "name": "Independent source provenance and exact correction-patch reconstruction",
+      "result": "PASS",
+      "details": "All 610 source hashes and 10 correction entries match; non-null before hashes match reconstructed candidate1. Python difflib reconstruction exactly equals correction-delta.patch."
+    },
+    {
+      "name": "Correction regression tests",
+      "command": "./node_modules/.bin/vitest run test/scope-races.test.ts",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "result": "PASS",
+      "test_files": 1,
+      "tests_passed": 11,
+      "exit_code": 0,
+      "duration_seconds": 4.27
+    },
+    {
+      "name": "Independent adversarial actual-module polling late-body probe",
+      "result": "DEFECT REPRODUCED",
+      "method": "Node transpiled actual TypeScript modules in memory with installed TypeScript and a require alias hook. Used synthetic fetch responses and a deferred ReadableStream; actual probeSession, scopedFetch, subscribeWork and contract parser were exercised. No source/test files were written, and no network/service/provider was called.",
+      "exit_code": 0,
+      "assertion": "Probe asserted exactly one late onChange callback whose captured scope status was changed; assertion succeeded."
+    },
+    {
+      "name": "Post-probe frozen-source verification",
+      "result": "PASS",
+      "details": "Same exact candidate2 manifest SHA; all 610 source files still match."
+    }
+  ],
+  "browser_assessment": {
+    "evidence_read": [
+      "docs/evidence/batch2-recovery5d/final-browser-report.json",
+      "docs/evidence/batch2-recovery5d/final-browser-failure.txt",
+      "web/src/app/conversations/[id]/page.tsx:315-342"
+    ],
+    "observed_retained_evidence": "Parent report records principal-only and endpoint-only isolation, unavailable-identity withholding and original-scope recovery. It records a real stream 200 before revocation and canonical conversation 404 afterward. Its final status remains FAIL because the harness expected zero textareas and found one.",
+    "recovery_compatibility": "A's own unsent local draft in a read-only recovery textarea is compatible with isolation while A remains the confirmed identity and only conversation access was revoked. Source explicitly renders readOnly value={text} with a kept/not-sent label in the revoked branch and does not render the normal composer there. This is not evidence that B saw A's draft or that canonical conversation contents remained visible. Global identity loss/change is distinct and must still hide all A-scoped UI.",
+    "remaining_caveats": [
+      "No browser was run by this reviewer; parent browser results are attributed evidence, not independently reproduced acceptance.",
+      "Retained failure text confirms truthful recovery wording, but does not by itself establish exact textarea bytes/readOnly/noSend. Parent's pending read-only/no-send/exact-local-draft DOM verification and fresh active-stream capture remain separate acceptance work.",
+      "Do not erase or reinterpret the historical failed harness receipt or reverse the old revocation; retain it alongside any corrected fresh-fixture result.",
+      "Passing corrected active-revocation browser acceptance does not close the independently reproduced late polling-body fence gap."
+    ]
+  },
+  "limitations": [
+    "Bounded narrow rereview only; no broad product audit, full suite, typecheck, lint, format, build, DB or service checks were run. Parent's 510-test and build results were not represented as this reviewer's execution.",
+    "The correction handoff acknowledges invalid generated-client pre-fix red fixtures. Current generated-client tests pass, but this review does not claim those historical red runs were valid.",
+    "One attempted execute_code batch was blocked by unattended approval policy; it executed no code. Standard read_file and terminal tools provided all required evidence, so this is not an unresolved blocker."
+  ],
+  "changes_made": ["docs/evidence/batch2-recovery5d/independent-rereview.json"],
+  "product_code_modified": false,
+  "services_started": false,
+  "database_mutations": 0,
+  "product_provider_calls": 0,
+  "commits_or_publication": false
+}

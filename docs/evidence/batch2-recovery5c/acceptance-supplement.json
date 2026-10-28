@@ -1,0 +1,64 @@
+{
+  "base_matrix": "docs/evidence/batch2-recovery5b/acceptance-matrix.json",
+  "base_matrix_sha256": "12273a50f5268a77ddd6ba843fe4f7744cf0fbad1f5721d4de1669089b74d11c",
+  "base_rows": 43,
+  "supplement_rows": 3,
+  "other_rows_unchanged": 40,
+  "batch2_complete": false,
+  "publication_gate": "HOLD",
+  "rows": [
+    {
+      "id": "A14",
+      "case": "Cursor expired / wrong principal / changed access generation",
+      "required": "Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure.",
+      "evidence_required": "HTTP statuses/error DTOs and sanitized cache behavior.",
+      "prior_status": "PENDING",
+      "status": "RED — NOT CLOSED",
+      "scope": "Real combined authenticated-principal/backend endpoint switch exposes previous principal unsent draft; staged PDF not rendered under B, bytes retained in IndexedDB. Fresh revoked reads404, but active midstream proof interrupted by socket error. Needs Claude scope identity correction and bounded full journey.",
+      "evidence": [
+        "scope-report.json",
+        "scope-principal-b.png",
+        "scope-revoked.json",
+        "final2-browser-report.json"
+      ],
+      "live_provider_evidence": false
+    },
+    {
+      "id": "A28",
+      "case": "Proposal current/older/removes >20 entries/stale base",
+      "required": "Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags.",
+      "evidence_required": "Server regression + TUI and web acceptance/readback.",
+      "prior_status": "PENDING",
+      "status": "VERIFIED — deterministic paired scope",
+      "scope": "26 total/20 samples; actual browser focus-refresh resets consent on newer candidate, consent-bearing stale base409; TUI no-consent refusal then exact fresh accept; browser/HTTP readback. Focus-refresh, not continuous polling; retained automatic-reset red. Prior older regression evidence reused.",
+      "evidence": [
+        "review2-report.json",
+        "pty-sample-back-1.txt",
+        "pty-consent-location.txt",
+        "pty-accept-readback.json",
+        "pty-accepted-body.txt",
+        "final2-browser-report.json"
+      ],
+      "live_provider_evidence": false
+    },
+    {
+      "id": "A35",
+      "case": "Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content",
+      "required": "Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS.",
+      "evidence_required": "Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI.",
+      "prior_status": "PENDING",
+      "status": "VERIFIED — deterministic paired scope",
+      "scope": "5 objects/17 lines and10 objects/40 lines; exact duplicates/blank/trailing bytes. Browser cell saves, unchanged UI no-op, separately real unchanged browser wire-save; Textual full-body captures and final actual terminal executable/current API hashes.",
+      "evidence": [
+        "notes4-report.json",
+        "final2-browser-report.json",
+        "pty-five-selected.txt",
+        "pty-five-scrolled.txt",
+        "pty-ten-selected.txt",
+        "pty-ten-scrolled.txt",
+        "terminal-parity.json"
+      ],
+      "live_provider_evidence": false
+    }
+  ]
+}

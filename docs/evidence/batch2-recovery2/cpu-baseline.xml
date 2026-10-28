@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="15.039" timestamp="2026-10-26T17:23:16.102907+00:00" hostname="ip-10-0-3-214"><testcase classname="backend.tests.test_document_confinement" name="test_real_cpu_bomb_stopped" time="14.114" /></testsuite></testsuites>

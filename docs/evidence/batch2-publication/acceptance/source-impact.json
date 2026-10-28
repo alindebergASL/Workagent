@@ -1,0 +1,539 @@
+{
+  "source": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/source-manifest.json",
+    "sha256": "42f22d39e8dde9684c6cdfb838f7981291d08bb6c87215e2b4e240f77f5c4c53"
+  },
+  "changes": [
+    {
+      "path": "backend/workagent/responses_ledger.py",
+      "before": "00e2e2d1c2ad23628495c798c9b929409815e9b0bc53c46539f8e3205612102c",
+      "after": "87786b278c4fcaa8b1ea4189a6ec5327a248405d8b58c00958ec0d6855361e9d",
+      "group": "observer051",
+      "stage": "Exact-ID receipt observer / migration051"
+    },
+    {
+      "path": "backend/migrations/051_exact_receipt_observation.sql",
+      "before": null,
+      "after": "ab6d6c741285445e2b6bcaf53d6d001757f2e03ba830d104ad68169a867cb8fc",
+      "group": "observer051",
+      "stage": "Exact-ID receipt observer / migration051"
+    },
+    {
+      "path": "backend/workagent/receipt_observer.py",
+      "before": null,
+      "after": "2c8641aebcc04beb558b4b4e1b0ee605851445c0451715b9ba917663c4ab2f76",
+      "group": "observer051",
+      "stage": "Exact-ID receipt observer / migration051"
+    },
+    {
+      "path": "backend/tests/test_exact_receipt_observation.py",
+      "before": null,
+      "after": "be94d2cfda4a5dd2a981dcb8b2497ce7766257b416a09f50cd67ec222900fa91",
+      "group": "observer051",
+      "stage": "Exact-ID receipt observer / migration051"
+    },
+    {
+      "path": "backend/workagent/tui/app.py",
+      "before": "ede666754ef7ce08e2b18b0c9c32ec5d013a4f54474e1beb044feca69a39f795",
+      "after": "b78b3c3c2ce2d90edf99dad2e47b79bfacb18dc728506e40d69c7a38d5fecf28",
+      "group": "native_hydration",
+      "stage": "Native omitted-detail hydration"
+    },
+    {
+      "path": "backend/workagent/tui/lifecycle.py",
+      "before": "1e2543824911c0f884eb869da6b11474901e093bcbc34805baad4d2b87bd635b",
+      "after": "c237db65455e031bebd098c93500534e2d4e19bdfafa1508eefd2d85a505492a",
+      "group": "native_hydration",
+      "stage": "Native omitted-detail hydration"
+    },
+    {
+      "path": "backend/tests/test_tui_omitted_lifecycle.py",
+      "before": null,
+      "after": "a7c0cfd373c4839e2fd91c8c8d5c4050551a5418d0d46a802ba17736f0313c6d",
+      "group": "native_hydration",
+      "stage": "Native omitted-detail hydration"
+    },
+    {
+      "path": "backend/workagent/run_successors.py",
+      "before": "1eb1f0b1ef5d44f9c4961ddf821a11b6c0c64fd644c232ac3ca1e51d5099ceee",
+      "after": "f6810d3cd6a8cc1edd02a7fcb479b7de2d60f83a69bb8a3d2f4b15e35adf4f6f",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/workagent/checkpoint_models.py",
+      "before": "23b864c1e17b85ddbc0e8fb090623407b6e434012d8fafbc4f54e58a659e7b93",
+      "after": "e0f73f4efcb075abb8dd74308f7378a5b544cb01b3ebd8015dcad0c133bc0a08",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/workagent/tui/continuity.py",
+      "before": "808ce8baa8174867a8f15c8dd9709bf91ae7049d6ff1552bf2a7e973fb70e29d",
+      "after": "01cd1eb6c63db23f233328aea5b69c551b61b3c04922ed8e3e499a7a6253688c",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/tests/test_tui_continuity_ui.py",
+      "before": "8447129374ba47512d8b4999b25ee67dc6ca023ec858cdb0153c8588df0300f9",
+      "after": "713f5dceb4b01c29aa3e37bec27f181e8ca2dc6963240de436c15e18a1d37d04",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/src/styles/phone.css",
+      "before": "1118c428876587e8c17a67d6475b0d383a30202c267f63b77542168b7fc2347c",
+      "after": "751c274a7c69bba5ecd90b1f01474616bc770e906cc4e7ea511161b97a7f55d4",
+      "group": "phone_containment",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/src/lib/batch2-view.ts",
+      "before": "22fa3a65f0324d232025381b3ee29965dbe6e28e3aa68a508f11eaffc3d652e4",
+      "after": "42c4fc42304385d8dbb02aabf5ca2fe8ff2c5e5fd018651bcb7fa25bd3a70e69",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/src/lib/contract/batch2.ts",
+      "before": "c4f06488727a91550d4fc2d2fefca0a459f5b6a9703e48cd75eda38349b1921c",
+      "after": "2e496c3576861017e0972d01e5d832d418d5acb42222019e54e6663c39d3e2b0",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/test/batch2-durable.test.ts",
+      "before": "181a17bab123dc55a5bfbdefa968e6a50658fb516d1460e4e3592e028467d466",
+      "after": "c13a3bd141bd5fe708b47cb85508c42d135da2e87b022ab3594896b0de9bce3b",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/test/batch2-controls.test.ts",
+      "before": "e8a0a89361a186b5bf848fbea26ac9001875929e433a2de776e446ce3314c46c",
+      "after": "82990e2fd24ba17066b0faf87f698b17d987c2bd7dc497b3e02bf855fec5916b",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "contracts/run-checkpoint.schema.json",
+      "before": "bec49734b23798c47df78b87aa8dfa209ed78a72d3eae92c2f51315a4554b7cb",
+      "after": "f7bb1f45383b9c81cddcbc4f529769c7def1d76d5a1c70a21655572e1ac5cc2f",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "contracts/openapi.json",
+      "before": "930c14a961aac2f427416e37cace067c3b52c1bf5c9875fe5c3e62981b14c3f0",
+      "after": "9eb00185af9417a08f25e39817b928be0787808701bbe49ef52cc93425afe34f",
+      "group": "compatible_continue",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/workagent/retained_reply.py",
+      "before": null,
+      "after": "ca415c1215d8018c78150442e98cd9f1fc7fbb1c7c93cce6b8621fe98f494d18",
+      "group": "reply052",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/migrations/052_retained_reply_application.sql",
+      "before": null,
+      "after": "c7d36bb6ace2f4d9e410a8e8f7c17ad1326cfbc16eacfc1ecefcf49e428fd4bc",
+      "group": "reply052",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "backend/tests/test_retained_reply.py",
+      "before": null,
+      "after": "561fe1f657754ff2accddf657b533265cb8dc2e5795199867d7608f44124404f",
+      "group": "reply052",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    },
+    {
+      "path": "web/test/phone-composer.test.ts",
+      "before": null,
+      "after": "25b03434b380a8fec2539887b65c3df5c23186bee4637d9f36a69c662dad56d9",
+      "group": "phone_containment",
+      "stage": "Retained reply052 / compatible Continue / phone containment"
+    }
+  ],
+  "groups": {
+    "observer051": {
+      "rows": [
+        "A01",
+        "A21",
+        "A22",
+        "A24",
+        "A25",
+        "A26",
+        "A33",
+        "P1"
+      ],
+      "reason": "Exact-ID receipt-only authority adds no generation/count/tool or ordinary continuation. Scoped ledger change has identity/scope/revocation/dedupe tests and real one-GET receipt. Immutable old revocation and liabilities retained."
+    },
+    "native_hydration": {
+      "rows": [
+        "A11",
+        "A14",
+        "A20",
+        "A27",
+        "A30",
+        "A31",
+        "A32",
+        "P1",
+        "P2",
+        "P7"
+      ],
+      "reason": "Authorized omitted detail fetch adds read-time native hydration, not mutation authority. Current-scope denial/restart/focus/panel tests and actual PTY hydration; original shared command/fence protocols unchanged."
+    },
+    "reply052": {
+      "rows": [
+        "A01",
+        "A14",
+        "A16",
+        "A21",
+        "A22",
+        "A23",
+        "A24",
+        "A25",
+        "A26",
+        "A31",
+        "A33",
+        "A34",
+        "P1",
+        "P2"
+      ],
+      "reason": "Owner-only local exact retained reply application and narrow SQL trigger exception; no provider dispatch or arbitrary tool effects.58 focused backend checks plus8 publication regressions, unchanged immutable rows/accounting and idempotent exact reply readback. Migration is additive fresh-fixture tested, not installed-data maintenance."
+    },
+    "compatible_continue": {
+      "rows": [
+        "A07",
+        "A20",
+        "A27",
+        "A31",
+        "A33",
+        "P1",
+        "P7"
+      ],
+      "reason": "Read-time schema capability projection hides unsupported legacy Continue; typed optional contract field, both clients tested. No reactivation of old grants/checkpoints or weaker runtime admission."
+    },
+    "phone_containment": {
+      "rows": [
+        "A03",
+        "A16",
+        "A17",
+        "A28",
+        "A30",
+        "A32",
+        "A35",
+        "P1",
+        "P2",
+        "P4"
+      ],
+      "reason": "Phone composer CSS containment only;30 independently repeated affected web tests, production build, real390/1440 geometry/draft/answer readbacks. No source-save/acceptance/backend/proxy behavior changed; no mobile-keyboard claim."
+    }
+  },
+  "rows": {
+    "A01": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A02": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A03": {
+      "groups": [
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A04": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A05": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A06": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A07": {
+      "groups": [
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A08": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A09": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A10": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A11": {
+      "groups": [
+        "native_hydration"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A12": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A13": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A14": {
+      "groups": [
+        "native_hydration",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A15": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A16": {
+      "groups": [
+        "reply052",
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A17": {
+      "groups": [
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A18": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A19": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A20": {
+      "groups": [
+        "native_hydration",
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A21": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A22": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A23": {
+      "groups": [
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A24": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A25": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A26": {
+      "groups": [
+        "observer051",
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A27": {
+      "groups": [
+        "native_hydration",
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A28": {
+      "groups": [
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A29": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "A30": {
+      "groups": [
+        "native_hydration",
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A31": {
+      "groups": [
+        "native_hydration",
+        "reply052",
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A32": {
+      "groups": [
+        "native_hydration",
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A33": {
+      "groups": [
+        "observer051",
+        "reply052",
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A34": {
+      "groups": [
+        "reply052"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "A35": {
+      "groups": [
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "P1": {
+      "groups": [
+        "observer051",
+        "native_hydration",
+        "reply052",
+        "compatible_continue",
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "P2": {
+      "groups": [
+        "native_hydration",
+        "reply052",
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "P3": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "P4": {
+      "groups": [
+        "phone_containment"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "P5": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "P6": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    },
+    "P7": {
+      "groups": [
+        "native_hydration",
+        "compatible_continue"
+      ],
+      "disposition": "Retain prior acceptance with bounded changed-surface evidence; no mechanical rerun",
+      "historical_assessment_preserved": true
+    },
+    "P8": {
+      "groups": [],
+      "disposition": "No changed implementation in this row-specific protocol; retain exact prior evidence/qualification, no rerun",
+      "historical_assessment_preserved": true
+    }
+  },
+  "prior_transition": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/source-impact.json",
+    "sha256": "6526232d234bc5e69f5128091160f44c3c2f50dcf7ad73d06f279bd81bb7a62b"
+  },
+  "review_binding": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/review-binding.json",
+    "sha256": "12e6fa9062a2264e3b223e70493c467e25e9fdaea37a7a8b1259e42213960fb7"
+  },
+  "note": "Historical statements inside inherited_acceptance (including old gaps/current-source counts) are point-in-time only, not current findings."
+}

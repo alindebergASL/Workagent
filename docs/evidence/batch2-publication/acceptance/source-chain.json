@@ -1,0 +1,140 @@
+{
+  "baseline": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/long-transcript/final-candidate-manifest.json",
+    "sha256": "a2bd405f417b5c6adba12ee67ed1dc59cb07a5cce5d2c1535a233beea555629f",
+    "bytes": 68369
+  },
+  "stages": [
+    {
+      "stage": "Exact-ID receipt observer / migration051",
+      "changes": [
+        {
+          "path": "backend/workagent/responses_ledger.py",
+          "before": "00e2e2d1c2ad23628495c798c9b929409815e9b0bc53c46539f8e3205612102c",
+          "after": "87786b278c4fcaa8b1ea4189a6ec5327a248405d8b58c00958ec0d6855361e9d"
+        },
+        {
+          "path": "backend/migrations/051_exact_receipt_observation.sql",
+          "before": null,
+          "after": "ab6d6c741285445e2b6bcaf53d6d001757f2e03ba830d104ad68169a867cb8fc"
+        },
+        {
+          "path": "backend/workagent/receipt_observer.py",
+          "before": null,
+          "after": "2c8641aebcc04beb558b4b4e1b0ee605851445c0451715b9ba917663c4ab2f76"
+        },
+        {
+          "path": "backend/tests/test_exact_receipt_observation.py",
+          "before": null,
+          "after": "be94d2cfda4a5dd2a981dcb8b2497ce7766257b416a09f50cd67ec222900fa91"
+        }
+      ],
+      "files_after": 625
+    },
+    {
+      "stage": "Native omitted-detail hydration",
+      "changes": [
+        {
+          "path": "backend/workagent/tui/app.py",
+          "before": "ede666754ef7ce08e2b18b0c9c32ec5d013a4f54474e1beb044feca69a39f795",
+          "after": "b78b3c3c2ce2d90edf99dad2e47b79bfacb18dc728506e40d69c7a38d5fecf28"
+        },
+        {
+          "path": "backend/workagent/tui/lifecycle.py",
+          "before": "1e2543824911c0f884eb869da6b11474901e093bcbc34805baad4d2b87bd635b",
+          "after": "c237db65455e031bebd098c93500534e2d4e19bdfafa1508eefd2d85a505492a"
+        },
+        {
+          "path": "backend/tests/test_tui_omitted_lifecycle.py",
+          "before": null,
+          "after": "a7c0cfd373c4839e2fd91c8c8d5c4050551a5418d0d46a802ba17736f0313c6d"
+        }
+      ],
+      "files_after": 626
+    },
+    {
+      "stage": "Retained reply052 / compatible Continue / phone containment",
+      "changes": [
+        {
+          "path": "backend/workagent/run_successors.py",
+          "before": "1eb1f0b1ef5d44f9c4961ddf821a11b6c0c64fd644c232ac3ca1e51d5099ceee",
+          "after": "f6810d3cd6a8cc1edd02a7fcb479b7de2d60f83a69bb8a3d2f4b15e35adf4f6f"
+        },
+        {
+          "path": "backend/workagent/checkpoint_models.py",
+          "before": "23b864c1e17b85ddbc0e8fb090623407b6e434012d8fafbc4f54e58a659e7b93",
+          "after": "e0f73f4efcb075abb8dd74308f7378a5b544cb01b3ebd8015dcad0c133bc0a08"
+        },
+        {
+          "path": "backend/workagent/tui/continuity.py",
+          "before": "808ce8baa8174867a8f15c8dd9709bf91ae7049d6ff1552bf2a7e973fb70e29d",
+          "after": "01cd1eb6c63db23f233328aea5b69c551b61b3c04922ed8e3e499a7a6253688c"
+        },
+        {
+          "path": "backend/tests/test_tui_continuity_ui.py",
+          "before": "8447129374ba47512d8b4999b25ee67dc6ca023ec858cdb0153c8588df0300f9",
+          "after": "713f5dceb4b01c29aa3e37bec27f181e8ca2dc6963240de436c15e18a1d37d04"
+        },
+        {
+          "path": "web/src/styles/phone.css",
+          "before": "1118c428876587e8c17a67d6475b0d383a30202c267f63b77542168b7fc2347c",
+          "after": "751c274a7c69bba5ecd90b1f01474616bc770e906cc4e7ea511161b97a7f55d4"
+        },
+        {
+          "path": "web/src/lib/batch2-view.ts",
+          "before": "22fa3a65f0324d232025381b3ee29965dbe6e28e3aa68a508f11eaffc3d652e4",
+          "after": "42c4fc42304385d8dbb02aabf5ca2fe8ff2c5e5fd018651bcb7fa25bd3a70e69"
+        },
+        {
+          "path": "web/src/lib/contract/batch2.ts",
+          "before": "c4f06488727a91550d4fc2d2fefca0a459f5b6a9703e48cd75eda38349b1921c",
+          "after": "2e496c3576861017e0972d01e5d832d418d5acb42222019e54e6663c39d3e2b0"
+        },
+        {
+          "path": "web/test/batch2-durable.test.ts",
+          "before": "181a17bab123dc55a5bfbdefa968e6a50658fb516d1460e4e3592e028467d466",
+          "after": "c13a3bd141bd5fe708b47cb85508c42d135da2e87b022ab3594896b0de9bce3b"
+        },
+        {
+          "path": "web/test/batch2-controls.test.ts",
+          "before": "e8a0a89361a186b5bf848fbea26ac9001875929e433a2de776e446ce3314c46c",
+          "after": "82990e2fd24ba17066b0faf87f698b17d987c2bd7dc497b3e02bf855fec5916b"
+        },
+        {
+          "path": "contracts/run-checkpoint.schema.json",
+          "before": "bec49734b23798c47df78b87aa8dfa209ed78a72d3eae92c2f51315a4554b7cb",
+          "after": "f7bb1f45383b9c81cddcbc4f529769c7def1d76d5a1c70a21655572e1ac5cc2f"
+        },
+        {
+          "path": "contracts/openapi.json",
+          "before": "930c14a961aac2f427416e37cace067c3b52c1bf5c9875fe5c3e62981b14c3f0",
+          "after": "9eb00185af9417a08f25e39817b928be0787808701bbe49ef52cc93425afe34f"
+        },
+        {
+          "path": "backend/workagent/retained_reply.py",
+          "before": null,
+          "after": "ca415c1215d8018c78150442e98cd9f1fc7fbb1c7c93cce6b8621fe98f494d18"
+        },
+        {
+          "path": "backend/migrations/052_retained_reply_application.sql",
+          "before": null,
+          "after": "c7d36bb6ace2f4d9e410a8e8f7c17ad1326cfbc16eacfc1ecefcf49e428fd4bc"
+        },
+        {
+          "path": "backend/tests/test_retained_reply.py",
+          "before": null,
+          "after": "561fe1f657754ff2accddf657b533265cb8dc2e5795199867d7608f44124404f"
+        },
+        {
+          "path": "web/test/phone-composer.test.ts",
+          "before": null,
+          "after": "25b03434b380a8fec2539887b65c3df5c23186bee4637d9f36a69c662dad56d9"
+        }
+      ],
+      "files_after": 630
+    }
+  ],
+  "current_head": "228e46148aff6449c689ac7402436e6694d22f41",
+  "new_product_edits_this_run": [],
+  "unattributed_product_files": []
+}

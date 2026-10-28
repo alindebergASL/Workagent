@@ -1,0 +1,596 @@
+[
+  {
+    "id": "A01",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 258,
+    "verbatim": "| A01 | Ordinary source-free question from empty home | Useful conversation without project/IDs/operator setup; one admitted message. | TUI capture + API receipt/readback; later live synthetic question if authorized. |",
+    "fields": [
+      "Ordinary source-free question from empty home",
+      "Useful conversation without project/IDs/operator setup; one admitted message.",
+      "TUI capture + API receipt/readback; later live synthetic question if authorized."
+    ]
+  },
+  {
+    "id": "A02",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 259,
+    "verbatim": "| A02 | Compare two unfamiliar vendor/options CSV/text files | Real table/document/result links; hashes exact; no special domain handler. | Controlled tool trace + canonical artifact; live task-quality rubric separately. |",
+    "fields": [
+      "Compare two unfamiliar vendor/options CSV/text files",
+      "Real table/document/result links; hashes exact; no special domain handler.",
+      "Controlled tool trace + canonical artifact; live task-quality rubric separately."
+    ]
+  },
+  {
+    "id": "A03",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 260,
+    "verbatim": "| A03 | Draft/edit brief with human notes | Human revision preserved; proposed changes separate; note removal visibly acknowledged, never autoaccepted. | Before/after body hashes + proposal/review/accept receipts, TUI/web. |",
+    "fields": [
+      "Draft/edit brief with human notes",
+      "Human revision preserved; proposed changes separate; note removal visibly acknowledged, never autoaccepted.",
+      "Before/after body hashes + proposal/review/accept receipts, TUI/web."
+    ]
+  },
+  {
+    "id": "A04",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 261,
+    "verbatim": "| A04 | Analyze attached code/log as evidence | Exact bytes incl. BOM/CRLF; code never runs; no shell escape or terminal OSC action. | No marker file/process effect; terminal sanitize vectors; retained hash. |",
+    "fields": [
+      "Analyze attached code/log as evidence",
+      "Exact bytes incl. BOM/CRLF; code never runs; no shell escape or terminal OSC action.",
+      "No marker file/process effect; terminal sanitize vectors; retained hash."
+    ]
+  },
+  {
+    "id": "A05",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 262,
+    "verbatim": "| A05 | File within ingestion limit but beyond inline context | Inline omission explained; scoped range read supplies actual evidence without resupply. | Read-attachment receipts/chunk refs, context manifest and result attribution. |",
+    "fields": [
+      "File within ingestion limit but beyond inline context",
+      "Inline omission explained; scoped range read supplies actual evidence without resupply.",
+      "Read-attachment receipts/chunk refs, context manifest and result attribution."
+    ]
+  },
+  {
+    "id": "A06",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 263,
+    "verbatim": "| A06 | Unsupported binary/ZIP/PDF in text-first batch | Clear supported-format refusal; no parsing/execution/partial send; draft retained. | Zero POST/provider actions; UX capture. |",
+    "fields": [
+      "Unsupported binary/ZIP/PDF in text-first batch",
+      "Clear supported-format refusal; no parsing/execution/partial send; draft retained.",
+      "Zero POST/provider actions; UX capture."
+    ]
+  },
+  {
+    "id": "A07",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 264,
+    "verbatim": "| A07 | Long task exceeds one tool slice | Safe checkpoint + at most one successor; objective retained and useful work continues. | Run/link/checkpoint rows, tool receipts, shared budget conservation. |",
+    "fields": [
+      "Long task exceeds one tool slice",
+      "Safe checkpoint + at most one successor; objective retained and useful work continues.",
+      "Run/link/checkpoint rows, tool receipts, shared budget conservation."
+    ]
+  },
+  {
+    "id": "A08",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 265,
+    "verbatim": "| A08 | Changed source and human correction between unattended waves | Next run binds latest permitted versions; older results/history retained, no repeated request for already-supported evidence. | Ordered DB timestamps and run-context refs across two waves. |",
+    "fields": [
+      "Changed source and human correction between unattended waves",
+      "Next run binds latest permitted versions; older results/history retained, no repeated request for already-supported evidence.",
+      "Ordered DB timestamps and run-context refs across two waves."
+    ]
+  },
+  {
+    "id": "A09",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 266,
+    "verbatim": "| A09 | Two independent responsibilities; one provider slow | Other progresses; waits are explicit; no starvation/hot-loop spending. | Dispatcher visit times, outbox/run records, bounded request counts. |",
+    "fields": [
+      "Two independent responsibilities; one provider slow",
+      "Other progresses; waits are explicit; no starvation/hot-loop spending.",
+      "Dispatcher visit times, outbox/run records, bounded request counts."
+    ]
+  },
+  {
+    "id": "A10",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 267,
+    "verbatim": "| A10 | Scheduled check-in while all UIs closed | Server continues within authority; return shows actual new output/next action or honest blocker. | Worker-only interval; later TUI/web snapshots/events matching DB. |",
+    "fields": [
+      "Scheduled check-in while all UIs closed",
+      "Server continues within authority; return shows actual new output/next action or honest blocker.",
+      "Worker-only interval; later TUI/web snapshots/events matching DB."
+    ]
+  },
+  {
+    "id": "A11",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 268,
+    "verbatim": "| A11 | TUI close/reopen during progress and with unsent draft | Work persists independently; same draft bytes restored; closing does not cancel. | Process boundary + canonical run and local draft hashes. |",
+    "fields": [
+      "TUI close/reopen during progress and with unsent draft",
+      "Work persists independently; same draft bytes restored; closing does not cancel.",
+      "Process boundary + canonical run and local draft hashes."
+    ]
+  },
+  {
+    "id": "A12",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 269,
+    "verbatim": "| A12 | API restart and stream reconnect | Last applied cursor resumes without lost/duplicate meaningful transitions. | Event IDs/cursors and reducer state; reconnect trace. |",
+    "fields": [
+      "API restart and stream reconnect",
+      "Last applied cursor resumes without lost/duplicate meaningful transitions.",
+      "Event IDs/cursors and reducer state; reconnect trace."
+    ]
+  },
+  {
+    "id": "A13",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 270,
+    "verbatim": "| A13 | Delayed commit A / earlier commit B / rollback | Commit-safe cursor cannot skip A; rollback emits nothing; no sequence-hole shortcut. | Two-process PG barrier test. |",
+    "fields": [
+      "Delayed commit A / earlier commit B / rollback",
+      "Commit-safe cursor cannot skip A; rollback emits nothing; no sequence-hole shortcut.",
+      "Two-process PG barrier test."
+    ]
+  },
+  {
+    "id": "A14",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 271,
+    "verbatim": "| A14 | Cursor expired / wrong principal / changed access generation | Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure. | HTTP statuses/error DTOs and sanitized cache behavior. |",
+    "fields": [
+      "Cursor expired / wrong principal / changed access generation",
+      "Explicit authorized snapshot reset or refusal; no foreign count/title/body disclosure.",
+      "HTTP statuses/error DTOs and sanitized cache behavior."
+    ]
+  },
+  {
+    "id": "A15",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 272,
+    "verbatim": "| A15 | Stream data split at arbitrary bytes, duplicates, out-of-order, oversized frame | Bounded parser; exact logical events; stale versions ignored; safe reconnect. | Property/fixture tests with max-buffer assertions. |",
+    "fields": [
+      "Stream data split at arbitrary bytes, duplicates, out-of-order, oversized frame",
+      "Bounded parser; exact logical events; stale versions ignored; safe reconnect.",
+      "Property/fixture tests with max-buffer assertions."
+    ]
+  },
+  {
+    "id": "A16",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 273,
+    "verbatim": "| A16 | Lost ACK after command commit, duplicate clicks, CAS drift | Same exact command preserved; explicit replay dedupes; payload change rejected; no refreshed hidden CAS. | Journal records + command/message/side-effect counts. |",
+    "fields": [
+      "Lost ACK after command commit, duplicate clicks, CAS drift",
+      "Same exact command preserved; explicit replay dedupes; payload change rejected; no refreshed hidden CAS.",
+      "Journal records + command/message/side-effect counts."
+    ]
+  },
+  {
+    "id": "A17",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 274,
+    "verbatim": "| A17 | File changes/deletes after journal reservation | Replay uses retained bytes; no filesystem reread or hash drift. | Journal/payload/retained attachment hashes. |",
+    "fields": [
+      "File changes/deletes after journal reservation",
+      "Replay uses retained bytes; no filesystem reread or hash drift.",
+      "Journal/payload/retained attachment hashes."
+    ]
+  },
+  {
+    "id": "A18",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 275,
+    "verbatim": "| A18 | Send while running; queued send while running | Superseding send and queue are distinct, visible and server-owned; queue doesn't steal authority. | Fences, intent/message links and both UIs. |",
+    "fields": [
+      "Send while running; queued send while running",
+      "Superseding send and queue are distinct, visible and server-owned; queue doesn't steal authority.",
+      "Fences, intent/message links and both UIs."
+    ]
+  },
+  {
+    "id": "A19",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 276,
+    "verbatim": "| A19 | Cancel queued intent at same time worker admits it | One atomic valid result; no hidden second run; user sees final receipt. | Concurrent PG race test. |",
+    "fields": [
+      "Cancel queued intent at same time worker admits it",
+      "One atomic valid result; no hidden second run; user sees final receipt.",
+      "Concurrent PG race test."
+    ]
+  },
+  {
+    "id": "A20",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 277,
+    "verbatim": "| A20 | Stop one run / pause / resume / takeover / conversation cancel | Distinct effects, no unintended auto-restart, no stale worker publication; readback proves state. | Commands/fences/lifecycle/receipt rows + UI labels. |",
+    "fields": [
+      "Stop one run / pause / resume / takeover / conversation cancel",
+      "Distinct effects, no unintended auto-restart, no stale worker publication; readback proves state.",
+      "Commands/fences/lifecycle/receipt rows + UI labels."
+    ]
+  },
+  {
+    "id": "A21",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 278,
+    "verbatim": "| A21 | Crash before send; after dispatch before known identity | First can safely admit if proven unsent; second quarantines unknown with reservation retained, zero auto-resend. | Controlled transport call counters and persisted ledger before/after restart. |",
+    "fields": [
+      "Crash before send; after dispatch before known identity",
+      "First can safely admit if proven unsent; second quarantines unknown with reservation retained, zero auto-resend.",
+      "Controlled transport call counters and persisted ledger before/after restart."
+    ]
+  },
+  {
+    "id": "A22",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 279,
+    "verbatim": "| A22 | Known provider identity; worker kill before result | Bounded exact-ID GET observations recover; no new provider create. | Same identity, read reservations, result receipt; create count unchanged. |",
+    "fields": [
+      "Known provider identity; worker kill before result",
+      "Bounded exact-ID GET observations recover; no new provider create.",
+      "Same identity, read reservations, result receipt; create count unchanged."
+    ]
+  },
+  {
+    "id": "A23",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 280,
+    "verbatim": "| A23 | Effect committed before tool ACK/history save | Exact receipt consumed once, no duplicate effect; checkpoint isn't source of truth. | Operation hash/unique effect/result rows. |",
+    "fields": [
+      "Effect committed before tool ACK/history save",
+      "Exact receipt consumed once, no duplicate effect; checkpoint isn't source of truth.",
+      "Operation hash/unique effect/result rows."
+    ]
+  },
+  {
+    "id": "A24",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 281,
+    "verbatim": "| A24 | Cancelled run gets late trusted response | Remains cancelled; unapplied receipt retained; only NEW normal admission may unblock. | Migration046 regression plus canonical history immutability. |",
+    "fields": [
+      "Cancelled run gets late trusted response",
+      "Remains cancelled; unapplied receipt retained; only NEW normal admission may unblock.",
+      "Migration046 regression plus canonical history immutability."
+    ]
+  },
+  {
+    "id": "A25",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 282,
+    "verbatim": "| A25 | Lease expires; old worker returns after replacement | Old fence rejected for publication; allowed receipt retention only. | Cross-process stale capability assertions. |",
+    "fields": [
+      "Lease expires; old worker returns after replacement",
+      "Old fence rejected for publication; allowed receipt retention only.",
+      "Cross-process stale capability assertions."
+    ]
+  },
+  {
+    "id": "A26",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 283,
+    "verbatim": "| A26 | Budget/authority expires at admission, dispatch or successor boundary | Correct blocked reason; no new spend/grant/reset; saved output still scoped-readable. | Exact accounting/authority snapshots and zero forbidden calls. |",
+    "fields": [
+      "Budget/authority expires at admission, dispatch or successor boundary",
+      "Correct blocked reason; no new spend/grant/reset; saved output still scoped-readable.",
+      "Exact accounting/authority snapshots and zero forbidden calls."
+    ]
+  },
+  {
+    "id": "A27",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 284,
+    "verbatim": "| A27 | No progress repeated / malformed output / persistent tool rejection | Bounded park with actionable diagnosis, not infinite spend or false completion. | Threshold/circuit-breaker trace and useful UI next action. |",
+    "fields": [
+      "No progress repeated / malformed output / persistent tool rejection",
+      "Bounded park with actionable diagnosis, not infinite spend or false completion.",
+      "Threshold/circuit-breaker trace and useful UI next action."
+    ]
+  },
+  {
+    "id": "A28",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 285,
+    "verbatim": "| A28 | Proposal current/older/removes >20 entries/stale base | Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags. | Server regression + TUI and web acceptance/readback. |",
+    "fields": [
+      "Proposal current/older/removes >20 entries/stale base",
+      "Total distinct from displayed sample; explicit required acknowledgements; stale base refused despite flags.",
+      "Server regression + TUI and web acceptance/readback."
+    ]
+  },
+  {
+    "id": "A29",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 286,
+    "verbatim": "| A29 | Event replay/duplicate wake/return in second UI | One attention fact/bell per material transition; seen shared, decision not autoaccepted. | Attention unique keys + cross-UI capture. |",
+    "fields": [
+      "Event replay/duplicate wake/return in second UI",
+      "One attention fact/bell per material transition; seen shared, decision not autoaccepted.",
+      "Attention unique keys + cross-UI capture."
+    ]
+  },
+  {
+    "id": "A30",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 287,
+    "verbatim": "| A30 | Long transcript + slow/erroring API during typing | Composer/selection/scroll stable; no interleaved writes; freshness truthful. | Pilot tests, real terminal capture, measured key/render and query timings. |",
+    "fields": [
+      "Long transcript + slow/erroring API during typing",
+      "Composer/selection/scroll stable; no interleaved writes; freshness truthful.",
+      "Pilot tests, real terminal capture, measured key/render and query timings."
+    ]
+  },
+  {
+    "id": "A31",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 288,
+    "verbatim": "| A31 | Simple deliverable finished vs proposal accepted vs objective finished | Separate state axes; no global Done from a single ready run/accepted draft. | Golden status vectors + completion evidence where supported. |",
+    "fields": [
+      "Simple deliverable finished vs proposal accepted vs objective finished",
+      "Separate state axes; no global Done from a single ready run/accepted draft.",
+      "Golden status vectors + completion evidence where supported."
+    ]
+  },
+  {
+    "id": "A32",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 289,
+    "verbatim": "| A32 | Cross-UI journey: begin TUI, edit web, return TUI | Canonical work/target/current revisions consistent; drafts safe, stale target explicit. | Paired UI evidence + exact IDs/versions/readbacks. |",
+    "fields": [
+      "Cross-UI journey: begin TUI, edit web, return TUI",
+      "Canonical work/target/current revisions consistent; drafts safe, stale target explicit.",
+      "Paired UI evidence + exact IDs/versions/readbacks."
+    ]
+  },
+  {
+    "id": "A33",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 290,
+    "verbatim": "| A33 | Incompatible checkpoint after runtime upgrade | Blocks with explicit compatibility reason, no old request rebound to new prompts/grant. | Upgrade fixture, pinned hashes and zero I/O. |",
+    "fields": [
+      "Incompatible checkpoint after runtime upgrade",
+      "Blocks with explicit compatibility reason, no old request rebound to new prompts/grant.",
+      "Upgrade fixture, pinned hashes and zero I/O."
+    ]
+  },
+  {
+    "id": "A34",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 291,
+    "verbatim": "| A34 | Migration/new event schema over retained history | Prefix checks pass, repeated application no-op, old receipts/work/budget unchanged; rollback feature flags preserve canonical records. | Disposable before/after hashes and migration journal. |",
+    "fields": [
+      "Migration/new event schema over retained history",
+      "Prefix checks pass, repeated application no-op, old receipts/work/budget unchanged; rollback feature flags preserve canonical records.",
+      "Disposable before/after hashes and migration journal."
+    ]
+  },
+  {
+    "id": "A35",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent/batch-2/IMPLEMENTATION.md",
+      "sha256": "79dcd676b9fb28d5670519569b412ea5bfdd1c42acc86c678fd7fa817b9f1467"
+    },
+    "line": 292,
+    "verbatim": "| A35 | Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content | Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS. | Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI. |",
+    "fields": [
+      "Five multiline note objects / 17 displayed lines; 10 multiline notes; duplicate/blank-line content",
+      "Unchanged save and cell-only edit preserve exact note strings/count/order; limit counts objects, not lines. Explicit flattening workaround is not PASS.",
+      "Parent sanitized fixture or clearly synthetic equivalent; structured-editor unit/E2E tests and canonical body/hash/readback across web/TUI."
+    ]
+  },
+  {
+    "id": "P1",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 173,
+    "verbatim": "| P1 | Separate Claude candidate reconciled with review-safety runtime | Exact merged feature candidate; generated contract and desktop/mobile tests retained |",
+    "fields": [
+      "Separate Claude candidate reconciled with review-safety runtime",
+      "Exact merged feature candidate; generated contract and desktop/mobile tests retained"
+    ]
+  },
+  {
+    "id": "P2",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 174,
+    "verbatim": "| P2 | Acceptance updates current facts, not historical prose | Current revision visible; old observation timestamped; unresolved goal still open |",
+    "fields": [
+      "Acceptance updates current facts, not historical prose",
+      "Current revision visible; old observation timestamped; unresolved goal still open"
+    ]
+  },
+  {
+    "id": "P3",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 175,
+    "verbatim": "| P3 | PDF/DOCX/XLSX content retained and reread after restart | Original/extraction hashes and source locators match; no resupply |",
+    "fields": [
+      "PDF/DOCX/XLSX content retained and reread after restart",
+      "Original/extraction hashes and source locators match; no resupply"
+    ]
+  },
+  {
+    "id": "P4",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 176,
+    "verbatim": "| P4 | Scanned/image/unsupported sections are honest | Visible coverage/limitations; no claimed reading of missing text |",
+    "fields": [
+      "Scanned/image/unsupported sections are honest",
+      "Visible coverage/limitations; no claimed reading of missing text"
+    ]
+  },
+  {
+    "id": "P5",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 177,
+    "verbatim": "| P5 | Parser bombs, external links and escape attempts | Actual confined process failure/resource evidence; no network/host-secret access |",
+    "fields": [
+      "Parser bombs, external links and escape attempts",
+      "Actual confined process failure/resource evidence; no network/host-secret access"
+    ]
+  },
+  {
+    "id": "P6",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 178,
+    "verbatim": "| P6 | Initial inferior planning candidate remains graded | Preserved failure record, review warning and protected human notes in accepted candidate |",
+    "fields": [
+      "Initial inferior planning candidate remains graded",
+      "Preserved failure record, review warning and protected human notes in accepted candidate"
+    ]
+  },
+  {
+    "id": "P7",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 179,
+    "verbatim": "| P7 | Turn-limit boundary has real ownership | Verified admitted successor or explicit durable stop reason; never an ownerless spinner |",
+    "fields": [
+      "Turn-limit boundary has real ownership",
+      "Verified admitted successor or explicit durable stop reason; never an ownerless spinner"
+    ]
+  },
+  {
+    "id": "P8",
+    "source": {
+      "path": "docs/plans/2026-10-23-workagent-next-two-batches.md",
+      "sha256": "b80987b6bdf13181e4c858c602265fe40decd03ae1988f631aeaaebe2d60f33e"
+    },
+    "line": 180,
+    "verbatim": "| P8 | Latency and friction regression measured | Phase timing and human interventions on matched tasks, including negative results |",
+    "fields": [
+      "Latency and friction regression measured",
+      "Phase timing and human interventions on matched tasks, including negative results"
+    ]
+  }
+]

@@ -1,0 +1,67 @@
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'vitest' run test/b2-correction.test.ts test/batch2-controls.test.ts test/batch2-durable.test.ts test/post-message-types.test.ts test/draft-carry.test.ts --reporter=verbose
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/recovery3/claude/web
+
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > a closed client replays the same command for a restored unknown upload 116ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > refuses to dispatch when the identity can't be kept 10ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > a lost receipt write still replays the original identity after restart 13ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > an old in-doubt record without identity fails closed until reconciled 7ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > never reuses an identity or ref in a different conversation 2ms
+ ✓ test/b2-correction.test.ts > R2: late async results stay in their originating scope > a file read finishing after a workspace switch never lands in the new one 4ms
+ ✓ test/b2-correction.test.ts > R2: late async results stay in their originating scope > a late upload update writes to its original draft, not the shown one 22ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a read failure blocks sending and adding; recovery is explicit 9ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a damaged copy blocks until it is explicitly discarded 15ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > nothing can be added while restoring, so a restore can't erase it 12ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a pending Home start detects exactly its expected documents, in any order 3ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > targets the current exact-version snapshot's run 2ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > a successor run with no newer request is still the latest run 0ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > an older snapshot never overrides a newer conversation 0ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > no current run means no Continue (no fallback to an earlier run) 0ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > withholds on a stale or inaccessible snapshot or a failed checkpoint read 0ms
+ ✓ test/b2-correction.test.ts > R5: device writes apply in the order they were made > a delayed earlier write can't resurrect a removed generation 3ms
+ ✓ test/b2-correction.test.ts > R5: device writes apply in the order they were made > a delayed earlier write can't overwrite a later uploaded receipt 3ms
+ ✓ test/b2-correction.test.ts > Home start continuation (runHomeStart, as Composer wires it) > never sends when the send command can't be kept, and replays it exactly 4ms
+ ✓ test/b2-correction.test.ts > Home start continuation (runHomeStart, as Composer wires it) > after a closed session, an unknown send replays the same command 1ms
+ ✓ test/b2-correction.test.ts > Home start continuation (runHomeStart, as Composer wires it) > a late completion from Space A writes only A's record, never B's 1ms
+ ✓ test/b2-correction.test.ts > Home start continuation (runHomeStart, as Composer wires it) > sent documents are cleared from their own draft's records only 1ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > omits document_refs when empty (legacy bytes) and keeps exact refs otherwise 36ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > Queue later posts the exact PostMessage to queued-messages, not /messages 85ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > cancel / stop / continue carry exact ids and versions 7ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > 5xx and network failures are unknown outcomes; 409 is definite 13ms
+ ✓ test/batch2-controls.test.ts > document staging > keeps the exact original: canonical base64 decodes to the same bytes and hash 7ms
+ ✓ test/batch2-controls.test.ts > document staging > refuses names, types, magic and sizes the server would refuse (negative controls) 6ms
+ ✓ test/batch2-controls.test.ts > document upload commands > an unknown upload replays the identical body; nothing is re-sent as new 3ms
+ ✓ test/batch2-controls.test.ts > document upload commands > a definite refusal clears the identity so a new attempt is a new command 2ms
+ ✓ test/batch2-controls.test.ts > document upload commands > a receipt for different bytes is not accepted as an upload 2ms
+ ✓ test/batch2-controls.test.ts > document upload commands > uploads each original once; a later failure keeps earlier confirmed refs 10ms
+ ✓ test/batch2-controls.test.ts > document upload commands > downloads the exact original and refuses bytes that don't match its sha256 3ms
+ ✓ test/batch2-controls.test.ts > views > held queue entries say why and never claim they will rebase 1ms
+ ✓ test/batch2-controls.test.ts > views > continue only when the server says it is safe; otherwise the reason, no retry 1ms
+ ✓ test/batch2-controls.test.ts > views > latest checkpoint is chosen by recorded time, not id order 0ms
+ ✓ test/batch2-controls.test.ts > views > coverage lines are counts the server sent, not estimates 0ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > restores exact bytes, hash and upload state after a reload 20ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > is scoped: another workspace, principal or draft sees nothing 3ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > deletes only the exact confirmed generations, keeping later ones 2ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > a corrupted device copy is reported and kept, not silently dropped 1ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > a storage failure is explicit and the entry stays attached 5ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > sent generations match exact confirmed refs only 2ms
+ ✓ test/batch2-durable.test.ts > Continue applies only to the latest run's newest checkpoint > offers the newest checkpoint when it belongs to the latest run 1ms
+ ✓ test/batch2-durable.test.ts > Continue applies only to the latest run's newest checkpoint > never falls back to an older safe checkpoint (negative controls) 4ms
+ ✓ test/batch2-durable.test.ts > message document refs > maps metadata only and never carries extracted text 1ms
+ ✓ test/batch2-durable.test.ts > message document refs > renders filename and truthful status per message 16ms
+ ✓ test/draft-carry.test.ts > carryDraftHome > moves an unsent message to Home's composer for the workspace 25ms
+ ✓ test/draft-carry.test.ts > carryDraftHome > never overwrites a draft already waiting on Home 1ms
+ ✓ test/draft-carry.test.ts > carryDraftHome > carries nothing for an empty message 7ms
+ ✓ test/draft-carry.test.ts > carryDraftHome > reports failure when storage is unavailable 7ms
+ ✓ test/post-message-types.test.ts > PostMessage request typing > uses the generated request side for operations and send 12ms
+
+ Test Files  5 passed (5)
+      Tests  52 passed (52)
+   Start at  18:11:15
+   Duration  7.18s (transform 46%, import 38%, tests 14%, worker 2%)
+
+  Transform  transforming modules took 2.02s · 46% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+

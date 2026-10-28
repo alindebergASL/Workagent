@@ -1,0 +1,64 @@
+{
+  "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+  "workspace_id": "recovery5a-workspace",
+  "assignment_id": null,
+  "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+  "current_revision_id": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+  "current_revision": {
+    "id": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+    "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+    "revision_number": 3,
+    "parent_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+    "author_id": "local-human",
+    "author_kind": "human",
+    "body": {
+      "kind": "structured_table",
+      "version": "structured-table/v1",
+      "title": "Latest candidate keeps human notes",
+      "fields": [
+        {
+          "key": "plant",
+          "label": "Plant",
+          "type": "text",
+          "editable": true,
+          "unit": null,
+          "scale": null,
+          "enum": null
+        },
+        {
+          "key": "height",
+          "label": "Height",
+          "type": "decimal",
+          "editable": true,
+          "unit": "cm",
+          "scale": 1,
+          "enum": null
+        }
+      ],
+      "rows": [
+        {
+          "row_id": "oak",
+          "cells": [
+            {
+              "field_key": "plant",
+              "value": "Oak"
+            },
+            {
+              "field_key": "height",
+              "value": "12.5"
+            }
+          ]
+        }
+      ],
+      "notes": [
+        "Keep the shaded beds.",
+        "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+      ]
+    },
+    "body_hash": "c3efa3ef98661114aa3313695c311e68eecbe4d637408ffee4800403f1f74976",
+    "source_dependencies": [],
+    "created_at": "2026-10-26T20:23:21.276874Z"
+  },
+  "requested_revision": null,
+  "observed_at": "2026-10-26T20:23:26.693772Z"
+}

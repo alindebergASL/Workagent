@@ -1,0 +1,64 @@
+{
+  "source_comparisons": {
+    "recovery1": {
+      "manifest": "docs/evidence/batch2-recovery1/final-source-manifest.json",
+      "changed": [
+        "backend/tests/test_document_confinement.py"
+      ],
+      "added": []
+    },
+    "recovery2": {
+      "manifest": "docs/evidence/batch2-recovery2/test-source-manifest.json",
+      "changed": [],
+      "added": []
+    },
+    "recovery3": {
+      "manifest": "docs/evidence/batch2-recovery3/test-source-manifest.json",
+      "changed": [],
+      "added": []
+    }
+  },
+  "copied_reviews": [
+    {
+      "original": ".local/events-review.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-events-review.md",
+      "sha256": "0e462bb7d6f8bcbb9d916f5eac0e911a419ae355b93751b5632a56333050fd99"
+    },
+    {
+      "original": ".local/events-rereview.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-events-rereview.md",
+      "sha256": "38361de055968c90585a658f0fdccb281c1a0b4cc96f9a60f8f04e5b98e74401"
+    },
+    {
+      "original": ".local/checkpoints-review.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-checkpoints-review.md",
+      "sha256": "ed8ce287ff2c4b6c54f9da96de67644b37af196207fe89817a5d8615a9271395"
+    },
+    {
+      "original": ".local/checkpoints-rereview.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-checkpoints-rereview.md",
+      "sha256": "ee8e1f10e27ec28f6635e08b1248b23c18243d6ceadfcb48a16fb6c4d851f4ff"
+    },
+    {
+      "original": ".local/checkpoints-final-rereview.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-checkpoints-final-rereview.md",
+      "sha256": "a848d025f14c4af8f856f70fef92834242c9b19db1267cdd902e166bb60b36fc"
+    },
+    {
+      "original": ".local/documents-review.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-documents-review.md",
+      "sha256": "1f3537ade7621a6a5f5e87cea157b82fbcf6629a62c5429171042769bd545abb"
+    },
+    {
+      "original": ".local/documents-rereview.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-documents-rereview.md",
+      "sha256": "cfd2906cc8ad0f3c834725d462d4efd92b65e4dace6685ca517cca262178bd98"
+    },
+    {
+      "original": ".local/b22-rereview.md",
+      "copy": "docs/evidence/batch2-recovery4/reused-b22-rereview.md",
+      "sha256": "bb685c735d1cc7c698e2cb5e9661dc94227b4d042fee91d7358518b2323cf5b4"
+    }
+  ],
+  "interpretation": "Unchanged production and tests since recovery3; recovery2 backend/contracts unchanged; retain prior bounded independent reviews and original limitations. Recovery1 test fixture finding closed by parent final run, not independent blanket PASS. No new production increment to review."
+}

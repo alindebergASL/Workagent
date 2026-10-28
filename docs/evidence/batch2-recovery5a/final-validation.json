@@ -1,0 +1,32 @@
+{
+  "binder_checks": [
+    {
+      "pid": "3850164",
+      "name": "api-final",
+      "exit": 0
+    },
+    {
+      "pid": "3850164",
+      "name": "api-final",
+      "exit": 1
+    },
+    {
+      "pid": "99999999",
+      "name": "invalid-pid-must-not-write",
+      "exit": 1
+    }
+  ],
+  "failed_pid_writes_no_proof": true,
+  "historical_db_proof_unchanged": true,
+  "source_files_unchanged": 599,
+  "tests_passed": 134,
+  "tests_failed": 0,
+  "tests_skipped": 0,
+  "secret_scan_files": 155,
+  "secret_matches": 0,
+  "diff_check_exit": 0,
+  "api_pid": 3850164,
+  "api_tmux": "b2r5a-api",
+  "tui_and_fault_proxy_stopped": true,
+  "pty_text_captures": 56
+}

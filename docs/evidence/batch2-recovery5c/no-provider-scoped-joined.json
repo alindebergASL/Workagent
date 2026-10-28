@@ -1,0 +1,14 @@
+{
+  "scopes": [
+    "recovery5c-workspace",
+    "recovery5c-scope"
+  ],
+  "counts": {
+    "provider_attempts": 0,
+    "responses_steps": 0,
+    "responses_events": 0,
+    "provider_grants": 0
+  },
+  "product_provider_calls": 0,
+  "inline_controlled_seed_run_dispatches": 3
+}

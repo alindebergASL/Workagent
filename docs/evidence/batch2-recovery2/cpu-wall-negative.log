@@ -1,0 +1,64 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________________________ test_real_cpu_bomb_stopped __________________________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-61/test_real_cpu_bomb_stopped0')
+record_property = <function record_property.<locals>.append_property at 0x7364428802c0>
+
+    def test_real_cpu_bomb_stopped(tmp_path, record_property):
+        # RLIMIT_CPU counts scheduled CPU, not elapsed time. Give this proof alone
+        # scheduling headroom; the production wall guard remains 15 seconds. A wall
+        # timeout is still a failure here, NEVER alternative CPU-enforcement evidence.
+        started = time.monotonic()
+>       code, out, err = probe(tmp_path, '''
+    import json, resource, time
+    print(json.dumps({'cpu_limit': resource.getrlimit(resource.RLIMIT_CPU)}), flush=True)
+    while time.process_time() < 4.5:
+     pass
+    print(json.dumps({'cpu_seconds': time.process_time()}), flush=True)
+    while True: pass
+    ''', timeout=60)
+
+backend/tests/test_document_confinement.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.local/recovery2/cpu_wall_negative.py:11: in short_wall
+    return original(tmp_path, code, timeout=0.25)
+backend/tests/test_document_confinement.py:17: in probe
+    return run_confined(b'synthetic', 'probe', module_path=script, wall_seconds=timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+raw = b'synthetic', kind = 'probe'
+
+    def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WALL_SECONDS):
+        """Bound both pipes concurrently and kill the entire jail on every early exit.
+    
+        module_path is an internal testing seam, never supplied by an HTTP command.
+        """
+        if len(raw) > MAX_ORIGINAL:
+            raise ValueError('input_limit')
+        module_path = module_path or Path(__file__).with_name('document_parser.py')
+        with tempfile.TemporaryDirectory(prefix='workagent-document-') as directory:
+            input_path = Path(directory) / 'original'
+            input_path.write_bytes(raw)
+            argv = jail_argv(input_path, module_path, kind, packages)
+            process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE, close_fds=True, start_new_session=True,
+                                       env={}, cwd=directory)
+            output, errors = bytearray(), bytearray()
+            deadline = time.monotonic() + wall_seconds
+            try:
+                with selectors.DefaultSelector() as selector:
+                    for pipe, target in ((process.stdout, output), (process.stderr, errors)):
+                        os.set_blocking(pipe.fileno(), False)
+                        selector.register(pipe, selectors.EVENT_READ, target)
+                    while selector.get_map():
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+>                           raise TimeoutError('parser_timeout')
+E                           TimeoutError: parser_timeout
+
+backend/workagent/document_sandbox.py:82: TimeoutError
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/recovery2/cpu-wall-negative.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_document_confinement.py::test_real_cpu_bomb_stopped
+1 failed in 1.21s

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "web/test/exact-message-text.test.ts",
+    "before": null,
+    "after": "a826377cfbde093400d0fd2081eedc6730bde0ecf0b50732c048257b51b9029f"
+  },
+  {
+    "path": "web/src/components/Composer.tsx",
+    "before": "54be7db66700024af3f0b5bd60962b88e80198cc719deaa148f8053db11ff82e",
+    "after": "664f007ba4a2344f7f8f3eebffa7c7a14c024b431809dd80762e6ce2d84220cf"
+  },
+  {
+    "path": "web/src/lib/client/conversation-reply.ts",
+    "before": "3b0d5fac6aefffacf3e868f3dc74a67eaf99a3f717d668501c96cf6dfb2b985a",
+    "after": "2bdef3569c41046948967db6d05ba2bd4e160e284f18a0d490d165c9cb3e67af"
+  }
+]

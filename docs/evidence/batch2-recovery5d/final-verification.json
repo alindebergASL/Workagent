@@ -1,0 +1,35 @@
+{
+  "at": "2026-10-26T23:22:30.244015+00:00",
+  "verdict": "HOLD",
+  "open_finding": "A14-R2-POLL",
+  "source_files": 610,
+  "source_manifest_sha256": "fd1c6bdb6d97727d5883d989bc6adb3d9c0690a1d02858f6b58d73377c68746c",
+  "delta_files": 39,
+  "frontend_tests": 510,
+  "backend_affected_tests": 14,
+  "serial_static_build_gates": "PASS",
+  "build_id": "i5pOBFPQ4PPNxZEwBji3l",
+  "browser_journeys": "PASS with scope stated in handoff; not full A14",
+  "a28_a35_narrow": "PASS",
+  "services": [
+    {
+      "session": "b2r5b-api",
+      "pid": 4089836,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "argv": "backend/.venv/bin/python docs/evidence/batch2-recovery5d/fixture.py api local-human 18965 "
+    },
+    {
+      "session": "b2r5b-web",
+      "pid": 4090481,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "argv": "next-server (v16.3.4)                                                       "
+    }
+  ],
+  "aux18966": "stopped",
+  "secret_scan_files": 164,
+  "secret_matches": [],
+  "provider_boundary_unchanged": true,
+  "historical_revocations_unchanged": true,
+  "batch2_complete": false,
+  "publication": "HOLD"
+}

@@ -1,0 +1,22 @@
+// Narrow shared-transport check only; prior A28/A35 full journeys remain retained.
+import {createRequire} from 'node:module';import fs from 'node:fs/promises';
+const root=process.cwd(),req=createRequire(root+'/web/package.json'),{chromium,expect:base}=req('@playwright/test'),expect=base.configure({timeout:15000}),out=root+'/docs/evidence/batch2-recovery5d',prior=root+'/docs/evidence/batch2-recovery5c',f=JSON.parse(await fs.readFile(prior+'/fixture.json','utf8')),origin='http://127.0.0.1:3195';
+const browser=await chromium.launch({headless:true,args:['--no-sandbox']}),page=await browser.newPage({viewport:{width:1440,height:1000}}),report={checks:[],reads:[],posts:[],errors:[]};
+await page.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());page.on('pageerror',e=>report.errors.push(String(e)));page.on('request',r=>{if(r.method()==='POST')report.posts.push({path:new URL(r.url()).pathname,body:r.postData()})});
+const sr=await fetch(origin+'/api/domain/v1/session',{headers:{'X-Workagent-Client':'local-ui'}}),session=await sr.json();expect(sr.status).toBe(200);const headers={'X-Workagent-Client':'local-ui','X-Workagent-Scope':session.scope_id};
+const get=async path=>{const r=await fetch(origin+'/api/domain/v1/workspaces/'+f.workspace+path,{headers});const body=await r.json();report.reads.push({path,status:r.status,body});expect(r.status).toBe(200);return body;};
+try{
+ for(const name of ['five','ten']){
+  const x=f.items[name];await page.goto(origin+'/conversations/'+x.conversation+'/artifacts/'+x.artifact+'?workspace='+f.workspace);await page.locator('#work-tab-edit').click();const notes=page.getByTestId('notes-list').locator('textarea');await expect(notes).toHaveCount(x.body.notes.length);expect(await notes.evaluateAll(es=>es.map(e=>e.value))).toEqual(x.body.notes);
+  const before=await get('/artifacts/'+x.artifact);await notes.first().fill(x.body.notes[0]+'x');await notes.first().fill(x.body.notes[0]);await expect(page.getByRole('button',{name:'Save my edits',exact:true})).toHaveCount(0);
+  await page.getByLabel('Row 1 Plant',{exact:true}).fill('A14 scoped transport cell-only '+name);await page.getByRole('button',{name:'Save my edits',exact:true}).click();await expect.poll(async()=>(await get('/artifacts/'+x.artifact)).current_revision_id).not.toBe(before.current_revision_id);
+  const after=await get('/artifacts/'+x.artifact);expect(after.current_revision.body.notes).toEqual(before.current_revision.body.notes);expect(after.current_revision.body.rows[0].cells[0].value).toBe('A14 scoped transport cell-only '+name);report[name]={before,after};
+  await page.reload();await page.locator('#work-tab-edit').click();await expect(notes).toHaveCount(x.body.notes.length);expect(await notes.evaluateAll(es=>es.map(e=>e.value))).toEqual(x.body.notes);report.checks.push(name+': scoped UI save/readback/reload preserves exact multiline notes, order and count');
+ }
+ const x=f.items.removals,before=await get('/artifacts/'+x.artifact),old=JSON.parse(await fs.readFile(prior+'/review2-report.json','utf8')).stale.payload;
+ await page.goto(origin+'/conversations/'+x.conversation+'/artifacts/'+x.artifact+'?workspace='+f.workspace);await page.locator('#work-tab-changes').click();
+ const payload={...old,command_id:crypto.randomUUID(),request_id:crypto.randomUUID(),acknowledge_older_proposal:true};
+ const result=await page.evaluate(async({path,payload,headers})=>{const r=await fetch(path,{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(payload)});return {status:r.status,body:await r.json()};},{path:'/api/domain/v1/workspaces/'+f.workspace+'/proposals/'+x.proposal+'/accept',payload,headers});
+ expect(result.status).toBe(409);expect(result.body.code).toBe('version_conflict');const after=await get('/artifacts/'+x.artifact);expect(after.current_revision).toEqual(before.current_revision);report.staleAccept={payload,result,before,after};report.checks.push('A28 explicit consent flags still cannot bypass stale base through authenticated scoped proxy');
+ expect(report.errors).toEqual([]);report.status='PASS';
+}catch(e){report.status='FAIL';report.error=String(e.stack||e);process.exitCode=1;}finally{await fs.writeFile(out+'/a28-a35-narrow-report.json',JSON.stringify(report,null,2),{flag:'wx'});await browser.close();console.log(JSON.stringify({status:report.status,checks:report.checks,error:report.error},null,2));}

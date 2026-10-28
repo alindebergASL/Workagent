@@ -1,0 +1,8 @@
+{
+  "workspace": "recovery5c-scope",
+  "principal_a": "local-human",
+  "principal_b": "recovery5c-other",
+  "conversation": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+  "other_conversation": "49c2aa0f-1a97-4207-8394-b275dce2a4b4",
+  "authorization": "Both disposable synthetic principals may read the shared conversation; unsent local drafts/bytes must remain principal-private."
+}

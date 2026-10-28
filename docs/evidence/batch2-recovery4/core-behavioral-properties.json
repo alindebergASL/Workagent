@@ -1,0 +1,38 @@
+[
+  {
+    "test": "backend.tests.test_batch2_process_restart_pg::test_process_restart_retains_originals_exact_commands_and_event_cursor",
+    "properties": {
+      "http_process_restarts": "1",
+      "exact_originals": "3",
+      "elapsed_seconds": "15.290482981014065"
+    }
+  },
+  {
+    "test": "backend.tests.test_document_confinement::test_real_cpu_bomb_stopped",
+    "properties": {
+      "cpu_limit_seconds": "5",
+      "observed_cpu_seconds": "4.500206336",
+      "exit_code": "137",
+      "elapsed_wall_seconds": "10.301742905983701",
+      "test_wall_guard_seconds": "60"
+    }
+  },
+  {
+    "test": "backend.tests.test_document_confinement::test_real_wall_timeout_stopped",
+    "properties": {
+      "wall_guard_seconds": "5",
+      "elapsed_wall_seconds": "5.009982078918256",
+      "observed_processes": "4",
+      "live_survivors": "0"
+    }
+  },
+  {
+    "test": "backend.tests.test_work_events_pg::test_snapshot_query_cost_is_batched_and_recorded",
+    "properties": {
+      "snapshot_query_count": "10",
+      "snapshot_sql_seconds": "0.05438752821646631",
+      "snapshot_total_seconds": "0.13772172899916768",
+      "snapshot_bytes": "3379"
+    }
+  }
+]

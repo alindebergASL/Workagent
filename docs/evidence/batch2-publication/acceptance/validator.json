@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "matrix_sha256": "34c80246e12aeea9aad7d84410f68e4343d4fff160f3456f03faab6563a412d2",
+  "source_manifest_sha256": "42f22d39e8dde9684c6cdfb838f7981291d08bb6c87215e2b4e240f77f5c4c53",
+  "source_files": 630,
+  "evidence_files": 723,
+  "additional_bound_files": 48,
+  "deduplicated_bound_files": 731,
+  "rows": 43,
+  "counts": {
+    "PASS": 43
+  },
+  "status_changes": [
+    "A01",
+    "A02",
+    "A07",
+    "A08",
+    "A10",
+    "P7",
+    "P8"
+  ],
+  "unchanged_status_rows": 36,
+  "inherited_rows_structurally_unchanged": 43,
+  "negative_controls": [
+    {
+      "case": "duplicate_and_missing_ID",
+      "rejected": true
+    },
+    {
+      "case": "literal_requirement_substitution",
+      "rejected": true
+    },
+    {
+      "case": "historical_evidence_mutation",
+      "rejected": true
+    },
+    {
+      "case": "unattributed_source_drift",
+      "rejected": true
+    },
+    {
+      "case": "fabricated_exact_first_paint",
+      "rejected": true
+    },
+    {
+      "case": "tampered_evidence_receipt",
+      "rejected": true
+    },
+    {
+      "case": "batch2_promoted_to_whole_product",
+      "rejected": true
+    }
+  ],
+  "new_provider_calls": 0,
+  "source_edits": []
+}

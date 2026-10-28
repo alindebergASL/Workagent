@@ -1,0 +1,26 @@
+--- .local/recovery5d-poll-before/web/src/lib/client/work-stream.ts	2026-10-26 22:51:31.372971555 +0000
++++ web/src/lib/client/work-stream.ts	2026-10-26 23:39:37.792516504 +0000
+@@ -220,11 +220,21 @@
+       });
+       if (REVOKED_STATUS.has(res.status)) throw new Revoked();
+       if (!res.ok) throw new Transport();
+-      let page;
++      let body: unknown;
+       try {
+-        page = parseEventPage(await res.json());
++        body = await res.json();
+       } catch (e) {
+         if (o.signal.aborted) throw e;
++        throw new Transport();
++      }
++      // The body may arrive after an abort or after the page was fenced:
++      // then nothing from it is parsed, filtered, applied or continued.
++      if (o.signal.aborted) throw new DOMException("Aborted", "AbortError");
++      if (fenced()) throw new Revoked();
++      let page;
++      try {
++        page = parseEventPage(body);
++      } catch (e) {
+         throw e instanceof ContractError ? new NeedsReset() : new Transport();
+       }
+       if (page.reset_required) throw new NeedsReset();

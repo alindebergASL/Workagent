@@ -1,0 +1,147 @@
+{
+  "reviewer": "Independent Astra security reviewer (not implementer)",
+  "verdict": "HOLD",
+  "scope": "One bounded review of the A14 authenticated client-scope candidate1 material delta and directly relevant callers. Not full A14 browser acceptance.",
+  "repository": "/home/ubuntu/workagent-continuation-20261026",
+  "manifest": {
+    "path": "docs/evidence/batch2-recovery5d/candidate1-source-manifest.json",
+    "sha256": "43ed5905bca66a67e7daff04825b73e956b34c22af84866db898fc2c97d01242",
+    "source_files_verified": 609,
+    "mismatches": [],
+    "delta_files_verified": 35,
+    "baseline_before_hashes_verified": true,
+    "delta_after_hashes_match_manifest": true,
+    "patch_exactly_reconstructed_from_baseline_and_current_source": true,
+    "patch_sha256": "91127df4fbff5162ec94f829bb3f9f691547f035670579fc73f8ad87ab552574",
+    "delta_json_sha256": "e7934ab79fce8789234b33fc1ddb49bcb32498587a3c18899cabdf3b0f8cdb95",
+    "source_manifest_rechecked_after_probes": true
+  },
+  "inspected_files": {
+    "all_material_delta_hunks": [
+      "backend/tests/test_client_session.py",
+      "backend/workagent/api.py",
+      "contracts/openapi.json",
+      "contracts/src/schema.d.ts",
+      "web/src/app/api/domain/[...path]/route.ts",
+      "web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx",
+      "web/src/app/conversations/[id]/artifacts/[artifactId]/page.tsx",
+      "web/src/app/layout.tsx",
+      "web/src/app/page.tsx",
+      "web/src/components/Composer.tsx",
+      "web/src/components/FlexibleWork.tsx",
+      "web/src/components/OperationComposer.tsx",
+      "web/src/components/ScopeGate.tsx",
+      "web/src/components/SpaceView.tsx",
+      "web/src/components/WorkAreas.tsx",
+      "web/src/lib/client/api.ts",
+      "web/src/lib/client/batch2-api.ts",
+      "web/src/lib/client/conversation-reply.ts",
+      "web/src/lib/client/home-start.ts",
+      "web/src/lib/client/pending-command.ts",
+      "web/src/lib/client/real-api.ts",
+      "web/src/lib/client/session-scope.ts",
+      "web/src/lib/client/since-marker.ts",
+      "web/src/lib/client/staged-documents.ts",
+      "web/src/lib/client/work-state.ts",
+      "web/src/lib/client/work-stream.ts",
+      "web/src/lib/client/workspace.tsx",
+      "web/src/lib/draft.ts",
+      "web/test/client-scope.test.ts",
+      "web/test/draft-carry.test.ts",
+      "web/test/products.test.ts",
+      "web/test/proxy-scope.test.ts",
+      "web/test/scope-helper.ts",
+      "web/test/setup-scope.ts",
+      "web/vitest.config.mts"
+    ],
+    "additional_direct_caller_and_dependency_source": [
+      "web/src/lib/client/doc-store.ts",
+      "web/src/lib/client/documents.ts",
+      "web/src/lib/contract/errors.ts",
+      "web/src/components/Batch2Controls.tsx:538-567",
+      "web/src/lib/client/products.ts:259-310",
+      "backend/workagent/work_event_api.py"
+    ],
+    "context": ["docs/PRODUCT_CONTRACT.md", "docs/BUILD_PLAN.md", "STATUS.md:1-100"],
+    "inspection_note": "The patch was reviewed in full; security-critical scope, proxy, staging, transport, continuation, stream and root-gate implementations and relevant callers were read directly. Large unrelated portions of changed files were not audited. No whole git diff was used."
+  },
+  "findings": [
+    {
+      "id": "A14-R1",
+      "severity": "high",
+      "title": "A late in-flight upload is misclassified as definitely unsent and loses its durable command identity",
+      "locations": [
+        {"file": "web/src/lib/client/session-scope.ts", "lines": "160-165,191-196"},
+        {"file": "web/src/lib/client/real-api.ts", "lines": "47-50"},
+        {"file": "web/src/lib/client/documents.ts", "lines": "275-298"},
+        {"file": "web/src/lib/client/staged-documents.ts", "lines": "102-118"},
+        {"file": "web/src/lib/contract/errors.ts", "lines": "39-42"}
+      ],
+      "scenario": "A starts a document upload; its exact upload command identity is persisted and the request is dispatched. The backend can commit it. Before response headers reach the client, a session recheck fences the page. scopedFetch discards that response and throws scopeRefused(), an unauthenticated 401 explicitly claiming nothing was sent. uploadAll treats this as a definite refusal, setting state=local and upload=null. Its captured staging origin still permits durable writes to A's original IndexedDB scope after unmount, so this overwrites the saved identity. Returning to A later creates a fresh upload command instead of replaying the potentially committed one.",
+      "evidence": "Executed the actual uploadAll -> documentApi.upload -> call -> scopedFetch path with memoryDocStore and stagedController, a deferred synthetic successful response, fenceScope(), and ctl.open(null) to model cleanup. Before: state=uploading with command_id/request_id/destination. After: state=local, upload=null. Error code=unauthenticated and isAmbiguousWrite=false. Original bytes remained identical; the lost data is the duplicate-effect-protection identity, not binary content.",
+      "narrow_fix": "Distinguish a pre-dispatch local refusal from a scope change detected after dispatch. The latter must preserve unknown-outcome semantics and the exact command identity, without exposing its stale response. Use a dedicated ambiguous fenced-result error (or the existing transport classification) on the post-dispatch branch in both transport implementations. Keep upload identity and state=unknown under the captured original scope. Do not claim nothing was sent after dispatch.",
+      "required_regression": "Hold upload response headers until after terminal fencing and staging cleanup; release a success and separately an indeterminate result. Assert original bytes and command/request IDs survive exactly, restore A, and prove retry uses the original payload and IDs. Cover generated-client writes as well as batch2 uploads."
+    },
+    {
+      "id": "A14-R2",
+      "severity": "high",
+      "title": "The response fence ends at headers; late bodies can still disclose protected originals through download side effects",
+      "locations": [
+        {"file": "web/src/lib/client/session-scope.ts", "lines": "191-199"},
+        {"file": "web/src/lib/client/batch2-api.ts", "lines": "65-89,223-251"},
+        {"file": "web/src/components/Batch2Controls.tsx", "lines": "552-562"},
+        {"file": "web/src/lib/client/real-api.ts", "lines": "47-53"},
+        {"file": "web/src/lib/client/products.ts", "lines": "266-309"}
+      ],
+      "scenario": "A initiates an original download. Fetch returns successful headers while A is bound, then body reading or digest calculation remains pending. A later session check changes the scope to terminal changed and unmounts the UI. The pending original() continuation still returns A's Blob; DocumentRow.download then creates an object URL and clicks an anchor even though its component has unmounted. Root gating does not cancel async functions or undo DOM/download side effects. The generated product download similarly consumes its body and computes a digest after the middleware header check, with no final scope guard.",
+      "evidence": "Executed actual documentApi.original with a deferred ReadableStream body. After headers were accepted, called fenceScope(), then delivered synthetic bytes %PDF-private-A. The promise resolved with those bytes while scopeState().status was changed. Also executed call() with a delayed JSON body; it resolved a protected synthetic result after fencing. The automatic anchor click is established by direct caller inspection, not a browser run.",
+      "narrow_fix": "Carry a captured scope/lifetime through body parsing and every async continuation that can publish data or cause a side effect. Recheck after body consumption and digest awaits, and immediately before object-URL creation/download dispatch. Prefer synchronously aborting registered in-flight reads on terminal fencing as well, but retain final guards because abort and completion can race. Apply equivalent checks to generated-client parsed results and stream frame application; do not rely solely on React effect cleanup.",
+      "required_regression": "Delay successful JSON and binary bodies until after fencing; assert they are rejected or suppressed and no object URL/anchor click occurs. Delay digest completion separately. Include generated product downloads and an already-open stream receiving a frame after terminal fencing."
+    },
+    {
+      "id": "A14-R3",
+      "severity": "medium",
+      "title": "An explicit proxy identity-verification failure leaves the client scope ready",
+      "locations": [
+        {"file": "web/src/app/api/domain/[...path]/route.ts", "lines": "80-96,180-181"},
+        {"file": "web/src/lib/client/session-scope.ts", "lines": "198-199"},
+        {"file": "web/src/lib/client/real-api.ts", "lines": "52-53"},
+        {"file": "web/src/components/ScopeGate.tsx", "lines": "18,38-44,52-53"}
+      ],
+      "scenario": "A page is bound and displays local drafts. A normal API request reaches the proxy but its mandatory /v1/session verification times out, returns malformed identity, or otherwise cannot confirm access. The proxy refuses forwarding with 503 connection_required. Both client transports fence only on 401, so this explicit loss of identity confirmation leaves boundScope ready and local storage/UI available until an independent successful-or-failed periodic probe finishes. Background-tab probes are skipped. This contradicts the stated fail-closed rule when access can no longer be confirmed; the upstream request itself is correctly blocked.",
+      "evidence": "Executed scopedFetch with the exact synthetic proxy failure shape (503, code=connection_required, Access couldn’t be confirmed.). It returned with scopeState still ready for A. Direct proxy inspection proves this is its identity-verification failure path, not merely a downstream application 5xx.",
+      "narrow_fix": "Give proxy identity-verification failures an explicit machine-readable fence signal and consume it in both transports before returning results. Fence on that signal, without treating every ordinary application 5xx as authentication loss. Preserve pending commands and exact local originals while hiding them.",
+      "required_regression": "Exercise normal read and write requests whose proxy session preflight fails or is malformed. Verify no upstream domain dispatch, immediate terminal client fencing, hidden scoped reads, unchanged stored bytes/journals, and no automatic retry as another scope."
+    }
+  ],
+  "positive_assessments": [
+    "Backend scope is an authenticated HMAC of principal and database configuration, keyed by the bearer; the proxy additionally binds the browser scope to the configured endpoint. Ordinary stable configuration is deterministic, and principal-only/database-only/endpoint-only changes affect the namespace by construction.",
+    "The added expected-scope header is a fence, not an authentication substitute. The backend still requires the existing bearer; proxy same-origin/loopback checks remain in place. The proxy rechecks authenticated session state per request and forwards the backend scope to close the preflight-to-forwarding restart race.",
+    "Unknown initial identity does not mount WorkspaceProvider or protected children, and scoped storage/normal request paths refuse access before binding. The real mode no longer falls back to a build-time principal. The mock binding is selected by explicit mock API mode.",
+    "Legacy unscoped text and old principal-based IndexedDB records are not adopted or deleted by the new prefix/index lookup. New scoped records remain under their originating scope. The prior confirmed disclosure is an unsent text draft; this review does not claim a previously observed B attachment or canonical-data leak.",
+    "Terminal changed state cannot be rebound by normal probes. Older overlapping session probes are sequence-guarded. New command dispatch after a terminal fence is blocked by the shared wrappers."
+  ],
+  "tests_and_checks_run": [
+    {"name": "Source provenance", "result": "PASS: all 609 manifest hashes, all 35 delta after hashes and available baseline before hashes match; exact unified patch reconstruction matches; manifest recheck has no mismatches."},
+    {"name": "Late upload response / persisted identity", "result": "DEFECT REPRODUCED: upload command identity cleared after post-dispatch fence; original binary bytes preserved."},
+    {"name": "Late JSON body", "result": "DEFECT REPRODUCED: call() resolves synthetic A data after scope becomes changed."},
+    {"name": "Late original download body", "result": "DEFECT REPRODUCED: documentApi.original returns synthetic A bytes after scope becomes changed."},
+    {"name": "Proxy unconfirmed-identity failure", "result": "DEFECT REPRODUCED: scopedFetch leaves A ready after the proxy-shaped 503 connection_required response."}
+  ],
+  "test_method": "Read-only Node processes transpiled the actual TypeScript modules in memory using the installed TypeScript package and a require alias hook. Probes used synthetic deferred fetch responses, ReadableStream bodies and memoryDocStore; no real service, browser, database, network or provider was invoked. Successful synthetic responses model the race and are not evidence of actual backend commits. No test files were written and no heavy suites/builds were run.",
+  "coverage_limitations": [
+    "Not browser acceptance. Actual production principal-only and endpoint-only switching, restoration of exact original drafts/binaries, and active-midstream revocation remain required separately.",
+    "The new scope unit tests cover unknown state, storage prefixing, probe order, changed state, request header fencing and proxy preflight behavior. They do not cover the reproduced header/body split or committed-upload identity-loss race. Test-wide synthetic ready binding cannot establish unknown-state coverage for other existing tests.",
+    "The active stream path uses a fenced request at connection time but frame application has no direct bound-scope check. The mounted caller normally aborts on root unmount; the exact frame-versus-cleanup race was inspected but not executed here. No independent claim of proven active-midstream acceptance is made.",
+    "No existing full-suite result was independently rerun or adopted as this review's result. Parent/other reviewer test totals remain separate evidence.",
+    "Stable scope is based on the database configuration string and endpoint, not a persisted database-instance identifier; changing underlying database contents at an identical DSN/endpoint is not distinguished by this design. That broader restore/replace policy was not tested or treated as a confirmed candidate defect within this bounded review.",
+    "Storage namespace separation is application isolation, not protection against arbitrary same-origin JavaScript, browser developer tools, or an actor already controlling the local machine."
+  ],
+  "changes_made": ["docs/evidence/batch2-recovery5d/independent-review.json"],
+  "product_code_modified": false,
+  "services_started": false,
+  "database_mutations": 0,
+  "product_provider_calls": 0,
+  "product_provider_spend": 0,
+  "commits_or_publication": false
+}

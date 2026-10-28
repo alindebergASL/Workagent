@@ -1,0 +1,1558 @@
+diff --git a/web/src/app/conversations/[id]/page.tsx b/web/src/app/conversations/[id]/page.tsx
+index 4432c98..c7e9acf 100644
+--- a/web/src/app/conversations/[id]/page.tsx
++++ b/web/src/app/conversations/[id]/page.tsx
+@@ -46,6 +46,7 @@ import {
+   StopRun,
+ } from "@/components/Batch2Controls";
+ import { documentApi, queueApi, runApi } from "@/lib/client/batch2-api";
++import { continueLatestRun } from "@/lib/batch2-view";
+ import {
+   adaptivePresentation,
+   cardStatus,
+@@ -356,14 +357,15 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
+     d.messages.some((x) => x.author === "agent" && x.run_id === runId);
+   const turnOf = (m: ChatMessage) =>
+     d.turns.find((t) => t.message_id === m.id) ?? null;
+-  // The latest run: the snapshot's canonical current run, else the run of
+-  // the newest request in the thread. Continue only applies to it.
+-  const latestRunId =
+-    work.snapshot?.execution.run_id ??
+-    [...d.messages]
+-      .filter((m) => m.author !== "agent")
+-      .sort((a, b) => b.sequence - a.sequence)[0]?.run_id ??
+-    null;
++  // The latest run, only from a current canonical snapshot of exactly this
++  // version (a successor run counts). Continue only applies to it.
++  const latestRunId = continueLatestRun({
++    snapshot: work.snapshot,
++    snapshotStale: work.stale,
++    checkpointsCurrent: !checkpoints.error && !checkpoints.loading,
++    conversationId: id,
++    conversationVersion: d.conversation.work_version,
++  });
+   const inFlight = d.turns.some(
+     (t) => t.state === "queued" || t.state === "responding",
+   );
+@@ -761,6 +763,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
+               locked={reply.docsLocked}
+               onAdd={(list) => void reply.addDocuments(list)}
+               onRemove={reply.removeDocument}
++              problems={reply.docProblems}
++              onReattach={reply.reattachDocument}
++              recovery={reply.docRecovery}
+             />
+           ) : null}
+           {sendError instanceof ApiError && sendError.isVersionConflict ? (
+diff --git a/web/src/components/Batch2Controls.tsx b/web/src/components/Batch2Controls.tsx
+index 7a21562..de2ff7c 100644
+--- a/web/src/components/Batch2Controls.tsx
++++ b/web/src/components/Batch2Controls.tsx
+@@ -408,12 +408,21 @@ export function DocumentPicker({
+   locked,
+   onAdd,
+   onRemove,
++  problems = [],
++  onReattach,
++  recovery = [],
+ }: {
+   docs: StagedEntry[];
+   error: string;
+   locked: boolean;
+   onAdd: (files: FileList | null) => void;
+   onRemove: (index: number) => void;
++  /** Per entry: why it must be reconciled before anything sends (or null). */
++  problems?: (string | null)[];
++  /** Explicit recovery: re-stage the kept bytes as a new upload. */
++  onReattach?: (index: number) => void;
++  /** Explicit recovery actions for a blocked restoration. */
++  recovery?: { label: string; run: () => void }[];
+ }) {
+   return (
+     <div className="stack-xs" data-testid="document-picker">
+@@ -430,7 +439,22 @@ export function DocumentPicker({
+                     ? "Upload not confirmed; sending again replays the same upload"
+                     : "Uploads when you send"}
+               {d.durable ? "" : " · not kept on this device"}
+-              {!locked && d.state !== "uploading" ? (
++              {problems[i] ? (
++                <>
++                  {" "}
++                  <span role="alert">{problems[i]}</span>
++                  {onReattach ? (
++                    <button
++                      type="button"
++                      className="link-quiet small"
++                      onClick={() => onReattach(i)}
++                    >
++                      Use kept copy as a new upload
++                    </button>
++                  ) : null}
++                </>
++              ) : null}
++              {(!locked || problems[i]) && d.state !== "uploading" ? (
+                 <button
+                   type="button"
+                   className="link-quiet small"
+@@ -449,6 +473,20 @@ export function DocumentPicker({
+           {error}
+         </p>
+       ) : null}
++      {recovery.length ? (
++        <div className="row wrap" data-testid="document-recovery">
++          {recovery.map((r) => (
++            <button
++              key={r.label}
++              type="button"
++              className="btn btn-sm"
++              onClick={r.run}
++            >
++              {r.label}
++            </button>
++          ))}
++        </div>
++      ) : null}
+       {!locked && docs.length < 2 ? (
+         <label className="link-quiet small">
+           Attach PDF, Word or Excel (up to 2, 5 MB each)
+diff --git a/web/src/components/Composer.tsx b/web/src/components/Composer.tsx
+index ddfabda..a7c80ef 100644
+--- a/web/src/components/Composer.tsx
++++ b/web/src/components/Composer.tsx
+@@ -30,13 +30,20 @@ import {
+ import { ErrorNotice } from "./ui";
+ import { DocumentPicker } from "./Batch2Controls";
+ import {
+-  documentsProblem,
+-  newEntry,
+-  sentGenerations,
+-  stageFile,
++  entryProblem,
++  expectedDocumentsMissing,
+   uploadAll,
+ } from "@/lib/client/documents";
+ import { useStagedDocuments } from "@/lib/client/staged-documents";
++import {
++  afterHomeStartError,
++  clearHomeChat,
++  readHomeChat,
++  runHomeStart,
++  sameStart,
++  saveHomeChat,
++  type HomeChat,
++} from "@/lib/client/home-start";
+ import type { DocumentRef } from "@/lib/contract/batch2";
+ 
+ const SAMPLE_REQUEST =
+@@ -143,9 +150,7 @@ export function Composer({
+   // draft, so a reload or an unknown upload restores them for the same
+   // create-upload-send sequence.
+   const staged = useStagedDocuments(wsId, "home", documentsOn);
+-  const { docs, setDocs, forget } = staged;
+-  const docsRef = useRef(docs);
+-  docsRef.current = docs;
++  const { docs, ctl } = staged;
+   const [pickError, setDocError] = useState("");
+   const docError = pickError || staged.storeError;
+   const [selected, setSelected] = useState<string[]>([]);
+@@ -160,50 +165,21 @@ export function Composer({
+   } | null>(null);
+   // Starting a conversation is two commands (create, then send). Each is
+   // frozen once its outcome is uncertain so a retry replays it exactly.
+-  const chat = useRef<{
+-    workspace: string;
+-    text: string;
+-    create: {
+-      command_id: string;
+-      title: string;
+-      context_ids: { id: string; version: string }[];
+-    };
+-    conversation: {
+-      id: string;
+-      work_version: number;
+-      activation?: "disabled" | "active" | "revoked";
+-    } | null;
+-    send: {
+-      command_id: string;
+-      expected_work_version: number;
+-      text: string;
+-      attachments?: MessageAttachment[];
+-      target?: null;
+-      document_refs?: DocumentRef[];
+-    } | null;
+-    /** The documents this message was started with (no bytes). */
+-    documents?: { filename: string; sha256: string }[];
+-    handover: boolean;
+-    uncertain: boolean;
+-  } | null>(null);
++  const chat = useRef<HomeChat | null>(null);
+   const [, rerender] = useState(0);
+   // Unresolved commands are kept for this tab so a reload can only replay
+   // them exactly (never a fresh command that could duplicate the work).
+-  const homeKey = (kind: string) =>
+-    wsId ? `workagent:pending:${wsId}:home-${kind}` : null;
++  // A conversation start is kept by `home-start` under the workspace it
++  // began in (beyond this tab when it carries documents).
+   const saveCommands = () => {
+-    for (const [kind, value] of [
+-      ["chat", chat.current],
+-      ["assignment", pending.current],
+-    ] as const) {
+-      const key = homeKey(kind);
+-      if (!key) continue;
+-      try {
+-        if (value) sessionStorage.setItem(key, JSON.stringify(value));
+-        else sessionStorage.removeItem(key);
+-      } catch {
+-        /* storage unavailable: the in-memory command still holds */
+-      }
++    if (!wsId) return;
++    const key = `workagent:pending:${wsId}:home-assignment`;
++    try {
++      if (pending.current)
++        sessionStorage.setItem(key, JSON.stringify(pending.current));
++      else sessionStorage.removeItem(key);
++    } catch {
++      /* storage unavailable: the in-memory command still holds */
+     }
+   };
+   useEffect(() => {
+@@ -218,7 +194,7 @@ export function Composer({
+         return null;
+       }
+     };
+-    const c = read<NonNullable<typeof chat.current>>("chat");
++    const c = readHomeChat(wsId);
+     const a = read<NonNullable<typeof pending.current>>("assignment");
+     if (c) {
+       // Its outcome is unknown after a reload: only an exact replay is offered.
+@@ -280,7 +256,22 @@ export function Composer({
+   // Without chosen context, handing over only records a paused hand-over in
+   // a new conversation; with context it starts work on an assignment.
+   // A hand-over has no document field: it would drop them, so it waits.
+-  const docsBlockHandover = docs.length > 0 && !chat.current;
++  const docsBlockHandover = (docs.length > 0 && !chat.current) || !staged.ready;
++  // A ref or upload identity belongs to the conversation this start created.
++  const docDest = chat.current?.conversation
++    ? {
++        workspace_id: chat.current.workspace,
++        conversation_id: chat.current.conversation.id,
++      }
++    : null;
++  const docProblems = docs.map((e) => entryProblem(e, docDest));
++  const docsReady = staged.ready && docProblems.every((p) => !p);
++  // A pending start whose documents went missing: attaching the same files
++  // again is its recovery, so the picker opens for exactly that.
++  const missingExpected =
++    Boolean(chat.current && !chat.current.send) &&
++    staged.ready &&
++    expectedDocumentsMissing(chat.current?.documents ?? [], docs);
+   const pausedOnly =
+     !pending.current && selected.length === 0 && CAPABILITIES.conversation;
+   const delegate = async () => {
+@@ -377,8 +368,15 @@ export function Composer({
+     setUnsentNote(false);
+     setSubmitting(true);
+     setSubmitError(null);
++    // Every document write of this start lands in the draft it began from.
++    const origin = ctl.origin();
++    let start: HomeChat | null = null;
+     try {
+       if (!chat.current) {
++        if (!docsReady)
++          throw new Error(
++            "Attached documents need attention before this can be sent.",
++          );
+         const text = request.trim();
+         chat.current = {
+           workspace: wsId,
+@@ -408,83 +406,93 @@ export function Composer({
+           status: 0,
+           message: "Return to the original Space to reconcile this message.",
+         });
+-      if (!c.conversation) {
+-        saveCommands();
+-        const created = await conversationApi.create(c.workspace, c.create);
+-        c.conversation = {
+-          id: created.id,
+-          work_version: created.work_version,
+-          activation: created.model_activation,
+-        };
+-      }
+-      if (!c.send) {
++      start = c;
++      // Captured now: a later switch of Space never redirects these writes.
++      const save = (x: HomeChat) => saveHomeChat(c.workspace, x);
++      const { conversationId } = await runHomeStart(c, {
++        save,
++        create: conversationApi.create,
++        send: conversationApi.send,
+         // Originals upload once into the conversation, each as its own exact
+         // command, from the device copies kept for Home. If those are gone,
+         // nothing is sent without them.
+-        if (staged.restoring)
+-          throw new Error("Still restoring attached documents. Try again.");
+-        const expected = c.documents ?? [];
+-        if (
+-          expected.length !== docs.length ||
+-          expected.some((e, i) => e.sha256 !== docs[i]?.doc.sha256)
+-        )
+-          throw new Error(
+-            `The document${expected.length === 1 ? "" : "s"} this message was started with (${expected.map((e) => e.filename).join(", ")}) ${expected.length === 1 ? "isn’t" : "aren’t"} attached any more. Attach the same file${expected.length === 1 ? "" : "s"} again to finish; nothing has been sent yet.`,
+-          );
+-        const document_refs = docs.length
+-          ? await uploadAll(c.workspace, c.conversation.id, docs, setDocs)
+-          : [];
+-        // A fresh send (first, or after a definite refusal) carries what the
+-        // person can see now; only an unconfirmed send replays frozen text.
+-        c.text = request.trim() || c.text;
+-        c.send = {
+-          command_id: newCommandId(),
+-          expected_work_version: c.conversation.work_version,
+-          text: c.text,
+-          ...(natural ? { attachments: files, target: null } : {}),
+-          ...(document_refs.length ? { document_refs } : {}),
+-        };
+-      }
+-      saveCommands();
+-      await conversationApi.send(c.workspace, c.conversation.id, c.send);
+-      const id = c.conversation.id;
+-      const goHandover = c.handover;
++        prepareSend: async (c) => {
++          if (!staged.ready)
++            throw new Error(
++              "Attached documents aren’t ready yet. Recover them before sending.",
++            );
++          const expected = c.documents ?? [];
++          if (expectedDocumentsMissing(expected, docs))
++            throw new Error(
++              `The document${expected.length === 1 ? "" : "s"} this message was started with (${expected.map((e) => e.filename).join(", ")}) ${expected.length === 1 ? "isn’t" : "aren’t"} attached any more. Attach the same file${expected.length === 1 ? "" : "s"} again to finish; nothing has been sent yet.`,
++            );
++          let document_refs: DocumentRef[] = [];
++          if (docs.length) {
++            if (!origin)
++              throw new Error("Attached documents aren’t available.");
++            document_refs = await uploadAll(
++              {
++                workspace_id: c.workspace,
++                conversation_id: c.conversation!.id,
++              },
++              docs,
++              (next) => ctl.persist(origin, next),
++            );
++          }
++          // A fresh send (first, or after a definite refusal) carries what the
++          // person can see now; only an unconfirmed send replays frozen text.
++          c.text = request.trim() || c.text;
++          return {
++            command_id: newCommandId(),
++            expected_work_version: c.conversation!.work_version,
++            text: c.text,
++            ...(natural ? { attachments: files, target: null } : {}),
++            ...(document_refs.length ? { document_refs } : {}),
++          };
++        },
++      });
++      // Origin-only cleanup: this start's record and its sent generations.
++      clearHomeChat(c.workspace, c.create.command_id);
++      if (origin && c.send?.document_refs?.length)
++        void ctl.forgetRefs(origin, c.send.document_refs);
++      writeDraft(c.workspace, "");
++      writeDraftFiles(c.workspace, []);
++      // Only the start still shown moves the page on.
++      if (!sameStart(chat.current, c)) return;
+       chat.current = null;
+-      saveCommands();
+-      writeDraft(draftScope, "");
+-      writeDraftFiles(draftScope, []);
+       setFiles([]);
+-      void forget(sentGenerations(docsRef.current, c.send.document_refs ?? []));
+       router.push(
+         scopedHref(
+-          `/conversations/${id}${goHandover ? "?handover=1" : ""}`,
++          `/conversations/${conversationId}${c.handover ? "?handover=1" : ""}`,
+           c.workspace,
+         ),
+       );
+     } catch (e) {
+-      setSubmitError(e);
+-      const c = chat.current;
+-      if (c) {
+-        if (e instanceof ApiError && e.isAmbiguousWrite) c.uncertain = true;
+-        else if (!c.conversation) chat.current = null;
+-        else {
+-          // The conversation exists; a definite refusal of the message keeps
+-          // it and lets a new send use its current version.
+-          c.send = null;
+-          c.uncertain = false;
++      const c = start;
++      if (!c) {
++        setSubmitError(e);
++        return;
++      }
++      const next = afterHomeStartError(c, e);
++      if (next) {
++        if (next.conversation && !next.send && !next.uncertain)
+           try {
++            // A refused send: a new one uses the conversation's version now.
+             const now = await conversationApi.get(
+-              c.workspace,
+-              c.conversation.id,
++              next.workspace,
++              next.conversation.id,
+             );
+-            c.conversation.work_version = now.conversation.work_version;
+-            c.conversation.activation = now.conversation.model_activation;
++            next.conversation.work_version = now.conversation.work_version;
++            next.conversation.activation = now.conversation.model_activation;
+           } catch {
+             /* the next attempt re-reads it */
+           }
+-        }
+-      }
+-      saveCommands();
++        saveHomeChat(next.workspace, next);
++      } else clearHomeChat(c.workspace, c.create.command_id);
++      if (!sameStart(chat.current, c)) return;
++      chat.current = next;
++      setSubmitError(e);
++    } finally {
+       setSubmitting(false);
+       rerender((n) => n + 1);
+     }
+@@ -589,33 +597,29 @@ export function Composer({
+             locked={
+               submitting ||
+               Boolean(pending.current) ||
+-              // Once a start is under way its documents are frozen with it.
+-              Boolean(chat.current)
++              !staged.ready ||
++              // Once a start is under way its documents are frozen with it,
++              // except to attach the same files again when they went missing.
++              (Boolean(chat.current) && !missingExpected)
+             }
+             onAdd={(list) => {
+               if (!list?.length) return;
+-              void Promise.all([...list].map(stageFile)).then(
+-                (picked) => {
+-                  const next = [...docs, ...picked.map(newEntry)];
+-                  const problem = documentsProblem(next);
+-                  if (problem) setDocError(problem);
+-                  else {
+-                    setDocs(next);
+-                    setDocError("");
+-                  }
+-                },
+-                (e: unknown) =>
+-                  setDocError(
+-                    e instanceof Error
+-                      ? e.message
+-                      : "That document can’t be attached.",
+-                  ),
+-              );
++              // Bound to the draft it was picked in (not the one shown later).
++              void ctl.add([...list]).then(setDocError);
+             }}
+             onRemove={(i) => {
+               const gone = docs[i];
+-              if (gone) void forget([gone.generation]);
++              const o = ctl.origin();
++              if (gone && o) void ctl.forget(o, [gone.generation]);
+             }}
++            problems={docProblems}
++            onReattach={(i) => {
++              const gone = docs[i];
++              const o = ctl.origin();
++              if (gone && o && !submitting && !chat.current?.send)
++                void ctl.reattach(o, gone.generation).catch(() => {});
++            }}
++            recovery={staged.recovery}
+           />
+         ) : null}
+         {natural && (files.length || fileError) ? (
+@@ -726,7 +730,12 @@ export function Composer({
+             aria-label="Send"
+             title="Send"
+             disabled={
+-              !hasText || locked || wsLoading || !wsId || staged.restoring
++              !hasText ||
++              locked ||
++              wsLoading ||
++              !wsId ||
++              !staged.ready ||
++              (!chat.current && !docsReady)
+             }
+           >
+             <span aria-hidden="true">↑</span>
+diff --git a/web/src/lib/batch2-view.ts b/web/src/lib/batch2-view.ts
+index 21533ab..f84034c 100644
+--- a/web/src/lib/batch2-view.ts
++++ b/web/src/lib/batch2-view.ts
+@@ -54,6 +54,33 @@ export function continueTarget(
+   return latest && latestRunId && latest.run_id === latestRunId ? latest : null;
+ }
+ 
++/**
++ * The latest run a fresh Continue may target, or null to withhold it. The
++ * authority is the current canonical snapshot of exactly the conversation
++ * version shown: not stale, same conversation, and a current checkpoint
++ * read. Its execution names the latest run, which may be a successor run
++ * with no newer request in the thread; with no run there, nothing is
++ * offered (never a fallback to an earlier thread run). Replay of an existing
++ * uncertain Continue doesn't depend on this.
++ */
++export function continueLatestRun(a: {
++  snapshot: {
++    conversation_id: string;
++    work_version: number;
++    execution: { run_id?: string | null };
++  } | null;
++  snapshotStale: boolean;
++  checkpointsCurrent: boolean;
++  conversationId: string;
++  conversationVersion: number;
++}): string | null {
++  const s = a.snapshot;
++  if (!s || a.snapshotStale || !a.checkpointsCurrent) return null;
++  if (s.conversation_id !== a.conversationId) return null;
++  if (s.work_version !== a.conversationVersion) return null;
++  return s.execution.run_id ?? null;
++}
++
+ /** The newest checkpoint, by its own recorded time (never by id). */
+ export function latestCheckpoint(items: RunCheckpoint[]): RunCheckpoint | null {
+   let best: RunCheckpoint | null = null;
+diff --git a/web/src/lib/client/conversation-reply.ts b/web/src/lib/client/conversation-reply.ts
+index ca59267..be60eeb 100644
+--- a/web/src/lib/client/conversation-reply.ts
++++ b/web/src/lib/client/conversation-reply.ts
+@@ -1,17 +1,11 @@
+ "use client";
+-import { useEffect, useRef, useState } from "react";
++import { useEffect, useState } from "react";
+ import { newCommandId } from "@/lib/client/api";
+ import { usePendingCommand } from "@/lib/client/pending-command";
+ import { conversationApi } from "@/lib/client/real-api";
+ import { postMessageBody, queueApi } from "@/lib/client/batch2-api";
+-import {
+-  documentsProblem,
+-  newEntry,
+-  sentGenerations,
+-  stageFile,
+-  uploadAll,
+-} from "@/lib/client/documents";
+-import { useStagedDocuments } from "@/lib/client/staged-documents";
++import { entryProblem, uploadAll } from "@/lib/client/documents";
++import { useStagedDocuments, type Origin } from "@/lib/client/staged-documents";
+ import type { DocumentRef, PostMessageBody } from "@/lib/contract/batch2";
+ import { ApiError } from "@/lib/contract/errors";
+ import {
+@@ -141,9 +135,11 @@ export function useConversationReply({
+   // unknown upload restores them. Once uploaded, their refs also travel
+   // inside the frozen command.
+   const staged = useStagedDocuments(wsId, `conversation:${cid}`, documents);
+-  const { docs, setDocs, forget } = staged;
+-  const docsRef = useRef(docs);
+-  docsRef.current = docs;
++  const { docs, ctl } = staged;
++  const dest = wsId ? { workspace_id: wsId, conversation_id: cid } : null;
++  const problems = docs.map((e) => entryProblem(e, dest));
++  /** Restored, readable and reconciled: nothing staged is in question. */
++  const docsReady = staged.ready && problems.every((p) => !p);
+   const [pickError, setDocError] = useState("");
+   const docError = pickError || staged.storeError;
+   useEffect(() => {
+@@ -178,28 +174,27 @@ export function useConversationReply({
+   const frozen = Boolean(cmd.current) || Boolean(queueCmd.current);
+   /** Files can change only while no send is in doubt or in flight. */
+   const filesLocked = !attach || frozen || busy;
+-  const docsLocked = !documents || frozen || busy;
++  // Nothing can be picked until restoration settles (or while it is blocked).
++  const docsLocked = !documents || frozen || busy || !staged.ready;
+   const addDocuments = async (list: FileList | File[] | null) => {
+     if (docsLocked || !list || !list.length) return;
+-    try {
+-      const picked = await Promise.all([...list].map(stageFile));
+-      const next = [...docs, ...picked.map(newEntry)];
+-      const problem = documentsProblem(next);
+-      if (problem) throw new Error(problem);
+-      setDocs(next);
+-      setDocError("");
+-    } catch (e) {
+-      setDocError(
+-        e instanceof Error ? e.message : "That document can’t be attached.",
+-      );
+-    }
++    // Bound to the draft it was picked in; a late read never lands elsewhere.
++    setDocError(await ctl.add([...list]));
+   };
+   const removeDocument = (index: number) => {
+-    if (docsLocked) return;
+     const gone = docs[index];
+-    if (gone) void forget([gone.generation]);
++    const o = ctl.origin();
++    // A document needing reconciliation can always be removed explicitly.
++    if (!gone || !o || (docsLocked && !problems[index])) return;
++    void ctl.forget(o, [gone.generation]);
+     setDocError("");
+   };
++  const reattachDocument = (index: number) => {
++    const gone = docs[index];
++    const o = ctl.origin();
++    if (!gone || !o || frozen || busy || !problems[index]) return;
++    void ctl.reattach(o, gone.generation).catch(() => {});
++  };
+   const addFiles = async (list: FileList | File[] | null) => {
+     if (filesLocked || !list || !list.length) return;
+     try {
+@@ -225,7 +220,7 @@ export function useConversationReply({
+     Boolean(wsId) &&
+     version !== null &&
+     !busy &&
+-    !staged.restoring &&
++    docsReady &&
+     !held &&
+     !queueCmd.current &&
+     (Boolean(cmd.current) || Boolean(text.trim()));
+@@ -233,23 +228,28 @@ export function useConversationReply({
+     Boolean(wsId) &&
+     version !== null &&
+     !busy &&
+-    !staged.restoring &&
++    docsReady &&
+     !held &&
+     !cmd.current &&
+     (Boolean(queueCmd.current) || Boolean(text.trim()));
+ 
+   /** Uploads staged originals once; refs are confirmed server receipts. */
+-  const documentRefs = async (): Promise<DocumentRef[]> =>
+-    docs.length && wsId ? uploadAll(wsId, cid, docs, setDocs) : [];
++  const documentRefs = async (o: Origin | null): Promise<DocumentRef[]> => {
++    if (!docs.length || !dest) return [];
++    if (!o) throw new Error("Attached documents aren’t available here.");
++    // Every write lands in the draft the send started from.
++    return uploadAll(dest, docs, (next) => ctl.persist(o, next));
++  };
+   const clearSent = (
+     sentText: string,
+     sentFiles: MessageAttachment[],
+     refs: DocumentRef[] | undefined,
++    o: Origin | null,
+   ) => {
+     setText((current) => (current === sentText ? "" : current));
+     setFiles((current) => (sameFiles(current, sentFiles) ? [] : current));
+     // Only the exact generations this confirmed command carried are removed.
+-    void forget(sentGenerations(docsRef.current, refs ?? []));
++    if (o && refs?.length) void ctl.forgetRefs(o, refs);
+   };
+ 
+   const send = async () => {
+@@ -258,10 +258,11 @@ export function useConversationReply({
+     setError(null);
+     const sentText = text;
+     const sentFiles = files;
++    const origin = ctl.origin();
+     let attempt = cmd.current;
+     try {
+       if (!attempt) {
+-        const document_refs = await documentRefs();
++        const document_refs = await documentRefs(origin);
+         attempt = {
+           command_id: newCommandId(),
+           expected_work_version: version,
+@@ -275,7 +276,7 @@ export function useConversationReply({
+       }
+       await conversationApi.send(wsId, cid, attempt);
+       if (cmd.clear(attempt)) {
+-        clearSent(sentText, sentFiles, attempt.document_refs);
++        clearSent(sentText, sentFiles, attempt.document_refs, origin);
+         await refresh();
+       }
+     } catch (e) {
+@@ -302,10 +303,11 @@ export function useConversationReply({
+     setError(null);
+     const sentText = text;
+     const sentFiles = files;
++    const origin = ctl.origin();
+     let attempt = queueCmd.current;
+     try {
+       if (!attempt) {
+-        const document_refs = await documentRefs();
++        const document_refs = await documentRefs(origin);
+         attempt = postMessageBody({
+           command_id: newCommandId(),
+           expected_work_version: version,
+@@ -319,7 +321,7 @@ export function useConversationReply({
+       }
+       await queueApi.queue(wsId, cid, attempt);
+       if (queueCmd.clear(attempt)) {
+-        clearSent(sentText, sentFiles, attempt.document_refs);
++        clearSent(sentText, sentFiles, attempt.document_refs, origin);
+         onQueued?.();
+       }
+     } catch (e) {
+@@ -350,6 +352,11 @@ export function useConversationReply({
+     addDocuments,
+     removeDocument,
+     docsLocked,
++    /** Per staged document: why it must be reconciled first (or null). */
++    docProblems: problems,
++    reattachDocument,
++    /** Explicit recovery for a blocked restoration of kept documents. */
++    docRecovery: staged.recovery,
+     /** Files attached to the draft; frozen with an unconfirmed send. */
+     files,
+     fileError,
+diff --git a/web/src/lib/client/doc-store.ts b/web/src/lib/client/doc-store.ts
+index c9ed1e7..ad87c91 100644
+--- a/web/src/lib/client/doc-store.ts
++++ b/web/src/lib/client/doc-store.ts
+@@ -17,6 +17,7 @@ import {
+   toBase64,
+   type StagedDocument,
+   type StagedEntry,
++  type UploadIdentity,
+ } from "./documents";
+ 
+ export interface StoredDocument {
+@@ -32,6 +33,8 @@ export interface StoredDocument {
+   bytes: ArrayBuffer;
+   state: StagedEntry["state"];
+   ref: (DocumentRef & { status: ExtractionStatus }) | null;
++  /** Absent on records kept before upload identities were stored. */
++  upload?: UploadIdentity | null;
+ }
+ 
+ export interface DocStore {
+@@ -66,9 +69,17 @@ export function toRecord(scope: string, entry: StagedEntry): StoredDocument {
+     bytes: bytes.slice().buffer as ArrayBuffer,
+     state: entry.state,
+     ref: entry.ref,
++    upload: entry.upload,
+   };
+ }
+ 
++const isIdentity = (u: unknown): u is UploadIdentity =>
++  typeof u === "object" &&
++  u !== null &&
++  (
++    ["command_id", "request_id", "workspace_id", "conversation_id"] as const
++  ).every((k) => typeof (u as Record<string, unknown>)[k] === "string");
++
+ /**
+  * Restores a staged entry and re-proves its bytes. A copy whose bytes no
+  * longer hash to the recorded sha256 is returned as corrupt, not dropped.
+@@ -94,6 +105,9 @@ export async function fromRecord(
+       // An upload that was in flight when the page went away is unknown.
+       state: r.state === "uploading" ? "unknown" : r.state,
+       ref: r.ref,
++      // A malformed or missing identity is never replaced by a fresh one;
++      // an unknown upload without it must be reconciled by the person.
++      upload: isIdentity(r.upload) ? { ...r.upload } : null,
+       durable: true,
+     },
+   };
+diff --git a/web/src/lib/client/documents.ts b/web/src/lib/client/documents.ts
+index 109502d..7f0b047 100644
+--- a/web/src/lib/client/documents.ts
++++ b/web/src/lib/client/documents.ts
+@@ -3,10 +3,12 @@
+  *
+  * A staged document is a frozen local snapshot: the exact bytes (canonical
+  * base64), their sha256, the original filename and the MIME type for its
+- * extension. Uploading is a normal command: its command_id and request_id
+- * are journalled per conversation + sha256 + filename before the first
+- * attempt, so an unknown outcome can only be replayed with the identical
+- * body, never re-sent as a new upload. A definite refusal clears the journal.
++ * extension. Uploading is a normal command: its command_id, request_id and
++ * destination conversation are written durably with the staged generation
++ * (on this device) before the first attempt, and kept with its receipt. An
++ * unknown outcome can only be replayed with the identical body into the same
++ * conversation, never re-sent as a new upload; when that identity can't be
++ * kept, nothing is sent. A definite refusal clears it.
+  */
+ import { ApiError } from "@/lib/contract/errors";
+ import {
+@@ -30,6 +32,18 @@ export interface StagedDocument {
+ 
+ export type UploadState = "local" | "uploading" | "uploaded" | "unknown";
+ 
++/** One upload command's exact identity and its immutable destination. */
++export interface UploadIdentity {
++  command_id: string;
++  request_id: string;
++  workspace_id: string;
++  conversation_id: string;
++}
++export type UploadDestination = Pick<
++  UploadIdentity,
++  "workspace_id" | "conversation_id"
++>;
++
+ export interface StagedEntry {
+   doc: StagedDocument;
+   /** This staging's own id: only this exact generation is ever deleted. */
+@@ -40,6 +54,11 @@ export interface StagedEntry {
+   state: UploadState;
+   /** Set once the server confirmed the upload. */
+   ref: (DocumentRef & { status: ExtractionStatus }) | null;
++  /**
++   * The upload command, kept durably before it is first sent and kept with
++   * its receipt. Null only while nothing has been sent.
++   */
++  upload: UploadIdentity | null;
+ }
+ 
+ export const DOCUMENT_ACCEPT = ".pdf,.docx,.xlsx";
+@@ -104,6 +123,7 @@ export const newEntry = (doc: StagedDocument): StagedEntry => ({
+   durable: false,
+   state: "local",
+   ref: null,
++  upload: null,
+ });
+ 
+ /** Exact bytes back from canonical base64. */
+@@ -130,6 +150,16 @@ export const sentGenerations = (
+     )
+     .map((e) => e.generation);
+ 
++/** True when the staged documents aren't exactly the ones a start expects. */
++export function expectedDocumentsMissing(
++  expected: { sha256: string }[],
++  entries: StagedEntry[],
++): boolean {
++  const have = entries.map((e) => e.doc.sha256).sort();
++  const want = expected.map((e) => e.sha256).sort();
++  return have.length !== want.length || want.some((h, i) => h !== have[i]);
++}
++
+ export function documentsProblem(entries: StagedEntry[]): string | null {
+   if (entries.length > MAX_DOCUMENT_REFS)
+     return "Attach at most two documents to one message.";
+@@ -141,51 +171,38 @@ export function documentsProblem(entries: StagedEntry[]): string | null {
+   return null;
+ }
+ 
+-// ---- upload journal ----
++// ---- upload commands ----
+ 
+-const journalKey = (ws: string, cid: string, d: StagedDocument) =>
+-  `workagent:pending:${ws}:conversation:${cid}:document:${d.sha256}:${d.filename}`;
+-
+-function journal(key: string): { command_id: string; request_id: string } {
+-  try {
+-    const raw = sessionStorage.getItem(key);
+-    if (raw) return JSON.parse(raw);
+-  } catch {
+-    /* fall through to a new entry */
+-  }
+-  const fresh = {
+-    command_id: crypto.randomUUID(),
+-    request_id: crypto.randomUUID(),
+-  };
+-  try {
+-    sessionStorage.setItem(key, JSON.stringify(fresh));
+-  } catch {
+-    /* storage unavailable: this in-memory attempt still replays exactly */
++/** A staged document needs the person to reconcile it before anything sends. */
++export class ReconcileRequired extends Error {
++  constructor(message: string) {
++    super(message);
++    this.name = "ReconcileRequired";
+   }
+-  return fresh;
+ }
+ 
+-const drop = (key: string) => {
+-  try {
+-    sessionStorage.removeItem(key);
+-  } catch {
+-    /* nothing kept */
+-  }
+-};
++const sameDestination = (u: UploadIdentity, d: UploadDestination) =>
++  u.workspace_id === d.workspace_id && u.conversation_id === d.conversation_id;
+ 
+-/** A journalled upload whose outcome is unknown exists for this document. */
+-export function uploadInDoubt(ws: string, cid: string, d: StagedDocument) {
+-  try {
+-    return sessionStorage.getItem(journalKey(ws, cid, d)) !== null;
+-  } catch {
+-    return false;
+-  }
++/**
++ * Why this entry can't be uploaded/sent to `dest` as it stands (null: it
++ * can). A ref or upload identity belongs to exactly one conversation; an
++ * upload that may have happened but whose identity this device no longer has
++ * is never re-sent as a new command. `dest` null: no conversation yet.
++ */
++export function entryProblem(
++  e: StagedEntry,
++  dest: UploadDestination | null,
++): string | null {
++  const name = `“${e.doc.filename}”`;
++  if (e.upload ? !dest || !sameDestination(e.upload, dest) : Boolean(e.ref))
++    return `${name} was uploaded for a different conversation start. Use the kept copy as a new upload, or remove it.`;
++  if (!e.upload && (e.state === "unknown" || e.state === "uploading"))
++    return `An earlier upload of ${name} may have reached Workagent, but this device no longer has its exact command. Use the kept copy as a new upload, or remove it.`;
++  return null;
+ }
+ 
+-export function uploadBody(
+-  d: StagedDocument,
+-  ids: { command_id: string; request_id: string },
+-): UploadBody {
++export function uploadBody(d: StagedDocument, ids: UploadIdentity): UploadBody {
+   return {
+     schema_version: "workagent/v1",
+     request_id: ids.request_id,
+@@ -197,71 +214,87 @@ export function uploadBody(
+   };
+ }
+ 
+-/** Uploads one staged original exactly once (or replays its exact command). */
++/** Sends one upload command with its kept identity; checks the receipt. */
+ export async function uploadStaged(
+-  ws: string,
+-  cid: string,
+   d: StagedDocument,
++  ids: UploadIdentity,
+   upload = documentApi.upload,
+ ): Promise<DocumentDetail> {
+-  const key = journalKey(ws, cid, d);
+-  const ids = journal(key);
+-  try {
+-    const detail = await upload(ws, cid, uploadBody(d, ids));
+-    if (detail.sha256 !== d.sha256 || detail.filename !== d.filename)
+-      throw new ApiError({
+-        code: "transport",
+-        status: 0,
+-        message: "The upload receipt didn’t match the file. Nothing was sent.",
+-      });
+-    drop(key);
+-    return detail;
+-  } catch (e) {
+-    if (!(e instanceof ApiError && e.isAmbiguousWrite)) drop(key);
+-    throw e;
+-  }
++  const detail = await upload(
++    ids.workspace_id,
++    ids.conversation_id,
++    uploadBody(d, ids),
++  );
++  if (detail.sha256 !== d.sha256 || detail.filename !== d.filename)
++    throw new ApiError({
++      code: "transport",
++      status: 0,
++      message: "The upload receipt didn’t match the file. Nothing was sent.",
++    });
++  return detail;
+ }
+ 
+ /**
+- * Uploads every staged document that has no confirmed ref, in order. Stops at
+- * the first failure; entries already confirmed keep their ref, so the next
+- * attempt never uploads them again.
++ * Uploads every staged document that has no confirmed ref, in order, into
++ * `dest`. Refuses first if any entry needs reconciling. A new command's
++ * identity must be durably kept (`persist` resolves) before it is sent; if
++ * that fails nothing is sent. Stops at the first failure; confirmed entries
++ * keep their ref, so the next attempt never uploads them again.
+  */
+ export async function uploadAll(
+-  ws: string,
+-  cid: string,
++  dest: UploadDestination,
+   entries: StagedEntry[],
+-  update: (next: StagedEntry[]) => void,
++  persist: (next: StagedEntry[]) => Promise<void>,
+   upload = documentApi.upload,
+ ): Promise<DocumentRef[]> {
++  for (const e of entries) {
++    const problem = entryProblem(e, dest);
++    if (problem) throw new ReconcileRequired(problem);
++  }
++  const quietly = (next: StagedEntry[]) => persist(next).catch(() => {});
+   let list = entries;
++  const put = (i: number, patch: Partial<StagedEntry>) =>
++    (list = list.map((e, n) => (n === i ? { ...e, ...patch } : e)));
+   for (let i = 0; i < list.length; i++) {
+     const entry = list[i]!;
+     if (entry.ref) continue;
+-    list = list.map((e, n) => (n === i ? { ...e, state: "uploading" } : e));
+-    update(list);
++    let ids = entry.upload;
++    if (!ids) {
++      ids = {
++        command_id: crypto.randomUUID(),
++        request_id: crypto.randomUUID(),
++        ...dest,
++      };
++      try {
++        await persist(put(i, { state: "uploading", upload: ids }));
++      } catch (e) {
++        // Not kept: never sent, so it is still only local.
++        await quietly(put(i, { state: "local", upload: null }));
++        throw e;
++      }
++    } else void quietly(put(i, { state: "uploading" }));
+     try {
+-      const detail = await uploadStaged(ws, cid, entry.doc, upload);
+-      list = list.map((e, n) =>
+-        n === i
+-          ? {
+-              ...e,
+-              state: "uploaded",
+-              ref: {
+-                document_id: detail.document_id,
+-                sha256: detail.sha256,
+-                status: detail.status,
+-              },
+-            }
+-          : e,
++      const detail = await uploadStaged(entry.doc, ids, upload);
++      // The identity stays with the receipt: if this write is lost, the kept
++      // record still replays the same command.
++      await quietly(
++        put(i, {
++          state: "uploaded",
++          ref: {
++            document_id: detail.document_id,
++            sha256: detail.sha256,
++            status: detail.status,
++          },
++        }),
+       );
+-      update(list);
+     } catch (e) {
+       const unknown = e instanceof ApiError && e.isAmbiguousWrite;
+-      list = list.map((x, n) =>
+-        n === i ? { ...x, state: unknown ? "unknown" : "local" } : x,
++      await quietly(
++        put(
++          i,
++          unknown ? { state: "unknown" } : { state: "local", upload: null },
++        ),
+       );
+-      update(list);
+       throw e;
+     }
+   }
+diff --git a/web/src/lib/client/products.ts b/web/src/lib/client/products.ts
+index 65e0551..572e78b 100644
+--- a/web/src/lib/client/products.ts
++++ b/web/src/lib/client/products.ts
+@@ -4,7 +4,8 @@ import { ApiError } from "@/lib/contract/errors";
+ import { tableFilename } from "@/lib/product-summary";
+ export type S = components["schemas"];
+ export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
+-export type Operation = NonNullable<S["PostMessage"]["operation"]>;
++/** An operation the client sends (request side of PostMessage). */
++export type Operation = NonNullable<S["PostMessage-Input"]["operation"]>;
+ 
+ /** The older typed products: reconciliation tables, tools and files. */
+ export function isProduct(
+diff --git a/web/src/lib/client/real-api.ts b/web/src/lib/client/real-api.ts
+index dbd1855..b259aa3 100644
+--- a/web/src/lib/client/real-api.ts
++++ b/web/src/lib/client/real-api.ts
+@@ -1082,7 +1082,7 @@ export const conversationApi = {
+       request_id?: string;
+       expected_work_version: number;
+       text: string;
+-      operation?: S["PostMessage"]["operation"];
++      operation?: S["PostMessage-Input"]["operation"];
+       /** Natural admission only; never combined with an operation. */
+       attachments?: MessageAttachment[];
+       target?: ExactTarget | null;
+@@ -1091,7 +1091,7 @@ export const conversationApi = {
+     },
+   ) {
+     const natural = c.attachments !== undefined || c.target !== undefined;
+-    const body = await stablePayload<S["PostMessage"]>(
++    const body = await stablePayload<S["PostMessage-Input"]>(
+       `${ws}:message:${id}`,
+       c.command_id,
+       c,
+@@ -1105,10 +1105,7 @@ export const conversationApi = {
+         ...(natural
+           ? { attachments: c.attachments ?? [], target: c.target ?? null }
+           : {}),
+-        // Additive B2.5 field; generated type follows at contract regeneration.
+-        ...(c.document_refs?.length
+-          ? ({ document_refs: c.document_refs } as object)
+-          : {}),
++        ...(c.document_refs?.length ? { document_refs: c.document_refs } : {}),
+       }),
+     );
+     const r = await unwrap(
+diff --git a/web/src/lib/client/staged-documents.ts b/web/src/lib/client/staged-documents.ts
+index 348c375..ccc4320 100644
+--- a/web/src/lib/client/staged-documents.ts
++++ b/web/src/lib/client/staged-documents.ts
+@@ -3,101 +3,277 @@
+  * Staged documents for one draft, kept durably on this device. The list in
+  * memory mirrors the stored records; each change is written through, and a
+  * failed write is shown (the entry stays attached, marked not kept).
++ *
++ * Every asynchronous step is bound to the scope and epoch it started in: a
++ * late file read, upload update or removal writes only to that original
++ * scope and never lands in a draft or workspace selected since. Until a
++ * restoration settles, nothing can be added; a restoration that failed or
++ * found a damaged copy blocks sending until the person recovers explicitly.
+  */
+-import { useCallback, useEffect, useRef, useState } from "react";
++import { useEffect, useState } from "react";
+ import {
+   draftScope,
+   forgetGenerations,
+   indexedDocStore,
+   persistEntries,
+   restoreEntries,
++  StorageFailed,
+   type DocStore,
++  type StoredDocument,
+ } from "./doc-store";
+-import type { StagedEntry } from "./documents";
++import {
++  documentsProblem,
++  newEntry,
++  stageFile,
++  type StagedEntry,
++} from "./documents";
+ import { PRINCIPAL } from "./api";
+ 
+-export function useStagedDocuments(
+-  ws: string | null,
+-  draft: string,
+-  enabled: boolean,
+-  store: DocStore = indexedDocStore,
++/** The scope and epoch an asynchronous step started in. */
++export type Origin = { readonly scope: string; readonly epoch: number };
++
++export type Blocked =
++  { kind: "read" } | { kind: "corrupt"; records: StoredDocument[] };
++
++export interface StagedView {
++  docs: StagedEntry[];
++  restoring: boolean;
++  storeError: string;
++  /** Sending stays blocked until this is explicitly recovered. */
++  blocked: Blocked | null;
++}
++
++const READ_FAILED =
++  "Documents kept on this device couldn’t be read. Nothing was sent or deleted. Try reading them again, or continue without them.";
++const NOT_KEPT =
++  "A document couldn’t be kept on this device (storage full or unavailable). It stays attached, but would be lost if this page reloads.";
++
++export const emptyView = (restoring = false): StagedView => ({
++  docs: [],
++  restoring,
++  storeError: "",
++  blocked: null,
++});
++
++/** The staging state machine the hook renders (tested without React). */
++export function stagedController(
++  store: DocStore,
++  emit: (view: StagedView) => void,
+ ) {
+-  const scope = ws && enabled ? draftScope(PRINCIPAL, ws, draft) : null;
+-  const [docs, setDocsState] = useState<StagedEntry[]>([]);
+-  const [storeError, setStoreError] = useState("");
+-  const [restoring, setRestoring] = useState(Boolean(scope));
+-  const scopeRef = useRef(scope);
+-  scopeRef.current = scope;
++  let epoch = 0;
++  let scope: string | null = null;
++  let view = emptyView();
++  const set = (patch: Partial<StagedView>) => {
++    view = { ...view, ...patch };
++    emit(view);
++  };
++  const current = (o: Origin) => o.epoch === epoch && o.scope === scope;
++  // Device writes run one at a time, in the order they were made, so a
++  // delayed earlier write never resurrects a removed generation or replaces
++  // a later receipt.
++  let chain: Promise<unknown> = Promise.resolve();
++  const serial = <T>(run: () => Promise<T>): Promise<T> => {
++    const next = chain.then(run);
++    chain = next.catch(() => {});
++    return next;
++  };
+ 
+-  useEffect(() => {
+-    setDocsState([]);
+-    setStoreError("");
+-    if (!scope) return setRestoring(false);
+-    let live = true;
+-    setRestoring(true);
+-    restoreEntries(store, scope).then(
+-      ({ list, corrupt }) => {
+-        if (!live) return;
+-        setDocsState(list);
+-        if (corrupt.length)
+-          setStoreError(
+-            `The kept copy of ${corrupt.map((c) => c.filename).join(", ")} no longer matches the original. It hasn’t been sent; attach the file again.`,
+-          );
+-        setRestoring(false);
+-      },
++  const restore = async (o: Origin) => {
++    try {
++      const { list, corrupt } = await restoreEntries(store, o.scope);
++      if (!current(o)) return;
++      set({
++        docs: list,
++        restoring: false,
++        blocked: corrupt.length ? { kind: "corrupt", records: corrupt } : null,
++        storeError: corrupt.length
++          ? `The kept copy of ${corrupt.map((c) => c.filename).join(", ")} no longer matches the original. It hasn’t been sent; discard the damaged copy and attach the file again.`
++          : "",
++      });
++    } catch {
++      if (!current(o)) return;
++      set({
++        restoring: false,
++        blocked: { kind: "read" },
++        storeError: READ_FAILED,
++      });
++    }
++  };
++
++  /** Write a list through to `o.scope`; rejects if any entry wasn't kept. */
++  const persist = async (o: Origin, list: StagedEntry[]) => {
++    if (current(o)) set({ docs: list });
++    const { list: kept, failed } = await serial(() =>
++      persistEntries(store, o.scope, list),
++    );
++    if (current(o)) {
++      // Only the durable flag changes; later state updates win otherwise.
++      set({
++        docs: view.docs.map((e) => {
++          const k = kept.find((x) => x.generation === e.generation);
++          return k && k.state === e.state ? { ...e, durable: k.durable } : e;
++        }),
++        ...(failed ? { storeError: NOT_KEPT } : {}),
++      });
++    }
++    if (failed) throw new StorageFailed();
++  };
++
++  const forget = async (o: Origin, generations: string[]) => {
++    if (current(o))
++      set({
++        docs: view.docs.filter((e) => !generations.includes(e.generation)),
++      });
++    if (!generations.length) return;
++    await serial(() => forgetGenerations(store, o.scope, generations)).catch(
+       () => {
+-        if (!live) return;
+-        setStoreError(
+-          "Documents kept on this device couldn’t be read. Nothing was sent or deleted.",
+-        );
+-        setRestoring(false);
++        if (current(o))
++          set({
++            storeError:
++              "A document’s copy on this device couldn’t be cleared, so it may reappear after a reload. Remove it again before sending if it does.",
++          });
+       },
+     );
+-    return () => {
+-      live = false;
+-    };
+-  }, [scope, store]);
++  };
+ 
+-  /** Replace the list and write it through to the device store. */
+-  const setDocs = useCallback(
+-    (list: StagedEntry[]) => {
+-      setDocsState(list);
+-      const at = scopeRef.current;
+-      if (!at) return;
+-      void persistEntries(store, at, list).then(({ list: kept, failed }) => {
+-        if (scopeRef.current !== at) return;
+-        // Only the durable flag changes; later state updates win otherwise.
+-        setDocsState((now) =>
+-          now.map((e) => {
+-            const k = kept.find((x) => x.generation === e.generation);
+-            return k && k.state === e.state ? { ...e, durable: k.durable } : e;
+-          }),
+-        );
+-        if (failed)
+-          setStoreError(
+-            "A document couldn’t be kept on this device (storage full or unavailable). It stays attached, but would be lost if this page reloads.",
+-          );
+-      });
+-    },
+-    [store],
+-  );
++  /** Switch to a scope (null: none) and restore it; earlier steps go stale. */
++  const open = (next: string | null) => {
++    epoch += 1;
++    scope = next;
++    view = emptyView(Boolean(next));
++    emit(view);
++    if (next) void restore({ scope: next, epoch });
++  };
+ 
+-  /** Remove exact generations (sent and confirmed, or removed by the person). */
+-  const forget = useCallback(
+-    async (generations: string[]) => {
+-      setDocsState((now) =>
+-        now.filter((e) => !generations.includes(e.generation)),
++  return {
++    get view() {
++      return view;
++    },
++    origin: (): Origin | null => (scope ? { scope, epoch } : null),
++    open,
++    /** Stage picked files into the scope they were picked in; error text or "". */
++    async add(files: File[]): Promise<string> {
++      const o = scope ? { scope, epoch } : null;
++      if (!o || view.restoring || view.blocked || !files.length) return "";
++      let picked: StagedEntry[];
++      try {
++        picked = (await Promise.all(files.map(stageFile))).map(newEntry);
++      } catch (e) {
++        return e instanceof Error
++          ? e.message
++          : "That document can’t be attached.";
++      }
++      // Picked before a switch: never lands in the newly selected draft.
++      if (!current(o)) return "";
++      const next = [...view.docs, ...picked];
++      const problem = documentsProblem(next);
++      if (problem) return problem;
++      await persist(o, next).catch(() => {});
++      return "";
++    },
++    persist,
++    forget,
++    /**
++     * Clears the generations in `o.scope` whose confirmed refs a sent command
++     * carried, read from that scope's own records (not whatever is shown).
++     */
++    async forgetRefs(
++      o: Origin,
++      refs: { document_id: string; sha256: string }[],
++    ) {
++      const kept = await serial(() => store.list(o.scope)).catch(() => []);
++      await forget(
++        o,
++        kept
++          .filter(
++            (r) =>
++              r.ref &&
++              refs.some(
++                (x) =>
++                  x.document_id === r.ref!.document_id &&
++                  x.sha256 === r.ref!.sha256,
++              ),
++          )
++          .map((r) => r.generation),
++      );
++    },
++    /**
++     * Explicit recovery: the kept bytes become a new local staging (a new
++     * upload command later); the old generation is cleared only after the new
++     * one is written.
++     */
++    async reattach(o: Origin, generation: string) {
++      const old = view.docs.find((e) => e.generation === generation);
++      if (!old || !current(o)) return;
++      const fresh = newEntry(old.doc);
++      await persist(
++        o,
++        view.docs.map((e) => (e.generation === generation ? fresh : e)),
+       );
+-      const at = scopeRef.current;
+-      if (at && generations.length)
+-        await forgetGenerations(store, at, generations).catch(() =>
+-          setStoreError(
+-            "A document’s copy on this device couldn’t be cleared, so it may reappear after a reload. Remove it again before sending if it does.",
+-          ),
+-        );
++      await forget(o, [generation]);
++    },
++    /** Explicitly discard damaged copies, then unblock. */
++    async discardCorrupt(o: Origin) {
++      if (!current(o) || view.blocked?.kind !== "corrupt") return;
++      try {
++        const keys = view.blocked.records.map((r) => r.key);
++        await serial(() => store.remove(keys));
++        if (current(o)) set({ blocked: null, storeError: "" });
++      } catch {
++        if (current(o))
++          set({
++            storeError: "The damaged copy couldn’t be discarded. Try again.",
++          });
++      }
++    },
++    /** Read the kept documents again. */
++    retry: () => open(scope),
++    /** Explicitly continue without documents that couldn't be read. */
++    continueWithout(o: Origin) {
++      if (current(o) && view.blocked?.kind === "read")
++        set({ blocked: null, storeError: "" });
+     },
+-    [store],
+-  );
++  };
++}
++
++export type StagedController = ReturnType<typeof stagedController>;
+ 
+-  return { docs, setDocs, forget, storeError, restoring };
++export function useStagedDocuments(
++  ws: string | null,
++  draft: string,
++  enabled: boolean,
++  store: DocStore = indexedDocStore,
++) {
++  const scope = ws && enabled ? draftScope(PRINCIPAL, ws, draft) : null;
++  const [view, setView] = useState(() => emptyView(Boolean(scope)));
++  const [ctl] = useState(() => stagedController(store, setView));
++  useEffect(() => {
++    ctl.open(scope);
++    return () => ctl.open(null);
++  }, [ctl, scope]);
++  const o = ctl.origin();
++  const recovery =
++    !o || !view.blocked
++      ? []
++      : view.blocked.kind === "corrupt"
++        ? [
++            {
++              label: "Discard damaged copy",
++              run: () => void ctl.discardCorrupt(o),
++            },
++          ]
++        : [
++            { label: "Read kept documents again", run: ctl.retry },
++            {
++              label: "Continue without them",
++              run: () => ctl.continueWithout(o),
++            },
++          ];
++  return {
++    ...view,
++    /** Not restoring and nothing blocked: documents can be added or sent. */
++    ready: !view.restoring && !view.blocked,
++    recovery,
++    ctl,
++  };
+ }
+diff --git a/web/test/batch2-controls.test.ts b/web/test/batch2-controls.test.ts
+index 8983ed1..eb534c9 100644
+--- a/web/test/batch2-controls.test.ts
++++ b/web/test/batch2-controls.test.ts
+@@ -13,7 +13,6 @@ import {
+   newEntry,
+   stageBytes,
+   uploadAll,
+-  uploadInDoubt,
+   uploadStaged,
+   type StagedEntry,
+ } from "@/lib/client/documents";
+@@ -239,9 +238,13 @@ const detailFor = (b: UploadBody): DocumentDetail =>
+     status: "extracted",
+   }) as DocumentDetail;
+ 
++const dest = { workspace_id: "ws", conversation_id: "cv" };
++
+ describe("document upload commands", () => {
+   it("an unknown upload replays the identical body; nothing is re-sent as new", async () => {
+     const d = await stageBytes("a.pdf", "", pdf());
++    let entries: StagedEntry[] = [newEntry(d)];
++    const persist = async (n: StagedEntry[]) => void (entries = n);
+     const bodies: UploadBody[] = [];
+     let fail = true;
+     const upload = async (_ws: string, _cid: string, b: UploadBody) => {
+@@ -250,17 +253,22 @@ describe("document upload commands", () => {
+         throw new ApiError({ code: "transport", status: 0, message: "lost" });
+       return detailFor(b);
+     };
+-    await expect(uploadStaged("ws", "cv", d, upload)).rejects.toThrow("lost");
+-    expect(uploadInDoubt("ws", "cv", d)).toBe(true);
++    await expect(uploadAll(dest, entries, persist, upload)).rejects.toThrow(
++      "lost",
++    );
++    expect(entries[0]!.state).toBe("unknown");
++    expect(entries[0]!.upload).not.toBeNull();
+     fail = false;
+-    await uploadStaged("ws", "cv", d, upload);
++    await uploadAll(dest, entries, persist, upload);
+     expect(bodies).toHaveLength(2);
+     expect(bodies[1]).toEqual(bodies[0]); // same command_id, request_id, bytes
+-    expect(uploadInDoubt("ws", "cv", d)).toBe(false);
++    expect(entries[0]!.state).toBe("uploaded");
+   });
+ 
+-  it("a definite refusal clears the journal so a new attempt is a new command", async () => {
++  it("a definite refusal clears the identity so a new attempt is a new command", async () => {
+     const d = await stageBytes("a.pdf", "", pdf());
++    let entries: StagedEntry[] = [newEntry(d)];
++    const persist = async (n: StagedEntry[]) => void (entries = n);
+     const ids: string[] = [];
+     const refuse = async (_w: string, _c: string, b: UploadBody) => {
+       ids.push(b.command_id);
+@@ -270,25 +278,30 @@ describe("document upload commands", () => {
+         message: "no",
+       });
+     };
+-    await expect(uploadStaged("ws", "cv", d, refuse)).rejects.toThrow();
+-    await expect(uploadStaged("ws", "cv", d, refuse)).rejects.toThrow();
++    await expect(uploadAll(dest, entries, persist, refuse)).rejects.toThrow();
++    await expect(uploadAll(dest, entries, persist, refuse)).rejects.toThrow();
+     expect(ids[0]).not.toBe(ids[1]);
+-    expect(uploadInDoubt("ws", "cv", d)).toBe(false);
++    expect(entries[0]!.upload).toBeNull();
++    expect(entries[0]!.state).toBe("local");
+   });
+ 
+   it("a receipt for different bytes is not accepted as an upload", async () => {
+     const d = await stageBytes("a.pdf", "", pdf());
+     const wrong = async (_w: string, _c: string, b: UploadBody) =>
+       ({ ...detailFor(b), sha256: "0".repeat(64) }) as DocumentDetail;
+-    await expect(uploadStaged("ws", "cv", d, wrong)).rejects.toThrow(
+-      /didn’t match/,
+-    );
++    const ids = {
++      command_id: "c",
++      request_id: "r",
++      ...dest,
++    };
++    await expect(uploadStaged(d, ids, wrong)).rejects.toThrow(/didn’t match/);
+   });
+ 
+   it("uploads each original once; a later failure keeps earlier confirmed refs", async () => {
+     const a = await stageBytes("a.pdf", "", pdf("one"));
+     const b = await stageBytes("b.pdf", "", pdf("two"));
+     let entries: StagedEntry[] = [newEntry(a), newEntry(b)];
++    const persist = async (n: StagedEntry[]) => void (entries = n);
+     const seen: string[] = [];
+     let failB = true;
+     const upload = async (_w: string, _c: string, body: UploadBody) => {
+@@ -297,18 +310,10 @@ describe("document upload commands", () => {
+         throw new ApiError({ code: "transport", status: 0, message: "lost" });
+       return detailFor(body);
+     };
+-    await expect(
+-      uploadAll("ws", "cv", entries, (n) => (entries = n), upload),
+-    ).rejects.toThrow();
++    await expect(uploadAll(dest, entries, persist, upload)).rejects.toThrow();
+     expect(entries.map((e) => e.state)).toEqual(["uploaded", "unknown"]);
+     failB = false;
+-    const refs = await uploadAll(
+-      "ws",
+-      "cv",
+-      entries,
+-      (n) => (entries = n),
+-      upload,
+-    );
++    const refs = await uploadAll(dest, entries, persist, upload);
+     expect(seen).toEqual(["a.pdf", "b.pdf", "b.pdf"]); // a.pdf never re-uploaded
+     expect(refs).toEqual([
+       { document_id: `doc-${a.sha256.slice(0, 6)}`, sha256: a.sha256 },

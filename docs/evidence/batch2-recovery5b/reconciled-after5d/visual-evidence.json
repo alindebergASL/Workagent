@@ -1,0 +1,17 @@
+[
+  {
+    "path": "docs/evidence/batch2-recovery5b/baseline-conversation-1440.png",
+    "sha256": "0c44d1c753594134d96f06946061d14ae988ce35f329578a0742574123b335d7",
+    "mode": "retained screenshot visually inspected; no new browser"
+  },
+  {
+    "path": "docs/evidence/batch2-recovery5b/baseline-conversation-390.png",
+    "sha256": "bed37646d298cc5fc3744e4c3e331c071f9e6dc978b117e4a1389911786fd99e",
+    "mode": "retained screenshot visually inspected; no new browser"
+  },
+  {
+    "path": "docs/evidence/batch2-recovery5d/verified-browser-a-320.png",
+    "sha256": "3692ac17ca802aff280aa585396e3bc96fb32717db13a7cd7e58eb0f2f3753f6",
+    "mode": "retained screenshot visually inspected; no new browser"
+  }
+]
