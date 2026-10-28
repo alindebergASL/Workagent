@@ -1,0 +1,21 @@
+[Unit]
+Description=Workagent fixed-profile gVisor computation (local trusted client)
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/workagent-compute
+ExecStart=/usr/bin/python3 -B -m sandbox.service --runtime /opt/workagent-compute --rootfs /opt/workagent-compute/rootfs --pins /opt/workagent-compute/pins.json --state /run/workagent-compute/state --socket /run/workagent-compute/compute.sock --client-uid 1000
+RuntimeDirectory=workagent-compute
+RuntimeDirectoryMode=0755
+Delegate=yes
+DelegateSubgroup=supervisor
+KillMode=control-group
+MemoryMax=805306368
+MemorySwapMax=0
+TasksMax=256
+CPUQuota=100%
+PrivateMounts=yes
+UMask=0077
+# No automatic submission replay. A restart only cleans abandoned jobs.
+Restart=no

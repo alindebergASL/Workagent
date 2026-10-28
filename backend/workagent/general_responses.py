@@ -23,7 +23,10 @@ def consumer_hash():
            'conversation_context.py','evidence_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     names += ('workspace_files.py','workspace_file_models.py','source_snapshots.py','artifact_exports.py',
               'capabilities/registry.py','capabilities/policy.py','capabilities/broker.py','capabilities/file_adapters.py',
-              'capabilities/file_composition.py')
+              'capabilities/file_composition.py', 'capabilities/compute_composition.py',
+              'capabilities/compute_adapters.py', 'sandbox/client.py', 'sandbox/profiles.py',
+              'sandbox/runner_protocol.py', 'sandbox/service.py', 'sandbox/installation.py',
+              'sandbox/results.py', 'sandbox/runtime-lock.json')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 
@@ -326,7 +329,15 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .retained_results import ReadResult, ReadAttachment, material as retained_material, enabled as retained_enabled, authorize as authorize_retained
     from .capabilities.file_adapters import FILE_OPERATIONS
     from .capabilities.file_composition import enabled as files_enabled
-    if isinstance(decision,FILE_OPERATIONS):
+    from .capabilities.compute_adapters import ComputePython
+    from .capabilities.compute_composition import enabled as compute_enabled
+    if isinstance(decision, ComputePython):
+        if not compute_enabled(config): raise DomainError('unsupported_operation')
+        from .capabilities.policy import require_operation
+        require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision,FILE_OPERATIONS):
         if not files_enabled(config): raise DomainError('unsupported_operation')
         from .capabilities.policy import require_operation
         require_operation(c,run,decision)

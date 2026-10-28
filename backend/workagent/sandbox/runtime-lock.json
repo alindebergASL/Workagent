@@ -1,0 +1,8 @@
+{
+  "runtime_version": "release-20261026.0",
+  "archive_url": "https://storage.googleapis.com/gvisor/releases/release/20261026.0/x86_64/gvisor.tar.bz2",
+  "image": "python@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+  "runsc_tree_sha256": "cb52acb31957ea6c9959be25467cede5351d2a65694b7201a2f15a8a6d63f803",
+  "sidecars_tree_sha256": "e124256706542ccf5a0583eae6eed6d55346b9922cd2882b25c876d75b3201e9",
+  "rootfs_tree_sha256": "e4c008279d373e6f8e0282d05a00ca11c16f6842d2a8da867a6b05c902b8ae91"
+}

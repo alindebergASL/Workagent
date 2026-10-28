@@ -121,6 +121,8 @@ class Ledger:
                 if retained_enabled(config): DECISION_SCHEMA=RETAINED_SCHEMA
                 from .capabilities.file_composition import enabled as file_enabled, SCHEMA as FILE_SCHEMA
                 if file_enabled(config): DECISION_SCHEMA=FILE_SCHEMA
+                from .capabilities.compute_composition import enabled as compute_enabled, SCHEMA as COMPUTE_SCHEMA
+                if compute_enabled(config): DECISION_SCHEMA=COMPUTE_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never

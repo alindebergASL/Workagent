@@ -1,6 +1,32 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.0b files/evidence/basic exports accepted locally
+## Latest: B3.1a real confined computation accepted locally
+
+- B3.1a adds a real pinned gVisor/Python3.12 stdlib service and run-bound
+  `compute.python` adapter on `hermes/b2-conversational-client`, following B3.0b
+  `3cc340e6efea385000acac65a3b678a8d132a6a7`. [Acceptance and exact evidence](docs/evidence/batch3-b31a/ACCEPTANCE.md)
+  pins35 changed source/contracts/test/install files; [backend handoff](docs/evidence/batch3-b31a/HANDOFF.md).
+- Current real restricted-PG/service publication/gateway/worker/HTTP checks:
+  **14PASS exit0**; bounded predecessor gateway/file-worker compatibility:
+  **27PASS exit0**.57 migration checksums and current descriptor match on a fresh
+  disposable database; no historical database migrated.
+- Non-invoice Decimal/null/unit/timezone/group/join CSV passes an independent
+  Fraction oracle and actual authenticated HTTP download digest check. Supplied
+  code tests, durable worker checkpoint/restart, post-I/O revocation costs without
+  publication, and service-death unknown receipt/no resend are verified.
+- One narrow independent R1/R2 correction rereview PASS.19 actual unchanged-profile
+  attack records reused with explicit limits; changed client restart/disconnect
+  tests rerun. Inode workload hit gofer FD exhaustion, not proven inode enforcement.
+  Historical failed/incomplete runs remain indexed; no whole-suite-green claim.
+- Candidate is **local-only, not pushed or promoted**. Owned proof service stopped
+  with exact readback; immutable root-owned snapshot preserved. Transient unit
+  unloaded; saved config is retained. Three original API runtimes are unchanged.
+  No product provider calls, budget/cap increases, public exposure or default merge.
+- Existing successor `t_b7f7aa98` is scoped typed memory, released by this slice's
+  completion. Batch3 and combined computation/memory remain unfinished. Separate
+  Claude Cloud frontend overlap is a later integration gate; no web changes here.
+
+## Previous: B3.0b files/evidence/basic exports accepted locally
 
 - B3.0b is accepted on `hermes/b2-conversational-client`, following B3.0a
   `8d90e353e92a403eed521e9feea43b037997f307`. [Exact-source acceptance](docs/evidence/batch3-b30b/ACCEPTANCE.md)

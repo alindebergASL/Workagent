@@ -27,7 +27,13 @@ def main():
     from workagent.capabilities.registry import catalog
     from workagent.workspace_file_models import WorkspaceFilesContract
     from workagent.capabilities.file_composition import GatewayFilesDecision
-    outputs={'workspace-files-v1.json':WorkspaceFilesContract.model_json_schema(),
+    from workagent.capabilities.compute_composition import GatewayComputeDecision
+    from workagent.capabilities.compute_adapters import ComputePython, ComputeOutput, ComputeExportManifest
+    outputs={'compute-python.schema.json':ComputePython.model_json_schema(),
+             'compute-output.schema.json':ComputeOutput.model_json_schema(),
+             'compute-export-manifest.schema.json':ComputeExportManifest.model_json_schema(),
+             'gateway-compute-decision.schema.json':GatewayComputeDecision.model_json_schema(),
+             'workspace-files-v1.json':WorkspaceFilesContract.model_json_schema(),
              'gateway-files-decision.schema.json':GatewayFilesDecision.model_json_schema(),
              'capability-descriptor.schema.json':CapabilityDescriptorV2.model_json_schema(),
              'tool-grant.schema.json':ToolGrantV1.model_json_schema(),

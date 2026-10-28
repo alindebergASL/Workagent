@@ -62,6 +62,9 @@ def authorize(service,c,cap,call,adapter):
     if d.execution_profile == 'native-bounded-files-v1':
         from .file_adapters import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'python-analysis-v1':
+        from .compute_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
     elif call.input_refs:
         deny()
     return p,run,scope,g

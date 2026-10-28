@@ -1,0 +1,206 @@
+{
+  "$defs": {
+    "GeneratedBlobRef": {
+      "additionalProperties": false,
+      "description": "Bytes live separately from FileBody; future office exporters can reuse this.",
+      "properties": {
+        "blob_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Blob Id",
+          "type": "string"
+        },
+        "byte_length": {
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "generated_blob",
+          "default": "generated_blob",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blob_id",
+        "sha256",
+        "byte_length",
+        "mime_type"
+      ],
+      "title": "GeneratedBlobRef",
+      "type": "object"
+    },
+    "InputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "InputRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "annotations": {
+      "const": "explicit_omissions",
+      "default": "explicit_omissions",
+      "title": "Annotations",
+      "type": "string"
+    },
+    "blob": {
+      "$ref": "#/$defs/GeneratedBlobRef"
+    },
+    "code_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Code Sha256",
+      "type": "string"
+    },
+    "conversation_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Conversation Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "export_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Export Id",
+      "type": "string"
+    },
+    "exporter_version": {
+      "const": "compute-python-v1",
+      "default": "compute-python-v1",
+      "title": "Exporter Version",
+      "type": "string"
+    },
+    "filename": {
+      "maxLength": 85,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+      "title": "Filename",
+      "type": "string"
+    },
+    "format": {
+      "enum": [
+        "txt",
+        "markdown",
+        "csv",
+        "json"
+      ],
+      "title": "Format",
+      "type": "string"
+    },
+    "input_refs": {
+      "items": {
+        "$ref": "#/$defs/InputRef"
+      },
+      "title": "Input Refs",
+      "type": "array"
+    },
+    "omissions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Omissions",
+      "type": "array"
+    },
+    "profile_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Profile Sha256",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "sandbox_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Sandbox Sha256",
+      "type": "string"
+    },
+    "tool_attempt_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Tool Attempt Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "export_id",
+    "workspace_id",
+    "conversation_id",
+    "run_id",
+    "tool_attempt_id",
+    "code_sha256",
+    "profile_sha256",
+    "input_refs",
+    "format",
+    "filename",
+    "blob",
+    "created_at",
+    "omissions",
+    "sandbox_sha256"
+  ],
+  "title": "ComputeExportManifest",
+  "type": "object"
+}

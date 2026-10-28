@@ -14,5 +14,7 @@ POLICY = RETAINED_POLICY + ''' Workspace files v1: use files_list only within yo
 
 
 def enabled(config):
+    from .compute_composition import enabled as compute_enabled
+    if compute_enabled(config): return True
     return (config.get('responses', {}).get('continuity_version') == 'sustained-v1'
             and config.get('responses', {}).get('scope_tool_sha256') == sha256(SCHEMA.material).hexdigest())

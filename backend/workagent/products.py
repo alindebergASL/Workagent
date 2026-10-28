@@ -338,6 +338,7 @@ class Products:
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
         from .capabilities.file_adapters import FILE_OPERATIONS
+        from .capabilities.compute_adapters import ComputePython
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         from .retained_results import ReadResult, ReadAttachment, read as read_retained
         if isinstance(operation,(ReadResult,ReadAttachment)):
@@ -381,7 +382,7 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS):
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython,)):
             from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_composition(self,cap,operation,phase)}

@@ -75,6 +75,16 @@ class CapabilityBroker:
                 reserved_units=d.cost_profile.reserved_units,reserved_cost_usd=d.cost_profile.reserved_cost_usd,
                 observed_units=1 if status=='observed' else None,basis='estimated' if status=='observed' else 'unknown',
                 elapsed_ms=elapsed,cpu_ms=cpu_elapsed))
+        if d.id == 'compute.python' and output is not None:
+            material = output['result']
+            refs = [InputRef(kind='generated_blob', id=m['blob']['blob_id'],
+                            version=m['export_id'], sha256=m['blob']['sha256'])
+                    for m in material.get('outputs', [])]
+            omissions = material.get('omissions', [])
+            obs = obs.model_copy(update={'input_refs': [*obs.input_refs, *call.input_refs],
+                'source_refs': call.input_refs, 'output_refs': refs,
+                'omissions': omissions[:20], 'truncated': bool(omissions),
+                'cost': obs.cost.model_copy(update={'cpu_ms': material.get('resources', {}).get('cpu_usec', 0) // 1000})})
         with self.service.db.transaction() as c:
             # Savepoint: a rejected check must not abort write-only cost retention.
             try:
@@ -82,6 +92,7 @@ class CapabilityBroker:
                     policy.authorize(self.service,c,self.cap,call,adapter)
             except DomainError:
                 obs=obs.model_copy(update={'status':'cost_only','output':None,'output_sha256':None,
+                    'input_refs':obs.input_refs[:1], 'output_refs':[], 'source_refs':[],
                     'error':ToolErrorV1(code='authority_changed')})
             result=c.execute('SELECT settle_tool_call(%s,%s,%s) AS observation',(aid,secret,encoded(obs))).fetchone()['observation']
         return observations.observation(result)
@@ -104,6 +115,8 @@ def execute_composition(service,cap,operation,phase):
         deny()
     from .file_adapters import FILE_OPERATIONS, input_refs
     refs=input_refs(operation) if isinstance(operation,FILE_OPERATIONS) else []
+    from .compute_adapters import ComputePython, input_refs as compute_refs
+    if isinstance(operation, ComputePython): refs = compute_refs(operation)
     call=ToolCallV1(call_id=phase,capability_id=name,capability_version=registry.adapters()[name].descriptor.version,
         arguments=operation.model_dump(mode='json'),input_refs=refs,expected_work_version=scope.work_version)
     observation=CapabilityBroker(service,cap).call(call)

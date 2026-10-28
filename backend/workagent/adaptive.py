@@ -45,6 +45,10 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.compute_composition import enabled as compute_enabled, POLICY as compute_policy, SCHEMA as compute_schema
+    if compute_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return compute_policy,compute_schema
     from .general_schema import DECISION_SCHEMA as historical
     from .general_responses import POLICY as policy
     from .capabilities.file_composition import enabled as file_enabled, POLICY as file_policy, SCHEMA as file_schema
@@ -89,6 +93,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if retained_enabled(config): model=SustainedDecision
         from .capabilities.file_composition import enabled as file_enabled, GatewayFilesDecision
         if file_enabled(config): model=GatewayFilesDecision
+        from .capabilities.compute_composition import enabled as compute_enabled, GatewayComputeDecision
+        if compute_enabled(config): model=GatewayComputeDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
@@ -175,6 +181,9 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         from .capabilities.file_adapters import FILE_OPERATIONS
         if isinstance(operation,FILE_OPERATIONS):
             staged['reason']='File operation retained with exact references. No human proposal accepted or overall task completion asserted.'
+        from .capabilities.compute_adapters import ComputePython
+        if isinstance(operation, ComputePython):
+            staged['reason']='Confined computation receipt retained; generated files are draft outputs, not independent verification of task completion.'
     elif alpha and isinstance(value.decision,Reply):
         outcome='answered'
         staged['reason']='Answer delivered; no external action or independently verified objective completion is asserted.'

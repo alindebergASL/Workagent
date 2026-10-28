@@ -86,6 +86,8 @@ def adapters():
         result[key]=_adapter(key,inp,out,_legacy(name),('broker.py','tool_registry.py','service.py'))
     from .file_adapters import adapters as file_adapters
     result.update(file_adapters())
+    from .compute_adapters import adapters as compute_adapters
+    result.update(compute_adapters())
     return result
 
 
@@ -99,3 +101,4 @@ COMPOSITION_IDS={'read_context':'context.read','inspect_json':'files.inspect_jso
 # New opt-in operations; frozen legacy descriptor catalogs remain unchanged.
 from .file_adapters import IDS as FILE_IDS
 COMPOSITION_IDS.update(FILE_IDS)
+COMPOSITION_IDS['compute_python'] = 'compute.python'

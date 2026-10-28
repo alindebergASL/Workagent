@@ -1,0 +1,61 @@
+{
+  "observation": {
+    "schema_version": "tool-observation/v1",
+    "call_id": "935a1045-8f6e-42d7-ac32-67b573508fd0",
+    "attempt_id": "7463a567-6fd4-4a3b-8e6a-8c417f7493d9",
+    "run_id": "399cbb76-2d4f-4192-8cee-703c39696e1a",
+    "capability_id": "compute.python",
+    "capability_version": "1",
+    "implementation_sha256": "5556a5b91f1f36506dc10c811e90bbf035dd4ee4288fa01b97d081edf9d10093",
+    "execution_profile": "python-analysis-v1",
+    "input_refs": [
+      {
+        "kind": "run_scope",
+        "id": "399cbb76-2d4f-4192-8cee-703c39696e1a",
+        "version": "2",
+        "sha256": "c9460173bc7372294930c4114d9471ef0e11016f2bfc9bcffe54e472738bd194"
+      }
+    ],
+    "output_refs": [],
+    "output_sha256": null,
+    "output": null,
+    "started_at": "2026-10-28T19:20:34.309218Z",
+    "ended_at": "2026-10-28T19:20:36.139331Z",
+    "status": "outcome_unknown",
+    "error": {
+      "code": "outcome_unknown",
+      "retryable": false
+    },
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "local_compute",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": null,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "unknown",
+      "elapsed_ms": 1830,
+      "cpu_ms": 553,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  },
+  "cost_entries": [
+    {
+      "kind": "reserved",
+      "basis": "reserved",
+      "units": 1
+    },
+    {
+      "kind": "settled",
+      "basis": "unknown",
+      "units": 0
+    }
+  ],
+  "dispatch_count": 1,
+  "replay_equal": true
+}
