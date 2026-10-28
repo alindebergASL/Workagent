@@ -191,7 +191,7 @@ try {
   // A long recorded outcome leads with its first sentence on a phone, so the
   // prepared work and the steering stay in view; the full text, uncertainty
   // included, is one click away, word for word. (Only the outcome text of
-  // the real read is lengthened, in the browser.)
+  // the real reads is lengthened, in the browser.)
   const LONG =
     "Prepared a brief and a second checklist from the bound inputs and saved both in the conversation. " +
     "Publication checked shape only; nobody has reviewed the wording, and no external outcome is claimed. " +
@@ -208,6 +208,16 @@ try {
       await route.fulfill({ response: res, json: body });
     },
   );
+  // The note shown is the snapshot's own observation for this assignment
+  // when there is one, so lengthen it there too, as the service would.
+  await phone.route(/\/work-snapshot(\?|$)/, async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    for (const x of body.responsibility ?? [])
+      if (x.assignment_id === r.assignment_id && x.historical_observation)
+        x.historical_observation.text = LONG;
+    await route.fulfill({ response: res, json: body });
+  });
   await phone.goto(page_);
   const outcome = phone.getByTestId("responsibility-outcome");
   await expect(outcome).toContainText(
