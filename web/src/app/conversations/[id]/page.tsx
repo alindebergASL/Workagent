@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { newCommandId } from "@/lib/client/api";
+import { API_BASE, API_MODE, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import {
   carryDraftHome,
@@ -31,10 +31,31 @@ import type {
 import { WorkAreaHeader } from "@/components/WorkAreas";
 import { OperationComposer } from "@/components/OperationComposer";
 import { landAtLatest } from "@/lib/client/landing";
-import { AttachedFiles, SentFiles } from "@/components/AttachedFiles";
+import {
+  AttachedFiles,
+  FileContext,
+  SentFiles,
+} from "@/components/AttachedFiles";
+import { contextForMessage } from "@/lib/attachment-context";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkCard } from "@/components/WorkCard";
+import { CurrentWork } from "@/components/CurrentWork";
+import { useWorkState } from "@/lib/client/work-state";
+import {
+  ContinueRun,
+  ConversationDocuments,
+  DocumentPicker,
+  MessageDocuments,
+  QueuedMessages,
+  StopRun,
+} from "@/components/Batch2Controls";
+import { documentApi, queueApi, runApi } from "@/lib/client/batch2-api";
+import {
+  checkpointsCurrent,
+  continueLatestRun,
+  stopOffered,
+} from "@/lib/batch2-view";
 import {
   adaptivePresentation,
   cardStatus,
@@ -99,6 +120,44 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
   );
   const d = res.data;
   const results = useResultStates(wsId, d?.messages);
+  // Current work: one subscription for this conversation while it is shown.
+  // An event only invalidates; the canonical reads below are re-done.
+  // B2.4/B2.5 server state: the durable queue, run checkpoints and retained
+  // documents. Read only from the server; re-read when work events arrive.
+  const real = API_MODE === "real" && Boolean(wsId);
+  const queued = useResource(real ? `queued:${wsId}:${id}` : null, (signal) =>
+    queueApi.list(wsId!, id, signal).then((r) => r.items),
+  );
+  // Read for the exact conversation version shown: a new version resets it,
+  // so a fresh Continue never relies on checkpoints read before that version.
+  const checkpoints = useResource(
+    real
+      ? `checkpoints:${wsId}:${id}:${d?.conversation.work_version ?? "-"}`
+      : null,
+    (signal) => runApi.checkpoints(wsId!, id, signal).then((r) => r.items),
+  );
+  const documents = useResource(
+    real ? `documents:${wsId}:${id}` : null,
+    (signal) => documentApi.list(wsId!, id, signal).then((r) => r.items),
+  );
+  const refreshAll = () =>
+    void Promise.all([
+      res.refresh(),
+      results.refresh(),
+      queued.refresh(),
+      checkpoints.refresh(),
+      documents.refresh(),
+    ]);
+  const work = useWorkState(API_BASE, wsId, id, {
+    enabled: API_MODE === "real",
+    onInvalidate: refreshAll,
+  });
+  const revoked = work.revoked;
+  const { refresh: refreshConversation } = res;
+  useEffect(() => {
+    // Lost access: re-read so the cached conversation is dropped too.
+    if (revoked) void refreshConversation();
+  }, [revoked, refreshConversation]);
   const execution = useExecution(wsId);
   const { holds } = useHolds(wsId, d?.assignment_ids ?? []);
 
@@ -109,10 +168,13 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     version: d?.conversation.work_version ?? null,
     refresh: res.refresh,
     attach: CAPABILITIES.naturalAdmission,
+    documents: real,
+    onQueued: () => void queued.refresh(),
     // Sending waits for a confirmed current read: not while reconnecting,
     // before the first read, or once the conversation has ended. Drafting
     // and attaching go on; nothing is sent when it reconnects.
     held:
+      revoked ||
       res.reconnecting ||
       !res.data ||
       res.data.conversation.state !== "open" ||
@@ -260,11 +322,28 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       {backTo(scope).label}
     </Link>
   );
+  // Without access nothing read earlier is shown, but an unsent draft is
+  // kept where the person can still copy it.
+  const keptDraft = text.trim() ? (
+    <label className="field" data-testid="kept-draft">
+      <span className="field-label">Your unsent message (kept, not sent)</span>
+      <textarea readOnly value={text} rows={3} />
+    </label>
+  ) : null;
+  if (revoked)
+    return (
+      <div className="agent-col">
+        {back}
+        {wsId ? <CurrentWork work={work} ws={wsId} cid={id} /> : null}
+        {keptDraft}
+      </div>
+    );
   if (res.error && !d)
     return (
       <div className="agent-col">
         {back}
         <ErrorNotice error={res.error} />
+        {keptDraft}
       </div>
     );
   if (!d)
@@ -291,6 +370,15 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     d.messages.some((x) => x.author === "agent" && x.run_id === runId);
   const turnOf = (m: ChatMessage) =>
     d.turns.find((t) => t.message_id === m.id) ?? null;
+  // The latest run, only from a current canonical snapshot of exactly this
+  // version (a successor run counts). Continue only applies to it.
+  const latestRunId = continueLatestRun({
+    snapshot: work.snapshot,
+    snapshotStale: work.stale,
+    checkpointsCurrent: checkpointsCurrent(checkpoints),
+    conversationId: id,
+    conversationVersion: d.conversation.work_version,
+  });
   const inFlight = d.turns.some(
     (t) => t.state === "queued" || t.state === "responding",
   );
@@ -347,6 +435,15 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                   )}
                   {m.author === "person" ? (
                     <SentFiles files={m.attachments} />
+                  ) : null}
+                  {m.author !== "agent" ? (
+                    <FileContext items={contextForMessage(d, m.id)} />
+                  ) : null}
+                  {m.author === "person" && m.documents?.length ? (
+                    <MessageDocuments
+                      docs={m.documents}
+                      href={(docId) => `#document-${docId}`}
+                    />
                   ) : null}
                   {(() => {
                     const replied = m.author === "agent";
@@ -441,6 +538,25 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                   />
                   {/* The service's exact reason explains a failure or what to
                       do next; it stays one click away, not in primary copy. */}
+                  {wsId &&
+                  real &&
+                  open &&
+                  stopOffered({
+                    turnState: turn.state,
+                    runId: turn.run_id,
+                    snapshot: work.snapshot,
+                    snapshotStale: work.stale,
+                    conversationId: id,
+                    conversationVersion: d.conversation.work_version,
+                  }) ? (
+                    <StopRun
+                      ws={wsId}
+                      cid={id}
+                      runId={turn.run_id}
+                      version={d.conversation.work_version}
+                      refresh={refreshAll}
+                    />
+                  ) : null}
                   {turn.reason &&
                   (turn.state === "failed" ||
                     turn.state === "unavailable" ||
@@ -596,6 +712,33 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
 
       {history}
 
+      {wsId ? <CurrentWork work={work} ws={wsId} cid={id} /> : null}
+
+      {wsId && real && open && !inFlight ? (
+        <ContinueRun
+          ws={wsId}
+          cid={id}
+          version={d.conversation.work_version}
+          checkpoints={checkpoints.data}
+          latestRunId={latestRunId}
+          stopReason={
+            d.turns.find((t) => t.run_id === latestRunId)?.stop_reason ?? null
+          }
+          refresh={refreshAll}
+        />
+      ) : null}
+      {wsId && real ? (
+        <QueuedMessages
+          ws={wsId}
+          cid={id}
+          items={queued.data}
+          refresh={() => void queued.refresh()}
+        />
+      ) : null}
+      {wsId && real ? (
+        <ConversationDocuments ws={wsId} cid={id} items={documents.data} />
+      ) : null}
+
       {open && d.conversation.model_activation === "revoked" ? (
         <p className="notice-line" role="status" data-testid="answers-off">
           Answers are turned off for this conversation. What’s here stays as it
@@ -620,7 +763,9 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             onChange={(e) => setText(e.target.value)}
             placeholder="Reply, steer, or add something…"
             rows={2}
-            disabled={sending || uncertainSend}
+            disabled={
+              sending || uncertainSend || reply.queueing || reply.queueUncertain
+            }
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
@@ -635,6 +780,18 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
               locked={reply.filesLocked}
               onAdd={(list) => void reply.addFiles(list)}
               onRemove={reply.removeFile}
+            />
+          ) : null}
+          {real ? (
+            <DocumentPicker
+              docs={reply.docs}
+              error={reply.docError}
+              locked={reply.docsLocked}
+              onAdd={(list) => void reply.addDocuments(list)}
+              onRemove={reply.removeDocument}
+              problems={reply.docProblems}
+              onReattach={reply.reattachDocument}
+              recovery={reply.docRecovery}
             />
           ) : null}
           {sendError instanceof ApiError && sendError.isVersionConflict ? (
@@ -663,15 +820,17 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                   : ""
               }
             >
-              {uncertainSend
-                ? "Your last send wasn’t confirmed. Sending again replays the same message."
-                : lastUnresolved(d.turns)
-                  ? UNRESOLVED_HINT
-                  : inFlight
-                    ? "Sending now replaces the reply in progress; your earlier messages stay."
-                    : lastStopped(d.turns)
-                      ? STOPPED_HINT
-                      : "Ask, steer, or add detail."}
+              {reply.queueUncertain
+                ? "Queueing wasn’t confirmed. Queue again replays the same message."
+                : uncertainSend
+                  ? "Your last send wasn’t confirmed. Sending again replays the same message."
+                  : lastUnresolved(d.turns)
+                    ? UNRESOLVED_HINT
+                    : inFlight
+                      ? "Sending now replaces the reply in progress; your earlier messages stay."
+                      : lastStopped(d.turns)
+                        ? STOPPED_HINT
+                        : "Ask, steer, or add detail."}
               {!uncertainSend && lastUnresolved(d.turns) ? (
                 <>
                   {" "}
@@ -714,6 +873,22 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
             >
               Record a hand-over
             </button>
+            {real ? (
+              <button
+                type="button"
+                className="btn btn-sm"
+                data-testid="queue-later"
+                onClick={() => void reply.queue()}
+                disabled={!reply.canQueue}
+                title="Keeps this message and runs it after the current work settles. Doesn’t interrupt anything."
+              >
+                {reply.queueing
+                  ? "Queueing…"
+                  : reply.queueUncertain
+                    ? "Queue again"
+                    : "Queue for later"}
+              </button>
+            ) : null}
             <button
               type="submit"
               className="send-round"

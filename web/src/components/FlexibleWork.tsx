@@ -28,6 +28,7 @@ import {
 } from "react";
 import { productApi, type S } from "@/lib/client/products";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
+import { scopedSession } from "@/lib/client/session-scope";
 import { ApiError } from "@/lib/contract/errors";
 import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
 import { countChanges, diffBlocks } from "@/lib/diff";
@@ -129,7 +130,7 @@ function normal(body: FlexibleBody): FlexibleBody {
 function readDraft(key: string, artifact: S["Artifact"]): Draft {
   const body = artifact.current_revision.body as FlexibleBody;
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     if (raw) {
       const d = JSON.parse(raw) as Draft;
       if (d.base && d.body && flexibleKind(d.body) === flexibleKind(body))
@@ -285,7 +286,7 @@ export function FlexibleEditor({
   function keep(next: Draft): boolean {
     setDraft(next);
     try {
-      sessionStorage.setItem(key, JSON.stringify(next));
+      scopedSession.setItem(key, JSON.stringify(next));
       return true;
     } catch {
       setNotice(
@@ -412,7 +413,7 @@ export function FlexibleEditor({
   const [chosen, setMode] = useState<WorkMode>(() => {
     if (dirty || draft.pending) return "edit";
     try {
-      const m = sessionStorage.getItem(modeKey);
+      const m = scopedSession.getItem(modeKey);
       return m === "edit" || m === "changes" ? m : "result";
     } catch {
       return "result";
@@ -427,7 +428,7 @@ export function FlexibleEditor({
   const show = (next: WorkMode) => {
     setMode(next);
     try {
-      sessionStorage.setItem(modeKey, next);
+      scopedSession.setItem(modeKey, next);
     } catch {
       /* the choice holds for this page only */
     }
@@ -1319,8 +1320,8 @@ const unconfirmed = (e: unknown) =>
   (e instanceof ApiError && e.isAmbiguousWrite) || e instanceof TypeError;
 function store(key: string, value: unknown) {
   try {
-    if (value === null) sessionStorage.removeItem(key);
-    else sessionStorage.setItem(key, JSON.stringify(value));
+    if (value === null) scopedSession.removeItem(key);
+    else scopedSession.setItem(key, JSON.stringify(value));
     return true;
   } catch {
     return false;
@@ -1328,7 +1329,7 @@ function store(key: string, value: unknown) {
 }
 function stored<T>(key: string): T | null {
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     return raw ? (JSON.parse(raw) as T) : null;
   } catch {
     return null;

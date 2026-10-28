@@ -49,6 +49,10 @@ def contract(binding):
     from .general_responses import POLICY as policy
     if getattr(binding,'runtime_extension',None)=='general-alpha-v1':
         if getattr(binding,'continuity_version',None)=='sustained-v1':
+            from .retained_results import enabled as retained_enabled, POLICY as retained_policy, SCHEMA as retained_schema
+            if retained_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                               'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+                return retained_policy,retained_schema
             from .composition import CONTINUITY_POLICY, CONTINUITY_DECISION_SCHEMA
             return CONTINUITY_POLICY,CONTINUITY_DECISION_SCHEMA
         from .composition import POLICY as alpha_policy, DECISION_SCHEMA as alpha_schema
@@ -73,6 +77,12 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .composition import AlphaDecision, ContinuityDecision
     model=ContinuityDecision if continuity else AlphaDecision if alpha else AdaptiveDecision
+    if continuity:
+        from .retained_results import SustainedDecision, enabled as retained_enabled
+        config=c.execute('SELECT rc.data FROM provider_attempts a JOIN run_configurations rc '
+            'ON rc.workspace_id=a.workspace_id AND rc.run_id=a.run_id WHERE a.id=%s',
+            (ledger.receipt.attempt_id,)).fetchone()['data']
+        if retained_enabled(config): model=SustainedDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:

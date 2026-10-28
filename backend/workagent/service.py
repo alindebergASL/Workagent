@@ -18,6 +18,8 @@ from .models import *
 from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
 from .conversations import Conversations
 from .products import Products
+from .conversation_intents import ConversationIntents
+from .run_successors import RunSuccessors
 
 
 def canonical(value) -> str:
@@ -63,9 +65,10 @@ from .flexible_work import FlexibleWork
 
 
 from .work_areas import WorkAreas
+from .documents import Documents
 
 
-class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAttempts):
+class ServiceCore(Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
     def __init__(self, db: Database, *, allow_controlled_turns=True):
         self.db = db
         # Historical controlled harnesses remain usable explicitly by their host.
@@ -182,6 +185,7 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
             # Additive optional inputs must not change legacy command replay hashes.
             if payload.get('operation') is None: payload.pop('operation',None)
             if not payload.get('attachments'): payload.pop('attachments',None)
+            if not payload.get('document_refs'): payload.pop('document_refs',None)
             if payload.get('target') is None: payload.pop('target',None)
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:

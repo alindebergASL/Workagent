@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useSearchParams } from "next/navigation";
 import { api, API_MODE } from "./api";
+import { scopedLocal } from "./session-scope";
 import {
   resolveScope,
   scopedHref,
@@ -50,7 +51,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("workagent:zone");
+      const stored = scopedLocal.getItem("workagent:zone");
       if (stored === "local" || stored === "utc") setZoneChoiceState(stored);
     } catch {
       /* ignore */
@@ -98,7 +99,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setZoneChoice: (z) => {
         setZoneChoiceState(z);
         try {
-          localStorage.setItem("workagent:zone", z);
+          scopedLocal.setItem("workagent:zone", z);
         } catch {
           /* ignore */
         }

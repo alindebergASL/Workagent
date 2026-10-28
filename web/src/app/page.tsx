@@ -28,6 +28,7 @@ import { useHoldsIn } from "@/lib/client/responsibility";
 import { holdGroup } from "@/lib/hold-view";
 import { ConversationWorkRow } from "@/components/ConversationWorkRow";
 import { useSinceMarker } from "@/lib/client/since-marker";
+import { scopedLocal } from "@/lib/client/session-scope";
 import {
   homeSummary,
   recentWork,
@@ -147,7 +148,7 @@ function useHomeDestination() {
   const [remembered, setRemembered] = useState<string | null>(null);
   useEffect(() => {
     try {
-      setRemembered(localStorage.getItem(DESTINATION_KEY));
+      setRemembered(scopedLocal.getItem(DESTINATION_KEY));
     } catch {
       /* storage unavailable: the address or the default decides */
     }
@@ -156,7 +157,7 @@ function useHomeDestination() {
   const choose = (next: string) => {
     setRemembered(next);
     try {
-      localStorage.setItem(DESTINATION_KEY, next);
+      scopedLocal.setItem(DESTINATION_KEY, next);
     } catch {
       /* storage unavailable: the address still carries it */
     }
