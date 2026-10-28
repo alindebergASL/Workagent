@@ -96,28 +96,29 @@
     resize: none;
     padding: 10px 0 6px;
   }
-  /* Untouched and empty: just the line to type in. Focus, text, files,
-     an error or chosen records open the rest. */
+  /* Untouched and empty: just the line to type in. Focus, text, files or
+     documents (staged, or waiting on a recovery choice), an error or chosen
+     records open the rest. */
   .composer-wrap:not(:focus-within):not(
       :has(textarea:not(:placeholder-shown))
-    ):not(:has(.file-chip)):not(:has([role="alert"])):not(
-      :has(.context-panel:not([hidden]))
-    )
+    ):not(:has(.file-chip)):not(:has([data-upload])):not(
+      :has([data-testid="document-recovery"])
+    ):not(:has([role="alert"])):not(:has(.context-panel:not([hidden])))
     .composer
     > :not(textarea):not(label),
   .composer-wrap:not(:focus-within):not(
       :has(textarea:not(:placeholder-shown))
-    ):not(:has(.file-chip)):not(:has([role="alert"])):not(
-      :has(.context-panel:not([hidden]))
-    )
+    ):not(:has(.file-chip)):not(:has([data-upload])):not(
+      :has([data-testid="document-recovery"])
+    ):not(:has([role="alert"])):not(:has(.context-panel:not([hidden])))
     > .composer-after {
     display: none;
   }
   .composer-wrap:not(:focus-within):not(
       :has(textarea:not(:placeholder-shown))
-    ):not(:has(.file-chip)):not(:has([role="alert"])):not(
-      :has(.context-panel:not([hidden]))
-    )
+    ):not(:has(.file-chip)):not(:has([data-upload])):not(
+      :has([data-testid="document-recovery"])
+    ):not(:has([role="alert"])):not(:has(.context-panel:not([hidden])))
     .composer
     textarea {
     min-height: 0;
@@ -129,9 +130,10 @@
     text-overflow: ellipsis;
   }
 
-  /* A note's move and remove buttons sit close together: full-size
-     targets so a thumb hits the one it means. */
-  .notes-item-actions .btn {
+  /* A note's move and remove buttons sit close together, as do a staged
+     document's ×: full-size targets so a thumb hits the one it means. */
+  .notes-item-actions .btn,
+  [data-testid="document-picker"] [data-doc-remove] {
     min-height: 44px;
     min-width: 44px;
   }
@@ -215,10 +217,15 @@
   .conversation-page
     > .conversation-ask:not(:focus-within):not(
       :has(textarea:not(:placeholder-shown))
-    ):not(:has(.file-chip)):not(:has([role="alert"])):not(
-      :has(.delegate[aria-expanded="true"])
-    )
-    :is(.composer-files, .delegate) {
+    ):not(:has(.file-chip)):not(:has([data-upload])):not(
+      :has([data-testid="document-recovery"])
+    ):not(:has([role="alert"])):not(:has(.delegate[aria-expanded="true"]))
+    :is(
+      .composer-files,
+      .delegate,
+      [data-testid="document-picker"],
+      [data-testid="queue-later"]
+    ) {
     display: none;
   }
 
