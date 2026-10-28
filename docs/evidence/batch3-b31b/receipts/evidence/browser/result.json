@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "evidence": "actual production UI/API/restricted PG; controlled fault injection, no product model calls",
+  "results": [
+    {
+      "width": 1440,
+      "remember": {
+        "memory_id": "500503c7-4b97-4020-b6d6-6774c6dc8d7c",
+        "revision_id": "dfb4d39a-5dc1-45a6-85f8-1f2022d4ee96",
+        "status": "active"
+      },
+      "correct": {
+        "memory_id": "500503c7-4b97-4020-b6d6-6774c6dc8d7c",
+        "revision_id": "582c6003-c2e2-4208-ba3c-2e03dfc1f47a",
+        "status": "active"
+      },
+      "review": {
+        "memory_id": "b28105d3-c14c-4230-8c3d-88d40211847b",
+        "revision_id": "00374e00-5ba6-4aa3-a2f2-c72ae114afa9",
+        "status": "candidate"
+      },
+      "forget": {
+        "memory_id": "500503c7-4b97-4020-b6d6-6774c6dc8d7c",
+        "revision_id": "d708fa3c-d898-4c6f-ad53-af83868acac7",
+        "status": "forgotten"
+      },
+      "stale_draft_preserved": true,
+      "write_readback_fields_locked": true,
+      "forgotten_purged_before_injected_failed_read": true
+    },
+    {
+      "widths": [
+        390,
+        320
+      ],
+      "memory": "271ceff3-b279-4a89-ba5d-8562ba126426",
+      "correct_forget": true,
+      "no_horizontal_overflow": true
+    }
+  ]
+}

@@ -329,6 +329,8 @@ class Conversations:
             observation['document_context']=context['document_context']
         if 'evidence_context' in context:
             observation['evidence_context']=context['evidence_context']
+        if 'memory_manifest' in context:
+            observation['memory_manifest']=context['memory_manifest']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')
@@ -519,6 +521,9 @@ class Conversations:
                     'scope':'responsibility_dependencies' if config.get('responsibility') else 'current_conversation',
                     'first_page':{'kind':'discover_saved_work','after_artifact_id':None,'limit':12},
                     'notice':'Snapshot omission is not absence. Page descriptors, then read an exact target.'}
+            from .memory.runtime import enabled as memory_enabled, project as project_memory
+            if memory_enabled(config):
+                project_memory(self,c,p,run,cv,context)
             if standing(grant.responses) or retained_enabled(config):
                 from .conversation_context import bound_context
                 bound_context(context,run.id,profile(run.profile)['max_context_bytes'])

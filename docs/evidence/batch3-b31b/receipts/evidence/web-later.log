@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/capture_browser_later.py", line 6, in <module>
+    record=capture(f['workspace_id'],f['conversations']['desktop'],'web-reviewed-forgotten')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/capture_later.py", line 23, in capture
+    grant=activated(ctx,cv)
+          ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/tests/test_memory_parent_worker.py", line 20, in activated
+    return activate(ctx, cv, continuity_version='sustained-v1', max_steps=3)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/tests/test_general_alpha_runtime.py", line 32, in activate
+    return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/workagent/provider_attempts.py", line 61, in configure_grant
+    c.execute('INSERT INTO provider_grants(id,workspace_id,principal_id,data) VALUES (%s,%s,%s,%s)',
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 257, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: duplicate key value violates unique constraint "one_active_provider_grant"
+DETAIL:  Key (workspace_id, principal_id)=(b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c, local-human) already exists.

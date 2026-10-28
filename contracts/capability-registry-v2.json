@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "00a6b42108a83571691acf64b700927956e2f7cb93ee83a6058a75e5082eb0a9",
+    "implementation_sha256": "f93a93941d71a804a26ea456fc5db96cd01e01dde63b7ef27f3b8df9134c5781",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "9dbe1e14755651d84d09e03b4fb546d36aa9ea3f72609e58da7543bec49faa0a",
+    "implementation_sha256": "8635e5e97356114fc7d5f226bb8fd5d923c0814cebfad13d2f7f115d90a534e2",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "d92a16bd99e1d414a1d76646f52a33516218585155ad84e1251a81bd017132f8",
+    "implementation_sha256": "2c9215687641019a27842de25777d1daae8bb3027bd97ee6a6d0ba488bffa435",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "3a76cfba023bcdab203c9e1afea86ff94da4d5466e491c5416653a861ad9156e",
+    "implementation_sha256": "5ac189b5d0c2b6ad42196488d607b6f57257fa795525358269ab5e0ac76b406d",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "3a76cfba023bcdab203c9e1afea86ff94da4d5466e491c5416653a861ad9156e",
+    "implementation_sha256": "5ac189b5d0c2b6ad42196488d607b6f57257fa795525358269ab5e0ac76b406d",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "6ad678a60aded46d1b2f6ef6ab7ecff3837ec61fcd1ee83b941bd5dde1d0f91a",
+    "implementation_sha256": "bc3dee8d83ec93aad26803f9bd52fddc2b270516d6ff020266453f4d382e8181",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "6ad678a60aded46d1b2f6ef6ab7ecff3837ec61fcd1ee83b941bd5dde1d0f91a",
+    "implementation_sha256": "bc3dee8d83ec93aad26803f9bd52fddc2b270516d6ff020266453f4d382e8181",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2500,7 +2500,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2763,7 +2763,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -2986,7 +2986,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3187,7 +3187,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3423,7 +3423,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "5065c98b3ed8838f5aa5f7f76e50919379cce6112b8ac487b7b6c1da25f892b2",
+    "implementation_sha256": "04aae3b8174f3792f8973dffceb33312efffdf828f019656c51e90afec1402f1",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -3762,7 +3762,7 @@
     ],
     "execution_profile": "python-analysis-v1",
     "id": "compute.python",
-    "implementation_sha256": "5556a5b91f1f36506dc10c811e90bbf035dd4ee4288fa01b97d081edf9d10093",
+    "implementation_sha256": "429eae89241d1553001718e4b5ecc7cd542c6fca01109073f1477fce04ecc6b5",
     "input_schema": {
       "$defs": {
         "ComputeInput": {

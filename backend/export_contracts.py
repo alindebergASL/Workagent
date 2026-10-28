@@ -29,7 +29,11 @@ def main():
     from workagent.capabilities.file_composition import GatewayFilesDecision
     from workagent.capabilities.compute_composition import GatewayComputeDecision
     from workagent.capabilities.compute_adapters import ComputePython, ComputeOutput, ComputeExportManifest
-    outputs={'compute-python.schema.json':ComputePython.model_json_schema(),
+    from workagent.memory.models import MemoryContract
+    from workagent.memory.runtime import GatewayMemoryDecision
+    outputs={'gateway-memory-decision.schema.json':GatewayMemoryDecision.model_json_schema(),
+             'memory-v1.json':MemoryContract.model_json_schema(),
+             'compute-python.schema.json':ComputePython.model_json_schema(),
              'compute-output.schema.json':ComputeOutput.model_json_schema(),
              'compute-export-manifest.schema.json':ComputeExportManifest.model_json_schema(),
              'gateway-compute-decision.schema.json':GatewayComputeDecision.model_json_schema(),

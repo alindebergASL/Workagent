@@ -27,6 +27,7 @@ def consumer_hash():
               'capabilities/compute_adapters.py', 'sandbox/client.py', 'sandbox/profiles.py',
               'sandbox/runner_protocol.py', 'sandbox/service.py', 'sandbox/installation.py',
               'sandbox/results.py', 'sandbox/runtime-lock.json')
+    names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 

@@ -49,6 +49,19 @@ def provision(env_file):
         if c.execute("SELECT to_regclass('public.work_attention_seen')").fetchone()[0]:
             c.execute(sql.SQL('GRANT INSERT,UPDATE ON work_attention_seen TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT USAGE ON SEQUENCE run_dispatches_cursor_seq TO {}').format(sql.Identifier(runtime)))
+        # Fresh fixtures install migrations before the runtime role has table
+        # grants. Upgrade migrations can discover existing roles; new fixtures
+        # must explicitly grant only the guarded memory entry points.
+        memory_functions = [
+            'write_memory_revision(text,text,text,text,jsonb)',
+            'forget_memory(text,text,text,text,text)',
+            'bind_memory_scope(text,text,text,text,bigint)',
+            'record_memory_usage(text,text,text,text,text,text,jsonb)',
+        ]
+        for signature in memory_functions:
+            if c.execute('SELECT to_regprocedure(%s)', ('public.' + signature,)).fetchone()[0]:
+                c.execute(sql.SQL('GRANT EXECUTE ON FUNCTION {} TO {}').format(
+                    sql.SQL(signature), sql.Identifier(runtime)))
         # PostgreSQL SELECT FOR SHARE/UPDATE requires UPDATE privilege on >=1 column.
         # No ability to change authority/content: grant UPDATE on invariant keys only;
         # immutable authority triggers below reject all attempted runtime writes.

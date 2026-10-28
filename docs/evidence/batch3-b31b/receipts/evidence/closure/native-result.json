@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "mode": "actual PTY + HTTP + restricted PG",
+  "current_remains_authorized": true,
+  "historical_revision_removed": true,
+  "selection_cleared": true,
+  "explicit_reinspect_succeeds": true,
+  "before_revisions": [
+    "7724b191-ca6a-4fae-8ec5-8134acaa8514",
+    "665fd39c-7856-4d65-a74e-94ea95f00de2",
+    "8b6c1a77-11e2-47a8-9b81-55051a932fd0"
+  ],
+  "after_revisions": [
+    "665fd39c-7856-4d65-a74e-94ea95f00de2",
+    "8b6c1a77-11e2-47a8-9b81-55051a932fd0"
+  ]
+}

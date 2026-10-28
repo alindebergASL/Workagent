@@ -45,6 +45,10 @@ def enabled(config):
 
 
 def contract(binding):
+    from .memory.runtime import enabled as memory_enabled, POLICY as memory_policy, SCHEMA as memory_schema
+    if memory_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return memory_policy,memory_schema
     from .capabilities.compute_composition import enabled as compute_enabled, POLICY as compute_policy, SCHEMA as compute_schema
     if compute_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                     'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
@@ -95,6 +99,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if file_enabled(config): model=GatewayFilesDecision
         from .capabilities.compute_composition import enabled as compute_enabled, GatewayComputeDecision
         if compute_enabled(config): model=GatewayComputeDecision
+        from .memory.runtime import enabled as memory_enabled, GatewayMemoryDecision
+        if memory_enabled(config): model=GatewayMemoryDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:

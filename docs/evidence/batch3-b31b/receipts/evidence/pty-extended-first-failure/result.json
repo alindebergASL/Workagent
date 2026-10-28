@@ -1,0 +1,13 @@
+{
+  "passed": false,
+  "evidence": "actual PTY/API/restricted PG; controlled model context, not live quality",
+  "actions": [
+    "\u001b[<0;23;4M\u001b[<0;23;4m",
+    "\u001b[<0;3;10M\u001b[<0;3;10m",
+    "\u001b[<0;5;7M\u001b[<0;5;7m",
+    "\u001b[B",
+    "\r",
+    "\u001b[<0;5;10M\u001b[<0;5;10m",
+    "\r"
+  ]
+}

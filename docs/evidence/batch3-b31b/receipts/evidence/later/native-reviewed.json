@@ -1,0 +1,98 @@
+{
+  "evidence": "real HTTP + production worker + restricted PG, controlled transport, zero paid calls",
+  "conversation_id": "b2440996-afa0-4110-b343-296bf0da738f",
+  "run_id": "c0cb6389-5ec2-4355-8c31-b2dace00dd13",
+  "expected_revisions": [
+    "54a83a9c-f202-4adf-b379-1528c9eca6c1"
+  ],
+  "usage": {
+    "items": [
+      {
+        "run_id": "c0cb6389-5ec2-4355-8c31-b2dace00dd13",
+        "request_id": "c0cb6389-5ec2-4355-8c31-b2dace00dd13",
+        "attempt_id": "bf89bd14-cd2f-4a19-97b6-d1cad55fcd9e",
+        "phase": "final",
+        "request_sha256": "be6b0c18c69abdb025b2dc9510c65d29f1b8a34ce386a9348a682125a0bd3963",
+        "entries": [
+          {
+            "memory_id": "9a85eece-34bd-4047-a942-1cb3e29368a3",
+            "revision_id": "54a83a9c-f202-4adf-b379-1528c9eca6c1",
+            "content_sha256": "ca146f44419049abde10658b1080840f6ccb48743862ef765e28fe0094ac6057",
+            "scope_kind": "task",
+            "scope_id": "b2440996-afa0-4110-b343-296bf0da738f",
+            "why": "task",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "c0cb6389-5ec2-4355-8c31-b2dace00dd13",
+        "request_id": "c0cb6389-5ec2-4355-8c31-b2dace00dd13",
+        "attempt_id": "bf89bd14-cd2f-4a19-97b6-d1cad55fcd9e",
+        "phase": "selection",
+        "request_sha256": "6a0138ee2cc25e9c65706d725ca094239c203637226c4bf0ac5dc51b7e201578",
+        "entries": [
+          {
+            "memory_id": "9a85eece-34bd-4047-a942-1cb3e29368a3",
+            "revision_id": "54a83a9c-f202-4adf-b379-1528c9eca6c1",
+            "content_sha256": "ca146f44419049abde10658b1080840f6ccb48743862ef765e28fe0094ac6057",
+            "scope_kind": "task",
+            "scope_id": "b2440996-afa0-4110-b343-296bf0da738f",
+            "why": "task",
+            "unresolved_conflict": false
+          }
+        ]
+      }
+    ]
+  },
+  "memory_context": {
+    "has_more": false,
+    "items": [
+      {
+        "revision": {
+          "access_generation": 1,
+          "applicability": "",
+          "confidence_basis": "Explicit human statement",
+          "confidence_label": "explicit",
+          "content": "Check units before calculating",
+          "content_sha256": "ca146f44419049abde10658b1080840f6ccb48743862ef765e28fe0094ac6057",
+          "contradiction_group_id": null,
+          "evidence_ids": [],
+          "exception_to_revision_id": null,
+          "expires_at": null,
+          "kind": "procedure",
+          "memory_id": "9a85eece-34bd-4047-a942-1cb3e29368a3",
+          "origin": "human_reviewed",
+          "owner_id": "local-human",
+          "predicate_key": "check",
+          "proposed_by_run_id": null,
+          "recorded_at": "2026-10-28T22:28:16.698558Z",
+          "reviewed_by_principal_id": "local-human",
+          "revision_id": "54a83a9c-f202-4adf-b379-1528c9eca6c1",
+          "scope_id": "b2440996-afa0-4110-b343-296bf0da738f",
+          "scope_kind": "task",
+          "source_refs": [],
+          "status": "active",
+          "subject_key": "units",
+          "supersedes_revision_id": "b777df7e-bb43-41c1-a993-9de098ba2466",
+          "valid_from": "2026-10-28T22:28:08.436321Z",
+          "valid_until": null,
+          "workspace_id": "b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c"
+        },
+        "unresolved_conflict": false,
+        "why": "task"
+      }
+    ]
+  },
+  "memory_manifest": [
+    {
+      "content_sha256": "ca146f44419049abde10658b1080840f6ccb48743862ef765e28fe0094ac6057",
+      "memory_id": "9a85eece-34bd-4047-a942-1cb3e29368a3",
+      "revision_id": "54a83a9c-f202-4adf-b379-1528c9eca6c1",
+      "scope_id": "b2440996-afa0-4110-b343-296bf0da738f",
+      "scope_kind": "task",
+      "unresolved_conflict": false,
+      "why": "task"
+    }
+  ]
+}
