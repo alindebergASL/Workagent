@@ -137,12 +137,18 @@ try {
   ]) {
     await page.route(`**/assignments/${plain}/responsibility`, handler);
     await page.goto(`${origin}/assignments/${plain}`);
+    // A 401 means access for the page changed (Batch 2, A14): the whole
+    // page is fenced until a reload, not just this panel.
     await expect(
-      page.getByTestId(
-        name === "transport"
-          ? "responsibility-unknown"
-          : "responsibility-denied",
-      ),
+      name === "unauthenticated"
+        ? page
+            .getByRole("status")
+            .filter({ hasText: "Access for this page changed" })
+        : page.getByTestId(
+            name === "transport"
+              ? "responsibility-unknown"
+              : "responsibility-denied",
+          ),
     ).toBeVisible({ timeout: 15000 });
     await expect(page.getByRole("button", { name: "Stop…" })).toHaveCount(0);
     await expect(page.getByText("I own")).toHaveCount(0);
