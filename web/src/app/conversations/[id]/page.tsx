@@ -153,6 +153,12 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
     onInvalidate: refreshAll,
   });
   const revoked = work.revoked;
+  // "Access changed" is only true of a conversation this page has shown; one
+  // that was never readable here is simply not available.
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    if (d) setShown(true);
+  }, [d]);
   const { refresh: refreshConversation } = res;
   useEffect(() => {
     // Lost access: re-read so the cached conversation is dropped too.
@@ -330,6 +336,23 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       <textarea readOnly value={text} rows={3} />
     </label>
   ) : null;
+  if (revoked && !shown)
+    return (
+      <div className="agent-col">
+        {back}
+        <ErrorNotice
+          error={
+            res.error ??
+            new ApiError({
+              code: "not_found_or_not_authorized",
+              status: 404,
+              message: "",
+            })
+          }
+        />
+        {keptDraft}
+      </div>
+    );
   if (revoked)
     return (
       <div className="agent-col">

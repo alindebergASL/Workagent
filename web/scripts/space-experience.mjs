@@ -963,6 +963,23 @@ try {
       await page.route(refusedRead, refuseLater(status, code));
       await page.route(failedRead, fail);
       await refreshBtn.click();
+      if (status === 401) {
+        // A 401 means access for the page changed (Batch 2, A14): the whole
+        // page is fenced at once, the old copy with it, until a reload.
+        await expect(
+          page
+            .getByRole("status")
+            .filter({ hasText: "Access for this page changed" }),
+        ).toBeVisible({ timeout: 15000 });
+        await expect(page.getByText("Venue, two days")).toHaveCount(0);
+        await page.unroute(refusedRead);
+        await page.unroute(failedRead);
+        await page.reload();
+        await expect(latestBudget).toContainText("Venue, two days", {
+          timeout: 15000,
+        });
+        continue;
+      }
       await expect(
         latestBudget.getByTestId("work-card-unavailable"),
       ).toBeVisible({ timeout: 15000 });
