@@ -18,7 +18,7 @@ POLICY += FLEXIBLE_POLICY
 
 def consumer_hash():
     from .service import digest
-    names=('work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
+    names=('original_attachments.py','document_models.py','document_sandbox.py','document_parser.py','documents.py','checkpoint_models.py','run_checkpoints.py','run_successors.py','retained_results.py','conversation_intents.py','work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py','proposal_review.py',
            'conversation_context.py','evidence_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
     return digest({n:sha256(Path(__file__).with_name(n).read_bytes()).hexdigest() for n in names})
@@ -280,6 +280,8 @@ def admission(service,c,p,ws,cv,cmd,*,human_steering=False):
     n=c.execute("SELECT count(*) n FROM run_configurations WHERE data->>'grant_id'=%s",(grant.id,)).fetchone()['n']
     if n>=grant.max_runs: raise DomainError('budget_exhausted')
     exact_target(service,c,p,ws,cv,cmd.target)
+    from .responsibility_execution import check_admission_budget
+    check_admission_budget(c,grant)
     return grant
 
 
@@ -318,7 +320,14 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
               GeneralDecision.model_validate(result['value'],strict=True).decision)
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
-    if isinstance(decision,AdvanceResponsibility):
+    from .retained_results import ReadResult, ReadAttachment, material as retained_material, enabled as retained_enabled, authorize as authorize_retained
+    if isinstance(decision,(ReadResult,ReadAttachment)):
+        if not retained_enabled(config): raise DomainError('unsupported_operation')
+        if isinstance(decision,ReadAttachment): retained_material(service,c,p,run,cv,decision)
+        else: authorize_retained(service,c,p,run,cv,decision.run_id)
+        operation=decision
+        base=None
+    elif isinstance(decision,AdvanceResponsibility):
         from .responsibility_action import authorize_advance
         authorize_advance(service,c,run,decision,config,ledger,phase)
         operation=decision

@@ -1,0 +1,2851 @@
+--- before/backend/tests/test_client_session.py
++++ after/backend/tests/test_client_session.py
+@@ -0,0 +1,65 @@
++"""Authenticated durable-client identity and stale-request fencing (no DB writes)."""
++from dataclasses import replace
++from fastapi.testclient import TestClient
++from workagent.api import Settings, create_app
++
++BASE = Settings('postgresql://fixture:private@localhost/synthetic_one', True,
++                'synthetic-session-test-key-not-a-real-secret', 'synthetic-a')
++HEADERS = {'Authorization': 'Bearer ' + BASE.local_bearer,
++           'X-Schema-Version': 'workagent/v1', 'X-Request-Id': 'session-test'}
++
++def client(settings=BASE):
++    # No lifespan/database: identity is purely authenticated server configuration.
++    return TestClient(create_app(settings))
++
++def identity(settings=BASE):
++    response = client(settings).get('/v1/session', headers=HEADERS)
++    assert response.status_code == 200
++    assert response.headers['cache-control'] == 'no-store'
++    assert set(response.json()) == {'principal_id', 'scope_id'}
++    return response.json()
++
++def test_authenticated_identity_is_stable_and_opaque():
++    a = identity()
++    assert a == identity()
++    assert a['principal_id'] == BASE.principal_id
++    assert len(a['scope_id']) == 64
++    assert all(c in '0123456789abcdef' for c in a['scope_id'])
++    assert BASE.local_bearer not in str(a) and BASE.database_url not in str(a)
++
++def test_identity_requires_real_auth_not_caller_selected_principal():
++    c = client()
++    for headers in ({}, {'X-Workagent-Principal': 'synthetic-a'},
++                    {**HEADERS, 'Authorization': 'Bearer wrong'}):
++        assert c.get('/v1/session', headers=headers).status_code == 401
++    assert c.get('/v1/session', headers={**HEADERS, 'X-Workagent-Principal': 'synthetic-b'}).json()['principal_id'] == 'synthetic-a'
++
++def test_principal_and_backend_changes_are_independent():
++    a = identity()
++    assert identity(replace(BASE, principal_id='synthetic-b'))['scope_id'] != a['scope_id']
++    assert identity(replace(BASE, database_url='postgresql://fixture:private@localhost/synthetic_two'))['scope_id'] != a['scope_id']
++
++def test_stale_scope_refuses_before_service_read_or_mutation():
++    c = client()
++    # If the dependency fails to fence, service methods below would fail the test.
++    def unexpected(*args, **kwargs):
++        raise AssertionError('stale scope reached service')
++    c.app.state.service.list_workspaces = unexpected
++    c.app.state.service.create_conversation = unexpected
++    h = {**HEADERS, 'X-Workagent-Scope': '0' * 64}
++    for method, path, body in [
++        ('GET', '/v1/workspaces', None),
++        ('POST', '/v1/workspaces/synthetic/conversations', {
++            'schema_version': 'workagent/v1', 'request_id': 'scope-test',
++            'command_id': 'scope-test', 'title': 'Never dispatch', 'selected_source_refs': []}),
++    ]:
++        r = c.request(method, path, headers=h, json=body)
++        assert r.status_code == 401
++        assert r.json()['code'] == 'unauthenticated'
++
++def test_matching_scope_is_not_authority_and_legacy_clients_remain_supported():
++    c = client()
++    scope = identity()['scope_id']
++    assert c.get('/v1/session', headers={'X-Workagent-Scope': scope}).status_code == 401
++    assert c.get('/v1/session', headers={**HEADERS, 'X-Workagent-Scope': scope}).status_code == 200
++    assert c.get('/v1/session', headers=HEADERS).status_code == 200
+--- before/backend/workagent/api.py
++++ after/backend/workagent/api.py
+@@ -2,6 +2,9 @@
+ import os
+ import re
+ import secrets
++import hashlib
++import hmac
++import json
+ from contextlib import asynccontextmanager
+ from dataclasses import dataclass
+ from typing import Annotated, Literal
+@@ -45,9 +48,20 @@
+ security=HTTPBearer(auto_error=False)
+ 
+ 
++class ClientSession(BaseModel):
++    """Authenticated identity, not a credential or permission grant."""
++    principal_id: str
++    scope_id: str
++
++
+ def create_app(settings: Settings | None=None) -> FastAPI:
+     # Exporting OpenAPI is offline; startup, not module import, validates credentials.
+     settings=settings or Settings.environment()
++    # Stable across ordinary restarts, isolated across principal/database/credential
++    # changes. Only this opaque keyed digest leaves the server, never the DSN/key.
++    client_scope = hmac.new(settings.local_bearer.encode(),
++        json.dumps(['workagent-client-v1', settings.principal_id, settings.database_url],
++                   separators=(',', ':')).encode(), hashlib.sha256).hexdigest()
+     service=Service(Database(settings.database_url),allow_controlled_turns=settings.fixture_mode) if settings.database_url else None
+ 
+     @asynccontextmanager
+@@ -64,6 +78,11 @@
+ 
+     def principal(request: HTTPRequest, credentials: Annotated[HTTPAuthorizationCredentials | None,Depends(security)]):
+         if not settings.local_test_mode or not credentials or not secrets.compare_digest(credentials.credentials,settings.local_bearer):
++            raise DomainError('unauthenticated')
++        expected_scope = request.headers.get('x-workagent-scope')
++        if expected_scope is not None and not secrets.compare_digest(expected_scope, client_scope):
++            # The expected scope is only a fence, never authority. Older non-web
++            # callers remain authenticated by the same bearer as before.
+             raise DomainError('unauthenticated')
+         request.state.authenticated_principal=settings.principal_id
+         return Principal(settings.principal_id)
+@@ -139,6 +158,10 @@
+     from .work_event_api import register as register_work_events
+     register_work_events(app,service,settings,principal,query_meta,errors)
+ 
++    @route('/v1/session','GET','get_client_session',ClientSession)
++    def get_client_session(p:P,meta:Meta):
++        return ClientSession(principal_id=p.id, scope_id=client_scope)
++
+     @route('/v1/workspaces','GET','list_workspaces',WorkspacePage)
+     def list_workspaces(p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
+         return service.list_workspaces(p,cursor,limit)
+--- before/contracts/openapi.json
++++ after/contracts/openapi.json
+@@ -1860,6 +1860,25 @@
+           "next_safe_action"
+         ],
+         "title": "CheckpointData",
++        "type": "object"
++      },
++      "ClientSession": {
++        "description": "Authenticated identity, not a credential or permission grant.",
++        "properties": {
++          "principal_id": {
++            "title": "Principal Id",
++            "type": "string"
++          },
++          "scope_id": {
++            "title": "Scope Id",
++            "type": "string"
++          }
++        },
++        "required": [
++          "principal_id",
++          "scope_id"
++        ],
++        "title": "ClientSession",
+         "type": "object"
+       },
+       "ContinueRun": {
+@@ -10514,6 +10533,145 @@
+           }
+         ],
+         "summary": "Identity"
++      }
++    },
++    "/v1/session": {
++      "get": {
++        "operationId": "get_client_session",
++        "parameters": [
++          {
++            "in": "header",
++            "name": "x-schema-version",
++            "required": true,
++            "schema": {
++              "const": "workagent/v1",
++              "title": "X-Schema-Version",
++              "type": "string"
++            }
++          },
++          {
++            "in": "header",
++            "name": "x-request-id",
++            "required": true,
++            "schema": {
++              "maxLength": 128,
++              "minLength": 1,
++              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
++              "title": "X-Request-Id",
++              "type": "string"
++            }
++          }
++        ],
++        "responses": {
++          "200": {
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ClientSession"
++                }
++              }
++            },
++            "description": "Successful Response"
++          },
++          "401": {
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ErrorEnvelope"
++                }
++              }
++            },
++            "description": "Missing or invalid local authentication"
++          },
++          "404": {
++            "content": {
++              "application/json": {
++                "example": {
++                  "code": "not_found_or_not_authorized",
++                  "details": {
++                    "current_revision_id": null,
++                    "current_version": null,
++                    "fields": [],
++                    "proposal_id": null
++                  },
++                  "message": "Resource unavailable.",
++                  "next_action": "Check your workspace and current access.",
++                  "request_id": "request-example"
++                },
++                "schema": {
++                  "$ref": "#/components/schemas/ErrorEnvelope"
++                }
++              }
++            },
++            "description": "Absent and inaccessible resources are indistinguishable"
++          },
++          "409": {
++            "content": {
++              "application/json": {
++                "examples": {
++                  "command_conflict": {
++                    "value": {
++                      "code": "command_conflict",
++                      "details": {
++                        "current_revision_id": null,
++                        "current_version": null,
++                        "fields": [],
++                        "proposal_id": null
++                      },
++                      "message": "This command ID has a different payload.",
++                      "next_action": "Use the original payload or a new command ID for a different intent.",
++                      "request_id": "request-example"
++                    }
++                  },
++                  "stale": {
++                    "value": {
++                      "code": "version_conflict",
++                      "details": {
++                        "current_revision_id": "revision-2",
++                        "current_version": null,
++                        "fields": [],
++                        "proposal_id": "proposal-example"
++                      },
++                      "message": "The current version changed.",
++                      "next_action": "Refresh current work and review a new proposal against that base.",
++                      "request_id": "request-example"
++                    }
++                  }
++                },
++                "schema": {
++                  "$ref": "#/components/schemas/ErrorEnvelope"
++                }
++              }
++            },
++            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
++          },
++          "422": {
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ErrorEnvelope"
++                }
++              }
++            },
++            "description": "Schema validation or unsupported operation"
++          },
++          "500": {
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ErrorEnvelope"
++                }
++              }
++            },
++            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
++          }
++        },
++        "security": [
++          {
++            "HTTPBearer": []
++          }
++        ],
++        "summary": "Get Client Session"
+       }
+     },
+     "/v1/workspaces": {
+--- before/contracts/src/schema.d.ts
++++ after/contracts/src/schema.d.ts
+@@ -13,6 +13,23 @@
+         };
+         /** Identity */
+         get: operations["get_identity"];
++        put?: never;
++        post?: never;
++        delete?: never;
++        options?: never;
++        head?: never;
++        patch?: never;
++        trace?: never;
++    };
++    "/v1/session": {
++        parameters: {
++            query?: never;
++            header?: never;
++            path?: never;
++            cookie?: never;
++        };
++        /** Get Client Session */
++        get: operations["get_client_session"];
+         put?: never;
+         post?: never;
+         delete?: never;
+@@ -1434,6 +1451,16 @@
+              * @enum {string}
+              */
+             waiting: "none" | "person" | "event" | "blocked" | "unknown" | "stopped";
++        };
++        /**
++         * ClientSession
++         * @description Authenticated identity, not a credential or permission grant.
++         */
++        ClientSession: {
++            /** Principal Id */
++            principal_id: string;
++            /** Scope Id */
++            scope_id: string;
+         };
+         /** ContinueRun */
+         ContinueRun: {
+@@ -4209,6 +4236,86 @@
+                 };
+                 content: {
+                     "application/json": components["schemas"]["Identity"];
++                };
++            };
++            /** @description Missing or invalid local authentication */
++            401: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    "application/json": components["schemas"]["ErrorEnvelope"];
++                };
++            };
++            /** @description Absent and inaccessible resources are indistinguishable */
++            404: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    /** @example {
++                     *       "code": "not_found_or_not_authorized",
++                     *       "details": {
++                     *         "current_revision_id": null,
++                     *         "current_version": null,
++                     *         "fields": [],
++                     *         "proposal_id": null
++                     *       },
++                     *       "message": "Resource unavailable.",
++                     *       "next_action": "Check your workspace and current access.",
++                     *       "request_id": "request-example"
++                     *     } */
++                    "application/json": components["schemas"]["ErrorEnvelope"];
++                };
++            };
++            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
++            409: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    "application/json": components["schemas"]["ErrorEnvelope"];
++                };
++            };
++            /** @description Schema validation or unsupported operation */
++            422: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    "application/json": components["schemas"]["ErrorEnvelope"];
++                };
++            };
++            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
++            500: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    "application/json": components["schemas"]["ErrorEnvelope"];
++                };
++            };
++        };
++    };
++    get_client_session: {
++        parameters: {
++            query?: never;
++            header: {
++                "x-schema-version": "workagent/v1";
++                "x-request-id": string;
++            };
++            path?: never;
++            cookie?: never;
++        };
++        requestBody?: never;
++        responses: {
++            /** @description Successful Response */
++            200: {
++                headers: {
++                    [name: string]: unknown;
++                };
++                content: {
++                    "application/json": components["schemas"]["ClientSession"];
+                 };
+             };
+             /** @description Missing or invalid local authentication */
+--- before/web/src/app/api/domain/[...path]/route.ts
++++ after/web/src/app/api/domain/[...path]/route.ts
+@@ -1,7 +1,19 @@
++import { createHmac, timingSafeEqual } from "node:crypto";
+ import { NextRequest } from "next/server";
+ export const dynamic = "force-dynamic";
+ export const runtime = "nodejs";
+ const noStore = { "Cache-Control": "no-store" };
++const SCOPE = /^[a-f0-9]{64}$/;
++type Session = { principal_id?: unknown; scope_id?: unknown };
++/**
++ * The browser's scope: keyed by the private bearer over the backend endpoint
++ * and the backend's own scope, so a changed credential, database, principal
++ * or endpoint all give a different scope, and none of them is revealed.
++ */
++const browserScope = (bearer: string, backend: string, scope: string) =>
++  createHmac("sha256", bearer)
++    .update(`workagent-web-scope/v1\n${backend}\n${scope}`)
++    .digest("hex");
+ function error(status: number, code: string, message: string) {
+   return Response.json(
+     {
+@@ -13,6 +25,16 @@
+     },
+     { status, headers: noStore },
+   );
++}
++/**
++ * Identity couldn't be confirmed (session preflight failed, or the page's
++ * scope is absent or stale) and nothing was forwarded. The marker tells the
++ * browser to fence the page at once; an ordinary upstream 5xx never has it.
++ */
++function unconfirmed(status: number, code: string, message: string) {
++  const res = error(status, code, message);
++  res.headers.set("X-Workagent-Identity", "unconfirmed");
++  return res;
+ }
+ async function route(
+   request: NextRequest,
+@@ -48,6 +70,71 @@
+       "This local endpoint is unavailable.",
+     );
+   const { path } = await params;
++  // A14: which authenticated scope this proxy serves right now. Asked afresh
++  // for every request (no cache); any failure fails closed.
++  const session = async (): Promise<
++    { principal_id: string; backend: string; browser: string } | Response
++  > => {
++    try {
++      const res = await fetch(`${backend}/v1/session`, {
++        method: "GET",
++        headers: {
++          Authorization: `Bearer ${bearer}`,
++          "X-Schema-Version": "workagent/v1",
++          "X-Request-Id": crypto.randomUUID(),
++        },
++        cache: "no-store",
++        redirect: "error",
++        signal: AbortSignal.timeout(10000),
++      });
++      if (res.status === 401 || res.status === 403)
++        return unconfirmed(
++          401,
++          "unauthenticated",
++          "Access couldn’t be confirmed.",
++        );
++      const body = (res.ok ? await res.json() : null) as Session | null;
++      if (
++        typeof body?.principal_id !== "string" ||
++        !body.principal_id ||
++        typeof body.scope_id !== "string" ||
++        !SCOPE.test(body.scope_id)
++      )
++        throw new Error("session");
++      return {
++        principal_id: body.principal_id,
++        backend: body.scope_id,
++        browser: browserScope(bearer, backend, body.scope_id),
++      };
++    } catch {
++      return unconfirmed(
++        503,
++        "connection_required",
++        "Access couldn’t be confirmed.",
++      );
++    }
++  };
++  if (
++    request.method === "GET" &&
++    path.length === 2 &&
++    path[0] === "v1" &&
++    path[1] === "session"
++  ) {
++    const s = await session();
++    if (s instanceof Response) return s;
++    return Response.json(
++      { principal_id: s.principal_id, scope_id: s.browser },
++      { status: 200, headers: noStore },
++    );
++  }
++  // Every other request names the scope its page was bound to. The scope is
++  // a fence, not authorization: an absent or stale one is refused before
++  // anything is forwarded, so a page never reads or writes under access it
++  // didn't start with.
++  const expected = request.headers.get("x-workagent-scope") ?? "";
++  const stale = () =>
++    unconfirmed(401, "unauthenticated", "Access for this page changed.");
++  if (!SCOPE.test(expected)) return stale();
+   if (
+     path[0] !== "v1" ||
+     path[1] !== "workspaces" ||
+@@ -108,6 +195,10 @@
+       offset += chunk.length;
+     }
+   }
++  const current = await session();
++  if (current instanceof Response) return current;
++  if (!timingSafeEqual(Buffer.from(expected), Buffer.from(current.browser)))
++    return stale();
+   try {
+     const upstream = await fetch(
+       `${backend}/${path.join("/")}${request.nextUrl.search}`,
+@@ -120,6 +211,8 @@
+           "X-Schema-Version": "workagent/v1",
+           "X-Request-Id":
+             request.headers.get("x-request-id") ?? crypto.randomUUID(),
++          // The backend refuses if its scope changed since the check above.
++          "X-Workagent-Scope": current.backend,
+         },
+         body: body as BodyInit | undefined,
+         cache: "no-store",
+--- before/web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx
++++ after/web/src/app/assignments/[id]/artifacts/[artifactId]/page.tsx
+@@ -21,6 +21,7 @@
+ } from "@/lib/contract/types";
+ import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
+ import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
++import { scopedSession } from "@/lib/client/session-scope";
+ import { EXECUTION } from "@/lib/execution";
+ import { formatTime } from "@/lib/time";
+ import { threadFrom } from "@/lib/thread";
+@@ -166,7 +167,7 @@
+   const askKey = `workagent:ask:${artifactId}`;
+   useEffect(() => {
+     try {
+-      const saved = sessionStorage.getItem(askKey);
++      const saved = scopedSession.getItem(askKey);
+       if (saved) setInstruction((v) => v || saved);
+     } catch {
+       /* storage unavailable */
+@@ -174,8 +175,8 @@
+   }, [askKey]);
+   useEffect(() => {
+     try {
+-      if (instruction) sessionStorage.setItem(askKey, instruction);
+-      else sessionStorage.removeItem(askKey);
++      if (instruction) scopedSession.setItem(askKey, instruction);
++      else scopedSession.removeItem(askKey);
+     } catch {
+       /* storage unavailable: the in-memory text still exists */
+     }
+--- before/web/src/app/conversations/[id]/artifacts/[artifactId]/page.tsx
++++ after/web/src/app/conversations/[id]/artifacts/[artifactId]/page.tsx
+@@ -8,6 +8,7 @@
+ import { useResource } from "@/lib/client/hooks";
+ import { CAPABILITIES } from "@/lib/client/capabilities";
+ import { conversationApi } from "@/lib/client/real-api";
++import { scopedSession } from "@/lib/client/session-scope";
+ import {
+   currentObservation,
+   resolveObservations,
+@@ -134,7 +135,7 @@
+   const body = artifact.current_revision.body;
+   if (!isProduct(body)) throw new Error("Not a typed product.");
+   try {
+-    const raw = sessionStorage.getItem(key);
++    const raw = scopedSession.getItem(key);
+     if (raw) {
+       const d = JSON.parse(raw) as Draft;
+       if (d.base && d.body?.kind === body.kind) return d;
+@@ -404,7 +405,7 @@
+   function keep(next: Draft): boolean {
+     setDraft(next);
+     try {
+-      sessionStorage.setItem(key, JSON.stringify(next));
++      scopedSession.setItem(key, JSON.stringify(next));
+       return true;
+     } catch {
+       setNotice(
+--- before/web/src/app/layout.tsx
++++ after/web/src/app/layout.tsx
+@@ -7,6 +7,7 @@
+ import "@/styles/phone.css";
+ import { WorkspaceProvider } from "@/lib/client/workspace";
+ import { Shell } from "@/components/Shell";
++import { ScopeGate } from "@/components/ScopeGate";
+ 
+ export const metadata: Metadata = {
+   title: { default: "Workagent", template: "%s · Workagent" },
+@@ -19,9 +20,11 @@
+   return (
+     <html lang="en">
+       <body>
+-        <WorkspaceProvider>
+-          <Shell>{children}</Shell>
+-        </WorkspaceProvider>
++        <ScopeGate>
++          <WorkspaceProvider>
++            <Shell>{children}</Shell>
++          </WorkspaceProvider>
++        </ScopeGate>
+       </body>
+     </html>
+   );
+--- before/web/src/app/page.tsx
++++ after/web/src/app/page.tsx
+@@ -28,6 +28,7 @@
+ import { holdGroup } from "@/lib/hold-view";
+ import { ConversationWorkRow } from "@/components/ConversationWorkRow";
+ import { useSinceMarker } from "@/lib/client/since-marker";
++import { scopedLocal } from "@/lib/client/session-scope";
+ import {
+   homeSummary,
+   recentWork,
+@@ -147,7 +148,7 @@
+   const [remembered, setRemembered] = useState<string | null>(null);
+   useEffect(() => {
+     try {
+-      setRemembered(localStorage.getItem(DESTINATION_KEY));
++      setRemembered(scopedLocal.getItem(DESTINATION_KEY));
+     } catch {
+       /* storage unavailable: the address or the default decides */
+     }
+@@ -156,7 +157,7 @@
+   const choose = (next: string) => {
+     setRemembered(next);
+     try {
+-      localStorage.setItem(DESTINATION_KEY, next);
++      scopedLocal.setItem(DESTINATION_KEY, next);
+     } catch {
+       /* storage unavailable: the address still carries it */
+     }
+--- before/web/src/components/Batch2Controls.tsx
++++ after/web/src/components/Batch2Controls.tsx
+@@ -4,6 +4,7 @@
+ import {
+   commandBody,
+   documentApi,
++  saveOriginal,
+   queueApi,
+   runApi,
+ } from "@/lib/client/batch2-api";
+@@ -553,13 +554,7 @@
+     setSaving(true);
+     setError(null);
+     try {
+-      const blob = await documentApi.original(ws, cid, d);
+-      const url = URL.createObjectURL(blob);
+-      const a = document.createElement("a");
+-      a.href = url;
+-      a.download = d.filename;
+-      a.click();
+-      setTimeout(() => URL.revokeObjectURL(url), 1000);
++      await saveOriginal(ws, cid, d);
+     } catch (e) {
+       setError(e);
+     } finally {
+--- before/web/src/components/Composer.tsx
++++ after/web/src/components/Composer.tsx
+@@ -35,6 +35,7 @@
+   uploadAll,
+ } from "@/lib/client/documents";
+ import { useStagedDocuments } from "@/lib/client/staged-documents";
++import { scopedSession } from "@/lib/client/session-scope";
+ import {
+   afterHomeStartError,
+   clearHomeChat,
+@@ -70,15 +71,15 @@
+ 
+ function readDraft(scope: string): string {
+   try {
+-    return sessionStorage.getItem(`${DRAFT_KEY}:${scope}`) ?? "";
++    return scopedSession.getItem(`${DRAFT_KEY}:${scope}`) ?? "";
+   } catch {
+     return "";
+   }
+ }
+ function writeDraft(scope: string, text: string): void {
+   try {
+-    if (text) sessionStorage.setItem(`${DRAFT_KEY}:${scope}`, text);
+-    else sessionStorage.removeItem(`${DRAFT_KEY}:${scope}`);
++    if (text) scopedSession.setItem(`${DRAFT_KEY}:${scope}`, text);
++    else scopedSession.removeItem(`${DRAFT_KEY}:${scope}`);
+   } catch {
+     /* storage unavailable: the in-memory draft still exists */
+   }
+@@ -86,7 +87,7 @@
+ 
+ function readDraftFiles(scope: string): MessageAttachment[] {
+   try {
+-    const raw = sessionStorage.getItem(`${DRAFT_KEY}:${scope}:files`);
++    const raw = scopedSession.getItem(`${DRAFT_KEY}:${scope}:files`);
+     return raw ? (JSON.parse(raw) as MessageAttachment[]) : [];
+   } catch {
+     return [];
+@@ -95,11 +96,11 @@
+ function writeDraftFiles(scope: string, files: MessageAttachment[]): void {
+   try {
+     if (files.length)
+-      sessionStorage.setItem(
++      scopedSession.setItem(
+         `${DRAFT_KEY}:${scope}:files`,
+         JSON.stringify(files),
+       );
+-    else sessionStorage.removeItem(`${DRAFT_KEY}:${scope}:files`);
++    else scopedSession.removeItem(`${DRAFT_KEY}:${scope}:files`);
+   } catch {
+     /* storage unavailable: the in-memory attachments still exist */
+   }
+@@ -179,8 +180,8 @@
+     const key = `workagent:pending:${wsId}:home-assignment`;
+     try {
+       if (pending.current)
+-        sessionStorage.setItem(key, JSON.stringify(pending.current));
+-      else sessionStorage.removeItem(key);
++        scopedSession.setItem(key, JSON.stringify(pending.current));
++      else scopedSession.removeItem(key);
+     } catch {
+       /* storage unavailable: the in-memory command still holds */
+     }
+@@ -194,7 +195,7 @@
+     const read = <T,>(kind: string): T | null => {
+       if (!wsId) return null;
+       try {
+-        const raw = sessionStorage.getItem(
++        const raw = scopedSession.getItem(
+           `workagent:pending:${wsId}:home-${kind}`,
+         );
+         return raw ? (JSON.parse(raw) as T) : null;
+--- before/web/src/components/FlexibleWork.tsx
++++ after/web/src/components/FlexibleWork.tsx
+@@ -28,6 +28,7 @@
+ } from "react";
+ import { productApi, type S } from "@/lib/client/products";
+ import { useLeaveGuard } from "@/lib/client/leave-guard";
++import { scopedSession } from "@/lib/client/session-scope";
+ import { ApiError } from "@/lib/contract/errors";
+ import { DocDiff, DocEdit, DocRead } from "@/components/DocBody";
+ import { countChanges, diffBlocks } from "@/lib/diff";
+@@ -129,7 +130,7 @@
+ function readDraft(key: string, artifact: S["Artifact"]): Draft {
+   const body = artifact.current_revision.body as FlexibleBody;
+   try {
+-    const raw = sessionStorage.getItem(key);
++    const raw = scopedSession.getItem(key);
+     if (raw) {
+       const d = JSON.parse(raw) as Draft;
+       if (d.base && d.body && flexibleKind(d.body) === flexibleKind(body))
+@@ -285,7 +286,7 @@
+   function keep(next: Draft): boolean {
+     setDraft(next);
+     try {
+-      sessionStorage.setItem(key, JSON.stringify(next));
++      scopedSession.setItem(key, JSON.stringify(next));
+       return true;
+     } catch {
+       setNotice(
+@@ -412,7 +413,7 @@
+   const [chosen, setMode] = useState<WorkMode>(() => {
+     if (dirty || draft.pending) return "edit";
+     try {
+-      const m = sessionStorage.getItem(modeKey);
++      const m = scopedSession.getItem(modeKey);
+       return m === "edit" || m === "changes" ? m : "result";
+     } catch {
+       return "result";
+@@ -427,7 +428,7 @@
+   const show = (next: WorkMode) => {
+     setMode(next);
+     try {
+-      sessionStorage.setItem(modeKey, next);
++      scopedSession.setItem(modeKey, next);
+     } catch {
+       /* the choice holds for this page only */
+     }
+@@ -1319,8 +1320,8 @@
+   (e instanceof ApiError && e.isAmbiguousWrite) || e instanceof TypeError;
+ function store(key: string, value: unknown) {
+   try {
+-    if (value === null) sessionStorage.removeItem(key);
+-    else sessionStorage.setItem(key, JSON.stringify(value));
++    if (value === null) scopedSession.removeItem(key);
++    else scopedSession.setItem(key, JSON.stringify(value));
+     return true;
+   } catch {
+     return false;
+@@ -1328,7 +1329,7 @@
+ }
+ function stored<T>(key: string): T | null {
+   try {
+-    const raw = sessionStorage.getItem(key);
++    const raw = scopedSession.getItem(key);
+     return raw ? (JSON.parse(raw) as T) : null;
+   } catch {
+     return null;
+--- before/web/src/components/OperationComposer.tsx
++++ after/web/src/components/OperationComposer.tsx
+@@ -7,6 +7,7 @@
+   type PendingOperation,
+ } from "@/lib/client/operation-state";
+ import { conversationApi } from "@/lib/client/real-api";
++import { scopedSession } from "@/lib/client/session-scope";
+ import { ApiError } from "@/lib/contract/errors";
+ 
+ /** Explicit human operator selection; no frontend execution or inference. */
+@@ -51,7 +52,7 @@
+   const inFlight = useRef(false);
+   useEffect(() => {
+     try {
+-      journal.current = operationJournal(sessionStorage, ws, cid);
++      journal.current = operationJournal(scopedSession, ws, cid);
+       const saved = journal.current.read();
+       setPending(saved);
+       if (saved) {
+--- before/web/src/components/ScopeGate.tsx
++++ after/web/src/components/ScopeGate.tsx
+@@ -0,0 +1,75 @@
++"use client";
++import {
++  Fragment,
++  useEffect,
++  useSyncExternalStore,
++  type ReactNode,
++} from "react";
++import { API_MODE } from "@/lib/client/api";
++import {
++  bindMockIdentity,
++  probeSession,
++  scopeState,
++  subscribeScope,
++  type ScopeState,
++} from "@/lib/client/session-scope";
++
++const CHECKING: ScopeState = { status: "checking" };
++const RECHECK_MS = 60_000;
++
++/**
++ * Nothing kept on this device is read or shown until the session proves who
++ * is signed in (A14). Access is checked again on focus and periodically; if
++ * it changed or can't be confirmed, everything below unmounts at once and
++ * stays down until an explicit reload. Kept work stays on this device under
++ * the access it was written with.
++ */
++export function ScopeGate({ children }: { children: ReactNode }) {
++  const state = useSyncExternalStore(
++    subscribeScope,
++    scopeState,
++    () => CHECKING,
++  );
++  useEffect(() => {
++    if (API_MODE === "mock") {
++      bindMockIdentity();
++      return;
++    }
++    void probeSession();
++    const recheck = () => {
++      if (document.visibilityState === "visible") void probeSession();
++    };
++    window.addEventListener("focus", recheck);
++    document.addEventListener("visibilitychange", recheck);
++    const timer = window.setInterval(recheck, RECHECK_MS);
++    return () => {
++      window.removeEventListener("focus", recheck);
++      document.removeEventListener("visibilitychange", recheck);
++      window.clearInterval(timer);
++    };
++  }, []);
++
++  if (state.status === "ready")
++    return <Fragment key={state.scope_id}>{children}</Fragment>;
++  return (
++    <main className="page">
++      <p role="status">
++        {state.status === "checking"
++          ? "Checking access…"
++          : state.status === "unavailable"
++            ? "Couldn’t confirm access to this workspace."
++            : "Access for this page changed. Reload to continue with the current access."}
++      </p>
++      {state.status === "unavailable" && (
++        <button type="button" onClick={() => void probeSession()}>
++          Check again
++        </button>
++      )}
++      {state.status === "changed" && (
++        <button type="button" onClick={() => window.location.reload()}>
++          Reload
++        </button>
++      )}
++    </main>
++  );
++}
+--- before/web/src/components/SpaceView.tsx
++++ after/web/src/components/SpaceView.tsx
+@@ -7,6 +7,7 @@
+ import { productApi, isProduct } from "@/lib/client/products";
+ import { conversationApi } from "@/lib/client/real-api";
+ import { useHolds } from "@/lib/client/responsibility";
++import { scopedSession } from "@/lib/client/session-scope";
+ import { useCurrentWorkspace, useScopedHref } from "@/lib/client/workspace";
+ import type { ConversationDetailView } from "@/lib/contract/types";
+ import type { ExactTarget } from "@/lib/contract/natural";
+@@ -744,7 +745,7 @@
+   // The tab chosen for this work comes back when the person returns to it.
+   useEffect(() => {
+     try {
+-      const kept = sessionStorage.getItem(facetKey) as Facet | null;
++      const kept = scopedSession.getItem(facetKey) as Facet | null;
+       if (kept) setChosenFacet(kept);
+     } catch {
+       /* the default tab is fine */
+@@ -756,7 +757,7 @@
+   const chooseFacet = (f: Facet) => {
+     setChosenFacet(f);
+     try {
+-      sessionStorage.setItem(facetKey, f);
++      scopedSession.setItem(facetKey, f);
+     } catch {
+       /* the choice still holds while this page is open */
+     }
+--- before/web/src/components/WorkAreas.tsx
++++ after/web/src/components/WorkAreas.tsx
+@@ -5,6 +5,7 @@
+ import { API_MODE, newCommandId } from "@/lib/client/api";
+ import { useResource } from "@/lib/client/hooks";
+ import { usePendingCommand } from "@/lib/client/pending-command";
++import { scopedSession } from "@/lib/client/session-scope";
+ import {
+   areaHref,
+   workAreas,
+@@ -24,7 +25,7 @@
+ 
+ function readKept(key: string): Draft | null {
+   try {
+-    const raw = sessionStorage.getItem(key);
++    const raw = scopedSession.getItem(key);
+     return raw ? (JSON.parse(raw) as Draft) : null;
+   } catch {
+     return null;
+@@ -32,8 +33,8 @@
+ }
+ function keep(key: string, value: Draft | null) {
+   try {
+-    if (value) sessionStorage.setItem(key, JSON.stringify(value));
+-    else sessionStorage.removeItem(key);
++    if (value) scopedSession.setItem(key, JSON.stringify(value));
++    else scopedSession.removeItem(key);
+   } catch {
+     /* storage unavailable: the typed values stay in memory */
+   }
+@@ -266,8 +267,8 @@
+   useEffect(() => {
+     try {
+       if (
+-        sessionStorage.getItem(draftKey) ||
+-        sessionStorage.getItem(`${draftKey}:pending`)
++        scopedSession.getItem(draftKey) ||
++        scopedSession.getItem(`${draftKey}:pending`)
+       )
+         setEditing(true);
+     } catch {
+--- before/web/src/lib/client/api.ts
++++ after/web/src/lib/client/api.ts
+@@ -6,5 +6,4 @@
+   process.env["NEXT_PUBLIC_WORKAGENT_API_BASE"] ?? "/api/domain";
+ export const API_MODE: "mock" | "real" =
+   API_BASE === "/api/mock" ? "mock" : "real";
+-export const PRINCIPAL = API_MODE === "mock" ? "alex" : "local-human";
+ export const api = API_MODE === "mock" ? mockApi : realApi;
+--- before/web/src/lib/client/batch2-api.ts
++++ after/web/src/lib/client/batch2-api.ts
+@@ -17,6 +17,7 @@
+   RunCheckpoint,
+ } from "@/lib/contract/batch2";
+ import type { ExactTarget, MessageAttachment } from "@/lib/contract/natural";
++import { assertScope, captureScope, scopedFetch } from "./session-scope";
+ 
+ export const BASE = "/api/domain";
+ const rid = () => crypto.randomUUID();
+@@ -24,16 +25,19 @@
+   `${BASE}/v1/workspaces/${encodeURIComponent(ws)}/conversations/${encodeURIComponent(cid)}`;
+ 
+ type Fetch = typeof fetch;
+-let doFetch: Fetch = (...a) => fetch(...a);
++let rawFetch: Fetch = (...a) => fetch(...a);
++/** Every request carries this page's bound scope (see session-scope). */
++const doFetch: Fetch = (input, init) => scopedFetch(input, init, rawFetch);
+ /** Tests only. */
+ export const setFetch = (f: Fetch) => {
+-  doFetch = f;
++  rawFetch = f;
+ };
+ 
+ export async function call<T>(
+   url: string,
+   init: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {},
+ ): Promise<T> {
++  const scope = captureScope();
+   let res: Response;
+   try {
+     res = await doFetch(url, {
+@@ -52,6 +56,7 @@
+     });
+   } catch (e) {
+     if (e instanceof DOMException && e.name === "AbortError") throw e;
++    if (e instanceof ApiError) throw e; // scope fence: unsent or unknown
+     throw new ApiError({
+       code: "transport",
+       status: 0,
+@@ -64,6 +69,8 @@
+   } catch {
+     /* a lost or non-JSON body is treated as unconfirmed below */
+   }
++  // Fenced while the body arrived: sent, so unknown; never returned.
++  assertScope(scope);
+   if (!res.ok || data === null) {
+     const e = (data ?? {}) as {
+       code?: ErrorCode;
+@@ -217,6 +224,7 @@
+    * checked against the document's own sha256 before anything is saved.
+    */
+   async original(ws: string, cid: string, doc: DocumentMetadata) {
++    const scope = captureScope();
+     let res: Response;
+     try {
+       res = await doFetch(
+@@ -240,7 +248,10 @@
+         message: "The original could not be authorized or confirmed.",
+       });
+     const bytes = new Uint8Array(await res.arrayBuffer());
+-    if ((await sha256Hex(bytes)) !== doc.sha256)
++    assertScope(scope);
++    const digest = await sha256Hex(bytes);
++    assertScope(scope);
++    if (digest !== doc.sha256)
+       throw new Error(
+         "The original’s digest did not match. Nothing was saved.",
+       );
+@@ -248,6 +259,26 @@
+   },
+ };
+ 
++/**
++ * Downloads the exact original. The scope it started in is checked again
++ * right before anything is saved, so a page fenced meanwhile saves nothing.
++ */
++export async function saveOriginal(
++  ws: string,
++  cid: string,
++  doc: DocumentMetadata,
++) {
++  const scope = captureScope();
++  const blob = await documentApi.original(ws, cid, doc);
++  assertScope(scope);
++  const url = URL.createObjectURL(blob);
++  const a = document.createElement("a");
++  a.href = url;
++  a.download = doc.filename;
++  a.click();
++  setTimeout(() => URL.revokeObjectURL(url), 1000);
++}
++
+ export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+   const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
+   return Array.from(new Uint8Array(digest))
+--- before/web/src/lib/client/conversation-reply.ts
++++ after/web/src/lib/client/conversation-reply.ts
+@@ -1,6 +1,7 @@
+ "use client";
+ import { useEffect, useState } from "react";
+ import { newCommandId } from "@/lib/client/api";
++import { scopedSession } from "@/lib/client/session-scope";
+ import { usePendingCommand } from "@/lib/client/pending-command";
+ import { conversationApi } from "@/lib/client/real-api";
+ import { postMessageBody, queueApi } from "@/lib/client/batch2-api";
+@@ -17,15 +18,15 @@
+ 
+ function readKept(key: string): string {
+   try {
+-    return sessionStorage.getItem(key) ?? "";
++    return scopedSession.getItem(key) ?? "";
+   } catch {
+     return "";
+   }
+ }
+ function keep(key: string, text: string): void {
+   try {
+-    if (text) sessionStorage.setItem(key, text);
+-    else sessionStorage.removeItem(key);
++    if (text) scopedSession.setItem(key, text);
++    else scopedSession.removeItem(key);
+   } catch {
+     /* storage unavailable: the in-memory text still exists */
+   }
+@@ -44,7 +45,7 @@
+ 
+ function readKeptFiles(key: string): MessageAttachment[] {
+   try {
+-    const raw = sessionStorage.getItem(key);
++    const raw = scopedSession.getItem(key);
+     return raw ? (JSON.parse(raw) as MessageAttachment[]) : [];
+   } catch {
+     return [];
+@@ -52,8 +53,8 @@
+ }
+ function keepFiles(key: string, files: MessageAttachment[]): void {
+   try {
+-    if (files.length) sessionStorage.setItem(key, JSON.stringify(files));
+-    else sessionStorage.removeItem(key);
++    if (files.length) scopedSession.setItem(key, JSON.stringify(files));
++    else scopedSession.removeItem(key);
+   } catch {
+     /* storage unavailable: the in-memory files still exist */
+   }
+--- before/web/src/lib/client/documents.ts
++++ after/web/src/lib/client/documents.ts
+@@ -21,6 +21,7 @@
+   type ExtractionStatus,
+ } from "@/lib/contract/batch2";
+ import { documentApi, sha256Hex, type UploadBody } from "./batch2-api";
++import { ScopeRefused } from "./session-scope";
+ 
+ export interface StagedDocument {
+   readonly filename: string;
+@@ -289,10 +290,18 @@
+       );
+     } catch (e) {
+       const unknown = e instanceof ApiError && e.isAmbiguousWrite;
++      // Refused by the scope fence before reaching the service: this attempt
++      // wasn't sent, but an earlier one may have been, so the exact identity
++      // is kept for the same command.
++      const fenced = e instanceof ScopeRefused;
+       await quietly(
+         put(
+           i,
+-          unknown ? { state: "unknown" } : { state: "local", upload: null },
++          unknown
++            ? { state: "unknown" }
++            : fenced
++              ? { state: entry.upload ? entry.state : "local" }
++              : { state: "local", upload: null },
+         ),
+       );
+       throw e;
+--- before/web/src/lib/client/home-start.ts
++++ after/web/src/lib/client/home-start.ts
+@@ -9,6 +9,7 @@
+ import { ApiError } from "@/lib/contract/errors";
+ import type { DocumentRef } from "@/lib/contract/batch2";
+ import type { MessageAttachment } from "@/lib/contract/natural";
++import { scopedLocal, scopedSession } from "./session-scope";
+ 
+ export interface HomeChat {
+   workspace: string;
+@@ -38,9 +39,11 @@
+ }
+ 
+ type Stores = { session: Storage; local: Storage };
++// Kept under this page's authenticated scope; nothing read or written until
++// it's proven (see session-scope).
+ const browser = (): Stores => ({
+-  session: sessionStorage,
+-  local: localStorage,
++  session: scopedSession,
++  local: scopedLocal,
+ });
+ 
+ export const homeChatKey = (workspace: string) =>
+--- before/web/src/lib/client/pending-command.ts
++++ after/web/src/lib/client/pending-command.ts
+@@ -1,5 +1,6 @@
+ "use client";
+ import { useCallback, useEffect, useRef, useState } from "react";
++import { scopedSession } from "./session-scope";
+ 
+ /**
+  * A command whose outcome is not yet known, kept for this tab across reloads.
+@@ -10,7 +11,7 @@
+  * exact command (ID and payload) means the only way forward is replaying it,
+  * which the server answers with the original result, or a definite refusal
+  * that clears it. The stored value holds no credential, only the person's own
+- * words and IDs. It is per tab (sessionStorage) and never shared.
++ * words and IDs. It is per tab (scopedSession) and never shared.
+  */
+ export function usePendingCommand<T>(key: string | null) {
+   const ref = useRef<T | null>(null);
+@@ -24,7 +25,7 @@
+     setRestored(false);
+     if (!key) return;
+     try {
+-      const raw = sessionStorage.getItem(key);
++      const raw = scopedSession.getItem(key);
+       if (raw) {
+         ref.current = JSON.parse(raw) as T;
+         persisted.current = true;
+@@ -43,9 +44,9 @@
+       if (value === null) setRestored(false);
+       if (key)
+         try {
+-          if (value === null) sessionStorage.removeItem(key);
++          if (value === null) scopedSession.removeItem(key);
+           else {
+-            sessionStorage.setItem(key, JSON.stringify(value));
++            scopedSession.setItem(key, JSON.stringify(value));
+             persisted.current = true;
+           }
+         } catch {
+@@ -62,9 +63,9 @@
+       if (key)
+         try {
+           // A completion from an old mount must not erase a newer journal entry.
+-          const stored = sessionStorage.getItem(key);
++          const stored = scopedSession.getItem(key);
+           if (stored === JSON.stringify(expected))
+-            sessionStorage.removeItem(key);
++            scopedSession.removeItem(key);
+           else if (stored !== null || persisted.current) return false;
+           // A quota-failed write has no stored entry. Resolve only its exact
+           // in-memory attempt; a different stored entry always wins.
+--- before/web/src/lib/client/products.ts
++++ after/web/src/lib/client/products.ts
+@@ -2,6 +2,7 @@
+ import { all, client, command, meta, unwrap } from "./real-api";
+ import { ApiError } from "@/lib/contract/errors";
+ import { tableFilename } from "@/lib/product-summary";
++import { assertScope, captureScope } from "./session-scope";
+ export type S = components["schemas"];
+ export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
+ /** An operation the client sends (request side of PostMessage). */
+@@ -263,6 +264,8 @@
+   ) {
+     if (proposal && proposal.artifact_id !== artifact.id)
+       throw new Error("Proposed version does not belong to this work.");
++    // Checked after every await: a page fenced meanwhile saves nothing.
++    const scope = captureScope();
+     const result = await client.GET(
+       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
+       {
+@@ -283,11 +286,13 @@
+         message:
+           "Download could not be authorized or confirmed. Refresh saved state.",
+       });
++    assertScope(scope);
+     const blob = result.data;
+     const bytes = await blob.arrayBuffer();
+-    const hash = Array.from(
+-      new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+-    )
++    assertScope(scope);
++    const digest = await crypto.subtle.digest("SHA-256", bytes);
++    assertScope(scope);
++    const hash = Array.from(new Uint8Array(digest))
+       .map((x) => x.toString(16).padStart(2, "0"))
+       .join("");
+     if (hash !== result.response.headers.get("x-content-sha256"))
+@@ -302,6 +307,7 @@
+         : body.kind === "table"
+           ? tableFilename(body)
+           : `tool-${body.entrypoint}.wat`;
++    assertScope(scope);
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement("a");
+     a.href = url;
+--- before/web/src/lib/client/real-api.ts
++++ after/web/src/lib/client/real-api.ts
+@@ -15,6 +15,16 @@
+ import { commandPayloadCache } from "./command-cache";
+ import type { ExtractionStatus } from "@/lib/contract/batch2";
+ import { savedBody, viewBlocks } from "@/lib/document-blocks";
++import {
++  assertScope,
++  boundScope,
++  captureScope,
++  fenceScope,
++  fencedOutcome,
++  identityUnconfirmed,
++  SCOPE_HEADER,
++  scopeRefused,
++} from "./session-scope";
+ const stablePayload = commandPayloadCache();
+ type S = components["schemas"];
+ const rid = () => crypto.randomUUID();
+@@ -32,7 +42,26 @@
+ client.use({
+   onRequest({ request }) {
+     request.headers.set("X-Workagent-Client", "local-ui");
++    // Nothing is sent without this page's bound scope (see session-scope).
++    const scope = boundScope();
++    if (!scope) throw scopeRefused();
++    request.headers.set(SCOPE_HEADER, scope);
+     return request;
++  },
++  onResponse({ request, response }) {
++    if (identityUnconfirmed(response)) {
++      // The proxy couldn't confirm identity and forwarded nothing.
++      fenceScope();
++      void response.body?.cancel().catch(() => undefined);
++      throw scopeRefused();
++    }
++    if (boundScope() !== request.headers.get(SCOPE_HEADER)) {
++      // Sent, then fenced: outcome unknown, result never shown.
++      void response.body?.cancel().catch(() => undefined);
++      throw fencedOutcome();
++    }
++    if (response.status === 401) fenceScope();
++    return response;
+   },
+ });
+ 
+@@ -43,17 +72,22 @@
+     response: Response;
+   }>,
+ ): Promise<T> {
++  // The body is parsed inside `promise`, after the middleware's header check:
++  // a result whose page was fenced meanwhile is never returned.
++  const scope = captureScope();
+   let result;
+   try {
+     result = await promise;
+   } catch (e) {
+     if (e instanceof DOMException && e.name === "AbortError") throw e;
++    if (e instanceof ApiError) throw e; // refused locally by the scope fence
+     throw new ApiError({
+       code: "transport",
+       status: 0,
+       message: "Could not reach the local service.",
+     });
+   }
++  assertScope(scope);
+   if (result.error || !result.response.ok || result.data === undefined) {
+     const e = result.error;
+     throw new ApiError({
+--- before/web/src/lib/client/session-scope.ts
++++ after/web/src/lib/client/session-scope.ts
+@@ -0,0 +1,239 @@
++/**
++ * The authenticated scope this page is bound to (A14).
++ *
++ * Everything this device keeps (drafts, staged document bytes, pending
++ * commands, journals) and every request is bound to the scope the proxy
++ * proves from the private credential and backend endpoint, never to a
++ * build-time principal string. Until the session is proven nothing is read,
++ * written or sent. A page binds to at most one scope: once the scope changes
++ * or can no longer be confirmed, the page is fenced for good (only a reload
++ * can bind again), so a continuation started under one identity can never
++ * read, write or send under another. Records kept under any other scope,
++ * including older unscoped ones, are left exactly as they are and never read.
++ *
++ * The scope is a fence, not authorization: the server still decides access.
++ */
++import { ApiError } from "@/lib/contract/errors";
++
++export const SCOPE_HEADER = "X-Workagent-Scope";
++const SESSION_URL = "/api/domain/v1/session";
++const PREFIX = "workagent:scope:v1:";
++const SCOPE = /^[a-f0-9]{64}$/;
++/** Pure demo mode only; never a fallback for a real session. */
++export const MOCK_IDENTITY = {
++  principal_id: "alex",
++  scope_id: "0".repeat(64),
++} as const;
++
++export type ScopeState =
++  | { status: "checking" }
++  | { status: "ready"; principal_id: string; scope_id: string }
++  /** Never bound: the session couldn't be confirmed. */
++  | { status: "unavailable" }
++  /** Was bound; access changed or can no longer be confirmed. Terminal. */
++  | { status: "changed" };
++
++let state: ScopeState = { status: "checking" };
++let seq = 0;
++const listeners = new Set<() => void>();
++
++function set(next: ScopeState) {
++  if (state.status === "changed") return;
++  state = next;
++  for (const l of listeners) l();
++}
++
++export const scopeState = (): ScopeState => state;
++export function subscribeScope(listener: () => void): () => void {
++  listeners.add(listener);
++  return () => listeners.delete(listener);
++}
++/** The bound scope, or null while unknown or fenced. */
++export const boundScope = (): string | null =>
++  state.status === "ready" ? state.scope_id : null;
++
++/** Fences this page: nothing more is read, written or sent here. */
++export function fenceScope() {
++  if (state.status === "ready") set({ status: "changed" });
++  else if (state.status === "checking") set({ status: "unavailable" });
++}
++
++/**
++ * Asks the proxy which scope is authenticated now. Only the newest probe
++ * applies; a different scope (or a refusal) after binding fences the page.
++ */
++export async function probeSession(
++  doFetch: typeof fetch = (...a) => fetch(...a),
++): Promise<ScopeState> {
++  const mine = ++seq;
++  let next: { principal_id: string; scope_id: string } | null = null;
++  try {
++    const res = await doFetch(SESSION_URL, {
++      headers: {
++        "X-Workagent-Client": "local-ui",
++        "X-Schema-Version": "workagent/v1",
++        "X-Request-Id": crypto.randomUUID(),
++      },
++      cache: "no-store",
++    });
++    if (res.ok) {
++      const body = (await res.json()) as Record<string, unknown>;
++      if (
++        typeof body?.principal_id === "string" &&
++        body.principal_id &&
++        typeof body.scope_id === "string" &&
++        SCOPE.test(body.scope_id)
++      )
++        next = { principal_id: body.principal_id, scope_id: body.scope_id };
++    }
++  } catch {
++    next = null;
++  }
++  if (mine !== seq) return state;
++  if (state.status === "ready") {
++    if (
++      !next ||
++      next.scope_id !== state.scope_id ||
++      next.principal_id !== state.principal_id
++    )
++      set({ status: "changed" });
++  } else if (state.status !== "changed")
++    set(next ? { status: "ready", ...next } : { status: "unavailable" });
++  return state;
++}
++
++/** Binds the explicit demo identity (mock mode only). */
++export function bindMockIdentity() {
++  if (state.status !== "changed") set({ status: "ready", ...MOCK_IDENTITY });
++}
++
++/** Tests only: a fresh page realm. */
++export function __resetScopeForTests() {
++  state = { status: "checking" };
++  seq++;
++}
++
++class Fenced extends Error {
++  constructor() {
++    super("Access for this page isn’t confirmed.");
++    this.name = "Fenced";
++  }
++}
++
++function scoped(store: () => Storage | undefined): Storage {
++  const k = (key: string) => {
++    const s = boundScope();
++    return s ? `${PREFIX}${s}:${key}` : null;
++  };
++  return {
++    get length() {
++      return 0;
++    },
++    key: () => null,
++    clear() {
++      throw new Fenced(); // never clears other scopes' records
++    },
++    getItem(key) {
++      const full = k(key);
++      return full ? (store()?.getItem(full) ?? null) : null;
++    },
++    setItem(key, value) {
++      const full = k(key);
++      if (!full) throw new Fenced();
++      store()!.setItem(full, value);
++    },
++    removeItem(key) {
++      const full = k(key);
++      if (full) store()?.removeItem(full);
++    },
++  };
++}
++export const scopedSession = scoped(() => globalThis.sessionStorage);
++export const scopedLocal = scoped(() => globalThis.localStorage);
++
++/** IndexedDB scope for staged documents, or null while unknown/fenced. */
++export function stagedScope(ws: string, draft: string): string | null {
++  const s = boundScope();
++  return s ? `scope:v1:${s}:${ws}:${draft}` : null;
++}
++
++/** Refused before anything reached the service: definitely not sent. */
++export class ScopeRefused extends ApiError {}
++export const scopeRefused = () =>
++  new ScopeRefused({
++    code: "unauthenticated",
++    status: 401,
++    message:
++      "Access for this page changed or couldn’t be confirmed, so nothing was sent.",
++  });
++
++/**
++ * The page was fenced after this request was sent. The service may have
++ * acted on it, so its outcome is unknown (like a lost response) and its
++ * exact command is kept for an explicit retry; its result is never shown.
++ */
++export const fencedOutcome = () =>
++  new ApiError({
++    code: "transport",
++    status: 0,
++    message:
++      "Access for this page changed after this was sent, so its outcome is unknown. It’s kept to retry exactly.",
++  });
++
++/** The scope an operation starts in; pass it to `assertScope` after awaits. */
++export const captureScope = boundScope;
++/** Throws unless the page is still bound to the scope `captured` began in. */
++export function assertScope(captured: string | null) {
++  if (!captured || boundScope() !== captured) throw fencedOutcome();
++}
++
++/** Set by the proxy when it couldn't confirm identity; nothing forwarded. */
++export const IDENTITY_HEADER = "X-Workagent-Identity";
++export const identityUnconfirmed = (res: Response) =>
++  res.headers.get(IDENTITY_HEADER) === "unconfirmed";
++
++/**
++ * Every request goes through here: it carries the scope bound when the page
++ * started, and nothing is sent once that scope is unknown or fenced. A
++ * refusal of the scope fences the page; nothing is retried.
++ */
++export async function scopedFetch(
++  input: RequestInfo | URL,
++  init: RequestInit = {},
++  doFetch: typeof fetch = (...a) => fetch(...a),
++): Promise<Response> {
++  const scope = boundScope();
++  if (!scope) throw scopeRefused();
++  const given = init.headers;
++  let headers: HeadersInit;
++  if (given && !(given instanceof Headers) && !Array.isArray(given))
++    headers = { ...given, [SCOPE_HEADER]: scope };
++  else {
++    const h = new Headers(
++      given ?? (input instanceof Request ? input.headers : undefined),
++    );
++    h.set(SCOPE_HEADER, scope);
++    headers = h;
++  }
++  let res: Response;
++  try {
++    res = await doFetch(input, { ...init, headers });
++  } catch (e) {
++    if (boundScope() !== scope && !init.signal?.aborted) throw fencedOutcome();
++    throw e;
++  }
++  if (identityUnconfirmed(res)) {
++    // The proxy couldn't confirm who is signed in and forwarded nothing.
++    fenceScope();
++    void res.body?.cancel().catch(() => undefined);
++    throw scopeRefused();
++  }
++  if (boundScope() !== scope) {
++    // Fenced while in flight: the request was sent, so its outcome is
++    // unknown, and its result belongs to access this page no longer shows.
++    void res.body?.cancel().catch(() => undefined);
++    throw fencedOutcome();
++  }
++  if (res.status === 401) fenceScope();
++  return res;
++}
+--- before/web/src/lib/client/since-marker.ts
++++ after/web/src/lib/client/since-marker.ts
+@@ -2,6 +2,7 @@
+ import { useCallback, useEffect, useState } from "react";
+ import type { ConversationWork } from "./conversation-work";
+ import { highWater, later } from "@/lib/since-you-left";
++import { scopedLocal, scopedSession } from "./session-scope";
+ 
+ /**
+  * Where "Since you left" starts, kept on this device until the service
+@@ -24,11 +25,11 @@
+     if (!scope) return;
+     let start: string | null = null;
+     try {
+-      const tab = sessionStorage.getItem(sinceKey);
++      const tab = scopedSession.getItem(sinceKey);
+       if (tab !== null) start = JSON.parse(tab) as string | null;
+       else {
+-        start = localStorage.getItem(seenKey);
+-        sessionStorage.setItem(sinceKey, JSON.stringify(start));
++        start = scopedLocal.getItem(seenKey);
++        scopedSession.setItem(sinceKey, JSON.stringify(start));
+       }
+     } catch {
+       start = null;
+@@ -41,8 +42,8 @@
+   useEffect(() => {
+     if (!scope || since === undefined || !newest) return;
+     try {
+-      if (later(newest, localStorage.getItem(seenKey)))
+-        localStorage.setItem(seenKey, newest);
++      if (later(newest, scopedLocal.getItem(seenKey)))
++        scopedLocal.setItem(seenKey, newest);
+     } catch {
+       /* storage unavailable: the list just won't carry across visits */
+     }
+@@ -52,7 +53,7 @@
+     if (!newest) return;
+     setSince(newest);
+     try {
+-      sessionStorage.setItem(sinceKey, JSON.stringify(newest));
++      scopedSession.setItem(sinceKey, JSON.stringify(newest));
+     } catch {
+       /* the choice holds for this page only */
+     }
+--- before/web/src/lib/client/staged-documents.ts
++++ after/web/src/lib/client/staged-documents.ts
+@@ -12,7 +12,6 @@
+  */
+ import { useEffect, useState } from "react";
+ import {
+-  draftScope,
+   forgetGenerations,
+   indexedDocStore,
+   persistEntries,
+@@ -27,7 +26,7 @@
+   stageFile,
+   type StagedEntry,
+ } from "./documents";
+-import { PRINCIPAL } from "./api";
++import { stagedScope } from "./session-scope";
+ 
+ /** The scope and epoch an asynchronous step started in. */
+ export type Origin = { readonly scope: string; readonly epoch: number };
+@@ -244,7 +243,9 @@
+   enabled: boolean,
+   store: DocStore = indexedDocStore,
+ ) {
+-  const scope = ws && enabled ? draftScope(PRINCIPAL, ws, draft) : null;
++  // Kept under the authenticated scope this page is bound to; null (nothing
++  // read or written) until it's proven. Older records stay untouched.
++  const scope = ws && enabled ? stagedScope(ws, draft) : null;
+   const [view, setView] = useState(() => emptyView(Boolean(scope)));
+   const [ctl] = useState(() => stagedController(store, setView));
+   useEffect(() => {
+--- before/web/src/lib/client/work-state.ts
++++ after/web/src/lib/client/work-state.ts
+@@ -13,6 +13,13 @@
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import { ApiError } from "@/lib/contract/errors";
+ import type { ErrorCode } from "@/lib/contract/types";
++import { assertScope, captureScope, scopedFetch } from "./session-scope";
++
++/** Snapshot reads and the stream carry this page's bound scope. */
++const fenced =
++  (f: typeof fetch = (...a) => fetch(...a)): typeof fetch =>
++  (input, init) =>
++    scopedFetch(input, init, f);
+ import {
+   parseAttentionPage,
+   parseWorkSnapshot,
+@@ -62,6 +69,7 @@
+   signal: AbortSignal,
+   init: RequestInit = {},
+ ): Promise<unknown> {
++  const scope = captureScope();
+   let res: Response;
+   try {
+     res = await doFetch(url, {
+@@ -86,7 +94,9 @@
+       message: body?.message ?? "Could not confirm the request.",
+     });
+   }
+-  return res.json();
++  const data: unknown = await res.json();
++  assertScope(scope); // a body that arrived after the fence is never applied
++  return data;
+ }
+ 
+ export function useWorkState(
+@@ -132,7 +142,7 @@
+     const ac = new AbortController();
+     const scope = { signal: ac.signal, revoked: false };
+     live.current = scope;
+-    const doFetch = opts.current.fetch ?? fetch;
++    const doFetch = fenced(opts.current.fetch);
+     const path = (p: string) =>
+       `${base}/v1/workspaces/${encodeURIComponent(ws)}/${p}?${new URLSearchParams({ conversation_id: cid })}`;
+     let current: WorkSnapshot | null = null;
+@@ -266,7 +276,7 @@
+     setSeenError(null);
+     try {
+       await readJson(
+-        opts.current.fetch ?? fetch,
++        fenced(opts.current.fetch),
+         `${base}/v1/workspaces/${encodeURIComponent(ws)}/attention/seen`,
+         scope.signal,
+         {
+--- before/web/src/lib/client/work-stream.ts
++++ after/web/src/lib/client/work-stream.ts
+@@ -10,6 +10,7 @@
+  * snapshot's cursor; on lost access it stops.
+  */
+ import { DEFAULT_MAX_FRAME, SseOverflow, SseParser } from "./sse";
++import { boundScope, captureScope, scopedFetch } from "./session-scope";
+ import {
+   ContractError,
+   parseEventPage,
+@@ -115,7 +116,8 @@
+ class NeedsReset extends Error {}
+ 
+ export async function subscribeWork(o: SubscribeOptions): Promise<void> {
+-  const doFetch = o.fetch ?? fetch;
++  const doFetch: typeof fetch =
++    o.fetch ?? ((input, init) => scopedFetch(input, init));
+   const sleep = o.sleep ?? defaultSleep;
+   const pollMs = o.pollMs ?? 2000;
+   const seen = new SeenIds();
+@@ -126,8 +128,14 @@
+       { conversation_id: o.cid, after: cursor, ...extra },
+     )}`;
+ 
++  // Frames are applied only while the page is bound to the scope this
++  // subscription began in; checked synchronously, not left to unmounting.
++  const scope = captureScope();
++  const fenced = () => !scope || boundScope() !== scope;
++
+   /** Applies events in order; advances the cursor only by server ids. */
+   const apply = (items: { event: WorkEvent; id: string }[]) => {
++    if (fenced()) throw new Revoked();
+     const fresh: WorkEvent[] = [];
+     for (const { event, id } of items) {
+       if (event.conversation_id !== o.cid) continue; // not this scope
+@@ -138,8 +146,10 @@
+   };
+ 
+   const reset = async () => {
++    if (fenced()) throw new Revoked();
+     o.onStatus("connecting");
+     cursor = await o.onReset();
++    if (fenced()) throw new Revoked();
+   };
+ 
+   /** One stream connection. Returns when it should reconnect. */
+--- before/web/src/lib/client/workspace.tsx
++++ after/web/src/lib/client/workspace.tsx
+@@ -9,6 +9,7 @@
+ } from "react";
+ import { useSearchParams } from "next/navigation";
+ import { api, API_MODE } from "./api";
++import { scopedLocal } from "./session-scope";
+ import {
+   resolveScope,
+   scopedHref,
+@@ -50,7 +51,7 @@
+ 
+   useEffect(() => {
+     try {
+-      const stored = localStorage.getItem("workagent:zone");
++      const stored = scopedLocal.getItem("workagent:zone");
+       if (stored === "local" || stored === "utc") setZoneChoiceState(stored);
+     } catch {
+       /* ignore */
+@@ -98,7 +99,7 @@
+       setZoneChoice: (z) => {
+         setZoneChoiceState(z);
+         try {
+-          localStorage.setItem("workagent:zone", z);
++          scopedLocal.setItem("workagent:zone", z);
+         } catch {
+           /* ignore */
+         }
+--- before/web/src/lib/draft.ts
++++ after/web/src/lib/draft.ts
+@@ -1,4 +1,5 @@
+ import type { Block } from "@/lib/contract/types";
++import { scopedSession } from "@/lib/client/session-scope";
+ 
+ /**
+  * Unsaved-draft backup. A draft lives in component state; this is a per-tab
+@@ -20,7 +21,7 @@
+ 
+ export function readDraft(artifactId: string): DraftRecord | null {
+   try {
+-    const raw = sessionStorage.getItem(key(artifactId));
++    const raw = scopedSession.getItem(key(artifactId));
+     return raw ? (JSON.parse(raw) as DraftRecord) : null;
+   } catch {
+     return null;
+@@ -29,7 +30,7 @@
+ 
+ export function writeDraft(rec: DraftRecord): void {
+   try {
+-    sessionStorage.setItem(key(rec.artifact_id), JSON.stringify(rec));
++    scopedSession.setItem(key(rec.artifact_id), JSON.stringify(rec));
+   } catch {
+     /* storage unavailable: the in-memory draft still exists */
+   }
+@@ -37,7 +38,7 @@
+ 
+ export function clearDraft(artifactId: string): void {
+   try {
+-    sessionStorage.removeItem(key(artifactId));
++    scopedSession.removeItem(key(artifactId));
+   } catch {
+     /* ignore */
+   }
+--- before/web/test/client-scope.test.ts
++++ after/web/test/client-scope.test.ts
+@@ -0,0 +1,230 @@
++/**
++ * A14: local drafts, staged documents, pending commands and requests are bound
++ * to the authenticated session scope the proxy proves, never to a build-time
++ * principal string. Unknown identity fails closed; a changed identity fences
++ * the page; legacy records stay untouched and unread.
++ */
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import {
++  __resetScopeForTests,
++  probeSession,
++  scopeState,
++  scopedFetch,
++  scopedLocal,
++  scopedSession,
++  stagedScope,
++} from "@/lib/client/session-scope";
++import { call, setFetch } from "@/lib/client/batch2-api";
++import { carryDraftHome } from "@/lib/client/conversation-reply";
++import {
++  readHomeChat,
++  saveHomeChat,
++  type HomeChat,
++} from "@/lib/client/home-start";
++
++const A = "a".repeat(64);
++const B = "b".repeat(64);
++
++class MemStorage implements Storage {
++  m = new Map<string, string>();
++  get length() {
++    return this.m.size;
++  }
++  clear() {
++    this.m.clear();
++  }
++  getItem(k: string) {
++    return this.m.get(k) ?? null;
++  }
++  key(i: number) {
++    return [...this.m.keys()][i] ?? null;
++  }
++  removeItem(k: string) {
++    this.m.delete(k);
++  }
++  setItem(k: string, v: string) {
++    this.m.set(k, String(v));
++  }
++}
++
++const session = (principal_id: string, scope_id: string) =>
++  vi.fn(async () =>
++    Response.json({ principal_id, scope_id }, { status: 200 }),
++  ) as unknown as typeof fetch;
++
++let ss: MemStorage;
++let ls: MemStorage;
++beforeEach(() => {
++  __resetScopeForTests();
++  ss = new MemStorage();
++  ls = new MemStorage();
++  vi.stubGlobal("sessionStorage", ss);
++  vi.stubGlobal("localStorage", ls);
++});
++afterEach(() => {
++  vi.unstubAllGlobals();
++  setFetch((...a) => fetch(...a));
++});
++
++const DRAFT = "Line one of A's unsent draft\n\n  second line\ttab\n";
++
++describe("authenticated scope identity", () => {
++  it("is unknown until the session proves it; storage fails closed", () => {
++    expect(scopeState().status).toBe("checking");
++    ss.setItem("workagent:composer-draft:ws1", DRAFT); // legacy record
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBeNull();
++    expect(() => scopedSession.setItem("workagent:x", "y")).toThrow();
++    expect(stagedScope("ws1", "home")).toBeNull();
++    expect(ss.getItem("workagent:composer-draft:ws1")).toBe(DRAFT);
++  });
++
++  it("binds the proven scope and keys records by it, never by a caller string", async () => {
++    await probeSession(session("local-human", A));
++    expect(scopeState()).toEqual({
++      status: "ready",
++      principal_id: "local-human",
++      scope_id: A,
++    });
++    scopedSession.setItem("workagent:composer-draft:ws1", DRAFT);
++    const raw = [...ss.m.keys()];
++    expect(raw).toHaveLength(1);
++    expect(raw[0]).toContain(A);
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBe(DRAFT);
++    expect(stagedScope("ws1", "home")).toContain(A);
++    expect(stagedScope("ws1", "home")).not.toContain("local-human:");
++  });
++
++  it("legacy unscoped records are neither adopted, relabelled nor deleted", async () => {
++    ss.setItem("workagent:composer-draft:ws1", DRAFT);
++    ls.setItem("workagent:pending:ws1:home-chat", '{"workspace":"ws1"}');
++    await probeSession(session("local-human", A));
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBeNull();
++    expect(readHomeChat("ws1")).toBeNull();
++    // carrying a draft home writes only the scoped key
++    expect(carryDraftHome("ws1", "new text")).toBe(true);
++    expect(ss.getItem("workagent:composer-draft:ws1")).toBe(DRAFT);
++    expect(ls.getItem("workagent:pending:ws1:home-chat")).toBe(
++      '{"workspace":"ws1"}',
++    );
++  });
++
++  it("an identity change fences the page: A's draft is kept but never rendered under B", async () => {
++    await probeSession(session("local-human", A));
++    scopedSession.setItem("workagent:composer-draft:ws1", DRAFT);
++    const chat = { workspace: "ws1", text: DRAFT } as unknown as HomeChat;
++    expect(saveHomeChat("ws1", chat)).toBe(true);
++    await probeSession(session("recovery5c-other", B));
++    expect(scopeState().status).toBe("changed");
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBeNull();
++    expect(readHomeChat("ws1")).toBeNull();
++    expect(stagedScope("ws1", "home")).toBeNull();
++    // the original record is retained exactly under A
++    const kept = [...ss.m.entries()].filter(([, v]) => v === DRAFT);
++    expect(kept).toHaveLength(1);
++    expect(kept[0]![0]).toContain(A);
++    // a fenced page never re-binds, even to the original scope
++    await probeSession(session("local-human", A));
++    expect(scopeState().status).toBe("changed");
++  });
++
++  it("same authenticated scope on reload recovers the exact draft", async () => {
++    await probeSession(session("local-human", A));
++    scopedSession.setItem("workagent:composer-draft:ws1", DRAFT);
++    __resetScopeForTests(); // a reload: new realm, same storage
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBeNull();
++    await probeSession(session("local-human", A));
++    expect(scopedSession.getItem("workagent:composer-draft:ws1")).toBe(DRAFT);
++  });
++
++  it("revocation fails closed and sanitizes reads", async () => {
++    await probeSession(session("local-human", A));
++    scopedLocal.setItem("workagent:pending:ws1:home-chat", "{}");
++    await probeSession(
++      vi.fn(async () =>
++        Response.json({ code: "unauthenticated" }, { status: 401 }),
++      ) as unknown as typeof fetch,
++    );
++    expect(scopeState().status).not.toBe("ready");
++    expect(scopedLocal.getItem("workagent:pending:ws1:home-chat")).toBeNull();
++  });
++
++  it("malformed or failed session never binds", async () => {
++    await probeSession(session("local-human", "short"));
++    expect(scopeState().status).toBe("unavailable");
++    await probeSession(
++      vi.fn(async () => {
++        throw new TypeError("socket");
++      }) as unknown as typeof fetch,
++    );
++    expect(scopeState().status).toBe("unavailable");
++  });
++
++  it("a late older probe response cannot override a newer one", async () => {
++    let release!: (r: Response) => void;
++    const slow = vi.fn(
++      () => new Promise<Response>((r) => (release = r)),
++    ) as unknown as typeof fetch;
++    const first = probeSession(slow);
++    await probeSession(session("local-human", A));
++    release(Response.json({ principal_id: "x", scope_id: B }));
++    await first;
++    expect(scopeState()).toMatchObject({ status: "ready", scope_id: A });
++  });
++});
++
++describe("request-time scope fence", () => {
++  it("unknown scope sends nothing", async () => {
++    const f = vi.fn();
++    await expect(
++      scopedFetch("/api/domain/v1/workspaces", {}, f as never),
++    ).rejects.toThrow();
++    expect(f).not.toHaveBeenCalled();
++  });
++
++  it("carries the bound scope and refuses after a change without dispatch", async () => {
++    await probeSession(session("local-human", A));
++    const f = vi.fn(async () => Response.json({}));
++    await scopedFetch("/api/domain/v1/workspaces", {}, f as never);
++    const headers = new Headers(
++      (f.mock.calls[0] as unknown as [string, RequestInit])[1].headers,
++    );
++    expect(headers.get("x-workagent-scope")).toBe(A);
++    await probeSession(session("other", B));
++    await expect(
++      scopedFetch(
++        "/api/domain/v1/workspaces/ws1/conversations/c1/messages",
++        { method: "POST", body: "{}" },
++        f as never,
++      ),
++    ).rejects.toThrow();
++    expect(f).toHaveBeenCalledTimes(1);
++  });
++
++  it("a stale-scope refusal fences the page", async () => {
++    await probeSession(session("local-human", A));
++    const f = vi.fn(async () =>
++      Response.json({ code: "unauthenticated" }, { status: 401 }),
++    );
++    await scopedFetch("/api/domain/v1/workspaces", {}, f as never).catch(
++      () => null,
++    );
++    expect(scopeState().status).not.toBe("ready");
++  });
++
++  it("pending batch2 commands are not dispatched once the scope changed", async () => {
++    await probeSession(session("local-human", A));
++    const f = vi.fn(async () => Response.json({ ok: true }));
++    setFetch(f as never);
++    await call("/api/domain/v1/workspaces/ws1/x", { method: "POST", body: {} });
++    expect(
++      new Headers(
++        (f.mock.calls[0] as unknown as [string, RequestInit])[1].headers,
++      ).get("x-workagent-scope"),
++    ).toBe(A);
++    await probeSession(session("other", B));
++    await expect(
++      call("/api/domain/v1/workspaces/ws1/x", { method: "POST", body: {} }),
++    ).rejects.toThrow();
++    expect(f).toHaveBeenCalledTimes(1);
++  });
++});
+--- before/web/test/draft-carry.test.ts
++++ after/web/test/draft-carry.test.ts
+@@ -1,5 +1,6 @@
+ import { afterEach, beforeEach, describe, expect, it } from "vitest";
+ import { carryDraftHome } from "@/lib/client/conversation-reply";
++import { scopedKey } from "./scope-helper";
+ 
+ describe("carryDraftHome", () => {
+   let store: Map<string, string>;
+@@ -17,15 +18,17 @@
+ 
+   it("moves an unsent message to Home's composer for the workspace", () => {
+     expect(carryDraftHome("ws1", "Plan the room swap")).toBe(true);
+-    expect(store.get("workagent:composer-draft:ws1")).toBe(
++    expect(store.get(scopedKey("workagent:composer-draft:ws1"))).toBe(
+       "Plan the room swap",
+     );
+   });
+ 
+   it("never overwrites a draft already waiting on Home", () => {
+-    store.set("workagent:composer-draft:ws1", "Earlier idea");
++    store.set(scopedKey("workagent:composer-draft:ws1"), "Earlier idea");
+     expect(carryDraftHome("ws1", "Plan the room swap")).toBe(false);
+-    expect(store.get("workagent:composer-draft:ws1")).toBe("Earlier idea");
++    expect(store.get(scopedKey("workagent:composer-draft:ws1"))).toBe(
++      "Earlier idea",
++    );
+   });
+ 
+   it("carries nothing for an empty message", () => {
+--- before/web/test/products.test.ts
++++ after/web/test/products.test.ts
+@@ -14,6 +14,7 @@
+ import examples from "../../contracts/examples.json";
+ import { GET } from "../src/app/api/domain/[...path]/route";
+ import { NextRequest } from "next/server";
++import { proxyScope, TEST_SCOPE, withBackendSession } from "./scope-helper";
+ 
+ const { transport } = vi.hoisted(() => {
+   const transport = vi.fn();
+@@ -115,6 +116,14 @@
+     );
+     vi.stubGlobal("fetch", transport);
+     vi.resetModules();
++    // A reload is a new page: it binds its own proven scope first (A14).
++    await (
++      await import("../src/lib/client/session-scope")
++    ).probeSession((async () =>
++      Response.json({
++        principal_id: "test-human",
++        scope_id: TEST_SCOPE,
++      })) as unknown as typeof fetch);
+     const reloaded = await import("../src/lib/client/real-api");
+     await expect(
+       reloaded.conversationApi.send(
+@@ -422,7 +431,16 @@
+   const request = () =>
+     new NextRequest(
+       "http://127.0.0.1:3000/api/domain/v1/workspaces/w/artifacts/a/download",
+-      { headers: { host: "127.0.0.1:3000", "x-workagent-client": "local-ui" } },
++      {
++        headers: {
++          host: "127.0.0.1:3000",
++          "x-workagent-client": "local-ui",
++          "x-workagent-scope": proxyScope(
++            "synthetic-test-bearer-not-a-secret".padEnd(40, "x"),
++            "http://127.0.0.1:8000",
++          ),
++        },
++      },
+     );
+   const params = {
+     params: Promise.resolve({
+@@ -437,14 +455,17 @@
+     );
+     vi.stubGlobal(
+       "fetch",
+-      vi.fn().mockResolvedValue(
+-        new Response("(module)", {
+-          headers: {
+-            "content-type": type,
+-            "content-disposition": name,
+-            "x-content-sha256": digest,
+-          },
+-        }),
++      vi.fn(
++        withBackendSession(
++          async () =>
++            new Response("(module)", {
++              headers: {
++                "content-type": type,
++                "content-disposition": name,
++                "x-content-sha256": digest,
++              },
++            }),
++        ),
+       ),
+     );
+   }
+--- before/web/test/proxy-scope.test.ts
++++ after/web/test/proxy-scope.test.ts
+@@ -0,0 +1,138 @@
++/** A14 proxy: session discovery and request-time scope fence. */
++import { createHmac } from "node:crypto";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++
++const A = "a".repeat(64);
++const B = "b".repeat(64);
++const BEARER = "x".repeat(40);
++const BACKEND = "http://127.0.0.1:18965";
++const ORIGIN = "http://127.0.0.1:3195";
++const browserScope = (backend: string, scope: string) =>
++  createHmac("sha256", BEARER)
++    .update(`workagent-web-scope/v1\n${backend}\n${scope}`)
++    .digest("hex");
++const req = (
++  path: string[],
++  method = "GET",
++  headers: Record<string, string> = {},
++) =>
++  [
++    {
++      method,
++      headers: new Headers({
++        host: "127.0.0.1:3195",
++        "x-workagent-client": "local-ui",
++        ...(method === "POST" ? { "content-type": "application/json" } : {}),
++        ...headers,
++      }),
++      nextUrl: { search: "" },
++      body: method === "POST" ? new Blob(["{}"]).stream() : null,
++      signal: new AbortController().signal,
++    } as never,
++    { params: Promise.resolve({ path }) },
++  ] as const;
++const forwarded = (m: ReturnType<typeof vi.fn>) =>
++  m.mock.calls.filter(([u]) => !String(u).endsWith("/v1/session"));
++
++let upstream: ReturnType<typeof vi.fn>;
++beforeEach(() => {
++  vi.stubEnv("LOCAL_TEST_MODE", "true");
++  vi.stubEnv("LOCAL_BEARER_TOKEN", BEARER);
++  vi.stubEnv("WORKAGENT_WEB_ORIGIN", ORIGIN);
++  vi.stubEnv("WORKAGENT_BACKEND_URL", BACKEND);
++  upstream = vi.fn(async (url: string) =>
++    url.endsWith("/v1/session")
++      ? Response.json({ principal_id: "local-human", scope_id: A })
++      : Response.json({ items: [] }),
++  );
++  vi.stubGlobal("fetch", upstream);
++});
++afterEach(() => {
++  vi.unstubAllEnvs();
++  vi.unstubAllGlobals();
++});
++const mod = () => import("@/app/api/domain/[...path]/route");
++
++describe("proxy scope contract", () => {
++  it("session returns only principal and an endpoint-bound browser scope", async () => {
++    const res = await (await mod()).GET(...req(["v1", "session"]));
++    expect(res.status).toBe(200);
++    const text = await res.text();
++    expect(JSON.parse(text)).toEqual({
++      principal_id: "local-human",
++      scope_id: browserScope(BACKEND, A),
++    });
++    expect(text).not.toContain(A);
++    expect(text).not.toContain(BEARER);
++    expect(text).not.toContain("18965");
++    const h = new Headers((upstream.mock.calls[0]![1] as RequestInit).headers);
++    expect(h.get("authorization")).toBe(`Bearer ${BEARER}`);
++    expect(h.get("x-schema-version")).toBe("workagent/v1");
++    expect(h.get("x-request-id")).toBeTruthy();
++  });
++
++  it("endpoint-only change changes the browser scope", async () => {
++    vi.stubEnv("WORKAGENT_BACKEND_URL", "http://127.0.0.1:18966");
++    const res = await (await mod()).GET(...req(["v1", "session"]));
++    const body = (await res.json()) as { scope_id: string };
++    expect(body.scope_id).toBe(browserScope("http://127.0.0.1:18966", A));
++    expect(body.scope_id).not.toBe(browserScope(BACKEND, A));
++  });
++
++  it("absent or stale scope is refused before forwarding any read or write", async () => {
++    const path = ["v1", "workspaces", "ws1", "conversations", "c1", "messages"];
++    for (const h of [
++      {} as Record<string, string>,
++      { "x-workagent-scope": browserScope(BACKEND, B) },
++      { "x-workagent-scope": A },
++    ]) {
++      upstream.mockClear();
++      const res = await (await mod()).POST(...req(path, "POST", h));
++      expect(res.status).toBe(401);
++      const g = await (await mod()).GET(...req(["v1", "workspaces"], "GET", h));
++      expect(g.status).toBe(401);
++      expect(forwarded(upstream)).toHaveLength(0);
++    }
++  });
++
++  it("matching scope forwards once with the backend scope fence", async () => {
++    upstream.mockClear();
++    const res = await (
++      await mod()
++    ).POST(
++      ...req(["v1", "workspaces", "ws1", "x"], "POST", {
++        "x-workagent-scope": browserScope(BACKEND, A),
++      }),
++    );
++    expect(res.status).toBe(200);
++    expect(forwarded(upstream)).toHaveLength(1);
++    const h = new Headers((forwarded(upstream)[0]![1] as RequestInit).headers);
++    expect(h.get("x-workagent-scope")).toBe(A);
++  });
++
++  it("session failure fails closed for session and every other request", async () => {
++    upstream.mockImplementation(async () => {
++      throw new TypeError("socket");
++    });
++    const res = await (await mod()).GET(...req(["v1", "session"]));
++    expect(res.status).toBeGreaterThanOrEqual(400);
++    const g = await (
++      await mod()
++    ).GET(
++      ...req(["v1", "workspaces"], "GET", {
++        "x-workagent-scope": browserScope(BACKEND, A),
++      }),
++    );
++    expect(g.status).toBeGreaterThanOrEqual(400);
++    expect(forwarded(upstream)).toHaveLength(0);
++  });
++
++  it("a revoked backend session is refused, not forwarded", async () => {
++    upstream.mockImplementation(async () =>
++      Response.json({ code: "unauthenticated" }, { status: 401 }),
++    );
++    const res = await (await mod()).GET(...req(["v1", "session"]));
++    expect(res.status).toBe(401);
++    expect(await res.text()).not.toContain(BEARER);
++  });
++});
+--- before/web/test/scope-helper.ts
++++ after/web/test/scope-helper.ts
+@@ -0,0 +1,39 @@
++/**
++ * Test-only session scope (A14). Product code never falls back to this: it's
++ * bound only here, through the same probe a real page uses.
++ */
++import { createHmac } from "node:crypto";
++import { vi } from "vitest";
++import { __resetScopeForTests, probeSession } from "@/lib/client/session-scope";
++
++export const TEST_SCOPE = "c".repeat(64);
++export const TEST_BACKEND_SCOPE = "d".repeat(64);
++const PREFIX = `workagent:scope:v1:${TEST_SCOPE}:`;
++/** The raw storage key a scoped record is kept under in tests. */
++export const scopedKey = (key: string) => `${PREFIX}${key}`;
++
++export async function bindTestScope() {
++  __resetScopeForTests();
++  await probeSession(
++    vi.fn(async () =>
++      Response.json({ principal_id: "test-human", scope_id: TEST_SCOPE }),
++    ) as unknown as typeof fetch,
++  );
++}
++
++/** Proxy tests: the browser scope a page would present for this backend. */
++export const proxyScope = (bearer: string, backend: string) =>
++  createHmac("sha256", bearer)
++    .update(`workagent-web-scope/v1\n${backend}\n${TEST_BACKEND_SCOPE}`)
++    .digest("hex");
++
++/** Proxy tests: answers the backend session probe, delegating the rest. */
++export const withBackendSession =
++  (rest: (...a: Parameters<typeof fetch>) => Promise<Response>) =>
++  async (...a: Parameters<typeof fetch>) =>
++    String(a[0]).endsWith("/v1/session")
++      ? Response.json({
++          principal_id: "test-human",
++          scope_id: TEST_BACKEND_SCOPE,
++        })
++      : rest(...a);
+--- before/web/test/scope-races.test.ts
++++ after/web/test/scope-races.test.ts
+@@ -0,0 +1,462 @@
++/**
++ * A14 correction (independent review R1–R3): a scope fence that lands after a
++ * request was dispatched keeps its outcome unknown and its exact command; a
++ * late body, digest or stream frame never publishes or downloads anything;
++ * an explicit proxy identity-preflight failure fences the page at once.
++ */
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { createHash } from "node:crypto";
++
++const { transport } = vi.hoisted(() => {
++  const transport = vi.fn();
++  vi.stubGlobal("fetch", transport);
++  return { transport };
++});
++
++// As products.test: an absolute base so the generated client can build
++// requests under Node; everything else is the actual generated client.
++vi.mock("../../contracts/src/client", async (importOriginal) => {
++  const actual =
++    await importOriginal<typeof import("../../contracts/src/client")>();
++  return {
++    ...actual,
++    workagentClient: (_base: string, bearer: string, requestId: () => string) =>
++      actual.workagentClient("http://races.test/api/domain", bearer, requestId),
++  };
++});
++import { ApiError } from "@/lib/contract/errors";
++import {
++  fenceScope,
++  scopeState,
++  scopedFetch,
++  scopedSession,
++} from "@/lib/client/session-scope";
++import * as batch2 from "@/lib/client/batch2-api";
++import { call, documentApi, setFetch } from "@/lib/client/batch2-api";
++import { memoryDocStore } from "@/lib/client/doc-store";
++import { newEntry, stageBytes, uploadAll } from "@/lib/client/documents";
++import { stagedController } from "@/lib/client/staged-documents";
++import { subscribeWork } from "@/lib/client/work-stream";
++import { bindTestScope, proxyScope, withBackendSession } from "./scope-helper";
++import type { DocumentMetadata } from "@/lib/contract/batch2";
++
++const enc = (s: string) => new TextEncoder().encode(s);
++const tick = () => new Promise((r) => setImmediate(r));
++async function until(done: () => boolean) {
++  for (let i = 0; i < 10_000 && !done(); i++) await tick();
++  expect(done()).toBe(true);
++}
++const settle = async () => {
++  for (let i = 0; i < 20; i++) await tick();
++};
++/** A response whose headers arrive now and whose body arrives later. */
++function held(headers: Record<string, string> = {}, status = 200) {
++  let ctl!: ReadableStreamDefaultController<Uint8Array>;
++  const body = new ReadableStream<Uint8Array>({
++    start(c) {
++      ctl = c;
++    },
++  });
++  return {
++    res: new Response(body, { status, headers }),
++    send(b: string | Uint8Array, close = true) {
++      ctl.enqueue(typeof b === "string" ? enc(b) : b);
++      if (close) ctl.close();
++    },
++  };
++}
++const deferred = <T>() => {
++  let resolve!: (v: T) => void;
++  const promise = new Promise<T>((a) => (resolve = a));
++  return { promise, resolve };
++};
++const pdf = enc("%PDF-1.7\nprivate-A\n%%EOF");
++const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
++const dest = { workspace_id: "ws", conversation_id: "cv" };
++/**
++ * The generated client captures `fetch` when its module loads, so these
++ * tests load it fresh over the stubbed transport, in a page bound to a
++ * proven test scope (as the products reload test does).
++ */
++async function freshGenerated() {
++  vi.resetModules();
++  const s = await import("@/lib/client/session-scope");
++  await s.probeSession((async () =>
++    Response.json({
++      principal_id: "test-human",
++      scope_id: "c".repeat(64),
++    })) as unknown as typeof fetch);
++  const { conversationApi } = await import("@/lib/client/real-api");
++  const { productApi } = await import("@/lib/client/products");
++  return { s, conversationApi, productApi };
++}
++
++afterEach(() => {
++  setFetch((...a) => fetch(...a));
++  vi.restoreAllMocks();
++  vi.unstubAllGlobals();
++  vi.stubGlobal("fetch", transport);
++  transport.mockReset();
++});
++
++describe("R1: a fence after dispatch keeps the outcome unknown", () => {
++  it("a late committed upload keeps its exact identity under A and replays it", async () => {
++    const store = memoryDocStore();
++    const scope = "scope:v1:A:ws:conversation:cv";
++    const doc = await stageBytes("a.pdf", "", pdf);
++    const receipt = {
++      document_id: "d1",
++      sha256: doc.sha256,
++      filename: doc.filename,
++      mime_type: doc.mime_type,
++      status: "extracted",
++    };
++    const first = stagedController(store, () => {});
++    first.open(scope);
++    await until(() => !first.view.restoring);
++    const o = first.origin()!;
++    await first.persist(o, [newEntry(doc)]);
++    const bodies: string[] = [];
++    let release!: (r: Response) => void;
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return new Promise<Response>((r) => (release = r));
++    }) as never);
++    const p = uploadAll(dest, first.view.docs, (n) => first.persist(o, n));
++    await until(() => bodies.length === 1);
++    fenceScope(); // a session recheck lands while the upload is in flight
++    first.open(null); // the gate unmounts the page
++    release(Response.json(receipt));
++    const e = (await p.catch((x: unknown) => x)) as ApiError;
++    expect(e).toBeInstanceOf(ApiError);
++    expect(e.isAmbiguousWrite).toBe(true);
++    // A returns (same scope): the exact command is restored, outcome unknown.
++    await bindTestScope();
++    const again = stagedController(store, () => {});
++    again.open(scope);
++    await until(() => !again.view.restoring);
++    const [kept] = again.view.docs;
++    expect(kept!.state).toBe("unknown");
++    const sent = JSON.parse(bodies[0]!);
++    expect(kept!.upload).toMatchObject({
++      command_id: sent.command_id,
++      request_id: sent.request_id,
++    });
++    expect(kept!.doc.sha256).toBe(sha(pdf));
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return Response.json(receipt);
++    }) as never);
++    const o2 = again.origin()!;
++    await uploadAll(dest, again.view.docs, (n) => again.persist(o2, n));
++    expect(bodies).toHaveLength(2);
++    expect(bodies[1]).toBe(bodies[0]); // identical bytes, ids and payload
++  });
++
++  it("generated-client writes fenced after dispatch are unknown, not unsent", async () => {
++    const { s, conversationApi } = await freshGenerated();
++    let release!: (r: Response) => void;
++    transport.mockImplementation(
++      () => new Promise<Response>((r) => (release = r)),
++    );
++    const p = conversationApi.send("w", "c", {
++      command_id: "cmd-1",
++      expected_work_version: 1,
++      text: "exact",
++    } as never);
++    await until(() => transport.mock.calls.length === 1);
++    s.fenceScope();
++    release(Response.json({ ok: true }));
++    await expect(p).rejects.toMatchObject({ code: "transport" });
++  });
++});
++
++describe("R2: late bodies, digests and frames publish nothing", () => {
++  it("a delayed JSON body after the fence is not returned", async () => {
++    const h = held({ "content-type": "application/json" });
++    setFetch((async () => h.res) as never);
++    const p = call<{ secret: string }>("/api/domain/v1/workspaces/w/x");
++    await settle();
++    fenceScope();
++    h.send(JSON.stringify({ secret: "A-only" }));
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  const meta = {
++    document_id: "d1",
++    filename: "a.pdf",
++    mime_type: "application/pdf",
++    sha256: sha(pdf),
++  } as DocumentMetadata;
++
++  it("a delayed original body after the fence is not returned", async () => {
++    const h = held({ "x-content-sha256": sha(pdf) });
++    setFetch((async () => h.res) as never);
++    const p = documentApi.original("w", "c", meta);
++    await settle();
++    fenceScope();
++    h.send(pdf);
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  it("a delayed original digest after the fence is not returned", async () => {
++    setFetch(
++      (async () =>
++        new Response(pdf, {
++          headers: { "x-content-sha256": sha(pdf) },
++        })) as never,
++    );
++    const real = crypto.subtle.digest.bind(crypto.subtle);
++    const d = deferred<void>();
++    vi.spyOn(crypto.subtle, "digest").mockImplementation(async (a, b) => {
++      await d.promise;
++      return real(a, b);
++    });
++    const p = documentApi.original("w", "c", meta);
++    await settle();
++    fenceScope();
++    d.resolve();
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  it("saving an original after the fence clicks no anchor", async () => {
++    const h = held({ "x-content-sha256": sha(pdf) });
++    setFetch((async () => h.res) as never);
++    const anchor = { href: "", download: "", click: vi.fn() };
++    vi.stubGlobal("document", { createElement: () => anchor });
++    const url = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
++    const save = (
++      batch2 as unknown as {
++        saveOriginal: (
++          w: string,
++          c: string,
++          d: DocumentMetadata,
++        ) => Promise<void>;
++      }
++    ).saveOriginal;
++    const p = save("w", "c", meta);
++    await settle();
++    fenceScope();
++    h.send(pdf);
++    await p.catch(() => null);
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++  });
++
++  const tool = {
++    id: "art",
++    current_revision_id: "rev",
++    current_revision: {
++      body: {
++        kind: "tool",
++        title: "t",
++        code: "(module)",
++        entrypoint: "run",
++        arguments: [],
++        input_form: [],
++        notes: [],
++      },
++    },
++  } as never;
++
++  it("a generated product download with a late body or digest downloads nothing", async () => {
++    const anchor = { href: "", download: "", click: vi.fn() };
++    vi.stubGlobal("document", { createElement: () => anchor });
++    const url = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
++    const body = enc("(module)");
++    const h = held({ "x-content-sha256": sha(body) });
++    transport.mockResolvedValueOnce(h.res);
++    const one = await freshGenerated();
++    const p = one.productApi.download("w", tool);
++    await until(() => transport.mock.calls.length === 1);
++    await settle();
++    one.s.fenceScope();
++    h.send(body);
++    await expect(p).rejects.toMatchObject({ code: "transport" });
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++
++    transport.mockResolvedValueOnce(
++      new Response(body, { headers: { "x-content-sha256": sha(body) } }),
++    );
++    const two = await freshGenerated();
++    const real = crypto.subtle.digest.bind(crypto.subtle);
++    const d = deferred<void>();
++    vi.spyOn(crypto.subtle, "digest").mockImplementation(async (a, b) => {
++      await d.promise;
++      return real(a, b);
++    });
++    const q = two.productApi.download("w", tool);
++    await until(() => transport.mock.calls.length === 2);
++    await settle();
++    two.s.fenceScope();
++    d.resolve();
++    await expect(q).rejects.toMatchObject({ code: "transport" });
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++  });
++
++  it("an already-open stream applies no frame after the fence", async () => {
++    const ev = (i: number) => ({
++      event_id: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
++      type: "artifact.changed",
++      conversation_id: "cv",
++      artifact_id: "a",
++      run_id: null,
++      proposal_id: null,
++      assignment_id: null,
++      occurred_at: `2026-10-26T00:00:0${i}Z`,
++      reason_code: "material_change",
++    });
++    const frame = (i: number) =>
++      `id: c${i}\nevent: work.changed\ndata: ${JSON.stringify(ev(i))}\n\n`;
++    const h = held({ "content-type": "text/event-stream" });
++    const changes: number[] = [];
++    let resets = 0;
++    const ac = new AbortController();
++    void subscribeWork({
++      base: "/api/domain",
++      ws: "ws",
++      cid: "cv",
++      cursor: "c0",
++      signal: ac.signal,
++      fetch: (async () => h.res) as never,
++      sleep: async () => {
++        ac.abort();
++      },
++      onChange: (e) => changes.push(e.length),
++      onStatus: () => {},
++      onRevoked: () => {},
++      onReset: async () => {
++        resets++;
++        return "c0";
++      },
++    }).catch(() => null);
++    await settle();
++    h.send(frame(1), false);
++    await until(() => changes.length === 1);
++    fenceScope();
++    h.send(frame(2), false);
++    await settle();
++    expect(changes).toHaveLength(1);
++    expect(resets).toBe(0);
++    ac.abort();
++  });
++});
++
++describe("R3: proxy identity-preflight failure fences at once", () => {
++  const BEARER = "y".repeat(40);
++  const scopeHeader = () => proxyScope(BEARER, "http://127.0.0.1:8000");
++  const proxyReq = (method: string) =>
++    [
++      {
++        method,
++        headers: new Headers({
++          host: "127.0.0.1:3000",
++          "x-workagent-client": "local-ui",
++          "x-workagent-scope": scopeHeader(),
++          ...(method === "POST" ? { "content-type": "application/json" } : {}),
++        }),
++        nextUrl: { search: "" },
++        body: method === "POST" ? new Blob(["{}"]).stream() : null,
++        signal: new AbortController().signal,
++      } as never,
++      { params: Promise.resolve({ path: ["v1", "workspaces", "w", "x"] }) },
++    ] as const;
++
++  it("the proxy marks failed or malformed preflight and forwards nothing", async () => {
++    vi.stubEnv("LOCAL_TEST_MODE", "true");
++    vi.stubEnv("LOCAL_BEARER_TOKEN", BEARER);
++    const route = await import("@/app/api/domain/[...path]/route");
++    for (const upstream of [
++      async () => {
++        throw new TypeError("timeout");
++      },
++      async () => Response.json({ principal_id: "x", scope_id: "short" }),
++    ]) {
++      const f = vi.fn(upstream as (url: string) => Promise<Response>);
++      vi.stubGlobal("fetch", f);
++      for (const m of ["GET", "POST"] as const) {
++        const res = await route[m](...proxyReq(m));
++        expect(res.headers.get("x-workagent-identity")).toBe("unconfirmed");
++        expect(
++          f.mock.calls.filter(([u]) => !String(u).endsWith("/v1/session")),
++        ).toHaveLength(0);
++      }
++    }
++    // An ordinary upstream 503 is forwarded unmarked.
++    vi.stubGlobal(
++      "fetch",
++      vi.fn(
++        withBackendSession(async () =>
++          Response.json({ code: "internal_error" }, { status: 503 }),
++        ),
++      ),
++    );
++    const res = await route.GET(...proxyReq("GET"));
++    expect(res.status).toBe(503);
++    expect(res.headers.get("x-workagent-identity")).toBeNull();
++    vi.unstubAllEnvs();
++  });
++
++  const unconfirmed = () =>
++    Response.json(
++      { code: "connection_required", message: "Access couldn’t be confirmed." },
++      { status: 503, headers: { "x-workagent-identity": "unconfirmed" } },
++    );
++
++  it("both transports fence immediately; ordinary 503 does not", async () => {
++    const m = new Map<string, string>();
++    vi.stubGlobal("sessionStorage", {
++      getItem: (k: string) => m.get(k) ?? null,
++      setItem: (k: string, v: string) => void m.set(k, v),
++      removeItem: (k: string) => void m.delete(k),
++    });
++    scopedSession.setItem("workagent:composer-draft:ws", "A draft");
++    await scopedFetch("/api/domain/v1/workspaces", {}, (async () =>
++      Response.json({}, { status: 503 })) as never);
++    expect(scopeState().status).toBe("ready");
++    await scopedFetch("/api/domain/v1/workspaces", {}, (async () =>
++      unconfirmed()) as never).catch(() => null);
++    expect(scopeState().status).toBe("changed");
++    expect(scopedSession.getItem("workagent:composer-draft:ws")).toBeNull();
++    expect([...m.values()]).toEqual(["A draft"]); // kept, hidden
++
++    transport.mockResolvedValueOnce(unconfirmed());
++    const g = await freshGenerated();
++    const e = await g.conversationApi
++      .send("w", "c", {
++        command_id: "cmd-2",
++        expected_work_version: 1,
++        text: "x",
++      } as never)
++      .catch((x: unknown) => x);
++    expect(transport).toHaveBeenCalledTimes(1); // no automatic retry
++    expect(g.s.scopeState().status).toBe("changed");
++    expect(e).toBeInstanceOf(g.s.ScopeRefused); // proxy forwarded nothing
++  });
++
++  it("a pending upload refused by preflight keeps its exact identity", async () => {
++    const store = memoryDocStore();
++    const scope = "scope:v1:A:ws:home";
++    const doc = await stageBytes("a.pdf", "", pdf);
++    const ctl = stagedController(store, () => {});
++    ctl.open(scope);
++    await until(() => !ctl.view.restoring);
++    const o = ctl.origin()!;
++    await ctl.persist(o, [newEntry(doc)]);
++    const bodies: string[] = [];
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return unconfirmed();
++    }) as never);
++    await uploadAll(dest, ctl.view.docs, (n) => ctl.persist(o, n)).catch(
++      () => null,
++    );
++    expect(scopeState().status).toBe("changed");
++    const kept = await store.list(scope);
++    expect(kept[0]!.upload?.command_id).toBe(JSON.parse(bodies[0]!).command_id);
++    expect(sha(new Uint8Array(kept[0]!.bytes))).toBe(sha(pdf));
++    expect(bodies).toHaveLength(1); // no automatic retry
++  });
++});
+--- before/web/test/setup-scope.ts
++++ after/web/test/setup-scope.ts
+@@ -0,0 +1,6 @@
++import { beforeEach } from "vitest";
++import { bindTestScope } from "./scope-helper";
++
++// Every test starts in a page bound to a proven (test) session scope; the
++// A14 tests reset it to prove the unbound and changed cases.
++beforeEach(bindTestScope);
+--- before/web/vitest.config.mts
++++ after/web/vitest.config.mts
+@@ -3,5 +3,9 @@
+ 
+ export default defineConfig({
+   resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
+-  test: { include: ["test/**/*.test.ts"], environment: "node" },
++  test: {
++    include: ["test/**/*.test.ts"],
++    environment: "node",
++    setupFiles: ["test/setup-scope.ts"],
++  },
+ });

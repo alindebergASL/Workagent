@@ -2,9 +2,11 @@ import type { components } from "../../../../contracts/src/client";
 import { all, client, command, meta, unwrap } from "./real-api";
 import { ApiError } from "@/lib/contract/errors";
 import { tableFilename } from "@/lib/product-summary";
+import { assertScope, captureScope } from "./session-scope";
 export type S = components["schemas"];
 export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
-export type Operation = NonNullable<S["PostMessage"]["operation"]>;
+/** An operation the client sends (request side of PostMessage). */
+export type Operation = NonNullable<S["PostMessage-Input"]["operation"]>;
 
 /** The older typed products: reconciliation tables, tools and files. */
 export function isProduct(
@@ -262,6 +264,8 @@ export const productApi = {
   ) {
     if (proposal && proposal.artifact_id !== artifact.id)
       throw new Error("Proposed version does not belong to this work.");
+    // Checked after every await: a page fenced meanwhile saves nothing.
+    const scope = captureScope();
     const result = await client.GET(
       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
       {
@@ -282,11 +286,13 @@ export const productApi = {
         message:
           "Download could not be authorized or confirmed. Refresh saved state.",
       });
+    assertScope(scope);
     const blob = result.data;
     const bytes = await blob.arrayBuffer();
-    const hash = Array.from(
-      new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
-    )
+    assertScope(scope);
+    const digest = await crypto.subtle.digest("SHA-256", bytes);
+    assertScope(scope);
+    const hash = Array.from(new Uint8Array(digest))
       .map((x) => x.toString(16).padStart(2, "0"))
       .join("");
     if (hash !== result.response.headers.get("x-content-sha256"))
@@ -301,6 +307,7 @@ export const productApi = {
         : body.kind === "table"
           ? tableFilename(body)
           : `tool-${body.entrypoint}.wat`;
+    assertScope(scope);
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

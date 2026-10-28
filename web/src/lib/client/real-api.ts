@@ -13,7 +13,18 @@ import { assignmentSummary, lifecycleOf } from "./assignment-summary";
 import { hasManagedGroup, recommendationFrom } from "./recommendation";
 import type * as V from "@/lib/contract/types";
 import { commandPayloadCache } from "./command-cache";
+import type { ExtractionStatus } from "@/lib/contract/batch2";
 import { savedBody, viewBlocks } from "@/lib/document-blocks";
+import {
+  assertScope,
+  boundScope,
+  captureScope,
+  fenceScope,
+  fencedOutcome,
+  identityUnconfirmed,
+  SCOPE_HEADER,
+  scopeRefused,
+} from "./session-scope";
 const stablePayload = commandPayloadCache();
 type S = components["schemas"];
 const rid = () => crypto.randomUUID();
@@ -31,7 +42,26 @@ export const client = workagentClient("/api/domain", "", rid);
 client.use({
   onRequest({ request }) {
     request.headers.set("X-Workagent-Client", "local-ui");
+    // Nothing is sent without this page's bound scope (see session-scope).
+    const scope = boundScope();
+    if (!scope) throw scopeRefused();
+    request.headers.set(SCOPE_HEADER, scope);
     return request;
+  },
+  onResponse({ request, response }) {
+    if (identityUnconfirmed(response)) {
+      // The proxy couldn't confirm identity and forwarded nothing.
+      fenceScope();
+      void response.body?.cancel().catch(() => undefined);
+      throw scopeRefused();
+    }
+    if (boundScope() !== request.headers.get(SCOPE_HEADER)) {
+      // Sent, then fenced: outcome unknown, result never shown.
+      void response.body?.cancel().catch(() => undefined);
+      throw fencedOutcome();
+    }
+    if (response.status === 401) fenceScope();
+    return response;
   },
 });
 
@@ -42,17 +72,22 @@ export async function unwrap<T>(
     response: Response;
   }>,
 ): Promise<T> {
+  // The body is parsed inside `promise`, after the middleware's header check:
+  // a result whose page was fenced meanwhile is never returned.
+  const scope = captureScope();
   let result;
   try {
     result = await promise;
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") throw e;
+    if (e instanceof ApiError) throw e; // refused locally by the scope fence
     throw new ApiError({
       code: "transport",
       status: 0,
       message: "Could not reach the local service.",
     });
   }
+  assertScope(scope);
   if (result.error || !result.response.ok || result.data === undefined) {
     const e = result.error;
     throw new ApiError({
@@ -925,6 +960,7 @@ export function conversationDetail(
         byte_length: a.byte_length,
         sha256: a.sha256,
       })),
+      documents: messageDocuments(m),
     })),
     turns: d.runs.map((r) => ({
       run_id: r.id,
@@ -940,6 +976,7 @@ export function conversationDetail(
       reason:
         d.turns?.find((t) => t.run_id === r.id)?.reason ??
         (r.unresolved ?? []).join("; "),
+      stop_reason: r.stop_reason ?? null,
       // Anchored to the request that started this run: the person's own
       // message, or the runtime's continuation request; never another one.
       message_id:
@@ -957,7 +994,53 @@ export function conversationDetail(
     })),
     assignment_ids: d.assignment_ids,
     artifact_ids: d.artifact_ids ?? [],
+    // As the service froze it for the latest run; never inferred from size
+    // or from the reply's wording.
+    attachment_context: (d.attachment_context ?? []).map((a) => ({
+      run_id: a.run_id,
+      message_id: a.message_id,
+      ref: a.ref,
+      sha256: a.sha256,
+      filename: a.filename,
+      body_omitted: a.body_omitted,
+      omission_reason: a.omission_reason,
+      ranges: (a.chunks ?? []).map((c) => ({
+        offset: c.offset,
+        next_offset: c.next_offset,
+        chunk_sha256: c.chunk_sha256,
+      })),
+    })),
   };
+}
+
+/**
+ * Document refs on a message (additive B2.5 field, not yet in the generated
+ * type). Metadata only: the snapshot's extracted text is not read into the
+ * thread, and an absent field means none.
+ */
+export function messageDocuments(
+  m: object,
+): NonNullable<V.ChatMessage["documents"]> {
+  const refs = (m as { document_refs?: unknown }).document_refs;
+  if (!Array.isArray(refs)) return [];
+  return refs.flatMap((r) => {
+    const d = r as Record<string, unknown>;
+    return typeof d.document_id === "string" &&
+      typeof d.sha256 === "string" &&
+      typeof d.filename === "string" &&
+      typeof d.byte_length === "number" &&
+      typeof d.status === "string"
+      ? [
+          {
+            document_id: d.document_id,
+            sha256: d.sha256,
+            filename: d.filename,
+            byte_length: d.byte_length,
+            status: d.status as ExtractionStatus,
+          },
+        ]
+      : [];
+  });
 }
 
 export const conversationApi = {
@@ -1050,14 +1133,16 @@ export const conversationApi = {
       request_id?: string;
       expected_work_version: number;
       text: string;
-      operation?: S["PostMessage"]["operation"];
+      operation?: S["PostMessage-Input"]["operation"];
       /** Natural admission only; never combined with an operation. */
       attachments?: MessageAttachment[];
       target?: ExactTarget | null;
+      /** Confirmed uploaded originals (B2.5); omitted when none. */
+      document_refs?: { document_id: string; sha256: string }[];
     },
   ) {
     const natural = c.attachments !== undefined || c.target !== undefined;
-    const body = await stablePayload<S["PostMessage"]>(
+    const body = await stablePayload<S["PostMessage-Input"]>(
       `${ws}:message:${id}`,
       c.command_id,
       c,
@@ -1071,6 +1156,7 @@ export const conversationApi = {
         ...(natural
           ? { attachments: c.attachments ?? [], target: c.target ?? null }
           : {}),
+        ...(c.document_refs?.length ? { document_refs: c.document_refs } : {}),
       }),
     );
     const r = await unwrap(

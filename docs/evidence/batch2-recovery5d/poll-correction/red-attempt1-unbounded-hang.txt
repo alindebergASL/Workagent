@@ -1,0 +1,5 @@
+533b1045c966973060057c836cd798e38ce32eb7349d4d2c6d0192a9a1fbc708  src/lib/client/work-stream.ts
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+attempt1: harness unbounded; pre-fix loop never terminated after fence; stopped manually by owner after 120s foreground timeout (no exit code)

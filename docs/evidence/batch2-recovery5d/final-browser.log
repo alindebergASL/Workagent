@@ -1,0 +1,114 @@
+{
+  "status": "FAIL",
+  "checks": [
+    {
+      "screenshot": "a-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "a-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "a-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "same-principal/same-endpoint ordinary reload restores exact draft and staged bytes",
+    {
+      "screenshot": "identity-unavailable-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "Controlled unavailable-session fault: no durable UI exposure or dispatch; unchanged exact A recovery after real authentication returns",
+    {
+      "screenshot": "principal-transition",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    {
+      "stale_command": "principal-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    "Principal B: existing owner-only work-snapshot refuses404 although ordinary shared conversation read200; no sampled transient draft or staged-file exposure",
+    {
+      "screenshot": "principal-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "principal-only change isolates drafts/bytes and stale dispatch; original scope restores",
+    {
+      "stale_command": "endpoint-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "screenshot": "endpoint-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "endpoint-only change isolates drafts/bytes and stale dispatch; original endpoint restores",
+    {
+      "screenshot": "failure",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    }
+  ],
+  "error": "Error: expect(locator).toHaveCount(expected) failed\n\nLocator:  locator('textarea')\nExpected: 0\nReceived: 1\nTimeout:  30000ms\n\nCall log:\n  - Expect \"to.have.count\" with timeout 30000ms\n  - waiting for locator('textarea')\n    62 × locator resolved to 1 element\n       - unexpected value \"1\"\n\n    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)\n    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)\n    at Object.toHaveCount (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)\n    at /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5d/browser.mjs:99:41",
+  "posts": 2
+}

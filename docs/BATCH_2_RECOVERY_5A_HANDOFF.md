@@ -1,0 +1,38 @@
+# Recovery5a — terminal/API proof complete; Batch2 remains incomplete
+
+Task`t_5f6349b3`; successor`t_75bcdd10` owns browser1440/390/320 and the full acceptance reconciliation. No publication, merge, Batch3, product model/provider call, external business effect or production replacement. No product-source changes: all599 predecessor backend/web/contracts/fixture hashes still match `docs/evidence/batch2-recovery5a/source-manifest.json`. HEAD`c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d`, branch`hermes/b2-conversational-client`; intentional uncommitted integration preserved. Review reuse hashes verified; original reds retained.
+
+## Verified here
+
+- Actual Textual8.2.8 executable in tmux3.4 PTYs at80x24 and120x40 against current loopback HTTP/restricted PostgreSQL. Named work/artifact/history navigation; multiline Unicode/leading spaces/trailing newline through refresh, detach and executable restart; exact concurrent-CAS conflict keeps draft.
+- Deliberate latest proposal acceptance after explicit title-change acknowledgement; earlier candidate refused without acknowledgement. Actual API readback preserves human notes and immutable historical revisions. Later human edit updates current revision without rewriting earlier observation or implying objective completion.
+- Real socket fault proxy commits202 then drops its response. Unknown exact command survives both API and TUI process restart; refresh/F5 do not resend, abandonment is refused, explicit replay sends byte-identical request and returns byte-identical response without a duplicate message/run. This is not an ASGI transport simulation. First proxy warmup did not trigger because the harness initially expected200/201; the corrected202 fault/replay is separately recorded.
+- Queue exact multiline intent, STOP exact run, cancelled queue, retained checkpoints and disabled/409 stopped-boundary Continue. Actual dependency change yields honest blocked responsibility, no worker/provider admission. Positive sustained successor mechanics are covered by deterministic tests, NOT a paid model trajectory.
+- Actual PDF/DOCX/XLSX confined extraction and exact original downloads; replay after API restart preserves all3 documents. Actual TUI XLSX download byte-identical. Revoked source denies conversation/document/original/snapshot/events and replay; unrelated main work remains readable.
+-134 targeted tests pass,0 failures/errors/skips, exit0; actual process restart and socket tests included. Other tests use direct service, ASGI/Pilot or explicitly synthetic provider fixtures—do not call those live model evidence. `journey-test-results.json` records command and1126.385385360103s duration. Unchanged-source recovery4 gates (508backend/470frontend/contracts/lint/typecheck/build) are reused, not rerun here.
+
+Evidence root:`docs/evidence/batch2-recovery5a/`. `acceptance-scope.md` maps covered A/P obligations and explicitly preserves all remaining rows. Captures and `pty-actions.jsonl` are actual terminal input/output. Captures17–19 and29/34/37 represent attempted navigation, not the definitive success implied by their filenames; use23,32,35–40 and44–48 with API readbacks. Full source/DB/PID/hash proofs and final readback are present.
+
+## Same-work browser handoff
+
+- Fresh disposable database:`workagent_test_0604a6a3b5d9`; restricted runtime role is neither superuser nor BYPASSRLS;49 migration checksums match. Private environment:`.local/recovery5a/test.env`—source it; NEVER print/commit it. This database also contains separately scoped pytest workspaces; use only the shared IDs below for paired-client proof.
+- Workspace:`recovery5a-workspace`; principal:`local-human`.
+- Named conversation:`cb848ce6-e383-4dc8-b2dc-7721720e45e6` (Community garden continuity).
+- Artifact:`dfe536ed-23fa-44fc-8e3d-0f9796317304`; current human revision4:`2025341e-254a-40ea-8f6a-de3a7dfc95f4`; hash`549f117d9266ffdbb39b08c613d724048ba12148f4ee84f976e5fe3025b3b2e5`; title`Garden options — current human correction`.
+- Original human revision2 and accepted revision3 remain in history. Latest proposal`4d10e31c-945c-4df1-9725-ed584af5b961` is accepted; older`f29237a8-4da3-42c9-ac40-5328b36e5943` remains pending/stale. Exact notes retained. See`fixture.json`, `accepted-readback.json`, `final-readback.json`.
+- Main conversation has5messages,4 historical runs, latest stopped,2 stop checkpoints, one cancelled queue intent,3 extracted documents. Responsibility is blocked on changed dependency/grant, outcome unverified. Attention marked seen in terminal; browser must observe same state, not silently accept anything. `handoff-state.json` is canonical readback; dependency/historical truth details include assignment ID.
+- Separately restricted conversation`83c35686-6645-4866-be46-c0d5ea929e24` has revoked SG-F1 access and one retained inaccessible PDF. Do not restore source access merely to make UI green; add a fresh synthetic fixture if a distinct probe needs active scope.
+
+## Development services and restart
+
+Current-source API is intentionally left in tmux session`b2r5a-api`, loopback`http://127.0.0.1:18965`, PID3850164 at proof time; revalidate process identity before any action. Prior task-owned PID3826719 was stopped and replaced during proof. Old18963/PID2688430 is stale and was never used or stopped. No browser/web service or model worker started. TUI detached and fault proxy18966 stopped; no mutation worker remains from this card.
+
+API launcher:`source .local/recovery5a/test.env; backend/.venv/bin/python .local/recovery5a/launch.py api`. It allowlists environment, removes provider keys and enables controlled fixture mode. If API is gone, start this in an owned tmux session; do not double-bind18965. Bind its actual PID with `WORKAGENT_OPERATOR_URL=http://127.0.0.1:18965 backend/.venv/bin/python docs/evidence/batch2-recovery5a/bind_runtime.py PID unique-proof-name` (environment sourced first). It checks actual auth, PID cwd/argv, source hashes and DB fingerprint without printing credentials.
+
+For the same actual terminal, launch `backend/.venv/bin/python .local/recovery5a/launch.py tui` with sourced environment and `WORKAGENT_OPERATOR_URL=http://127.0.0.1:18965`. Drafts/journal are under`.local/recovery5a/`;18966 was solely the scoped fault-proxy endpoint and has a separate correctly scoped draft record. Do not restart the fault proxy casually: its first matching POST intentionally drops an ACK. No hidden work is running. Disk remained about15GB available; no cleanup performed.
+
+## Successor obligations / boundaries
+
+Prove SAME IDs in the browser and return to terminal: current revision/history/notes, documents and locators, event cursor/attention, queue/stop/consent, fresh checkpoint fencing and human edits. Perform real IndexedDB staged binary persistence across context/process close-reopen; unknown-upload exact replay and message references; workspace/principal/endpoint scope and revocation; desktop/mobile/narrow keyboard/readability/overflow screenshots. Browser UI corrections remain Claude-owned. Existing production build ID`YJ02QDB9HRC2aV6tLomA3` was verified by recovery4 but not served here.
+
+No full live/overnight/usefulness/positive paid continuation claim. Product allowance remains cumulative$100 including historical reservations/unknown liabilities. Inspect actual ledger before any paid trial and obtain precise bounded authorization if needed; do not treat historical$92.10596 as a live available balance. Full A01–A35/P1–P8 and final gate remain outstanding. Successor is dependency-gated until this task completes, not falsely described as already running.

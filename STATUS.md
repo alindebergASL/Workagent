@@ -946,3 +946,88 @@ represented as an active successor. The product worker continues within the inst
 grant; the retained responsibility correctly waits for the human. No unattended
 continuation of the broader development backlog is claimed. Deferred work remains
 explicitly identified for the next integration owner, rather than silently shipped.
+
+## 2026-10-27 — Step 2 independent synthetic safety acceptance (history append)
+
+Independent card `t_99a458da` accepted the authorized Step 2 safety scope on the
+unchanged 612-file repaired candidate. Actual raw evidence and harness/production
+semantics support A09/A21/A22/A23/A26/A33/A34 PASS; A27 backend is accepted but
+**full A27 remains PENDING** for useful next actions rendered in both clients.
+A13/A25 remain previously accepted, without rerun. The exact 43-row matrix is now
+**29 PASS / 14 PENDING**, with 35 unrelated rows structurally unchanged and prior
+assessments/failures retained.
+
+Evidence: `/home/ubuntu/workagent-acceptance-remaining-20261026/step2-safety/acceptance/`
+contains `REVIEW.md`, `verification.json`, `acceptance-matrix.json` and
+`STEP2-RESULT.md`. Qualifications are explicit: A23 is the actual atomic local
+responsibility effect; A26 covers supported grant schemas, not an invented expiring
+general successor; A34 uses disposable application-version rollback/canonical reads,
+not an invented feature flag or installed-service rollback. Reviewer source/hash,
+raw-invariant and bounded remote read-only checks passed. All author attempts total
+107 synthetic provider operations plus two effect observations; reviewer ran no
+behavioral campaign. Zero paid calls/new paid reservations and zero product-source
+edits; only evidence/status history was appended. Harness failures stay historical.
+
+Remote cleanup was independently read back: 33 prior harness PID/start identities
+absent, zero fixture DB sessions, active services/idle timer, reviewer lease released
+and no active leases. Synthetic stores remain retained. **Full Batch 2/publication
+remain HOLD.** Step 3 paired-client work, paid/live evaluation and Batch 3 were not
+started; this card stops at accepted Step 2, with no claimed active successor.
+Existing cumulative $100 authority and historical/unknown liabilities are unchanged.
+
+## 2026-10-28 — Step 3 paired-client acceptance (history append)
+
+Independent card `t_a6098a56` accepted **all authorized synthetic paired-client
+obligations**, after inspecting actual production-browser/native-PTY actions,
+raw network/PG receipts and screenshots. The exact Step2-derived matrix contains
+**43 unique IDs: 36 PASS / 7 PENDING**. A04/A05/A06/A20/A27/A30/P4 advance to
+PASS; A01/A02 mechanisms pass but their live-quality gaps remain. A07/A08/A10/P7/P8
+remain live-evaluation pending.34 unrelated rows and prior failure history are preserved.
+
+Evidence: `/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/`
+contains REVIEW, verification, exact matrix, STEP3-RESULT and hash-bound raw/visual
+checks. The final622-file candidate remains intentionally uncommitted on
+`c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d`; manifest SHA256
+`a2bd405f417b5c6adba12ee67ed1dc59cb07a5cce5d2c1535a233beea555629f`.
+Production build `_0J4OPn8I5QJf9a-2c5nD` has149 verified bundle files. Step3 repairs
+changed/added37 source/test/contract files (10 new); reviewer changed no product code.
+Original A05 RED, native transient-scroll RED, harness failures and two inherited
+budget-test failures remain recorded; no whole-suite-green/live-quality claim.
+
+Zero paid product calls/reservations. Fresh read-only verification found synthetic-only
+grants in five campaign DBs, no live attempts/other sessions, no owned campaign
+browser/PTYS/processes/listeners, and no remaining idle leases. All1,437 staging
+hashes are unchanged. Synthetic DBs/originals/evidence retained; no production or
+publication change. **Step3 done is not full Batch2 done: publication remains HOLD.**
+
+Next already-authorized scope: read-only ledger/liability reconciliation and bounded
+live-evaluation-envelope preparation, not automatic paid dispatch. Existing successor
+`t_75bcdd10` was read back as todo with other unmet prerequisites, **not running**;
+completion notify+wake hands continuation to the orchestrator. No generic new
+permission is required for routine preparation; the user did not order work to stop
+after Step3. Cumulative$100 authority and historical/unknown liabilities are unchanged.
+
+## 2026-10-28 — Batch2 accepted; publication and private runtime checkpoint
+
+The later final acceptance supersedes the historical partial/HOLD statuses above:
+all43 literal A01–A35/P1–P8 criteria PASS at their disclosed evidence levels.
+See [current acceptance and publication proof](docs/evidence/batch2-publication/README.md).
+The original630-file/731-evidence validator passed; historical negatives remain.
+Source commit `1c36002cd2481ef2f3195ae4c52ba4dd05e0608c` includes all intentional
+untracked product source, with only four disclosed formatting-only deltas after
+acceptance. Final630-file manifest SHA256
+`8ca13f7aba1ec796ca48c019dd81f217aabb2e54d9c825957c72b687add60176`.
+
+Current isolated development runtime: web `http://127.0.0.1:3197` and API18967,
+fresh disposable PG fixture, no model worker. Optimized exact-source build,
+525 web tests,2 real HTTP/restart tests and desktop1440/phone390/narrow320 browser
+human-save/reload/build-restart readback PASS. Native HTTP agrees on exact saved
+revision/hash; actual PTY reads canonical messages. No production replacement,
+default merge or public exposure. Independent publication-risk review PASS.
+Feature publication targets `hermes/conversational-continuity`; exact final remote
+head/PR/CI are handed to final audit `t_99aaa2a0`, not inferred from sibling checks.
+
+Allocation remains99.60596USD/100USD, global unallocated0.39404USD; expired
+campaign pool remainder0.52700USD is separate. Billing unknown, no new product
+calls or liability refunds. Batch3 and the broader mission remain open and use
+the existing dependency chain from the verified published candidate, not c75fb58.

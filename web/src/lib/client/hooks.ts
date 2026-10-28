@@ -1,12 +1,18 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/contract/errors";
+import { currentFor, nextEvidence, noEvidence } from "./resource-freshness";
 
 export interface Resource<T> {
   data: T | null;
   error: ApiError | null;
   loading: boolean;
   reconnecting: boolean;
+  /**
+   * The data is from the newest read, which succeeded: false while a
+   * replacement read is pending and after one failed (see resource-freshness).
+   */
+  current: boolean;
   observedAt: string | null;
   refresh: () => Promise<T | null>;
   set: (next: T) => void;
@@ -26,6 +32,7 @@ export function useResource<T>(
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(Boolean(key));
   const [reconnecting, setReconnecting] = useState(false);
+  const [evidence, setEvidence] = useState(noEvidence);
   const [observedAt, setObservedAt] = useState<string | null>(null);
   const failures = useRef(0);
   const terminal = useRef(false);
@@ -42,10 +49,17 @@ export function useResource<T>(
     async (signal: AbortSignal): Promise<T | null> => {
       if (!key) return null;
       const requestGeneration = ++generation.current;
+      setEvidence((p) => nextEvidence(p, key, { kind: "start" }));
+      const superseded = () =>
+        signal.aborted || requestGeneration !== generation.current;
       try {
         const next = await fetcherRef.current(signal);
-        if (signal.aborted || requestGeneration !== generation.current)
-          return null;
+        const late = superseded();
+        // A superseded answer leaves freshness to the newer read.
+        setEvidence((p) =>
+          nextEvidence(p, key, { kind: "success", superseded: late }),
+        );
+        if (late) return null;
         dataRef.current = next;
         failures.current = 0;
         terminal.current = false;
@@ -56,8 +70,11 @@ export function useResource<T>(
         setLoading(false);
         return next;
       } catch (e) {
-        if (signal.aborted || requestGeneration !== generation.current)
-          return null;
+        const late = superseded();
+        setEvidence((p) =>
+          nextEvidence(p, key, { kind: "failure", superseded: late }),
+        );
+        if (late) return null;
         const err =
           e instanceof ApiError
             ? e
@@ -96,6 +113,7 @@ export function useResource<T>(
     setData(null);
     setError(null);
     setObservedAt(null);
+    setEvidence((p) => nextEvidence(p, key, { kind: "reset" }));
     failures.current = 0;
     terminal.current = false;
     setLoading(Boolean(key));
@@ -167,6 +185,8 @@ export function useResource<T>(
     error,
     loading,
     reconnecting,
+    // Keyed: evidence read for another key is never current here.
+    current: currentFor(evidence, key),
     observedAt,
     refresh,
     set: (next) => {
@@ -177,6 +197,7 @@ export function useResource<T>(
       setData(next);
       setError(null);
       setReconnecting(false);
+      setEvidence((p) => nextEvidence(p, key, { kind: "set" }));
       scheduleRef.current();
     },
   };

@@ -1,0 +1,18 @@
+npm notice run @workagent/web@0.1.0 format:check
+npm notice run prettier --check .
+Checking formatting...
+All matched files use Prettier code style!
+npm notice run @workagent/web@0.1.0 test
+npm notice run vitest run
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  55 passed (55)
+      Tests  525 passed (525)
+   Start at  09:45:16
+   Duration  47.71s (tests 39%, import 24%, transform 22%, setup 11%, worker 3%)
+
+    Isolate  55 workers spawned · ~403ms startup each (spawn + environment, per file)
+             at least ~21.74s faster with isolate: false — reuses workers across files instead of one per file
+

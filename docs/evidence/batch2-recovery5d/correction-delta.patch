@@ -1,0 +1,894 @@
+--- before/web/src/app/api/domain/[...path]/route.ts
++++ after/web/src/app/api/domain/[...path]/route.ts
+@@ -26,6 +26,16 @@
+     { status, headers: noStore },
+   );
+ }
++/**
++ * Identity couldn't be confirmed (session preflight failed, or the page's
++ * scope is absent or stale) and nothing was forwarded. The marker tells the
++ * browser to fence the page at once; an ordinary upstream 5xx never has it.
++ */
++function unconfirmed(status: number, code: string, message: string) {
++  const res = error(status, code, message);
++  res.headers.set("X-Workagent-Identity", "unconfirmed");
++  return res;
++}
+ async function route(
+   request: NextRequest,
+   { params }: { params: Promise<{ path: string[] }> },
+@@ -78,7 +88,11 @@
+         signal: AbortSignal.timeout(10000),
+       });
+       if (res.status === 401 || res.status === 403)
+-        return error(401, "unauthenticated", "Access couldn’t be confirmed.");
++        return unconfirmed(
++          401,
++          "unauthenticated",
++          "Access couldn’t be confirmed.",
++        );
+       const body = (res.ok ? await res.json() : null) as Session | null;
+       if (
+         typeof body?.principal_id !== "string" ||
+@@ -93,7 +107,11 @@
+         browser: browserScope(bearer, backend, body.scope_id),
+       };
+     } catch {
+-      return error(503, "connection_required", "Access couldn’t be confirmed.");
++      return unconfirmed(
++        503,
++        "connection_required",
++        "Access couldn’t be confirmed.",
++      );
+     }
+   };
+   if (
+@@ -115,7 +133,7 @@
+   // didn't start with.
+   const expected = request.headers.get("x-workagent-scope") ?? "";
+   const stale = () =>
+-    error(401, "unauthenticated", "Access for this page changed.");
++    unconfirmed(401, "unauthenticated", "Access for this page changed.");
+   if (!SCOPE.test(expected)) return stale();
+   if (
+     path[0] !== "v1" ||
+--- before/web/src/components/Batch2Controls.tsx
++++ after/web/src/components/Batch2Controls.tsx
+@@ -4,6 +4,7 @@
+ import {
+   commandBody,
+   documentApi,
++  saveOriginal,
+   queueApi,
+   runApi,
+ } from "@/lib/client/batch2-api";
+@@ -553,13 +554,7 @@
+     setSaving(true);
+     setError(null);
+     try {
+-      const blob = await documentApi.original(ws, cid, d);
+-      const url = URL.createObjectURL(blob);
+-      const a = document.createElement("a");
+-      a.href = url;
+-      a.download = d.filename;
+-      a.click();
+-      setTimeout(() => URL.revokeObjectURL(url), 1000);
++      await saveOriginal(ws, cid, d);
+     } catch (e) {
+       setError(e);
+     } finally {
+--- before/web/src/lib/client/batch2-api.ts
++++ after/web/src/lib/client/batch2-api.ts
+@@ -17,7 +17,7 @@
+   RunCheckpoint,
+ } from "@/lib/contract/batch2";
+ import type { ExactTarget, MessageAttachment } from "@/lib/contract/natural";
+-import { scopedFetch } from "./session-scope";
++import { assertScope, captureScope, scopedFetch } from "./session-scope";
+ 
+ export const BASE = "/api/domain";
+ const rid = () => crypto.randomUUID();
+@@ -37,6 +37,7 @@
+   url: string,
+   init: { method?: "GET" | "POST"; body?: unknown; signal?: AbortSignal } = {},
+ ): Promise<T> {
++  const scope = captureScope();
+   let res: Response;
+   try {
+     res = await doFetch(url, {
+@@ -55,7 +56,7 @@
+     });
+   } catch (e) {
+     if (e instanceof DOMException && e.name === "AbortError") throw e;
+-    if (e instanceof ApiError) throw e; // refused locally, nothing sent
++    if (e instanceof ApiError) throw e; // scope fence: unsent or unknown
+     throw new ApiError({
+       code: "transport",
+       status: 0,
+@@ -68,6 +69,8 @@
+   } catch {
+     /* a lost or non-JSON body is treated as unconfirmed below */
+   }
++  // Fenced while the body arrived: sent, so unknown; never returned.
++  assertScope(scope);
+   if (!res.ok || data === null) {
+     const e = (data ?? {}) as {
+       code?: ErrorCode;
+@@ -221,6 +224,7 @@
+    * checked against the document's own sha256 before anything is saved.
+    */
+   async original(ws: string, cid: string, doc: DocumentMetadata) {
++    const scope = captureScope();
+     let res: Response;
+     try {
+       res = await doFetch(
+@@ -244,7 +248,10 @@
+         message: "The original could not be authorized or confirmed.",
+       });
+     const bytes = new Uint8Array(await res.arrayBuffer());
+-    if ((await sha256Hex(bytes)) !== doc.sha256)
++    assertScope(scope);
++    const digest = await sha256Hex(bytes);
++    assertScope(scope);
++    if (digest !== doc.sha256)
+       throw new Error(
+         "The original’s digest did not match. Nothing was saved.",
+       );
+@@ -252,6 +259,26 @@
+   },
+ };
+ 
++/**
++ * Downloads the exact original. The scope it started in is checked again
++ * right before anything is saved, so a page fenced meanwhile saves nothing.
++ */
++export async function saveOriginal(
++  ws: string,
++  cid: string,
++  doc: DocumentMetadata,
++) {
++  const scope = captureScope();
++  const blob = await documentApi.original(ws, cid, doc);
++  assertScope(scope);
++  const url = URL.createObjectURL(blob);
++  const a = document.createElement("a");
++  a.href = url;
++  a.download = doc.filename;
++  a.click();
++  setTimeout(() => URL.revokeObjectURL(url), 1000);
++}
++
+ export async function sha256Hex(bytes: Uint8Array): Promise<string> {
+   const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
+   return Array.from(new Uint8Array(digest))
+--- before/web/src/lib/client/documents.ts
++++ after/web/src/lib/client/documents.ts
+@@ -21,6 +21,7 @@
+   type ExtractionStatus,
+ } from "@/lib/contract/batch2";
+ import { documentApi, sha256Hex, type UploadBody } from "./batch2-api";
++import { ScopeRefused } from "./session-scope";
+ 
+ export interface StagedDocument {
+   readonly filename: string;
+@@ -289,10 +290,18 @@
+       );
+     } catch (e) {
+       const unknown = e instanceof ApiError && e.isAmbiguousWrite;
++      // Refused by the scope fence before reaching the service: this attempt
++      // wasn't sent, but an earlier one may have been, so the exact identity
++      // is kept for the same command.
++      const fenced = e instanceof ScopeRefused;
+       await quietly(
+         put(
+           i,
+-          unknown ? { state: "unknown" } : { state: "local", upload: null },
++          unknown
++            ? { state: "unknown" }
++            : fenced
++              ? { state: entry.upload ? entry.state : "local" }
++              : { state: "local", upload: null },
+         ),
+       );
+       throw e;
+--- before/web/src/lib/client/products.ts
++++ after/web/src/lib/client/products.ts
+@@ -2,6 +2,7 @@
+ import { all, client, command, meta, unwrap } from "./real-api";
+ import { ApiError } from "@/lib/contract/errors";
+ import { tableFilename } from "@/lib/product-summary";
++import { assertScope, captureScope } from "./session-scope";
+ export type S = components["schemas"];
+ export type ProductBody = S["TableBody"] | S["ToolBody"] | S["FileBody"];
+ /** An operation the client sends (request side of PostMessage). */
+@@ -263,6 +264,8 @@
+   ) {
+     if (proposal && proposal.artifact_id !== artifact.id)
+       throw new Error("Proposed version does not belong to this work.");
++    // Checked after every await: a page fenced meanwhile saves nothing.
++    const scope = captureScope();
+     const result = await client.GET(
+       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
+       {
+@@ -283,11 +286,13 @@
+         message:
+           "Download could not be authorized or confirmed. Refresh saved state.",
+       });
++    assertScope(scope);
+     const blob = result.data;
+     const bytes = await blob.arrayBuffer();
+-    const hash = Array.from(
+-      new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
+-    )
++    assertScope(scope);
++    const digest = await crypto.subtle.digest("SHA-256", bytes);
++    assertScope(scope);
++    const hash = Array.from(new Uint8Array(digest))
+       .map((x) => x.toString(16).padStart(2, "0"))
+       .join("");
+     if (hash !== result.response.headers.get("x-content-sha256"))
+@@ -302,6 +307,7 @@
+         : body.kind === "table"
+           ? tableFilename(body)
+           : `tool-${body.entrypoint}.wat`;
++    assertScope(scope);
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement("a");
+     a.href = url;
+--- before/web/src/lib/client/real-api.ts
++++ after/web/src/lib/client/real-api.ts
+@@ -16,8 +16,12 @@
+ import type { ExtractionStatus } from "@/lib/contract/batch2";
+ import { savedBody, viewBlocks } from "@/lib/document-blocks";
+ import {
++  assertScope,
+   boundScope,
++  captureScope,
+   fenceScope,
++  fencedOutcome,
++  identityUnconfirmed,
+   SCOPE_HEADER,
+   scopeRefused,
+ } from "./session-scope";
+@@ -45,9 +49,16 @@
+     return request;
+   },
+   onResponse({ request, response }) {
+-    if (boundScope() !== request.headers.get(SCOPE_HEADER)) {
++    if (identityUnconfirmed(response)) {
++      // The proxy couldn't confirm identity and forwarded nothing.
++      fenceScope();
+       void response.body?.cancel().catch(() => undefined);
+       throw scopeRefused();
++    }
++    if (boundScope() !== request.headers.get(SCOPE_HEADER)) {
++      // Sent, then fenced: outcome unknown, result never shown.
++      void response.body?.cancel().catch(() => undefined);
++      throw fencedOutcome();
+     }
+     if (response.status === 401) fenceScope();
+     return response;
+@@ -61,6 +72,9 @@
+     response: Response;
+   }>,
+ ): Promise<T> {
++  // The body is parsed inside `promise`, after the middleware's header check:
++  // a result whose page was fenced meanwhile is never returned.
++  const scope = captureScope();
+   let result;
+   try {
+     result = await promise;
+@@ -73,6 +87,7 @@
+       message: "Could not reach the local service.",
+     });
+   }
++  assertScope(scope);
+   if (result.error || !result.response.ok || result.data === undefined) {
+     const e = result.error;
+     throw new ApiError({
+--- before/web/src/lib/client/session-scope.ts
++++ after/web/src/lib/client/session-scope.ts
+@@ -157,13 +157,40 @@
+   return s ? `scope:v1:${s}:${ws}:${draft}` : null;
+ }
+ 
++/** Refused before anything reached the service: definitely not sent. */
++export class ScopeRefused extends ApiError {}
+ export const scopeRefused = () =>
+-  new ApiError({
++  new ScopeRefused({
+     code: "unauthenticated",
+     status: 401,
+     message:
+       "Access for this page changed or couldn’t be confirmed, so nothing was sent.",
+   });
++
++/**
++ * The page was fenced after this request was sent. The service may have
++ * acted on it, so its outcome is unknown (like a lost response) and its
++ * exact command is kept for an explicit retry; its result is never shown.
++ */
++export const fencedOutcome = () =>
++  new ApiError({
++    code: "transport",
++    status: 0,
++    message:
++      "Access for this page changed after this was sent, so its outcome is unknown. It’s kept to retry exactly.",
++  });
++
++/** The scope an operation starts in; pass it to `assertScope` after awaits. */
++export const captureScope = boundScope;
++/** Throws unless the page is still bound to the scope `captured` began in. */
++export function assertScope(captured: string | null) {
++  if (!captured || boundScope() !== captured) throw fencedOutcome();
++}
++
++/** Set by the proxy when it couldn't confirm identity; nothing forwarded. */
++export const IDENTITY_HEADER = "X-Workagent-Identity";
++export const identityUnconfirmed = (res: Response) =>
++  res.headers.get(IDENTITY_HEADER) === "unconfirmed";
+ 
+ /**
+  * Every request goes through here: it carries the scope bound when the page
+@@ -188,13 +215,25 @@
+     h.set(SCOPE_HEADER, scope);
+     headers = h;
+   }
+-  const res = await doFetch(input, { ...init, headers });
+-  if (boundScope() !== scope) {
+-    // The page was fenced while this request was in flight: its result
+-    // belongs to an identity this page no longer shows.
++  let res: Response;
++  try {
++    res = await doFetch(input, { ...init, headers });
++  } catch (e) {
++    if (boundScope() !== scope && !init.signal?.aborted) throw fencedOutcome();
++    throw e;
++  }
++  if (identityUnconfirmed(res)) {
++    // The proxy couldn't confirm who is signed in and forwarded nothing.
++    fenceScope();
+     void res.body?.cancel().catch(() => undefined);
+     throw scopeRefused();
+   }
++  if (boundScope() !== scope) {
++    // Fenced while in flight: the request was sent, so its outcome is
++    // unknown, and its result belongs to access this page no longer shows.
++    void res.body?.cancel().catch(() => undefined);
++    throw fencedOutcome();
++  }
+   if (res.status === 401) fenceScope();
+   return res;
+ }
+--- before/web/src/lib/client/work-state.ts
++++ after/web/src/lib/client/work-state.ts
+@@ -13,7 +13,7 @@
+ import { useCallback, useEffect, useRef, useState } from "react";
+ import { ApiError } from "@/lib/contract/errors";
+ import type { ErrorCode } from "@/lib/contract/types";
+-import { scopedFetch } from "./session-scope";
++import { assertScope, captureScope, scopedFetch } from "./session-scope";
+ 
+ /** Snapshot reads and the stream carry this page's bound scope. */
+ const fenced =
+@@ -69,6 +69,7 @@
+   signal: AbortSignal,
+   init: RequestInit = {},
+ ): Promise<unknown> {
++  const scope = captureScope();
+   let res: Response;
+   try {
+     res = await doFetch(url, {
+@@ -93,7 +94,9 @@
+       message: body?.message ?? "Could not confirm the request.",
+     });
+   }
+-  return res.json();
++  const data: unknown = await res.json();
++  assertScope(scope); // a body that arrived after the fence is never applied
++  return data;
+ }
+ 
+ export function useWorkState(
+--- before/web/src/lib/client/work-stream.ts
++++ after/web/src/lib/client/work-stream.ts
+@@ -10,7 +10,7 @@
+  * snapshot's cursor; on lost access it stops.
+  */
+ import { DEFAULT_MAX_FRAME, SseOverflow, SseParser } from "./sse";
+-import { scopedFetch } from "./session-scope";
++import { boundScope, captureScope, scopedFetch } from "./session-scope";
+ import {
+   ContractError,
+   parseEventPage,
+@@ -128,8 +128,14 @@
+       { conversation_id: o.cid, after: cursor, ...extra },
+     )}`;
+ 
++  // Frames are applied only while the page is bound to the scope this
++  // subscription began in; checked synchronously, not left to unmounting.
++  const scope = captureScope();
++  const fenced = () => !scope || boundScope() !== scope;
++
+   /** Applies events in order; advances the cursor only by server ids. */
+   const apply = (items: { event: WorkEvent; id: string }[]) => {
++    if (fenced()) throw new Revoked();
+     const fresh: WorkEvent[] = [];
+     for (const { event, id } of items) {
+       if (event.conversation_id !== o.cid) continue; // not this scope
+@@ -140,8 +146,10 @@
+   };
+ 
+   const reset = async () => {
++    if (fenced()) throw new Revoked();
+     o.onStatus("connecting");
+     cursor = await o.onReset();
++    if (fenced()) throw new Revoked();
+   };
+ 
+   /** One stream connection. Returns when it should reconnect. */
+--- before/web/test/scope-races.test.ts
++++ after/web/test/scope-races.test.ts
+@@ -0,0 +1,462 @@
++/**
++ * A14 correction (independent review R1–R3): a scope fence that lands after a
++ * request was dispatched keeps its outcome unknown and its exact command; a
++ * late body, digest or stream frame never publishes or downloads anything;
++ * an explicit proxy identity-preflight failure fences the page at once.
++ */
++import { afterEach, describe, expect, it, vi } from "vitest";
++import { createHash } from "node:crypto";
++
++const { transport } = vi.hoisted(() => {
++  const transport = vi.fn();
++  vi.stubGlobal("fetch", transport);
++  return { transport };
++});
++
++// As products.test: an absolute base so the generated client can build
++// requests under Node; everything else is the actual generated client.
++vi.mock("../../contracts/src/client", async (importOriginal) => {
++  const actual =
++    await importOriginal<typeof import("../../contracts/src/client")>();
++  return {
++    ...actual,
++    workagentClient: (_base: string, bearer: string, requestId: () => string) =>
++      actual.workagentClient("http://races.test/api/domain", bearer, requestId),
++  };
++});
++import { ApiError } from "@/lib/contract/errors";
++import {
++  fenceScope,
++  scopeState,
++  scopedFetch,
++  scopedSession,
++} from "@/lib/client/session-scope";
++import * as batch2 from "@/lib/client/batch2-api";
++import { call, documentApi, setFetch } from "@/lib/client/batch2-api";
++import { memoryDocStore } from "@/lib/client/doc-store";
++import { newEntry, stageBytes, uploadAll } from "@/lib/client/documents";
++import { stagedController } from "@/lib/client/staged-documents";
++import { subscribeWork } from "@/lib/client/work-stream";
++import { bindTestScope, proxyScope, withBackendSession } from "./scope-helper";
++import type { DocumentMetadata } from "@/lib/contract/batch2";
++
++const enc = (s: string) => new TextEncoder().encode(s);
++const tick = () => new Promise((r) => setImmediate(r));
++async function until(done: () => boolean) {
++  for (let i = 0; i < 10_000 && !done(); i++) await tick();
++  expect(done()).toBe(true);
++}
++const settle = async () => {
++  for (let i = 0; i < 20; i++) await tick();
++};
++/** A response whose headers arrive now and whose body arrives later. */
++function held(headers: Record<string, string> = {}, status = 200) {
++  let ctl!: ReadableStreamDefaultController<Uint8Array>;
++  const body = new ReadableStream<Uint8Array>({
++    start(c) {
++      ctl = c;
++    },
++  });
++  return {
++    res: new Response(body, { status, headers }),
++    send(b: string | Uint8Array, close = true) {
++      ctl.enqueue(typeof b === "string" ? enc(b) : b);
++      if (close) ctl.close();
++    },
++  };
++}
++const deferred = <T>() => {
++  let resolve!: (v: T) => void;
++  const promise = new Promise<T>((a) => (resolve = a));
++  return { promise, resolve };
++};
++const pdf = enc("%PDF-1.7\nprivate-A\n%%EOF");
++const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
++const dest = { workspace_id: "ws", conversation_id: "cv" };
++/**
++ * The generated client captures `fetch` when its module loads, so these
++ * tests load it fresh over the stubbed transport, in a page bound to a
++ * proven test scope (as the products reload test does).
++ */
++async function freshGenerated() {
++  vi.resetModules();
++  const s = await import("@/lib/client/session-scope");
++  await s.probeSession((async () =>
++    Response.json({
++      principal_id: "test-human",
++      scope_id: "c".repeat(64),
++    })) as unknown as typeof fetch);
++  const { conversationApi } = await import("@/lib/client/real-api");
++  const { productApi } = await import("@/lib/client/products");
++  return { s, conversationApi, productApi };
++}
++
++afterEach(() => {
++  setFetch((...a) => fetch(...a));
++  vi.restoreAllMocks();
++  vi.unstubAllGlobals();
++  vi.stubGlobal("fetch", transport);
++  transport.mockReset();
++});
++
++describe("R1: a fence after dispatch keeps the outcome unknown", () => {
++  it("a late committed upload keeps its exact identity under A and replays it", async () => {
++    const store = memoryDocStore();
++    const scope = "scope:v1:A:ws:conversation:cv";
++    const doc = await stageBytes("a.pdf", "", pdf);
++    const receipt = {
++      document_id: "d1",
++      sha256: doc.sha256,
++      filename: doc.filename,
++      mime_type: doc.mime_type,
++      status: "extracted",
++    };
++    const first = stagedController(store, () => {});
++    first.open(scope);
++    await until(() => !first.view.restoring);
++    const o = first.origin()!;
++    await first.persist(o, [newEntry(doc)]);
++    const bodies: string[] = [];
++    let release!: (r: Response) => void;
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return new Promise<Response>((r) => (release = r));
++    }) as never);
++    const p = uploadAll(dest, first.view.docs, (n) => first.persist(o, n));
++    await until(() => bodies.length === 1);
++    fenceScope(); // a session recheck lands while the upload is in flight
++    first.open(null); // the gate unmounts the page
++    release(Response.json(receipt));
++    const e = (await p.catch((x: unknown) => x)) as ApiError;
++    expect(e).toBeInstanceOf(ApiError);
++    expect(e.isAmbiguousWrite).toBe(true);
++    // A returns (same scope): the exact command is restored, outcome unknown.
++    await bindTestScope();
++    const again = stagedController(store, () => {});
++    again.open(scope);
++    await until(() => !again.view.restoring);
++    const [kept] = again.view.docs;
++    expect(kept!.state).toBe("unknown");
++    const sent = JSON.parse(bodies[0]!);
++    expect(kept!.upload).toMatchObject({
++      command_id: sent.command_id,
++      request_id: sent.request_id,
++    });
++    expect(kept!.doc.sha256).toBe(sha(pdf));
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return Response.json(receipt);
++    }) as never);
++    const o2 = again.origin()!;
++    await uploadAll(dest, again.view.docs, (n) => again.persist(o2, n));
++    expect(bodies).toHaveLength(2);
++    expect(bodies[1]).toBe(bodies[0]); // identical bytes, ids and payload
++  });
++
++  it("generated-client writes fenced after dispatch are unknown, not unsent", async () => {
++    const { s, conversationApi } = await freshGenerated();
++    let release!: (r: Response) => void;
++    transport.mockImplementation(
++      () => new Promise<Response>((r) => (release = r)),
++    );
++    const p = conversationApi.send("w", "c", {
++      command_id: "cmd-1",
++      expected_work_version: 1,
++      text: "exact",
++    } as never);
++    await until(() => transport.mock.calls.length === 1);
++    s.fenceScope();
++    release(Response.json({ ok: true }));
++    await expect(p).rejects.toMatchObject({ code: "transport" });
++  });
++});
++
++describe("R2: late bodies, digests and frames publish nothing", () => {
++  it("a delayed JSON body after the fence is not returned", async () => {
++    const h = held({ "content-type": "application/json" });
++    setFetch((async () => h.res) as never);
++    const p = call<{ secret: string }>("/api/domain/v1/workspaces/w/x");
++    await settle();
++    fenceScope();
++    h.send(JSON.stringify({ secret: "A-only" }));
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  const meta = {
++    document_id: "d1",
++    filename: "a.pdf",
++    mime_type: "application/pdf",
++    sha256: sha(pdf),
++  } as DocumentMetadata;
++
++  it("a delayed original body after the fence is not returned", async () => {
++    const h = held({ "x-content-sha256": sha(pdf) });
++    setFetch((async () => h.res) as never);
++    const p = documentApi.original("w", "c", meta);
++    await settle();
++    fenceScope();
++    h.send(pdf);
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  it("a delayed original digest after the fence is not returned", async () => {
++    setFetch(
++      (async () =>
++        new Response(pdf, {
++          headers: { "x-content-sha256": sha(pdf) },
++        })) as never,
++    );
++    const real = crypto.subtle.digest.bind(crypto.subtle);
++    const d = deferred<void>();
++    vi.spyOn(crypto.subtle, "digest").mockImplementation(async (a, b) => {
++      await d.promise;
++      return real(a, b);
++    });
++    const p = documentApi.original("w", "c", meta);
++    await settle();
++    fenceScope();
++    d.resolve();
++    await expect(p).rejects.toBeInstanceOf(ApiError);
++  });
++
++  it("saving an original after the fence clicks no anchor", async () => {
++    const h = held({ "x-content-sha256": sha(pdf) });
++    setFetch((async () => h.res) as never);
++    const anchor = { href: "", download: "", click: vi.fn() };
++    vi.stubGlobal("document", { createElement: () => anchor });
++    const url = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
++    const save = (
++      batch2 as unknown as {
++        saveOriginal: (
++          w: string,
++          c: string,
++          d: DocumentMetadata,
++        ) => Promise<void>;
++      }
++    ).saveOriginal;
++    const p = save("w", "c", meta);
++    await settle();
++    fenceScope();
++    h.send(pdf);
++    await p.catch(() => null);
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++  });
++
++  const tool = {
++    id: "art",
++    current_revision_id: "rev",
++    current_revision: {
++      body: {
++        kind: "tool",
++        title: "t",
++        code: "(module)",
++        entrypoint: "run",
++        arguments: [],
++        input_form: [],
++        notes: [],
++      },
++    },
++  } as never;
++
++  it("a generated product download with a late body or digest downloads nothing", async () => {
++    const anchor = { href: "", download: "", click: vi.fn() };
++    vi.stubGlobal("document", { createElement: () => anchor });
++    const url = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
++    const body = enc("(module)");
++    const h = held({ "x-content-sha256": sha(body) });
++    transport.mockResolvedValueOnce(h.res);
++    const one = await freshGenerated();
++    const p = one.productApi.download("w", tool);
++    await until(() => transport.mock.calls.length === 1);
++    await settle();
++    one.s.fenceScope();
++    h.send(body);
++    await expect(p).rejects.toMatchObject({ code: "transport" });
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++
++    transport.mockResolvedValueOnce(
++      new Response(body, { headers: { "x-content-sha256": sha(body) } }),
++    );
++    const two = await freshGenerated();
++    const real = crypto.subtle.digest.bind(crypto.subtle);
++    const d = deferred<void>();
++    vi.spyOn(crypto.subtle, "digest").mockImplementation(async (a, b) => {
++      await d.promise;
++      return real(a, b);
++    });
++    const q = two.productApi.download("w", tool);
++    await until(() => transport.mock.calls.length === 2);
++    await settle();
++    two.s.fenceScope();
++    d.resolve();
++    await expect(q).rejects.toMatchObject({ code: "transport" });
++    expect(url).not.toHaveBeenCalled();
++    expect(anchor.click).not.toHaveBeenCalled();
++  });
++
++  it("an already-open stream applies no frame after the fence", async () => {
++    const ev = (i: number) => ({
++      event_id: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,
++      type: "artifact.changed",
++      conversation_id: "cv",
++      artifact_id: "a",
++      run_id: null,
++      proposal_id: null,
++      assignment_id: null,
++      occurred_at: `2026-10-26T00:00:0${i}Z`,
++      reason_code: "material_change",
++    });
++    const frame = (i: number) =>
++      `id: c${i}\nevent: work.changed\ndata: ${JSON.stringify(ev(i))}\n\n`;
++    const h = held({ "content-type": "text/event-stream" });
++    const changes: number[] = [];
++    let resets = 0;
++    const ac = new AbortController();
++    void subscribeWork({
++      base: "/api/domain",
++      ws: "ws",
++      cid: "cv",
++      cursor: "c0",
++      signal: ac.signal,
++      fetch: (async () => h.res) as never,
++      sleep: async () => {
++        ac.abort();
++      },
++      onChange: (e) => changes.push(e.length),
++      onStatus: () => {},
++      onRevoked: () => {},
++      onReset: async () => {
++        resets++;
++        return "c0";
++      },
++    }).catch(() => null);
++    await settle();
++    h.send(frame(1), false);
++    await until(() => changes.length === 1);
++    fenceScope();
++    h.send(frame(2), false);
++    await settle();
++    expect(changes).toHaveLength(1);
++    expect(resets).toBe(0);
++    ac.abort();
++  });
++});
++
++describe("R3: proxy identity-preflight failure fences at once", () => {
++  const BEARER = "y".repeat(40);
++  const scopeHeader = () => proxyScope(BEARER, "http://127.0.0.1:8000");
++  const proxyReq = (method: string) =>
++    [
++      {
++        method,
++        headers: new Headers({
++          host: "127.0.0.1:3000",
++          "x-workagent-client": "local-ui",
++          "x-workagent-scope": scopeHeader(),
++          ...(method === "POST" ? { "content-type": "application/json" } : {}),
++        }),
++        nextUrl: { search: "" },
++        body: method === "POST" ? new Blob(["{}"]).stream() : null,
++        signal: new AbortController().signal,
++      } as never,
++      { params: Promise.resolve({ path: ["v1", "workspaces", "w", "x"] }) },
++    ] as const;
++
++  it("the proxy marks failed or malformed preflight and forwards nothing", async () => {
++    vi.stubEnv("LOCAL_TEST_MODE", "true");
++    vi.stubEnv("LOCAL_BEARER_TOKEN", BEARER);
++    const route = await import("@/app/api/domain/[...path]/route");
++    for (const upstream of [
++      async () => {
++        throw new TypeError("timeout");
++      },
++      async () => Response.json({ principal_id: "x", scope_id: "short" }),
++    ]) {
++      const f = vi.fn(upstream as (url: string) => Promise<Response>);
++      vi.stubGlobal("fetch", f);
++      for (const m of ["GET", "POST"] as const) {
++        const res = await route[m](...proxyReq(m));
++        expect(res.headers.get("x-workagent-identity")).toBe("unconfirmed");
++        expect(
++          f.mock.calls.filter(([u]) => !String(u).endsWith("/v1/session")),
++        ).toHaveLength(0);
++      }
++    }
++    // An ordinary upstream 503 is forwarded unmarked.
++    vi.stubGlobal(
++      "fetch",
++      vi.fn(
++        withBackendSession(async () =>
++          Response.json({ code: "internal_error" }, { status: 503 }),
++        ),
++      ),
++    );
++    const res = await route.GET(...proxyReq("GET"));
++    expect(res.status).toBe(503);
++    expect(res.headers.get("x-workagent-identity")).toBeNull();
++    vi.unstubAllEnvs();
++  });
++
++  const unconfirmed = () =>
++    Response.json(
++      { code: "connection_required", message: "Access couldn’t be confirmed." },
++      { status: 503, headers: { "x-workagent-identity": "unconfirmed" } },
++    );
++
++  it("both transports fence immediately; ordinary 503 does not", async () => {
++    const m = new Map<string, string>();
++    vi.stubGlobal("sessionStorage", {
++      getItem: (k: string) => m.get(k) ?? null,
++      setItem: (k: string, v: string) => void m.set(k, v),
++      removeItem: (k: string) => void m.delete(k),
++    });
++    scopedSession.setItem("workagent:composer-draft:ws", "A draft");
++    await scopedFetch("/api/domain/v1/workspaces", {}, (async () =>
++      Response.json({}, { status: 503 })) as never);
++    expect(scopeState().status).toBe("ready");
++    await scopedFetch("/api/domain/v1/workspaces", {}, (async () =>
++      unconfirmed()) as never).catch(() => null);
++    expect(scopeState().status).toBe("changed");
++    expect(scopedSession.getItem("workagent:composer-draft:ws")).toBeNull();
++    expect([...m.values()]).toEqual(["A draft"]); // kept, hidden
++
++    transport.mockResolvedValueOnce(unconfirmed());
++    const g = await freshGenerated();
++    const e = await g.conversationApi
++      .send("w", "c", {
++        command_id: "cmd-2",
++        expected_work_version: 1,
++        text: "x",
++      } as never)
++      .catch((x: unknown) => x);
++    expect(transport).toHaveBeenCalledTimes(1); // no automatic retry
++    expect(g.s.scopeState().status).toBe("changed");
++    expect(e).toBeInstanceOf(g.s.ScopeRefused); // proxy forwarded nothing
++  });
++
++  it("a pending upload refused by preflight keeps its exact identity", async () => {
++    const store = memoryDocStore();
++    const scope = "scope:v1:A:ws:home";
++    const doc = await stageBytes("a.pdf", "", pdf);
++    const ctl = stagedController(store, () => {});
++    ctl.open(scope);
++    await until(() => !ctl.view.restoring);
++    const o = ctl.origin()!;
++    await ctl.persist(o, [newEntry(doc)]);
++    const bodies: string[] = [];
++    setFetch((async (_u: string, init: RequestInit) => {
++      bodies.push(init.body as string);
++      return unconfirmed();
++    }) as never);
++    await uploadAll(dest, ctl.view.docs, (n) => ctl.persist(o, n)).catch(
++      () => null,
++    );
++    expect(scopeState().status).toBe("changed");
++    const kept = await store.list(scope);
++    expect(kept[0]!.upload?.command_id).toBe(JSON.parse(bodies[0]!).command_id);
++    expect(sha(new Uint8Array(kept[0]!.bytes))).toBe(sha(pdf));
++    expect(bodies).toHaveLength(1); // no automatic retry
++  });
++});

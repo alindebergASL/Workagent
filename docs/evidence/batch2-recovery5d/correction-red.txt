@@ -1,0 +1,309 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+(node:4050811) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 14)
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4050811) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 16)
+ ❯ test/scope-races.test.ts (11 tests | 10 failed) 834ms
+   ❯ R1: a fence after dispatch keeps the outcome unknown (2)
+     × a late committed upload keeps its exact identity under A and replays it 126ms
+     × generated-client writes fenced after dispatch are unknown, not unsent 269ms
+   ❯ R2: late bodies, digests and frames publish nothing (6)
+     × a delayed JSON body after the fence is not returned 15ms
+     × a delayed original body after the fence is not returned 10ms
+     × a delayed original digest after the fence is not returned 25ms
+     × saving an original after the fence clicks no anchor 21ms
+     × an already-open stream applies no frame after the fence 47ms
+   ❯ R3: proxy identity-preflight failure fences at once (3)
+     × the proxy marks failed or malformed preflight and forwards nothing 204ms
+     × both transports fence immediately; ordinary 503 does not 8ms
+     × a pending upload refused by preflight keeps its exact identity 11ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/scope-races.test.ts > R1: a fence after dispatch keeps the outcome unknown > a late committed upload keeps its exact identity under A and replays it
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ test/scope-races.test.ts:101:32
+     99|     const e = (await p.catch((x: unknown) => x)) as ApiError;
+    100|     expect(e).toBeInstanceOf(ApiError);
+    101|     expect(e.isAmbiguousWrite).toBe(true);
+       |                                ^
+    102|     // A returns (same scope): the exact command is restored, outcome …
+    103|     await bindTestScope();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/10]⎯
+
+ FAIL  test/scope-races.test.ts > R1: a fence after dispatch keeps the outcome unknown > generated-client writes fenced after dispatch are unknown, not unsent
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ until test/scope-races.test.ts:38:18
+     36| async function until(done: () => boolean) {
+     37|   for (let i = 0; i < 10_000 && !done(); i++) await tick();
+     38|   expect(done()).toBe(true);
+       |                  ^
+     39| }
+     40| const settle = async () => {
+ ❯ test/scope-races.test.ts:139:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/10]⎯
+
+ FAIL  test/scope-races.test.ts > R2: late bodies, digests and frames publish nothing > a delayed JSON body after the fence is not returned
+AssertionError: promise resolved "{ secret: 'A-only' }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "secret": "A-only",
+  }
+
+ ❯ test/scope-races.test.ts:154:20
+    152|     fenceScope();
+    153|     h.send(JSON.stringify({ secret: "A-only" }));
+    154|     await expect(p).rejects.toBeInstanceOf(ApiError);
+       |                    ^
+    155|   });
+    156|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/10]⎯
+
+ FAIL  test/scope-races.test.ts > R2: late bodies, digests and frames publish nothing > a delayed original body after the fence is not returned
+AssertionError: promise resolved "Blob { size: 24, type: 'application/pdf' }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ Blob {
++   Symbol(kHandle): Blob {},
++   Symbol(kLength): 24,
++   Symbol(kType): "application/pdf",
+  }
+
+ ❯ test/scope-races.test.ts:171:20
+    169|     fenceScope();
+    170|     h.send(pdf);
+    171|     await expect(p).rejects.toBeInstanceOf(ApiError);
+       |                    ^
+    172|   });
+    173|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/10]⎯
+
+ FAIL  test/scope-races.test.ts > R2: late bodies, digests and frames publish nothing > a delayed original digest after the fence is not returned
+AssertionError: promise resolved "Blob { size: 24, type: 'application/pdf' }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ Blob {
++   Symbol(kHandle): Blob {},
++   Symbol(kLength): 24,
++   Symbol(kType): "application/pdf",
+  }
+
+ ❯ test/scope-races.test.ts:187:20
+    185|     fenceScope();
+    186|     d.resolve();
+    187|     await expect(p).rejects.toBeInstanceOf(ApiError);
+       |                    ^
+    188|   });
+    189|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/10]⎯
+
+ FAIL  test/scope-races.test.ts > R2: late bodies, digests and frames publish nothing > saving an original after the fence clicks no anchor
+TypeError: save is not a function
+ ❯ test/scope-races.test.ts:201:15
+    199|       }
+    200|     ).saveOriginal;
+    201|     const p = save("w", "c", meta);
+       |               ^
+    202|     await settle();
+    203|     fenceScope();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/10]⎯
+
+ FAIL  test/scope-races.test.ts > R2: late bodies, digests and frames publish nothing > an already-open stream applies no frame after the fence
+AssertionError: expected [ 1, 1 ] to have a length of 1 but got 2
+
+- Expected
++ Received
+
+- 1
++ 2
+
+ ❯ test/scope-races.test.ts:302:21
+    300|     h.send(frame(2), false);
+    301|     await settle();
+    302|     expect(changes).toHaveLength(1);
+       |                     ^
+    303|     expect(resets).toBe(0);
+    304|     ac.abort();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/10]⎯
+
+ FAIL  test/scope-races.test.ts > R3: proxy identity-preflight failure fences at once > the proxy marks failed or malformed preflight and forwards nothing
+AssertionError: expected null to be 'unconfirmed' // Object.is equality
+
+- Expected:
+"unconfirmed"
+
++ Received:
+null
+
+ ❯ test/scope-races.test.ts:342:57
+    340|       for (const m of ["GET", "POST"] as const) {
+    341|         const res = await route[m](...proxyReq(m));
+    342|         expect(res.headers.get("x-workagent-identity")).toBe("unconfir…
+       |                                                         ^
+    343|         expect(
+    344|           f.mock.calls.filter(([u]) => !String(u).endsWith("/v1/sessio…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/10]⎯
+
+ FAIL  test/scope-races.test.ts > R3: proxy identity-preflight failure fences at once > both transports fence immediately; ordinary 503 does not
+TypeError: Cannot read properties of undefined (reading 'setItem')
+ ❯ Object.setItem src/lib/client/session-scope.ts:143:14
+    141|       const full = k(key);
+    142|       if (!full) throw new Fenced();
+    143|       store()!.setItem(full, value);
+       |              ^
+    144|     },
+    145|     removeItem(key) {
+ ❯ test/scope-races.test.ts:370:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/10]⎯
+
+ FAIL  test/scope-races.test.ts > R3: proxy identity-preflight failure fences at once > a pending upload refused by preflight keeps its exact identity
+AssertionError: expected 'ready' to be 'changed' // Object.is equality
+
+Expected: "changed"
+Received: "ready"
+
+ ❯ test/scope-races.test.ts:411:33
+    409|       () => null,
+    410|     );
+    411|     expect(scopeState().status).toBe("changed");
+       |                                 ^
+    412|     const kept = await store.list(scope);
+    413|     expect(kept[0]!.upload?.command_id).toBe(JSON.parse(bodies[0]!).co…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/10]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 3 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+ApiError: Could not reach the local service.
+ ❯ unwrap src/lib/client/real-api.ts:70:11
+     68|     if (e instanceof DOMException && e.name === "AbortError") throw e;
+     69|     if (e instanceof ApiError) throw e; // refused locally by the scop…
+     70|     throw new ApiError({
+       |           ^
+     71|       code: "transport",
+     72|       status: 0,
+ ❯ Object.send src/lib/client/real-api.ts:1130:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'transport', status: 0, requestId: null, nextAction: null, details: null, isVersionConflict: false, versionConflict: null, isAmbiguousWrite: true }
+This error originated in "test/scope-races.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "generated-client writes fenced after dispatch are unknown, not unsent". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Failed to parse URL from /api/domain/v1/workspaces/w/artifacts/art/download?revision_id=rev
+ ❯ new Request node:internal/deps/undici/undici:9806:19
+ ❯ coreFetch ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:74:19
+ ❯ Object.GET ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:195:14
+ ❯ Object.download src/lib/client/products.ts:266:33
+    264|     if (proposal && proposal.artifact_id !== artifact.id)
+    265|       throw new Error("Proposed version does not belong to this work."…
+    266|     const result = await client.GET(
+       |                                 ^
+    267|       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
+    268|       {
+ ❯ test/scope-races.test.ts:233:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1628:35
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2783:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3321:20
+ ❯ runWithCancel ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3316:10
+
+This error originated in "test/scope-races.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "a generated product download with a late body or digest downloads nothing". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+Caused by: TypeError: Invalid URL
+ ❯ new URL node:internal/url:818:25
+ ❯ new Request node:internal/deps/undici/undici:9804:25
+ ❯ coreFetch ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:74:19
+ ❯ Object.GET ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:195:14
+ ❯ Object.download src/lib/client/products.ts:266:33
+ ❯ test/scope-races.test.ts:233:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:1628:35
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2783:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:3321:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_INVALID_URL', input: '/api/domain/v1/workspaces/w/artifacts/art/download?revision_id=rev' }
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+TypeError: Failed to parse URL from /api/domain/v1/workspaces/w/artifacts/art/download?revision_id=rev
+ ❯ new Request node:internal/deps/undici/undici:9806:19
+ ❯ coreFetch ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:74:19
+ ❯ Object.GET ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:195:14
+ ❯ Object.download src/lib/client/products.ts:266:33
+    264|     if (proposal && proposal.artifact_id !== artifact.id)
+    265|       throw new Error("Proposed version does not belong to this work."…
+    266|     const result = await client.GET(
+       |                                 ^
+    267|       "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/download",
+    268|       {
+ ❯ test/scope-races.test.ts:251:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2783:20
+
+This error originated in "test/scope-races.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The last test to run before this error was "a generated product download with a late body or digest downloads nothing". This means either:
+- the error was thrown while Vitest was running this test, or
+- the error was thrown after the test completed, and this was the most recent test at that point.
+Caused by: TypeError: Invalid URL
+ ❯ new URL node:internal/url:818:25
+ ❯ new Request node:internal/deps/undici/undici:9804:25
+ ❯ coreFetch ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:74:19
+ ❯ Object.GET ../../workagent-batch2-20261026/contracts/node_modules/openapi-fetch/dist/index.mjs:195:14
+ ❯ Object.download src/lib/client/products.ts:266:33
+ ❯ test/scope-races.test.ts:251:26
+ ❯ ../../workagent-overnight-20261015/web/node_modules/.pnpm/vitest@5.0.3_@types+node@22.20.4_vite@8.3.1_@types+node@22.20.4_/node_modules/vitest/dist/chunks/run.BTlFXlnv.js:2783:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_INVALID_URL', input: '/api/domain/v1/workspaces/w/artifacts/art/download?revision_id=rev' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed | 1 passed (11)
+     Errors  3 errors
+   Start at  22:50:00
+   Duration  2.48s (transform 47%, tests 39%, import 11%, setup 2%, worker 1%)
+

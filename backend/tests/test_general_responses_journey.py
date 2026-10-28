@@ -126,7 +126,8 @@ def test_exact_four_natural_turns_real_http_cli_and_home_recipe(context,tmp_path
         assert len(fixture.inputs)==4 and len(fixture.local_results)==4
         status=general_status(s.db,ws,grant.id)
         assert status['budget']['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
-        assert status['budget']['reserved_input_tokens']==160000 and status['budget']['reserved_output_tokens']==65536
+        # Eight new reservations use the current 50k policy, not legacy 20k sends.
+        assert status['budget']['reserved_input_tokens']==400000 and status['budget']['reserved_output_tokens']==65536
         assert ResponsesDispatcher(worker(context,fixture,tmp_path/'worker'),workspace=ws,grant_id=grant.id).once()['results']==[]
         # Real read recipe, including pagination; canonical products and decisions survive restart.
         listed=client.get(base+'/conversations',params={'limit':1}).json(); nextpage=client.get(base+'/conversations',params={'limit':1,'cursor':listed['next_cursor']}).json()

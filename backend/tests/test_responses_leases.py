@@ -30,6 +30,10 @@ def setup_family(context, tmp_path, family):
     else:
         from test_general_responses import setup
     _, grant, fake, queued, w = setup(context, tmp_path, **({'wait': True} if family == 'adaptive' else {}))
+    # General/adaptive fixtures use a tiny timeout for ordinary in-process
+    # MockTransport tests. These tests exercise the production HTTP admission
+    # window itself, so restore its actual allowance instead of weakening gates.
+    w.phases.transport._client.timeout = httpx.Timeout(30.0, connect=5.0)
     return grant, queued, fake, w, w.phases
 
 
@@ -323,7 +327,8 @@ def test_final_delivered_after_lease_expiry_is_retained_not_regenerated(context,
     dispatcher = ResponsesDispatcher(w, workspace=ws, grant_id=grant.id)
     first = drive_settled_visits(context, w, queued.run.id,
         until=lambda: bool(final_returned), step=dispatcher.once)
-    assert first['results'] == [{'run_id': queued.run.id, 'status': 'denied_or_deferred'}]
+    assert first['results'] == [{'run_id': queued.run.id, 'status': 'denied_or_deferred',
+                                'reason': 'action_unresolved'}]
     with s.db.transaction() as c:
         retained = c.execute("SELECT e.kind FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id "
                              "WHERE a.run_id=%s AND e.phase='final'", (queued.run.id,)).fetchall()

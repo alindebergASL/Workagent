@@ -20,7 +20,14 @@ def main():
     from workagent.message_models import attachment_contract
     from workagent.composition import AlphaDecision, ContinuityDecision, descriptors
     from workagent.models import ProviderGrant
-    outputs={'provider-grant.schema.json':ProviderGrant.model_json_schema(),
+    from workagent.work_event_fixtures import vectors as work_event_vectors
+    from workagent.retained_results import SustainedDecision
+    from workagent.checkpoint_models import RunCheckpoint, QueuedMessage
+    outputs={'work-events-fixtures.json':work_event_vectors(),
+             'run-checkpoint.schema.json':RunCheckpoint.model_json_schema(),
+             'queued-message.schema.json':QueuedMessage.model_json_schema(),
+             'sustained-decision.schema.json':SustainedDecision.model_json_schema(),
+             'provider-grant.schema.json':ProviderGrant.model_json_schema(),
              'continuity-decision.schema.json':ContinuityDecision.model_json_schema(),
              'alpha-decision.schema.json':AlphaDecision.model_json_schema(),
              'alpha-capability-catalog.json':descriptors(),

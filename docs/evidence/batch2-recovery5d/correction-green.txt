@@ -1,0 +1,13 @@
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  52 passed (52)
+      Tests  510 passed (510)
+   Start at  23:00:34
+   Duration  50.18s (tests 36%, import 27%, transform 22%, setup 11%, worker 3%)
+
+     Import  138 modules were evaluated 401 times · 7.00s total, 27% of tracked time
+             ~4.59s faster with isolate: false — shared modules are evaluated once per worker instead of once per file
+             learn more: https://vitest.dev/guide/improving-performance#test-isolation
+

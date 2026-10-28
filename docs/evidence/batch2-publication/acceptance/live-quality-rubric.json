@@ -1,0 +1,17 @@
+{
+  "evaluator": "Parent gpt-6-astra/openai-codex; actual retained answer/canonical output inspection; no new provider grading call",
+  "A01": {
+    "native": "PASS:45-minute agenda, quiet/zero-cost constraints, two inclusion practices, usable invitation; no external effects",
+    "web": "PASS same criteria on exact2365-byte original retained reply; operator recovery excluded from speed claims",
+    "timing_sums_minutes": {
+      "native": 45,
+      "web": 45
+    }
+  },
+  "A02": {
+    "mechanism": "PASS two literal unfamiliar CSVs, paired actual controlled trace and canonical outputs; live reasoning not claimed for CSV",
+    "live_DOCX": "PASS both clients: correct quantities and $70 Alder optimum, Birch step-free exclusion and Cedar late-delivery exclusion, $80 remainder, source locators and uncertainties, real canonical result; no-resupply follow-up quotes requirement",
+    "limitations": "Extracted text, no supplier verification; inconsistent afternoon/morning acknowledged; synthetic inputs not private data"
+  },
+  "A07_A08_A10": "PASS useful context-correct saved outputs, latest amended facts, unaccepted proposal preserved and scheduled planning-vs-readiness distinction. One human Continue and explicit schedule setup disclosed."
+}

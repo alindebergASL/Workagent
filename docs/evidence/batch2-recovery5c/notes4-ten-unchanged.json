@@ -1,0 +1,160 @@
+{
+  "before": {
+    "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+    "workspace_id": "recovery5c-workspace",
+    "assignment_id": null,
+    "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+    "current_revision_id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+    "current_revision": {
+      "id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+      "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "revision_number": 3,
+      "parent_revision_id": "d7aab87e-0f4a-44ca-b96e-00fd35634d8b",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Recovery5c ten",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "oak",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Cell-only correction 雪 ten"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": [
+          "  duplicate 雪\n\nend\n",
+          "  duplicate 雪\n\nend\n",
+          "n3\n\n  exact ♪\n",
+          "n4\n\n  exact ♪\n",
+          "n5\n\n  exact ♪\n",
+          "n6\n\n  exact ♪\n",
+          "n7\n\n  exact ♪\n",
+          "n8\n\n  exact ♪\n",
+          "n9\n\n  exact ♪\n",
+          "n10\n\n  exact ♪\n"
+        ]
+      },
+      "body_hash": "95aa4f3477f6e87191650bb575ce03437961d24c5e11ad4ba922b88f89cbebd0",
+      "source_dependencies": [],
+      "created_at": "2026-10-26T21:51:19.872387Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-26T21:52:29.463425Z"
+  },
+  "after": {
+    "id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+    "workspace_id": "recovery5c-workspace",
+    "assignment_id": null,
+    "conversation_id": "4cb712cc-4840-4b1b-a499-73556f218201",
+    "current_revision_id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+    "current_revision": {
+      "id": "c432fe71-c8a4-4494-978c-2890f07f4b6d",
+      "artifact_id": "e643c7c9-ed60-433d-ace3-6ec232ae2b27",
+      "revision_number": 3,
+      "parent_revision_id": "d7aab87e-0f4a-44ca-b96e-00fd35634d8b",
+      "author_id": "local-human",
+      "author_kind": "human",
+      "body": {
+        "kind": "structured_table",
+        "version": "structured-table/v1",
+        "title": "Recovery5c ten",
+        "fields": [
+          {
+            "key": "plant",
+            "label": "Plant",
+            "type": "text",
+            "editable": true,
+            "unit": null,
+            "scale": null,
+            "enum": null
+          },
+          {
+            "key": "height",
+            "label": "Height",
+            "type": "decimal",
+            "editable": true,
+            "unit": "cm",
+            "scale": 1,
+            "enum": null
+          }
+        ],
+        "rows": [
+          {
+            "row_id": "oak",
+            "cells": [
+              {
+                "field_key": "plant",
+                "value": "Cell-only correction 雪 ten"
+              },
+              {
+                "field_key": "height",
+                "value": "12.5"
+              }
+            ]
+          }
+        ],
+        "notes": [
+          "  duplicate 雪\n\nend\n",
+          "  duplicate 雪\n\nend\n",
+          "n3\n\n  exact ♪\n",
+          "n4\n\n  exact ♪\n",
+          "n5\n\n  exact ♪\n",
+          "n6\n\n  exact ♪\n",
+          "n7\n\n  exact ♪\n",
+          "n8\n\n  exact ♪\n",
+          "n9\n\n  exact ♪\n",
+          "n10\n\n  exact ♪\n"
+        ]
+      },
+      "body_hash": "95aa4f3477f6e87191650bb575ce03437961d24c5e11ad4ba922b88f89cbebd0",
+      "source_dependencies": [],
+      "created_at": "2026-10-26T21:51:19.872387Z"
+    },
+    "requested_revision": null,
+    "observed_at": "2026-10-26T21:52:29.768895Z"
+  },
+  "note_hashes": [
+    "cd9fda6bf533feb3ea9474ad48835ab3c9dc05eb2e60eb6a2e5ed24cbf6653e1",
+    "cd9fda6bf533feb3ea9474ad48835ab3c9dc05eb2e60eb6a2e5ed24cbf6653e1",
+    "b715df1ae09c23a38bbbfca50e38955084f204031ad73f9b6bc0edaf30fa76a4",
+    "eb3e08c0b8b509bd74bfa05865c443e99ed601fadeb4fbc45ac36424a0988cdf",
+    "d22261a8a1dad3f0ff3e7c9f63d4a29bf48b9529a3a763a8b9be73eb925373b2",
+    "63b3da679b4c90ffede72a0d70f4ba008fc9abcf67ef73c1a60af9cb3effc495",
+    "7a9c1d4850c03fe7e2426e955a784fb913a35f6f2bf72741035939e21c1c6afa",
+    "9b957c90e3e057ecea7723c7381d8edca3d4684ddb3dfeab24f04620f5f11a0f",
+    "f55a0a0b33c6815e4656d3f62d60ade3fa0854565959f7d8b40da616d9902347",
+    "58492df27b0c38be872148d4e444751cb04ae4c1b2386c24dacbb379e03c7abd"
+  ],
+  "objects": 10,
+  "displayed_lines": 40
+}

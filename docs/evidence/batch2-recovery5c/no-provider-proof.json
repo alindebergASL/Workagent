@@ -1,0 +1,50 @@
+{
+  "responses_steps": {
+    "total_rows": 67,
+    "scope_column": false
+  },
+  "responses_events": {
+    "total_rows": 376,
+    "scope_column": false
+  },
+  "provider_attempts": 0,
+  "responses_budget_carry": {
+    "total_rows": 0,
+    "scope_column": false
+  },
+  "dispatches": [
+    {
+      "value": {
+        "cursor": 68,
+        "run_id": "4f88ad4e-97b7-405b-a685-d39e7238c1c6",
+        "outbox_id": "4a4d4ecd-3216-4c69-bc81-2851e4ffdda7",
+        "workspace_id": "recovery5c-workspace",
+        "failure_reason": null,
+        "acknowledged_at": "2026-10-26T21:48:27.950359+00:00",
+        "failure_checked_at": null
+      }
+    },
+    {
+      "value": {
+        "cursor": 69,
+        "run_id": "6c2ff261-5536-499f-8475-06a8b33d9dcd",
+        "outbox_id": "0ed755dc-5f53-46f9-8323-e526d700b96d",
+        "workspace_id": "recovery5c-workspace",
+        "failure_reason": null,
+        "acknowledged_at": "2026-10-26T21:48:29.100506+00:00",
+        "failure_checked_at": null
+      }
+    },
+    {
+      "value": {
+        "cursor": 70,
+        "run_id": "1688bae2-8bf0-4452-bada-da1548ba066c",
+        "outbox_id": "a2e794bb-16b8-454f-b445-56ade9c2f07d",
+        "workspace_id": "recovery5c-workspace",
+        "failure_reason": null,
+        "acknowledged_at": "2026-10-26T21:48:30.802359+00:00",
+        "failure_checked_at": null
+      }
+    }
+  ]
+}

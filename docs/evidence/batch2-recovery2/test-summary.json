@@ -1,0 +1,80 @@
+{
+  "confinement-first.xml": {
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 7,
+    "time": 22.352,
+    "properties": {
+      "test_real_cpu_bomb_stopped": {
+        "cpu_limit_seconds": "5",
+        "observed_cpu_seconds": "4.500043947",
+        "exit_code": "137",
+        "elapsed_wall_seconds": "14.764643448055722",
+        "test_wall_guard_seconds": "60"
+      },
+      "test_real_wall_timeout_stopped": {
+        "wall_guard_seconds": "5",
+        "elapsed_wall_seconds": "5.020313636981882",
+        "observed_processes": "4",
+        "live_survivors": "0"
+      }
+    }
+  },
+  "cpu-baseline.xml": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 1,
+    "time": 15.039,
+    "properties": {}
+  },
+  "cpu-wall-negative.xml": {
+    "tests": 1,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 0,
+    "time": 1.218,
+    "properties": {}
+  },
+  "final-campaign.xml": {
+    "tests": 104,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 104,
+    "time": 373.408,
+    "properties": {
+      "test_real_cpu_bomb_stopped": {
+        "cpu_limit_seconds": "5",
+        "observed_cpu_seconds": "4.500427144",
+        "exit_code": "137",
+        "elapsed_wall_seconds": "18.091415489907376",
+        "test_wall_guard_seconds": "60"
+      },
+      "test_real_wall_timeout_stopped": {
+        "wall_guard_seconds": "5",
+        "elapsed_wall_seconds": "5.031097444007173",
+        "observed_processes": "4",
+        "live_survivors": "0"
+      },
+      "test_process_restart_retains_originals_exact_commands_and_event_cursor": {
+        "http_process_restarts": "1",
+        "exact_originals": "3",
+        "elapsed_seconds": "14.578950611990876"
+      }
+    }
+  },
+  "historical-red.xml": {
+    "tests": 65,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 64,
+    "time": 623.31,
+    "properties": {}
+  }
+}

@@ -1,0 +1,42 @@
+[
+  {
+    "suite": "final-backend-core",
+    "test": "backend.tests.test_batch2_process_restart_pg::test_process_restart_retains_originals_exact_commands_and_event_cursor",
+    "properties": {
+      "http_process_restarts": "1",
+      "exact_originals": "3",
+      "elapsed_seconds": "22.674347821972333"
+    }
+  },
+  {
+    "suite": "final-backend-core",
+    "test": "backend.tests.test_document_confinement::test_real_cpu_bomb_stopped",
+    "properties": {
+      "cpu_limit_seconds": "5",
+      "observed_cpu_seconds": "4.500959931",
+      "exit_code": "137",
+      "elapsed_wall_seconds": "13.093586258008145",
+      "test_wall_guard_seconds": "60"
+    }
+  },
+  {
+    "suite": "final-backend-core",
+    "test": "backend.tests.test_document_confinement::test_real_wall_timeout_stopped",
+    "properties": {
+      "wall_guard_seconds": "5",
+      "elapsed_wall_seconds": "5.00955990399234",
+      "observed_processes": "4",
+      "live_survivors": "0"
+    }
+  },
+  {
+    "suite": "final-backend-core",
+    "test": "backend.tests.test_work_events_pg::test_snapshot_query_cost_is_batched_and_recorded",
+    "properties": {
+      "snapshot_query_count": "10",
+      "snapshot_sql_seconds": "0.03994604013860226",
+      "snapshot_total_seconds": "0.09115589095745236",
+      "snapshot_bytes": "3379"
+    }
+  }
+]

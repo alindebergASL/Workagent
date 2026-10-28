@@ -1,0 +1,56 @@
+{
+  "status": "PASS offline reconciliation validation only",
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "docs/evidence/batch2-recovery5b/reconciled-after5d/reconcile.py",
+        "--check-only"
+      ],
+      "exit": 0,
+      "stdout": "CHECK_ONLY: all current rows, source and receipt validations match saved output\n{\n  \"generated_at\": \"2026-10-27T00:11:13.791419+00:00\",\n  \"head\": \"c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d\",\n  \"branch\": \"hermes/b2-conversational-client\",\n  \"source\": {\n    \"path\": \"docs/evidence/batch2-recovery5d/poll-correction/source-manifest.json\",\n    \"sha256\": \"194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07\"\n  },\n  \"verified_source_files\": 611,\n  \"counts\": {\n    \"PENDING\": 23,\n    \"PASS\": 20\n  },\n  \"pending_class_counts_nonexclusive\": {\n    \"b\": 18,\n    \"c\": 7,\n    \"a\": 6\n  },\n  \"pending_ids\": [\n    \"A01\",\n    \"A02\",\n    \"A04\",\n    \"A05\",\n    \"A06\",\n    \"A07\",\n    \"A08\",\n    \"A09\",\n    \"A10\",\n    \"A13\",\n    \"A20\",\n    \"A21\",\n    \"A22\",\n    \"A23\",\n    \"A25\",\n    \"A26\",\n    \"A27\",\n    \"A30\",\n    \"A33\",\n    \"A34\",\n    \"P4\",\n    \"P7\",\n    \"P8\"\n  ],\n  \"status_changes\": [\n    {\n      \"id\": \"A13\",\n      \"before\": \"PASS\",\n      \"after\": \"PENDING\",\n      \"why\": \"Retained test uses ThreadPoolExecutor and independent real PG connections, with delayed commit and rollback assertions. This is sound concurrent PG mechanism evidence, but not the explicitly required two-client-process barrier receipt.\"\n    },\n    {\n      \"id\": \"P6\",\n      \"before\": \"PENDING\",\n      \"after\": \"PASS\",\n      \"why\": \"Literal obligation is preservation of the initial inferior planning grade, not a new live planning rerun. Historical evaluation explicitly retains omitted-note candidate, repair intervention and PARTIAL quality grade; current review warnings/consent and protected accepted notes pass A03/A28/A35. Historical live evaluation is replay for this candidate, never fresh usefulness evidence.\"\n    }\n  ],\n  \"batch2_complete\": false,\n  \"publication\": \"HOLD\",\n  \"new_product_calls\": 0,\n  \"new_reservations\": 0,\n  \"new_product_tests\": 0,\n  \"new_browser_runs\": 0,\n  \"product_source_edits\": [],\n  \"validation\": \"Offline hash/schema/XML/unique-row reconciliation only; historical test results retained, not newly executed.\"\n}\nverified_retained_manifest_files 783\nhistorical_report_counts {'docs/evidence/batch2-recovery4/final-backend-core.xml': {'total': 411, 'failed': 0, 'errors': 0, 'skipped': 0}, 'docs/evidence/batch2-recovery4/final-backend-seams.xml': {'total': 97, 'failed': 0, 'errors': 0, 'skipped': 0}, 'docs/evidence/batch2-recovery5a/journey-tests.xml': {'total': 134, 'failed': 0, 'errors': 0, 'skipped': 0}, 'docs/evidence/batch2-recovery5d/poll-correction/frontend.xml': {'total': 514, 'failed': 0, 'errors': 0, 'skipped': 0}, 'docs/evidence/batch2-recovery5b/frontend-stop-final.xml': {'total': 481, 'failed': 0, 'errors': 0, 'skipped': 0}}\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "negative_controls": [
+    {
+      "case": "missing-row",
+      "result": "rejected"
+    },
+    {
+      "case": "duplicate-id",
+      "result": "rejected"
+    },
+    {
+      "case": "false-green",
+      "result": "rejected"
+    },
+    {
+      "case": "wrong-evidence-hash",
+      "result": "rejected"
+    }
+  ],
+  "rows": 43,
+  "counts": {
+    "PENDING": 23,
+    "PASS": 20
+  },
+  "disjoint_pending_classes": {
+    "mixed": 2,
+    "zero-provider-only": 16,
+    "live-only": 5
+  },
+  "source_unchanged": true,
+  "product_tests_run": 0,
+  "new_product_calls": 0
+}

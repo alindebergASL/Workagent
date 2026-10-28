@@ -1,0 +1,9 @@
+{
+  "source_hashes_match": true,
+  "review_hashes_match": true,
+  "exact_credential_scan_clean": true,
+  "private_env_mode": "0o600",
+  "remaining_old_api_pid": 2688430,
+  "old_api_used_for_proof": false,
+  "task_owned_test_build_writer_remaining": false
+}

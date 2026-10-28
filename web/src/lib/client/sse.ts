@@ -1,134 +1,123 @@
 /**
- * A strict, bounded server-sent events parser for streams read with fetch
- * (EventSource can't send the headers the local proxy requires). It follows
- * the HTML event-stream rules: CR, LF or CRLF line ends; `:` comments;
- * `data` lines joined with "\n"; `id` kept until changed; `retry` digits only.
- * A character split across chunks is decoded whole. Malformed UTF-8 or an
- * oversized frame is an error, never a guess: the caller reconnects from the
- * last event it applied.
+ * Bounded incremental text/event-stream parser for fetch() bodies.
+ *
+ * Bytes arrive in arbitrary chunks: a UTF-8 character or a CRLF may be split
+ * across reads, and one read may carry several frames. Comments (heartbeats)
+ * are dropped. A frame larger than the cap throws SseOverflow so the caller
+ * can drop the connection and reconnect from its last applied cursor.
  */
 
-export type SseFrame = {
-  /** The `event` field, "message" when absent. */
-  type: string;
-  data: string;
-  /** The last event ID in effect when this frame was dispatched. */
-  id: string;
-};
+export interface SseFrame {
+  /** "message" when the frame names no event. */
+  readonly event: string;
+  readonly data: string;
+  /** The id this frame carried, or null. Never inherited from earlier frames. */
+  readonly id: string | null;
+}
 
-export type SseOutput =
-  | { kind: "frame"; frame: SseFrame }
-  /** A comment line, e.g. a heartbeat: proof the stream is alive, not data. */
-  | { kind: "comment" }
-  | { kind: "retry"; ms: number };
-
-export class SseError extends Error {
-  constructor(
-    readonly code: "frame_too_large" | "malformed_utf8",
-    message: string,
-  ) {
-    super(message);
+export class SseOverflow extends Error {
+  constructor() {
+    super("Event frame exceeded the size limit.");
+    this.name = "SseOverflow";
   }
 }
 
-/** Proposed by the Batch 2 plan: one frame (its lines together) up to 16 KiB. */
-export const SSE_FRAME_LIMIT = 16 * 1024;
+export const DEFAULT_MAX_FRAME = 64 * 1024;
 
-export function sseParser(limit = SSE_FRAME_LIMIT) {
-  const decoder = new TextDecoder("utf-8", { fatal: true });
-  let started = false;
-  let text = "";
-  let pendingCR = false;
-  let type = "";
-  let data: string[] = [];
-  let lastId = "";
-  let frameSize = 0;
-  const bytes = (s: string) => new TextEncoder().encode(s).length;
+export class SseParser {
+  private readonly decoder = new TextDecoder("utf-8");
+  private buf = "";
+  private event = "";
+  private data: string[] = [];
+  private id: string | null = null;
+  private hasField = false;
+  /** UTF-16 units held for the frame in progress (an upper bound on memory). */
+  private frameSize = 0;
 
-  function line(l: string, out: SseOutput[]) {
-    if (l === "") {
-      if (data.length)
-        out.push({
-          kind: "frame",
-          frame: { type: type || "message", data: data.join("\n"), id: lastId },
-        });
-      type = "";
-      data = [];
-      frameSize = 0;
-      return;
-    }
-    frameSize += bytes(l) + 1;
-    if (frameSize > limit)
-      throw new SseError(
-        "frame_too_large",
-        `An event was larger than ${limit} bytes.`,
-      );
-    if (l.startsWith(":")) {
-      out.push({ kind: "comment" });
-      return;
-    }
-    const colon = l.indexOf(":");
-    const field = colon < 0 ? l : l.slice(0, colon);
-    let value = colon < 0 ? "" : l.slice(colon + 1);
-    if (value.startsWith(" ")) value = value.slice(1);
-    if (field === "data") data.push(value);
-    else if (field === "event") type = value;
-    else if (field === "id") {
-      if (!value.includes("\0")) lastId = value;
-    } else if (field === "retry" && /^\d+$/.test(value))
-      out.push({ kind: "retry", ms: Number(value) });
+  constructor(private readonly maxFrame = DEFAULT_MAX_FRAME) {}
+
+  push(chunk: Uint8Array): SseFrame[] {
+    return this.feed(this.decoder.decode(chunk, { stream: true }));
   }
 
-  function drain(out: SseOutput[]) {
+  /** Flushes the decoder. An unterminated final frame is discarded (per spec). */
+  end(): SseFrame[] {
+    const out = this.feed(this.decoder.decode());
+    this.reset();
+    this.buf = "";
+    return out;
+  }
+
+  private feed(text: string): SseFrame[] {
+    this.buf += text;
+    const out: SseFrame[] = [];
+    let start = 0;
     for (;;) {
-      // A CR that ended the last chunk may be the first half of CRLF.
-      if (pendingCR && text) {
-        pendingCR = false;
-        if (text.startsWith("\n")) text = text.slice(1);
-      }
-      const i = text.search(/[\r\n]/);
-      if (i < 0) break;
-      let next = i + 1;
-      if (text[i] === "\r") {
-        if (next === text.length) pendingCR = true;
-        else if (text[next] === "\n") next++;
-      }
-      const l = text.slice(0, i);
-      text = text.slice(next);
-      line(l, out);
+      let i = start;
+      while (
+        i < this.buf.length &&
+        this.buf[i] !== "\n" &&
+        this.buf[i] !== "\r"
+      )
+        i++;
+      if (i >= this.buf.length) break;
+      // A trailing CR may be the first half of a CRLF still in flight.
+      if (this.buf[i] === "\r" && i + 1 >= this.buf.length) break;
+      const line = this.buf.slice(start, i);
+      start = i + (this.buf[i] === "\r" && this.buf[i + 1] === "\n" ? 2 : 1);
+      const frame = this.line(line);
+      if (frame) out.push(frame);
     }
-    if (bytes(text) + frameSize > limit)
-      throw new SseError(
-        "frame_too_large",
-        `An event was larger than ${limit} bytes.`,
-      );
+    this.buf = this.buf.slice(start);
+    if (this.frameSize + this.buf.length > this.maxFrame) {
+      this.reset();
+      this.buf = "";
+      throw new SseOverflow();
+    }
+    return out;
   }
 
-  return {
-    push(chunk: Uint8Array): SseOutput[] {
-      let s: string;
-      try {
-        s = decoder.decode(chunk, { stream: true });
-      } catch {
-        throw new SseError("malformed_utf8", "The stream was not valid UTF-8.");
-      }
-      if (!started && s) {
-        started = true;
-        if (s.startsWith("﻿")) s = s.slice(1);
-      }
-      text += s;
-      const out: SseOutput[] = [];
-      drain(out);
-      return out;
-    },
-    /** End of stream: an unterminated frame is discarded, as the rules say. */
-    end(): SseOutput[] {
-      try {
-        decoder.decode();
-      } catch {
-        throw new SseError("malformed_utf8", "The stream was not valid UTF-8.");
-      }
-      return [];
-    },
-  };
+  private line(line: string): SseFrame | null {
+    if (line === "") {
+      const frame = this.hasField
+        ? {
+            event: this.event || "message",
+            data: this.data.join("\n"),
+            id: this.id,
+          }
+        : null;
+      this.reset();
+      return frame && (frame.data !== "" || frame.id !== null) ? frame : null;
+    }
+    this.frameSize += line.length + 1;
+    if (this.frameSize > this.maxFrame) {
+      this.reset();
+      this.buf = "";
+      throw new SseOverflow();
+    }
+    if (line.startsWith(":")) return null;
+    const colon = line.indexOf(":");
+    const field = colon < 0 ? line : line.slice(0, colon);
+    let value = colon < 0 ? "" : line.slice(colon + 1);
+    if (value.startsWith(" ")) value = value.slice(1);
+    if (field === "event") {
+      this.event = value;
+      this.hasField = true;
+    } else if (field === "data") {
+      this.data.push(value);
+      this.hasField = true;
+    } else if (field === "id") {
+      if (!value.includes("\0")) this.id = value === "" ? null : value;
+      this.hasField = true;
+    }
+    return null;
+  }
+
+  private reset() {
+    this.event = "";
+    this.data = [];
+    this.id = null;
+    this.hasField = false;
+    this.frameSize = 0;
+  }
 }

@@ -39,6 +39,13 @@ class ObservationAuthority:
     principal: object
 
 
+@dataclass(frozen=True)
+class ExactObservationAuthority(ObservationAuthority):
+    """Owner-installed, finite authority to read one revoked response only."""
+    observer_id: str
+    phase: str
+
+
 class Ledger:
     def __init__(self,service,receipt):
         self.service=service
@@ -49,9 +56,18 @@ class Ledger:
         if isinstance(cap,ObservationAuthority):
             if not observation:raise DomainError('unsupported_operation')
             self.service._scope(c,cap.principal,run.workspace_id,write=True)
-            if cap.principal.id!=run.principal_id or not c.execute(
+            if isinstance(cap,ExactObservationAuthority):
+                from .receipt_observer import observer_hash
+                row=c.execute('SELECT observer_sha256 FROM exact_receipt_observers WHERE id=%s',
+                              (cap.observer_id,)).fetchone()
+                permitted=bool(row and row['observer_sha256']==observer_hash() and c.execute(
+                    'SELECT exact_receipt_observation_permits(%s,%s,%s) permitted',
+                    (cap.observer_id,attempt.id,cap.phase)).fetchone()['permitted'])
+            else:
+                permitted=c.execute(
                     'SELECT cancelled_response_observation_permits(%s) permitted',
-                    (attempt.id,)).fetchone()['permitted']:
+                    (attempt.id,)).fetchone()['permitted']
+            if cap.principal.id!=run.principal_id or not permitted:
                 raise DomainError('not_found_or_not_authorized')
         elif cap is not None:
             _,current,_=self.service._check_capability(c,cap)
@@ -72,6 +88,8 @@ class Ledger:
 
     def snapshot(self,phase,cap):
         if cap is None:raise DomainError('not_found_or_not_authorized')
+        if isinstance(cap,ExactObservationAuthority) and phase!=cap.phase:
+            raise DomainError('not_found_or_not_authorized')
         with self.service.db.transaction() as c:
             run,_,_=self._auth(c,cap,observation=True)
             row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -87,7 +105,8 @@ class Ledger:
                     config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                         (run.workspace_id,run.id)).fetchone()['data']
                     from .provider_attempts import check_grant
-                    check_grant(c,run,config)
+                    if not isinstance(cap,ExactObservationAuthority):
+                        check_grant(c,run,config)
                 else:
                     config=check_pins(c,run)
                 if enabled(config):
@@ -98,6 +117,8 @@ class Ledger:
                     if continuity_enabled(config):
                         from .composition import CONTINUITY_DECISION_SCHEMA as DECISION_SCHEMA
                     policy=CAPABILITY
+                from .retained_results import enabled as retained_enabled, SCHEMA as RETAINED_SCHEMA
+                if retained_enabled(config): DECISION_SCHEMA=RETAINED_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never
@@ -141,6 +162,8 @@ class Ledger:
             run,attempt,_=self._auth(c,cap,observation=True)
             if isinstance(cap,ObservationAuthority):
                 if kind!='read':raise DomainError('unsupported_operation')
+                if isinstance(cap,ExactObservationAuthority) and request.phase!=cap.phase:
+                    raise DomainError('not_found_or_not_authorized')
             elif run.profile=='general-responses-v1':
                 self.service._general_context(c,cap)
             events=self._events(c,request.phase)
@@ -175,20 +198,26 @@ class Ledger:
                 raise DomainError('budget_exhausted')
             data={'input_token_limit':MAX_INPUT_TOKENS} if kind=='count_send' else {}
             if isinstance(cap,ObservationAuthority):
-                data={'cancelled_observation':True}
-            if kind=='dispatch':
+                data=({'receipt_observer':cap.observer_id} if isinstance(cap,ExactObservationAuthority)
+                      else {'cancelled_observation':True})
+            if kind in ('count_send','dispatch'):
                 # Same lock/order and isolation as the DB guard. Check after the
                 # lock so a racing workspace yields a typed budget stop, not SQL
                 # exception/retry. Never change the caller's isolation implicitly.
+                # A fresh count is futile if its generation cannot fit. This is
+                # feasibility, not a reservation: dispatch still rechecks. Reads
+                # and already committed dispatch permits must remain usable.
                 if c.execute('SHOW transaction_isolation').fetchone()['transaction_isolation']!='read committed':
                     raise DomainError('unsupported_operation')
                 c.execute('SELECT pg_advisory_xact_lock(721004120)')
                 totals=summary(c,attempt.grant_id,shared=alpha)
                 shared=summary(c,attempt.grant_id,shared=True)
-                if (totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
+                if (totals['request_counts']['dispatch']>=b.generation_limit or
+                    totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
                     totals['reserved_output_tokens']+RESERVED_OUTPUT>b.output_limit or
                     Decimal(shared['reserved_cost_usd'])+RESERVED_COST>Decimal(b.cost_limit_usd)):
                     raise DomainError('budget_exhausted')
+            if kind=='dispatch':
                 data={'reserved_input_tokens':RESERVED_INPUT,'reserved_output_tokens':RESERVED_OUTPUT,
                       'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None}
                 if attempt.state=='prepared':

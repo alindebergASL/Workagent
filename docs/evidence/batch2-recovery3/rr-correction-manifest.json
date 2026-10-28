@@ -1,0 +1,30 @@
+{
+  "web/src/app/conversations/[id]/page.tsx": {
+    "before": "1af7b07cfd7b8355b53c218c39bf9e7bc23f74f6ac9c8f8dd495d3bfafafdbee",
+    "after": "d9f76b90bc1d078d46b93de3fc8dd7f84c97fb567b505615f30868df1f9dc2b0"
+  },
+  "web/src/components/Composer.tsx": {
+    "before": "7e16a28d9c718aa9ba692e5fea30c5b129b27c676722c5561803d6df9b763474",
+    "after": "2b46cb80a8dbbc1a353357eb940de0db84f62c8094d710921d82107e7deb1907"
+  },
+  "web/src/lib/batch2-view.ts": {
+    "before": "a8e9aa6fcd4b51145eb93fd2f22b46e381f1fb32c702a875554aa281038f0941",
+    "after": "88e13ca3358a896998a1cb7e33e4c3a80049889ceb4f1e28bcd33e38377e2ff6"
+  },
+  "web/src/lib/client/home-start.ts": {
+    "before": "f49cbe401654b33150004b3a28c62192d68975ac09034d96c2aaa0ce92da382c",
+    "after": "2d36c6e546fcdcb79005fec2efa2402733f2e98908a5681e9f5db482c87a73c9"
+  },
+  "web/src/lib/client/hooks.ts": {
+    "before": "a54958d3c442fa321420a114596baa74155ea0456a4127bd98b975670bfca471",
+    "after": "f425e1ab1d782cae88798f2b7660d9081f554856c2cd4f3b9069c5977719354d"
+  },
+  "web/src/lib/client/resource-freshness.ts": {
+    "before": null,
+    "after": "0615002524e9dd12b9c87b68b6927583ceeb07455031d2ed2f285a0b7758a0cf"
+  },
+  "web/test/b2-correction.test.ts": {
+    "before": "eccca508468857605ca040949721e8e1e2b711a009e1437bc5255a2302e70f7b",
+    "after": "a54f1b85a90c7bcdc50ae531271b57e382c766cda5971700dc271d8db1e0459d"
+  }
+}

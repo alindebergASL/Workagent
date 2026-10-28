@@ -336,7 +336,14 @@ class Products:
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
-        if isinstance(operation,AdvanceResponsibility):
+        from .retained_results import ReadResult, ReadAttachment, read as read_retained
+        if isinstance(operation,(ReadResult,ReadAttachment)):
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=read_retained(self,c,current[0],current[1],current[2],operation,phase,binding)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,'capability_result':read}
+        elif isinstance(operation,AdvanceResponsibility):
             from .responsibility_action import authorize_advance
             from .general_responses import check_pins
             with self.db.transaction() as c:
@@ -407,6 +414,8 @@ class Products:
                 if prior!=staged: raise DomainError('command_conflict')
             else:
                 ledger.event(c,phase,'tool_result',staged)
+                from .run_checkpoints import record
+                record(self,c,current[1],current[2],phase,'stage')
             self._publish_new_draft(c,staged,current)
         with self.db.transaction() as c:
             resolve_selection(self,c,cap,receipt,phase)
@@ -450,6 +459,11 @@ class Products:
             raise DomainError('action_unresolved')
         self._publish_product(c,p,run,cv,operation,None,type(operation.body).model_validate(staged['body']),
             None,DraftObservation.model_validate(staged['output']),staged['reason'],origin,binding,materials_only=True)
+        from .run_checkpoints import record
+        from .service import encoded
+        phase=c.execute("SELECT phase FROM responses_events WHERE attempt_id=%s AND kind='tool_result' "
+            "AND data->'binding'=%s",(binding['attempt_id'],encoded(binding))).fetchone()['phase']
+        record(self,c,run,cv,phase,'publication')
 
     def _own_new_drafts(self,c,p,run,cv):
         """Only exact own receipt-bound additions may leave the frozen catalogs.
@@ -582,6 +596,8 @@ class Products:
                 from .responsibility_action import apply_advance
                 apply_advance(self,c,run,config)
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             if continuity:
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
         detail=self.get_conversation(p,run.workspace_id,cv.id)
@@ -608,11 +624,13 @@ class Products:
             body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(observation['body'])
             file=FileBody.model_validate(observation['file']) if observation['file'] else None
             output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(observation['output'])
-            prepared.append((p,operation,base,binding,body,file,output))
+            prepared.append((p,operation,base,binding,body,file,output,observation['phase']))
         results=[]
-        for p,operation,base,binding,body,file,output in prepared:
+        for p,operation,base,binding,body,file,output,phase in prepared:
             prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) and base is None else []
             results.extend(prior or self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
+            from .run_checkpoints import record
+            record(self,c,run,cv,phase,'publication')
         return results
 
     def stop_general_budget(self,cap,receipt):
@@ -656,6 +674,8 @@ class Products:
                 run.execution.provider_observation='received'
                 run.execution.evidence_origin=origin
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             self._event(c,p,run.workspace_id,'general_budget_stop',run.id)
             acknowledge(c,run.workspace_id,run.id)
         observed=self.get_run(p,run.workspace_id,run.id)

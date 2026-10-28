@@ -1,0 +1,45 @@
+{
+  "verdict": "PASS bounded A14 correction",
+  "source_files": 611,
+  "source_manifest_sha256": "194d317f63fdf7fea4dadc38c6a6377a7196a8c02c74fc8da9db230f8b205c07",
+  "delta_files": 2,
+  "frontend_tests": 514,
+  "frontend_failures_errors_skips": [
+    0,
+    0,
+    0
+  ],
+  "serial_gates": "PASS",
+  "independent_review": "PASS A14-R2-POLL",
+  "independent_review_sha256": "82358ed3b7e8dc86c3b916f76059be11b841a16a3dfbb2a75b3cbd29cf71fb65",
+  "retained5d_evidence_files": 126,
+  "retained_prior_evidence_files": {
+    "5b": 167,
+    "5c": 170
+  },
+  "retained_browser_relevance": "Only poll application guard changed; auth/storage/proxy/SSE/staging/command implementations unchanged. Previous actual principal-only/endpoint-only/active-revocation journeys retained by exact hashes. New current-build smoke exercises changed polling boundary with controlled transport/session faults.",
+  "a28_a35_relevance": "No acceptance/source-editor/API mutations changed. Only stale poll results refused before callbacks; same-scope cursor/dedup independently proven. Prior narrow A28/A35 report unchanged.",
+  "services": [
+    {
+      "session": "b2r5b-api",
+      "pid": 4089836,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "argv": "backend/.venv/bin/python docs/evidence/batch2-recovery5d/fixture.py api local-human 18965 "
+    },
+    {
+      "session": "b2r5b-web",
+      "pid": 4139215,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "argv": "next-server (v16.3.4)                                                       "
+    }
+  ],
+  "build_id": "UVAOGiCFyNJ75OIYY_jOz",
+  "provider_new_calls": 0,
+  "provider_new_spend": 0,
+  "state_audit": "11 tables exact unchanged including memberships/source_access/conversations/provider/grant/ledger/dispatch",
+  "secret_scan_files": 77,
+  "secret_matches": [],
+  "batch2_complete": false,
+  "publication": "HOLD",
+  "other_cards_changed": false
+}

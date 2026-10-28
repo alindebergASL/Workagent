@@ -1,0 +1,17 @@
+21bc73963492b2486808d47d78db9aa4d36c5b9b379d9bf7daffffaadea23faa  src/lib/client/work-stream.ts
+879a968dae7bf29354cc2106ca2b13aa41d150e29779663253ccc858510d5591  test/poll-scope.test.ts
+cmd: timeout 100 ./node_modules/.bin/vitest run test/poll-scope.test.ts test/scope-races.test.ts test/work-events.test.ts test/client-scope.test.ts
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/web
+
+
+ Test Files  4 passed (4)
+      Tests  56 passed (56)
+   Start at  23:39:41
+   Duration  8.96s (transform 37%, tests 32%, import 24%, setup 5%, worker 1%)
+
+  Transform  transforming modules took 2.34s · 37% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+exit=0

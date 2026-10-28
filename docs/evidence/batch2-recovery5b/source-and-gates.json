@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-26T21:24:55.474297+00:00",
+  "branch": "hermes/b2-conversational-client",
+  "head": "c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d",
+  "source_files": 602,
+  "changed_files": 9,
+  "backend_contract_fixture_hashes_unchanged": true,
+  "source_manifest_sha256": "1a969241aa7dfba5f77cf7382f2c521cb1d5fd12bb1ce831e230968fba89017f",
+  "build_id": "QYSOsf1fGiwGI2V4cX-Yt",
+  "tests": {
+    "frontend-final": {
+      "tests": 473,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "frontend-text-final": {
+      "tests": 476,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    "frontend-stop-final": {
+      "tests": 481,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    }
+  },
+  "commands": [
+    {
+      "log": "lint-stop.log",
+      "sha256": "5884bc2512011165b3827b37f791848efac60288cebf32e29c37781d7a6be459",
+      "exit": 0
+    },
+    {
+      "log": "format-stop.log",
+      "sha256": "e46246e81e6aa69ec7c73f371e500982bdf9acfaf6374a8451171a8bf7df23a4",
+      "exit": 0
+    },
+    {
+      "log": "build-stop.log",
+      "sha256": "62c28002dc9704e473518eea9831d831ab6628834ad27a6eeed5b6dcb5ab40c1",
+      "exit": 0
+    }
+  ],
+  "diff_check_exit": 0
+}

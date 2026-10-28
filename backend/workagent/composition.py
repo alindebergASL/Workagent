@@ -241,7 +241,13 @@ def context_catalog(continuity=False):
 
 
 def _discover(decision,context):
-    return discovery('saved_work_discovery' in context)
+    result=discovery('saved_work_discovery' in context)
+    if 'retained_results' in context:
+        from .retained_results import descriptor
+        result['capabilities'].append(descriptor())
+        from .original_attachments import descriptor as attachment_descriptor
+        result['capabilities'].append(attachment_descriptor())
+    return result
 
 
 def _load(decision,context):

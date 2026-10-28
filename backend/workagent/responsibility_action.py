@@ -155,9 +155,13 @@ def stage(service,c,cap,receipt,phase,resolved,ledger):
             (encoded(saved),run.workspace_id,assignment.id))
     staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
             'mutation_result':result.model_dump(mode='json')}
-    staged.update(stage_metadata(c,ledger,phase,selected(c,ledger,phase,alpha=True),operation,
-        staged,config['responses']['max_steps'],message,base,alpha=True))
+    from .composition import continuity_enabled
+    continuity=continuity_enabled(config)
+    staged.update(stage_metadata(c,ledger,phase,selected(c,ledger,phase,alpha=True,continuity=continuity),operation,
+        staged,config['responses']['max_steps'],message,base,alpha=True,continuity=continuity))
     ledger.event(c,phase,'tool_result',staged)
+    from .run_checkpoints import record
+    record(service,c,run,cv,phase,'stage')
     # Re-resolve the original immutable receipt after our own mutation, including
     # current exact target and all source/grant/lease checks. Failure rolls back.
     from .general_responses import resolve_selection
@@ -270,4 +274,9 @@ def apply_advance(service,c,run,config):
               'responsibility_fence=responsibility_fence+1 WHERE workspace_id=%s AND id=%s',
               (encoded(a.model_dump(mode='json',exclude={'responsibility'})),encoded(life),run.workspace_id,a.id))
     service._event(c,p,run.workspace_id,'responsibility_advanced',a.id)
+    from .run_checkpoints import record
+    from .models import Conversation
+    cv=Conversation.model_validate(c.execute('SELECT data FROM conversations WHERE workspace_id=%s AND id=%s',
+        (run.workspace_id,run.conversation_id)).fetchone()['data'])
+    record(service,c,run,cv,'final','responsibility')
     return True

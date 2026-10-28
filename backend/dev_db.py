@@ -39,7 +39,15 @@ def provision(env_file):
         c.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(sql.Identifier(runtime)))
         mutable=['assignments','assignment_sources','artifacts','revisions','proposals','tasks','task_inspections','commands','audit','outbox','runs','run_configurations','run_contexts','run_dispatches','provider_attempts','run_publications','responses_steps','responses_events','responses_consumer_uses','conversations','conversation_sources','conversation_messages','product_observations']
         c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.SQL(',').join(map(sql.Identifier,mutable)),sql.Identifier(runtime)))
+        for table in ['run_checkpoints','run_successors','conversation_intents','retained_result_reads','conversation_documents']:
+            if c.execute('SELECT to_regclass(%s)',('public.'+table,)).fetchone()[0]:
+                c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.Identifier(table),sql.Identifier(runtime)))
+        if c.execute("SELECT to_regclass('public.conversation_intents')").fetchone()[0]:
+            c.execute(sql.SQL('GRANT UPDATE ON conversation_intents TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT UPDATE ON assignments,artifacts,proposals,outbox,runs,run_dispatches,runtime_configuration,provider_attempts,conversations TO {}').format(sql.Identifier(runtime)))
+        # Prefix-upgrade tests provision historical schemas through this helper.
+        if c.execute("SELECT to_regclass('public.work_attention_seen')").fetchone()[0]:
+            c.execute(sql.SQL('GRANT INSERT,UPDATE ON work_attention_seen TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT USAGE ON SEQUENCE run_dispatches_cursor_seq TO {}').format(sql.Identifier(runtime)))
         # PostgreSQL SELECT FOR SHARE/UPDATE requires UPDATE privilege on >=1 column.
         # No ability to change authority/content: grant UPDATE on invariant keys only;

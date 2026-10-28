@@ -1,0 +1,233 @@
+{
+  "started": "2026-10-26T22:01:44.392Z",
+  "posts": [],
+  "reads": [
+    {
+      "path": "/conversations/e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 200,
+      "body": {
+        "conversation": {
+          "work_area": null,
+          "updated_at": "2026-10-26T22:00:51.881717Z",
+          "last_message_preview": null,
+          "execution_profile": "general-controlled-v1",
+          "model_activation": "disabled",
+          "id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+          "workspace_id": "recovery5c-scope",
+          "owner_id": "local-human",
+          "title": "Scope A synthetic draft",
+          "work_version": 1,
+          "state": "open",
+          "selected_source_refs": [],
+          "created_at": "2026-10-26T22:00:51.881717Z"
+        },
+        "messages": [],
+        "runs": [],
+        "assignment_ids": [],
+        "artifact_ids": [],
+        "turns": []
+      }
+    },
+    {
+      "path": "/conversations/49c2aa0f-1a97-4207-8394-b275dce2a4b4",
+      "status": 200,
+      "body": {
+        "conversation": {
+          "work_area": null,
+          "updated_at": "2026-10-26T22:00:51.935569Z",
+          "last_message_preview": null,
+          "execution_profile": "general-controlled-v1",
+          "model_activation": "disabled",
+          "id": "49c2aa0f-1a97-4207-8394-b275dce2a4b4",
+          "workspace_id": "recovery5c-scope",
+          "owner_id": "local-human",
+          "title": "Scope B no draft",
+          "work_version": 1,
+          "state": "open",
+          "selected_source_refs": [],
+          "created_at": "2026-10-26T22:00:51.935569Z"
+        },
+        "messages": [],
+        "runs": [],
+        "assignment_ids": [],
+        "artifact_ids": [],
+        "turns": []
+      }
+    },
+    {
+      "path": "/conversations/e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 200,
+      "body": {
+        "conversation": {
+          "work_area": null,
+          "updated_at": "2026-10-26T22:00:51.881717Z",
+          "last_message_preview": null,
+          "execution_profile": "general-controlled-v1",
+          "model_activation": "disabled",
+          "id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+          "workspace_id": "recovery5c-scope",
+          "owner_id": "local-human",
+          "title": "Scope A synthetic draft",
+          "work_version": 1,
+          "state": "open",
+          "selected_source_refs": [],
+          "created_at": "2026-10-26T22:00:51.881717Z"
+        },
+        "messages": [],
+        "runs": [],
+        "assignment_ids": [],
+        "artifact_ids": [],
+        "turns": []
+      }
+    },
+    {
+      "path": "/work-snapshot?conversation_id=e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "status": 200,
+      "body": {
+        "schema_version": "workagent/work-v1",
+        "conversation_id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+        "work_version": 1,
+        "access_generation": 1,
+        "checked_at": "2026-10-26T22:02:17.485534Z",
+        "snapshot_cursor": "d4dab115-4e43-4eb4-b1d7-de0dfcf15947.1.e663FGlXAmMJOepyw0C0SvguW6x6CwNDUm05GULePNc",
+        "execution": {
+          "run_id": null,
+          "state": "idle",
+          "reason": null,
+          "phase": null,
+          "admitted_at": null,
+          "last_progress_at": null,
+          "worker_observed_at": null,
+          "worker_live": false,
+          "admission": "not_admitted"
+        },
+        "responsibility": [],
+        "artifacts": [],
+        "pending_proposals": []
+      }
+    }
+  ],
+  "checks": [
+    "Different conversation hides exact draft and staged bytes",
+    "Actual web proxy restart uses API 18966",
+    "Actual web proxy restart uses API 18965"
+  ],
+  "failures": [
+    "CONFIRMED: switching actual backend endpoint+authenticated principal on same browser origin exposes previous principal draft/staged document. Client PRINCIPAL is build-time local-human; scope lacks endpoint identity."
+  ],
+  "before": {
+    "status": 200,
+    "body": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T22:00:51.881717Z",
+        "last_message_preview": null,
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+        "workspace_id": "recovery5c-scope",
+        "owner_id": "local-human",
+        "title": "Scope A synthetic draft",
+        "work_version": 1,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T22:00:51.881717Z"
+      },
+      "messages": [],
+      "runs": [],
+      "assignment_ids": [],
+      "artifact_ids": [],
+      "turns": []
+    }
+  },
+  "staged": [
+    {
+      "key": "local-human:recovery5c-scope:conversation:e46f5bcc-2187-4ea4-a04d-f39408100b94|0ce60743-bfb1-459f-ac14-686bf1f2e2e8",
+      "scope": "local-human:recovery5c-scope:conversation:e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "generation": "0ce60743-bfb1-459f-ac14-686bf1f2e2e8",
+      "staged_at": 1793052111878,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "local",
+      "ref": null,
+      "upload": null,
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "after_switch": {
+    "status": 200,
+    "body": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T22:00:51.881717Z",
+        "last_message_preview": null,
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+        "workspace_id": "recovery5c-scope",
+        "owner_id": "local-human",
+        "title": "Scope A synthetic draft",
+        "work_version": 1,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T22:00:51.881717Z"
+      },
+      "messages": [],
+      "runs": [],
+      "assignment_ids": [],
+      "artifact_ids": [],
+      "turns": []
+    }
+  },
+  "foreign_workspace_status": 404,
+  "principal_b_draft": "  Principal A private synthetic draft 雪\nnot shared ♪\n",
+  "principal_b_staged": [
+    {
+      "key": "local-human:recovery5c-scope:conversation:e46f5bcc-2187-4ea4-a04d-f39408100b94|0ce60743-bfb1-459f-ac14-686bf1f2e2e8",
+      "scope": "local-human:recovery5c-scope:conversation:e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "generation": "0ce60743-bfb1-459f-ac14-686bf1f2e2e8",
+      "staged_at": 1793052111878,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "local",
+      "ref": null,
+      "upload": null,
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "principal_b_visible_staged": 0,
+  "snapshot_before": {
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "e46f5bcc-2187-4ea4-a04d-f39408100b94",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-26T22:02:17.485534Z",
+      "snapshot_cursor": "d4dab115-4e43-4eb4-b1d7-de0dfcf15947.1.e663FGlXAmMJOepyw0C0SvguW6x6CwNDUm05GULePNc",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [],
+      "pending_proposals": []
+    }
+  },
+  "status": "HARNESS_OR_PRODUCT_FAILURE",
+  "error": "TypeError: fetch failed\n    at node:internal/deps/undici/undici:14976:13\n    at async get (file:///home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5c/scope-browser.mjs:9:32)\n    at async expect.poll.timeout (file:///home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5c/scope-browser.mjs:37:30)\n    at async /home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13387:19\n    at async raceAgainstDeadline (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:4272:10)\n    at async pollAgainstDeadline (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:4293:22)\n    at async invokePollMatcher (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13384:18)\n    at async file:///home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5c/scope-browser.mjs:37:2",
+  "finished": "2026-10-26T22:02:24.188Z"
+}

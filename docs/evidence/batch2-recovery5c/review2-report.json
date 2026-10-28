@@ -1,0 +1,1365 @@
+{
+  "phase": "review",
+  "started": "2026-10-26T21:54:12.728Z",
+  "checks": [
+    "Newer candidate arrives during open browser review; exact-review consent resets",
+    "Actual browser consent-bearing stale-base POST rejected409; all26 rows retained"
+  ],
+  "reads": [
+    {
+      "path": "/artifacts/02e52df5-7ca8-499b-a8eb-a7244d408a86/proposals",
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "id": "da95864f-4b81-4017-a10d-0b4f8364132b",
+            "workspace_id": "recovery5c-workspace",
+            "assignment_id": null,
+            "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+            "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+            "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+            "base_work_version": 1,
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Recovery5c removals",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [],
+              "notes": []
+            },
+            "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+            "source_dependencies": [],
+            "reason": "Synthetic review candidate",
+            "status": "pending",
+            "accepted_revision_id": null,
+            "created_at": "2026-10-26T21:48:31.669121Z",
+            "review": {
+              "latest_pending_proposal_id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+              "is_latest": false,
+              "removed_content": [
+                {
+                  "path": "/rows/row-00",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+                },
+                {
+                  "path": "/rows/row-01",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+                },
+                {
+                  "path": "/rows/row-02",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+                },
+                {
+                  "path": "/rows/row-03",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+                },
+                {
+                  "path": "/rows/row-04",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+                },
+                {
+                  "path": "/rows/row-05",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+                },
+                {
+                  "path": "/rows/row-06",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+                },
+                {
+                  "path": "/rows/row-07",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+                },
+                {
+                  "path": "/rows/row-08",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+                },
+                {
+                  "path": "/rows/row-09",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+                },
+                {
+                  "path": "/rows/row-10",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+                },
+                {
+                  "path": "/rows/row-11",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+                },
+                {
+                  "path": "/rows/row-12",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+                },
+                {
+                  "path": "/rows/row-13",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+                },
+                {
+                  "path": "/rows/row-14",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+                },
+                {
+                  "path": "/rows/row-15",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+                },
+                {
+                  "path": "/rows/row-16",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+                },
+                {
+                  "path": "/rows/row-17",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+                },
+                {
+                  "path": "/rows/row-18",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+                },
+                {
+                  "path": "/rows/row-19",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+                }
+              ],
+              "removed_content_count": 26
+            }
+          },
+          {
+            "id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+            "workspace_id": "recovery5c-workspace",
+            "assignment_id": null,
+            "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+            "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+            "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+            "base_work_version": 1,
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Recovery5c removals",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [],
+              "notes": []
+            },
+            "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+            "source_dependencies": [],
+            "reason": "Synthetic review candidate",
+            "status": "pending",
+            "accepted_revision_id": null,
+            "created_at": "2026-10-26T21:52:52.973551Z",
+            "review": {
+              "latest_pending_proposal_id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+              "is_latest": true,
+              "removed_content": [
+                {
+                  "path": "/rows/row-00",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+                },
+                {
+                  "path": "/rows/row-01",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+                },
+                {
+                  "path": "/rows/row-02",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+                },
+                {
+                  "path": "/rows/row-03",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+                },
+                {
+                  "path": "/rows/row-04",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+                },
+                {
+                  "path": "/rows/row-05",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+                },
+                {
+                  "path": "/rows/row-06",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+                },
+                {
+                  "path": "/rows/row-07",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+                },
+                {
+                  "path": "/rows/row-08",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+                },
+                {
+                  "path": "/rows/row-09",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+                },
+                {
+                  "path": "/rows/row-10",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+                },
+                {
+                  "path": "/rows/row-11",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+                },
+                {
+                  "path": "/rows/row-12",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+                },
+                {
+                  "path": "/rows/row-13",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+                },
+                {
+                  "path": "/rows/row-14",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+                },
+                {
+                  "path": "/rows/row-15",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+                },
+                {
+                  "path": "/rows/row-16",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+                },
+                {
+                  "path": "/rows/row-17",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+                },
+                {
+                  "path": "/rows/row-18",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+                },
+                {
+                  "path": "/rows/row-19",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+                }
+              ],
+              "removed_content_count": 26
+            }
+          }
+        ],
+        "next_cursor": null
+      }
+    },
+    {
+      "path": "/artifacts/02e52df5-7ca8-499b-a8eb-a7244d408a86/proposals",
+      "status": 200,
+      "body": {
+        "items": [
+          {
+            "id": "6a728c49-ea2e-445f-b920-567a12875ac5",
+            "workspace_id": "recovery5c-workspace",
+            "assignment_id": null,
+            "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+            "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+            "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+            "base_work_version": 1,
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Recovery5c removals",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [],
+              "notes": []
+            },
+            "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+            "source_dependencies": [],
+            "reason": "Synthetic review candidate",
+            "status": "pending",
+            "accepted_revision_id": null,
+            "created_at": "2026-10-26T21:54:23.795513Z",
+            "review": {
+              "latest_pending_proposal_id": "6a728c49-ea2e-445f-b920-567a12875ac5",
+              "is_latest": true,
+              "removed_content": [
+                {
+                  "path": "/rows/row-00",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+                },
+                {
+                  "path": "/rows/row-01",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+                },
+                {
+                  "path": "/rows/row-02",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+                },
+                {
+                  "path": "/rows/row-03",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+                },
+                {
+                  "path": "/rows/row-04",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+                },
+                {
+                  "path": "/rows/row-05",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+                },
+                {
+                  "path": "/rows/row-06",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+                },
+                {
+                  "path": "/rows/row-07",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+                },
+                {
+                  "path": "/rows/row-08",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+                },
+                {
+                  "path": "/rows/row-09",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+                },
+                {
+                  "path": "/rows/row-10",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+                },
+                {
+                  "path": "/rows/row-11",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+                },
+                {
+                  "path": "/rows/row-12",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+                },
+                {
+                  "path": "/rows/row-13",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+                },
+                {
+                  "path": "/rows/row-14",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+                },
+                {
+                  "path": "/rows/row-15",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+                },
+                {
+                  "path": "/rows/row-16",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+                },
+                {
+                  "path": "/rows/row-17",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+                },
+                {
+                  "path": "/rows/row-18",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+                },
+                {
+                  "path": "/rows/row-19",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+                }
+              ],
+              "removed_content_count": 26
+            }
+          },
+          {
+            "id": "da95864f-4b81-4017-a10d-0b4f8364132b",
+            "workspace_id": "recovery5c-workspace",
+            "assignment_id": null,
+            "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+            "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+            "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+            "base_work_version": 1,
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Recovery5c removals",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [],
+              "notes": []
+            },
+            "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+            "source_dependencies": [],
+            "reason": "Synthetic review candidate",
+            "status": "pending",
+            "accepted_revision_id": null,
+            "created_at": "2026-10-26T21:48:31.669121Z",
+            "review": {
+              "latest_pending_proposal_id": "6a728c49-ea2e-445f-b920-567a12875ac5",
+              "is_latest": false,
+              "removed_content": [
+                {
+                  "path": "/rows/row-00",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+                },
+                {
+                  "path": "/rows/row-01",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+                },
+                {
+                  "path": "/rows/row-02",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+                },
+                {
+                  "path": "/rows/row-03",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+                },
+                {
+                  "path": "/rows/row-04",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+                },
+                {
+                  "path": "/rows/row-05",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+                },
+                {
+                  "path": "/rows/row-06",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+                },
+                {
+                  "path": "/rows/row-07",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+                },
+                {
+                  "path": "/rows/row-08",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+                },
+                {
+                  "path": "/rows/row-09",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+                },
+                {
+                  "path": "/rows/row-10",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+                },
+                {
+                  "path": "/rows/row-11",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+                },
+                {
+                  "path": "/rows/row-12",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+                },
+                {
+                  "path": "/rows/row-13",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+                },
+                {
+                  "path": "/rows/row-14",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+                },
+                {
+                  "path": "/rows/row-15",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+                },
+                {
+                  "path": "/rows/row-16",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+                },
+                {
+                  "path": "/rows/row-17",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+                },
+                {
+                  "path": "/rows/row-18",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+                },
+                {
+                  "path": "/rows/row-19",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+                }
+              ],
+              "removed_content_count": 26
+            }
+          },
+          {
+            "id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+            "workspace_id": "recovery5c-workspace",
+            "assignment_id": null,
+            "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+            "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+            "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+            "base_work_version": 1,
+            "body": {
+              "kind": "structured_table",
+              "version": "structured-table/v1",
+              "title": "Recovery5c removals",
+              "fields": [
+                {
+                  "key": "plant",
+                  "label": "Plant",
+                  "type": "text",
+                  "editable": true,
+                  "unit": null,
+                  "scale": null,
+                  "enum": null
+                },
+                {
+                  "key": "height",
+                  "label": "Height",
+                  "type": "decimal",
+                  "editable": true,
+                  "unit": "cm",
+                  "scale": 1,
+                  "enum": null
+                }
+              ],
+              "rows": [],
+              "notes": []
+            },
+            "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+            "source_dependencies": [],
+            "reason": "Synthetic review candidate",
+            "status": "pending",
+            "accepted_revision_id": null,
+            "created_at": "2026-10-26T21:52:52.973551Z",
+            "review": {
+              "latest_pending_proposal_id": "6a728c49-ea2e-445f-b920-567a12875ac5",
+              "is_latest": false,
+              "removed_content": [
+                {
+                  "path": "/rows/row-00",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+                },
+                {
+                  "path": "/rows/row-01",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+                },
+                {
+                  "path": "/rows/row-02",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+                },
+                {
+                  "path": "/rows/row-03",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+                },
+                {
+                  "path": "/rows/row-04",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+                },
+                {
+                  "path": "/rows/row-05",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+                },
+                {
+                  "path": "/rows/row-06",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+                },
+                {
+                  "path": "/rows/row-07",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+                },
+                {
+                  "path": "/rows/row-08",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+                },
+                {
+                  "path": "/rows/row-09",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+                },
+                {
+                  "path": "/rows/row-10",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+                },
+                {
+                  "path": "/rows/row-11",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+                },
+                {
+                  "path": "/rows/row-12",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+                },
+                {
+                  "path": "/rows/row-13",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+                },
+                {
+                  "path": "/rows/row-14",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+                },
+                {
+                  "path": "/rows/row-15",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+                },
+                {
+                  "path": "/rows/row-16",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+                },
+                {
+                  "path": "/rows/row-17",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+                },
+                {
+                  "path": "/rows/row-18",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+                },
+                {
+                  "path": "/rows/row-19",
+                  "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+                }
+              ],
+              "removed_content_count": 26
+            }
+          }
+        ],
+        "next_cursor": null
+      }
+    },
+    {
+      "path": "/artifacts/02e52df5-7ca8-499b-a8eb-a7244d408a86",
+      "status": 200,
+      "body": {
+        "id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+        "current_revision_id": "d6ed1b29-72cd-4e9f-af9c-da53a65146b4",
+        "current_revision": {
+          "id": "d6ed1b29-72cd-4e9f-af9c-da53a65146b4",
+          "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+          "revision_number": 3,
+          "parent_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c removals",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "row-00",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 00"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-01",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 01"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-02",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 02"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-03",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 03"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-04",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 04"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-05",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 05"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-06",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 06"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-07",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 07"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-08",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 08"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-09",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 09"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-10",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 10"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-11",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 11"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-12",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 12"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-13",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 13"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-14",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 14"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-15",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 15"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-16",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 16"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-17",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 17"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-18",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 18"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-19",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 19"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-20",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 20"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-21",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 21"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-22",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 22"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-23",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 23"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-24",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 24"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              },
+              {
+                "row_id": "row-25",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Plant 25"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Human concurrent correction: keep exact base fence."
+            ]
+          },
+          "body_hash": "42c5b3e363d374ede6270769cc5964380aa0b2a55bf4b843ff986c23cea323b5",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:54:35.207318Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T21:54:36.674560Z"
+      }
+    }
+  ],
+  "posts": [
+    {
+      "path": "/api/domain/v1/workspaces/recovery5c-workspace/proposals/6a728c49-ea2e-445f-b920-567a12875ac5/accept",
+      "payload": "{\"schema_version\":\"workagent/v1\",\"request_id\":\"e022b2c2-fb4f-45f1-b004-f93522bc90e1\",\"command_id\":\"0a642645-3251-4b53-93af-4b9d9c1eb715\",\"expected_current_revision_id\":\"9959c6bb-ea62-4ede-b990-b7af01e7ecb5\",\"acknowledge_removed_content\":true,\"acknowledge_older_proposal\":false}"
+    }
+  ],
+  "errors": [],
+  "initial_proposals": {
+    "items": [
+      {
+        "id": "da95864f-4b81-4017-a10d-0b4f8364132b",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+        "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+        "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+        "base_work_version": 1,
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c removals",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [],
+          "notes": []
+        },
+        "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+        "source_dependencies": [],
+        "reason": "Synthetic review candidate",
+        "status": "pending",
+        "accepted_revision_id": null,
+        "created_at": "2026-10-26T21:48:31.669121Z",
+        "review": {
+          "latest_pending_proposal_id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+          "is_latest": false,
+          "removed_content": [
+            {
+              "path": "/rows/row-00",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+            },
+            {
+              "path": "/rows/row-01",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+            },
+            {
+              "path": "/rows/row-02",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+            },
+            {
+              "path": "/rows/row-03",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+            },
+            {
+              "path": "/rows/row-04",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+            },
+            {
+              "path": "/rows/row-05",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+            },
+            {
+              "path": "/rows/row-06",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+            },
+            {
+              "path": "/rows/row-07",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+            },
+            {
+              "path": "/rows/row-08",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+            },
+            {
+              "path": "/rows/row-09",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+            },
+            {
+              "path": "/rows/row-10",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+            },
+            {
+              "path": "/rows/row-11",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+            },
+            {
+              "path": "/rows/row-12",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+            },
+            {
+              "path": "/rows/row-13",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+            },
+            {
+              "path": "/rows/row-14",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+            },
+            {
+              "path": "/rows/row-15",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+            },
+            {
+              "path": "/rows/row-16",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+            },
+            {
+              "path": "/rows/row-17",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+            },
+            {
+              "path": "/rows/row-18",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+            },
+            {
+              "path": "/rows/row-19",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+            }
+          ],
+          "removed_content_count": 26
+        }
+      },
+      {
+        "id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+        "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+        "base_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+        "base_work_version": 1,
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c removals",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [],
+          "notes": []
+        },
+        "body_hash": "3f78e38bb6ae2b1fdc9d5087d03492f2aca30d3208da79604ef05cd5c33ff74e",
+        "source_dependencies": [],
+        "reason": "Synthetic review candidate",
+        "status": "pending",
+        "accepted_revision_id": null,
+        "created_at": "2026-10-26T21:52:52.973551Z",
+        "review": {
+          "latest_pending_proposal_id": "e7bb70f5-e8b2-4927-a037-5a2e2c28a509",
+          "is_latest": true,
+          "removed_content": [
+            {
+              "path": "/rows/row-00",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 00\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-00\"}"
+            },
+            {
+              "path": "/rows/row-01",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 01\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-01\"}"
+            },
+            {
+              "path": "/rows/row-02",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 02\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-02\"}"
+            },
+            {
+              "path": "/rows/row-03",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 03\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-03\"}"
+            },
+            {
+              "path": "/rows/row-04",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 04\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-04\"}"
+            },
+            {
+              "path": "/rows/row-05",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 05\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-05\"}"
+            },
+            {
+              "path": "/rows/row-06",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 06\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-06\"}"
+            },
+            {
+              "path": "/rows/row-07",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 07\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-07\"}"
+            },
+            {
+              "path": "/rows/row-08",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 08\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-08\"}"
+            },
+            {
+              "path": "/rows/row-09",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 09\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-09\"}"
+            },
+            {
+              "path": "/rows/row-10",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 10\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-10\"}"
+            },
+            {
+              "path": "/rows/row-11",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 11\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-11\"}"
+            },
+            {
+              "path": "/rows/row-12",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 12\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-12\"}"
+            },
+            {
+              "path": "/rows/row-13",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 13\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-13\"}"
+            },
+            {
+              "path": "/rows/row-14",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 14\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-14\"}"
+            },
+            {
+              "path": "/rows/row-15",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 15\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-15\"}"
+            },
+            {
+              "path": "/rows/row-16",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 16\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-16\"}"
+            },
+            {
+              "path": "/rows/row-17",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 17\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-17\"}"
+            },
+            {
+              "path": "/rows/row-18",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 18\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-18\"}"
+            },
+            {
+              "path": "/rows/row-19",
+              "before": "{\"cells\":[{\"field_key\":\"plant\",\"value\":\"Plant 19\"},{\"field_key\":\"height\",\"value\":\"12.5\"}],\"row_id\":\"row-19\"}"
+            }
+          ],
+          "removed_content_count": 26
+        }
+      }
+    ],
+    "next_cursor": null
+  },
+  "truncation": {
+    "total": 26,
+    "server_sample": 20,
+    "omitted": 6
+  },
+  "stale": {
+    "payload": {
+      "schema_version": "workagent/v1",
+      "request_id": "e022b2c2-fb4f-45f1-b004-f93522bc90e1",
+      "command_id": "0a642645-3251-4b53-93af-4b9d9c1eb715",
+      "expected_current_revision_id": "9959c6bb-ea62-4ede-b990-b7af01e7ecb5",
+      "acknowledge_removed_content": true,
+      "acknowledge_older_proposal": false
+    },
+    "status": 409,
+    "body": {
+      "code": "version_conflict",
+      "message": "The current version changed.",
+      "request_id": "e022b2c2-fb4f-45f1-b004-f93522bc90e1",
+      "next_action": "Refresh current work and review a new proposal against that base.",
+      "details": {
+        "current_revision_id": "d6ed1b29-72cd-4e9f-af9c-da53a65146b4",
+        "current_version": null,
+        "proposal_id": "6a728c49-ea2e-445f-b920-567a12875ac5",
+        "fields": []
+      }
+    }
+  },
+  "status": "PASS",
+  "finished": "2026-10-26T21:54:37.040Z"
+}

@@ -55,7 +55,8 @@ def test_predispatch_revoke_blocks_send_and_keeps_reservation(context,tmp_path):
     with pytest.raises(Exception):w.work(p,ws,q.run.id)
     assert len(fake.responses)==0 and len(fake.calls)==1
     assert totals(s,g)['request_counts']['dispatch']==1
-    assert totals(s,g)['reserved_input_tokens']==20000
+    # Revocation retains the full current 50k reservation despite no dispatch I/O.
+    assert totals(s,g)['reserved_input_tokens']==50000
     with pytest.raises(Exception):worker(context,fake,tmp_path).work(p,ws,q.run.id)
     assert len(fake.calls)==1
 

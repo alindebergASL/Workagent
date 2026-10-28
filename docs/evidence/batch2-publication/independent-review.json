@@ -1,0 +1,80 @@
+{
+  "passed": true,
+  "security_concerns": [],
+  "logic_errors": [],
+  "summary": "No new publication blocker found in the inspected candidate after the expressly required raw-context exclusion. This is a publication-only review, not renewed product acceptance or verification of a future staged tree, runtime smoke, commit or CI result.",
+  "scope": {
+    "repository": "/home/ubuntu/workagent-continuation-20261026",
+    "branch": "hermes/b2-conversational-client",
+    "head": "228e46148aff6449c689ac7402436e6694d22f41",
+    "changed_tracked_files": 59,
+    "untracked_unignored_files_at_review": 974,
+    "publication_candidate_files_inspected": 1032,
+    "text_files_content_scanned": 924,
+    "binary_files_inventoried_not_visually_reaudited": 108,
+    "candidate_path_set_sha256": "34731e836e099855a281c076f9bfb9aa76a423aa5d97648e16aa8269687c2f4a",
+    "candidate_content_manifest_sha256": "7933973abd1d9fef76a5a6398af3e2931db2d825b8afff32044a9c69af9ba03a",
+    "content_manifest_digest_method": "SHA256 of json.dumps(path-to-file-SHA256 mapping, sort_keys=True). Candidate is git diff HEAD names union untracked/unignored names, excluding the designated raw context and all .local/env paths.",
+    "required_exclusion": "docs/evidence/batch2-recovery5b/baseline-t_ed572e1e/complete-card-context.json",
+    "exclusion_state": "Still present locally and untracked/unignored at review; intentionally omitted from this approved publication scope. Its contents were not read. Parent must keep it out of the staged/public tree.",
+    "private_material": "No .local environment files, private fixture files or private authority stores read. Only the explicitly supplied content-free .local/publication/scan-second.json was read.",
+    "limits": "Static content-free text scanning and targeted publication/reproduction inspection; no image OCR, broad product re-review, tests, builds, services or provider calls. No repository history-wide secret audit. Newly created parent publication proof files after this snapshot are outside this report."
+  },
+  "source_binding": {
+    "manifest": "/home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/source-manifest.json",
+    "manifest_sha256": "42f22d39e8dde9684c6cdfb838f7981291d08bb6c87215e2b4e240f77f5c4c53",
+    "reviewed_accepted_source_files": 630,
+    "exact_current_hash_matches": 630,
+    "mismatches": [],
+    "changed_tracked_manifest_files": 57,
+    "intentional_untracked_manifest_files": 117,
+    "changed_or_untracked_backend_web_contract_files_outside_manifest": [],
+    "review_binding_hash_mismatches": [],
+    "material_review_reuse": "Step2 safety, Step3 paired-client/source impact, and final review-binding.json records covering observer051/native hydration and corrective052/Continue/mobile deltas. Existing acceptance qualifications and inherited budget-test failures remain historical; no whole-suite-green claim."
+  },
+  "scan_assessment": {
+    "prior_changed_matches_after_raw_exclusion": 20,
+    "classification": "Remaining supplied scanner matches are synthetic test credentials, loopback/template URLs, scanner controls, and copies of those fixtures in retained failure logs/patches. An additional bearer-shaped match is synthetic test input. No provider-key or private-key pattern matched the independently scanned changed/untracked text scope.",
+    "session_metadata": "claude-reports.json contains structured result summaries and session identifiers, not a full messages/system-prompt transcript. Session/message-key matches in other evidence are not by themselves credential disclosures. Synthetic product-message evidence was not treated as private user sessions.",
+    "historical_failures": "Preserved. Excluding the expressly identified raw task context must not delete historical red logs, screenshots, receipts or source manifests."
+  },
+  "suggestions": [
+    {
+      "file": "docs/evidence/batch2-recovery5b/baseline-t_ed572e1e/complete-card-context.json",
+      "line": 13,
+      "finding": "Enforce the already agreed exclusion during staging and verify the final staged tree. This path remains untracked/unignored, so an unrestricted git add -A would include it. Line reference comes from the supplied content-free scan, not a reread of raw context. Preserve the local original."
+    },
+    {
+      "file": "backend/migrations/047_work_events.sql",
+      "line": 1,
+      "finding": "Include all 117 intentional untracked files in the accepted 630-file source manifest, not merely tracked diffs. This includes migrations047-052, optional dependency locks, backend/TUI/document modules, web modules and tests. Verify their staged or committed hashes against the acceptance manifest."
+    },
+    {
+      "file": "backend/workagent/document_sandbox.py",
+      "line": 27,
+      "finding": "Publish a concise current reproduction recipe: document packages must exist under backend/.venv-docs, be compatible with /usr/bin/python3, and run with working Linux bubblewrap/prlimit/user namespaces. Optional dependency locks are present, but ordinary backend installation alone does not recreate document extraction. Retained historical environment evidence is not a new runtime smoke; parent owns that check."
+    },
+    {
+      "file": "docs/TUI_AND_ONGOING_WORK.md",
+      "line": 3,
+      "finding": "Label this as historical slice documentation or link a current publication summary. Its starting-base integration warnings and lines161-166 outstanding-proof wording predate the reused accepted evidence. Do not rewrite old failures or imply this old document is the final candidate status."
+    },
+    {
+      "file": ".github/workflows/frontend.yml",
+      "line": 46,
+      "finding": "Keep CI claims scoped: the published workflow uses mock browser coverage and does not reproduce the accepted real PostgreSQL/TUI/document campaigns. Link sanitized acceptance/source bindings and parent runtime-smoke evidence rather than claiming a future green frontend workflow proves the entire batch."
+    },
+    {
+      "file": "docs/evidence/batch2-publication/scan_candidate.py",
+      "line": 28,
+      "finding": "Run the final content-free check against the exact staged/publication allowlist, including new parent proof files. The current scanner inventories tracked files too; a pre-existing tracked .local path was found by name only and deliberately not read. Do not broaden this review into private .local inspection or assume ignore rules remove already tracked material."
+    }
+  ],
+  "execution": {
+    "product_or_document_edits": false,
+    "tests_builds_services_provider_calls": false,
+    "staged_or_committed": false,
+    "only_created_file": ".local/publication/independent-review.json",
+    "tool_issue": "execute_code was denied before execution; ordinary read-only terminal/file tools completed the review."
+  }
+}

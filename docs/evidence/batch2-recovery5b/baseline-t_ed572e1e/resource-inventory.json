@@ -1,0 +1,311 @@
+{
+  "observed_at": "2026-10-27T00:21:37.882642+00:00",
+  "processes": [
+    {
+      "pid": 2688407,
+      "ppid": 716,
+      "comm": "bash",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "start_ticks": "97601688"
+    },
+    {
+      "pid": 2688430,
+      "ppid": 2688407,
+      "comm": "python",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "start_ticks": "97601715"
+    },
+    {
+      "pid": 4089836,
+      "ppid": 93675,
+      "comm": "python",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "start_ticks": "103788335"
+    },
+    {
+      "pid": 4139215,
+      "ppid": 93675,
+      "comm": "next-server (v1",
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "start_ticks": "103972189"
+    }
+  ],
+  "candidate_processes": [
+    {
+      "pid": 754,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 835,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 836,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 889,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 903,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 919,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 953,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 1057,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 1562,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 94121,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 246741,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 260758,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 710919,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 878354,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 907647,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 907775,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 907792,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 907832,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 1633533,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 1647974,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 1651909,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 2290839,
+      "comm": "hermes",
+      "cwd": "/home/ubuntu/.hermes",
+      "source_related": false
+    },
+    {
+      "pid": 2520201,
+      "comm": "hermes",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 3894422,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 4016365,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    },
+    {
+      "pid": 4019585,
+      "comm": "chrome",
+      "cwd": "/home/ubuntu",
+      "source_related": false
+    }
+  ],
+  "writable_source_fds": [],
+  "active_board_cards": [
+    {
+      "id": "t_ed572e1e",
+      "title": "Bind the Batch 2 verification baseline and predecessor handoff",
+      "status": "running"
+    }
+  ],
+  "services": [
+    {
+      "pid": 4089836,
+      "port": 18965,
+      "present": true,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "start_ticks": "103788335",
+      "disposition": "browser child owns reversible dev operation",
+      "argv": [
+        "backend/.venv/bin/python",
+        "docs/evidence/batch2-recovery5d/fixture.py",
+        "api",
+        "local-human",
+        "18965"
+      ],
+      "provider_api_key_names_present": [],
+      "migration_dsn_inherited": true
+    },
+    {
+      "pid": 4139215,
+      "port": 3195,
+      "present": true,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "start_ticks": "103972189",
+      "disposition": "browser child owns reversible dev operation",
+      "argv": [
+        "next-server (v16.3.4)"
+      ],
+      "provider_api_key_names_present": [],
+      "migration_dsn_inherited": true,
+      "backend_matches_18965": true
+    },
+    {
+      "pid": 2688430,
+      "port": 18963,
+      "present": true,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "start_ticks": "97601715",
+      "disposition": "EXCLUDED; leave untouched"
+    },
+    {
+      "pid": 875172,
+      "port": 8152,
+      "present": true,
+      "cwd": "/home/ubuntu/workagent-candidates/general-review-20261023/backend",
+      "start_ticks": "70011888",
+      "disposition": "EXCLUDED; leave untouched"
+    },
+    {
+      "pid": 875173,
+      "port": 3152,
+      "present": true,
+      "cwd": "/home/ubuntu/workagent-candidates/general-review-20261023/web",
+      "start_ticks": "70011888",
+      "disposition": "EXCLUDED; leave untouched"
+    }
+  ],
+  "tmux": [
+    "b2r5b-api 4089836 backend/.venv/bin/python /home/ubuntu/workagent-continuation-20261026",
+    "b2r5b-web 4139215 next-server /home/ubuntu/workagent-continuation-20261026/web",
+    "workagent2 93676 python3 /home/ubuntu"
+  ],
+  "listeners": [
+    "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                       ",
+    "LISTEN 0      200        127.0.0.1:5432       0.0.0.0:*                                                 ",
+    "LISTEN 0      10         127.0.0.1:9222       0.0.0.0:*    users:((\"chrome\",pid=754,fd=73))             ",
+    "LISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                                 ",
+    "LISTEN 0      4096       127.0.0.1:45949      0.0.0.0:*                                                 ",
+    "LISTEN 0      511        127.0.0.1:3152       0.0.0.0:*    users:((\"next-server (v1\",pid=875173,fd=21)) ",
+    "LISTEN 0      511        127.0.0.1:3195       0.0.0.0:*    users:((\"next-server (v1\",pid=4139215,fd=21))",
+    "LISTEN 0      2048       127.0.0.1:8152       0.0.0.0:*    users:((\"python\",pid=875172,fd=6))           ",
+    "LISTEN 0      4096         0.0.0.0:22         0.0.0.0:*                                                 ",
+    "LISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                                 ",
+    "LISTEN 0      2048       127.0.0.1:18963      0.0.0.0:*    users:((\"python\",pid=2688430,fd=6))          ",
+    "LISTEN 0      2048       127.0.0.1:18965      0.0.0.0:*    users:((\"python\",pid=4089836,fd=6))          ",
+    "LISTEN 0      2048       127.0.0.1:39649      0.0.0.0:*    users:((\"hermes\",pid=2290839,fd=32))         ",
+    "LISTEN 0      4096            [::]:22            [::]:*                                                 "
+  ],
+  "disk": {
+    "total": 206900281344,
+    "used": 192095862784,
+    "free": 14787641344
+  },
+  "build_id": "UVAOGiCFyNJ75OIYY_jOz",
+  "dependencies": [
+    {
+      "path": "backend/.venv",
+      "exists": true,
+      "symlink": false,
+      "target": "/home/ubuntu/workagent-continuation-20261026/backend/.venv"
+    },
+    {
+      "path": "backend/.venv-docs",
+      "exists": true,
+      "symlink": false,
+      "target": "/home/ubuntu/workagent-continuation-20261026/backend/.venv-docs"
+    },
+    {
+      "path": "web/node_modules",
+      "exists": true,
+      "symlink": true,
+      "target": "/home/ubuntu/workagent-overnight-20261015/web/node_modules"
+    },
+    {
+      "path": "contracts/node_modules",
+      "exists": true,
+      "symlink": true,
+      "target": "/home/ubuntu/workagent-batch2-20261026/contracts/node_modules"
+    }
+  ],
+  "concurrency_limit": "one build/browser worker: t_ee8a7740 only; t_323eb2d2 read-only audit",
+  "limits": "Process/open-FD observation and stable hashes are point-in-time evidence, not an OS-enforced write lock. Shared Chrome9222 is not task-owned."
+}

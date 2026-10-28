@@ -1,0 +1,58 @@
+{
+  "workspace": "recovery5a-workspace",
+  "principal": "local-human",
+  "conversation": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+  "title": "Community garden continuity",
+  "artifact": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+  "revision": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+  "body_hash": "808afe66fdcbe861d000347b3fed18e116765eae0f48ed4fa048877e3c4f78c3",
+  "human_body": {
+    "kind": "structured_table",
+    "version": "structured-table/v1",
+    "title": "Garden plot options",
+    "fields": [
+      {
+        "key": "plant",
+        "label": "Plant",
+        "type": "text",
+        "editable": true
+      },
+      {
+        "key": "height",
+        "label": "Height",
+        "type": "decimal",
+        "unit": "cm",
+        "scale": 1,
+        "editable": true
+      }
+    ],
+    "rows": [
+      {
+        "row_id": "oak",
+        "cells": [
+          {
+            "field_key": "plant",
+            "value": "Oak"
+          },
+          {
+            "field_key": "height",
+            "value": "12.5"
+          }
+        ]
+      }
+    ],
+    "notes": [
+      "Keep the shaded beds.",
+      "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+    ]
+  },
+  "older_proposal": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+  "latest_proposal": "4d10e31c-945c-4df1-9725-ed584af5b961",
+  "protected_conversation": "83c35686-6645-4866-be46-c0d5ea929e24",
+  "source_ref": {
+    "source_id": "SG-F1",
+    "external_version": "1",
+    "observed_at": "2026-10-26T20:16:53.777688Z"
+  },
+  "evidence_origin": "Synthetic fixture; initial artifact from ControlledTransport, proposals seeded explicitly. No live model results."
+}

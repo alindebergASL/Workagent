@@ -1,0 +1,731 @@
+{
+  "rows": [
+    {
+      "client": "web",
+      "task": "two-file-comparison",
+      "run_id": "5231c88e-f8c9-49ac-abfc-81487689f900",
+      "attempt_id": "8c1bad32-0913-44d0-b746-7d7c44956fa0",
+      "model": "gpt-6.1-sol",
+      "admission_api": {
+        "started": 1793167715.3566613,
+        "ended": 1793167715.917461,
+        "method": "POST",
+        "path": "/v1/workspaces/step4-continuation-tba6057bd/conversations/534bd028-0583-466a-bc47-39d5dc3ea08d/messages",
+        "status": 202,
+        "elapsed_seconds": 0.5607995986938477
+      },
+      "human_message_at": "2026-10-28T06:08:35.608672Z",
+      "answer_persisted_at": "2026-10-28T06:10:15.390921Z",
+      "message_to_answer_seconds": 99.782249,
+      "admission_end_to_first_dispatch_seconds": 10.291942119598389,
+      "final_receipt_to_answer_persist_seconds": 0.8461451530456543,
+      "phases": [
+        {
+          "phase": "selection",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "d45679b62f041126d6a4f2ad2a1a6ec85d8ce5c723c44838c0038ed40bc9747e",
+          "retained_source_context": [
+            {
+              "document_id": "a41e94d4-d95a-4e7d-a251-e3b601fd8f76",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            },
+            {
+              "document_id": "348b04f1-f8c4-4a8f-a0f1-2f40368bd274",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_018ef11977ca3a23006ae1916f865487d0baa16d8391ae9378",
+          "dispatch_at": "2026-10-28 06:08:46.209403+00:00",
+          "result_at": "2026-10-28 06:09:26.790982+00:00",
+          "dispatch_to_terminal_receipt_seconds": 40.581579,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:08:47.354462+00:00",
+              "received_at": "2026-10-28T06:08:48.102576+00:00",
+              "elapsed_seconds": 0.7481141090393066,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_018ef11977ca3a23006ae1916f865487d0baa16d8391ae9378",
+              "sent_at": "2026-10-28T06:08:49.040133+00:00",
+              "received_at": "2026-10-28T06:08:49.257497+00:00",
+              "elapsed_seconds": 0.21736407279968262,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_018ef11977ca3a23006ae1916f865487d0baa16d8391ae9378",
+              "sent_at": "2026-10-28T06:09:02.930593+00:00",
+              "received_at": "2026-10-28T06:09:03.206413+00:00",
+              "elapsed_seconds": 0.2758200168609619,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_018ef11977ca3a23006ae1916f865487d0baa16d8391ae9378",
+              "sent_at": "2026-10-28T06:09:11.416877+00:00",
+              "received_at": "2026-10-28T06:09:11.707656+00:00",
+              "elapsed_seconds": 0.29077887535095215,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_018ef11977ca3a23006ae1916f865487d0baa16d8391ae9378",
+              "sent_at": "2026-10-28T06:09:26.102277+00:00",
+              "received_at": "2026-10-28T06:09:26.448560+00:00",
+              "elapsed_seconds": 0.346282958984375,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:09:27.182992+00:00"
+        },
+        {
+          "phase": "selection_2",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "a6563e8886903c73f37ca8e53097e96d15779aa0382f9171ff05ef0b9e7d522b",
+          "retained_source_context": [
+            {
+              "document_id": "a41e94d4-d95a-4e7d-a251-e3b601fd8f76",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            },
+            {
+              "document_id": "348b04f1-f8c4-4a8f-a0f1-2f40368bd274",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_0ff08ebfd140669c006ae1919e0ff887d082c3e9899f2ff551",
+          "dispatch_at": "2026-10-28 06:09:33.405840+00:00",
+          "result_at": "2026-10-28 06:09:52.967555+00:00",
+          "dispatch_to_terminal_receipt_seconds": 19.561715,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:09:33.970893+00:00",
+              "received_at": "2026-10-28T06:09:34.452809+00:00",
+              "elapsed_seconds": 0.4819161891937256,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0ff08ebfd140669c006ae1919e0ff887d082c3e9899f2ff551",
+              "sent_at": "2026-10-28T06:09:37.896520+00:00",
+              "received_at": "2026-10-28T06:09:38.020028+00:00",
+              "elapsed_seconds": 0.12350821495056152,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0ff08ebfd140669c006ae1919e0ff887d082c3e9899f2ff551",
+              "sent_at": "2026-10-28T06:09:52.112822+00:00",
+              "received_at": "2026-10-28T06:09:52.518908+00:00",
+              "elapsed_seconds": 0.4060859680175781,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:09:53.461844+00:00"
+        },
+        {
+          "phase": "final",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "43487e33a5068e1177c2d7b7a7428efc099e04cea9afbc7b566a3dee9adf5bd6",
+          "retained_source_context": [
+            {
+              "document_id": "a41e94d4-d95a-4e7d-a251-e3b601fd8f76",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            },
+            {
+              "document_id": "348b04f1-f8c4-4a8f-a0f1-2f40368bd274",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_0ff08ebfd140669c006ae191b8301487d08ffdde393aae134c",
+          "dispatch_at": "2026-10-28 06:09:58.828991+00:00",
+          "result_at": "2026-10-28 06:10:14.544776+00:00",
+          "dispatch_to_terminal_receipt_seconds": 15.715785,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:10:00.097654+00:00",
+              "received_at": "2026-10-28T06:10:00.842619+00:00",
+              "elapsed_seconds": 0.7449648380279541,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0ff08ebfd140669c006ae191b8301487d08ffdde393aae134c",
+              "sent_at": "2026-10-28T06:10:14.231280+00:00",
+              "received_at": "2026-10-28T06:10:14.462830+00:00",
+              "elapsed_seconds": 0.23154997825622559,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": null
+        }
+      ],
+      "first_render_seconds": null,
+      "model_compute_seconds": null,
+      "render_qualification": "Original first-paint/first-character instrumentation unavailable. Historical capture is not exact render latency.",
+      "result_capture_upper_bound_seconds_after_answer": 202.85407876968384,
+      "result_capture_at_epoch": 1793168018.245
+    },
+    {
+      "client": "web",
+      "task": "retained-followup",
+      "run_id": "f3f77502-fb06-4b6c-8d70-e7e233523c1d",
+      "attempt_id": "3e6f8194-bd01-4195-bd1d-7a1732a68058",
+      "model": "gpt-6.1-sol",
+      "admission_api": {
+        "started": 1793168305.6765544,
+        "ended": 1793168306.2843432,
+        "method": "POST",
+        "path": "/v1/workspaces/step4-continuation-tba6057bd/conversations/534bd028-0583-466a-bc47-39d5dc3ea08d/messages",
+        "status": 202,
+        "elapsed_seconds": 0.6077888011932373
+      },
+      "human_message_at": "2026-10-28T06:18:25.949303Z",
+      "answer_persisted_at": "2026-10-28T06:19:21.633502Z",
+      "message_to_answer_seconds": 55.684199,
+      "admission_end_to_first_dispatch_seconds": 15.296636819839478,
+      "final_receipt_to_answer_persist_seconds": 0.5034120082855225,
+      "phases": [
+        {
+          "phase": "selection",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "68b1efad81dc8aa54559375de71b4c96912819223fb4d09e16ba3ee97d067314",
+          "retained_source_context": [
+            {
+              "document_id": "a41e94d4-d95a-4e7d-a251-e3b601fd8f76",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            },
+            {
+              "document_id": "348b04f1-f8c4-4a8f-a0f1-2f40368bd274",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_0e5c8605a15083c3006ae193c2781887d0a5dd50be7888b702",
+          "dispatch_at": "2026-10-28 06:18:41.580980+00:00",
+          "result_at": "2026-10-28 06:19:01.214422+00:00",
+          "dispatch_to_terminal_receipt_seconds": 19.633442,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:18:42.362251+00:00",
+              "received_at": "2026-10-28T06:18:43.005041+00:00",
+              "elapsed_seconds": 0.6427898406982422,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0e5c8605a15083c3006ae193c2781887d0a5dd50be7888b702",
+              "sent_at": "2026-10-28T06:18:46.502346+00:00",
+              "received_at": "2026-10-28T06:18:46.655904+00:00",
+              "elapsed_seconds": 0.15355801582336426,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0e5c8605a15083c3006ae193c2781887d0a5dd50be7888b702",
+              "sent_at": "2026-10-28T06:19:00.544507+00:00",
+              "received_at": "2026-10-28T06:19:00.848954+00:00",
+              "elapsed_seconds": 0.3044469356536865,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:19:01.988243+00:00"
+        },
+        {
+          "phase": "final",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "2aacf944e5dce5c2fa5d3291e74e17d9b69ee2b8e1476f9575be6100b38b012b",
+          "retained_source_context": [
+            {
+              "document_id": "a41e94d4-d95a-4e7d-a251-e3b601fd8f76",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            },
+            {
+              "document_id": "348b04f1-f8c4-4a8f-a0f1-2f40368bd274",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "05b37706-96f4-4e12-ad29-767a85207741"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_0e5c8605a15083c3006ae193dc31cc87d08a7f78c37ea2d264",
+          "dispatch_at": "2026-10-28 06:19:07.220004+00:00",
+          "result_at": "2026-10-28 06:19:21.130090+00:00",
+          "dispatch_to_terminal_receipt_seconds": 13.910086,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:19:08.110647+00:00",
+              "received_at": "2026-10-28T06:19:08.503842+00:00",
+              "elapsed_seconds": 0.39319515228271484,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_0e5c8605a15083c3006ae193dc31cc87d08a7f78c37ea2d264",
+              "sent_at": "2026-10-28T06:19:20.877338+00:00",
+              "received_at": "2026-10-28T06:19:21.064709+00:00",
+              "elapsed_seconds": 0.18737101554870605,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": null
+        }
+      ],
+      "first_render_seconds": null,
+      "model_compute_seconds": null,
+      "render_qualification": "Original first-paint/first-character instrumentation unavailable. Historical capture is not exact render latency.",
+      "result_capture_upper_bound_seconds_after_answer": 3.578497886657715,
+      "result_capture_at_epoch": 1793168365.212
+    },
+    {
+      "client": "native",
+      "task": "two-file-comparison",
+      "run_id": "a086b82a-9c15-4692-9696-ef73f1e70d8c",
+      "attempt_id": "12c508e8-e19c-432f-9909-399b3777dc07",
+      "model": "gpt-6.1-sol",
+      "admission_api": {
+        "started": 1793168143.7787533,
+        "ended": 1793168144.1207414,
+        "method": "POST",
+        "path": "/v1/workspaces/step4-continuation-tba6057bd/conversations/ec034a08-8213-40b0-b09b-81f4b1f327f8/messages",
+        "status": 202,
+        "elapsed_seconds": 0.34198808670043945
+      },
+      "human_message_at": "2026-10-28T06:15:43.920560Z",
+      "answer_persisted_at": "2026-10-28T06:17:42.331846Z",
+      "message_to_answer_seconds": 118.411286,
+      "admission_end_to_first_dispatch_seconds": 10.818243741989136,
+      "final_receipt_to_answer_persist_seconds": 1.0081090927124023,
+      "phases": [
+        {
+          "phase": "selection",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "d5b9efcca6d030a29f1e552c4a0bc6ce635a02546527902892122f6c636e0e7d",
+          "retained_source_context": [
+            {
+              "document_id": "315eba6e-d95c-42aa-ad43-c6416be3bf63",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            },
+            {
+              "document_id": "6656c29f-86ab-49e1-81d3-7d4b5851114f",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_06b4403e67be7041006ae1931ba95087d0aaa0e85fd7483b9a",
+          "dispatch_at": "2026-10-28 06:15:54.938985+00:00",
+          "result_at": "2026-10-28 06:16:26.659492+00:00",
+          "dispatch_to_terminal_receipt_seconds": 31.720507,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:15:55.373177+00:00",
+              "received_at": "2026-10-28T06:15:56.966703+00:00",
+              "elapsed_seconds": 1.5935258865356445,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_06b4403e67be7041006ae1931ba95087d0aaa0e85fd7483b9a",
+              "sent_at": "2026-10-28T06:15:59.693845+00:00",
+              "received_at": "2026-10-28T06:15:59.836636+00:00",
+              "elapsed_seconds": 0.1427910327911377,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_06b4403e67be7041006ae1931ba95087d0aaa0e85fd7483b9a",
+              "sent_at": "2026-10-28T06:16:16.185128+00:00",
+              "received_at": "2026-10-28T06:16:16.386787+00:00",
+              "elapsed_seconds": 0.2016589641571045,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_06b4403e67be7041006ae1931ba95087d0aaa0e85fd7483b9a",
+              "sent_at": "2026-10-28T06:16:26.053013+00:00",
+              "received_at": "2026-10-28T06:16:26.263431+00:00",
+              "elapsed_seconds": 0.2104179859161377,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:16:26.884354+00:00"
+        },
+        {
+          "phase": "selection_2",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "9445eb675fdfe4f9f9c015f8993165a560c65d24aac7fc5f6681fa9263998ad0",
+          "retained_source_context": [
+            {
+              "document_id": "315eba6e-d95c-42aa-ad43-c6416be3bf63",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            },
+            {
+              "document_id": "6656c29f-86ab-49e1-81d3-7d4b5851114f",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_07f9747a393a1a8f006ae1934d4acc87d08853c8dd3bd5e1d9",
+          "dispatch_at": "2026-10-28 06:16:44.049752+00:00",
+          "result_at": "2026-10-28 06:17:07.603161+00:00",
+          "dispatch_to_terminal_receipt_seconds": 23.553409,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:16:45.166779+00:00",
+              "received_at": "2026-10-28T06:16:45.931091+00:00",
+              "elapsed_seconds": 0.7643120288848877,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_07f9747a393a1a8f006ae1934d4acc87d08853c8dd3bd5e1d9",
+              "sent_at": "2026-10-28T06:16:46.807258+00:00",
+              "received_at": "2026-10-28T06:16:46.966188+00:00",
+              "elapsed_seconds": 0.15893006324768066,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_07f9747a393a1a8f006ae1934d4acc87d08853c8dd3bd5e1d9",
+              "sent_at": "2026-10-28T06:17:07.152188+00:00",
+              "received_at": "2026-10-28T06:17:07.398801+00:00",
+              "elapsed_seconds": 0.2466130256652832,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:17:07.907003+00:00"
+        },
+        {
+          "phase": "final",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "4b728d486f9ac3e96b3e977bfee89266e1030d793aa5ae20cb7af48d0c7ae003",
+          "retained_source_context": [
+            {
+              "document_id": "315eba6e-d95c-42aa-ad43-c6416be3bf63",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            },
+            {
+              "document_id": "6656c29f-86ab-49e1-81d3-7d4b5851114f",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_07f9747a393a1a8f006ae193683b3887d096ea2337578164c2",
+          "dispatch_at": "2026-10-28 06:17:10.815119+00:00",
+          "result_at": "2026-10-28 06:17:41.323737+00:00",
+          "dispatch_to_terminal_receipt_seconds": 30.508618,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:17:12.146396+00:00",
+              "received_at": "2026-10-28T06:17:12.785652+00:00",
+              "elapsed_seconds": 0.6392560005187988,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_07f9747a393a1a8f006ae193683b3887d096ea2337578164c2",
+              "sent_at": "2026-10-28T06:17:15.435224+00:00",
+              "received_at": "2026-10-28T06:17:15.565768+00:00",
+              "elapsed_seconds": 0.13054394721984863,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_07f9747a393a1a8f006ae193683b3887d096ea2337578164c2",
+              "sent_at": "2026-10-28T06:17:40.809560+00:00",
+              "received_at": "2026-10-28T06:17:41.133801+00:00",
+              "elapsed_seconds": 0.32424092292785645,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": null
+        }
+      ],
+      "first_render_seconds": null,
+      "model_compute_seconds": null,
+      "render_qualification": "Original first-paint/first-character instrumentation unavailable. Historical capture is not exact render latency."
+    },
+    {
+      "client": "native",
+      "task": "retained-followup",
+      "run_id": "df404bea-995e-4f37-9442-57a2547f999c",
+      "attempt_id": "45b541a6-5271-44ae-9dc7-f7b962d880e0",
+      "model": "gpt-6.1-sol",
+      "admission_api": {
+        "started": 1793168389.1087198,
+        "ended": 1793168389.5191605,
+        "method": "POST",
+        "path": "/v1/workspaces/step4-continuation-tba6057bd/conversations/ec034a08-8213-40b0-b09b-81f4b1f327f8/messages",
+        "status": 202,
+        "elapsed_seconds": 0.41044068336486816
+      },
+      "human_message_at": "2026-10-28T06:19:49.242041Z",
+      "answer_persisted_at": "2026-10-28T06:20:47.735627Z",
+      "message_to_answer_seconds": 58.493586,
+      "admission_end_to_first_dispatch_seconds": 14.003149509429932,
+      "final_receipt_to_answer_persist_seconds": 0.5922939777374268,
+      "phases": [
+        {
+          "phase": "selection",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "dfe39fc70f2964ca2f8ccd422b923482bf75c35d1f476276eb540ee5d26c30f8",
+          "retained_source_context": [
+            {
+              "document_id": "315eba6e-d95c-42aa-ad43-c6416be3bf63",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            },
+            {
+              "document_id": "6656c29f-86ab-49e1-81d3-7d4b5851114f",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_08d1a44eaa84126b006ae194158fcc87d0b884f0272265e1e8",
+          "dispatch_at": "2026-10-28 06:20:03.522310+00:00",
+          "result_at": "2026-10-28 06:20:22.861980+00:00",
+          "dispatch_to_terminal_receipt_seconds": 19.33967,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:20:05.461144+00:00",
+              "received_at": "2026-10-28T06:20:06.146455+00:00",
+              "elapsed_seconds": 0.6853110790252686,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_08d1a44eaa84126b006ae194158fcc87d0b884f0272265e1e8",
+              "sent_at": "2026-10-28T06:20:08.727891+00:00",
+              "received_at": "2026-10-28T06:20:08.917572+00:00",
+              "elapsed_seconds": 0.1896810531616211,
+              "provider_state": "in_progress",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_08d1a44eaa84126b006ae194158fcc87d0b884f0272265e1e8",
+              "sent_at": "2026-10-28T06:20:21.870473+00:00",
+              "received_at": "2026-10-28T06:20:22.176387+00:00",
+              "elapsed_seconds": 0.30591416358947754,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": "2026-10-28 06:20:23.910200+00:00"
+        },
+        {
+          "phase": "final",
+          "model": "gpt-6.1-sol",
+          "reasoning": {
+            "effort": "medium"
+          },
+          "request_sha256": "fe657053546cab6df43ac75e8bddc51f2e89fc65c3d06bb3029ba151a596d4c9",
+          "retained_source_context": [
+            {
+              "document_id": "315eba6e-d95c-42aa-ad43-c6416be3bf63",
+              "filename": "options.docx",
+              "original_sha256": "dc0a4659400ac1e35655a5ca1d368d7b18f84cae1cba50aaaba5f76e449fd82c",
+              "extraction_sha256": "df33c36001c127ace9e76812b804dcb7f459d542385316fa90c6330b9ac1c371",
+              "text": "kit,price_per_kit,participants_per_kit,step_free,delivery_day\nBirch,45,4,no,Friday\nAlder,70,6,yes,Thursday\nCedar,90,8,yes,Saturday\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            },
+            {
+              "document_id": "6656c29f-86ab-49e1-81d3-7d4b5851114f",
+              "filename": "requirements.docx",
+              "original_sha256": "a0951432557a831317bdfb51c0262d068ef3aca41cc735ce439c9d299a60e582",
+              "extraction_sha256": "9493238fe6c1e37898cd952c18be1f2efca783e8f926818f4bebdf65387df3c8",
+              "text": "Synthetic telescope-loan afternoon. Twelve participants attend in two separate waves of six; kits are reused between waves. Budget is $150 total. At least one step-free kit must cover every participant in a wave. Delivery must be by Friday; event is Saturday morning. Prices are complete rental totals, no other fees. Do not book or contact anyone.\n",
+              "message_id": "910bda25-c030-4a5e-bedb-1c63cc3f11d6"
+            }
+          ],
+          "retrieval_mechanism": "Worker rehydrates persisted document extraction into governed model request, not a fresh upload or separately claimed retrieval-tool call",
+          "response_id": "resp_08d1a44eaa84126b006ae1942f38b887d0a88db735e969baf6",
+          "dispatch_at": "2026-10-28 06:20:30.265906+00:00",
+          "result_at": "2026-10-28 06:20:47.143333+00:00",
+          "dispatch_to_terminal_receipt_seconds": 16.877427,
+          "http_calls": [
+            {
+              "method": "POST",
+              "path": "/v1/responses",
+              "sent_at": "2026-10-28T06:20:31.126591+00:00",
+              "received_at": "2026-10-28T06:20:31.653668+00:00",
+              "elapsed_seconds": 0.5270769596099854,
+              "provider_state": "queued",
+              "http_status": 200
+            },
+            {
+              "method": "GET",
+              "path": "/v1/responses/resp_08d1a44eaa84126b006ae1942f38b887d0a88db735e969baf6",
+              "sent_at": "2026-10-28T06:20:46.720763+00:00",
+              "received_at": "2026-10-28T06:20:47.016080+00:00",
+              "elapsed_seconds": 0.2953169345855713,
+              "provider_state": "completed",
+              "http_status": 200
+            }
+          ],
+          "tool_result_at": null
+        }
+      ],
+      "first_render_seconds": null,
+      "model_compute_seconds": null,
+      "render_qualification": "Original first-paint/first-character instrumentation unavailable. Historical capture is not exact render latency."
+    }
+  ],
+  "origin": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/reused-paired/paired-evidence-072619/paired-results.json",
+    "sha256": "ee6825f9c91c00ee70132c1c69db10c198ffd3fc5fee0a927bfd2baa6fa4d095",
+    "bytes": 44851
+  },
+  "raw": {
+    "path": "/home/ubuntu/workagent-acceptance-remaining-20261026/step4-live-continuation/paired-followup.json",
+    "sha256": "dd21d31c5c90bb5dc40ccb211afa9f72d58108e07f5ccb824964c5c0b343687e",
+    "bytes": 183256
+  },
+  "first_paint_available": false,
+  "isolated_model_compute_available": false,
+  "recomputed_from_canonical_timestamps": true
+}

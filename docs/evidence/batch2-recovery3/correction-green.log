@@ -1,0 +1,54 @@
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'vitest' run test/b2-correction.test.ts test/batch2-controls.test.ts test/batch2-durable.test.ts test/post-message-types.test.ts --reporter=verbose
+
+ RUN  v5.0.3 /home/ubuntu/workagent-continuation-20261026/.local/recovery3/claude/web
+
+ ✓ test/batch2-controls.test.ts > exact message payloads > omits document_refs when empty (legacy bytes) and keeps exact refs otherwise 11ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > Queue later posts the exact PostMessage to queued-messages, not /messages 158ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > cancel / stop / continue carry exact ids and versions 4ms
+ ✓ test/batch2-controls.test.ts > exact message payloads > 5xx and network failures are unknown outcomes; 409 is definite 2ms
+ ✓ test/batch2-controls.test.ts > document staging > keeps the exact original: canonical base64 decodes to the same bytes and hash 8ms
+ ✓ test/batch2-controls.test.ts > document staging > refuses names, types, magic and sizes the server would refuse (negative controls) 14ms
+ ✓ test/batch2-controls.test.ts > document upload commands > an unknown upload replays the identical body; nothing is re-sent as new 9ms
+ ✓ test/batch2-controls.test.ts > document upload commands > a definite refusal clears the identity so a new attempt is a new command 3ms
+ ✓ test/batch2-controls.test.ts > document upload commands > a receipt for different bytes is not accepted as an upload 3ms
+ ✓ test/batch2-controls.test.ts > document upload commands > uploads each original once; a later failure keeps earlier confirmed refs 3ms
+ ✓ test/batch2-controls.test.ts > document upload commands > downloads the exact original and refuses bytes that don't match its sha256 15ms
+ ✓ test/batch2-controls.test.ts > views > held queue entries say why and never claim they will rebase 3ms
+ ✓ test/batch2-controls.test.ts > views > continue only when the server says it is safe; otherwise the reason, no retry 1ms
+ ✓ test/batch2-controls.test.ts > views > latest checkpoint is chosen by recorded time, not id order 0ms
+ ✓ test/batch2-controls.test.ts > views > coverage lines are counts the server sent, not estimates 4ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > restores exact bytes, hash and upload state after a reload 15ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > is scoped: another workspace, principal or draft sees nothing 5ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > deletes only the exact confirmed generations, keeping later ones 12ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > a corrupted device copy is reported and kept, not silently dropped 15ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > a storage failure is explicit and the entry stays attached 13ms
+ ✓ test/batch2-durable.test.ts > durable staged documents (store adapter boundary) > sent generations match exact confirmed refs only 2ms
+ ✓ test/batch2-durable.test.ts > Continue applies only to the latest run's newest checkpoint > offers the newest checkpoint when it belongs to the latest run 1ms
+ ✓ test/batch2-durable.test.ts > Continue applies only to the latest run's newest checkpoint > never falls back to an older safe checkpoint (negative controls) 1ms
+ ✓ test/batch2-durable.test.ts > message document refs > maps metadata only and never carries extracted text 4ms
+ ✓ test/batch2-durable.test.ts > message document refs > renders filename and truthful status per message 42ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > a closed client replays the same command for a restored unknown upload 60ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > refuses to dispatch when the identity can't be kept 4ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > a lost receipt write still replays the original identity after restart 8ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > an old in-doubt record without identity fails closed until reconciled 10ms
+ ✓ test/b2-correction.test.ts > R1: upload identity is durable before dispatch > never reuses an identity or ref in a different conversation 1ms
+ ✓ test/b2-correction.test.ts > R2: late async results stay in their originating scope > a file read finishing after a workspace switch never lands in the new one 1ms
+ ✓ test/b2-correction.test.ts > R2: late async results stay in their originating scope > a late upload update writes to its original draft, not the shown one 1ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a read failure blocks sending and adding; recovery is explicit 1ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a damaged copy blocks until it is explicitly discarded 2ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > nothing can be added while restoring, so a restore can't erase it 1ms
+ ✓ test/b2-correction.test.ts > R3: restoration failures block until explicit recovery > a pending Home start detects exactly its expected documents, in any order 1ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > targets the run a current snapshot and the thread agree on 0ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > an older snapshot never overrides a newer thread 0ms
+ ✓ test/b2-correction.test.ts > R4: a fresh Continue needs a current compatible read > withholds on a stale snapshot, failed checkpoint read or missing snapshot 0ms
+ ✓ test/post-message-types.test.ts > PostMessage request typing > uses the generated request side for operations and send 9ms
+
+ Test Files  4 passed (4)
+      Tests  40 passed (40)
+   Start at  18:03:24
+   Duration  4.70s (transform 52%, import 29%, tests 16%, worker 2%)
+
+    Isolate  4 workers spawned · ~390ms startup each (spawn + environment, per file)
+             at least ~1.17s faster with isolate: false — reuses workers across files instead of one per file
+

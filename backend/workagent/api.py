@@ -2,6 +2,9 @@
 import os
 import re
 import secrets
+import hashlib
+import hmac
+import json
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Annotated, Literal
@@ -15,6 +18,7 @@ from .db import Database
 from .errors import DomainError, STATUS
 from .models import *
 from .service import Service, Principal
+from .document_models import DocumentDetail, DocumentPage, MAX_ORIGINAL, MIMES
 from .responsibility_models import (ActivateResponsibility, UpdateResponsibility,
     ControlResponsibility, ResponsibilityDetail)
 
@@ -44,9 +48,20 @@ class Settings:
 security=HTTPBearer(auto_error=False)
 
 
+class ClientSession(BaseModel):
+    """Authenticated identity, not a credential or permission grant."""
+    principal_id: str
+    scope_id: str
+
+
 def create_app(settings: Settings | None=None) -> FastAPI:
     # Exporting OpenAPI is offline; startup, not module import, validates credentials.
     settings=settings or Settings.environment()
+    # Stable across ordinary restarts, isolated across principal/database/credential
+    # changes. Only this opaque keyed digest leaves the server, never the DSN/key.
+    client_scope = hmac.new(settings.local_bearer.encode(),
+        json.dumps(['workagent-client-v1', settings.principal_id, settings.database_url],
+                   separators=(',', ':')).encode(), hashlib.sha256).hexdigest()
     service=Service(Database(settings.database_url),allow_controlled_turns=settings.fixture_mode) if settings.database_url else None
 
     @asynccontextmanager
@@ -59,11 +74,17 @@ def create_app(settings: Settings | None=None) -> FastAPI:
                 description='Isolated PostgreSQL-backed fixture/scenario service. Not a live provider runtime. Bearer is a private local human credential; no model-callable approval surface.')
     app.state.service=service
     if settings.frontend_origin:
-        app.add_middleware(CORSMiddleware,allow_origins=[settings.frontend_origin],allow_methods=['GET','POST'],allow_headers=['Authorization','Content-Type','X-Request-Id','X-Schema-Version'],allow_credentials=False)
+        app.add_middleware(CORSMiddleware,allow_origins=[settings.frontend_origin],allow_methods=['GET','POST'],allow_headers=['Authorization','Content-Type','X-Request-Id','X-Schema-Version','Last-Event-ID'],allow_credentials=False)
 
-    def principal(credentials: Annotated[HTTPAuthorizationCredentials | None,Depends(security)]):
+    def principal(request: HTTPRequest, credentials: Annotated[HTTPAuthorizationCredentials | None,Depends(security)]):
         if not settings.local_test_mode or not credentials or not secrets.compare_digest(credentials.credentials,settings.local_bearer):
             raise DomainError('unauthenticated')
+        expected_scope = request.headers.get('x-workagent-scope')
+        if expected_scope is not None and not secrets.compare_digest(expected_scope, client_scope):
+            # The expected scope is only a fence, never authority. Older non-web
+            # callers remain authenticated by the same bearer as before.
+            raise DomainError('unauthenticated')
+        request.state.authenticated_principal=settings.principal_id
         return Principal(settings.principal_id)
 
     def query_meta(x_schema_version: Annotated[Literal['workagent/v1'],Header()],x_request_id: Annotated[Id,Header()]):
@@ -80,10 +101,16 @@ def create_app(settings: Settings | None=None) -> FastAPI:
         if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}',request.state.request_id):
             request.state.request_id='request-unavailable'
         if request.method=='POST':
-            raw=await request.body()
-            if len(raw)>256_000:
-                e=DomainError('validation_error',fields=['body'])
-                return JSONResponse(e.envelope(request.state.request_id).model_dump(mode='json'),status_code=422)
+            document_upload = bool(re.fullmatch(r'/v1/workspaces/[^/]+/conversations/[^/]+/documents', request.url.path))
+            maximum = ((MAX_ORIGINAL+2)//3)*4+4096 if document_upload else 256_000
+            chunks = bytearray()
+            async for chunk in request.stream():
+                chunks.extend(chunk)
+                if len(chunks)>maximum:
+                    e=DomainError('validation_error',fields=['body'])
+                    return JSONResponse(e.envelope(request.state.request_id).model_dump(mode='json'),status_code=422)
+            raw=bytes(chunks)
+            request._body=raw
             try:
                 import json
                 rid=json.loads(raw).get('request_id')
@@ -94,6 +121,10 @@ def create_app(settings: Settings | None=None) -> FastAPI:
         response=await call_next(request)
         response.headers['Cache-Control']='no-store'
         response.headers['X-Request-Id']=request.state.request_id
+        if response.status_code < 400 and hasattr(request.state,'authenticated_principal'):
+            # Clients scope private drafts to authenticated identity, never an
+            # object owner or a hash of a bearer credential.
+            response.headers['X-Workagent-Principal']=request.state.authenticated_principal
         return response
 
     @app.exception_handler(DomainError)
@@ -123,6 +154,13 @@ def create_app(settings: Settings | None=None) -> FastAPI:
         500:'Sanitized internal adapter/storage failure; inspect state before retrying a mutation'}.items()}
     def route(path,method,operation_id,model,status=200):
         return app.api_route(path,methods=[method],operation_id=operation_id,response_model=model,status_code=status,responses=errors)
+
+    from .work_event_api import register as register_work_events
+    register_work_events(app,service,settings,principal,query_meta,errors)
+
+    @route('/v1/session','GET','get_client_session',ClientSession)
+    def get_client_session(p:P,meta:Meta):
+        return ClientSession(principal_id=p.id, scope_id=client_scope)
 
     @route('/v1/workspaces','GET','list_workspaces',WorkspacePage)
     def list_workspaces(p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
@@ -182,9 +220,59 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     def get_conversation(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
         return service.get_conversation(p,workspace_id,conversation_id)
 
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/documents','POST','ingest_document',DocumentDetail,201)
+    def ingest_document(workspace_id:Id,conversation_id:Id,body:IngestDocument,p:P):
+        return service.ingest_document(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/documents','GET','list_documents',DocumentPage)
+    def list_documents(workspace_id:Id,conversation_id:Id,p:P,meta:Meta,cursor:Cursor=None,limit:Limit=25):
+        return service.list_documents(p,workspace_id,conversation_id,cursor,limit)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/documents/{document_id}','GET','get_document',DocumentDetail)
+    def get_document(workspace_id:Id,conversation_id:Id,document_id:Id,p:P,meta:Meta):
+        return service.get_document(p,workspace_id,conversation_id,document_id)
+
+    @app.get('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/documents/{document_id}/download',
+             operation_id='download_document',response_class=Response,responses={**errors,200:{
+                 'description':'Exact retained original bytes',
+                 'content':{mime:{'schema':{'type':'string','format':'binary'}} for mime in MIMES.values()},
+                 'headers':{'Content-Disposition':{'schema':{'type':'string'}},
+                            'X-Content-Type-Options':{'schema':{'type':'string','const':'nosniff'}}}}})
+    def download_document(workspace_id:Id,conversation_id:Id,document_id:Id,p:P,meta:Meta):
+        detail,raw=service.download_document(p,workspace_id,conversation_id,document_id)
+        return Response(content=raw,media_type=detail.mime_type,headers={
+            'Content-Disposition':f'attachment; filename="{detail.filename}"',
+            'X-Content-Type-Options':'nosniff'})
+
     @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/messages','POST','post_message',MessageQueued,202)
     def post_message(workspace_id:Id,conversation_id:Id,body:PostMessage,p:P):
         return service.post_message(p,workspace_id,conversation_id,body)
+
+    from .checkpoint_models import StopRun, ContinueRun, CancelQueuedMessage, QueuedMessage, QueuedMessagePage, RunCheckpointPage
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/checkpoints','GET','list_run_checkpoints',RunCheckpointPage)
+    def list_run_checkpoints(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
+        return service.list_run_checkpoints(p,workspace_id,conversation_id)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/stop','POST','stop_conversation_run',Run)
+    def stop_conversation_run(workspace_id:Id,conversation_id:Id,body:StopRun,p:P):
+        return service.stop_conversation_run(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/continue','POST','continue_conversation',Run,202)
+    def continue_conversation(workspace_id:Id,conversation_id:Id,body:ContinueRun,p:P):
+        return service.continue_conversation(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/queued-messages','POST','queue_message',QueuedMessage,202)
+    def queue_message(workspace_id:Id,conversation_id:Id,body:PostMessage,p:P):
+        return service.queue_message(p,workspace_id,conversation_id,body)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/queued-messages','GET','list_queued_messages',QueuedMessagePage)
+    def list_queued_messages(workspace_id:Id,conversation_id:Id,p:P,meta:Meta,after:Annotated[int,Query(ge=0)]=0):
+        return service.list_queued_messages(p,workspace_id,conversation_id,after)
+
+    @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/queued-messages/{queued_message_id}/cancel','POST','cancel_queued_message',QueuedMessage)
+    def cancel_queued_message(workspace_id:Id,conversation_id:Id,queued_message_id:Id,body:CancelQueuedMessage,p:P):
+        return service.cancel_queued_message(p,workspace_id,conversation_id,queued_message_id,body)
 
     @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/cancel','POST','cancel_conversation',Conversation)
     def cancel_conversation(workspace_id:Id,conversation_id:Id,body:CancelConversation,p:P):

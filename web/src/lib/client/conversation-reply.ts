@@ -1,8 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
+import { scopedSession } from "@/lib/client/session-scope";
 import { usePendingCommand } from "@/lib/client/pending-command";
 import { conversationApi } from "@/lib/client/real-api";
+import { postMessageBody, queueApi } from "@/lib/client/batch2-api";
+import { entryProblem, uploadAll } from "@/lib/client/documents";
+import { useStagedDocuments, type Origin } from "@/lib/client/staged-documents";
+import type { DocumentRef, PostMessageBody } from "@/lib/contract/batch2";
 import { ApiError } from "@/lib/contract/errors";
 import {
   attachmentsProblem,
@@ -13,15 +18,15 @@ import {
 
 function readKept(key: string): string {
   try {
-    return sessionStorage.getItem(key) ?? "";
+    return scopedSession.getItem(key) ?? "";
   } catch {
     return "";
   }
 }
 function keep(key: string, text: string): void {
   try {
-    if (text) sessionStorage.setItem(key, text);
-    else sessionStorage.removeItem(key);
+    if (text) scopedSession.setItem(key, text);
+    else scopedSession.removeItem(key);
   } catch {
     /* storage unavailable: the in-memory text still exists */
   }
@@ -40,7 +45,7 @@ export function carryDraftHome(wsId: string, text: string): boolean {
 
 function readKeptFiles(key: string): MessageAttachment[] {
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     return raw ? (JSON.parse(raw) as MessageAttachment[]) : [];
   } catch {
     return [];
@@ -48,8 +53,8 @@ function readKeptFiles(key: string): MessageAttachment[] {
 }
 function keepFiles(key: string, files: MessageAttachment[]): void {
   try {
-    if (files.length) sessionStorage.setItem(key, JSON.stringify(files));
-    else sessionStorage.removeItem(key);
+    if (files.length) scopedSession.setItem(key, JSON.stringify(files));
+    else scopedSession.removeItem(key);
   } catch {
     /* storage unavailable: the in-memory files still exist */
   }
@@ -79,7 +84,13 @@ export function useConversationReply({
   target,
   attach = false,
   held = false,
+  documents = false,
+  onQueued,
 }: {
+  /** PDF/DOCX/XLSX originals may be attached (B2.5). */
+  documents?: boolean;
+  /** Called after a message is confirmed queued, to re-read the queue. */
+  onQueued?: () => void;
   wsId: string | null;
   cid: string;
   /**
@@ -112,7 +123,26 @@ export function useConversationReply({
     text: string;
     attachments?: MessageAttachment[];
     target?: ExactTarget | null;
+    document_refs?: DocumentRef[];
   }>(wsId ? `workagent:pending:${wsId}:conversation:${cid}:send` : null);
+  // Queue later is its own exact command: the full body is journalled so a
+  // retry after an unknown outcome sends identical bytes.
+  const queueCmd = usePendingCommand<PostMessageBody>(
+    wsId ? `workagent:pending:${wsId}:conversation:${cid}:queue` : null,
+  );
+  const [queueing, setQueueing] = useState(false);
+  // Staged originals are kept as exact binary snapshots on this device
+  // (IndexedDB), scoped to this conversation's draft, so a reload or an
+  // unknown upload restores them. Once uploaded, their refs also travel
+  // inside the frozen command.
+  const staged = useStagedDocuments(wsId, `conversation:${cid}`, documents);
+  const { docs, ctl } = staged;
+  const dest = wsId ? { workspace_id: wsId, conversation_id: cid } : null;
+  const problems = docs.map((e) => entryProblem(e, dest));
+  /** Restored, readable and reconciled: nothing staged is in question. */
+  const docsReady = staged.ready && problems.every((p) => !p);
+  const [pickError, setDocError] = useState("");
+  const docError = pickError || staged.storeError;
   useEffect(() => {
     const kept = readKept(draftKey);
     if (kept) setText((v) => v || kept);
@@ -134,9 +164,38 @@ export function useConversationReply({
     setText(restored.text);
     if (restored.attachments) setFiles(restored.attachments);
   }, [restored]);
+  const restoredQueue = queueCmd.restored ? queueCmd.current : null;
+  useEffect(() => {
+    if (!restoredQueue) return;
+    setText(restoredQueue.text);
+    if (restoredQueue.attachments) setFiles(restoredQueue.attachments);
+  }, [restoredQueue]);
 
+  const busy = sending || queueing;
+  const frozen = Boolean(cmd.current) || Boolean(queueCmd.current);
   /** Files can change only while no send is in doubt or in flight. */
-  const filesLocked = !attach || Boolean(cmd.current) || sending;
+  const filesLocked = !attach || frozen || busy;
+  // Nothing can be picked until restoration settles (or while it is blocked).
+  const docsLocked = !documents || frozen || busy || !staged.ready;
+  const addDocuments = async (list: FileList | File[] | null) => {
+    if (docsLocked || !list || !list.length) return;
+    // Bound to the draft it was picked in; a late read never lands elsewhere.
+    setDocError(await ctl.add([...list]));
+  };
+  const removeDocument = (index: number) => {
+    const gone = docs[index];
+    const o = ctl.origin();
+    // A document needing reconciliation can always be removed explicitly.
+    if (!gone || !o || (docsLocked && !problems[index])) return;
+    void ctl.forget(o, [gone.generation]);
+    setDocError("");
+  };
+  const reattachDocument = (index: number) => {
+    const gone = docs[index];
+    const o = ctl.origin();
+    if (!gone || !o || frozen || busy || !problems[index]) return;
+    void ctl.reattach(o, gone.generation).catch(() => {});
+  };
   const addFiles = async (list: FileList | File[] | null) => {
     if (filesLocked || !list || !list.length) return;
     try {
@@ -161,9 +220,38 @@ export function useConversationReply({
   const canSend =
     Boolean(wsId) &&
     version !== null &&
-    !sending &&
+    !busy &&
+    docsReady &&
     !held &&
+    !queueCmd.current &&
     (Boolean(cmd.current) || Boolean(text.trim()));
+  const canQueue =
+    Boolean(wsId) &&
+    version !== null &&
+    !busy &&
+    docsReady &&
+    !held &&
+    !cmd.current &&
+    (Boolean(queueCmd.current) || Boolean(text.trim()));
+
+  /** Uploads staged originals once; refs are confirmed server receipts. */
+  const documentRefs = async (o: Origin | null): Promise<DocumentRef[]> => {
+    if (!docs.length || !dest) return [];
+    if (!o) throw new Error("Attached documents aren’t available here.");
+    // Every write lands in the draft the send started from.
+    return uploadAll(dest, docs, (next) => ctl.persist(o, next));
+  };
+  const clearSent = (
+    sentText: string,
+    sentFiles: MessageAttachment[],
+    refs: DocumentRef[] | undefined,
+    o: Origin | null,
+  ) => {
+    setText((current) => (current === sentText ? "" : current));
+    setFiles((current) => (sameFiles(current, sentFiles) ? [] : current));
+    // Only the exact generations this confirmed command carried are removed.
+    if (o && refs?.length) void ctl.forgetRefs(o, refs);
+  };
 
   const send = async () => {
     if (!canSend || !wsId || version === null) return;
@@ -171,23 +259,34 @@ export function useConversationReply({
     setError(null);
     const sentText = text;
     const sentFiles = files;
-    const attempt = cmd.current ?? {
-      command_id: newCommandId(),
-      expected_work_version: version,
-      text: text.trim(),
-      ...(attach || target !== undefined
-        ? { attachments: attach ? files : [], target: target ?? null }
-        : {}),
-    };
+    const origin = ctl.origin();
+    let attempt = cmd.current;
     try {
-      if (!cmd.current) cmd.set(attempt);
+      if (!attempt) {
+        const document_refs = await documentRefs(origin);
+        // Exact human text; trim only decides whether there is anything to send.
+        attempt = {
+          command_id: newCommandId(),
+          expected_work_version: version,
+          text,
+          ...(attach || target !== undefined
+            ? { attachments: attach ? files : [], target: target ?? null }
+            : {}),
+          ...(document_refs.length ? { document_refs } : {}),
+        };
+        cmd.set(attempt);
+      }
       await conversationApi.send(wsId, cid, attempt);
       if (cmd.clear(attempt)) {
-        setText((current) => (current === sentText ? "" : current));
-        setFiles((current) => (sameFiles(current, sentFiles) ? [] : current));
+        clearSent(sentText, sentFiles, attempt.document_refs, origin);
         await refresh();
       }
     } catch (e) {
+      if (!attempt) {
+        // The upload itself failed: nothing was sent; everything stays.
+        setError(e);
+        return;
+      }
       if (!(e instanceof ApiError && e.isAmbiguousWrite)) {
         const cleared = cmd.clear(attempt);
         if (cleared && e instanceof ApiError && e.isVersionConflict)
@@ -199,12 +298,67 @@ export function useConversationReply({
     }
   };
 
+  /** Queue later: kept by the server and run after the current work settles. */
+  const queue = async () => {
+    if (!canQueue || !wsId || version === null) return;
+    setQueueing(true);
+    setError(null);
+    const sentText = text;
+    const sentFiles = files;
+    const origin = ctl.origin();
+    let attempt = queueCmd.current;
+    try {
+      if (!attempt) {
+        const document_refs = await documentRefs(origin);
+        attempt = postMessageBody({
+          command_id: newCommandId(),
+          expected_work_version: version,
+          text,
+          ...(attach || target !== undefined
+            ? { attachments: attach ? files : [], target: target ?? null }
+            : {}),
+          document_refs,
+        });
+        queueCmd.set(attempt);
+      }
+      await queueApi.queue(wsId, cid, attempt);
+      if (queueCmd.clear(attempt)) {
+        clearSent(sentText, sentFiles, attempt.document_refs, origin);
+        onQueued?.();
+      }
+    } catch (e) {
+      if (attempt && !(e instanceof ApiError && e.isAmbiguousWrite)) {
+        const cleared = queueCmd.clear(attempt);
+        if (cleared && e instanceof ApiError && e.isVersionConflict)
+          await refresh();
+      }
+      setError(e);
+    } finally {
+      setQueueing(false);
+    }
+  };
+
   return {
     text,
     setText,
     sending,
     error,
     send,
+    queue,
+    queueing,
+    canQueue,
+    /** A queue request's outcome is unknown; only its exact replay is offered. */
+    queueUncertain: Boolean(queueCmd.current) && !queueing,
+    docs,
+    docError,
+    addDocuments,
+    removeDocument,
+    docsLocked,
+    /** Per staged document: why it must be reconciled first (or null). */
+    docProblems: problems,
+    reattachDocument,
+    /** Explicit recovery for a blocked restoration of kept documents. */
+    docRecovery: staged.recovery,
     /** Files attached to the draft; frozen with an unconfirmed send. */
     files,
     fileError,

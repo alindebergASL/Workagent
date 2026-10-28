@@ -1,0 +1,225 @@
+[
+  {
+    "name": "final-correction",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "-rA",
+      "backend/tests/test_conversations.py::test_no_provider_imports_or_key_reads_in_cli_subprocess",
+      "backend/tests/test_general_responses_journey.py::test_exact_four_natural_turns_real_http_cli_and_home_recipe",
+      "backend/tests/test_general_responses_gates.py::test_predispatch_revoke_blocks_send_and_keeps_reservation",
+      "backend/tests/test_fixed_profile_input_budgets.py",
+      "-o",
+      "junit_family=legacy",
+      "--junitxml=/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery4/final-correction.xml"
+    ],
+    "exit": 0,
+    "seconds": 117.8152173529379,
+    "source_unchanged": true,
+    "tests": {
+      "total": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "anonymous_incomplete": 0,
+      "passed": 9
+    }
+  },
+  {
+    "name": "final-backend-core",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "-rA",
+      "backend/tests/test_b24_checkpoints.py",
+      "backend/tests/test_b24_queue_isolation_pg.py",
+      "backend/tests/test_b24_runtime_pg.py",
+      "backend/tests/test_b24_stale_source_pg.py",
+      "backend/tests/test_batch2_process_restart_pg.py",
+      "backend/tests/test_document_block_schema.py",
+      "backend/tests/test_document_confinement.py",
+      "backend/tests/test_document_ingestion.py",
+      "backend/tests/test_document_journey_pg.py",
+      "backend/tests/test_document_parser.py",
+      "backend/tests/test_document_review_corrections.py",
+      "backend/tests/test_document_target_pg.py",
+      "backend/tests/test_operator_attachments.py",
+      "backend/tests/test_operator_client.py",
+      "backend/tests/test_operator_replay.py",
+      "backend/tests/test_operator_review_ack.py",
+      "backend/tests/test_operator_review_http_pg.py",
+      "backend/tests/test_responses_leases.py",
+      "backend/tests/test_tui_b22_corrections.py",
+      "backend/tests/test_tui_composer.py",
+      "backend/tests/test_tui_continuity_commands.py",
+      "backend/tests/test_tui_continuity_mounts.py",
+      "backend/tests/test_tui_continuity_ui.py",
+      "backend/tests/test_tui_http_pg.py",
+      "backend/tests/test_tui_real_stack_pg.py",
+      "backend/tests/test_tui_recovery_controls.py",
+      "backend/tests/test_tui_recovery_http_pg.py",
+      "backend/tests/test_tui_review.py",
+      "backend/tests/test_tui_state.py",
+      "backend/tests/test_work_event_emission_auth.py",
+      "backend/tests/test_work_events_migration.py",
+      "backend/tests/test_work_events_pg.py",
+      "backend/tests/test_work_events_sql_precedence.py",
+      "backend/tests/test_work_events_unit.py",
+      "-o",
+      "junit_family=legacy",
+      "--junitxml=/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery4/final-backend-core.xml"
+    ],
+    "exit": 0,
+    "seconds": 1039.6900104669621,
+    "source_unchanged": true,
+    "tests": {
+      "total": 411,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "anonymous_incomplete": 0,
+      "passed": 411
+    }
+  },
+  {
+    "name": "final-backend-seams",
+    "command": [
+      "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--tb=short",
+      "-rA",
+      "backend/tests/test_conversations.py",
+      "backend/tests/test_general_responses_journey.py",
+      "backend/tests/test_general_responses_gates.py",
+      "backend/tests/test_fixed_profile_input_budgets.py",
+      "backend/tests/test_responses_recovery.py",
+      "backend/tests/test_responses_settled_handoff.py",
+      "backend/tests/test_responses_admission.py",
+      "-o",
+      "junit_family=legacy",
+      "--junitxml=/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery4/final-backend-seams.xml"
+    ],
+    "exit": 0,
+    "seconds": 907.2606478009839,
+    "source_unchanged": true,
+    "tests": {
+      "total": 97,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "anonymous_incomplete": 0,
+      "passed": 97
+    }
+  },
+  {
+    "name": "final-contracts",
+    "command": [
+      "npm",
+      "--prefix",
+      "contracts",
+      "run",
+      "check"
+    ],
+    "exit": 0,
+    "seconds": 42.94566778396256,
+    "source_unchanged": true
+  },
+  {
+    "name": "final-typecheck",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "typecheck"
+    ],
+    "exit": 0,
+    "seconds": 26.9560418369947,
+    "source_unchanged": true
+  },
+  {
+    "name": "final-frontend",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "test",
+      "--",
+      "--maxWorkers=1",
+      "--reporter=default",
+      "--reporter=junit",
+      "--outputFile.junit=../docs/evidence/batch2-recovery4/final-frontend.xml"
+    ],
+    "exit": 0,
+    "seconds": 87.22126307908911,
+    "source_unchanged": true,
+    "tests": {
+      "total": 470,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "anonymous_incomplete": 0,
+      "passed": 470
+    }
+  },
+  {
+    "name": "final-lint",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "lint"
+    ],
+    "exit": 0,
+    "seconds": 62.45763906300999,
+    "source_unchanged": true
+  },
+  {
+    "name": "final-format",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "format:check"
+    ],
+    "exit": 0,
+    "seconds": 39.787961893947795,
+    "source_unchanged": true
+  },
+  {
+    "name": "final-build",
+    "command": [
+      "npm",
+      "--prefix",
+      "web",
+      "run",
+      "build",
+      "--",
+      "--webpack"
+    ],
+    "exit": 0,
+    "seconds": 45.829051918000914,
+    "source_unchanged": true
+  },
+  {
+    "name": "final-diff-check",
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit": 0,
+    "seconds": 0.22146856598556042,
+    "source_unchanged": true
+  }
+]

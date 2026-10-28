@@ -1,0 +1,17 @@
+{"action": "capture", "name": "pty-return-conversation", "dimensions": "120x40"}
+{"action": "mouse", "x": 31, "y": 4}
+{"action": "capture", "name": "pty-return-status", "dimensions": "120x40"}
+{"action": "mouse", "x": 17, "y": 4}
+{"action": "capture", "name": "pty-return-work", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 9}
+{"action": "capture", "name": "pty-return-artifact-menu", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 13}
+{"action": "capture", "name": "pty-return-current-artifact", "dimensions": "120x40"}
+{"action": "mouse", "x": 23, "y": 4}
+{"action": "capture", "name": "pty-return-documents", "dimensions": "120x40"}
+{"action": "mouse", "x": 5, "y": 25}
+{"action": "capture", "name": "pty-return-document-menu", "dimensions": "120x40"}
+{"action": "keys", "keys": ["Escape"]}
+{"action": "mouse", "x": 17, "y": 4}
+{"action": "capture", "name": "pty-return-body", "dimensions": "120x40"}
+{"action": "keys", "keys": ["C-q"]}

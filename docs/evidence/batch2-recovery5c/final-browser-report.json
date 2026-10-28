@@ -1,0 +1,465 @@
+{
+  "checks": [
+    "Browser reads exact actual TUI-accepted revision/body; zero rows, human note preserved"
+  ],
+  "reads": [
+    {
+      "path": "recovery5c-workspace/artifacts/02e52df5-7ca8-499b-a8eb-a7244d408a86",
+      "status": 200,
+      "body": {
+        "id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "8d7c6864-ceb4-400a-8773-c6f6a4ca1f24",
+        "current_revision_id": "3db16f03-9f5b-4963-9016-df1a4c48ff9d",
+        "current_revision": {
+          "id": "3db16f03-9f5b-4963-9016-df1a4c48ff9d",
+          "artifact_id": "02e52df5-7ca8-499b-a8eb-a7244d408a86",
+          "revision_number": 4,
+          "parent_revision_id": "d6ed1b29-72cd-4e9f-af9c-da53a65146b4",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c removals",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [],
+            "notes": [
+              "Human concurrent correction: keep exact base fence."
+            ]
+          },
+          "body_hash": "bf4a94289ebb234c2e85bd16268bf4e42efeb78620454e379d8e624f41c19aec",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:59:29.861808Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:03:49.884409Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+        "current_revision": {
+          "id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 4,
+          "parent_revision_id": "d4796425-eaa4-40a8-bd1d-5dc67a241150",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T21:52:13.969775Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:03:56.470005Z"
+      }
+    },
+    {
+      "path": "recovery5c-workspace/artifacts/1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "status": 200,
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "current_revision": {
+          "id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 5,
+          "parent_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:03:56.544411Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:03:56.683508Z"
+      }
+    }
+  ],
+  "five": {
+    "before": {
+      "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+      "current_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+      "current_revision": {
+        "id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+        "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "revision_number": 4,
+        "parent_revision_id": "d4796425-eaa4-40a8-bd1d-5dc67a241150",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        },
+        "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T21:52:13.969775Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:03:56.470005Z"
+    },
+    "result": {
+      "status": 200,
+      "payload": {
+        "schema_version": "workagent/v1",
+        "command_id": "78712e3f-8456-4cc3-84cd-4615a6ac8567",
+        "request_id": "6933aadb-cae4-4d6b-b732-e1e06817bc71",
+        "expected_current_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        }
+      },
+      "body": {
+        "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "workspace_id": "recovery5c-workspace",
+        "assignment_id": null,
+        "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+        "current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "current_revision": {
+          "id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+          "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+          "revision_number": 5,
+          "parent_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+          "author_id": "local-human",
+          "author_kind": "human",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Recovery5c five",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Cell-only correction 雪 five notes4"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+              "  Deposit due Friday.  ",
+              "Contacts\n\nMara (catering)\nIo (AV)\n",
+              "Single line.",
+              "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+            ]
+          },
+          "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+          "source_dependencies": [],
+          "created_at": "2026-10-26T22:03:56.544411Z"
+        },
+        "requested_revision": null,
+        "observed_at": "2026-10-26T22:03:56.548551Z"
+      }
+    },
+    "after": {
+      "id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+      "workspace_id": "recovery5c-workspace",
+      "assignment_id": null,
+      "conversation_id": "2c394c97-f0ff-45c6-8e83-bf797f3ea363",
+      "current_revision_id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+      "current_revision": {
+        "id": "fdbd4521-fe3e-4d4d-9c2e-3bf62734b8f4",
+        "artifact_id": "1b37ddff-6107-4ad0-9eba-7a85cc798fb2",
+        "revision_number": 5,
+        "parent_revision_id": "f02dee65-aefc-44dd-8488-a894c18e651b",
+        "author_id": "local-human",
+        "author_kind": "human",
+        "body": {
+          "kind": "structured_table",
+          "version": "structured-table/v1",
+          "title": "Recovery5c five",
+          "fields": [
+            {
+              "key": "plant",
+              "label": "Plant",
+              "type": "text",
+              "editable": true,
+              "unit": null,
+              "scale": null,
+              "enum": null
+            },
+            {
+              "key": "height",
+              "label": "Height",
+              "type": "decimal",
+              "editable": true,
+              "unit": "cm",
+              "scale": 1,
+              "enum": null
+            }
+          ],
+          "rows": [
+            {
+              "row_id": "oak",
+              "cells": [
+                {
+                  "field_key": "plant",
+                  "value": "Cell-only correction 雪 five notes4"
+                },
+                {
+                  "field_key": "height",
+                  "value": "12.5"
+                }
+              ]
+            }
+          ],
+          "notes": [
+            "Venue shortlist:\n- Hall A\n- Hall B\n- Hall C\n- Hall D",
+            "  Deposit due Friday.  ",
+            "Contacts\n\nMara (catering)\nIo (AV)\n",
+            "Single line.",
+            "Budget\n  draft 1\n  draft 2\n\t(rounded)\n"
+          ]
+        },
+        "body_hash": "c2fc406bcf21d7cfa35c16f6aa0e2016d84378797eeb631b22a03e6b476bc0a2",
+        "source_dependencies": [],
+        "created_at": "2026-10-26T22:03:56.544411Z"
+      },
+      "requested_revision": null,
+      "observed_at": "2026-10-26T22:03:56.683508Z"
+    },
+    "objects": 5,
+    "lines": 17
+  },
+  "status": "FAIL",
+  "error": "Error: expect(locator).toHaveCount(expected) failed\n\nLocator:  getByTestId('notes-list').locator('textarea')\nExpected: 5\nReceived: 0\nTimeout:  5000ms\n\nCall log:\n  - Expect \"to.have.count\" with timeout 5000ms\n  - waiting for getByTestId('notes-list').locator('textarea')\n    11 × locator resolved to 0 elements\n       - unexpected value \"0\"\n\n    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)\n    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)\n    at Object.toHaveCount (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)\n    at /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5c/final-browser.mjs:14:377"
+}

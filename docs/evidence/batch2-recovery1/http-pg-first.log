@@ -1,0 +1,157 @@
+F..F..                                                                   [100%]
+=================================== FAILURES ===================================
+______ test_stop_completion_race_real_http_restart_abandon_and_fresh_send ______
+
+live_client = (<workagent.operator_client.OperatorClient object at 0x7f734c413d40>, <workagent.service.Service object at 0x7f734cf73200>, Principal(id='local-human', kind='human'), 'test-e8ddadb0-ddd8-4542-9e07-03416562df0b')
+context = (<workagent.service.Service object at 0x7f734cf73200>, Principal(id='local-human', kind='human'), 'test-e8ddadb0-ddd8-...ime.datetime(2026, 10, 26, 17, 8, 19, 711600, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_stop_completion_race_real_http_restart_abandon_and_fresh_send(live_client,context):
+        client,s,p,ws=live_client;cv=conversation(context);q=post(context,cv)
+        session=selected(client,p,ws,cv,q.conversation.work_version)
+        record=session.prepare(session.draft,'stop',[cv.id,q.run.id],expected_work_version=q.conversation.work_version)
+        cap=s.claim_run(p,ws,q.run.id)
+        s.complete_conversation_turn(cap,TurnResult(results=[TextResult(text='Synthetic finished turn')]))
+>       with pytest.raises(OperatorError,match='action_unresolved'):client.execute(record,lambda _:None)
+
+backend/tests/test_tui_recovery_http_pg.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.operator_client.OperatorClient object at 0x7f734c413d40>
+record = {'action': 'stop', 'args': ['d1e799f3-e1d8-4ad7-a443-c5a97d0776b5', '8138c4f7-9d5e-4824-9f40-40265db0134c'], 'base': '...: 2, 'request_id': 'e843d63a-d52c-4de8-8226-cb1c9340c254', 'run_id': '8138c4f7-9d5e-4824-9f40-40265db0134c', ...}, ...}
+announce = <function test_stop_completion_race_real_http_restart_abandon_and_fresh_send.<locals>.<lambda> at 0x7f734c42be20>
+
+    def execute(self,record,announce):
+        cid=record['command_id']
+        retained=self.journal.read(cid)
+        if retained['record']!=record:raise OperatorError('Dispatch differs from exact reserved journal record')
+        prior=retained['outcome']
+        if prior['state'] in ('rejected','abandoned_rejection'):
+            raise OperatorError('Definitively rejected command; explicitly abandon, refresh and send a new attempt')
+        announce({'command_id':cid,'mode':'admission_only','state':'sending','automatic_retry':False,
+                  'replay':'replay '+cid,'inspect':'command '+cid,
+                  'journal':'Private disk record contains unredacted prompts and receipts, never the bearer token'})
+        self.journal.outcome(cid,'outcome_unknown')
+        try:
+            try:
+                saved=self.request(record['path'],record['body'])
+            except DomainRejection as exc:
+                # A later rejection cannot settle an earlier ambiguous POST.
+                if prior['state']=='prepared':
+                    self.journal.outcome(cid,'rejected',rejection=exc.rejection)
+                    raise OperatorError(str(exc)+'; explicit abandonment is available in Recovery') from None
+                raise
+            self.journal.outcome(cid,'readback_unknown',saved)
+            observed=self.readback(record,saved)
+            self.journal.outcome(cid,'confirmed',saved)
+        except (OperatorError,KeyError,TypeError,ValueError) as exc:
+            # The durable record already states the last confirmed boundary. Do
+            # not delete it, refresh a precondition, or send another write.
+            if self.journal.read(cid)['outcome']['state']=='rejected':
+>               raise OperatorError(f'Command {cid} rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent') from None
+E               workagent.operator_journal.OperatorError: Command e843d63a-d52c-4de8-8226-cb1c9340c254 rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent
+
+backend/workagent/operator_client.py:359: OperatorError
+
+During handling of the above exception, another exception occurred:
+
+live_client = (<workagent.operator_client.OperatorClient object at 0x7f734c413d40>, <workagent.service.Service object at 0x7f734cf73200>, Principal(id='local-human', kind='human'), 'test-e8ddadb0-ddd8-4542-9e07-03416562df0b')
+context = (<workagent.service.Service object at 0x7f734cf73200>, Principal(id='local-human', kind='human'), 'test-e8ddadb0-ddd8-...ime.datetime(2026, 10, 26, 17, 8, 19, 711600, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_stop_completion_race_real_http_restart_abandon_and_fresh_send(live_client,context):
+        client,s,p,ws=live_client;cv=conversation(context);q=post(context,cv)
+        session=selected(client,p,ws,cv,q.conversation.work_version)
+        record=session.prepare(session.draft,'stop',[cv.id,q.run.id],expected_work_version=q.conversation.work_version)
+        cap=s.claim_run(p,ws,q.run.id)
+        s.complete_conversation_turn(cap,TurnResult(results=[TextResult(text='Synthetic finished turn')]))
+>       with pytest.raises(OperatorError,match='action_unresolved'):client.execute(record,lambda _:None)
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'action_unresolved'
+E        Input: 'Command e843d63a-d52c-4de8-8226-cb1c9340c254 rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent'
+
+backend/tests/test_tui_recovery_http_pg.py:31: AssertionError
+___________ test_real_confined_container_rejection_can_be_abandoned ____________
+
+live_client = (<workagent.operator_client.OperatorClient object at 0x7f73475ae6f0>, <workagent.service.Service object at 0x7f7347545af0>, Principal(id='local-human', kind='human'), 'test-5b1eecd9-c972-4137-9f26-5d5d34649601')
+context = (<workagent.service.Service object at 0x7f7347545af0>, Principal(id='local-human', kind='human'), 'test-5b1eecd9-c972-...ime.datetime(2026, 10, 26, 17, 8, 28, 288764, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_real_confined_container_rejection_can_be_abandoned(live_client,context):
+        client,s,p,ws=live_client;cv=conversation(context)
+        output=io.BytesIO()
+        with zipfile.ZipFile(output,'w') as archive:archive.writestr('ordinary.txt','not an Office container')
+        raw=output.getvalue()
+        document={'filename':'wrong.docx','mime_type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  'content_base64':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest()}
+        session=selected(client,p,ws,cv,cv.work_version);session.edit(documents=[document])
+        record=session.prepare(session.draft,'document',[cv.id],document=document)
+>       with pytest.raises(OperatorError,match='validation_error'):client.execute(record,lambda _:None)
+
+backend/tests/test_tui_recovery_http_pg.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <workagent.operator_client.OperatorClient object at 0x7f73475ae6f0>
+record = {'action': 'document', 'args': ['ae1d17a2-8dec-4a99-8114-e5d966800402'], 'base': 'http://127.0.0.1:56949', 'body': {'c...name': 'wrong.docx', 'mime_type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', ...}, ...}
+announce = <function test_real_confined_container_rejection_can_be_abandoned.<locals>.<lambda> at 0x7f734c1476a0>
+
+    def execute(self,record,announce):
+        cid=record['command_id']
+        retained=self.journal.read(cid)
+        if retained['record']!=record:raise OperatorError('Dispatch differs from exact reserved journal record')
+        prior=retained['outcome']
+        if prior['state'] in ('rejected','abandoned_rejection'):
+            raise OperatorError('Definitively rejected command; explicitly abandon, refresh and send a new attempt')
+        announce({'command_id':cid,'mode':'admission_only','state':'sending','automatic_retry':False,
+                  'replay':'replay '+cid,'inspect':'command '+cid,
+                  'journal':'Private disk record contains unredacted prompts and receipts, never the bearer token'})
+        self.journal.outcome(cid,'outcome_unknown')
+        try:
+            try:
+                saved=self.request(record['path'],record['body'])
+            except DomainRejection as exc:
+                # A later rejection cannot settle an earlier ambiguous POST.
+                if prior['state']=='prepared':
+                    self.journal.outcome(cid,'rejected',rejection=exc.rejection)
+                    raise OperatorError(str(exc)+'; explicit abandonment is available in Recovery') from None
+                raise
+            self.journal.outcome(cid,'readback_unknown',saved)
+            observed=self.readback(record,saved)
+            self.journal.outcome(cid,'confirmed',saved)
+        except (OperatorError,KeyError,TypeError,ValueError) as exc:
+            # The durable record already states the last confirmed boundary. Do
+            # not delete it, refresh a precondition, or send another write.
+            if self.journal.read(cid)['outcome']['state']=='rejected':
+>               raise OperatorError(f'Command {cid} rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent') from None
+E               workagent.operator_journal.OperatorError: Command 64bcf6a0-b59b-4990-9742-f6148b624329 rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent
+
+backend/workagent/operator_client.py:359: OperatorError
+
+During handling of the above exception, another exception occurred:
+
+live_client = (<workagent.operator_client.OperatorClient object at 0x7f73475ae6f0>, <workagent.service.Service object at 0x7f7347545af0>, Principal(id='local-human', kind='human'), 'test-5b1eecd9-c972-4137-9f26-5d5d34649601')
+context = (<workagent.service.Service object at 0x7f7347545af0>, Principal(id='local-human', kind='human'), 'test-5b1eecd9-c972-...ime.datetime(2026, 10, 26, 17, 8, 28, 288764, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_real_confined_container_rejection_can_be_abandoned(live_client,context):
+        client,s,p,ws=live_client;cv=conversation(context)
+        output=io.BytesIO()
+        with zipfile.ZipFile(output,'w') as archive:archive.writestr('ordinary.txt','not an Office container')
+        raw=output.getvalue()
+        document={'filename':'wrong.docx','mime_type':'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                  'content_base64':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest()}
+        session=selected(client,p,ws,cv,cv.work_version);session.edit(documents=[document])
+        record=session.prepare(session.draft,'document',[cv.id],document=document)
+>       with pytest.raises(OperatorError,match='validation_error'):client.execute(record,lambda _:None)
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'validation_error'
+E        Input: 'Command 64bcf6a0-b59b-4990-9742-f6148b624329 rejected. Inspect and explicitly abandon in Recovery, then Refresh and Send again. No retry was sent'
+
+backend/tests/test_tui_recovery_http_pg.py:101: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/recovery1/http-pg-first.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_tui_recovery_http_pg.py::test_stop_completion_race_real_http_restart_abandon_and_fresh_send
+FAILED backend/tests/test_tui_recovery_http_pg.py::test_real_confined_container_rejection_can_be_abandoned
+2 failed, 4 passed, 1 warning in 19.04s
