@@ -1,7 +1,8 @@
 /**
- * The responsibility page's "Agent's latest recorded note": its text and its
- * time always come from the same snapshot observation, matched by
- * assignment; otherwise the record's own text with an unknown time.
+ * The responsibility page's "Latest recorded note": its text and its time
+ * always come from the same snapshot observation, matched by assignment;
+ * otherwise the record's own text with no time, saying whether none was
+ * recorded or the snapshot couldn't be read.
  */
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -45,7 +46,7 @@ const html = (read: SnapshotRead, outcome = RECORD) => {
     : "";
 };
 
-describe("agent's latest recorded note", () => {
+describe("latest recorded note", () => {
   it("known time: the matching observation's text with its own time", () => {
     const read = ready([
       {
@@ -61,8 +62,9 @@ describe("agent's latest recorded note", () => {
       time: { kind: "known", at: "2026-10-25T08:00:00Z" },
     });
     const out = html(read);
-    expect(out).toContain("Agent’s latest recorded note");
+    expect(out).toContain("Latest recorded note");
     expect(out).toContain('data-time="known"');
+    expect(out).not.toContain("Agent’s");
     expect(out).toContain("Shortlisted three venues.");
     expect(out).not.toContain("time not recorded");
     // The record's other text never borrows the observation's time.
@@ -81,8 +83,9 @@ describe("agent's latest recorded note", () => {
       time: { kind: "unknown" },
     });
     const out = html(read);
-    expect(out).toContain("Agent’s latest recorded note");
+    expect(out).toContain("Latest recorded note");
     expect(out).toContain("time not recorded");
+    expect(out).not.toContain("couldn’t be checked");
     // The snapshot's read time is not offered as when it was written.
     expect(out).not.toMatch(/12:00/);
   });
@@ -115,14 +118,16 @@ describe("agent's latest recorded note", () => {
     });
   });
 
-  it("unavailable snapshot: the record's text stays, with an unknown time", () => {
+  it("unavailable snapshot: the record's text stays; the time couldn't be checked, not 'not recorded'", () => {
     expect(latestNote(RECORD, "a1", { kind: "unavailable" })).toEqual({
       text: RECORD,
-      time: { kind: "unknown" },
+      time: { kind: "unchecked" },
     });
     const out = html({ kind: "unavailable" });
     expect(out).toContain(RECORD);
-    expect(out).toContain("time not recorded");
+    expect(out).toContain('data-time="unchecked"');
+    expect(out).toContain("time couldn’t be checked");
+    expect(out).not.toContain("time not recorded");
   });
 
   it("while the snapshot is read, the note shows with no time claimed yet", () => {

@@ -7,7 +7,12 @@ export type SnapshotRead =
   | { kind: "ready"; snapshot: WorkSnapshot };
 
 export type NoteTime =
-  { kind: "known"; at: string } | { kind: "unknown" } | { kind: "checking" };
+  | { kind: "known"; at: string }
+  /** Read fine: no time was recorded with the note. */
+  | { kind: "unknown" }
+  /** The snapshot couldn't be read, so whether a time exists is unknown. */
+  | { kind: "unchecked" }
+  | { kind: "checking" };
 
 export interface LatestNote {
   text: string;
@@ -15,11 +20,12 @@ export interface LatestNote {
 }
 
 /**
- * The agent's latest recorded note for one responsibility, with when it was
- * recorded. The text and its time always come from the same place: the
- * snapshot's observation for this exact assignment, both together. Without
- * one (snapshot unavailable, no matching responsibility, or none recorded)
- * the responsibility record's own text is kept with an unknown time; a
+ * The latest recorded note for one responsibility (written by the agent,
+ * the person or the runtime), with when it was recorded. The text and its
+ * time always come from the same place: the snapshot's observation for this
+ * exact assignment, both together. Without one the responsibility record's
+ * own text is kept with no time: "not recorded" when the snapshot was read
+ * and has none for it, "couldn't be checked" when it couldn't be read. A
  * snapshot's time is never attached to other text, and a read or refresh
  * time is never offered as when the note was written. Nothing here says
  * which saved versions the note describes; the service doesn't record that.
@@ -44,6 +50,11 @@ export function latestNote(
   if (!outcome.trim()) return null;
   return {
     text: outcome,
-    time: read.kind === "loading" ? { kind: "checking" } : { kind: "unknown" },
+    time:
+      read.kind === "loading"
+        ? { kind: "checking" }
+        : read.kind === "unavailable"
+          ? { kind: "unchecked" }
+          : { kind: "unknown" },
   };
 }

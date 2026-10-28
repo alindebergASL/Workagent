@@ -372,7 +372,7 @@ h2 {
   line-height: 1.6;
   max-width: 34em;
 }
-/* The agent's latest recorded note: its own words at a time, set apart (as
+/* The latest recorded note: words from a time, set apart (as
    a quotation) from the outputs prepared below, which it doesn't describe. */
 .latest-note {
   border-left: 3px solid var(--line-strong);

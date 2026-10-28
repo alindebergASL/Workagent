@@ -82,7 +82,7 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
     id,
     rs.kind === "ready" ? rs.detail.assignment : null,
   );
-  // When the agent's latest note was recorded comes from the conversation's
+  // When the latest recorded note was recorded comes from the conversation's
   // work snapshot, read only once the rich responsibility read is in.
   const snapshotRead = useSnapshotRead(
     wsId,
@@ -264,8 +264,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         )}
         <h1>{shortTitle(current?.goal ?? a.title)}</h1>
         {rich ? (
-          // Where it stands is the panel's; the header leads with the agent's
-          // latest note, in its own recorded words, labelled as that.
+          // Where it stands is the panel's; the header leads with the latest
+          // recorded note, in its own words, labelled as that.
           note ? (
             <LatestNote note={note} zone={zone} />
           ) : null
