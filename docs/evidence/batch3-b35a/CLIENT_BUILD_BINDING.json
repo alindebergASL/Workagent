@@ -1,0 +1,7 @@
+{
+  "build_id": "HAEr4yziKBlWBIpt1euzS",
+  "build_manifest_sha256": "e1c2a9ed1dca383dfcf17ac434ca7a577822812ad2265a58eb6ffc2b917f3ed3",
+  "web_source_changed_in_increment": false,
+  "actual_http_and_browser_readbacks": "clients/restart/results.json",
+  "product_source_checkpoint_matches": true
+}

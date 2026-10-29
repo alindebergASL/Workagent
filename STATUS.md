@@ -1,6 +1,13 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.4b bounded deterministic delegation verified
+## Latest: B3.5a correction/forget/revoke/isolated recovery verified
+
+- Exact dependency-aware memory correction, applicability, recursive erasure/tombstones and current-authority exclusion now cover queued/in-flight requests and automated conversation/file/proposal/export derivatives, while retaining human revisions and audit/unknown history. New migrations069–072; prior68 migrations unchanged.
+- All8 literal correction variants pass again in a new interpreter and two isolated restores from pre-change backup. Actual worker PID replacement/no-send replay, owned API/web restart, web1440/390/320 and full native120x40/80x24 are verified with exact preserved human-file readbacks. Restore is quarantined inspection/human recovery, never grant/balance resume.
+- The original4 independent risk findings are closed using named regressions and narrow follow-up. Original257-pass/1-fail core results and all later fixture repairs remain explicit; overlapping campaigns are not added. Full11 safety rows and measurement/report limitations are mapped in [acceptance/evidence](docs/evidence/batch3-b35a/ACCEPTANCE.md).
+- Zero paid product calls, installed-data maintenance, new graph, cap changes, web source edits, default merge or deployment. No general usefulness/Batch3 completion claim. Existing successor is B3.5b `t_726f2c10`; parent completion requires feature publication/exact-head CI and owned-proof-service shutdown receipts, attached to the card/PR.
+
+## Previous: B3.4b bounded deterministic delegation verified
 
 - Optional run-scoped `delegation.analysis` and `delegation.verify` use actual existing pinned gVisor child processes; the single product worker remains default. Two-child limit, exact source/processor intersection, shared cumulative reservations, unknown/no-replay protection and cancellation/revocation fences are enforced.
 - Child results stay proposals. Parent-accessible exact proposal hashes, separate executed checks, explicit discard recovery and draft/export assimilation gates retain evidence/cost without human acceptance or memory auto-admission.

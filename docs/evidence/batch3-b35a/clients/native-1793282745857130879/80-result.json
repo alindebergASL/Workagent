@@ -1,0 +1,542 @@
+{
+  "actual_pty": true,
+  "cols": 80,
+  "rows": 24,
+  "passed": true,
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\u001b[<0;27;15M\u001b[<0;27;15m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    },
+    {
+      "keys": "\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M"
+    },
+    {
+      "keys": "\u001b[<0;26;21M\u001b[<0;26;21m"
+    },
+    {
+      "keys": "\u0005"
+    },
+    {
+      "keys": " Human native correction."
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<0;34;22M\u001b[<0;34;22m"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<65;76;20M"
+    },
+    {
+      "keys": "\u001b[<0;8;23M\u001b[<0;8;23m"
+    },
+    {
+      "keys": "\u001b[<0;28;20M\u001b[<0;28;20m"
+    },
+    {
+      "keys": "\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M\u001b[<64;76;10M"
+    },
+    {
+      "keys": "\u001b[<0;13;5M\u001b[<0;13;5m"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    },
+    {
+      "keys": "\u001b[<0;5;8M\u001b[<0;5;8m"
+    },
+    {
+      "keys": "\u001b[<0;37;12M\u001b[<0;37;12m"
+    },
+    {
+      "keys": "\u001b[<0;3;14M\u001b[<0;3;14m"
+    },
+    {
+      "keys": "\u001b[<0;48;17M\u001b[<0;48;17m"
+    }
+  ],
+  "before": {
+    "current": {
+      "procedure": null,
+      "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+      "revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+      "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+      "owner_id": "local-human",
+      "kind": "preference",
+      "scope_kind": "task",
+      "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+      "subject_key": "writing",
+      "predicate_key": "headings",
+      "content": "Use concise synthetic headings pty80",
+      "content_sha256": "4fcbd9dce49bd0c53c6d7b09dda984c820e95b6ab113d8fcbd7b4737b7d93f65",
+      "status": "active",
+      "origin": "human_explicit",
+      "source_refs": [],
+      "evidence_ids": [],
+      "proposed_by_run_id": null,
+      "reviewed_by_principal_id": null,
+      "confidence_label": "explicit",
+      "confidence_basis": "Explicit human statement",
+      "valid_from": "2026-10-29T13:33:28.929529Z",
+      "valid_until": null,
+      "recorded_at": "2026-10-29T13:33:28.929529Z",
+      "expires_at": null,
+      "supersedes_revision_id": null,
+      "exception_to_revision_id": null,
+      "contradiction_group_id": null,
+      "applicability": "",
+      "access_generation": 1
+    },
+    "revisions": [
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": "writing",
+        "predicate_key": "headings",
+        "content": "Use concise synthetic headings pty80",
+        "content_sha256": "4fcbd9dce49bd0c53c6d7b09dda984c820e95b6ab113d8fcbd7b4737b7d93f65",
+        "status": "active",
+        "origin": "human_explicit",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": null,
+        "confidence_label": "explicit",
+        "confidence_basis": "Explicit human statement",
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T13:33:28.929529Z",
+        "expires_at": null,
+        "supersedes_revision_id": null,
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "",
+        "access_generation": 1
+      }
+    ],
+    "rollback_revision_ids": [],
+    "notice": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts."
+  },
+  "corrected": {
+    "current": {
+      "procedure": null,
+      "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+      "revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+      "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+      "owner_id": "local-human",
+      "kind": "preference",
+      "scope_kind": "task",
+      "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+      "subject_key": "writing",
+      "predicate_key": "headings",
+      "content": "Use concise synthetic headings pty80 Human native correction.",
+      "content_sha256": "494d61be3fa5d2c948ae552afaae696db80d02441b60d3a2f3c6afeaec1aaf15",
+      "status": "active",
+      "origin": "human_reviewed",
+      "source_refs": [],
+      "evidence_ids": [],
+      "proposed_by_run_id": null,
+      "reviewed_by_principal_id": "local-human",
+      "confidence_label": "explicit",
+      "confidence_basis": "Explicit human statement",
+      "valid_from": "2026-10-29T13:33:28.929529Z",
+      "valid_until": null,
+      "recorded_at": "2026-10-29T14:05:58.652357Z",
+      "expires_at": null,
+      "supersedes_revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+      "exception_to_revision_id": null,
+      "contradiction_group_id": null,
+      "applicability": "",
+      "access_generation": 1
+    },
+    "revisions": [
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": "writing",
+        "predicate_key": "headings",
+        "content": "Use concise synthetic headings pty80",
+        "content_sha256": "4fcbd9dce49bd0c53c6d7b09dda984c820e95b6ab113d8fcbd7b4737b7d93f65",
+        "status": "superseded",
+        "origin": "human_explicit",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": null,
+        "confidence_label": "explicit",
+        "confidence_basis": "Explicit human statement",
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T13:33:28.929529Z",
+        "expires_at": null,
+        "supersedes_revision_id": null,
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "",
+        "access_generation": 1
+      },
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": "writing",
+        "predicate_key": "headings",
+        "content": "Use concise synthetic headings pty80 Human native correction.",
+        "content_sha256": "494d61be3fa5d2c948ae552afaae696db80d02441b60d3a2f3c6afeaec1aaf15",
+        "status": "active",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "explicit",
+        "confidence_basis": "Explicit human statement",
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T14:05:58.652357Z",
+        "expires_at": null,
+        "supersedes_revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": "",
+        "access_generation": 1
+      }
+    ],
+    "rollback_revision_ids": [],
+    "notice": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts."
+  },
+  "forgotten": {
+    "current": {
+      "procedure": null,
+      "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+      "revision_id": "9dc87394-e580-4519-b20d-16132cc6e6d2",
+      "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+      "owner_id": "local-human",
+      "kind": "preference",
+      "scope_kind": "task",
+      "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+      "subject_key": null,
+      "predicate_key": null,
+      "content": null,
+      "content_sha256": null,
+      "status": "forgotten",
+      "origin": "human_reviewed",
+      "source_refs": [],
+      "evidence_ids": [],
+      "proposed_by_run_id": null,
+      "reviewed_by_principal_id": "local-human",
+      "confidence_label": "explicit",
+      "confidence_basis": null,
+      "valid_from": "2026-10-29T13:33:28.929529Z",
+      "valid_until": null,
+      "recorded_at": "2026-10-29T14:06:01.525205Z",
+      "expires_at": null,
+      "supersedes_revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+      "exception_to_revision_id": null,
+      "contradiction_group_id": null,
+      "applicability": null,
+      "access_generation": 1
+    },
+    "revisions": [
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": null,
+        "predicate_key": null,
+        "content": null,
+        "content_sha256": null,
+        "status": "forgotten",
+        "origin": "human_explicit",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": null,
+        "confidence_label": "explicit",
+        "confidence_basis": null,
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T13:33:28.929529Z",
+        "expires_at": null,
+        "supersedes_revision_id": null,
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": null,
+        "access_generation": 1
+      },
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": null,
+        "predicate_key": null,
+        "content": null,
+        "content_sha256": null,
+        "status": "forgotten",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "explicit",
+        "confidence_basis": null,
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T14:05:58.652357Z",
+        "expires_at": null,
+        "supersedes_revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": null,
+        "access_generation": 1
+      },
+      {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "9dc87394-e580-4519-b20d-16132cc6e6d2",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": null,
+        "predicate_key": null,
+        "content": null,
+        "content_sha256": null,
+        "status": "forgotten",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "explicit",
+        "confidence_basis": null,
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T14:06:01.525205Z",
+        "expires_at": null,
+        "supersedes_revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": null,
+        "access_generation": 1
+      }
+    ],
+    "rollback_revision_ids": [],
+    "notice": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts."
+  },
+  "connector_readback": {
+    "provider": "synthetic",
+    "account": "Synthetic library",
+    "resource": "synthetic/catalog",
+    "effects": [
+      "read"
+    ],
+    "processor": "local-synthetic-mcp",
+    "connector_id": "fa02cbae-fb68-4092-9af7-4da25d17e736",
+    "state": "revoked",
+    "access_generation": 2,
+    "expires_at": "2026-10-29T17:33:29.088461Z",
+    "provider_revocation": "failed",
+    "reason": "locally_revoked"
+  },
+  "human_readback": {
+    "label": "pty80",
+    "preserved_human_sha256": "091786a40d4218da4c056c61747ae48fb08db2b29f7fe0880701b58190e69fb9",
+    "memory": {
+      "current": {
+        "procedure": null,
+        "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+        "revision_id": "9dc87394-e580-4519-b20d-16132cc6e6d2",
+        "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+        "owner_id": "local-human",
+        "kind": "preference",
+        "scope_kind": "task",
+        "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+        "subject_key": null,
+        "predicate_key": null,
+        "content": null,
+        "content_sha256": null,
+        "status": "forgotten",
+        "origin": "human_reviewed",
+        "source_refs": [],
+        "evidence_ids": [],
+        "proposed_by_run_id": null,
+        "reviewed_by_principal_id": "local-human",
+        "confidence_label": "explicit",
+        "confidence_basis": null,
+        "valid_from": "2026-10-29T13:33:28.929529Z",
+        "valid_until": null,
+        "recorded_at": "2026-10-29T14:06:01.525205Z",
+        "expires_at": null,
+        "supersedes_revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+        "exception_to_revision_id": null,
+        "contradiction_group_id": null,
+        "applicability": null,
+        "access_generation": 1
+      },
+      "revisions": [
+        {
+          "procedure": null,
+          "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+          "revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+          "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+          "owner_id": "local-human",
+          "kind": "preference",
+          "scope_kind": "task",
+          "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+          "subject_key": null,
+          "predicate_key": null,
+          "content": null,
+          "content_sha256": null,
+          "status": "forgotten",
+          "origin": "human_explicit",
+          "source_refs": [],
+          "evidence_ids": [],
+          "proposed_by_run_id": null,
+          "reviewed_by_principal_id": null,
+          "confidence_label": "explicit",
+          "confidence_basis": null,
+          "valid_from": "2026-10-29T13:33:28.929529Z",
+          "valid_until": null,
+          "recorded_at": "2026-10-29T13:33:28.929529Z",
+          "expires_at": null,
+          "supersedes_revision_id": null,
+          "exception_to_revision_id": null,
+          "contradiction_group_id": null,
+          "applicability": null,
+          "access_generation": 1
+        },
+        {
+          "procedure": null,
+          "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+          "revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+          "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+          "owner_id": "local-human",
+          "kind": "preference",
+          "scope_kind": "task",
+          "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+          "subject_key": null,
+          "predicate_key": null,
+          "content": null,
+          "content_sha256": null,
+          "status": "forgotten",
+          "origin": "human_reviewed",
+          "source_refs": [],
+          "evidence_ids": [],
+          "proposed_by_run_id": null,
+          "reviewed_by_principal_id": "local-human",
+          "confidence_label": "explicit",
+          "confidence_basis": null,
+          "valid_from": "2026-10-29T13:33:28.929529Z",
+          "valid_until": null,
+          "recorded_at": "2026-10-29T14:05:58.652357Z",
+          "expires_at": null,
+          "supersedes_revision_id": "ad03610d-a035-444d-bdc0-5001defbe90b",
+          "exception_to_revision_id": null,
+          "contradiction_group_id": null,
+          "applicability": null,
+          "access_generation": 1
+        },
+        {
+          "procedure": null,
+          "memory_id": "4fee5b56-8b23-4110-bcdd-119a716f9619",
+          "revision_id": "9dc87394-e580-4519-b20d-16132cc6e6d2",
+          "workspace_id": "test-9b21056e-2769-4242-bd36-3fbe25face1a",
+          "owner_id": "local-human",
+          "kind": "preference",
+          "scope_kind": "task",
+          "scope_id": "cd0fd0b6-b6dd-48c5-805a-307a55e323ef",
+          "subject_key": null,
+          "predicate_key": null,
+          "content": null,
+          "content_sha256": null,
+          "status": "forgotten",
+          "origin": "human_reviewed",
+          "source_refs": [],
+          "evidence_ids": [],
+          "proposed_by_run_id": null,
+          "reviewed_by_principal_id": "local-human",
+          "confidence_label": "explicit",
+          "confidence_basis": null,
+          "valid_from": "2026-10-29T13:33:28.929529Z",
+          "valid_until": null,
+          "recorded_at": "2026-10-29T14:06:01.525205Z",
+          "expires_at": null,
+          "supersedes_revision_id": "4bc60abc-3d95-4252-a0fa-9eb06ae31901",
+          "exception_to_revision_id": null,
+          "contradiction_group_id": null,
+          "applicability": null,
+          "access_generation": 1
+        }
+      ],
+      "rollback_revision_ids": [],
+      "notice": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts."
+    },
+    "visible_memory_count": 0
+  }
+}

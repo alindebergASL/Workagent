@@ -1,0 +1,9 @@
+{
+  "exact_private_value_hits": [],
+  "raw_credential_uri_hits": [],
+  "synthetic_only": true,
+  "private_envs_and_backups_excluded": true,
+  "preserved_unrelated_lock": "f04d544c1cc611dd3b4e6caa260b850cadf18be42ebd283308e5ff01aaad5a4d",
+  "prior_68_migrations_unchanged": true,
+  "product_sources_match_parent_checkpoint": true
+}

@@ -3318,6 +3318,18 @@
       "CorrectMemory": {
         "additionalProperties": false,
         "properties": {
+          "applicability": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applicability"
+          },
           "command_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -3374,6 +3386,7 @@
               "discriminator": {
                 "mapping": {
                   "file": "#/components/schemas/MemoryFile",
+                  "memory": "#/components/schemas/MemoryDerived",
                   "source": "#/components/schemas/MemorySource"
                 },
                 "propertyName": "source_type"
@@ -3384,6 +3397,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/MemoryFile"
+                },
+                {
+                  "$ref": "#/components/schemas/MemoryDerived"
                 }
               ]
             },
@@ -6488,6 +6504,25 @@
         "title": "MemoryCAS",
         "type": "object"
       },
+      "MemoryDerived": {
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "$ref": "#/components/schemas/MemoryRevisionRef"
+          },
+          "source_type": {
+            "const": "memory",
+            "default": "memory",
+            "title": "Source Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref"
+        ],
+        "title": "MemoryDerived",
+        "type": "object"
+      },
       "MemoryFile": {
         "additionalProperties": false,
         "properties": {
@@ -6632,12 +6667,36 @@
       "MemoryReceipt": {
         "additionalProperties": false,
         "properties": {
+          "erased_memory_items": {
+            "anyOf": [
+              {
+                "maximum": 1024.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erased Memory Items"
+          },
           "memory_id": {
             "maxLength": 128,
             "minLength": 1,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
             "title": "Memory Id",
             "type": "string"
+          },
+          "retention_notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retention Notice"
           },
           "revision_id": {
             "maxLength": 128,
@@ -6665,6 +6724,37 @@
           "status"
         ],
         "title": "MemoryReceipt",
+        "type": "object"
+      },
+      "MemoryRevisionRef": {
+        "additionalProperties": false,
+        "properties": {
+          "memory_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Memory Id",
+            "type": "string"
+          },
+          "revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Revision Id",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "memory_id",
+          "revision_id",
+          "sha256"
+        ],
+        "title": "MemoryRevisionRef",
         "type": "object"
       },
       "MemoryRevisionV1": {
@@ -6901,6 +6991,7 @@
               "discriminator": {
                 "mapping": {
                   "file": "#/components/schemas/MemoryFile",
+                  "memory": "#/components/schemas/MemoryDerived",
                   "source": "#/components/schemas/MemorySource"
                 },
                 "propertyName": "source_type"
@@ -6911,6 +7002,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/MemoryFile"
+                },
+                {
+                  "$ref": "#/components/schemas/MemoryDerived"
                 }
               ]
             },
@@ -8940,6 +9034,7 @@
               "discriminator": {
                 "mapping": {
                   "file": "#/components/schemas/MemoryFile",
+                  "memory": "#/components/schemas/MemoryDerived",
                   "source": "#/components/schemas/MemorySource"
                 },
                 "propertyName": "source_type"
@@ -8950,6 +9045,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/MemoryFile"
+                },
+                {
+                  "$ref": "#/components/schemas/MemoryDerived"
                 }
               ]
             },
@@ -9733,6 +9831,7 @@
               "discriminator": {
                 "mapping": {
                   "file": "#/components/schemas/MemoryFile",
+                  "memory": "#/components/schemas/MemoryDerived",
                   "source": "#/components/schemas/MemorySource"
                 },
                 "propertyName": "source_type"
@@ -9743,6 +9842,9 @@
                 },
                 {
                   "$ref": "#/components/schemas/MemoryFile"
+                },
+                {
+                  "$ref": "#/components/schemas/MemoryDerived"
                 }
               ]
             },

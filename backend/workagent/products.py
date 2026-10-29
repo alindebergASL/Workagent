@@ -68,6 +68,12 @@ def adaptive_readback(c,run,attempt):
 
 def turn_state(run,c=None):
     from .service import encoded
+    if c is not None and not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+            (run.workspace_id,run.id)).fetchone()['ok']:
+        # Hide every model-authored projection, not just the assistant message.
+        # Immutable provider accounting is retained separately, without payload.
+        return TurnState(run_id=run.id,state='unavailable',profile=run.profile,
+            reason='Generated content withheld because its memory or source dependencies changed. Human work and accounting are retained.')
     if run.profile=='general-responses-v1':
         from .responses_ledger import observations
         attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone() if c else None
@@ -710,6 +716,8 @@ class Products:
             if not row:
                 deny()
             observation=ProductObservation.model_validate(row['data'])
+            if not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+                (ws,observation.run_id)).fetchone()['ok']: deny()
             artifact,owner=self._artifact(c,p,ws,observation.artifact_id)
             current=self._revision(c,p,ws,artifact,owner)
             state='historical'

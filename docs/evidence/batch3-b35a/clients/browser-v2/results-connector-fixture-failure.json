@@ -1,0 +1,23 @@
+[
+  {
+    "width": 1440,
+    "passed": false,
+    "errors": [],
+    "receipts": [
+      {
+        "memory_id": "71389b33-fde9-4d49-a47c-eeb82f7062a0",
+        "revision_id": "f8a8d529-f845-43e5-a98e-2f070498854b",
+        "status": "active",
+        "erased_memory_items": null,
+        "retention_notice": null
+      },
+      {
+        "memory_id": "71389b33-fde9-4d49-a47c-eeb82f7062a0",
+        "revision_id": "83b0adfb-1e27-4223-b9a5-4c89c6c0c469",
+        "status": "forgotten",
+        "erased_memory_items": 1,
+        "retention_notice": "Memory payloads and declared memory descendants erased; automated derived readback is invalidated. Human originals and saved human revisions, audit IDs/hashes, historical outgoing requests and provider copies are retained. This is not provider-side deletion. Old backups require current safety replay before inspection."
+      }
+    ]
+  }
+]

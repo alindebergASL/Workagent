@@ -74,7 +74,8 @@ class MemoryRetrieval:
                 rev = rev.model_copy(update={'status':'expired'})
             try:
                 self._memory_scope(c, p, ws, rev.scope_kind, rev.scope_id)
-                self._memory_sources(c, p, ws, rev.source_refs)
+                self._memory_sources(c, p, ws, rev.source_refs, scope_kind=rev.scope_kind,
+                                     scope_id=rev.scope_id, memory_id=rev.memory_id, at=at)
                 self._memory_procedure(c, p, ws, rev.scope_kind, rev.scope_id, rev.procedure, rev.source_refs)
             except DomainError:
                 continue

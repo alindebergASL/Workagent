@@ -83,6 +83,8 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         self.allow_controlled_turns = allow_controlled_turns
 
     def _scope(self, c, p, ws, write=False):
+        if write and getattr(p, 'kind', 'worker') != 'human' and c.execute("SELECT to_regclass('public.isolated_restore_receipt') AS marker").fetchone()['marker']:
+            raise DomainError('action_unresolved')
         lock = 'UPDATE' if write else 'SHARE'
         row = c.execute(f'SELECT * FROM workspaces WHERE id=%s FOR {lock}', (ws,)).fetchone()
         if not row:
@@ -129,6 +131,8 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         return row, a
 
     def _proposal(self, c, p, ws, proposal_id):
+        if not c.execute('SELECT memory_proposal_visible(%s,%s) AS ok', (ws,proposal_id)).fetchone()['ok']:
+            deny()
         row = c.execute('SELECT data FROM proposals WHERE workspace_id=%s AND id=%s', (ws, proposal_id)).fetchone()
         if not row:
             deny()
@@ -146,6 +150,9 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
 
     def _revision(self, c, p, ws, artifact, assignment, revision_id=None):
         rid = revision_id or artifact['current_revision_id']
+        if not c.execute('SELECT memory_revision_visible(%s,%s,%s) AS ok',
+                         (ws, artifact['id'], rid)).fetchone()['ok']:
+            deny()
         row = c.execute('SELECT data FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id=%s', (ws, artifact['id'], rid)).fetchone()
         if not row:
             deny()
@@ -194,6 +201,8 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
             payload.pop('chart_spec',None)
         if op in ('memory_remember', 'memory_candidate', 'memory_correct') and payload.get('procedure') is None:
             payload.pop('procedure', None)  # Preserve pre-067 command replay hashes.
+        if op == 'memory_correct' and payload.get('applicability') is None:
+            payload.pop('applicability', None)  # Preserve pre-069 correction receipts.
         if op=='accept_proposal':
             # Default-false additive flags preserve historical receipt hashes.
             for flag in ('acknowledge_removed_content', 'acknowledge_older_proposal'):
@@ -206,6 +215,9 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
             if payload.get('target') is None: payload.pop('target',None)
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:
+            if (not op.startswith('memory_') and
+                c.execute("SELECT to_regclass('public.isolated_restore_receipt') AS marker").fetchone()['marker']):
+                raise DomainError('action_unresolved')
             self._scope(c, p, ws, write=True)
             authorized = authorize(c)  # Always current authorization, before cached result access.
             previous = c.execute('SELECT payload_hash,result FROM commands WHERE principal_id=%s AND workspace_id=%s AND command_id=%s', (p.id,ws,command.command_id)).fetchone()
@@ -335,7 +347,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         with self.db.transaction() as c:
             self._scope(c,p,ws)
             row,a=self._artifact(c,p,ws,artifact_id)
-            rows=c.execute('SELECT id FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id>%s ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
+            rows=c.execute('SELECT id FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id>%s AND memory_revision_visible(workspace_id,artifact_id,id) ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
             items=[self._revision(c,p,ws,row,a,r['id']) for r in rows[:limit]]
             return RevisionPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
@@ -344,7 +356,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
             self._scope(c,p,ws)
             artifact,owner=self._artifact(c,p,ws,artifact_id)
             latest=self._latest_review_candidate(c,p,ws,artifact,owner)
-            rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
+            rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s AND memory_proposal_visible(workspace_id,id) ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
             from .proposal_review import review_proposal
             items=[]
             for r in rows[:limit]:
@@ -359,6 +371,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         rows=c.execute("""SELECT id,data->'source_dependencies' AS source_dependencies
             FROM proposals WHERE workspace_id=%s
             AND artifact_id=%s AND base_revision_id=%s AND data->>'status'='pending'
+            AND memory_proposal_visible(workspace_id,id)
             ORDER BY (data->>'created_at')::timestamptz DESC,id DESC""",
             (ws,artifact['id'],artifact['current_revision_id'])).fetchall()
         for row in rows:
@@ -376,7 +389,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         if row['current_revision_id'] != expected:
             raise DomainError('version_conflict',current_revision_id=row['current_revision_id'],proposal_id=proposal_id)
 
-    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind):
+    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind,producer_run_id=None):
         office=c.execute('SELECT office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',(ws,row['id'])).fetchone()
         if office and office['office_source_snapshot_id']:
             from .office_content import validate
@@ -388,7 +401,7 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         rev=Revision(id=new_id(),artifact_id=row['id'],revision_number=previous.revision_number+1 if previous else 1,
                      parent_revision_id=previous.id if previous else None,author_id=p.id,author_kind=author_kind,
                      body=body,body_hash=digest(body),source_dependencies=deps)
-        c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data) VALUES (%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev)))
+        c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data,producer_run_id) VALUES (%s,%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev),producer_run_id))
         c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
         return Artifact(id=row['id'],workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=rev.id,current_revision=rev)
 

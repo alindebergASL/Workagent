@@ -33,7 +33,8 @@ def test_temporary_requires_explicit_finite_interval_and_receipt_has_no_content(
     with pytest.raises(ValidationError): CorrectMemory(**base)
     start=now()
     assert CorrectMemory(**base,valid_from=start,valid_until=start+timedelta(days=7))
-    assert set(MemoryReceipt.model_fields)=={'memory_id','revision_id','status'}
+    assert set(MemoryReceipt.model_fields)=={'memory_id','revision_id','status','erased_memory_items','retention_notice'}
+    assert not {'content','source_refs','subject_key'} & set(MemoryReceipt.model_fields)
 
 
 def test_memory_opt_in_is_additive_and_historical_schema_unchanged():

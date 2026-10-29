@@ -94,7 +94,7 @@ def rollback(service, c, p, ws, old, command):
             refs.append(ref)
     if len(refs) > 16:
         raise DomainError('validation_error')
-    service._memory_sources(c,p,ws,refs)
+    service._memory_sources(c,p,ws,refs,scope_kind=old.scope_kind,scope_id=old.scope_id,memory_id=old.memory_id)
     details = union_details(old.procedure,target.procedure)
     authorize(service,c,p,ws,old.scope_kind,old.scope_id,details,refs)
     return dict(content=target.content,content_sha256=target.content_sha256,

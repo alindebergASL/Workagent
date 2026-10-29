@@ -1,0 +1,245 @@
+{
+  "batch": "connectors-01.xml",
+  "sha256": "b4b2974b336985346c9310235315e1f2111093d0593fe87d2d90e2646afd367b",
+  "counts": {
+    "passed": 46,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 46,
+  "cases": [
+    {
+      "nodeid": "tests.test_synthetic_connectors_pg::test_real_read_memory_revoke_and_restart",
+      "status": "passed",
+      "seconds": 16.518
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors_pg::test_inflight_late_result_and_queued_denied",
+      "status": "passed",
+      "seconds": 10.391
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors_pg::test_provider_failure_does_not_restore_local_access",
+      "status": "passed",
+      "seconds": 5.79
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_complete_revoke_retires_late_exchange",
+      "status": "passed",
+      "seconds": 4.634
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_product_gateway_stdio",
+      "status": "passed",
+      "seconds": 14.084
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_restricted_sql_cannot_mutate_authority_or_receipts",
+      "status": "passed",
+      "seconds": 11.172
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_refresh_revoke_cleans_latest_real_provider_token",
+      "status": "passed",
+      "seconds": 7.951
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_real_callback_code_pkce_replay_and_metadata",
+      "status": "passed",
+      "seconds": 6.736
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_secret_absence_from_app_rows_and_encrypted_vault",
+      "status": "passed",
+      "seconds": 6.944
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_scope_fences_source_context_publication_and_receipts[connector]",
+      "status": "passed",
+      "seconds": 15.516
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_scope_fences_source_context_publication_and_receipts[processor]",
+      "status": "passed",
+      "seconds": 15.621
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_scope_fences_source_context_publication_and_receipts[generation]",
+      "status": "passed",
+      "seconds": 13.137
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_scope_fences_source_context_publication_and_receipts[installation]",
+      "status": "passed",
+      "seconds": 12.22
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_scope_fences_source_context_publication_and_receipts[expiry]",
+      "status": "passed",
+      "seconds": 20.154
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_same_user_cross_workspace_and_conversation_no_cache",
+      "status": "passed",
+      "seconds": 16.468
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_echoed_bearer_rejected_before_snapshot_receipt_and_context",
+      "status": "passed",
+      "seconds": 10.335
+    },
+    {
+      "nodeid": "tests.test_connector_security_pg::test_prepared_provider_count_and_dispatch_denied_after_revoke",
+      "status": "passed",
+      "seconds": 57.913
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_callback_mixup[state-bad]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_callback_mixup[issuer-http://169.254.169.254]",
+      "status": "passed",
+      "seconds": 0.007
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_callback_mixup[audience-other]",
+      "status": "passed",
+      "seconds": 0.005
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_callback_mixup[redirect-http://127.0.0.1:18769/internal/callback?code=secret]",
+      "status": "passed",
+      "seconds": 0.009
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_callback_expiry_pkce",
+      "status": "passed",
+      "seconds": 0.007
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[http://169.254.169.254/latest/meta-data]",
+      "status": "passed",
+      "seconds": 0.003
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[http://localhost:18769/mcp]",
+      "status": "passed",
+      "seconds": 0.002
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[http://127.0.0.1:18769/mcp?token=secret]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[http://user:pw@127.0.0.1:18769/mcp]",
+      "status": "passed",
+      "seconds": 0.007
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[http://127.0.0.1:18769/mcp/]",
+      "status": "passed",
+      "seconds": 0.005
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[https://example.org/oauth/token]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_metadata_exact_allowlist[file:///etc/passwd]",
+      "status": "passed",
+      "seconds": 0.009
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_unsupported_transports[stdio]",
+      "status": "passed",
+      "seconds": 0.006
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_unsupported_transports[legacy]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_unsupported_transports[2025-11-25]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_unsupported_transports[auto]",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_full_schema_pin_not_hint",
+      "status": "passed",
+      "seconds": 0.004
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_vault_no_plaintext_tombstone_and_restart",
+      "status": "passed",
+      "seconds": 0.032
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_refresh_rotation_serialized_and_revoke_race",
+      "status": "passed",
+      "seconds": 0.042
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_sdk_http_asgi_wire_and_synthetic_oauth",
+      "status": "passed",
+      "seconds": 0.081
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_strict_contracts_and_native_replay",
+      "status": "passed",
+      "seconds": 0.009
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_optional_configuration",
+      "status": "passed",
+      "seconds": 0.005
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_real_sdk_schema_poison_prevents_dispatch",
+      "status": "passed",
+      "seconds": 0.018
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_sdk_rejects_same_origin_redirect_before_follow",
+      "status": "passed",
+      "seconds": 0.01
+    },
+    {
+      "nodeid": "tests.test_synthetic_connectors::test_rotated_provider_family_revoked_by_original_refresh",
+      "status": "passed",
+      "seconds": 0.007
+    },
+    {
+      "nodeid": "tests.test_synthetic_mcp_wire::test_real_tcp_sdk_executes_current_protocol",
+      "status": "passed",
+      "seconds": 4.505
+    },
+    {
+      "nodeid": "tests.test_mcp_stdio_isolation::test_product_read_uses_fixed_stdio",
+      "status": "passed",
+      "seconds": 4.677
+    },
+    {
+      "nodeid": "tests.test_mcp_stdio_isolation::test_actual_version_pinned_stdio_tool",
+      "status": "passed",
+      "seconds": 4.579
+    },
+    {
+      "nodeid": "tests.test_mcp_stdio_isolation::test_stdio_real_no_secret_proc_host_or_network",
+      "status": "passed",
+      "seconds": 0.595
+    }
+  ],
+  "seconds": 265.842,
+  "timestamp": "2026-10-29T13:38:29.078841+00:00"
+}

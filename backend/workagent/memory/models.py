@@ -23,7 +23,18 @@ class MemoryFile(Model):
     ref: FileVersionRef
 
 
-MemorySourceRef = Annotated[MemorySource | MemoryFile, Field(discriminator='source_type')]
+class MemoryRevisionRef(Model):
+    memory_id: Id
+    revision_id: Id
+    sha256: Hash
+
+
+class MemoryDerived(Model):
+    source_type: Literal['memory'] = 'memory'
+    ref: MemoryRevisionRef
+
+
+MemorySourceRef = Annotated[MemorySource | MemoryFile | MemoryDerived, Field(discriminator='source_type')]
 
 
 def validate_content(text):
@@ -127,6 +138,8 @@ class ReviewMemory(MemoryCAS):
 
 
 class CorrectMemory(MemoryCAS):
+    # None preserves the prior value, including for legacy command replay.
+    applicability: str | None = Field(default=None, max_length=500)
     procedure: ProcedureDetails | None = None
     content: str = Field(min_length=1, max_length=4000)
     mode: Literal['permanent', 'temporary'] = 'permanent'
@@ -137,6 +150,8 @@ class CorrectMemory(MemoryCAS):
     @model_validator(mode='after')
     def safe(self):
         validate_content(self.content)
+        if self.applicability is not None:
+            validate_content(self.applicability)
         if self.mode == 'temporary':
             if not self.valid_from or not self.valid_until or self.valid_until <= self.valid_from:
                 raise ValueError('temporary correction requires an explicit finite interval')
@@ -199,6 +214,8 @@ class MemoryReceipt(Model):
     memory_id: Id
     revision_id: Id
     status: Status
+    erased_memory_items: int | None = Field(default=None, ge=1, le=1024)
+    retention_notice: str | None = None
 
 
 class MemoryInspection(Model):

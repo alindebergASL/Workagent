@@ -1,0 +1,50 @@
+{
+  "batch": "projections-05.xml",
+  "sha256": "3ae69e16846dc74814b8b637f43c3221b2f20377eb85e5116dc726e88bb7ad9d",
+  "counts": {
+    "passed": 6,
+    "failed": 1,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 7,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_projection_closure_pg::test_supported_proposal_download_exact_observation_and_page_metadata[forget]",
+      "status": "passed",
+      "seconds": 17.88
+    },
+    {
+      "nodeid": "tests.test_memory_projection_closure_pg::test_supported_proposal_download_exact_observation_and_page_metadata[correct]",
+      "status": "failed",
+      "seconds": 0.965
+    },
+    {
+      "nodeid": "tests.test_memory_projection_closure_pg::test_supported_proposal_download_exact_observation_and_page_metadata[revoke]",
+      "status": "passed",
+      "seconds": 12.657
+    },
+    {
+      "nodeid": "tests.test_memory_projection_closure_pg::test_metadata_only_valid_sql_egress_before_and_denied_after_reduction[count_send]",
+      "status": "passed",
+      "seconds": 7.227
+    },
+    {
+      "nodeid": "tests.test_memory_projection_closure_pg::test_metadata_only_valid_sql_egress_before_and_denied_after_reduction[dispatch]",
+      "status": "passed",
+      "seconds": 14.271
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_real_backup_restore_current_tombstones_permissions_and_process_readback[1]",
+      "status": "passed",
+      "seconds": 19.544
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_real_backup_restore_current_tombstones_permissions_and_process_readback[2]",
+      "status": "passed",
+      "seconds": 23.271
+    }
+  ],
+  "seconds": 100.981,
+  "timestamp": "2026-10-29T14:22:35.974528+00:00"
+}

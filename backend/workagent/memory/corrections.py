@@ -8,9 +8,10 @@ def changes(service, c, p, ws, old, command):
         raise DomainError('action_unresolved')
     from .procedures import union_details
     details = union_details(old.procedure, command.procedure)
+    applicability = old.applicability if command.applicability is None else command.applicability
     if command.procedure is not None and old.kind != 'procedure':
         raise DomainError('validation_error')
-    if old.kind == 'procedure' and (details is None or not (old.applicability or '').strip()
+    if old.kind == 'procedure' and (details is None or not (applicability or '').strip()
                                    or not (old.confidence_basis or '').strip()):
         raise DomainError('action_unresolved')
     # A correction cannot silently declassify derived evidence. New references
@@ -21,10 +22,11 @@ def changes(service, c, p, ws, old, command):
             refs.append(ref)
     if len(refs) > 16:
         raise DomainError('validation_error')
-    service._memory_sources(c, p, ws, refs)
+    service._memory_sources(c, p, ws, refs, scope_kind=old.scope_kind, scope_id=old.scope_id, memory_id=old.memory_id)
     result = dict(content=command.content, content_sha256=sha256(command.content.encode()).hexdigest(),
                   source_refs=refs, origin='human_reviewed', reviewed_by_principal_id=p.id,
-                  status='active', confidence_label='inferred' if old.kind == 'procedure' else 'explicit', procedure=details)
+                  status='active', confidence_label='inferred' if old.kind == 'procedure' else 'explicit',
+                  procedure=details, applicability=applicability)
     if old.status == 'candidate':
         if command.mode != 'permanent':
             raise DomainError('action_unresolved')

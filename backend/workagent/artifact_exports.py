@@ -176,6 +176,9 @@ class ArtifactExports:
             from .capabilities.compute_adapters import ComputeExportManifest, authorize_download
             computed = row['data'].get('exporter_version') == 'compute-python-v1'
             manifest = (ComputeExportManifest if computed else ExportManifest).model_validate(row['data'])
+            if manifest.tool_attempt_id and not c.execute(
+                'SELECT research_run_dependencies_visible(workspace_id,run_id) AS ok FROM tool_attempts WHERE workspace_id=%s AND id=%s',
+                (ws,manifest.tool_attempt_id)).fetchone()['ok']: deny()
             if not computed and manifest.exporter_version=='office-exports-v1' and manifest.tool_attempt_id:
                 from .office_service import authorize_tool_download
                 authorize_tool_download(c,ws,manifest)

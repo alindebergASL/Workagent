@@ -151,7 +151,7 @@ class WorkspaceFiles:
         if not 1 <= limit <= 100:
             raise DomainError('validation_error')
         # The gateway supplies exact granted file selectors; filter BEFORE paging.
-        predicate = ' AND (artifact_id IS NOT NULL OR EXISTS (SELECT 1 FROM source_snapshots s WHERE s.workspace_id=workspace_files.workspace_id AND s.workspace_file_id=workspace_files.id AND research_source_visible(s.workspace_id,s.id)))'
+        predicate = ' AND ((artifact_id IS NOT NULL AND EXISTS (SELECT 1 FROM artifacts a WHERE a.workspace_id=workspace_files.workspace_id AND a.id=workspace_files.artifact_id AND memory_revision_visible(a.workspace_id,a.id,a.current_revision_id))) OR (artifact_id IS NULL AND EXISTS (SELECT 1 FROM source_snapshots s WHERE s.workspace_id=workspace_files.workspace_id AND s.workspace_file_id=workspace_files.id AND research_source_visible(s.workspace_id,s.id))))'
         if selectors is not None: predicate += ' AND id=ANY(%s)'
         args = [ws, cid, p.id, after or '']
         if selectors is not None:
@@ -175,7 +175,7 @@ class WorkspaceFiles:
             self._scope(c, p, ws)
             return self._list_workspace_files(c, p, ws, cid, after, limit)
 
-    def _create_text_file(self, c, p, ws, cv, source, author_kind, file_id=None, office_source_snapshot_id=None):
+    def _create_text_file(self, c, p, ws, cv, source, author_kind, file_id=None, office_source_snapshot_id=None,producer_run_id=None):
         from .service import encoded
         body = text_body(source.content, source.sha256, source.mime_type)
         file_id = file_id or new_id()
@@ -183,7 +183,7 @@ class WorkspaceFiles:
         c.execute('INSERT INTO workspace_files(workspace_id,id,conversation_id,owner_id,artifact_id,filename,mime_type,office_source_snapshot_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
                   (ws, file_id, cv.id, p.id, file_id, source.filename, source.mime_type, office_source_snapshot_id))
         artifact, _ = self._artifact(c, p, ws, file_id)
-        self._append_revision(c, p, ws, artifact, cv, body, cv.selected_source_refs, author_kind)
+        self._append_revision(c, p, ws, artifact, cv, body, cv.selected_source_refs, author_kind,producer_run_id=producer_run_id)
         self._event(c, p, ws, 'workspace_file_created', file_id)
         return self._file_info(c, p, ws, file_id)
 
@@ -245,8 +245,8 @@ class WorkspaceFiles:
         proposal = Proposal(id=new_id(), workspace_id=ws, conversation_id=cv.id, artifact_id=artifact['id'],
             base_revision_id=cmd.base_version_id, base_work_version=cv.work_version, body=body,
             body_hash=digest(body), source_dependencies=cv.selected_source_refs, reason=cmd.reason)
-        c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data) VALUES (%s,%s,%s,%s,%s)',
-                  (ws, proposal.id, artifact['id'], cmd.base_version_id, encoded(proposal)))
+        c.execute('INSERT INTO proposals(workspace_id,id,artifact_id,base_revision_id,data,producer_run_id) VALUES (%s,%s,%s,%s,%s,%s)',
+                  (ws, proposal.id, artifact['id'], cmd.base_version_id, encoded(proposal),getattr(cmd,'producer_run_id',None)))
         self._event(c, p, ws, 'workspace_file_proposed', proposal.id)
         return proposal
 

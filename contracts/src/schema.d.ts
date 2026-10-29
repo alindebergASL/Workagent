@@ -2599,6 +2599,8 @@ export interface components {
         };
         /** CorrectMemory */
         CorrectMemory: {
+            /** Applicability */
+            applicability?: string | null;
             /** Command Id */
             command_id: string;
             /** Content */
@@ -2620,7 +2622,7 @@ export interface components {
              */
             schema_version: "workagent/v1";
             /** Source Refs */
-            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"])[];
+            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"] | components["schemas"]["MemoryDerived"])[];
             /** Valid From */
             valid_from?: string | null;
             /** Valid Until */
@@ -3640,6 +3642,15 @@ export interface components {
              */
             schema_version: "workagent/v1";
         };
+        /** MemoryDerived */
+        MemoryDerived: {
+            ref: components["schemas"]["MemoryRevisionRef"];
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            source_type: "memory";
+        };
         /** MemoryFile */
         MemoryFile: {
             ref: components["schemas"]["FileVersionRef"];
@@ -3697,8 +3708,12 @@ export interface components {
         };
         /** MemoryReceipt */
         MemoryReceipt: {
+            /** Erased Memory Items */
+            erased_memory_items?: number | null;
             /** Memory Id */
             memory_id: string;
+            /** Retention Notice */
+            retention_notice?: string | null;
             /** Revision Id */
             revision_id: string;
             /**
@@ -3706,6 +3721,15 @@ export interface components {
              * @enum {string}
              */
             status: "candidate" | "active" | "contested" | "superseded" | "expired" | "forgotten";
+        };
+        /** MemoryRevisionRef */
+        MemoryRevisionRef: {
+            /** Memory Id */
+            memory_id: string;
+            /** Revision Id */
+            revision_id: string;
+            /** Sha256 */
+            sha256: string;
         };
         /** MemoryRevisionV1 */
         MemoryRevisionV1: {
@@ -3768,7 +3792,7 @@ export interface components {
              */
             scope_kind: "task" | "work_area" | "user";
             /** Source Refs */
-            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"])[];
+            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"] | components["schemas"]["MemoryDerived"])[];
             /**
              * Status
              * @enum {string}
@@ -4355,7 +4379,7 @@ export interface components {
              */
             sensitivity: "ordinary";
             /** Source Refs */
-            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"])[];
+            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"] | components["schemas"]["MemoryDerived"])[];
             /** Subject Key */
             subject_key: string;
             /** Valid From */
@@ -4620,7 +4644,7 @@ export interface components {
              */
             sensitivity: "ordinary";
             /** Source Refs */
-            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"])[];
+            source_refs?: (components["schemas"]["MemorySource"] | components["schemas"]["MemoryFile"] | components["schemas"]["MemoryDerived"])[];
             /** Subject Key */
             subject_key: string;
             /** Valid From */

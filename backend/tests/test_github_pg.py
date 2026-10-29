@@ -221,6 +221,8 @@ def test_prior_source_title_in_prepared_prompt_cannot_survive_reduction(context,
         assert len(manifest['research_source_ids'])==1
     reduce(context,g)
     with pytest.raises(DomainError):saved['ledger'].reserve_operation(saved['request'],'count_send',saved['cap'])
+    with s.db.transaction() as c:
+        assert not c.execute('SELECT research_run_dependencies_visible(%s,%s) ok',(ws,q2.run.id)).fetchone()['ok']
     assert fake.calls==[]
 
 

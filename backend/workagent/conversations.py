@@ -105,11 +105,15 @@ class Conversations:
 
     def _conversation_messages(self,c,ws,cid):
         return [ConversationMessage.model_validate(r['data']) for r in c.execute(
-            'SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s ORDER BY sequence',
+            "SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+            "AND (author_kind<>'assistant' OR research_run_dependencies_visible(workspace_id,run_id)) ORDER BY sequence",
             (ws,cid)).fetchall()]
 
     def _append_message(self,c,ws,message):
         from .service import encoded
+        # Hidden stale automated replies still occupy immutable sequence slots.
+        message.sequence = c.execute('SELECT coalesce(max(sequence),0)+1 AS n FROM conversation_messages '
+            'WHERE workspace_id=%s AND conversation_id=%s', (ws,message.conversation_id)).fetchone()['n']
         c.execute('''INSERT INTO conversation_messages(workspace_id,conversation_id,id,run_id,sequence,author_kind,data)
                      VALUES (%s,%s,%s,%s,%s,%s,%s)''',
                   (ws,message.conversation_id,message.id,message.run_id,message.sequence,message.author_kind,encoded(message)))
@@ -157,6 +161,7 @@ class Conversations:
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('''SELECT a.id FROM artifacts a
                 WHERE a.workspace_id=%s AND a.conversation_id=%s
+                AND memory_revision_visible(a.workspace_id,a.id,a.current_revision_id)
                 AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
                     AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',(ws,cid,p.id)).fetchall()]
             from .original_attachments import projection as attachment_projection
