@@ -1,0 +1,16 @@
+{
+  "known_fixture_and_worker_secret_scan": "PASS",
+  "sensitive_pattern_scan": "PASS",
+  "raw_provider_cloudflare_diagnostics_excluded": true,
+  "literal_interpolated_DSN_templates_not_credentials": {
+    "path": "backend/dev_db.py",
+    "lines": [
+      32,
+      33
+    ],
+    "unchanged_from_base": true
+  },
+  "raw_terminal_whitespace": "Preserved; diff --check applies to implementation/STATUS, not immutable evidence captures.",
+  "staged_files_scanned": 337,
+  "staged_bytes_scanned": 15856099
+}

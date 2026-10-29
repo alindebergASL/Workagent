@@ -53,6 +53,47 @@ import {
   readVersion,
   requestExport,
 } from "@/lib/client/workspace-files";
+import { client, meta, unwrap } from "@/lib/client/real-api";
+import { parseWorkSnapshot } from "@/lib/contract/work-events";
+import { ArtifactCitations, ResearchSources } from "./ResearchSources";
+
+interface CitationBinding {
+  artifactId: string;
+  revisionId: string;
+  bodyHash: string;
+}
+
+/**
+ * The artifact revision and body hash behind one exact saved file version,
+ * read from the conversation's canonical work snapshot. Only the parsed,
+ * frozen snapshot is consulted, and only an artifact whose current revision
+ * IS that saved version binds; a moved head binds nothing rather than the
+ * wrong revision.
+ */
+async function savedCitationBinding(
+  ws: string,
+  cid: string,
+  versionId: string,
+  signal: AbortSignal,
+): Promise<CitationBinding | null> {
+  const snap = parseWorkSnapshot(
+    await unwrap(
+      client.GET("/v1/workspaces/{workspace_id}/work-snapshot", {
+        params: {
+          path: { workspace_id: ws },
+          query: { conversation_id: cid },
+          header: meta(),
+        },
+        signal,
+      }),
+    ),
+  );
+  if (snap.conversation_id !== cid) return null;
+  const a = snap.artifacts.find((x) => x.current_revision_id === versionId);
+  return a
+    ? { artifactId: a.id, revisionId: versionId, bodyHash: a.body_hash }
+    : null;
+}
 
 /**
  * Working files that belong to this conversation. Every save is bound to the
@@ -128,6 +169,7 @@ export function WorkspaceFiles({
           </li>
         ))}
       </ul>
+      <ResearchSources key={`${ws}:${cid}`} ws={ws} cid={cid} />
       {file ? (
         <FileEditor
           key={file.workspace_file_id}
@@ -480,6 +522,25 @@ function FileEditor({
     };
   }, [ws, fileId, current.version_id, current.sha256, current]);
 
+  // Citations follow the exact SAVED version this editor holds, never the
+  // list's moving head or unsaved text; looking them up never touches the
+  // editor's text or dirty state.
+  const savedVersion = file.editable ? (loaded?.ref.version_id ?? null) : null;
+  const [citations, setCitations] = useState<CitationBinding | null>(null);
+  useEffect(() => {
+    setCitations(null);
+    if (!savedVersion) return;
+    const ac = new AbortController();
+    savedCitationBinding(ws, file.conversation_id, savedVersion, ac.signal)
+      .then((b) => {
+        if (!ac.signal.aborted) setCitations(b);
+      })
+      .catch(() => {
+        /* unreadable or refused: no citations are bound */
+      });
+    return () => ac.abort();
+  }, [ws, file.conversation_id, savedVersion]);
+
   function edit(next: string) {
     setText(next);
     const changed = loaded === null || next !== loaded.display;
@@ -749,6 +810,28 @@ function FileEditor({
               </button>
             ) : null}
           </div>
+          {citations && citations.revisionId === savedVersion ? (
+            <div
+              className="stack-xs"
+              data-testid="file-citations"
+              data-revision={citations.revisionId}
+              data-body-hash={citations.bodyHash}
+            >
+              {dirty ? (
+                <p className="small muted">
+                  Citations below describe the last saved version, not your
+                  unsaved edit.
+                </p>
+              ) : null}
+              <ArtifactCitations
+                key={`${ws}:${citations.revisionId}:${citations.bodyHash}`}
+                ws={ws}
+                artifactId={citations.artifactId}
+                revisionId={citations.revisionId}
+                bodyHash={citations.bodyHash}
+              />
+            </div>
+          ) : null}
         </>
       ) : null}
       {!file.editable && loaded ? (

@@ -828,6 +828,39 @@
       "title": "ExportManifest",
       "type": "object"
     },
+    "ExternalVersion": {
+      "additionalProperties": false,
+      "properties": {
+        "etag": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Etag"
+        },
+        "last_modified": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Modified"
+        }
+      },
+      "required": [
+        "etag",
+        "last_modified"
+      ],
+      "title": "ExternalVersion",
+      "type": "object"
+    },
     "FileComparison": {
       "additionalProperties": false,
       "properties": {
@@ -1145,6 +1178,190 @@
       "title": "ProposeFilePatch",
       "type": "object"
     },
+    "PublicEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "blob_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Blob Id",
+          "type": "string"
+        },
+        "browser_used": {
+          "title": "Browser Used",
+          "type": "boolean"
+        },
+        "coverage": {
+          "$ref": "#/$defs/ResearchCoverage"
+        },
+        "external_version": {
+          "$ref": "#/$defs/ExternalVersion"
+        },
+        "extraction_status": {
+          "enum": [
+            "extracted",
+            "empty",
+            "truncated",
+            "unavailable"
+          ],
+          "title": "Extraction Status",
+          "type": "string"
+        },
+        "extractor_version": {
+          "title": "Extractor Version",
+          "type": "string"
+        },
+        "fetched_at": {
+          "format": "date-time",
+          "title": "Fetched At",
+          "type": "string"
+        },
+        "final_url": {
+          "title": "Final Url",
+          "type": "string"
+        },
+        "kind": {
+          "const": "public_source",
+          "default": "public_source",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "redirects": {
+          "items": {
+            "$ref": "#/$defs/PublicRedirect"
+          },
+          "title": "Redirects",
+          "type": "array"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "status_code": {
+          "title": "Status Code",
+          "type": "integer"
+        },
+        "text": {
+          "maxLength": 200000,
+          "title": "Text",
+          "type": "string"
+        },
+        "text_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Text Sha256",
+          "type": "string"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Title"
+        },
+        "tool_attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Tool Attempt Id",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blob_id",
+        "sha256",
+        "mime_type",
+        "title",
+        "url",
+        "final_url",
+        "status_code",
+        "redirects",
+        "fetched_at",
+        "extractor_version",
+        "coverage",
+        "external_version",
+        "extraction_status",
+        "browser_used",
+        "text",
+        "text_sha256",
+        "run_id",
+        "tool_attempt_id"
+      ],
+      "title": "PublicEvidence",
+      "type": "object"
+    },
+    "PublicRedirect": {
+      "additionalProperties": false,
+      "properties": {
+        "location": {
+          "title": "Location",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "integer"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "status",
+        "location"
+      ],
+      "title": "PublicRedirect",
+      "type": "object"
+    },
+    "ResearchCoverage": {
+      "additionalProperties": false,
+      "properties": {
+        "body_complete": {
+          "title": "Body Complete",
+          "type": "boolean"
+        },
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 30,
+          "title": "Omissions",
+          "type": "array"
+        },
+        "text_complete": {
+          "title": "Text Complete",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "body_complete",
+        "text_complete",
+        "omissions"
+      ],
+      "title": "ResearchCoverage",
+      "type": "object"
+    },
     "SheetCoverage": {
       "additionalProperties": false,
       "properties": {
@@ -1263,9 +1480,13 @@
               "$ref": "#/$defs/Coverage"
             },
             {
+              "$ref": "#/$defs/ResearchCoverage"
+            },
+            {
               "type": "null"
             }
-          ]
+          ],
+          "title": "Coverage"
         },
         "extraction_byte_length": {
           "minimum": 0,
@@ -1285,7 +1506,8 @@
           "discriminator": {
             "mapping": {
               "attachment": "#/$defs/AttachmentEvidence",
-              "document": "#/$defs/DocumentEvidence"
+              "document": "#/$defs/DocumentEvidence",
+              "public_source": "#/$defs/PublicEvidence"
             },
             "propertyName": "kind"
           },
@@ -1295,6 +1517,9 @@
             },
             {
               "$ref": "#/$defs/AttachmentEvidence"
+            },
+            {
+              "$ref": "#/$defs/PublicEvidence"
             }
           ],
           "title": "Locator"

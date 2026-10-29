@@ -1,0 +1,69 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.6.0
+rootdir: /home/ubuntu/workagent-continuation-20261026
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collected 6 items
+
+backend/tests/test_research_pg.py .Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32a/research_debug.py", line 7, in debug
+    try:return original(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/research_adapters.py", line 156, in invoke
+    policy.authorize(service, c, cap, call, adapter)
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/policy.py", line 46, in authorize
+    p,run,scope=service._check_capability(c,cap)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 634, in _check_capability
+    require_run_tools(c,r)
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/policy.py", line 25, in require_run_tools
+    deny()
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/errors.py", line 33, in deny
+    raise DomainError('not_found_or_not_authorized')
+workagent.errors.DomainError: not_found_or_not_authorized
+.Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32a/research_debug.py", line 7, in debug
+    try:return original(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/research_adapters.py", line 156, in invoke
+    policy.authorize(service, c, cap, call, adapter)
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/policy.py", line 46, in authorize
+    p,run,scope=service._check_capability(c,cap)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 611, in _check_capability
+    deny()
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/errors.py", line 33, in deny
+    raise DomainError('not_found_or_not_authorized')
+workagent.errors.DomainError: not_found_or_not_authorized
+.Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32a/research_debug.py", line 7, in debug
+    try:return original(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/research_adapters.py", line 157, in invoke
+    snapshot = research.append_capture(service, c, p, run, scope, aid, request, material)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/research.py", line 72, in append_capture
+    c.execute('INSERT INTO source_snapshots(workspace_id,id,workspace_file_id,version_number,parent_snapshot_id,data) VALUES (%s,%s,%s,%s,%s,%s)',
+  File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 257, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.RaiseException: exact authorized public capture required
+CONTEXT:  PL/pgSQL function guard_source_snapshot() line 22 at RAISE
+.Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b32a/research_debug.py", line 7, in debug
+    try:return original(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/research_adapters.py", line 149, in invoke
+    material = fetch(request.url, allow_browser=request.allow_browser)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/tests/test_research_pg.py", line 134, in uncertain
+    def uncertain(*a,**kw): calls.append(1);raise TimeoutError('synthetic secret must not escape')
+                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: synthetic secret must not escape
+..
+
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 6 passed, 1 warning in 22.87s =========================

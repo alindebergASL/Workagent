@@ -23,6 +23,20 @@ def editor_content(original, edited, newline):
     return edited.replace('\n', {'crlf': '\r\n', 'cr': '\r'}.get(newline, '\n'))
 
 
+def read_file_range(client, root, ref, offset=0):
+    """Shared bounded exact read; research inspection never opens a draft."""
+    ref = FileVersionRef.model_validate(ref)
+    result = FileRange.model_validate(client.request(root + '/files/' +
+        identifier(ref.workspace_file_id) + '/versions/' + identifier(ref.version_id) + '?' +
+        urlencode(dict(sha256=ref.sha256, offset=offset, limit=8192))))
+    raw = result.text.encode('utf-8')
+    if (result.ref != ref or result.offset != offset or result.next_offset != offset + len(raw)
+            or len(raw) > 8192 or result.next_offset > result.byte_length
+            or sha256(raw).hexdigest() != result.chunk_sha256):
+        raise OperatorError('Exact file range/hash mismatch; draft retained')
+    return result
+
+
 class FilesController:
     def __init__(self, client, session):
         self.client, self.session = client, session
@@ -54,16 +68,7 @@ class FilesController:
             raise OperatorError('File readback scope mismatch')
 
     def read_range(self, ref, offset=0):
-        ref = FileVersionRef.model_validate(ref)
-        result = FileRange.model_validate(self.client.request(self.root + '/files/' +
-            identifier(ref.workspace_file_id) + '/versions/' + identifier(ref.version_id) + '?' +
-            urlencode(dict(sha256=ref.sha256, offset=offset, limit=8192))))
-        raw = result.text.encode('utf-8')
-        if (result.ref != ref or result.offset != offset or result.next_offset != offset + len(raw)
-                or len(raw) > 8192 or result.next_offset > result.byte_length
-                or sha256(raw).hexdigest() != result.chunk_sha256):
-            raise OperatorError('Exact file range/hash mismatch; draft retained')
-        return result
+        return read_file_range(self.client, self.root, ref, offset)
 
     def read_exact(self, ref):
         chunks = []

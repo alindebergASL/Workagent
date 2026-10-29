@@ -1,6 +1,30 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.1c combined computation and reviewed-memory mechanism verified
+## Latest: B3.2a grounded research mechanisms accepted
+
+- [Acceptance](docs/evidence/batch3-b32a/ACCEPTANCE.md) closes immutable public
+  search/capture/citation/freshness and confined offline browser fallback. Missing
+  production search is explicit unavailable; no paid search/model usefulness claim.
+- Actual original saved working-file citations now render at1440/390/320 before/
+  after restart, with exact human revision/body, unsupported/stale flags and10/12-unit
+  captures. Refresh preserves saved/unsaved text and is GET-only. Native100×45/80×35,
+  real restricted-PG/production-worker recursive revocation and no-repeat proof pass.
+- Final37 backend/PG,3 HTTP-PG and67 focused web checks, isolated optimized build,
+  canonical contracts and one independent narrow review closure pass. Earlier38 web
+  and85/6/4 checks are overlapping inherited runs, not additive totals.56 changed
+  source hashes and521 candidate inputs bind build `f81VUigyJq5lbmurBaPTo`.
+- Historical missing-consumer warning is superseded by final Claude consumer proof;
+  initial review failures and raw failure receipts remain. Minor disclosure collapse
+  and no artifact-detail citation mount are disclosed. No arbitrary polish rerun.
+- [Handoff](docs/evidence/batch3-b32a/HANDOFF.md) carries owned-service cleanup,
+  evidence boundaries and existing B3.2b successor `t_acf5c8f0`. Feature commit/CI
+  identities belong to the final task receipt, not installed-runtime promotion.
+- No paid product calls, new processor, installed-data maintenance, default merge,
+  cap/config changes or automatic integration of isolated memory-link repair
+  `d8c0bc04689d1b50698bcd4f6b141e3f2ce0d0cf`. Cloud/shared-page reconciliation and
+  historical budget/unknown liabilities remain unchanged. Only B3.2a is accepted.
+
+## Previous: B3.1c combined computation and reviewed-memory mechanism verified
 
 - B3.1b typed-memory source `9657a06cfbbcfc5f7c4176a0e8360b12c9e4515d` is the base.
   A generic opt-in bridge now exposes ordinary human attachments as immutable,

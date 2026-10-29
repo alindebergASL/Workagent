@@ -401,6 +401,10 @@ class Conversations:
             from .retained_results import enabled as retained_enabled, references, descriptor
             from .general_responses import check_pins
             config=check_pins(c,run)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context,include_own=True)
             if retained_enabled(config):
                 context['retained_results']=references(self,c,p,run,cv)
                 context['continuation']=config.get('continuation')
@@ -531,6 +535,10 @@ class Conversations:
             from .memory.runtime import enabled as memory_enabled, project as project_memory
             if memory_enabled(config):
                 project_memory(self,c,p,run,cv,context)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context)
             if standing(grant.responses) or retained_enabled(config):
                 from .conversation_context import bound_context
                 bound_context(context,run.id,profile(run.profile)['max_context_bytes'])

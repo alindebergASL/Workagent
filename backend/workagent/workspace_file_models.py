@@ -8,6 +8,7 @@ from pydantic import AwareDatetime, Field, model_validator
 from .model_base import Model, Id, Hash
 from .models import Command
 from .document_models import Coverage
+from .research_models import PublicEvidence, ResearchCoverage
 
 MAX_FILE_BYTES = 200000
 Filename = Annotated[str, Field(max_length=85, pattern=r'^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json)$')]
@@ -176,7 +177,7 @@ class SourceSnapshot(Model):
     conversation_id: Id
     version_number: Version
     parent_snapshot_id: Id | None
-    locator: EvidenceRef
+    locator: Annotated[DocumentEvidence | AttachmentEvidence | PublicEvidence, Field(discriminator='kind')]
     observed_at: AwareDatetime
     version_at: AwareDatetime | None
     original_sha256: Hash
@@ -185,7 +186,7 @@ class SourceSnapshot(Model):
     extraction_byte_length: int = Field(ge=0)
     parser_version: str
     extraction_status: str
-    coverage: Coverage | None
+    coverage: Coverage | ResearchCoverage | None
     omissions: list[str]
     trust_label: Literal['untrusted_evidence'] = 'untrusted_evidence'
 

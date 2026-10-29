@@ -14,6 +14,8 @@ POLICY = FILE_POLICY + ''' Confined Python v1: compute_python executes supplied 
 
 
 def enabled(config):
+    from .research_composition import enabled as research_enabled
+    if research_enabled(config): return True
     from ..memory.runtime import enabled as memory_enabled
     if memory_enabled(config): return True
     return (config.get('responses', {}).get('continuity_version') == 'sustained-v1'

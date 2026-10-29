@@ -157,6 +157,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/revisions/{revision_id}/research/claims": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Artifact Claims */
+        get: operations["get_artifact_research_claims"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/artifacts/{artifact_id}/save": {
         parameters: {
             query?: never;
@@ -1029,6 +1046,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/research/snapshots/{snapshot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Snapshot */
+        get: operations["get_research_snapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/runs/{run_id}": {
         parameters: {
             query?: never;
@@ -1213,6 +1247,23 @@ export interface paths {
         put?: never;
         /** Create File */
         post: operations["create_workspace_file"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/research/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Snapshots */
+        get: operations["list_research_snapshots"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1566,6 +1617,23 @@ export interface components {
             proposal_id?: string | null;
             /** Revision Id */
             revision_id?: string | null;
+        };
+        /** ArtifactClaims */
+        ArtifactClaims: {
+            /** Artifact Id */
+            artifact_id: string;
+            /** Body Hash */
+            body_hash: string;
+            /** Items */
+            items: components["schemas"]["ClaimFreshness"][];
+            /** Revision Id */
+            revision_id: string;
+            /**
+             * Semantic Notice
+             * @default Exact quotes verify attribution, not claim truth.
+             * @constant
+             */
+            semantic_notice: "Exact quotes verify attribution, not claim truth.";
         };
         /** Assignment */
         Assignment: {
@@ -2040,6 +2108,19 @@ export interface components {
              * @enum {string}
              */
             waiting: "none" | "person" | "event" | "blocked" | "unknown" | "stopped";
+        };
+        /** ClaimFreshness */
+        ClaimFreshness: {
+            claim: components["schemas"]["ResearchClaim"];
+            /** Coverage */
+            coverage: ("extracted" | "empty" | "truncated" | "unavailable")[];
+            /**
+             * Freshness
+             * @enum {string}
+             */
+            freshness: "current" | "potentially_stale";
+            /** Newer Snapshot Ids */
+            newer_snapshot_ids: string[];
         };
         /**
          * ClientSession
@@ -2958,6 +3039,13 @@ export interface components {
             workspace_file_id: string | null;
             /** Workspace Id */
             workspace_id: string;
+        };
+        /** ExternalVersion */
+        ExternalVersion: {
+            /** Etag */
+            etag: string | null;
+            /** Last Modified */
+            last_modified: string | null;
         };
         /** FileBody */
         FileBody: {
@@ -3885,6 +3973,63 @@ export interface components {
             /** Valid Until */
             valid_until?: string | null;
         };
+        /** PublicEvidence */
+        PublicEvidence: {
+            /** Blob Id */
+            blob_id: string;
+            /** Browser Used */
+            browser_used: boolean;
+            coverage: components["schemas"]["ResearchCoverage"];
+            external_version: components["schemas"]["ExternalVersion"];
+            /**
+             * Extraction Status
+             * @enum {string}
+             */
+            extraction_status: "extracted" | "empty" | "truncated" | "unavailable";
+            /** Extractor Version */
+            extractor_version: string;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** Final Url */
+            final_url: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "public_source";
+            /** Mime Type */
+            mime_type: string;
+            /** Redirects */
+            redirects: components["schemas"]["PublicRedirect"][];
+            /** Run Id */
+            run_id: string;
+            /** Sha256 */
+            sha256: string;
+            /** Status Code */
+            status_code: number;
+            /** Text */
+            text: string;
+            /** Text Sha256 */
+            text_sha256: string;
+            /** Title */
+            title: string | null;
+            /** Tool Attempt Id */
+            tool_attempt_id: string;
+            /** Url */
+            url: string;
+        };
+        /** PublicRedirect */
+        PublicRedirect: {
+            /** Location */
+            location: string;
+            /** Status */
+            status: number;
+            /** Url */
+            url: string;
+        };
         /** PublishArtifact */
         "PublishArtifact-Input": {
             /** Artifact Id */
@@ -3955,6 +4100,26 @@ export interface components {
         QueuedMessagePage: {
             /** Items */
             items: components["schemas"]["QueuedMessage"][];
+        };
+        /** QuoteRef */
+        QuoteRef: {
+            /** End */
+            end: number;
+            /** Quote */
+            quote: string;
+            /**
+             * Relation
+             * @enum {string}
+             */
+            relation: "supports" | "contradicts" | "context";
+            /** Snapshot Id */
+            snapshot_id: string;
+            /** Start */
+            start: number;
+            /** Text Sha256 */
+            text_sha256: string;
+            /** Workspace File Id */
+            workspace_file_id: string;
         };
         /** ReadBindingAction */
         "ReadBindingAction-Input": {
@@ -4096,6 +4261,61 @@ export interface components {
              * @constant
              */
             schema_version: "workagent/v1";
+        };
+        /** ResearchClaim */
+        ResearchClaim: {
+            /** Artifact Id */
+            artifact_id: string;
+            /**
+             * Attribution
+             * @default exact_quotes_only
+             * @constant
+             */
+            attribution: "exact_quotes_only";
+            /** Body Hash */
+            body_hash: string;
+            /** Claim */
+            claim: string;
+            /** Claim Id */
+            claim_id: string;
+            /** Conversation Id */
+            conversation_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Evidence */
+            evidence: components["schemas"]["QuoteRef"][];
+            /** Revision Id */
+            revision_id: string;
+            /** Run Id */
+            run_id: string;
+            /**
+             * Semantic Status
+             * @enum {string}
+             */
+            semantic_status: "not_assessed" | "unsupported" | "conflict";
+            /** Tool Attempt Id */
+            tool_attempt_id: string;
+            /** Workspace Id */
+            workspace_id: string;
+        };
+        /** ResearchCoverage */
+        ResearchCoverage: {
+            /** Body Complete */
+            body_complete: boolean;
+            /** Omissions */
+            omissions: string[];
+            /** Text Complete */
+            text_complete: boolean;
+        };
+        /** ResearchSnapshotPage */
+        ResearchSnapshotPage: {
+            /** Items */
+            items: components["schemas"]["SourceSnapshot"][];
+            /** Next After */
+            next_after?: string | null;
         };
         /** ResponseStepObservation */
         ResponseStepObservation: {
@@ -4706,7 +4926,8 @@ export interface components {
         SourceSnapshot: {
             /** Conversation Id */
             conversation_id: string;
-            coverage: components["schemas"]["Coverage"] | null;
+            /** Coverage */
+            coverage: components["schemas"]["Coverage"] | components["schemas"]["ResearchCoverage"] | null;
             /** Extraction Byte Length */
             extraction_byte_length: number;
             /** Extraction Sha256 */
@@ -4714,7 +4935,7 @@ export interface components {
             /** Extraction Status */
             extraction_status: string;
             /** Locator */
-            locator: components["schemas"]["DocumentEvidence"] | components["schemas"]["AttachmentEvidence"];
+            locator: components["schemas"]["DocumentEvidence"] | components["schemas"]["AttachmentEvidence"] | components["schemas"]["PublicEvidence"];
             /**
              * Observed At
              * Format: date-time
@@ -6452,6 +6673,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RevisionQueued"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_artifact_research_claims: {
+        parameters: {
+            query: {
+                body_hash: string;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                artifact_id: string;
+                revision_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArtifactClaims"];
                 };
             };
             /** @description Missing or invalid local authentication */
@@ -11673,6 +11980,89 @@ export interface operations {
             };
         };
     };
+    get_research_snapshot: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SourceSnapshot"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     get_run: {
         parameters: {
             query?: never;
@@ -12817,6 +13207,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkspaceFile"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_research_snapshots: {
+        parameters: {
+            query?: {
+                after?: string | null;
+                limit?: number;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResearchSnapshotPage"];
                 };
             };
             /** @description Missing or invalid local authentication */

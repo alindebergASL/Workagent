@@ -1,0 +1,7 @@
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'eslint' src/components/WorkspaceFiles.tsx test/workspace-files-races.test.ts
+npm notice run @workagent/web@0.1.0 npx
+npm notice run 'prettier' --check src/components/WorkspaceFiles.tsx test/workspace-files-races.test.ts
+Checking formatting...
+All matched files use Prettier code style!
+lint exit 0

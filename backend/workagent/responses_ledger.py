@@ -73,6 +73,8 @@ class Ledger:
             _,current,_=self.service._check_capability(c,cap)
             if current.id!=run.id:
                 raise DomainError('not_found_or_not_authorized')
+            from .research import authorize_run_dependencies
+            authorize_run_dependencies(c,run.workspace_id,run.id)
         return run,attempt,origin
 
     def _events(self,c,phase):
@@ -125,6 +127,8 @@ class Ledger:
                 if compute_enabled(config): DECISION_SCHEMA=COMPUTE_SCHEMA
                 from .memory.runtime import enabled as memory_enabled, SCHEMA as MEMORY_SCHEMA
                 if memory_enabled(config): DECISION_SCHEMA=MEMORY_SCHEMA
+                from .capabilities.research_composition import enabled as research_enabled, SCHEMA as RESEARCH_SCHEMA
+                if research_enabled(config): DECISION_SCHEMA=RESEARCH_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never

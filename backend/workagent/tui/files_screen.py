@@ -55,6 +55,7 @@ class WorkingFilesScreen(ModalScreen):
                 yield Button('Open exact', id='wf-open')
                 yield Button('Read range', id='wf-range')
                 yield Button('Next range', id='wf-range-next')
+            yield Button('Inspect source metadata', id='wf-research')
             yield Select([], prompt='Retained drafts / older versions', id='wf-drafts')
             yield Button('Reopen draft', id='wf-reopen')
             yield Static('', markup=False, id='wf-binding')
@@ -261,7 +262,15 @@ class WorkingFilesScreen(ModalScreen):
         if self.busy or self.storage_failed:
             return
         try:
-            if action == 'wf-new':
+            if action == 'wf-research':
+                item = self.selected_file()
+                if item.storage != 'source_snapshot':
+                    raise OperatorError('Select an immutable source snapshot; result claims are available from Work → Citations')
+                from .research_screen import ResearchScreen
+                scope = self.controller.scope
+                self.app.push_screen(ResearchScreen(self.client, scope['workspace'], scope['principal'],
+                    scope['conversation'], source_ref=item.current.model_copy(deep=True)))
+            elif action == 'wf-new':
                 self.file_session.select('__new__')
                 self.show_draft()
             elif action == 'wf-reopen':

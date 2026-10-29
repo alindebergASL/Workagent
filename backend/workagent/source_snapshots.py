@@ -7,6 +7,10 @@ from .workspace_file_models import DocumentEvidence, SourceSnapshot
 
 def evidence(service, c, p, ws, cid, ref):
     service._document_scope(c, p, ws, cid)
+    from .research_models import PublicEvidence
+    if isinstance(ref, PublicEvidence):
+        from .research import public_evidence
+        return public_evidence(service, c, p, ws, cid, ref)
     if isinstance(ref, DocumentEvidence):
         detail, original = service._document(c, p, ws, cid, ref.document_id, original=True)
         raw = detail.text.encode('utf-8')
@@ -76,6 +80,8 @@ def read(service, c, p, ws, snapshot_id):
         deny()
     snapshot = SourceSnapshot.model_validate(row['data'])
     service._file_row(c, p, ws, snapshot.workspace_file_id)
+    from .research import authorize_snapshot
+    authorize_snapshot(c, ws, snapshot_id)
     _, _, original, raw, _, parser, omissions, status, coverage = evidence(service, c, p, ws, snapshot.conversation_id, snapshot.locator)
     if (sha256(original).hexdigest() != snapshot.original_sha256
             or sha256(raw).hexdigest() != snapshot.extraction_sha256

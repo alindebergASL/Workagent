@@ -88,6 +88,8 @@ def adapters():
     result.update(file_adapters())
     from .compute_adapters import adapters as compute_adapters
     result.update(compute_adapters())
+    from .research_adapters import adapters as research_adapters
+    result.update(research_adapters())
     return result
 
 
@@ -102,3 +104,6 @@ COMPOSITION_IDS={'read_context':'context.read','inspect_json':'files.inspect_jso
 from .file_adapters import IDS as FILE_IDS
 COMPOSITION_IDS.update(FILE_IDS)
 COMPOSITION_IDS['compute_python'] = 'compute.python'
+
+from .research_adapters import IDS as RESEARCH_IDS
+COMPOSITION_IDS.update(RESEARCH_IDS)

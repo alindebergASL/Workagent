@@ -82,6 +82,8 @@ def authorize(service,c,p,run,cv,source_run_id):
     if not row: deny()
     source=Run.model_validate(row['data'])
     if source.conversation_id!=cv.id or source.principal_id!=p.id or source.access_generation!=run.access_generation: deny()
+    from .research import authorize_run_dependencies
+    authorize_run_dependencies(c,run.workspace_id,source.id)
     current=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
         (run.workspace_id,run.id)).fetchone()['data']
     old=row['config']; a=current.get('responsibility'); b=old.get('responsibility')

@@ -7,6 +7,7 @@ TLS still verifies the original hostname. No proxy, cookie jar, auth or JS engin
 from datetime import datetime, timezone
 from hashlib import sha256
 from html.parser import HTMLParser
+import base64
 import http.client
 import ipaddress
 import json
@@ -163,8 +164,8 @@ def empty_result(url):
                        'redirects': MAX_REDIRECTS, 'total_seconds': TOTAL_SECONDS}}
 
 
-def retrieve(url):
-    """Worker implementation; production callers MUST use fetch_public_url."""
+def retrieve(url, *, retain_source=False):
+    """Worker implementation; production callers MUST use subprocess wrappers."""
     result = empty_result(url)
     try:
         current = url
@@ -213,6 +214,23 @@ def retrieve(url):
                 text, title, shortened = extract(body[:MAX_BYTES], content_type)
                 result.update(status='ok', text=text, title=title, truncated=size > MAX_BYTES or shortened,
                               text_sha256=sha256(text.encode('utf-8')).hexdigest())
+                if retain_source:
+                    retained = body[:MAX_BYTES]
+                    omissions = []
+                    if size > MAX_BYTES:
+                        omissions.append('Body byte limit: hash identifies retained prefix, not the full response.')
+                    if shortened:
+                        omissions.append('Extracted text character limit reached; missing text is not evidence of absence.')
+                    if not text:
+                        omissions.append('No readable static text; this is not evidence that the source has no information.')
+                    result.update(raw_base64=base64.b64encode(retained).decode('ascii'),
+                        content_sha256=sha256(retained).hexdigest(), extractor_version='public-text-v2',
+                        coverage={'body_complete':size <= MAX_BYTES, 'text_complete':not shortened and size <= MAX_BYTES,
+                                  'omissions':omissions},
+                        external_version={k:(response.getheader(h) or '')[:300].replace('\x00', '') or None
+                                          for k,h in [('etag','ETag'),('last_modified','Last-Modified')]},
+                        extraction_status='truncated' if result['truncated'] else 'extracted' if text else 'empty',
+                        browser_used=False)
                 return result
             finally:
                 connection.close()
@@ -244,7 +262,46 @@ def fetch_public_url(url):
     return result
 
 
+def fetch_public_source(url, *, allow_browser=False):
+    """Exact retained bytes for the opt-in research broker; no credentials/proxy.
+
+    Browser fallback renders only this fetched document offline. It never has a
+    network interface or an account profile, and cannot bypass a fetch refusal.
+    """
+    result = empty_result(url)
+    try:
+        destination(url)
+        completed = subprocess.run([sys.executable, '-I', __file__, '--source'], input=url.encode('utf-8'),
+                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                   env={}, timeout=TOTAL_SECONDS, check=True)
+        result = json.loads(completed.stdout)
+    except Rejected as exc:
+        result['error'] = str(exc)
+    except subprocess.TimeoutExpired:
+        result['error'] = 'timeout'
+    except (subprocess.CalledProcessError, OSError, ValueError):
+        result['error'] = 'reader_unavailable'
+    if (allow_browser and result['status'] == 'ok' and not result['text']
+            and result['content_type'].split(';')[0].strip().lower() in ('text/html', 'application/xhtml+xml')
+            and result['coverage']['body_complete']):
+        from .public_browser import render
+        rendered = render(base64.b64decode(result['raw_base64']))
+        result['coverage']['omissions'].extend(rendered['omissions'])
+        if rendered['status'] == 'ok':
+            text, title, shortened = extract(rendered['dom'].encode('utf-8'), 'text/html; charset=utf-8')
+            result.update(text=text, title=title, text_sha256=sha256(text.encode()).hexdigest(),
+                          browser_used=True, extractor_version=rendered['extractor_version'],
+                          extraction_status='truncated' if shortened else 'extracted' if text else 'empty',
+                          truncated=result['truncated'] or shortened)
+            result['coverage']['text_complete'] = False  # all external assets deliberately denied
+        else:
+            result['extraction_status'] = 'unavailable'
+            result['coverage']['text_complete'] = False
+    return result
+
+
 if __name__ == '__main__':
-    if sys.argv[1:] != ['--fetch']:
+    if sys.argv[1:] not in (['--fetch'], ['--source']):
         raise SystemExit(2)
-    print(json.dumps(retrieve(sys.stdin.buffer.read(8193).decode('utf-8')), ensure_ascii=True))
+    print(json.dumps(retrieve(sys.stdin.buffer.read(8193).decode('utf-8'),
+                              retain_source=sys.argv[1:] == ['--source']), ensure_ascii=True))
