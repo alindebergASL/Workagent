@@ -59,7 +59,7 @@ def authorize(service,c,cap,call,adapter):
         or any(ref not in g.resource_selectors for ref in call.input_refs)
         or (d.required_permission_template=='public_https' and g.egress!='public_https')):
         deny()
-    if d.execution_profile == 'native-bounded-files-v1':
+    if d.execution_profile in ('native-bounded-files-v1','confined-office-v1'):
         from .file_adapters import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
     elif d.execution_profile == 'python-analysis-v1':

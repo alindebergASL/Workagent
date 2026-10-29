@@ -1,0 +1,56 @@
+.F...                                                                    [100%]
+=================================== FAILURES ===================================
+________________ test_real_confined_png_computed_rows_and_image ________________
+
+    def test_real_confined_png_computed_rows_and_image():
+        from PIL import Image
+        source=b'team,hours\na,0.1\na,0.2\nb,1.5\n'
+        spec=ChartSpec(category_column='team',value_column='hours',aggregation='sum',title='Hours by team',x_label='Team',y_label='Hours')
+>       raw,omitted,chart=sandbox.convert(source,'text/csv',format='png',chart_spec=spec)
+
+.local/batch3/b32b/backend-lane/backend/tests/test_office_parent.py:31: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+raw = b'team,hours\na,0.1\na,0.2\nb,1.5\n', mime_type = 'text/csv'
+
+    def convert(raw,mime_type,*,operation='render',format=None,chart_spec=None,source_omissions=()):
+        input_hash=sha256(raw).hexdigest()
+        job=dict(operation=operation,input=base64.b64encode(raw).decode(),input_sha256=input_hash,
+                 mime_type=mime_type,format=format,chart_spec=chart_spec.model_dump(mode='json') if chart_spec else None,
+                 source_omissions=list(source_omissions))
+        try:
+            code,output,errors=document_sandbox.run_confined(json.dumps(job).encode(),'office',
+                module_path=Path(__file__).with_name('office_converter.py'),packages=package_dir(),
+                launcher=jail_argv,wall_seconds=25,output_limit=2*1048576,input_limit=8*1048576)
+            if code or errors: raise ValueError('converter unavailable or rejected input')
+            value=json.loads(output,object_pairs_hook=unique)
+            if (set(value)!={'version','input_sha256','output','sha256','mime_type','omissions','chart'}
+                    or value['version']!='office-converter-v1' or value['input_sha256']!=input_hash):
+                raise ValueError('protocol')
+            result=base64.b64decode(value['output'],validate=True)
+            expected='application/json' if operation=='import' else FORMATS[format][1]
+            if (not 0<len(result)<=1048576 or sha256(result).hexdigest()!=value['sha256'] or value['mime_type']!=expected):
+                raise ValueError('output integrity')
+            if operation=='import':
+                from .office_content import validate
+                validate(json.loads(result,object_pairs_hook=unique))
+            elif ((format in ('docx','xlsx') and not result.startswith(b'PK\x03\x04'))
+                  or (format=='pdf' and not result.startswith(b'%PDF-'))
+                  or (format=='png' and not result.startswith(b'\x89PNG\r\n\x1a\n'))):
+                raise ValueError('output signature')
+            chart=ChartResult.model_validate(value['chart']) if value['chart'] is not None else None
+            if ((format=='png') != (chart is not None) or (chart and (chart.input_sha256!=input_hash or chart.spec.model_dump()!=chart_spec.model_dump()))):
+                raise ValueError('chart binding')
+            omitted=value['omissions']
+            if not isinstance(omitted,list) or len(omitted)>100 or any(not isinstance(v,str) or len(v)>2000 for v in omitted):
+                raise ValueError('omissions')
+            return result,omitted,chart
+        except (OSError,ValueError,TypeError,KeyError,RecursionError,subprocess.SubprocessError,TimeoutError):
+            # Never leak input filenames, stderr, document fragments or host paths.
+>           raise DomainError('source_unavailable') from None
+E           workagent.errors.DomainError: source_unavailable
+
+.local/batch3/b32b/backend-lane/backend/workagent/office_sandbox.py:98: DomainError
+=========================== short test summary info ============================
+FAILED .local/batch3/b32b/backend-lane/backend/tests/test_office_parent.py::test_real_confined_png_computed_rows_and_image
+1 failed, 4 passed in 12.78s

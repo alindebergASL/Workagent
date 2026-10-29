@@ -117,10 +117,13 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         row = c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s', (ws, artifact_id)).fetchone()
         if not row:
             deny()
-        file_owner = c.execute('SELECT owner_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',
+        file_owner = c.execute('SELECT owner_id,office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',
                                (ws, artifact_id)).fetchone()
         if file_owner and file_owner['owner_id'] != p.id:
             deny()
+        if file_owner and file_owner.get('office_source_snapshot_id'):
+            from .source_snapshots import read
+            read(self,c,p,ws,file_owner['office_source_snapshot_id'])
         a = (self._conversation(c,p,ws,row['conversation_id']) if row.get('conversation_id') else
              self._assignment(c, p, ws, row['assignment_id']))
         return row, a
@@ -187,6 +190,8 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
+        if op in ('export_artifact','export_workspace_file') and payload.get('chart_spec') is None:
+            payload.pop('chart_spec',None)
         if op=='accept_proposal':
             # Default-false additive flags preserve historical receipt hashes.
             for flag in ('acknowledge_removed_content', 'acknowledge_older_proposal'):
@@ -370,6 +375,13 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
             raise DomainError('version_conflict',current_revision_id=row['current_revision_id'],proposal_id=proposal_id)
 
     def _append_revision(self,c,p,ws,row,a,body,deps,author_kind):
+        office=c.execute('SELECT office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',(ws,row['id'])).fetchone()
+        if office and office['office_source_snapshot_id']:
+            from .office_content import validate
+            try:
+                validate(json.loads(body.content.lstrip('\ufeff')))
+            except (ValueError,TypeError,AttributeError):
+                raise DomainError('validation_error') from None
         previous=self._revision(c,p,ws,row,a) if row['current_revision_id'] else None
         rev=Revision(id=new_id(),artifact_id=row['id'],revision_number=previous.revision_number+1 if previous else 1,
                      parent_revision_id=previous.id if previous else None,author_id=p.id,author_kind=author_kind,

@@ -23,6 +23,10 @@ export type CreateWorkspaceFile = S["CreateWorkspaceFile"];
 export type EditWorkspaceFile = S["EditWorkspaceFile"];
 export type ExportFile = S["ExportFile"];
 export type SourceSnapshot = S["SourceSnapshot"];
+export type ChartSpec = S["ChartSpec"];
+export type ChartResult = S["ChartResult"];
+export type OfficeProvenance = S["OfficeProvenance"];
+export type ImportOfficeDraft = S["ImportOfficeDraft"];
 export type TextMime = WorkingText["mime_type"];
 export type ExportFormat = ExportFile["format"];
 export type NewlineStyle = FileRange["newline"];
@@ -43,6 +47,10 @@ export const EXPORT_FORMATS: ExportFormat[] = [
   "markdown",
   "csv",
   "json",
+  "docx",
+  "xlsx",
+  "pdf",
+  "png",
 ];
 
 export function mimeForFilename(filename: string): TextMime | null {

@@ -90,6 +90,8 @@ def adapters():
     result.update(compute_adapters())
     from .research_adapters import adapters as research_adapters
     result.update(research_adapters())
+    from .office_adapters import adapters as office_adapters
+    result.update(office_adapters())
     return result
 
 
@@ -107,3 +109,5 @@ COMPOSITION_IDS['compute_python'] = 'compute.python'
 
 from .research_adapters import IDS as RESEARCH_IDS
 COMPOSITION_IDS.update(RESEARCH_IDS)
+
+COMPOSITION_IDS['artifacts_export_office'] = 'artifacts.export.office'

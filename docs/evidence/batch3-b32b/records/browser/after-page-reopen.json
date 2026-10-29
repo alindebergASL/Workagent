@@ -1,0 +1,5 @@
+{
+  "draft": "{  \"office_version\": \"office-v1\",  \"kind\": \"document\",  \"paragraphs\": [    \"Operations brief\",    \"Exact quote: \u201cPreserve this wording.\u201d\",    \"Human web edit: use the revised figures.\"  ],  \"annotations\": [    \"Human web annotation retained across restart.\",    \"Unsaved human web note survives service restart.\"  ]}",
+  "composer": "Unsaved composer: preserve the exact quotation.",
+  "outage_fenced_until_reload": true
+}

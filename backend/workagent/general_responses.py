@@ -27,6 +27,7 @@ def consumer_hash():
               'capabilities/compute_adapters.py', 'sandbox/client.py', 'sandbox/profiles.py',
               'sandbox/runner_protocol.py', 'sandbox/service.py', 'sandbox/installation.py',
               'sandbox/results.py', 'sandbox/runtime-lock.json')
+    names += ('office_service.py','office_models.py','office_content.py','office_sandbox.py','office_converter.py','capabilities/office_adapters.py','capabilities/office_composition.py')
     names += ('research.py','research_models.py','capabilities/research_adapters.py','capabilities/research_composition.py')
     names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
@@ -335,7 +336,15 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .capabilities.compute_composition import enabled as compute_enabled
     from .capabilities.research_adapters import RESEARCH_OPERATIONS
     from .capabilities.research_composition import enabled as research_enabled
-    if isinstance(decision, RESEARCH_OPERATIONS):
+    from .capabilities.office_adapters import ArtifactsOfficeExport
+    from .capabilities.office_composition import enabled as office_enabled
+    if isinstance(decision,ArtifactsOfficeExport):
+        if not office_enabled(config): raise DomainError('unsupported_operation')
+        from .capabilities.policy import require_operation
+        require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision, RESEARCH_OPERATIONS):
         if not research_enabled(config): raise DomainError('unsupported_operation')
         from .capabilities.policy import require_operation
         require_operation(c,run,decision)

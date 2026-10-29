@@ -36,6 +36,12 @@ def range_result(ref, raw, offset, limit, snapshot_id=None):
 def text_body(content, expected_hash, mime_type):
     try:
         raw = validate_text(content, mime_type)
+        if mime_type == 'application/json':
+            import json
+            value=json.loads(content.lstrip('\ufeff'))
+            if isinstance(value,dict) and 'office_version' in value:
+                from .office_content import validate
+                validate(value)
         if sha256(raw).hexdigest() != expected_hash:
             raise ValueError('hash mismatch')
         # FileBody's historical schema is frozen. Its neutral text envelope preserves
@@ -133,10 +139,12 @@ class WorkspaceFiles:
     def _file_info(self, c, p, ws, file_id):
         row = self._file_row(c, p, ws, file_id)
         _, ref, raw, _ = self._file_version(c, p, ws, file_id, self._file_current_id(c, row))
+        from .office_service import provenance
+        office_prov=provenance(self,c,p,ws,row['office_source_snapshot_id']) if row.get('office_source_snapshot_id') else None
         return WorkspaceFile(workspace_file_id=file_id, workspace_id=ws, conversation_id=row['conversation_id'],
             filename=row['filename'], mime_type=row['mime_type'],
             storage='artifact_revision' if row['artifact_id'] else 'source_snapshot',
-            current=ref, byte_length=len(raw), editable=bool(row['artifact_id']))
+            current=ref, byte_length=len(raw), editable=bool(row['artifact_id']),office_provenance=office_prov)
 
     def _list_workspace_files(self, c, p, ws, cid, after=None, limit=25, selectors=None):
         self._document_scope(c, p, ws, cid)
@@ -167,13 +175,13 @@ class WorkspaceFiles:
             self._scope(c, p, ws)
             return self._list_workspace_files(c, p, ws, cid, after, limit)
 
-    def _create_text_file(self, c, p, ws, cv, source, author_kind, file_id=None):
+    def _create_text_file(self, c, p, ws, cv, source, author_kind, file_id=None, office_source_snapshot_id=None):
         from .service import encoded
         body = text_body(source.content, source.sha256, source.mime_type)
         file_id = file_id or new_id()
         c.execute('INSERT INTO artifacts(workspace_id,id,conversation_id) VALUES (%s,%s,%s)', (ws, file_id, cv.id))
-        c.execute('INSERT INTO workspace_files(workspace_id,id,conversation_id,owner_id,artifact_id,filename,mime_type) VALUES (%s,%s,%s,%s,%s,%s,%s)',
-                  (ws, file_id, cv.id, p.id, file_id, source.filename, source.mime_type))
+        c.execute('INSERT INTO workspace_files(workspace_id,id,conversation_id,owner_id,artifact_id,filename,mime_type,office_source_snapshot_id) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)',
+                  (ws, file_id, cv.id, p.id, file_id, source.filename, source.mime_type, office_source_snapshot_id))
         artifact, _ = self._artifact(c, p, ws, file_id)
         self._append_revision(c, p, ws, artifact, cv, body, cv.selected_source_refs, author_kind)
         self._event(c, p, ws, 'workspace_file_created', file_id)
@@ -227,6 +235,13 @@ class WorkspaceFiles:
         row, artifact, cv = self._file_base(c, p, ws, file_id, cmd.base_version_id, cmd.base_sha256)
         self._conversation_cas(cv, cmd.expected_work_version)
         body = text_body(cmd.content, cmd.sha256, row['mime_type'])
+        if row.get('office_source_snapshot_id'):
+            import json
+            from .office_content import validate
+            try:
+                validate(json.loads(cmd.content.lstrip('\ufeff')))
+            except (ValueError, TypeError):
+                raise DomainError('validation_error') from None
         proposal = Proposal(id=new_id(), workspace_id=ws, conversation_id=cv.id, artifact_id=artifact['id'],
             base_revision_id=cmd.base_version_id, base_work_version=cv.work_version, body=body,
             body_hash=digest(body), source_dependencies=cv.selected_source_refs, reason=cmd.reason)

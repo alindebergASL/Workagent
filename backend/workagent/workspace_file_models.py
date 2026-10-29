@@ -9,6 +9,7 @@ from .model_base import Model, Id, Hash
 from .models import Command
 from .document_models import Coverage
 from .research_models import PublicEvidence, ResearchCoverage
+from .office_models import ChartSpec, ChartResult, OfficeProvenance, OfficeDocument, OfficeWorkbook
 
 MAX_FILE_BYTES = 200000
 Filename = Annotated[str, Field(max_length=85, pattern=r'^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json)$')]
@@ -115,6 +116,7 @@ class WorkspaceFile(Model):
     current: FileVersionRef
     byte_length: int = Field(ge=0)
     editable: bool
+    office_provenance: OfficeProvenance | None = None
 
 
 class WorkspaceFilePage(Model):
@@ -191,16 +193,33 @@ class SourceSnapshot(Model):
     trust_label: Literal['untrusted_evidence'] = 'untrusted_evidence'
 
 
-ExportFormat = Literal['txt', 'markdown', 'csv', 'json']
+BasicExportFormat = Literal['txt', 'markdown', 'csv', 'json']
+ExportFormat = Literal['txt', 'markdown', 'csv', 'json', 'docx', 'xlsx', 'pdf', 'png']
+ExportFilename = Annotated[str, Field(pattern=r'^export\.(txt|md|csv|json|docx|xlsx|pdf|png)$')]
 
 
-class ExportArtifact(Command):
+class ImportOfficeDraft(Command):
+    expected_work_version: Version
+    source: FileVersionRef
+
+
+class ChartExport(Command):
+    chart_spec: ChartSpec | None = None
+
+    @model_validator(mode='after')
+    def chart_format(self):
+        if (self.format == 'png') != (self.chart_spec is not None):
+            raise ValueError('PNG requires chart_spec; other formats reject it')
+        return self
+
+
+class ExportArtifact(ChartExport):
     revision_id: Id
     body_hash: Hash
     format: ExportFormat
 
 
-class ExportFile(Command):
+class ExportFile(ChartExport):
     version_id: Id
     sha256: Hash
     format: ExportFormat
@@ -225,13 +244,16 @@ class ExportManifest(Model):
     workspace_file_id: Id | None
     source_snapshot_id: Id | None
     format: ExportFormat
-    filename: Filename
+    filename: ExportFilename
     blob: GeneratedBlobRef
     created_at: AwareDatetime
     annotations: Literal['included', 'not_present', 'explicit_omissions']
     omissions: list[str]
     tool_attempt_id: Id | None = None
-    exporter_version: Literal['basic-exports-v1'] = 'basic-exports-v1'
+    exporter_version: Literal['basic-exports-v1', 'office-exports-v1'] = 'basic-exports-v1'
+    fidelity: str | None = None
+    provenance: OfficeProvenance | None = None
+    chart: ChartResult | None = None
 
 
 class WorkspaceFilesContract(Model):
@@ -246,3 +268,9 @@ class WorkspaceFilesContract(Model):
     accept: AcceptFileProposal
     export_file: ExportFile
     export_artifact: ExportArtifact
+
+
+class OfficeContract(Model):
+    import_draft: ImportOfficeDraft
+    document: OfficeDocument
+    workbook: OfficeWorkbook

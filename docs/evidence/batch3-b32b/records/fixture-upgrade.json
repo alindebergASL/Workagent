@@ -1,0 +1,514 @@
+{
+  "before": {
+    "revisions": "3423a547564a80c58556b26e95d0eff1caa9e185be589afd4ac54ea7869f752d",
+    "proposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "commands": "df82b7ca0f1900f72eb09ae878dc7125ab62f54dca213df1586275d05b327ec6",
+    "artifact_exports": "33b2f84f262e79271a6344071be5e29470bb2be321a2b64ca3fae30aada050f7",
+    "generated_blobs": "edc919db79b0705deac243c8cd2f19a41261a23538d5b95ff4fc576b50a4807d",
+    "source_snapshots": "34fc3134f24095e1a3c9a58beb819bbe6af6a9b7cb1f18e236461f59ae4f3582"
+  },
+  "after": {
+    "revisions": "3423a547564a80c58556b26e95d0eff1caa9e185be589afd4ac54ea7869f752d",
+    "proposals": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "commands": "df82b7ca0f1900f72eb09ae878dc7125ab62f54dca213df1586275d05b327ec6",
+    "artifact_exports": "33b2f84f262e79271a6344071be5e29470bb2be321a2b64ca3fae30aada050f7",
+    "generated_blobs": "edc919db79b0705deac243c8cd2f19a41261a23538d5b95ff4fc576b50a4807d",
+    "source_snapshots": "34fc3134f24095e1a3c9a58beb819bbe6af6a9b7cb1f18e236461f59ae4f3582"
+  },
+  "previous_journal": [
+    {
+      "name": "001_initial.sql",
+      "checksum": "3c0c37a4f849a6f86e8ff99f54fb5f824217907a772d5e1557bd7f3306f20ac3"
+    },
+    {
+      "name": "002_authority_guard.sql",
+      "checksum": "d74770eec9c1a2461160935dbac17275876ef28c5b8a4a14cccd9cb880d6a529"
+    },
+    {
+      "name": "003_fixture_runtime.sql",
+      "checksum": "efb49b6f0ca8393cba434f6ca8aee0351d654427d804c0ded524829fc05921b2"
+    },
+    {
+      "name": "004_intake_checkpoint.sql",
+      "checksum": "d4a89bd0d8525e6619e89e7c922539334cad5a8bfb65ed706b0099be4f2a2463"
+    },
+    {
+      "name": "005_receipt_retention.sql",
+      "checksum": "39a228858da2c506b097ef14edd6a1cde62d3f325a3849d0fa11dda2ee5937eb"
+    },
+    {
+      "name": "006_responses_steps.sql",
+      "checksum": "14a75765ff80d0421384f2c3cc6e04f91f86df8ab9721416f5e32d91e90183ad"
+    },
+    {
+      "name": "007_responses_material.sql",
+      "checksum": "5c7c797bd9c8e62bc0a633c1ea6a111b0bb54ff738e2334daf6183511bb12146"
+    },
+    {
+      "name": "008_responses_recovery.sql",
+      "checksum": "8c848347ddae9b25158f11dbfa329450a81cb6e26130f583b6d9b703e3f07870"
+    },
+    {
+      "name": "009_conversations.sql",
+      "checksum": "87daa77954f05804389e3316a10a49155ea76563dbffd745c60a8a3742995a4e"
+    },
+    {
+      "name": "010_general_products.sql",
+      "checksum": "414b711125531b581ce769b8ee6b52a94bfe387e98e488b5277e4389804d6334"
+    },
+    {
+      "name": "011_general_responses.sql",
+      "checksum": "5fb1021d7c1bf218988a5f21f6fc765962c87e2407128c70ac139a482e67f6b1"
+    },
+    {
+      "name": "012_adaptive_execution.sql",
+      "checksum": "2b444febe58eac09a7e9c8672d907e5f2ca353a429984a5b30da546021935b73"
+    },
+    {
+      "name": "013_acceptance_checks.sql",
+      "checksum": "62271c473e15301451d5aaf820aeabe36548b593153533c4c6519cd31933b6bb"
+    },
+    {
+      "name": "014_budget_carryforward.sql",
+      "checksum": "84896f73b0f81cf1a55553daaab5739fa5935797df2ea61652a6667251c95fdc"
+    },
+    {
+      "name": "015_bounded_csv_verification.sql",
+      "checksum": "a4c7aee2f0c11b9bb720634ac31e2f6a4577af7ed397d1517f71dff814098f4f"
+    },
+    {
+      "name": "016_flexible_work.sql",
+      "checksum": "f21e01148212fec8c0fd4f35448cf7fc8c171cc387214ce50395cd8a3b35cead"
+    },
+    {
+      "name": "017_general_alpha.sql",
+      "checksum": "59b88f5b6b6b73428f74be2ccc2ddb6e8ab0e1b987596d642ce76e7b0bc48b9e"
+    },
+    {
+      "name": "018_responsibilities.sql",
+      "checksum": "bfe48b4e1dd45542e818ecfb0c9bbe8f48c497374590cf811e4c4261fa1971ec"
+    },
+    {
+      "name": "019_alpha_budget.sql",
+      "checksum": "43f7d9ad7488024acc2a5436e786cdef60df5868226f3e7d3d7f94b56c77b91c"
+    },
+    {
+      "name": "020_responsibility_continuation.sql",
+      "checksum": "993e90ae1037aef94097cc437105f73dddd133ab32112112b73932b9e60df4a1"
+    },
+    {
+      "name": "021_alpha_stop_display.sql",
+      "checksum": "0612f1483389945faed19bee1b3e5a383b2ec6f488447e179113fe5292dda874"
+    },
+    {
+      "name": "022_responsibility_request_scope.sql",
+      "checksum": "fb3fa4b35390586c97b95d85e7261527ab325e34f832d0cc4007a7e572566940"
+    },
+    {
+      "name": "023_count_diagnostics.sql",
+      "checksum": "e698c5c7307a66e3bb735617fa2054ab7551a121d4d5f12cbc3923943d718663"
+    },
+    {
+      "name": "024_responsibility_action.sql",
+      "checksum": "091f09ac8da187b4f2da7b3df254aa6223ea392c37120efc2e7f1ea0cb6c8310"
+    },
+    {
+      "name": "025_saved_work_retrieval.sql",
+      "checksum": "1f250066db4f1d25bb5193b2b9c042105c936de17e89c85cd12d89f9eb529398"
+    },
+    {
+      "name": "026_saved_work_receipt.sql",
+      "checksum": "f5192965fcb251e463b5c4f34c334efa670253dee33412e0b83250ce4e28a3f8"
+    },
+    {
+      "name": "027_development_bounds.sql",
+      "checksum": "be8f1aca554374c074008cee55f1e3294cc3ce36059d8855d3b267a93f6a130a"
+    },
+    {
+      "name": "028_conversation_grant_continuation.sql",
+      "checksum": "a69b8e065cf24fd8382534a8bea2462d61f838f8eb470ce3dd1eafc9e9daad43"
+    },
+    {
+      "name": "029_work_context_search.sql",
+      "checksum": "ed277b563ce3ece1b347ceec7d3beda35acb23103629b6ac4750c8a88eac2bc6"
+    },
+    {
+      "name": "030_read_only_context_scopes.sql",
+      "checksum": "16b05281be3977afd945c7005de08df842f37e292fbabebaefe3da996850564b"
+    },
+    {
+      "name": "031_companion_view_scope.sql",
+      "checksum": "3fc1e6dff0e480c134f567c348183f7118f69a233207242e71a79f573e00fe87"
+    },
+    {
+      "name": "032_json_inspection.sql",
+      "checksum": "405cd87de44a4fdbd23e8e4d05e5461d5be709aebf0e07d42197c64f458a1c01"
+    },
+    {
+      "name": "033_standing_admission.sql",
+      "checksum": "12a411863c2d4a923b731401254c6925f51ba853e714ecb941f2e94f70c65171"
+    },
+    {
+      "name": "034_sustained_continuity.sql",
+      "checksum": "368071d18b16bf389b6629ff43af2550acd81fe519dfebe4254a005d5e7588f2"
+    },
+    {
+      "name": "035_scoped_saved_discovery.sql",
+      "checksum": "ea8000bca87e6245017f93eb3a5411f3acfd0eb18828a7553e3a4ea120702ed3"
+    },
+    {
+      "name": "036_public_retrieval.sql",
+      "checksum": "fd7a594750b9d5c57d372257011480340483a8d7dbd58b77e34d88cdbad021ef"
+    },
+    {
+      "name": "037_prototype_runtime.sql",
+      "checksum": "12970c6706bdb1f49a3fd8046eb1c4bf93590c6b5de310189041e2e62983a569"
+    },
+    {
+      "name": "038_public_read_followthrough.sql",
+      "checksum": "af14002750bfb0b4ea2b10b17a573d42e923bb9aaca592a7f8146b3b83f3e43a"
+    },
+    {
+      "name": "039_dispatch_failure_status.sql",
+      "checksum": "6b00208b121d2746b7bf101d2c3dfc935619cde0a8c7c9f86ada2adb6b8c78fe"
+    },
+    {
+      "name": "040_retained_read_followthrough.sql",
+      "checksum": "9817df5db7379e96c04f0c0469a90ae52f2d4bd7aa9e260e124555add9435737"
+    },
+    {
+      "name": "041_input_ceiling.sql",
+      "checksum": "687cc3fb192fc0766f3e9ccc83cb9b5f1efdd7f036467999b1b11fa513420a0f"
+    },
+    {
+      "name": "042_fixed_profile_input_budgets.sql",
+      "checksum": "1e097881d62286d8d61d7db7331ca9c78457009467d990c7578b806fad51c270"
+    },
+    {
+      "name": "043_cumulative_input_capacity.sql",
+      "checksum": "465d41113c544e790781d08a4d6ca6d46165d2aec770fe032459c9965bc7938d"
+    },
+    {
+      "name": "044_same_turn_draft_binding.sql",
+      "checksum": "4869bc689a220259ecbc93fc03379ca8f2bd4c9669d8dc43bb6dbe787259f2ec"
+    },
+    {
+      "name": "045_cumulative_request_capacity.sql",
+      "checksum": "e96ce0763034d804335451e98c7f5b930fc2e02696740eb8e6c91be6fe3fc5dd"
+    },
+    {
+      "name": "046_cancelled_response_observation.sql",
+      "checksum": "ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad"
+    },
+    {
+      "name": "047_work_events.sql",
+      "checksum": "18be1e38dfdbf9b73adcf41d0cda30a9fd5347d37abb8e658efe9a347f1b582d"
+    },
+    {
+      "name": "048_run_checkpoints.sql",
+      "checksum": "48355c93c0b6aa983460f09ebb86c98fc9e7fa7d5ed398f0d53ff376bcbc4787"
+    },
+    {
+      "name": "049_document_ingestion.sql",
+      "checksum": "2ca433e57998886ad3b4b36a0d3cc9ad4dd950663612f52f6227e96e39ef1e4e"
+    },
+    {
+      "name": "050_original_attachment_ranges.sql",
+      "checksum": "96729d634590de663a55306febf0d8d8d3a886a2fae80d1130263ba6497f7c47"
+    },
+    {
+      "name": "051_exact_receipt_observation.sql",
+      "checksum": "ab6d6c741285445e2b6bcaf53d6d001757f2e03ba830d104ad68169a867cb8fc"
+    },
+    {
+      "name": "052_retained_reply_application.sql",
+      "checksum": "c7d36bb6ace2f4d9e410a8e8f7c17ad1326cfbc16eacfc1ecefcf49e428fd4bc"
+    },
+    {
+      "name": "053_capability_gateway.sql",
+      "checksum": "f82b8fe693d1b93c48dfd9d98a886b12f151e315a10fb9d0e703d16bc4527858"
+    },
+    {
+      "name": "054_workspace_files.sql",
+      "checksum": "8add07f2a7542636526901d2a4d4447584a2d94260dcde21b39d42ab957748e0"
+    },
+    {
+      "name": "055_file_gateway.sql",
+      "checksum": "3037abc2d40c6f9da955e399040f3156fc4c3e59364a6d8c28654af18c79ba99"
+    },
+    {
+      "name": "056_file_alias_visibility.sql",
+      "checksum": "b0d2c4205674845d35e8b81390f501e8f23facccb92d294c29c91499728e0472"
+    },
+    {
+      "name": "057_compute_python.sql",
+      "checksum": "8e71d510ae5aa40396335ca7d082a8605e2f2311f3e615fecd779f9438d1b6cb"
+    },
+    {
+      "name": "058_typed_memory.sql",
+      "checksum": "da8ca8d6a90f979e7d732cf74e76dc6b53ead608313bf7f168196a41f521f8cb"
+    },
+    {
+      "name": "059_grounded_research.sql",
+      "checksum": "c65d2c49fc19be9575b30b29dec5062b42c9715ef077aee71e07cdd11ab31dd6"
+    },
+    {
+      "name": "060_research_dependency_visibility.sql",
+      "checksum": "4bec30ad96a0f50875ee468fae4edb0e1f33b7d3c0595b2ab2dfa23de4b32dc3"
+    },
+    {
+      "name": "061_office_outputs.sql",
+      "checksum": "b38984f4ab3b145e1eaed906b7ab4fcbae15fc2a286733f0a98653da5892acc0"
+    }
+  ],
+  "new_journal": [
+    {
+      "name": "001_initial.sql",
+      "checksum": "3c0c37a4f849a6f86e8ff99f54fb5f824217907a772d5e1557bd7f3306f20ac3"
+    },
+    {
+      "name": "002_authority_guard.sql",
+      "checksum": "d74770eec9c1a2461160935dbac17275876ef28c5b8a4a14cccd9cb880d6a529"
+    },
+    {
+      "name": "003_fixture_runtime.sql",
+      "checksum": "efb49b6f0ca8393cba434f6ca8aee0351d654427d804c0ded524829fc05921b2"
+    },
+    {
+      "name": "004_intake_checkpoint.sql",
+      "checksum": "d4a89bd0d8525e6619e89e7c922539334cad5a8bfb65ed706b0099be4f2a2463"
+    },
+    {
+      "name": "005_receipt_retention.sql",
+      "checksum": "39a228858da2c506b097ef14edd6a1cde62d3f325a3849d0fa11dda2ee5937eb"
+    },
+    {
+      "name": "006_responses_steps.sql",
+      "checksum": "14a75765ff80d0421384f2c3cc6e04f91f86df8ab9721416f5e32d91e90183ad"
+    },
+    {
+      "name": "007_responses_material.sql",
+      "checksum": "5c7c797bd9c8e62bc0a633c1ea6a111b0bb54ff738e2334daf6183511bb12146"
+    },
+    {
+      "name": "008_responses_recovery.sql",
+      "checksum": "8c848347ddae9b25158f11dbfa329450a81cb6e26130f583b6d9b703e3f07870"
+    },
+    {
+      "name": "009_conversations.sql",
+      "checksum": "87daa77954f05804389e3316a10a49155ea76563dbffd745c60a8a3742995a4e"
+    },
+    {
+      "name": "010_general_products.sql",
+      "checksum": "414b711125531b581ce769b8ee6b52a94bfe387e98e488b5277e4389804d6334"
+    },
+    {
+      "name": "011_general_responses.sql",
+      "checksum": "5fb1021d7c1bf218988a5f21f6fc765962c87e2407128c70ac139a482e67f6b1"
+    },
+    {
+      "name": "012_adaptive_execution.sql",
+      "checksum": "2b444febe58eac09a7e9c8672d907e5f2ca353a429984a5b30da546021935b73"
+    },
+    {
+      "name": "013_acceptance_checks.sql",
+      "checksum": "62271c473e15301451d5aaf820aeabe36548b593153533c4c6519cd31933b6bb"
+    },
+    {
+      "name": "014_budget_carryforward.sql",
+      "checksum": "84896f73b0f81cf1a55553daaab5739fa5935797df2ea61652a6667251c95fdc"
+    },
+    {
+      "name": "015_bounded_csv_verification.sql",
+      "checksum": "a4c7aee2f0c11b9bb720634ac31e2f6a4577af7ed397d1517f71dff814098f4f"
+    },
+    {
+      "name": "016_flexible_work.sql",
+      "checksum": "f21e01148212fec8c0fd4f35448cf7fc8c171cc387214ce50395cd8a3b35cead"
+    },
+    {
+      "name": "017_general_alpha.sql",
+      "checksum": "59b88f5b6b6b73428f74be2ccc2ddb6e8ab0e1b987596d642ce76e7b0bc48b9e"
+    },
+    {
+      "name": "018_responsibilities.sql",
+      "checksum": "bfe48b4e1dd45542e818ecfb0c9bbe8f48c497374590cf811e4c4261fa1971ec"
+    },
+    {
+      "name": "019_alpha_budget.sql",
+      "checksum": "43f7d9ad7488024acc2a5436e786cdef60df5868226f3e7d3d7f94b56c77b91c"
+    },
+    {
+      "name": "020_responsibility_continuation.sql",
+      "checksum": "993e90ae1037aef94097cc437105f73dddd133ab32112112b73932b9e60df4a1"
+    },
+    {
+      "name": "021_alpha_stop_display.sql",
+      "checksum": "0612f1483389945faed19bee1b3e5a383b2ec6f488447e179113fe5292dda874"
+    },
+    {
+      "name": "022_responsibility_request_scope.sql",
+      "checksum": "fb3fa4b35390586c97b95d85e7261527ab325e34f832d0cc4007a7e572566940"
+    },
+    {
+      "name": "023_count_diagnostics.sql",
+      "checksum": "e698c5c7307a66e3bb735617fa2054ab7551a121d4d5f12cbc3923943d718663"
+    },
+    {
+      "name": "024_responsibility_action.sql",
+      "checksum": "091f09ac8da187b4f2da7b3df254aa6223ea392c37120efc2e7f1ea0cb6c8310"
+    },
+    {
+      "name": "025_saved_work_retrieval.sql",
+      "checksum": "1f250066db4f1d25bb5193b2b9c042105c936de17e89c85cd12d89f9eb529398"
+    },
+    {
+      "name": "026_saved_work_receipt.sql",
+      "checksum": "f5192965fcb251e463b5c4f34c334efa670253dee33412e0b83250ce4e28a3f8"
+    },
+    {
+      "name": "027_development_bounds.sql",
+      "checksum": "be8f1aca554374c074008cee55f1e3294cc3ce36059d8855d3b267a93f6a130a"
+    },
+    {
+      "name": "028_conversation_grant_continuation.sql",
+      "checksum": "a69b8e065cf24fd8382534a8bea2462d61f838f8eb470ce3dd1eafc9e9daad43"
+    },
+    {
+      "name": "029_work_context_search.sql",
+      "checksum": "ed277b563ce3ece1b347ceec7d3beda35acb23103629b6ac4750c8a88eac2bc6"
+    },
+    {
+      "name": "030_read_only_context_scopes.sql",
+      "checksum": "16b05281be3977afd945c7005de08df842f37e292fbabebaefe3da996850564b"
+    },
+    {
+      "name": "031_companion_view_scope.sql",
+      "checksum": "3fc1e6dff0e480c134f567c348183f7118f69a233207242e71a79f573e00fe87"
+    },
+    {
+      "name": "032_json_inspection.sql",
+      "checksum": "405cd87de44a4fdbd23e8e4d05e5461d5be709aebf0e07d42197c64f458a1c01"
+    },
+    {
+      "name": "033_standing_admission.sql",
+      "checksum": "12a411863c2d4a923b731401254c6925f51ba853e714ecb941f2e94f70c65171"
+    },
+    {
+      "name": "034_sustained_continuity.sql",
+      "checksum": "368071d18b16bf389b6629ff43af2550acd81fe519dfebe4254a005d5e7588f2"
+    },
+    {
+      "name": "035_scoped_saved_discovery.sql",
+      "checksum": "ea8000bca87e6245017f93eb3a5411f3acfd0eb18828a7553e3a4ea120702ed3"
+    },
+    {
+      "name": "036_public_retrieval.sql",
+      "checksum": "fd7a594750b9d5c57d372257011480340483a8d7dbd58b77e34d88cdbad021ef"
+    },
+    {
+      "name": "037_prototype_runtime.sql",
+      "checksum": "12970c6706bdb1f49a3fd8046eb1c4bf93590c6b5de310189041e2e62983a569"
+    },
+    {
+      "name": "038_public_read_followthrough.sql",
+      "checksum": "af14002750bfb0b4ea2b10b17a573d42e923bb9aaca592a7f8146b3b83f3e43a"
+    },
+    {
+      "name": "039_dispatch_failure_status.sql",
+      "checksum": "6b00208b121d2746b7bf101d2c3dfc935619cde0a8c7c9f86ada2adb6b8c78fe"
+    },
+    {
+      "name": "040_retained_read_followthrough.sql",
+      "checksum": "9817df5db7379e96c04f0c0469a90ae52f2d4bd7aa9e260e124555add9435737"
+    },
+    {
+      "name": "041_input_ceiling.sql",
+      "checksum": "687cc3fb192fc0766f3e9ccc83cb9b5f1efdd7f036467999b1b11fa513420a0f"
+    },
+    {
+      "name": "042_fixed_profile_input_budgets.sql",
+      "checksum": "1e097881d62286d8d61d7db7331ca9c78457009467d990c7578b806fad51c270"
+    },
+    {
+      "name": "043_cumulative_input_capacity.sql",
+      "checksum": "465d41113c544e790781d08a4d6ca6d46165d2aec770fe032459c9965bc7938d"
+    },
+    {
+      "name": "044_same_turn_draft_binding.sql",
+      "checksum": "4869bc689a220259ecbc93fc03379ca8f2bd4c9669d8dc43bb6dbe787259f2ec"
+    },
+    {
+      "name": "045_cumulative_request_capacity.sql",
+      "checksum": "e96ce0763034d804335451e98c7f5b930fc2e02696740eb8e6c91be6fe3fc5dd"
+    },
+    {
+      "name": "046_cancelled_response_observation.sql",
+      "checksum": "ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad"
+    },
+    {
+      "name": "047_work_events.sql",
+      "checksum": "18be1e38dfdbf9b73adcf41d0cda30a9fd5347d37abb8e658efe9a347f1b582d"
+    },
+    {
+      "name": "048_run_checkpoints.sql",
+      "checksum": "48355c93c0b6aa983460f09ebb86c98fc9e7fa7d5ed398f0d53ff376bcbc4787"
+    },
+    {
+      "name": "049_document_ingestion.sql",
+      "checksum": "2ca433e57998886ad3b4b36a0d3cc9ad4dd950663612f52f6227e96e39ef1e4e"
+    },
+    {
+      "name": "050_original_attachment_ranges.sql",
+      "checksum": "96729d634590de663a55306febf0d8d8d3a886a2fae80d1130263ba6497f7c47"
+    },
+    {
+      "name": "051_exact_receipt_observation.sql",
+      "checksum": "ab6d6c741285445e2b6bcaf53d6d001757f2e03ba830d104ad68169a867cb8fc"
+    },
+    {
+      "name": "052_retained_reply_application.sql",
+      "checksum": "c7d36bb6ace2f4d9e410a8e8f7c17ad1326cfbc16eacfc1ecefcf49e428fd4bc"
+    },
+    {
+      "name": "053_capability_gateway.sql",
+      "checksum": "f82b8fe693d1b93c48dfd9d98a886b12f151e315a10fb9d0e703d16bc4527858"
+    },
+    {
+      "name": "054_workspace_files.sql",
+      "checksum": "8add07f2a7542636526901d2a4d4447584a2d94260dcde21b39d42ab957748e0"
+    },
+    {
+      "name": "055_file_gateway.sql",
+      "checksum": "3037abc2d40c6f9da955e399040f3156fc4c3e59364a6d8c28654af18c79ba99"
+    },
+    {
+      "name": "056_file_alias_visibility.sql",
+      "checksum": "b0d2c4205674845d35e8b81390f501e8f23facccb92d294c29c91499728e0472"
+    },
+    {
+      "name": "057_compute_python.sql",
+      "checksum": "8e71d510ae5aa40396335ca7d082a8605e2f2311f3e615fecd779f9438d1b6cb"
+    },
+    {
+      "name": "058_typed_memory.sql",
+      "checksum": "da8ca8d6a90f979e7d732cf74e76dc6b53ead608313bf7f168196a41f521f8cb"
+    },
+    {
+      "name": "059_grounded_research.sql",
+      "checksum": "c65d2c49fc19be9575b30b29dec5062b42c9715ef077aee71e07cdd11ab31dd6"
+    },
+    {
+      "name": "060_research_dependency_visibility.sql",
+      "checksum": "4bec30ad96a0f50875ee468fae4edb0e1f33b7d3c0595b2ab2dfa23de4b32dc3"
+    },
+    {
+      "name": "061_office_outputs.sql",
+      "checksum": "b38984f4ab3b145e1eaed906b7ab4fcbae15fc2a286733f0a98653da5892acc0"
+    },
+    {
+      "name": "062_office_bom_inspection.sql",
+      "checksum": "0de42b8740dfa9d2e9c2ea7e0a1a5cb41c3f119496edf8fa552ba98f8b4fff1a"
+    }
+  ]
+}

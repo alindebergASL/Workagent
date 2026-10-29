@@ -6,7 +6,7 @@ from .models import Request, Proposal
 from .service import Principal
 from .workspace_file_models import (CreateWorkspaceFile, WorkspaceFile, WorkspaceFilePage, FileRange,
     ProposeFilePatch, EditWorkspaceFile, AcceptFileProposal, FileComparison, ExportFile, ExportArtifact,
-    ExportManifest, SourceSnapshot)
+    ExportManifest, SourceSnapshot, ImportOfficeDraft)
 
 
 def register(app, service, principal, query_meta, errors):
@@ -60,6 +60,10 @@ def register(app, service, principal, query_meta, errors):
             'Content-Disposition':f'attachment; filename="{manifest.filename}"',
             'X-Content-Type-Options':'nosniff', 'X-Content-SHA256':manifest.blob.sha256,
             'Cache-Control':'private, no-store'})
+
+    @app.post(root + '/work-areas/{conversation_id}/office-drafts',response_model=WorkspaceFile,status_code=201,operation_id='import_office_draft',responses=errors)
+    def import_office(workspace_id:Id,conversation_id:Id,body:ImportOfficeDraft,p:P):
+        return service.import_office_draft(p,workspace_id,conversation_id,body)
 
     @app.get(root + '/source-snapshots/{snapshot_id}', response_model=SourceSnapshot, operation_id='get_source_snapshot', responses=errors)
     def snapshot(workspace_id:Id, snapshot_id:Id, p:P, meta:Meta):

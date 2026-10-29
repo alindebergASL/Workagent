@@ -1253,6 +1253,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/office-drafts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import Office */
+        post: operations["import_office_draft"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/research/snapshots": {
         parameters: {
             query?: never;
@@ -2054,6 +2071,65 @@ export interface components {
              * @constant
              */
             schema_version: "capability-page/v2";
+        };
+        /** ChartResult */
+        ChartResult: {
+            /**
+             * Computation Version
+             * @default decimal-grouped-v1
+             * @constant
+             */
+            computation_version: "decimal-grouped-v1";
+            /**
+             * Decimal Precision
+             * @default 160
+             * @constant
+             */
+            decimal_precision: 160;
+            /** Input Sha256 */
+            input_sha256: string;
+            /**
+             * Null Handling
+             * @default reject
+             * @constant
+             */
+            null_handling: "reject";
+            /**
+             * Rounding
+             * @default ROUND_HALF_EVEN
+             * @constant
+             */
+            rounding: "ROUND_HALF_EVEN";
+            /** Rows */
+            rows: components["schemas"]["ChartRow"][];
+            spec: components["schemas"]["ChartSpec"];
+        };
+        /** ChartRow */
+        ChartRow: {
+            /** Category */
+            category: string;
+            /** Count */
+            count: number;
+            /** Value */
+            value: string;
+        };
+        /** ChartSpec */
+        ChartSpec: {
+            /**
+             * Aggregation
+             * @enum {string}
+             */
+            aggregation: "sum" | "count" | "mean";
+            /** Category Column */
+            category_column: string;
+            /** Title */
+            title: string;
+            /** Value Column */
+            value_column?: string | null;
+            /** X Label */
+            x_label: string;
+            /** Y Label */
+            y_label: string;
         };
         /** CheckpointData */
         CheckpointData: {
@@ -2955,13 +3031,14 @@ export interface components {
         ExportArtifact: {
             /** Body Hash */
             body_hash: string;
+            chart_spec?: components["schemas"]["ChartSpec"] | null;
             /** Command Id */
             command_id: string;
             /**
              * Format
              * @enum {string}
              */
-            format: "txt" | "markdown" | "csv" | "json";
+            format: "txt" | "markdown" | "csv" | "json" | "docx" | "xlsx" | "pdf" | "png";
             /** Request Id */
             request_id: string;
             /** Revision Id */
@@ -2974,13 +3051,14 @@ export interface components {
         };
         /** ExportFile */
         ExportFile: {
+            chart_spec?: components["schemas"]["ChartSpec"] | null;
             /** Command Id */
             command_id: string;
             /**
              * Format
              * @enum {string}
              */
-            format: "txt" | "markdown" | "csv" | "json";
+            format: "txt" | "markdown" | "csv" | "json" | "docx" | "xlsx" | "pdf" | "png";
             /** Request Id */
             request_id: string;
             /**
@@ -3003,6 +3081,7 @@ export interface components {
             /** Artifact Id */
             artifact_id: string | null;
             blob: components["schemas"]["GeneratedBlobRef"];
+            chart?: components["schemas"]["ChartResult"] | null;
             /** Conversation Id */
             conversation_id: string | null;
             /**
@@ -3015,20 +3094,23 @@ export interface components {
             /**
              * Exporter Version
              * @default basic-exports-v1
-             * @constant
+             * @enum {string}
              */
-            exporter_version: "basic-exports-v1";
+            exporter_version: "basic-exports-v1" | "office-exports-v1";
+            /** Fidelity */
+            fidelity?: string | null;
             /** Filename */
             filename: string;
             /**
              * Format
              * @enum {string}
              */
-            format: "txt" | "markdown" | "csv" | "json";
+            format: "txt" | "markdown" | "csv" | "json" | "docx" | "xlsx" | "pdf" | "png";
             /** Input Sha256 */
             input_sha256: string;
             /** Omissions */
             omissions: string[];
+            provenance?: components["schemas"]["OfficeProvenance"] | null;
             /** Revision Id */
             revision_id: string;
             /** Source Snapshot Id */
@@ -3247,6 +3329,21 @@ export interface components {
         Identity: {
             /** Principal Id */
             principal_id: string;
+        };
+        /** ImportOfficeDraft */
+        ImportOfficeDraft: {
+            /** Command Id */
+            command_id: string;
+            /** Expected Work Version */
+            expected_work_version: number;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+            source: components["schemas"]["FileVersionRef"];
         };
         /** IngestDocument */
         IngestDocument: {
@@ -3622,6 +3719,23 @@ export interface components {
             /** Current Scope */
             current_scope: boolean;
             observation: components["schemas"]["ProductObservationResponse"];
+        };
+        /** OfficeProvenance */
+        OfficeProvenance: {
+            /** Extraction Sha256 */
+            extraction_sha256: string;
+            /** Original Sha256 */
+            original_sha256: string;
+            /** Parser Version */
+            parser_version: string;
+            /** Source Snapshot Id */
+            source_snapshot_id: string;
+            /**
+             * Transformation Version
+             * @default office-v1
+             * @constant
+             */
+            transformation_version: "office-v1";
         };
         /** OmittedByteRange */
         OmittedByteRange: {
@@ -5902,6 +6016,7 @@ export interface components {
             filename: string;
             /** Mime Type */
             mime_type: string;
+            office_provenance?: components["schemas"]["OfficeProvenance"] | null;
             /**
              * Storage
              * @enum {string}
@@ -13197,6 +13312,90 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateWorkspaceFile"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceFile"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    import_office_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportOfficeDraft"];
             };
         };
         responses: {

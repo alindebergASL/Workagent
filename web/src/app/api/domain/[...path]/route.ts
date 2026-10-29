@@ -302,15 +302,21 @@ async function route(
       const mime = upstream.headers.get("content-type")?.split(";")[0] ?? "";
       const disposition = upstream.headers.get("content-disposition") ?? "";
       const ext =
-        /^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json)"$/.exec(
+        /^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json|docx|xlsx|pdf|png)"$/.exec(
           disposition,
         )?.[1];
+      // Exact extension → MIME pairs; anything else (including a binary
+      // format under a text MIME or vice versa) is refused, never sniffed.
       const exportMime: Record<string, string> = {
         txt: "text/plain",
         md: "text/markdown",
         markdown: "text/markdown",
         csv: "text/csv",
         json: "application/json",
+        docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        pdf: "application/pdf",
+        png: "image/png",
       };
       const bytes = new Uint8Array(await upstream.arrayBuffer());
       if (

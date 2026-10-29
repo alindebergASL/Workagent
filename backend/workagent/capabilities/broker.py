@@ -120,7 +120,8 @@ def execute_composition(service,cap,operation,phase):
     if not name:
         deny()
     from .file_adapters import FILE_OPERATIONS, input_refs
-    refs=input_refs(operation) if isinstance(operation,FILE_OPERATIONS) else []
+    from .office_adapters import ArtifactsOfficeExport
+    refs=input_refs(operation) if isinstance(operation,(*FILE_OPERATIONS,ArtifactsOfficeExport)) else []
     from .compute_adapters import ComputePython, input_refs as compute_refs
     if isinstance(operation, ComputePython): refs = compute_refs(operation)
     from .research_adapters import RESEARCH_OPERATIONS, input_refs as research_refs

@@ -5,7 +5,7 @@ from pydantic import Field, model_validator, create_model
 from ..composition import ReadDecision
 from ..model_base import Model, Id, Hash
 from ..workspace_file_models import (WorkingText, FileVersionRef, WorkspaceFile, WorkspaceFilePage,
-    FileRange, FileComparison, ExportManifest, Content, ExportFormat)
+    FileRange, FileComparison, ExportManifest, Content, BasicExportFormat)
 from ..errors import DomainError, deny
 from .models import InputRef
 
@@ -59,7 +59,7 @@ class ExportInputRef(InputRef):
 class ArtifactsExport(ReadDecision):
     kind: Literal['artifacts_export']
     input_ref: ExportInputRef
-    format: ExportFormat
+    format: BasicExportFormat
 
 
 FILE_OPERATIONS = (FilesList, FilesReadRange, FilesCreateDraft, FilesProposePatch, FilesCompare, ArtifactsExport)

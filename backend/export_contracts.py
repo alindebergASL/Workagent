@@ -32,7 +32,10 @@ def main():
     from workagent.memory.models import MemoryContract
     from workagent.memory.runtime import GatewayMemoryDecision
     from workagent.capabilities.research_composition import GatewayResearchDecision
-    outputs={'gateway-research-decision.schema.json':GatewayResearchDecision.model_json_schema(),
+    from workagent.workspace_file_models import OfficeContract
+    from workagent.capabilities.office_composition import GatewayOfficeDecision
+    outputs={'office-v1.json':OfficeContract.model_json_schema(),
+             'gateway-office-decision.schema.json':GatewayOfficeDecision.model_json_schema(),'gateway-research-decision.schema.json':GatewayResearchDecision.model_json_schema(),
              'gateway-memory-decision.schema.json':GatewayMemoryDecision.model_json_schema(),
              'memory-v1.json':MemoryContract.model_json_schema(),
              'compute-python.schema.json':ComputePython.model_json_schema(),

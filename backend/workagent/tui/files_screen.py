@@ -6,7 +6,7 @@ from textual.containers import VerticalScroll, Horizontal
 from textual.widgets import Button, Checkbox, Collapsible, Footer, Input, Select, Static, TextArea
 from rich.text import Text
 from ..operator_journal import OperatorError
-from .file_drafts import FileDraftSession, FileDraftStore
+from .file_drafts import FileDraftSession, FileDraftStore, EXPORT_FORMATS
 from .files import FilesController, editor_content, normalized
 from .transport import ReadLane
 from .safe_text import literal
@@ -22,7 +22,8 @@ class WorkingFilesScreen(ModalScreen):
     WorkingFilesScreen { background: $surface; }
     #wf-scroll { height: 1fr; }
     #wf-title, #wf-notice, #wf-binding, #wf-coverage { height: auto; padding: 0 1; }
-    #wf-content, #wf-envelope { height: 10; min-height: 6; }
+    #wf-content, #wf-envelope, #wf-manifest { height: 10; min-height: 6; }
+    #wf-office-help, #wf-export-help { height: auto; }
     #wf-notice { max-height: 5; overflow-y: auto; }
     .wf-row { height: 3; }
     .wf-row Button { min-width: 10; margin-right: 1; }
@@ -60,6 +61,12 @@ class WorkingFilesScreen(ModalScreen):
             yield Button('Reopen draft', id='wf-reopen')
             yield Static('', markup=False, id='wf-binding')
             yield Static('', markup=False, id='wf-coverage')
+            yield Button('Make editable office copy', id='wf-import')
+            yield Static('Open a retained DOCX/XLSX source, then make a separate editable office-v1 JSON copy. '
+                         'The original is unchanged. Edit paragraphs, cells and annotations in JSON. '
+                         'Formulas are not computed; imported caches are historical. '
+                         'Rich formatting/layout may be omitted. No OCR or image understanding.',
+                         markup=False, id='wf-office-help')
             yield Input(placeholder='Safe filename: notes.md', id='wf-name')
             yield TextArea('', id='wf-content', show_line_numbers=True)
             yield Checkbox('Allow LF normalization of edited mixed line endings', id='wf-normalize')
@@ -70,8 +77,22 @@ class WorkingFilesScreen(ModalScreen):
             yield Button('Resolve rejection', id='wf-resolve')
             with Collapsible(title='Exact pending envelope (no credentials)', collapsed=True):
                 yield TextArea('', read_only=True, id='wf-envelope')
-            yield Select([(x, x) for x in ('txt', 'markdown', 'csv', 'json')], value='txt', allow_blank=False, id='wf-format')
+            yield Static('Export uses the exact saved version, never unsaved editor text. '
+                         'Save edits first to include them.', markup=False, id='wf-export-help')
+            yield Select([(x, x) for x in EXPORT_FORMATS], value='txt', allow_blank=False, id='wf-format')
+            with Collapsible(title='PNG chart configuration (required for PNG)', collapsed=True, id='wf-chart'):
+                yield Input(placeholder='Category column (exact name)', max_length=100, id='wf-chart-category')
+                yield Input(placeholder='Numeric value column (blank for count)', max_length=100, id='wf-chart-value')
+                yield Select([(x, x) for x in ('sum', 'count', 'mean')], value='sum', allow_blank=False, id='wf-chart-aggregation')
+                yield Input(placeholder='Chart title', max_length=200, id='wf-chart-title')
+                yield Input(placeholder='X axis label', max_length=100, id='wf-chart-x')
+                yield Input(placeholder='Y axis label', max_length=100, id='wf-chart-y')
+                yield Static('Count requires no value column. Sum/mean require numeric values. '
+                             'Empty, null and nonfinite numeric data are rejected. '
+                             'Read the returned rows and exact input binding below.', markup=False)
             yield Button('Export saved version', id='wf-export')
+            with Collapsible(title='Export fidelity, annotations, omissions and chart rows', collapsed=True):
+                yield TextArea('', read_only=True, id='wf-manifest')
             yield Input(placeholder='Absolute download destination (must not exist)', id='wf-destination')
             yield Button('Download export', id='wf-download')
         yield Footer()
@@ -118,8 +139,31 @@ class WorkingFilesScreen(ModalScreen):
             binding += '\n' + pending.get('state', 'outcome_unknown').upper() + ' ' + pending['action'] + ' · ' + pending['body']['command_id']
         self.query_one('#wf-envelope', TextArea).load_text(json.dumps(pending, ensure_ascii=False, indent=2) if pending else 'No pending command.')
         if draft['export']:
-            binding += '\nExport ' + draft['export']['filename'] + ' · SHA256 ' + draft['export']['blob']['sha256']
-            binding += '\nExport omissions: ' + ('; '.join(draft['export']['omissions']) or 'none')
+            export = draft['export']
+            binding += '\nExport ' + export['filename'] + ' (' + export['format'] + ') · SHA256 ' + export['blob']['sha256']
+            binding += '\nExport input ' + export['revision_id'] + ' · SHA256 ' + export['input_sha256']
+            binding += '\nFidelity: ' + (export.get('fidelity') or 'not specified') + ' · Annotations: ' + export['annotations']
+            binding += '\nExport omissions: ' + ('; '.join(export['omissions']) or 'none')
+        provenance = base['file'].get('office_provenance') if base else None
+        if provenance:
+            binding += '\nOffice source ' + provenance['source_snapshot_id'] + ' · Original SHA256 ' + provenance['original_sha256']
+        self.query_one('#wf-manifest', TextArea).load_text(json.dumps(draft['export'], ensure_ascii=False, indent=2)
+                                                         if draft['export'] else 'No export manifest.')
+        fmt = self.query_one('#wf-format', Select)
+        with fmt.prevent(Select.Changed):
+            fmt.value = draft['export_format']
+        chart = draft['chart_spec']
+        for suffix, key in (('category', 'category_column'), ('value', 'value_column'), ('title', 'title'), ('x', 'x_label'), ('y', 'y_label')):
+            field = self.query_one('#wf-chart-' + suffix, Input)
+            with field.prevent(Input.Changed):
+                field.value = chart[key] or ''
+        aggregation = self.query_one('#wf-chart-aggregation', Select)
+        with aggregation.prevent(Select.Changed):
+            aggregation.value = chart['aggregation']
+        for widget in self.query('#wf-chart Input, #wf-chart Select, #wf-format'):
+            widget.disabled = False
+        self.query_one('#wf-chart-value', Input).disabled = chart['aggregation'] == 'count'
+        self.query_one('#wf-chart', Collapsible).collapsed = draft['export_format'] != 'png'
         self.query_one('#wf-binding', Static).update(Text(literal(binding)))
         coverage = f"Complete editor content: {len(draft['content'].encode())} UTF-8 bytes. No omitted bytes."
         if base and base.get('visible_bytes', 0) < base.get('total_bytes', 0):
@@ -147,6 +191,12 @@ class WorkingFilesScreen(ModalScreen):
         event.stop()
         if event.input.id == 'wf-name' and not self.loading and not self.busy:
             self.persist(filename=event.value)
+        elif event.input.id and event.input.id.startswith('wf-chart-') and not self.loading and not self.busy:
+            keys = {'wf-chart-category': 'category_column', 'wf-chart-value': 'value_column',
+                    'wf-chart-title': 'title', 'wf-chart-x': 'x_label', 'wf-chart-y': 'y_label'}
+            key = keys[event.input.id]
+            self.persist(chart_spec={**self.file_session.draft['chart_spec'], key:
+                                     None if key == 'value_column' and not event.value else event.value})
 
     def on_checkbox_changed(self, event):
         event.stop()
@@ -157,6 +207,20 @@ class WorkingFilesScreen(ModalScreen):
 
     def on_select_changed(self, event):
         event.stop()  # Never bubble file selectors into conversation navigation.
+        if self.loading or self.busy or event.value is Select.NULL:
+            return
+        if event.select.id == 'wf-format':
+            self.persist(export_format=event.value)
+            self.query_one('#wf-chart', Collapsible).collapsed = event.value != 'png'
+        elif event.select.id == 'wf-chart-aggregation':
+            chart = {**self.file_session.draft['chart_spec'], 'aggregation': event.value}
+            if event.value == 'count':
+                chart['value_column'] = None
+                value = self.query_one('#wf-chart-value', Input)
+                with value.prevent(Input.Changed):
+                    value.value = ''
+            self.persist(chart_spec=chart)
+            self.query_one('#wf-chart-value', Input).disabled = event.value == 'count'
 
     def persist(self, **values):
         try:
@@ -173,11 +237,15 @@ class WorkingFilesScreen(ModalScreen):
         self.busy = True
         self.query_one('#wf-content', TextArea).read_only = True
         self.query_one('#wf-name', Input).disabled = True
+        for widget in self.query('#wf-chart Input, #wf-chart Select, #wf-format'):
+            widget.disabled = True
         self.run_worker(self.perform(function), exit_on_error=False)
 
     async def perform(self, function):
         try:
             await function()
+        except ImportError:
+            self.notice('Office backend interface is not integrated in this installation. Draft retained; no automatic retry.')
         except (OperatorError, ValueError, KeyError, TypeError) as exc:
             self.notice(str(exc) + ' Draft and pending envelope retained. No automatic retry.')
         finally:
@@ -223,7 +291,14 @@ class WorkingFilesScreen(ModalScreen):
         if self.range_item:
             raise OperatorError('Reopen an editable draft before saving/exporting')
         format = self.query_one('#wf-format', Select).value
-        await self.lane.read(self.controller.prepare, 'export' if export else 'save', format)
+        chart = self.file_session.draft['chart_spec'] if export and format == 'png' else None
+        await self.lane.read(self.controller.prepare, 'export' if export else 'save', format, chart)
+        self.notice(await self.lane.read(self.controller.send))
+
+    async def import_office(self):
+        if self.range_item:
+            raise OperatorError('Open an exact source before making an editable office copy')
+        await self.lane.read(self.controller.prepare, 'import')
         self.notice(await self.lane.read(self.controller.send))
 
     async def recover(self, replay=False):
@@ -233,13 +308,9 @@ class WorkingFilesScreen(ModalScreen):
         self.notice(await self.lane.read(self.controller.resolve_rejection))
 
     async def download(self):
-        manifest = self.file_session.draft['export']
-        if not manifest:
-            raise OperatorError('Export an exact saved version first')
         destination = self.query_one('#wf-destination', Input).value
-        await self.lane.read(self.controller.authorize)
-        await self.lane.read(self.client.download_export, self.controller.scope['workspace'], manifest, destination)
-        self.notice('Downloaded actual bytes; SHA256 verified. Saved to ' + destination)
+        await self.lane.read(self.controller.download, destination)
+        self.notice('Downloaded actual bytes; exact input/format/chart binding and SHA256 verified. Saved to ' + destination)
 
     def action_close(self):
         if self.busy:
@@ -284,7 +355,7 @@ class WorkingFilesScreen(ModalScreen):
                     'wf-range-next': lambda: self.range_read(next=True), 'wf-save': self.mutate,
                     'wf-export': lambda: self.mutate(export=True), 'wf-readback': self.recover,
                     'wf-replay': lambda: self.recover(replay=True), 'wf-download': self.download,
-                    'wf-resolve': self.resolve_rejection}
+                    'wf-resolve': self.resolve_rejection, 'wf-import': self.import_office}
                 if action in handlers:
                     self.start(handlers[action])
         except (OperatorError, ValueError) as exc:

@@ -45,6 +45,10 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.office_composition import enabled as office_enabled, POLICY as office_policy, SCHEMA as office_schema
+    if office_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return office_policy,office_schema
     from .capabilities.research_composition import enabled as research_enabled, POLICY as research_policy, SCHEMA as research_schema
     if research_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                       'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
@@ -107,6 +111,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if memory_enabled(config): model=GatewayMemoryDecision
         from .capabilities.research_composition import enabled as research_enabled, GatewayResearchDecision
         if research_enabled(config): model=GatewayResearchDecision
+        from .capabilities.office_composition import enabled as office_enabled, GatewayOfficeDecision
+        if office_enabled(config): model=GatewayOfficeDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:

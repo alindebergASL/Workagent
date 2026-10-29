@@ -1,0 +1,57 @@
+{
+  "mode": "edit",
+  "size": [
+    100,
+    45
+  ],
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<65;97;39M"
+    },
+    {
+      "keys": "\u001b[<65;97;39M"
+    },
+    {
+      "keys": "\u001b[<65;97;39M"
+    },
+    {
+      "keys": "\u001b[<65;97;39M"
+    },
+    {
+      "keys": "\u001b[<0;13;44M\u001b[<0;13;44m"
+    },
+    {
+      "keys": "\u001b[18~"
+    },
+    {
+      "keys": "\u001b[200~{\n  \"office_version\": \"office-v1\",\n  \"kind\": \"document\",\n  \"paragraphs\": [\n    \"Native created brief\",\n    \"Exact quotation: “Keep these words.”\",\n    \"Human native edit: revised after creation.\"\n  ],\n  \"annotations\": [\n    \"Human native annotation retained across restart.\"\n  ]\n}\u001b[201~"
+    },
+    {
+      "keys": "\u0013"
+    }
+  ],
+  "passed": true,
+  "file": {
+    "workspace_file_id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+    "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+    "conversation_id": "27200709-dc85-4045-9f06-aaeee664b6f6",
+    "filename": "native-brief.json",
+    "mime_type": "application/json",
+    "storage": "artifact_revision",
+    "current": {
+      "workspace_file_id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+      "version_id": "f6676dae-6ff9-4c72-b4f5-d0c2b1fd46b6",
+      "sha256": "dbe89e765a55acb758901e1adb979f1e92a235e84e1b097743e217d79470a47b"
+    },
+    "byte_length": 284,
+    "editable": true,
+    "office_provenance": null
+  },
+  "text": "{\n  \"office_version\": \"office-v1\",\n  \"kind\": \"document\",\n  \"paragraphs\": [\n    \"Native created brief\",\n    \"Exact quotation: “Keep these words.”\",\n    \"Human native edit: revised after creation.\"\n  ],\n  \"annotations\": [\n    \"Human native annotation retained across restart.\"\n  ]\n}"
+}

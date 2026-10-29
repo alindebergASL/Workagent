@@ -2160,6 +2160,149 @@
         "title": "CapabilityPage",
         "type": "object"
       },
+      "ChartResult": {
+        "additionalProperties": false,
+        "properties": {
+          "computation_version": {
+            "const": "decimal-grouped-v1",
+            "default": "decimal-grouped-v1",
+            "title": "Computation Version",
+            "type": "string"
+          },
+          "decimal_precision": {
+            "const": 160,
+            "default": 160,
+            "title": "Decimal Precision",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "null_handling": {
+            "const": "reject",
+            "default": "reject",
+            "title": "Null Handling",
+            "type": "string"
+          },
+          "rounding": {
+            "const": "ROUND_HALF_EVEN",
+            "default": "ROUND_HALF_EVEN",
+            "title": "Rounding",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ChartRow"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Rows",
+            "type": "array"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/ChartSpec"
+          }
+        },
+        "required": [
+          "input_sha256",
+          "spec",
+          "rows"
+        ],
+        "title": "ChartResult",
+        "type": "object"
+      },
+      "ChartRow": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category",
+            "type": "string"
+          },
+          "count": {
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "value": {
+            "maxLength": 1200,
+            "minLength": 1,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "value",
+          "count"
+        ],
+        "title": "ChartRow",
+        "type": "object"
+      },
+      "ChartSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "aggregation": {
+            "enum": [
+              "sum",
+              "count",
+              "mean"
+            ],
+            "title": "Aggregation",
+            "type": "string"
+          },
+          "category_column": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Category Column",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          },
+          "value_column": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value Column"
+          },
+          "x_label": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "X Label",
+            "type": "string"
+          },
+          "y_label": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Y Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "category_column",
+          "aggregation",
+          "title",
+          "x_label",
+          "y_label"
+        ],
+        "title": "ChartSpec",
+        "type": "object"
+      },
       "CheckpointData": {
         "additionalProperties": false,
         "properties": {
@@ -4970,6 +5113,16 @@
             "title": "Body Hash",
             "type": "string"
           },
+          "chart_spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "command_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -4982,7 +5135,11 @@
               "txt",
               "markdown",
               "csv",
-              "json"
+              "json",
+              "docx",
+              "xlsx",
+              "pdf",
+              "png"
             ],
             "title": "Format",
             "type": "string"
@@ -5021,6 +5178,16 @@
       "ExportFile": {
         "additionalProperties": false,
         "properties": {
+          "chart_spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "command_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -5033,7 +5200,11 @@
               "txt",
               "markdown",
               "csv",
-              "json"
+              "json",
+              "docx",
+              "xlsx",
+              "pdf",
+              "png"
             ],
             "title": "Format",
             "type": "string"
@@ -5103,6 +5274,16 @@
           "blob": {
             "$ref": "#/components/schemas/GeneratedBlobRef"
           },
+          "chart": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChartResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "conversation_id": {
             "anyOf": [
               {
@@ -5130,14 +5311,27 @@
             "type": "string"
           },
           "exporter_version": {
-            "const": "basic-exports-v1",
             "default": "basic-exports-v1",
+            "enum": [
+              "basic-exports-v1",
+              "office-exports-v1"
+            ],
             "title": "Exporter Version",
             "type": "string"
           },
+          "fidelity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fidelity"
+          },
           "filename": {
-            "maxLength": 85,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+            "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
             "title": "Filename",
             "type": "string"
           },
@@ -5146,7 +5340,11 @@
               "txt",
               "markdown",
               "csv",
-              "json"
+              "json",
+              "docx",
+              "xlsx",
+              "pdf",
+              "png"
             ],
             "title": "Format",
             "type": "string"
@@ -5162,6 +5360,16 @@
             },
             "title": "Omissions",
             "type": "array"
+          },
+          "provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfficeProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "revision_id": {
             "maxLength": 128,
@@ -5858,6 +6066,48 @@
           "principal_id"
         ],
         "title": "Identity",
+        "type": "object"
+      },
+      "ImportOfficeDraft": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_work_version": {
+            "maximum": 2147483647.0,
+            "minimum": 1.0,
+            "title": "Expected Work Version",
+            "type": "integer"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/FileVersionRef"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_work_version",
+          "source"
+        ],
+        "title": "ImportOfficeDraft",
         "type": "object"
       },
       "IngestDocument": {
@@ -7011,6 +7261,46 @@
           "current_scope"
         ],
         "title": "ObservationReadback",
+        "type": "object"
+      },
+      "OfficeProvenance": {
+        "additionalProperties": false,
+        "properties": {
+          "extraction_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Extraction Sha256",
+            "type": "string"
+          },
+          "original_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Original Sha256",
+            "type": "string"
+          },
+          "parser_version": {
+            "title": "Parser Version",
+            "type": "string"
+          },
+          "source_snapshot_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Source Snapshot Id",
+            "type": "string"
+          },
+          "transformation_version": {
+            "const": "office-v1",
+            "default": "office-v1",
+            "title": "Transformation Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_snapshot_id",
+          "original_sha256",
+          "extraction_sha256",
+          "parser_version"
+        ],
+        "title": "OfficeProvenance",
         "type": "object"
       },
       "OmittedByteRange": {
@@ -14040,6 +14330,16 @@
           "mime_type": {
             "title": "Mime Type",
             "type": "string"
+          },
+          "office_provenance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfficeProvenance"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "storage": {
             "enum": [
@@ -28017,6 +28317,157 @@
           }
         ],
         "summary": "Create File"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/office-drafts": {
+      "post": {
+        "operationId": "import_office_draft",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportOfficeDraft"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceFile"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Import Office"
       }
     },
     "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/research/snapshots": {
