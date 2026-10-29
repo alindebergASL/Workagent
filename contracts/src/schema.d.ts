@@ -927,6 +927,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/memory/lesson-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lesson Evidence */
+        get: operations["memory_lesson_evidence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/memory/remember": {
         parameters: {
             query?: never;
@@ -1074,6 +1091,23 @@ export interface paths {
         put?: never;
         /** Review */
         post: operations["review_memory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/memory/{memory_id}/rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rollback */
+        post: operations["rollback_memory"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2577,6 +2611,7 @@ export interface components {
              * @enum {string}
              */
             mode: "permanent" | "temporary";
+            procedure?: components["schemas"]["ProcedureDetails"] | null;
             /** Request Id */
             request_id: string;
             /**
@@ -3624,6 +3659,8 @@ export interface components {
             notice: string;
             /** Revisions */
             revisions: components["schemas"]["MemoryRevisionV1"][];
+            /** Rollback Revision Ids */
+            rollback_revision_ids?: string[];
         };
         /** MemoryManifestEntry */
         MemoryManifestEntry: {
@@ -3711,6 +3748,7 @@ export interface components {
             owner_id: string;
             /** Predicate Key */
             predicate_key: string | null;
+            procedure?: components["schemas"]["ProcedureDetails"] | null;
             /** Proposed By Run Id */
             proposed_by_run_id?: string | null;
             /**
@@ -4029,6 +4067,56 @@ export interface components {
             /** Text */
             text: string;
         };
+        /** ProcedureDetails */
+        ProcedureDetails: {
+            /** Counterexamples */
+            counterexamples: string[];
+            /** Evidence */
+            evidence: components["schemas"]["ProcedureEvidence"][];
+            /** Excluded Terms */
+            excluded_terms?: string[];
+            /** Retrieval Terms */
+            retrieval_terms: string[];
+            /** Validation Notes */
+            validation_notes: string;
+        };
+        /** ProcedureEvidence */
+        ProcedureEvidence: {
+            /** Conversation Id */
+            conversation_id: string;
+            /** Event Id */
+            event_id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "human_message" | "tool_observation";
+            /** Sha256 */
+            sha256: string;
+        };
+        /** ProcedureEvidenceOption */
+        ProcedureEvidenceOption: {
+            evidence: components["schemas"]["ProcedureEvidence"];
+            /** Label */
+            label: string;
+            /**
+             * Observed At
+             * Format: date-time
+             */
+            observed_at: string;
+            /** Operational Outcome */
+            operational_outcome?: ("succeeded" | "failed" | "wall_limit" | "cpu_limit" | "output_limit" | "cancelled" | "unavailable" | "available" | "rate_limited" | "not_found" | "denied" | "changed_source" | "captured" | "uncertain" | "outcome_unknown") | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "human_statement" | "observed" | "failed" | "cost_only" | "outcome_unknown";
+        };
+        /** ProcedureEvidencePage */
+        ProcedureEvidencePage: {
+            /** Items */
+            items?: components["schemas"]["ProcedureEvidenceOption"][];
+        };
         /** ProductObservation */
         ProductObservation: {
             /** Access Generation */
@@ -4245,6 +4333,7 @@ export interface components {
             kind: "fact" | "preference" | "project_convention" | "episode" | "procedure";
             /** Predicate Key */
             predicate_key: string;
+            procedure?: components["schemas"]["ProcedureDetails"] | null;
             /** Request Id */
             request_id: string;
             /**
@@ -4509,6 +4598,7 @@ export interface components {
             kind: "fact" | "preference" | "project_convention" | "episode" | "procedure";
             /** Predicate Key */
             predicate_key: string;
+            procedure?: components["schemas"]["ProcedureDetails"] | null;
             /** Request Id */
             request_id: string;
             /**
@@ -4913,6 +5003,22 @@ export interface components {
             expected_generation: number;
             /** Idempotency Key */
             idempotency_key: string;
+        };
+        /** RollbackMemory */
+        RollbackMemory: {
+            /** Command Id */
+            command_id: string;
+            /** Expected Revision Id */
+            expected_revision_id: string;
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Version
+             * @constant
+             */
+            schema_version: "workagent/v1";
+            /** Target Revision Id */
+            target_revision_id: string;
         };
         /** Run */
         Run: {
@@ -11706,6 +11812,90 @@ export interface operations {
             };
         };
     };
+    memory_lesson_evidence: {
+        parameters: {
+            query: {
+                conversation_id: string;
+            };
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProcedureEvidencePage"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     remember_memory: {
         parameters: {
             query?: never;
@@ -12387,6 +12577,90 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ReviewMemory"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemoryReceipt"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    rollback_memory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workspace_id: string;
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RollbackMemory"];
             };
         };
         responses: {

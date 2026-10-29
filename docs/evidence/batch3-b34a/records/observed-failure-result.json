@@ -1,0 +1,53 @@
+{
+  "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+  "conversation_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "request_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "attempt_id": "6020017a-9808-44b2-9624-d4ed856a1e66",
+        "phase": "final",
+        "request_sha256": "39f2680723ddd101b5e3039d16cac132fc2ce5de583bf31b53cfe48ec4095716",
+        "entries": []
+      },
+      {
+        "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "request_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "attempt_id": "6020017a-9808-44b2-9624-d4ed856a1e66",
+        "phase": "selection",
+        "request_sha256": "ccf0b1fb2d3184a0058c5535e493358c2b32922e2b093b8d4ce86e65c1ef4a5a",
+        "entries": []
+      },
+      {
+        "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "request_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "attempt_id": "6020017a-9808-44b2-9624-d4ed856a1e66",
+        "phase": "selection_2",
+        "request_sha256": "2a0602135314b064032786f14198cfe1972662e65602fdfaf9eec58dfc0afe96",
+        "entries": []
+      },
+      {
+        "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "request_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "attempt_id": "6020017a-9808-44b2-9624-d4ed856a1e66",
+        "phase": "selection_3",
+        "request_sha256": "6b3f2ee7b696e9755a7ecf2fc1c04a454959f3b6a38e8d7cdcca864b9e6e0cde",
+        "entries": []
+      },
+      {
+        "run_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "request_id": "afbaecce-2720-4ea5-88fb-89900a8b268b",
+        "attempt_id": "6020017a-9808-44b2-9624-d4ed856a1e66",
+        "phase": "selection_4",
+        "request_sha256": "20162d43aa476a1c862862627f3c6885f968b853ddfd6018f2772f2cb54f1861",
+        "entries": []
+      }
+    ]
+  },
+  "controlled_model": true,
+  "real_tools": true,
+  "paid_product_calls": 0,
+  "restart_no_repeat": true
+}

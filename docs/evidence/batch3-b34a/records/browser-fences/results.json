@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "scenarios": [
+    {
+      "name": "retry-closed-late-success",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    },
+    {
+      "name": "retry-closed-late-denial",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    },
+    {
+      "name": "evidence-after-access-denial",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    },
+    {
+      "name": "history-after-cancel",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    },
+    {
+      "name": "history-replacement-current-choice",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    },
+    {
+      "name": "history-after-access-denial",
+      "passed": true,
+      "actual_mounted_panel": true,
+      "actual_api_read": true,
+      "controlled_late_completion": true,
+      "writes": 0
+    }
+  ],
+  "faults": "Client fetch shim removes AbortSignal and delivers actual authorized API read after controlled cancellation/denial. The 503/404 are injected transport faults, not database revoke proof."
+}

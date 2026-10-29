@@ -1,0 +1,22 @@
+{
+  "mode": "inspect-final",
+  "actual_pty": true,
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;10M\u001b[<0;5;10m"
+    },
+    {
+      "keys": "\u001b[<0;5;14M\u001b[<0;5;14m"
+    },
+    {
+      "keys": "\u001b[<0;3;13M\u001b[<0;3;13m"
+    }
+  ],
+  "passed": true
+}

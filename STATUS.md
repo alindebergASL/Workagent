@@ -1,6 +1,14 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.3b pinned MCP and synthetic OAuth mechanisms verified
+## Latest: B3.4a reviewed-procedure mechanisms accepted
+
+- [Evidence package](docs/evidence/batch3-b34a/ACCEPTANCE.md) binds evidence-backed human-proposed procedures, versioned review/restore and exact later usage. Actual web/native lifecycles, both useful synthetic transfers and residual late-response/source-revoke boundaries are verified at their disclosed evidence levels. No causal learning/live-model benefit claim.
+- All R1–R5/C1 code defects are closed by the same independent reviewer; no new code delta or review campaign. Retained98 PG/HTTP/native and25 later native cases overlap by21, not an additive total;60 focused web tests and optimized build are reused, not freshly rerun.
+- All32 checkpoint source files remain unchanged. Full910-input source manifest,331 matching web/contracts build inputs,194 retained outputs and25 external traced files bind build `HAEr4yziKBlWBIpt1euzS`. Fresh read-only test-04 checks match all68 final table snapshots,67 migrations and exact saved human CSV/editorial versions. First66 migrations match base; preexisting contracts lock remains untracked/unchanged.
+- Actual [CSV](docs/evidence/batch3-b34a/outputs/duration-summary.csv), [editorial brief](docs/evidence/batch3-b34a/outputs/current-policy-brief.md) and corrected ZIP are packaged. Verified attachment7 on package card replaces use of malformed parent attachment6, which remains historical with its warning. Credentials/raw contexts/worker capabilities remain private; earlier failures and unknowns are retained.
+- Parent `t_0ff857b1` accepts this slice's implementation and synthetic mechanism evidence after verifying the exact staged package, source/build bindings, retained review and useful outputs. Feature publication/remote readback and exact-head CI identities are recorded in the final parent task/PR receipt, not inferred from predecessor CI. Parent completion requires those checks and releases existing B3.4b `t_73a6251f`; it does not complete Batch3. Owned18240/13240 are stopped/refused; compute-b34a inactive/MainPID0. No installed services, paid calls, deployment/default merge or cap change. [Parent handoff](docs/evidence/batch3-b34a/HANDOFF.md).
+
+## Previous: B3.3b pinned MCP and synthetic OAuth mechanisms verified
 
 - [Acceptance](docs/evidence/batch3-b33b/ACCEPTANCE.md): protocol2026-07-28 and maintained SDK2.3.0 pinned; real local TCP and isolated stdio, reviewed schema/tool subset, synthetic PKCE/vault/refresh/revoke and late-result/source/memory fences. Normal runtime SQL cannot attest provider outcomes; API remains trusted with vault/executor credentials.
 - Final46 integrated tests pass without skips; focused39 web tests pass. Exact optimized build `sVDEPH9Pel_-AQAeUFWDH` has328 matching web/contracts inputs and194 hashed outputs. Fresh current ordinary browser send → real MCP → saved reading brief → human edit/reload passes1440/390/320. Unchanged broad browser/native revoke/denial/restart proof is explicitly reused, not relabeled new-build evidence.

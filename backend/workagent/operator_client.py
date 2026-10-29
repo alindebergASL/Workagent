@@ -89,7 +89,9 @@ class OperatorClient:
                 raise
             except Exception:
                 code='http_error'
-            error=ReadUnavailable if body is None and (exc.code>=500 or exc.code in (408,429)) else OperatorError
+            from .operator_journal import AccessDenied
+            error=(AccessDenied if exc.code in (401,403,404) else
+                   ReadUnavailable if body is None and (exc.code>=500 or exc.code in (408,429)) else OperatorError)
             raise error(f'HTTP {exc.code}: {code}; inspect saved state before any new command') from None
         except (OSError,ValueError,http.client.HTTPException) as exc:
             error=ReadUnavailable if body is None and not isinstance(exc,ValueError) else OperatorError

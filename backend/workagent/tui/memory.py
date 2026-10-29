@@ -8,13 +8,15 @@ from urllib.parse import urlencode
 from uuid import uuid4
 
 from ..operator_client import identifier
-from ..operator_journal import OperatorError, DomainRejection
+from ..operator_journal import OperatorError, DomainRejection, AccessDenied
 
 
 class MemoryController:
     def __init__(self, client, workspace, principal, conversation):
         self.client = client
         self.endpoint = client.base
+        self.session = getattr(client, 'token', None)
+        self.access_lost = False
         self.workspace = identifier(workspace)
         self.principal = identifier(principal)
         self.conversation = identifier(conversation)
@@ -24,21 +26,46 @@ class MemoryController:
         self.receipt = None
 
     def authorize(self):
-        if (self.client.base != self.endpoint
-                or self.client.identity(self.workspace) != self.principal):
+        try:
+            self.check_session()
+            principal = self.client.identity(self.workspace)
+            self.check_session()
+            if principal != self.principal:
+                raise OperatorError('Authenticated memory scope changed; reconnect')
+        except OperatorError:
+            self.access_lost = True
             self.selected = None
+            self.receipt = None
+            raise
+
+    def check_session(self):
+        if (self.access_lost or self.client.base != self.endpoint
+                or getattr(self.client, 'token', None) != self.session):
+            self.access_lost = True
+            self.selected = None
+            self.receipt = None
             raise OperatorError('Authenticated memory scope changed; reconnect')
+
+    def read(self, path):
+        try:
+            self.authorize()
+            result = self.client.request(path)
+            self.authorize()
+            return result
+        except OperatorError:
+            self.selected = None
+            raise
 
     def listing(self, status=None):
         self.authorize()
         fields = {'conversation_id': self.conversation}
         if status:
             fields['status'] = status
-        return self.client.request(self.root + '?' + urlencode(fields))
+        return self.read(self.root + '?' + urlencode(fields))
 
     def inspect(self, memory_id):
         self.authorize()
-        result = self.client.request(self.root + '/' + identifier(memory_id))
+        result = self.read(self.root + '/' + identifier(memory_id))
         self.selected = result
         return result
 
@@ -71,10 +98,17 @@ class MemoryController:
         self.pending['state'] = 'outcome_unknown'
         try:
             receipt = self.client.request(self.pending['path'], copy.deepcopy(self.pending['body']))
+        except AccessDenied:
+            self.access_lost = True
+            self.selected = None
+            self.receipt = None
+            # Keep exact unknown envelope: denial never proves an earlier effect absent.
+            raise
         except DomainRejection:
             if first:
                 self.pending['state'] = 'rejected'
             raise
+        self.authorize()
         self.receipt = receipt
         self.pending = None
         # Never retain a forgotten payload in the screen controller.
@@ -91,7 +125,7 @@ class MemoryController:
         current = self.selected['current']
         try:
             self.authorize()
-            fresh = self.client.request(self.root + '/' + identifier(current['memory_id']))
+            fresh = self.read(self.root + '/' + identifier(current['memory_id']))
         except OperatorError:
             self.selected = None
             raise
@@ -112,6 +146,10 @@ class MemoryController:
         self.pending = None
         self.selected = None
 
+    def lesson_evidence(self):
+        self.authorize()
+        return self.read(self.root + '/lesson-evidence?' + urlencode({'conversation_id': self.conversation}))
+
     def usage(self, run_id):
         self.authorize()
-        return self.client.request('/' + self.workspace + '/runs/' + identifier(run_id) + '/memory-usage')
+        return self.read('/' + self.workspace + '/runs/' + identifier(run_id) + '/memory-usage')

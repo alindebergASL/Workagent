@@ -340,6 +340,7 @@ class Conversations:
             observation['evidence_context']=context['evidence_context']
         if 'memory_manifest' in context:
             observation['memory_manifest']=context['memory_manifest']
+            observation['memory_human_request']=context['memory_human_request']
         if run.profile=='general-responses-v1':
             from .general_responses import check_pins
             from .capabilities.github_composition import enabled as github_enabled

@@ -18,9 +18,27 @@ def in_time(rev, at):
             and (rev.expires_at is None or at < rev.expires_at))
 
 
+def procedure_matches(revision, request_text):
+    """Only adopted, unopposed procedures can guide autonomous work."""
+    return (revision.status == 'active' and revision.origin == 'human_reviewed'
+            and revision.reviewed_by_principal_id == revision.owner_id
+            and procedure_relevant(revision, request_text))
+
+
+def procedure_relevant(revision, request_text):
+    """Relevance before conflict detection; a dispute need not be adopted."""
+    details = revision.procedure
+    if details is None:
+        return False
+    text = request_text.casefold()
+    def matches(term):
+        return re.search(r'(?<!\w)' + re.escape(term.casefold()) + r'(?!\w)', text) is not None
+    return not any(matches(t) for t in details.excluded_terms) and any(matches(t) for t in details.retrieval_terms)
+
+
 class MemoryRetrieval:
     def _recall_memory(self, c, p, ws, cid, *, query='', kind=None, status=None,
-                       subject_key=None, predicate_key=None, at=None):
+                       subject_key=None, predicate_key=None, at=None, autonomous=False, human_request=''):
         at = at or now()
         cv = self._memory_scope(c, p, ws, 'task', cid)
         areas = {cid} if cv.work_area is not None else set()
@@ -57,7 +75,10 @@ class MemoryRetrieval:
             try:
                 self._memory_scope(c, p, ws, rev.scope_kind, rev.scope_id)
                 self._memory_sources(c, p, ws, rev.source_refs)
+                self._memory_procedure(c, p, ws, rev.scope_kind, rev.scope_id, rev.procedure, rev.source_refs)
             except DomainError:
+                continue
+            if autonomous and rev.kind == 'procedure' and not procedure_relevant(rev, human_request):
                 continue
             why = {'task':'task', 'work_area':'explicit_work_area_binding', 'user':'owner_preference'}[rev.scope_kind]
             eligible.append(RecalledMemory(revision=rev, why=why))
@@ -75,6 +96,10 @@ class MemoryRetrieval:
                 for item in items:
                     item.unresolved_conflict = True
                     item.revision = item.revision.model_copy(update={'status':'contested', 'contradiction_group_id':group})
+        if autonomous:
+            # Conflicting procedures cannot become autonomous instructions.
+            eligible = [i for i in eligible if i.revision.kind != 'procedure' or
+                        (not i.unresolved_conflict and procedure_matches(i.revision, human_request))]
         tokens = set(re.findall(r'\w+', query.casefold()))
         selected = []
         for item in eligible:
@@ -96,13 +121,14 @@ class MemoryRetrieval:
             r = item.revision
             if r.memory_id in seen:
                 continue
-            batch = groups[(r.subject_key, r.predicate_key)] if item.unresolved_conflict else [item]
+            batch = [i for i in groups[(r.subject_key, r.predicate_key)] if i in eligible] if item.unresolved_conflict else [item]
             batches.append(batch)
             seen.update(i.revision.memory_id for i in batch)
         result, chars, omitted = [], 0, False
         for batch in batches:
             size = sum(len(i.revision.content or '') + len(i.revision.applicability or '') +
-                       len(i.revision.confidence_basis or '') for i in batch)
+                       len(i.revision.confidence_basis or '') +
+                       (len(i.revision.procedure.model_dump_json()) if i.revision.procedure else 0) for i in batch)
             if len(result) + len(batch) > 12 or chars + size > 6000:
                 omitted = True
                 continue

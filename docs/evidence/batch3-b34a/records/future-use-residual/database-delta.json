@@ -1,0 +1,42 @@
+{
+  "missing": {
+    "conversations": {
+      "7666c5fb4c7cb6ed2da3a454c660cfed536dba94e6b12d174c865dfc1ff83472": 1,
+      "d13a24521481d8c0b690fee11140cffb9b57bcf85e4459bd47670ac2a097f403": 1
+    },
+    "work_event_heads": {
+      "f9fa97a1a8f101fcf9e398c3acec800c5e49683fb740908f9d65484e34c615ca": 1
+    },
+    "work_event_projection": {
+      "0763e5600f8b389a8777014638a75b5145e05cbb9094e22eac291b49cb8b3746": 1,
+      "08e771e6c36cdc8f191846d06921845f9ef0c5c434d502a230e0fe7d56eab236": 1
+    }
+  },
+  "added": {
+    "audit": 18,
+    "commands": 14,
+    "conversation_messages": 10,
+    "conversation_sources": 1,
+    "conversations": 5,
+    "memory_evidence": 6,
+    "memory_items": 1,
+    "memory_revisions": 4,
+    "memory_scope_bindings": 2,
+    "memory_usage": 10,
+    "outbox": 18,
+    "provider_attempts": 5,
+    "responses_events": 55,
+    "responses_steps": 10,
+    "run_checkpoints": 10,
+    "run_configurations": 5,
+    "run_contexts": 5,
+    "run_dispatches": 5,
+    "runs": 5,
+    "source_access": 1,
+    "sources": 1,
+    "work_event_heads": 1,
+    "work_event_projection": 113,
+    "work_events": 148,
+    "work_run_chronology": 5
+  }
+}

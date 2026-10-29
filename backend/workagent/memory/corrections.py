@@ -4,7 +4,14 @@ from ..errors import DomainError
 
 
 def changes(service, c, p, ws, old, command):
-    if old.status not in ('active', 'contested'):
+    if old.status not in ('active', 'contested') and not (old.kind == 'procedure' and old.status == 'candidate'):
+        raise DomainError('action_unresolved')
+    from .procedures import union_details
+    details = union_details(old.procedure, command.procedure)
+    if command.procedure is not None and old.kind != 'procedure':
+        raise DomainError('validation_error')
+    if old.kind == 'procedure' and (details is None or not (old.applicability or '').strip()
+                                   or not (old.confidence_basis or '').strip()):
         raise DomainError('action_unresolved')
     # A correction cannot silently declassify derived evidence. New references
     # augment provenance; loss of any retained source still denies future recall.
@@ -17,7 +24,12 @@ def changes(service, c, p, ws, old, command):
     service._memory_sources(c, p, ws, refs)
     result = dict(content=command.content, content_sha256=sha256(command.content.encode()).hexdigest(),
                   source_refs=refs, origin='human_reviewed', reviewed_by_principal_id=p.id,
-                  status='active', confidence_label='explicit')
+                  status='active', confidence_label='inferred' if old.kind == 'procedure' else 'explicit', procedure=details)
+    if old.status == 'candidate':
+        if command.mode != 'permanent':
+            raise DomainError('action_unresolved')
+        result.update(status='candidate',origin=old.origin,
+            reviewed_by_principal_id=old.reviewed_by_principal_id,confidence_label=old.confidence_label)
     if command.mode == 'permanent' and old.exception_to_revision_id:
         base = c.execute('SELECT data FROM memory_revisions WHERE workspace_id=%s AND memory_id=%s AND id=%s',
                          (ws, old.memory_id, old.exception_to_revision_id)).fetchone()['data']

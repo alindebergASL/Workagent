@@ -6,7 +6,7 @@ from ..models import Request
 from ..service import Principal
 from .models import (MemoryReceipt, MemoryInspection, MemoryPage, RememberMemory, ProposeMemory,
     ReviewMemory, CorrectMemory, NarrowMemory, MemoryCAS, BindMemoryScope, MemoryScopeBinding,
-    MemoryUsagePage, Kind, Status, Key)
+    MemoryUsagePage, Kind, Status, Key, RollbackMemory, ProcedureEvidencePage)
 
 
 def register(app, service, principal, query_meta, errors):
@@ -42,6 +42,14 @@ def register(app, service, principal, query_meta, errors):
              operation_id='get_memory_scope_binding', responses=errors)
     def get_binding(workspace_id:Id, conversation_id:Id, p:P, meta:Meta):
         return service.memory_scope_binding(p, workspace_id, conversation_id)
+
+    @app.get(root+'/lesson-evidence', response_model=ProcedureEvidencePage, operation_id='memory_lesson_evidence', responses=errors)
+    def lesson_evidence(workspace_id:Id, conversation_id:Id, p:P, meta:Meta):
+        return service.memory_lesson_evidence(p, workspace_id, conversation_id)
+
+    @app.post(root+'/{memory_id}/rollback', response_model=MemoryReceipt, operation_id='rollback_memory', responses=errors)
+    def rollback(workspace_id:Id, memory_id:Id, body:RollbackMemory, p:P):
+        return service.rollback_memory(p, workspace_id, memory_id, body)
 
     @app.get(root+'/{memory_id}', response_model=MemoryInspection, operation_id='inspect_memory', responses=errors)
     def inspect(workspace_id:Id, memory_id:Id, p:P, meta:Meta):

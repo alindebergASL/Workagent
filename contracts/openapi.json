@@ -3347,6 +3347,16 @@
             "title": "Mode",
             "type": "string"
           },
+          "procedure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcedureDetails"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "request_id": {
             "maxLength": 128,
             "minLength": 1,
@@ -6514,6 +6524,16 @@
             },
             "title": "Revisions",
             "type": "array"
+          },
+          "rollback_revision_ids": {
+            "items": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "title": "Rollback Revision Ids",
+            "type": "array"
           }
         },
         "required": [
@@ -6809,6 +6829,16 @@
               }
             ],
             "title": "Predicate Key"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcedureDetails"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "proposed_by_run_id": {
             "anyOf": [
@@ -7902,6 +7932,186 @@
         "title": "PostMessage",
         "type": "object"
       },
+      "ProcedureDetails": {
+        "additionalProperties": false,
+        "properties": {
+          "counterexamples": {
+            "items": {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Counterexamples",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/ProcedureEvidence"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "excluded_terms": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "title": "Excluded Terms",
+            "type": "array"
+          },
+          "retrieval_terms": {
+            "items": {
+              "maxLength": 200,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Retrieval Terms",
+            "type": "array"
+          },
+          "validation_notes": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Validation Notes",
+            "type": "string"
+          }
+        },
+        "required": [
+          "retrieval_terms",
+          "counterexamples",
+          "evidence",
+          "validation_notes"
+        ],
+        "title": "ProcedureDetails",
+        "type": "object"
+      },
+      "ProcedureEvidence": {
+        "additionalProperties": false,
+        "properties": {
+          "conversation_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Conversation Id",
+            "type": "string"
+          },
+          "event_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Event Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "human_message",
+              "tool_observation"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "conversation_id",
+          "event_id",
+          "sha256"
+        ],
+        "title": "ProcedureEvidence",
+        "type": "object"
+      },
+      "ProcedureEvidenceOption": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/components/schemas/ProcedureEvidence"
+          },
+          "label": {
+            "maxLength": 240,
+            "title": "Label",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "operational_outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "succeeded",
+                  "failed",
+                  "wall_limit",
+                  "cpu_limit",
+                  "output_limit",
+                  "cancelled",
+                  "unavailable",
+                  "available",
+                  "rate_limited",
+                  "not_found",
+                  "denied",
+                  "changed_source",
+                  "captured",
+                  "uncertain",
+                  "outcome_unknown"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operational Outcome"
+          },
+          "outcome": {
+            "enum": [
+              "human_statement",
+              "observed",
+              "failed",
+              "cost_only",
+              "outcome_unknown"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence",
+          "label",
+          "outcome",
+          "observed_at"
+        ],
+        "title": "ProcedureEvidenceOption",
+        "type": "object"
+      },
+      "ProcedureEvidencePage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ProcedureEvidenceOption"
+            },
+            "maxItems": 50,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "title": "ProcedureEvidencePage",
+        "type": "object"
+      },
       "ProductObservation": {
         "additionalProperties": false,
         "properties": {
@@ -8680,6 +8890,16 @@
             "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
             "title": "Predicate Key",
             "type": "string"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcedureDetails"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "request_id": {
             "maxLength": 128,
@@ -9463,6 +9683,16 @@
             "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
             "title": "Predicate Key",
             "type": "string"
+          },
+          "procedure": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProcedureDetails"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "request_id": {
             "maxLength": 128,
@@ -10678,6 +10908,53 @@
           "expected_generation"
         ],
         "title": "RevokeConnector",
+        "type": "object"
+      },
+      "RollbackMemory": {
+        "additionalProperties": false,
+        "properties": {
+          "command_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Command Id",
+            "type": "string"
+          },
+          "expected_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Expected Revision Id",
+            "type": "string"
+          },
+          "request_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "workagent/v1",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "target_revision_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Target Revision Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "schema_version",
+          "request_id",
+          "command_id",
+          "expected_revision_id",
+          "target_revision_id"
+        ],
+        "title": "RollbackMemory",
         "type": "object"
       },
       "Run": {
@@ -24964,6 +25241,169 @@
         "summary": "Propose"
       }
     },
+    "/v1/workspaces/{workspace_id}/memory/lesson-evidence": {
+      "get": {
+        "operationId": "memory_lesson_evidence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcedureEvidencePage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Lesson Evidence"
+      }
+    },
     "/v1/workspaces/{workspace_id}/memory/remember": {
       "post": {
         "operationId": "remember_memory",
@@ -26329,6 +26769,157 @@
           }
         ],
         "summary": "Review"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/memory/{memory_id}/rollback": {
+      "post": {
+        "operationId": "rollback_memory",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackMemory"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryReceipt"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Rollback"
       }
     },
     "/v1/workspaces/{workspace_id}/observations/{observation_id}": {

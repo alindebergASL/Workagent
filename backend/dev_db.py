@@ -55,6 +55,7 @@ def provision(env_file):
         memory_functions = [
             'write_memory_revision(text,text,text,text,jsonb)',
             'forget_memory(text,text,text,text,text)',
+            'rollback_memory_revision(text,text,text,jsonb,text)',
             'bind_memory_scope(text,text,text,text,bigint)',
             'record_memory_usage(text,text,text,text,text,text,jsonb)',
             'connector_start(text,text,text,text,text)',

@@ -15,9 +15,12 @@ import type {
   MemoryScopeBinding,
   MemoryUsagePage,
   NarrowMemory,
+  ProcedureEvidencePage,
   ProposeMemory,
+  ProposeProcedureMemory,
   RememberMemory,
   ReviewMemory,
+  RollbackMemory,
 } from "@/lib/memory-contract";
 
 const ROOT = "/v1/workspaces/{workspace_id}/memory" as const;
@@ -78,12 +81,34 @@ export async function memoryUsage(
 /** Every memory write, as the exact route + body that is sent (and replayed). */
 export type MemoryCommand =
   | { op: "remember"; body: RememberMemory }
-  | { op: "candidates"; body: ProposeMemory }
+  | { op: "candidates"; body: ProposeMemory | ProposeProcedureMemory }
   | { op: "review"; memoryId: string; body: ReviewMemory }
   | { op: "correct"; memoryId: string; body: CorrectMemory }
   | { op: "narrow"; memoryId: string; body: NarrowMemory }
   | { op: "expire"; memoryId: string; body: MemoryCAS }
-  | { op: "forget"; memoryId: string; body: MemoryCAS };
+  | { op: "forget"; memoryId: string; body: MemoryCAS }
+  | { op: "rollback"; memoryId: string; body: RollbackMemory };
+
+/**
+ * Observed events in this conversation a person may cite for a lesson.
+ * The server derives every reference and digest; ACL applies before counts.
+ */
+export async function lessonEvidence(
+  ws: string,
+  conversation: string,
+  signal?: AbortSignal,
+): Promise<ProcedureEvidencePage> {
+  return unwrap(
+    client.GET(`${ROOT}/lesson-evidence`, {
+      params: {
+        path: { workspace_id: ws },
+        header: meta(),
+        query: { conversation_id: conversation },
+      },
+      signal,
+    }),
+  );
+}
 
 export async function sendMemoryCommand(
   ws: string,
@@ -131,6 +156,13 @@ export async function sendMemoryCommand(
         case "expire":
           return unwrap(
             client.POST(`${ROOT}/{memory_id}/expire`, {
+              params: { path },
+              body: cmd.body,
+            }),
+          );
+        case "rollback":
+          return unwrap(
+            client.POST(`${ROOT}/{memory_id}/rollback`, {
               params: { path },
               body: cmd.body,
             }),

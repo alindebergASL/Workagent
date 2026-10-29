@@ -192,6 +192,8 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
         if op in ('export_artifact','export_workspace_file') and payload.get('chart_spec') is None:
             payload.pop('chart_spec',None)
+        if op in ('memory_remember', 'memory_candidate', 'memory_correct') and payload.get('procedure') is None:
+            payload.pop('procedure', None)  # Preserve pre-067 command replay hashes.
         if op=='accept_proposal':
             # Default-false additive flags preserve historical receipt hashes.
             for flag in ('acknowledge_removed_content', 'acknowledge_older_proposal'):
