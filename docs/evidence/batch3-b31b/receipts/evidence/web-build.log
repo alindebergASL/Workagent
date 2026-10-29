@@ -1,0 +1,49 @@
+
+> @workagent/web@0.1.0 build
+> next build
+
+▲ Next.js 16.3.4 (Turbopack)
+✓ Running next.config.ts took 21ms
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 error:
+./contracts/src/client.ts:1:1
+Error: Module not found: Can't resolve 'openapi-fetch'
+[31m[1m>[0m [90m1 |[0m [36mimport[0m createClient [36mfrom[0m [32m"openapi-fetch"[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m2 |[0m [36mimport[0m [36mtype[0m { paths } [36mfrom[0m [32m"./schema.js"[0m;
+  [90m3 |[0m
+  [90m4 |[0m [90m/** No cookie identity, hardcoded credential, or automatic write retry. */[0m
+
+Symlink [project]/contracts/node_modules is invalid, it points out of the filesystem root
+
+Debug info:
+- Execution of <ModuleAssetContext as AssetContext>::resolve_asset failed
+- Execution of resolve failed
+- Execution of resolve_internal failed
+- Execution of find_package failed
+- Symlink [project]/contracts/node_modules is invalid, it points out of the filesystem root
+
+
+Import traces:
+  Client Component Browser:
+    ./contracts/src/client.ts [Client Component Browser]
+    ./web/src/lib/client/real-api.ts [Client Component Browser]
+    ./web/src/lib/client/responsibility.ts [Client Component Browser]
+    ./web/src/app/assignments/[id]/page.tsx [Client Component Browser]
+    ./web/src/app/assignments/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./contracts/src/client.ts [Client Component SSR]
+    ./web/src/lib/client/real-api.ts [Client Component SSR]
+    ./web/src/lib/client/responsibility.ts [Client Component SSR]
+    ./web/src/app/assignments/[id]/page.tsx [Client Component SSR]
+    ./web/src/app/assignments/[id]/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> (./contracts/src/client.ts:1:1)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)

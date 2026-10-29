@@ -70,7 +70,9 @@ class WorkagentApp(App):
         # App priority bindings otherwise precede modal bindings. A file-editor
         # shortcut must never submit the hidden conversation composer.
         from .files_screen import WorkingFilesScreen
-        if isinstance(self.screen, WorkingFilesScreen) and action in ('send', 'refresh'):
+        from .memory_screen import MemoryScreen
+        from .research_screen import ResearchScreen
+        if isinstance(self.screen, (WorkingFilesScreen, MemoryScreen, ResearchScreen)) and action in ('send', 'refresh'):
             return False
         return super().check_action(action, parameters)
 
@@ -96,6 +98,7 @@ class WorkagentApp(App):
                     yield Static('Saved results have not been read.',markup=False,id='catalog-status',classes='prose')
                     yield Select([],prompt='Saved results',id='artifact')
                     yield Select([],prompt='Exact revision',id='revision')
+                    yield Button('Citations & freshness',id='research-claims')
                     with Horizontal(classes='actions'):
                         yield Button('Use as target',id='target-use')
                         yield Button('Clear target',id='target-clear')
@@ -111,6 +114,8 @@ class WorkagentApp(App):
             with TabPane('Files',id='files-panel'):
                 with VerticalScroll():
                     yield Button('Working files',id='working-files')
+                    yield Button('Memory',id='memory')
+                    yield Button('Research sources',id='research-sources')
                     yield Input(placeholder='Local UTF-8 file path (inert snapshot)',id='file-path')
                     with Horizontal(classes='actions'):
                         yield Button('Stage file',id='stage-file')
@@ -639,6 +644,18 @@ class WorkagentApp(App):
                 if self.queue_back:self.queue_after=self.queue_back.pop();self.action_refresh(deliberate=False)
             elif action in ('stop','continue','seen','queue-cancel'):self.start_write(self.continuity_write(action,self.control_selection()))
             elif action in LIFECYCLE_ACTIONS:self.start_write(self.lifecycle_write(action,self.lifecycle_selection()))
+            elif action in ('research-sources','research-claims'):
+                if not self.session or not self.conversation or not self.read_authorized:
+                    raise OperatorError('Open an authenticated conversation before inspecting research')
+                from .research_screen import ResearchScreen
+                from .research import selected_binding
+                binding=selected_binding(self.artifact,self.history,self.selected_revision) if action=='research-claims' else None
+                self.push_screen(ResearchScreen(self.client,self.workspace,self.session.principal,self.conversation,binding=binding))
+            elif action=='memory':
+                if not self.session or not self.conversation or not self.read_authorized:
+                    raise OperatorError('Open an authenticated conversation before inspecting memory')
+                from .memory_screen import MemoryScreen
+                self.push_screen(MemoryScreen(self.client,self.workspace,self.session.principal,self.conversation))
             elif action=='working-files':
                 if not self.session or not self.conversation or not self.read_authorized:
                     raise OperatorError('Open an authenticated conversation before editing working files')

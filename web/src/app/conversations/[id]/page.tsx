@@ -41,6 +41,7 @@ import { CAPABILITIES } from "@/lib/client/capabilities";
 import { ErrorNotice, StatusBadge } from "@/components/ui";
 import { WorkCard } from "@/components/WorkCard";
 import { WorkspaceFiles } from "@/components/WorkspaceFiles";
+import { MemoryPanel } from "@/components/MemoryPanel";
 import { ToolActivity } from "@/components/ToolActivity";
 import { CurrentWork } from "@/components/CurrentWork";
 import { useWorkState } from "@/lib/client/work-state";
@@ -768,6 +769,17 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
           ws={wsId}
           cid={id}
           workVersion={d.conversation.work_version}
+        />
+      ) : null}
+      {wsId && real ? (
+        <MemoryPanel
+          ws={wsId}
+          cid={id}
+          isWorkArea={d.conversation.work_area != null}
+          workVersion={d.conversation.work_version}
+          runId={
+            d.turns.length > 0 ? d.turns[d.turns.length - 1]!.run_id : null
+          }
         />
       ) : null}
       {wsId && real && d.turns.length > 0 ? (

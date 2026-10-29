@@ -1,6 +1,54 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: pinned Cloud/B3 integration and verifier handoff reconciled
+## Latest: B3.2a grounded research mechanisms accepted
+
+- [Acceptance](docs/evidence/batch3-b32a/ACCEPTANCE.md) closes immutable public
+  search/capture/citation/freshness and confined offline browser fallback. Missing
+  production search is explicit unavailable; no paid search/model usefulness claim.
+- Actual original saved working-file citations now render at1440/390/320 before/
+  after restart, with exact human revision/body, unsupported/stale flags and10/12-unit
+  captures. Refresh preserves saved/unsaved text and is GET-only. Native100×45/80×35,
+  real restricted-PG/production-worker recursive revocation and no-repeat proof pass.
+- Final37 backend/PG,3 HTTP-PG and67 focused web checks, isolated optimized build,
+  canonical contracts and one independent narrow review closure pass. Earlier38 web
+  and85/6/4 checks are overlapping inherited runs, not additive totals.56 changed
+  source hashes and521 candidate inputs bind build `f81VUigyJq5lbmurBaPTo`.
+- Historical missing-consumer warning is superseded by final Claude consumer proof;
+  initial review failures and raw failure receipts remain. Minor disclosure collapse
+  and no artifact-detail citation mount are disclosed. No arbitrary polish rerun.
+- [Handoff](docs/evidence/batch3-b32a/HANDOFF.md) carries owned-service cleanup,
+  evidence boundaries and existing B3.2b successor `t_acf5c8f0`. Feature commit/CI
+  identities belong to the final task receipt, not installed-runtime promotion.
+- No paid product calls, new processor, installed-data maintenance, default merge,
+  cap/config changes or automatic integration of isolated memory-link repair
+  `d8c0bc04689d1b50698bcd4f6b141e3f2ce0d0cf`. Cloud/shared-page reconciliation and
+  historical budget/unknown liabilities remain unchanged. Only B3.2a is accepted.
+
+## Previous: B3.1c combined computation and reviewed-memory mechanism verified
+
+- B3.1b typed-memory source `9657a06cfbbcfc5f7c4176a0e8360b12c9e4515d` is the base.
+  A generic opt-in bridge now exposes ordinary human attachments as immutable,
+  exact-reference working files in the admission transaction; no data-specific
+  handler, implicit tool authority, migration or web change.
+- [B3.1c acceptance](docs/evidence/batch3-b31c/ACCEPTANCE.md) records five real
+  confined computations, independent arithmetic/download hashes, exact human
+  annotation retention, reviewed project-memory transfer after process restarts,
+  equal-tools/no-memory and unrelated/confidential project controls, forgetting,
+  and successful/unknown no-repeat checks. Actual1440/390/320 browser and100×45/
+  80×35 PTY journeys,10 targeted tests, production build and one independent
+  narrow risk review pass;362 candidate source hashes verified.
+- Controlled model transport only: zero paid product calls, no live usefulness or
+  causal memory-gain claim. Reuse unaffected B3.0/1a/1b evidence; no full-suite
+  rerun or Batch3-complete claim. Feature publication/CI identities belong to the
+  final task checkpoint, not an installed-runtime promotion.
+- A definite409 can follow an immediate send after memory-project linking;
+  explicit refresh/new send succeeds. Isolated Claude-owner web follow-up
+  `t_8f2dc0c8` is recorded, without changing CAS or auto-replaying unknown writes.
+- Owned EC2 proof API/web/compute stopped, ports refused, lease released; installed
+  API/web PIDs917/918 and saved data unchanged. Main successor is existing
+  `t_2e868b13` (B3.2a research), not mission completion. [Handoff](docs/evidence/batch3-b31c/HANDOFF.md).
+
+## Previous: pinned Cloud/B3 integration and verifier handoff reconciled
 
 - Integrated Cloud `dff9dc068b4227018612f7a99866e7f565130fa0` onto accepted B3.1a
   `307c184d1fcffa244165bf727631fa5ccbf6f878`, preserving newer shared-files,

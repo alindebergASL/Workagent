@@ -1,0 +1,40 @@
+workagent
+More
+← Back to Private fixture workspace
+Begin a later duration analysis with a new dataset
+Keep as a project
+
+You:
+Begin a later duration analysis with a new dataset.
+
+Agent:
+
+Ready to work with the supplied dataset. Controlled transport; not a live model evaluation.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Files
+
+No working files in this conversation yet.
+
+New file…
+Memory
+Tool activity
+Continue the conversation
+observations
+.csv
+Remove
+Attach a file
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+
+This conversation changed since you looked. Your message is kept; send it again to add it after what’s new.
+
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

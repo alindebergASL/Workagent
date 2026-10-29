@@ -1,0 +1,18 @@
+{
+  "source_files_verified": 40,
+  "remote_source_equal": true,
+  "review_unchanged": 16,
+  "review_final_delta": [
+    "backend/workagent/tui/memory.py",
+    "backend/tests/test_memory_recovery.py"
+  ],
+  "review_verdict": "PASS (reused narrow final review)",
+  "original_lock_sha256": "f04d544c1cc611dd3b4e6caa260b850cadf18be42ebd283308e5ff01aaad5a4d",
+  "original_lock_excluded": true,
+  "privacy_scan": "No private fixture values, DSNs, env files, state stores, dependencies or raw terminal streams in evidence",
+  "closure_commands": 7,
+  "remote_index_files": 211,
+  "product_source_changed_in_closure": false,
+  "product_provider_calls": 0,
+  "publication": "local feature commit only; not pushed or deployed"
+}

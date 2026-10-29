@@ -374,6 +374,11 @@ def create_app(settings: Settings | None=None) -> FastAPI:
 
     from .workspace_file_api import register as register_workspace_files
     register_workspace_files(app,service,principal,query_meta,errors)
+    from .research_api import register as register_research
+    register_research(app,service,principal,query_meta,errors)
+
+    from .memory.api import register as register_memory
+    register_memory(app,service,principal,query_meta,errors)
 
     def canonical_openapi():
         if app.openapi_schema:

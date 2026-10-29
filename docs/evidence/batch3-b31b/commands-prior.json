@@ -1,0 +1,62 @@
+[
+  {
+    "message_id": 996848,
+    "command": "ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && mkdir -p ../home/.cache/workagent ../scratch && export HOME=$(realpath ../home) TMPDIR=$(realpath ../scratch) && curl --fail --silent --show-error https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken -o \"$HOME/.cache/workagent/o200k_base.tiktoken\" && sha256sum \"$HOME/.cache/workagent/o200k_base.tiktoken\" && set -a && . ../regression-fixed.env && set +a && PYTHONPATH=backend backend/.venv/bin/python -m pytest -q backend/tests/test_memory_unit.py backend/tests/test_memory_pg.py backend/tests/test_memory_parent_http.py backend/tests/test_memory_parent_worker.py backend/tests/test_tui_memory.py backend/tests/test_memory_recovery.py > ../evidence/backend-fixed-tokenizer.log 2>&1; rc=$?; printf \"backend exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d  /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/home/.cache/workagent/o200k_base.tiktoken\nbackend exit=0"
+  },
+  {
+    "message_id": 996892,
+    "command": "scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 .local/batch3/b31b/pty_journey.py ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/ && ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && cp -a .local/batch3/b31b/pty-evidence ../evidence/pty-second-failure && cp .local/batch3/b31b/ui-fixture.json ../evidence/ui-fixture-first.json && export HOME=$(realpath ../home) TMPDIR=$(realpath ../scratch) PYTHONPATH=$(realpath backend) WORKAGENT_OPERATOR_URL=http://127.0.0.1:18231 WORKAGENT_TUI_DRAFT_DIR=$(realpath ../home)/tui-drafts && set -a && . ../regression-fixed.env && set +a && backend/.venv/bin/python .local/batch3/b31b/seed_ui.py && backend/.venv/bin/python .local/batch3/b31b/pty_journey.py 100 45 > ../evidence/pty-recovery-third.log 2>&1 && backend/.venv/bin/python .local/batch3/b31b/pty_journey.py 80 35 > ../evidence/pty-recovery-80.log 2>&1; rc=$?; printf \"pty exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "Seeded isolated UI fixture b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c\npty exit=0"
+  },
+  {
+    "message_id": 996910,
+    "command": "ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && tar -xzf ../web-fixes.tar.gz && export PATH=/home/ubuntu/workagent/tools/node-v22.23.4-linux-x64/bin:$PATH && cp -a /home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/web/node_modules web/node_modules && cp -a /home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/contracts/node_modules contracts/node_modules && cd web && npm run typecheck > ../../evidence/web-typecheck.log 2>&1 && npm exec vitest run test/memory-commands.test.ts > ../../evidence/web-tests.log 2>&1 && npm exec eslint -- src/components/MemoryPanel.tsx src/lib/client/memory-commands.ts src/lib/client/memory.ts src/lib/memory-contract.ts \"src/app/conversations/[id]/page.tsx\" test/memory-commands.test.ts > ../../evidence/web-lint.log 2>&1 && npm exec prettier -- --check src/components/MemoryPanel.tsx src/lib/client/memory-commands.ts src/lib/client/memory.ts src/lib/memory-contract.ts \"src/app/conversations/[id]/page.tsx\" test/memory-commands.test.ts > ../../evidence/web-format.log 2>&1 && npm run build > ../../evidence/web-build.log 2>&1; rc=$?; printf \"web gates exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 1,
+    "output": "web gates exit=1"
+  },
+  {
+    "message_id": 996914,
+    "command": "ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && test -L contracts/node_modules && unlink contracts/node_modules && cp -aL /home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/contracts/node_modules contracts/node_modules && export PATH=/home/ubuntu/workagent/tools/node-v22.23.4-linux-x64/bin:$PATH && cd web && npm run build > ../../evidence/web-build-real-deps.log 2>&1; rc=$?; printf \"build exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "build exit=0"
+  },
+  {
+    "message_id": 997148,
+    "command": "scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 .local/batch3/b31b/browser_recovery.mjs ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/browser_recovery.mjs && ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && cp -a ../evidence/browser ../evidence/browser-second-failure && /home/ubuntu/workagent/tools/node-v22.23.4-linux-x64/bin/node browser_recovery.mjs > ../evidence/browser-third.log 2>&1; rc=$?; printf \"browser exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "browser exit=0"
+  },
+  {
+    "message_id": 997188,
+    "command": "scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 .local/batch3/b31b/pty_extended.py ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/ && ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && cp -a ../evidence/pty-extended ../evidence/pty-extended-first-failure && export HOME=$(realpath ../home) TMPDIR=$(realpath ../scratch) PYTHONPATH=$(realpath backend):$(realpath backend/tests) WORKAGENT_OPERATOR_URL=http://127.0.0.1:18231 WORKAGENT_TUI_DRAFT_DIR=$(realpath ../home)/tui-drafts && set -a && . ../regression-fixed.env && set +a && backend/.venv/bin/python .local/batch3/b31b/pty_extended.py > ../evidence/pty-extended-second.log 2>&1; rc=$?; printf \"pty extended exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "pty extended exit=0"
+  },
+  {
+    "message_id": 997288,
+    "command": "scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 backend/workagent/tui/memory.py ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/workagent/tui/ && scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 .local/batch3/b31b/capture_browser_later.py ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/ && ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && export HOME=$(realpath ../home) TMPDIR=$(realpath ../scratch) PYTHONPATH=$(realpath backend):$(realpath backend/tests) WORKAGENT_OPERATOR_URL=http://127.0.0.1:18231 WORKAGENT_TUI_DRAFT_DIR=$(realpath ../home)/tui-drafts && set -a && . ../regression-fixed.env && set +a && backend/.venv/bin/python -m pytest -q backend/tests/test_memory_unit.py backend/tests/test_memory_pg.py backend/tests/test_memory_parent_http.py backend/tests/test_memory_parent_worker.py backend/tests/test_tui_memory.py backend/tests/test_memory_recovery.py > ../evidence/backend-final.log 2>&1 && backend/.venv/bin/python .local/batch3/b31b/capture_browser_later.py > ../evidence/web-later.log 2>&1; rc=$?; printf \"final backend/later exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 1,
+    "output": "final backend/later exit=1"
+  },
+  {
+    "message_id": 997346,
+    "command": "scp -q -i /home/ubuntu/.ssh/workagent-dev-20261027 .local/batch3/b31b/capture_later.py ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/ && ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate && export HOME=$(realpath ../home) TMPDIR=$(realpath ../scratch) PYTHONPATH=$(realpath backend):$(realpath backend/tests) WORKAGENT_OPERATOR_URL=http://127.0.0.1:18231 && set -a && . ../regression-fixed.env && set +a && backend/.venv/bin/python .local/batch3/b31b/capture_browser_later.py > ../evidence/web-later-second.log 2>&1; rc=$?; printf \"web later exit=%s\\n\" \"$rc\"; exit \"$rc\"'",
+    "exit_code": 0,
+    "output": "web later exit=0"
+  },
+  {
+    "message_id": 997350,
+    "command": "ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/contracts && export PATH=/home/ubuntu/workagent/tools/node-v22.23.4-linux-x64/bin:$PATH && npm run check > ../../evidence/contracts-final.log 2>&1; rc=$?; printf \"contracts exit=%s\\n\" \"$rc\"; exit \"$rc\"' && scp -q -r -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244:/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/evidence .local/batch3/b31b/recovery/remote-final && git diff --check",
+    "exit_code": 1,
+    "output": "contracts exit=1"
+  },
+  {
+    "message_id": 997357,
+    "command": "ssh -i /home/ubuntu/.ssh/workagent-dev-20261027 ubuntu@10.0.14.244 'cd /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/contracts && /home/ubuntu/workagent/tools/node-v22.23.4-linux-x64/bin/node node_modules/typescript/lib/tsc.js --noEmit > ../../evidence/contracts-tsc-direct.log 2>&1; printf \"direct contracts tsc exit=%s\\n\" \"$?\"; sudo workagent-idle status; python3 -c \"import json,socket;from pathlib import Path;p=Path(\\\"/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98\\\");out=[]\nfor name,port in [(\\\"api\\\",18231),(\\\"web\\\",13231)]:\n d=json.loads((p/(name+\\\"-process.json\\\")).read_text());s=socket.socket();result=s.connect_ex((\\\"127.0.0.1\\\",port));s.close();out.append({\\\"name\\\":name,\\\"pid_exists\\\":Path(\\\"/proc\\\",str(d[\\\"pid\\\"])).exists(),\\\"port_refused\\\":bool(result)})\n(p/\\\"evidence/recovery-stop-readback.json\\\").write_text(json.dumps(out,indent=2));print(json.dumps(out))\"'",
+    "exit_code": 0,
+    "output": "direct contracts tsc exit=0\n{\"state\": {\"boot\": \"85369732-8ce0-4c34-8720-ba6c4fb3e556\", \"checked_uptime\": 2734.85, \"cpu_busy\": 19822, \"cpu_total\": 1092694, \"last_activity_uptime\": 2734.85}, \"leases\": [{\"expires_at\": 1793232205.327092, \"id\": \"142c018d-f7b1-4e9e-8a72-4a39aabb81df\", \"reason\": \"B3.1b bounded recovery verification\"}]}\n[{\"name\": \"api\", \"pid_exists\": false, \"port_refused\": true}, {\"name\": \"web\", \"pid_exists\": false, \"port_refused\": true}]"
+  }
+]

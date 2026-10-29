@@ -7,6 +7,10 @@ from .workspace_file_models import DocumentEvidence, SourceSnapshot
 
 def evidence(service, c, p, ws, cid, ref):
     service._document_scope(c, p, ws, cid)
+    from .research_models import PublicEvidence
+    if isinstance(ref, PublicEvidence):
+        from .research import public_evidence
+        return public_evidence(service, c, p, ws, cid, ref)
     if isinstance(ref, DocumentEvidence):
         detail, original = service._document(c, p, ws, cid, ref.document_id, original=True)
         raw = detail.text.encode('utf-8')
@@ -51,12 +55,33 @@ def append(service, c, p, ws, cid, file_id, ref, previous=None):
     return snapshot
 
 
+def retain_attachments(service, c, p, ws, cv, message):
+    """Admission-transaction bridge; command replay cannot duplicate these rows.
+
+    Original stores and their ACLs remain authoritative. Never parse, normalize,
+    execute, or grant tools here. Only NEW human messages use this path; retained
+    continuations continue to reference the first snapshot.
+    """
+    from .workspace_file_models import AttachmentEvidence
+    for item in message.attachments:
+        ref = AttachmentEvidence(kind='attachment', message_id=message.id,
+                                 ref=item.ref, sha256=item.sha256)
+        name, mime, *_ = evidence(service, c, p, ws, cv.id, ref)
+        file_id = new_id()
+        c.execute('INSERT INTO workspace_files(workspace_id,id,conversation_id,owner_id,filename,mime_type) VALUES (%s,%s,%s,%s,%s,%s)',
+                  (ws, file_id, cv.id, p.id, name, mime))
+        append(service, c, p, ws, cv.id, file_id, ref)
+        service._event(c, p, ws, 'source_snapshot_created', cv.id)
+
+
 def read(service, c, p, ws, snapshot_id):
     row = c.execute('SELECT data FROM source_snapshots WHERE workspace_id=%s AND id=%s', (ws, snapshot_id)).fetchone()
     if not row:
         deny()
     snapshot = SourceSnapshot.model_validate(row['data'])
     service._file_row(c, p, ws, snapshot.workspace_file_id)
+    from .research import authorize_snapshot
+    authorize_snapshot(c, ws, snapshot_id)
     _, _, original, raw, _, parser, omissions, status, coverage = evidence(service, c, p, ws, snapshot.conversation_id, snapshot.locator)
     if (sha256(original).hexdigest() != snapshot.original_sha256
             or sha256(raw).hexdigest() != snapshot.extraction_sha256

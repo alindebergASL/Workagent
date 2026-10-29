@@ -15,6 +15,8 @@ def page(service,p,ws,rid,*,after=None,limit=50,attempt_id=None):
         raise ValueError('bounded page required')
     with service.db.transaction() as c:
         g=readable(service,c,p,ws,rid)
+        from ..research import authorize_run_dependencies
+        authorize_run_dependencies(c,ws,rid)
         rows=c.execute('''SELECT a.*, e.data AS observation,
               EXISTS(SELECT 1 FROM tool_attempt_events d WHERE d.attempt_id=a.id AND d.kind='dispatch') AS dispatched
             FROM tool_attempts a LEFT JOIN tool_attempt_events e ON e.attempt_id=a.id AND e.kind='observation'

@@ -1,0 +1,371 @@
+[
+  {
+    "id": "c18346af-91f6-408e-94b1-b2ec27ea2840",
+    "capability_id": "files.create_draft",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 107,
+        "category": "local_compute",
+        "elapsed_ms": 133,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "current": {
+            "sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+            "version_id": "c1ec4672-e7c4-4d35-ade4-379c4247ef2d",
+            "workspace_file_id": "c18346af-91f6-408e-94b1-b2ec27ea2840"
+          },
+          "storage": "artifact_revision",
+          "editable": true,
+          "filename": "summary.csv",
+          "mime_type": "text/csv",
+          "byte_length": 107,
+          "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+          "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+          "workspace_file_id": "c18346af-91f6-408e-94b1-b2ec27ea2840"
+        },
+        "version": "1",
+        "capability": "files_create_draft"
+      },
+      "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+      "status": "observed",
+      "call_id": "selection_4",
+      "ended_at": "2026-10-28T23:41:45.334294Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "c18346af-91f6-408e-94b1-b2ec27ea2840",
+      "input_refs": [
+        {
+          "id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+          "kind": "run_scope",
+          "sha256": "3d5160a6f749fa681d788f4f499b11496765344565fa164a69c76e5a48910f79",
+          "version": "4"
+        }
+      ],
+      "started_at": "2026-10-28T23:41:45.201224Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "files.create_draft",
+      "output_sha256": "2757e4647afcfd70f03b8e67887fda9765ae66ed0efc511f1140315260895b47",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-bounded-files-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    }
+  },
+  {
+    "id": "e2f81967-a8e8-4b8c-8ca5-0a452e43d1ce",
+    "capability_id": "compute.python",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 146,
+        "category": "local_compute",
+        "elapsed_ms": 525,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "image": "python@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+          "inputs": [
+            {
+              "name": "data.csv",
+              "bytes": 104,
+              "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda"
+            }
+          ],
+          "status": "succeeded",
+          "stderr": "",
+          "stdout": "{\"filename\": \"summary.csv\", \"content\": \"group,unique_valid_observations,total_seconds,mean_seconds\\nNorth,2,360.000,180.000\\nSouth,2,480.000,240.000\\n\"}\n",
+          "outputs": [
+            {
+              "blob": {
+                "kind": "generated_blob",
+                "sha256": "6049ed1c84eed327b3c9f5bfe7a7c1a5f8677f103069a1d32238fa1e645c84b3",
+                "blob_id": "f9d6c1d5-b220-4e69-88b6-017b99e5d42d",
+                "mime_type": "application/json",
+                "byte_length": 277
+              },
+              "format": "json",
+              "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+              "filename": "coverage.json",
+              "export_id": "08accbdb-37fe-4279-90c9-b93384a4e7f2",
+              "omissions": [
+                "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+              ],
+              "created_at": "2026-10-28T23:41:43.042960Z",
+              "input_refs": [
+                {
+                  "id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf",
+                  "kind": "workspace_file",
+                  "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+                  "version": "142af11c-d63c-4d7d-a569-2f9cfd33731c"
+                }
+              ],
+              "annotations": "explicit_omissions",
+              "code_sha256": "51c137999c8697188fb5e0bdb0ff4aa6cc6736e025a42d5e55ee3a5d96115fd7",
+              "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "sandbox_sha256": "6049ed1c84eed327b3c9f5bfe7a7c1a5f8677f103069a1d32238fa1e645c84b3",
+              "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+              "tool_attempt_id": "e2f81967-a8e8-4b8c-8ca5-0a452e43d1ce",
+              "exporter_version": "compute-python-v1"
+            },
+            {
+              "blob": {
+                "kind": "generated_blob",
+                "sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+                "blob_id": "80d8a3a2-6895-4edf-8cd2-25f16c1400d7",
+                "mime_type": "text/csv",
+                "byte_length": 107
+              },
+              "format": "csv",
+              "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+              "filename": "summary.csv",
+              "export_id": "c59123b8-896d-4d3d-864e-77a20fc5dd85",
+              "omissions": [
+                "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+              ],
+              "created_at": "2026-10-28T23:41:43.051820Z",
+              "input_refs": [
+                {
+                  "id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf",
+                  "kind": "workspace_file",
+                  "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+                  "version": "142af11c-d63c-4d7d-a569-2f9cfd33731c"
+                }
+              ],
+              "annotations": "explicit_omissions",
+              "code_sha256": "51c137999c8697188fb5e0bdb0ff4aa6cc6736e025a42d5e55ee3a5d96115fd7",
+              "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "sandbox_sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+              "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+              "tool_attempt_id": "e2f81967-a8e8-4b8c-8ca5-0a452e43d1ce",
+              "exporter_version": "compute-python-v1"
+            }
+          ],
+          "profile": "python-analysis-v1",
+          "version": 1,
+          "exit_code": 0,
+          "omissions": [],
+          "resources": {
+            "cpu_usec": 146988,
+            "oom_kill": 0,
+            "pids_peak": 29,
+            "memory_peak_bytes": 20316160
+          },
+          "elapsed_ms": 165,
+          "code_sha256": "51c137999c8697188fb5e0bdb0ff4aa6cc6736e025a42d5e55ee3a5d96115fd7",
+          "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+          "runtime_version": "release-20261026.0",
+          "cleanup_verified": true
+        },
+        "version": "1",
+        "capability": "compute_python"
+      },
+      "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+      "status": "observed",
+      "call_id": "selection_3",
+      "ended_at": "2026-10-28T23:41:43.096359Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "e2f81967-a8e8-4b8c-8ca5-0a452e43d1ce",
+      "input_refs": [
+        {
+          "id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+          "kind": "run_scope",
+          "sha256": "3d5160a6f749fa681d788f4f499b11496765344565fa164a69c76e5a48910f79",
+          "version": "4"
+        },
+        {
+          "id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf",
+          "kind": "workspace_file",
+          "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+          "version": "142af11c-d63c-4d7d-a569-2f9cfd33731c"
+        }
+      ],
+      "started_at": "2026-10-28T23:41:42.571227Z",
+      "output_refs": [
+        {
+          "id": "f9d6c1d5-b220-4e69-88b6-017b99e5d42d",
+          "kind": "generated_blob",
+          "sha256": "6049ed1c84eed327b3c9f5bfe7a7c1a5f8677f103069a1d32238fa1e645c84b3",
+          "version": "08accbdb-37fe-4279-90c9-b93384a4e7f2"
+        },
+        {
+          "id": "80d8a3a2-6895-4edf-8cd2-25f16c1400d7",
+          "kind": "generated_blob",
+          "sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+          "version": "c59123b8-896d-4d3d-864e-77a20fc5dd85"
+        }
+      ],
+      "source_refs": [
+        {
+          "id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf",
+          "kind": "workspace_file",
+          "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+          "version": "142af11c-d63c-4d7d-a569-2f9cfd33731c"
+        }
+      ],
+      "capability_id": "compute.python",
+      "output_sha256": "6b129b68465e62710300eaa55a31f62571a7e060b4e84155bfc6495ee093219f",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "python-analysis-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "429eae89241d1553001718e4b5ecc7cd542c6fca01109073f1477fce04ecc6b5"
+    }
+  },
+  {
+    "id": "e53eaba4-3ed5-49fa-b178-9033750ad92d",
+    "capability_id": "files.read_range",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 108,
+        "category": "local_compute",
+        "elapsed_ms": 125,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "ref": {
+            "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+            "version_id": "142af11c-d63c-4d7d-a569-2f9cfd33731c",
+            "workspace_file_id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf"
+          },
+          "text": "record_id,cohort,elapsed_minutes\na1,North,1.5\na2,North,4.5\na2,North,4.5\nb1,South,2\nb2,South,\nb3,South,6\n",
+          "offset": 0,
+          "newline": "lf",
+          "byte_length": 104,
+          "next_offset": 104,
+          "chunk_sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+          "has_utf8_bom": false,
+          "omitted_ranges": [],
+          "source_snapshot_id": "142af11c-d63c-4d7d-a569-2f9cfd33731c"
+        },
+        "version": "1",
+        "capability": "files_read_range"
+      },
+      "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+      "status": "observed",
+      "call_id": "selection_2",
+      "ended_at": "2026-10-28T23:41:40.469400Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "e53eaba4-3ed5-49fa-b178-9033750ad92d",
+      "input_refs": [
+        {
+          "id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+          "kind": "run_scope",
+          "sha256": "3d5160a6f749fa681d788f4f499b11496765344565fa164a69c76e5a48910f79",
+          "version": "4"
+        }
+      ],
+      "started_at": "2026-10-28T23:41:40.343948Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "files.read_range",
+      "output_sha256": "0d05a3830d4061b4f1022931d656bd63ebe705f9f71a5e4ea5ae2f146fb7fe84",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-bounded-files-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    }
+  },
+  {
+    "id": "e801f7df-6d9b-49a4-95fc-ea753e83eaf2",
+    "capability_id": "files.list",
+    "data": {
+      "cost": {
+        "unit": "call",
+        "basis": "estimated",
+        "cpu_ms": 106,
+        "category": "local_compute",
+        "elapsed_ms": 124,
+        "observed_units": 1,
+        "reserved_units": 1,
+        "billed_cost_usd": null,
+        "observed_cost_usd": null,
+        "reserved_cost_usd": "0"
+      },
+      "error": null,
+      "output": {
+        "result": {
+          "items": [
+            {
+              "current": {
+                "sha256": "2a3af24ed527531cacccc38bc1907f42b02f6ae356c2f7abcf0689201378fdda",
+                "version_id": "142af11c-d63c-4d7d-a569-2f9cfd33731c",
+                "workspace_file_id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf"
+              },
+              "storage": "source_snapshot",
+              "editable": false,
+              "filename": "observations.csv",
+              "mime_type": "text/csv",
+              "byte_length": 104,
+              "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+              "conversation_id": "8efabeb7-77f6-42da-8cb1-0d41e65107e8",
+              "workspace_file_id": "c7b2d1b3-0dd2-48a9-9797-7621f77d27cf"
+            }
+          ],
+          "next_after": null
+        },
+        "version": "1",
+        "capability": "files_list"
+      },
+      "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+      "status": "observed",
+      "call_id": "selection",
+      "ended_at": "2026-10-28T23:41:38.242441Z",
+      "omissions": [],
+      "truncated": false,
+      "attempt_id": "e801f7df-6d9b-49a4-95fc-ea753e83eaf2",
+      "input_refs": [
+        {
+          "id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+          "kind": "run_scope",
+          "sha256": "3d5160a6f749fa681d788f4f499b11496765344565fa164a69c76e5a48910f79",
+          "version": "4"
+        }
+      ],
+      "started_at": "2026-10-28T23:41:38.117743Z",
+      "output_refs": [],
+      "source_refs": [],
+      "capability_id": "files.list",
+      "output_sha256": "651c56d88addec76bfeb2c1fa441c2590d3a78bdcf2e3770c6c232c5f43e775a",
+      "privacy_label": "workspace_private",
+      "schema_version": "tool-observation/v1",
+      "execution_profile": "native-bounded-files-v1",
+      "capability_version": "1",
+      "verification_scope": "adapter_execution_only",
+      "implementation_sha256": "c3eccc1f4760af944688f77b59891f7e5a91f1bb637485fe6476f7fe836ef7be"
+    }
+  }
+]

@@ -1,0 +1,13 @@
+ok exact human textarea
+ok citations mounted on exact saved revision/body hash
+ok claims rendered
+ok unsupported claim + potentially stale warning
+ok all cited quotes match exact captures
+ok A10/B12 exact hashes, versions, URLs, ranges, coverage shown
+ok no horizontal overflow
+ok no horizontal overflow
+ok no horizontal overflow
+ok refresh keeps exact saved textarea
+ok refresh never mutates unsaved human text or rebinds citations
+PASS file-editor citations initial4: exact saved revision/body, 2 claims, unsupported + stale, A/B captures, 1440/390/320, refresh leaves human text untouched, GET only.
+exit 0

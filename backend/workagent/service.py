@@ -70,7 +70,11 @@ from .workspace_files import WorkspaceFiles
 from .artifact_exports import ArtifactExports
 
 
-class ServiceCore(WorkspaceFiles, ArtifactExports, Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
+from .memory.store import MemoryStore
+from .memory.retrieval import MemoryRetrieval
+
+
+class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports, Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
     def __init__(self, db: Database, *, allow_controlled_turns=True):
         self.db = db
         # Historical controlled harnesses remain usable explicitly by their host.
@@ -623,6 +627,9 @@ class ServiceCore(WorkspaceFiles, ArtifactExports, Documents, WorkAreas, Flexibl
                 row=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',(r.workspace_id,source['id'])).fetchone()
                 if not row or digest(row['content'])!=source['sha256']:
                     raise DomainError('source_changed')
+        if context:
+            from .memory.runtime import revalidate as revalidate_memory
+            revalidate_memory(self,c,p,r,context['data'])
         from .capabilities.policy import require_run_tools
         require_run_tools(c,r)
         return p,r,a

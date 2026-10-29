@@ -1,0 +1,20 @@
+[
+  {
+    "name": "api",
+    "pid": 14022,
+    "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate",
+    "port": 18232,
+    "start": "572427",
+    "start_actual": "572427",
+    "port_refused": true
+  },
+  {
+    "name": "web",
+    "pid": 14025,
+    "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/web",
+    "port": 13232,
+    "start": "0",
+    "start_actual": "572727",
+    "port_refused": true
+  }
+]

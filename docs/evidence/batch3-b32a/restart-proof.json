@@ -1,0 +1,66 @@
+{
+  "browser": {
+    "passed": true,
+    "counts": {
+      "tool_attempts": 7,
+      "tool_events": 14,
+      "tool_costs": 14,
+      "provider_events": 75,
+      "source_snapshots": 2
+    },
+    "human_sha256": "f72e37e4a2e656e9dd9d6830cb089f5650f9a24c4fa4c12034cf176497d7b8bd",
+    "source_hashes": [
+      {
+        "version": 1,
+        "raw": "b8a97f264aa68a5dfb402cf2b8eac65bdcb575d9da624d52814473d20c0c9370",
+        "text": "9363f305ceceef4dbd3e87c9ea8e36b9cc4ebad985f193fdd3b46eff4bc8954d"
+      },
+      {
+        "version": 2,
+        "raw": "f8f15d385bbc5269b7e6c82e67eb26ab40b6c4e019d392ffc1606f48726537fa",
+        "text": "ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb"
+      }
+    ],
+    "old_pids": [
+      4065962,
+      4066014
+    ],
+    "new_pids": [
+      4066194,
+      4066218
+    ],
+    "provider_repeats": []
+  },
+  "native": {
+    "passed": true,
+    "counts": {
+      "tool_attempts": 7,
+      "tool_events": 14,
+      "tool_costs": 14,
+      "provider_events": 75,
+      "source_snapshots": 2
+    },
+    "human_sha256": "e43a2f4dd56d853d272326fbcd06331c4a46d329d7a557fc6b2b9bc84def85c5",
+    "source_hashes": [
+      {
+        "version": 1,
+        "raw": "b8a97f264aa68a5dfb402cf2b8eac65bdcb575d9da624d52814473d20c0c9370",
+        "text": "9363f305ceceef4dbd3e87c9ea8e36b9cc4ebad985f193fdd3b46eff4bc8954d"
+      },
+      {
+        "version": 2,
+        "raw": "f8f15d385bbc5269b7e6c82e67eb26ab40b6c4e019d392ffc1606f48726537fa",
+        "text": "ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb"
+      }
+    ],
+    "old_pids": [
+      4009757,
+      4009795
+    ],
+    "new_pids": [
+      4054849,
+      4054898
+    ],
+    "provider_repeats": []
+  }
+}

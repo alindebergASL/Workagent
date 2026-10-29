@@ -85,6 +85,12 @@ class CapabilityBroker:
                 'source_refs': call.input_refs, 'output_refs': refs,
                 'omissions': omissions[:20], 'truncated': bool(omissions),
                 'cost': obs.cost.model_copy(update={'cpu_ms': material.get('resources', {}).get('cpu_usec', 0) // 1000})})
+        if d.id == 'research.capture' and output is not None and output['result']['snapshot'] is not None:
+            snapshot = output['result']['snapshot']
+            obs = obs.model_copy(update={'output_refs':[InputRef(kind='workspace_file',
+                id=snapshot['workspace_file_id'], version=snapshot['snapshot_id'], sha256=snapshot['extraction_sha256'])],
+                'source_refs':call.input_refs, 'omissions':snapshot['omissions'][:20],
+                'truncated':not snapshot['coverage']['body_complete'] or not snapshot['coverage']['text_complete']})
         with self.service.db.transaction() as c:
             # Savepoint: a rejected check must not abort write-only cost retention.
             try:
@@ -117,6 +123,8 @@ def execute_composition(service,cap,operation,phase):
     refs=input_refs(operation) if isinstance(operation,FILE_OPERATIONS) else []
     from .compute_adapters import ComputePython, input_refs as compute_refs
     if isinstance(operation, ComputePython): refs = compute_refs(operation)
+    from .research_adapters import RESEARCH_OPERATIONS, input_refs as research_refs
+    if isinstance(operation, RESEARCH_OPERATIONS): refs = research_refs(operation)
     call=ToolCallV1(call_id=phase,capability_id=name,capability_version=registry.adapters()[name].descriptor.version,
         arguments=operation.model_dump(mode='json'),input_refs=refs,expected_work_version=scope.work_version)
     observation=CapabilityBroker(service,cap).call(call)

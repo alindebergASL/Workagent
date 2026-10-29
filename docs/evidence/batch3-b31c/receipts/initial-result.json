@@ -1,0 +1,149 @@
+{
+  "pid": 14998,
+  "process_start": "578657",
+  "conversation_id": "8302c41e-ff20-4dca-ad2c-d44b4de4eb1f",
+  "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "final",
+        "request_sha256": "99654de3e30850db2ec2fd89c36033f111f29e3ca40880bfe91de6ae045318c6",
+        "entries": []
+      },
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "selection",
+        "request_sha256": "f9f904f5b719e9f96fa0e9261794d96307e1218a07b2f30343384eb2822beff3",
+        "entries": []
+      },
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "selection_2",
+        "request_sha256": "6b2d7001b5da740c683f3ae13c2729d52522247b538e112eff7909cea93d66fa",
+        "entries": []
+      },
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "selection_3",
+        "request_sha256": "0da5c22cb49a12204e6e0ce2d5896376885f874be132b0c0639faf50014058bd",
+        "entries": []
+      },
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "selection_4",
+        "request_sha256": "d3a5e4028facc81d26192af6090a4fbc9f87616491a4d478fca0dcf6c8d3f112",
+        "entries": []
+      },
+      {
+        "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "request_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+        "attempt_id": "c0c0269c-2a66-457c-8544-744d0ba99a93",
+        "phase": "selection_5",
+        "request_sha256": "8f74df20bc6431720c2538ed6ee8f1a04049c2617bea2fc235588faa2dd7b162",
+        "entries": []
+      }
+    ]
+  },
+  "downloads": [
+    {
+      "export_id": "9accf870-dbdb-4d2a-935a-7bbcf3799d97",
+      "filename": "coverage.json",
+      "sha256": "6706a87624bca9fdce44b31335d3b88bb264384754ed573b87864b28c8b0ed35",
+      "headers": {
+        "date": "Wed, 28 Oct 2026 23:29:44 GMT",
+        "server": "uvicorn",
+        "content-disposition": "attachment; filename=\"coverage.json\"",
+        "x-content-type-options": "nosniff",
+        "x-content-sha256": "6706a87624bca9fdce44b31335d3b88bb264384754ed573b87864b28c8b0ed35",
+        "cache-control": "no-store",
+        "content-length": "230",
+        "content-type": "application/json",
+        "x-request-id": "6e2b0fdb-8723-4912-b7ec-d46fe44dd529",
+        "x-workagent-principal": "local-human"
+      }
+    },
+    {
+      "export_id": "6c74b269-67a7-4065-828e-1120ec4be6b0",
+      "filename": "summary.csv",
+      "sha256": "d46eb6bc8db9f901c1850047e909fd533474229e9d01bcd102fd73087007a856",
+      "headers": {
+        "date": "Wed, 28 Oct 2026 23:29:44 GMT",
+        "server": "uvicorn",
+        "content-disposition": "attachment; filename=\"summary.csv\"",
+        "x-content-type-options": "nosniff",
+        "x-content-sha256": "d46eb6bc8db9f901c1850047e909fd533474229e9d01bcd102fd73087007a856",
+        "cache-control": "no-store",
+        "content-length": "107",
+        "content-type": "text/csv; charset=utf-8",
+        "x-request-id": "951a8b7e-eff1-4bed-9c88-f452459047b5",
+        "x-workagent-principal": "local-human"
+      }
+    }
+  ],
+  "tool_observations": 4,
+  "calls": [
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ],
+    [
+      "POST",
+      "/v1/responses/input_tokens"
+    ],
+    [
+      "POST",
+      "/v1/responses"
+    ]
+  ],
+  "restart_no_repeat": true,
+  "controlled_transport": true,
+  "paid_calls": 0
+}

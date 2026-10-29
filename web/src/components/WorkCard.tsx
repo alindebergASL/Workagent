@@ -6,6 +6,9 @@ import type { ResultLink } from "@/lib/result-links";
 import { RESULT_NAME } from "@/lib/result-links";
 import { proposalSummary, workKind, workTitle } from "@/lib/space-view";
 import { readableTitle } from "@/lib/titles";
+import { API_MODE } from "@/lib/client/api";
+import { useCurrentWorkspace } from "@/lib/client/workspace";
+import { ArtifactCitations } from "./ResearchSources";
 
 type Body = S["Artifact"]["current_revision"]["body"];
 
@@ -161,6 +164,7 @@ export function WorkCard({
    */
   readState?: "current" | "unconfirmed" | "unavailable";
 }) {
+  const { workspace } = useCurrentWorkspace();
   const artifact = readState === "unavailable" ? undefined : now?.artifact;
   const pending =
     product.proposal_id && now
@@ -192,6 +196,19 @@ export function WorkCard({
       </div>
       {artifact && !brief ? (
         <WorkPreview body={artifact.current_revision.body} />
+      ) : null}
+      {artifact &&
+      !brief &&
+      readState === "current" &&
+      workspace &&
+      API_MODE === "real" ? (
+        <ArtifactCitations
+          key={`${workspace.id}:${artifact.current_revision.id}:${artifact.current_revision.body_hash}`}
+          ws={workspace.id}
+          artifactId={artifact.id}
+          revisionId={artifact.current_revision.id}
+          bodyHash={artifact.current_revision.body_hash}
+        />
       ) : null}
       {change && !brief ? (
         <p className="small work-card-change">

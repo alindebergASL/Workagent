@@ -107,6 +107,10 @@ function makeWorld() {
       d: ReturnType<typeof deferred<{ current: Record<string, string> }>>;
     }[],
     hashGate: null as Promise<void> | null,
+    // Canonical work snapshot the citations binding is read from.
+    snapshotReply: { conversation_id: "c1", artifacts: [] } as unknown,
+    snapshotFails: null as unknown,
+    snapshotCalls: [] as Record<string, unknown>[],
   };
 
   const React = {
@@ -209,6 +213,28 @@ function makeWorld() {
     },
     "@/lib/files-contract": filesContract,
     "@/lib/client/workspace-files": transport,
+    "./ResearchSources": { ResearchSources: () => null, ArtifactCitations },
+    "@/lib/client/real-api": {
+      meta: () => ({ "x-schema-version": "workagent/v1" }),
+      client: {
+        GET: (route: string, opts: { params: Record<string, unknown> }) => {
+          world.snapshotCalls.push({ route, ...opts.params });
+          return Promise.resolve(
+            world.snapshotFails
+              ? { error: world.snapshotFails }
+              : { data: JSON.parse(JSON.stringify(world.snapshotReply)) },
+          );
+        },
+      },
+      unwrap: async (p: Promise<{ data?: unknown; error?: unknown }>) => {
+        const r = await p;
+        if (r.error) throw r.error;
+        return r.data;
+      },
+    },
+    "@/lib/contract/work-events": {
+      parseWorkSnapshot: (raw: unknown) => Object.freeze(raw),
+    },
   };
 
   const real: Record<string, string> = {
@@ -326,6 +352,11 @@ function makeWorld() {
   };
 }
 
+/** Marker for the citations consumer; the synthetic jsx never calls it. */
+function ArtifactCitations(): null {
+  return null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Tree queries                                                       */
 /* ------------------------------------------------------------------ */
@@ -392,6 +423,7 @@ const editorFile = {
   mime_type: "text/plain",
   byte_length: 8,
   editable: true,
+  conversation_id: "c1",
   current: { workspace_file_id: "wf1", version_id: "v1", sha256: "hash-v1" },
 };
 const SAVE_KEY = "workagent:file-save:wf1";
@@ -823,5 +855,171 @@ describe("workspace files replay/remount races (R3/R4)", () => {
     expect(w.world.store.has(NEW_KEY)).toBe(false);
     expect(maybeButton(m2, /New file/)).not.toBeNull();
     expect(w.world.createCalls).toHaveLength(3);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/* B3.2a: the working-file editor's citations consumer                */
+/* ------------------------------------------------------------------ */
+
+function citationsOf(inst: Instance): Node[] {
+  return [...walk(inst.tree)].filter((n) => n.type === ArtifactCitations);
+}
+const artifact = (rev: string, body: string) => ({
+  id: "art1",
+  title: "research-conclusion.txt",
+  kind: "file",
+  current_revision_id: rev,
+  body_hash: body,
+});
+
+describe("working-file editor citations (files.create_draft consumer)", () => {
+  it("mounts ArtifactCitations on the exact saved artifact/revision/body hash", async () => {
+    const w = makeWorld();
+    w.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [
+        { ...artifact("other-rev", "other-body"), id: "art-other" },
+        artifact("v1", "body-v1"),
+      ],
+    };
+    const ed = w.mount(w.FileEditor, {
+      ws: "ws1",
+      file: editorFile,
+      workVersion: 7,
+      refreshList: noRefresh,
+    });
+    await w.settle();
+    expect(w.world.snapshotCalls).toEqual([
+      {
+        route: "/v1/workspaces/{workspace_id}/work-snapshot",
+        path: { workspace_id: "ws1" },
+        query: { conversation_id: "c1" },
+        header: { "x-schema-version": "workagent/v1" },
+      },
+    ]);
+    const cites = citationsOf(ed);
+    expect(cites).toHaveLength(1);
+    expect(nth(cites, 0).props).toMatchObject({
+      ws: "ws1",
+      artifactId: "art1",
+      revisionId: "v1",
+      bodyHash: "body-v1",
+    });
+    expect(field(ed, "textarea").props.value).toBe("original");
+  });
+
+  it("dirty text never rebinds citations, and a metadata refresh leaves the human edit untouched", async () => {
+    const w = makeWorld();
+    w.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [artifact("v1", "body-v1")],
+    };
+    const ed = w.mount(w.FileEditor, {
+      ws: "ws1",
+      file: editorFile,
+      workVersion: 7,
+      refreshList: noRefresh,
+    });
+    await w.settle();
+    fire(field(ed, "textarea"), "unsaved human words");
+    await w.settle();
+    expect(nth(citationsOf(ed), 0).props.revisionId).toBe("v1");
+    expect(textOf(ed.tree)).toMatch(/describe the last saved version/);
+
+    // A list refresh delivers fresh metadata (same version, then a moved
+    // head); the mounted editor keeps the exact human text and its binding.
+    w.world.versions.v2 = "someone else's newer save";
+    w.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [artifact("v2", "body-v2")],
+    };
+    for (const current of [
+      editorFile.current,
+      { workspace_file_id: "wf1", version_id: "v2", sha256: "hash-v2" },
+    ]) {
+      ed.props = { ...ed.props, file: { ...editorFile, current } };
+      ed.dirty = true;
+      await w.settle();
+      expect(field(ed, "textarea").props.value).toBe("unsaved human words");
+      const cites = citationsOf(ed);
+      expect(cites).toHaveLength(1);
+      expect(nth(cites, 0).props).toMatchObject({
+        revisionId: "v1",
+        bodyHash: "body-v1",
+      });
+    }
+    expect(w.world.snapshotCalls).toHaveLength(1);
+  });
+
+  it("binds nothing when the snapshot head is not the saved version or the read is refused", async () => {
+    const moved = makeWorld();
+    moved.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [artifact("v2", "body-v2")],
+    };
+    const a = moved.mount(moved.FileEditor, {
+      ws: "ws1",
+      file: editorFile,
+      workVersion: 7,
+      refreshList: noRefresh,
+    });
+    await moved.settle();
+    expect(citationsOf(a)).toHaveLength(0);
+
+    const refused = makeWorld();
+    refused.world.snapshotFails = new ApiError("Not found", {
+      status: 404,
+      code: "not_found",
+    });
+    const b = refused.mount(refused.FileEditor, {
+      ws: "ws1",
+      file: editorFile,
+      workVersion: 7,
+      refreshList: noRefresh,
+    });
+    await refused.settle();
+    expect(citationsOf(b)).toHaveLength(0);
+    expect(field(b, "textarea").props.value).toBe("original");
+  });
+
+  it("a save rebinds to the newly saved revision's exact body hash", async () => {
+    const w = makeWorld();
+    w.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [artifact("v1", "body-v1")],
+    };
+    const ed = w.mount(w.FileEditor, {
+      ws: "ws1",
+      file: editorFile,
+      workVersion: 7,
+      refreshList: noRefresh,
+    });
+    await w.settle();
+    fire(field(ed, "textarea"), "saved human words");
+    await w.settle();
+    click(button(ed, /^Save$/));
+    await w.settle();
+    w.world.versions.v2 = "saved human words";
+    w.world.snapshotReply = {
+      conversation_id: "c1",
+      artifacts: [artifact("v2", "body-v2")],
+    };
+    nth(w.world.editCalls, 0).d.resolve({
+      current: {
+        workspace_file_id: "wf1",
+        version_id: "v2",
+        sha256: "sha-saved human words",
+      },
+    });
+    await w.settle();
+    const cites = citationsOf(ed);
+    expect(cites).toHaveLength(1);
+    expect(nth(cites, 0).props).toMatchObject({
+      artifactId: "art1",
+      revisionId: "v2",
+      bodyHash: "body-v2",
+    });
+    expect(field(ed, "textarea").props.value).toBe("saved human words");
   });
 });

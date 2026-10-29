@@ -124,7 +124,7 @@ class WorkspaceFiles:
         if row['artifact_id']:
             return c.execute('SELECT current_revision_id FROM artifacts WHERE workspace_id=%s AND id=%s',
                              (row['workspace_id'], row['artifact_id'])).fetchone()['current_revision_id']
-        latest = c.execute('SELECT id FROM source_snapshots WHERE workspace_id=%s AND workspace_file_id=%s ORDER BY version_number DESC LIMIT 1',
+        latest = c.execute('SELECT id FROM source_snapshots WHERE workspace_id=%s AND workspace_file_id=%s AND research_source_visible(workspace_id,id) ORDER BY version_number DESC LIMIT 1',
                            (row['workspace_id'], row['id'])).fetchone()
         if not latest:
             raise DomainError('source_changed')
@@ -143,7 +143,8 @@ class WorkspaceFiles:
         if not 1 <= limit <= 100:
             raise DomainError('validation_error')
         # The gateway supplies exact granted file selectors; filter BEFORE paging.
-        predicate = '' if selectors is None else ' AND id=ANY(%s)'
+        predicate = ' AND (artifact_id IS NOT NULL OR EXISTS (SELECT 1 FROM source_snapshots s WHERE s.workspace_id=workspace_files.workspace_id AND s.workspace_file_id=workspace_files.id AND research_source_visible(s.workspace_id,s.id)))'
+        if selectors is not None: predicate += ' AND id=ANY(%s)'
         args = [ws, cid, p.id, after or '']
         if selectors is not None:
             args.append([ref.id for ref in selectors if ref.kind == 'workspace_file'])

@@ -1,0 +1,9 @@
+file:///home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/browser.mjs:22
+async function send(text,data){if(data)await page.getByLabel('Attach a file',{exact:true}).setInputFiles({name:'observations.csv',mimeType:'text/csv',buffer:Buffer.from(data)});const r=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/messages'));await page.getByRole('textbox',{name:/^(Message your agent|Continue the conversation)$/}).fill(text);await page.getByRole('button',{name:'Send',exact:true}).click();const response=await r;if(!response.ok())throw Error(await response.text());const q=await response.json();await page.waitForURL(/\/conversations\//);return q;}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ^
+
+Error: {"code":"version_conflict","message":"The current version changed.","request_id":"93119023-e5e2-4688-8549-606cae6d16e9","next_action":"Refresh current work and review a new proposal against that base.","details":{"current_revision_id":null,"current_version":3,"proposal_id":null,"fields":[]}}
+    at send (file:///home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/browser.mjs:22:484)
+    at async file:///home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/browser.mjs:47:3
+
+Node.js v22.23.4

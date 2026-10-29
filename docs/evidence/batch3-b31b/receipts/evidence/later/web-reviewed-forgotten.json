@@ -1,0 +1,160 @@
+{
+  "evidence": "real HTTP + production worker + restricted PG, controlled transport, zero paid calls",
+  "conversation_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+  "run_id": "8507f235-d323-495c-9f00-cfc80705b114",
+  "expected_revisions": [
+    "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+    "ba57b1b2-49bf-4b85-aac0-b866036a9d4e"
+  ],
+  "usage": {
+    "items": [
+      {
+        "run_id": "8507f235-d323-495c-9f00-cfc80705b114",
+        "request_id": "8507f235-d323-495c-9f00-cfc80705b114",
+        "attempt_id": "50e94c5a-6545-4a38-9407-12fc2fa3afdf",
+        "phase": "final",
+        "request_sha256": "9340677feb236b04b06d8db44b4947eae91da28bf8a53147927ae3cde6077f7f",
+        "entries": [
+          {
+            "memory_id": "b28105d3-c14c-4230-8c3d-88d40211847b",
+            "revision_id": "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+            "content_sha256": "62618788a19c775a665457a9346706a3758da6ddbb0b020476a8f70606c959a9",
+            "scope_kind": "task",
+            "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+            "why": "task",
+            "unresolved_conflict": false
+          },
+          {
+            "memory_id": "ba74ebba-38f9-40d4-87df-d6527c83fd28",
+            "revision_id": "ba57b1b2-49bf-4b85-aac0-b866036a9d4e",
+            "content_sha256": "a1094a7e306e8b09fdeb3d1e19e3748b9d57fa2493ba7abe69855346d83d0a9e",
+            "scope_kind": "task",
+            "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+            "why": "task",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "8507f235-d323-495c-9f00-cfc80705b114",
+        "request_id": "8507f235-d323-495c-9f00-cfc80705b114",
+        "attempt_id": "50e94c5a-6545-4a38-9407-12fc2fa3afdf",
+        "phase": "selection",
+        "request_sha256": "931d69a5bd5cec3e0ff09fd40f90e92acf951c6c462280d32f431b536479b6c9",
+        "entries": [
+          {
+            "memory_id": "b28105d3-c14c-4230-8c3d-88d40211847b",
+            "revision_id": "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+            "content_sha256": "62618788a19c775a665457a9346706a3758da6ddbb0b020476a8f70606c959a9",
+            "scope_kind": "task",
+            "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+            "why": "task",
+            "unresolved_conflict": false
+          },
+          {
+            "memory_id": "ba74ebba-38f9-40d4-87df-d6527c83fd28",
+            "revision_id": "ba57b1b2-49bf-4b85-aac0-b866036a9d4e",
+            "content_sha256": "a1094a7e306e8b09fdeb3d1e19e3748b9d57fa2493ba7abe69855346d83d0a9e",
+            "scope_kind": "task",
+            "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+            "why": "task",
+            "unresolved_conflict": false
+          }
+        ]
+      }
+    ]
+  },
+  "memory_context": {
+    "has_more": false,
+    "items": [
+      {
+        "revision": {
+          "access_generation": 1,
+          "applicability": "",
+          "confidence_basis": "Explicit human statement",
+          "confidence_label": "explicit",
+          "content": "Verify units before calculating",
+          "content_sha256": "62618788a19c775a665457a9346706a3758da6ddbb0b020476a8f70606c959a9",
+          "contradiction_group_id": null,
+          "evidence_ids": [],
+          "exception_to_revision_id": null,
+          "expires_at": null,
+          "kind": "procedure",
+          "memory_id": "b28105d3-c14c-4230-8c3d-88d40211847b",
+          "origin": "human_reviewed",
+          "owner_id": "local-human",
+          "predicate_key": "procedure",
+          "proposed_by_run_id": null,
+          "recorded_at": "2026-10-28T22:24:17.850633Z",
+          "reviewed_by_principal_id": "local-human",
+          "revision_id": "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+          "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+          "scope_kind": "task",
+          "source_refs": [],
+          "status": "active",
+          "subject_key": "verify_units_before_calculating",
+          "supersedes_revision_id": "00374e00-5ba6-4aa3-a2f2-c72ae114afa9",
+          "valid_from": "2026-10-28T22:24:17.697368Z",
+          "valid_until": null,
+          "workspace_id": "b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c"
+        },
+        "unresolved_conflict": false,
+        "why": "task"
+      },
+      {
+        "revision": {
+          "access_generation": 1,
+          "applicability": "",
+          "confidence_basis": "Explicit human statement",
+          "confidence_label": "explicit",
+          "content": "Unrelated preserved note",
+          "content_sha256": "a1094a7e306e8b09fdeb3d1e19e3748b9d57fa2493ba7abe69855346d83d0a9e",
+          "contradiction_group_id": null,
+          "evidence_ids": [],
+          "exception_to_revision_id": null,
+          "expires_at": null,
+          "kind": "preference",
+          "memory_id": "ba74ebba-38f9-40d4-87df-d6527c83fd28",
+          "origin": "human_explicit",
+          "owner_id": "local-human",
+          "predicate_key": "preference",
+          "proposed_by_run_id": null,
+          "recorded_at": "2026-10-28T22:24:17.307228Z",
+          "reviewed_by_principal_id": null,
+          "revision_id": "ba57b1b2-49bf-4b85-aac0-b866036a9d4e",
+          "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+          "scope_kind": "task",
+          "source_refs": [],
+          "status": "active",
+          "subject_key": "unrelated_preserved_note",
+          "supersedes_revision_id": null,
+          "valid_from": "2026-10-28T22:24:17.307228Z",
+          "valid_until": null,
+          "workspace_id": "b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c"
+        },
+        "unresolved_conflict": false,
+        "why": "task"
+      }
+    ]
+  },
+  "memory_manifest": [
+    {
+      "content_sha256": "62618788a19c775a665457a9346706a3758da6ddbb0b020476a8f70606c959a9",
+      "memory_id": "b28105d3-c14c-4230-8c3d-88d40211847b",
+      "revision_id": "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+      "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+      "scope_kind": "task",
+      "unresolved_conflict": false,
+      "why": "task"
+    },
+    {
+      "content_sha256": "a1094a7e306e8b09fdeb3d1e19e3748b9d57fa2493ba7abe69855346d83d0a9e",
+      "memory_id": "ba74ebba-38f9-40d4-87df-d6527c83fd28",
+      "revision_id": "ba57b1b2-49bf-4b85-aac0-b866036a9d4e",
+      "scope_id": "8489bc26-11f4-4306-8aca-3c5caea66176",
+      "scope_kind": "task",
+      "unresolved_conflict": false,
+      "why": "task"
+    }
+  ]
+}

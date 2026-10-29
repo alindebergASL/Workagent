@@ -73,6 +73,8 @@ class Ledger:
             _,current,_=self.service._check_capability(c,cap)
             if current.id!=run.id:
                 raise DomainError('not_found_or_not_authorized')
+            from .research import authorize_run_dependencies
+            authorize_run_dependencies(c,run.workspace_id,run.id)
         return run,attempt,origin
 
     def _events(self,c,phase):
@@ -123,6 +125,10 @@ class Ledger:
                 if file_enabled(config): DECISION_SCHEMA=FILE_SCHEMA
                 from .capabilities.compute_composition import enabled as compute_enabled, SCHEMA as COMPUTE_SCHEMA
                 if compute_enabled(config): DECISION_SCHEMA=COMPUTE_SCHEMA
+                from .memory.runtime import enabled as memory_enabled, SCHEMA as MEMORY_SCHEMA
+                if memory_enabled(config): DECISION_SCHEMA=MEMORY_SCHEMA
+                from .capabilities.research_composition import enabled as research_enabled, SCHEMA as RESEARCH_SCHEMA
+                if research_enabled(config): DECISION_SCHEMA=RESEARCH_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never
@@ -143,7 +149,7 @@ class Ledger:
 
     def prepare(self,request,cap):
         with self.service.db.transaction() as c:
-            _,attempt,_=self._auth(c,cap)
+            run,attempt,_=self._auth(c,cap)
             if request.metadata.attempt_id!=attempt.id or request.metadata.step_id!=request.phase:
                 raise DomainError('command_conflict')
             prior=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -157,6 +163,8 @@ class Ledger:
                          VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''',
                       (attempt.id,request.phase,attempt.grant_id,request.body.decode(),request.sha256,count.decode(),
                        sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
+            from .memory.runtime import record_request
+            record_request(self.service,c,run,request)
 
     def reserve_operation(self,request,kind,cap,*,ready=None):
         if cap is None:raise DomainError('not_found_or_not_authorized')

@@ -1,0 +1,1416 @@
+{
+  "$defs": {
+    "BindMemoryScope": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "work_area_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Work Area Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "conversation_id",
+        "work_area_id",
+        "expected_work_version"
+      ],
+      "title": "BindMemoryScope",
+      "type": "object"
+    },
+    "CorrectMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "expected_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Revision Id",
+          "type": "string"
+        },
+        "mode": {
+          "default": "permanent",
+          "enum": [
+            "permanent",
+            "temporary"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "file": "#/$defs/MemoryFile",
+                "source": "#/$defs/MemorySource"
+              },
+              "propertyName": "source_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MemorySource"
+              },
+              {
+                "$ref": "#/$defs/MemoryFile"
+              }
+            ]
+          },
+          "maxItems": 16,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_revision_id",
+        "content"
+      ],
+      "title": "CorrectMemory",
+      "type": "object"
+    },
+    "FileVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "version_id",
+        "sha256"
+      ],
+      "title": "FileVersionRef",
+      "type": "object"
+    },
+    "MemoryCAS": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Revision Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_revision_id"
+      ],
+      "title": "MemoryCAS",
+      "type": "object"
+    },
+    "MemoryFile": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        },
+        "source_type": {
+          "const": "file",
+          "default": "file",
+          "title": "Source Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "title": "MemoryFile",
+      "type": "object"
+    },
+    "MemoryInspection": {
+      "additionalProperties": false,
+      "properties": {
+        "current": {
+          "$ref": "#/$defs/MemoryRevisionV1"
+        },
+        "notice": {
+          "default": "Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts.",
+          "title": "Notice",
+          "type": "string"
+        },
+        "revisions": {
+          "items": {
+            "$ref": "#/$defs/MemoryRevisionV1"
+          },
+          "title": "Revisions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "current",
+        "revisions"
+      ],
+      "title": "MemoryInspection",
+      "type": "object"
+    },
+    "MemoryManifestEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "content_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Sha256",
+          "type": "string"
+        },
+        "memory_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Memory Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "unresolved_conflict": {
+          "title": "Unresolved Conflict",
+          "type": "boolean"
+        },
+        "why": {
+          "enum": [
+            "task",
+            "explicit_work_area_binding",
+            "owner_preference"
+          ],
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "memory_id",
+        "revision_id",
+        "content_sha256",
+        "scope_kind",
+        "scope_id",
+        "why",
+        "unresolved_conflict"
+      ],
+      "title": "MemoryManifestEntry",
+      "type": "object"
+    },
+    "MemoryPage": {
+      "additionalProperties": false,
+      "properties": {
+        "has_more": {
+          "default": false,
+          "title": "Has More",
+          "type": "boolean"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/RecalledMemory"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "MemoryPage",
+      "type": "object"
+    },
+    "MemoryReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "memory_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Memory Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "active",
+            "contested",
+            "superseded",
+            "expired",
+            "forgotten"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "memory_id",
+        "revision_id",
+        "status"
+      ],
+      "title": "MemoryReceipt",
+      "type": "object"
+    },
+    "MemoryRevisionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "access_generation": {
+          "minimum": 1,
+          "title": "Access Generation",
+          "type": "integer"
+        },
+        "applicability": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Applicability"
+        },
+        "confidence_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Confidence Basis"
+        },
+        "confidence_label": {
+          "enum": [
+            "explicit",
+            "observed",
+            "inferred",
+            "uncertain"
+          ],
+          "title": "Confidence Label",
+          "type": "string"
+        },
+        "content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Content"
+        },
+        "content_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Content Sha256"
+        },
+        "contradiction_group_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contradiction Group Id"
+        },
+        "evidence_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "exception_to_revision_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exception To Revision Id"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "project_convention",
+            "episode",
+            "procedure"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "memory_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Memory Id",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "human_explicit",
+            "human_reviewed",
+            "agent_inferred",
+            "external_source",
+            "tool_observed"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "owner_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Owner Id",
+          "type": "string"
+        },
+        "predicate_key": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Predicate Key"
+        },
+        "proposed_by_run_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Proposed By Run Id"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "reviewed_by_principal_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed By Principal Id"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "file": "#/$defs/MemoryFile",
+                "source": "#/$defs/MemorySource"
+              },
+              "propertyName": "source_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MemorySource"
+              },
+              {
+                "$ref": "#/$defs/MemoryFile"
+              }
+            ]
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "active",
+            "contested",
+            "superseded",
+            "expired",
+            "forgotten"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject_key": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Subject Key"
+        },
+        "supersedes_revision_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes Revision Id"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "memory_id",
+        "revision_id",
+        "workspace_id",
+        "owner_id",
+        "kind",
+        "scope_kind",
+        "scope_id",
+        "subject_key",
+        "predicate_key",
+        "content",
+        "content_sha256",
+        "status",
+        "origin",
+        "confidence_label",
+        "confidence_basis",
+        "valid_from",
+        "recorded_at",
+        "applicability",
+        "access_generation"
+      ],
+      "title": "MemoryRevisionV1",
+      "type": "object"
+    },
+    "MemoryScopeBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "work_area_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Work Area Id",
+          "type": "string"
+        },
+        "work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Work Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "work_area_id",
+        "work_version"
+      ],
+      "title": "MemoryScopeBinding",
+      "type": "object"
+    },
+    "MemorySource": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/SourceRef"
+        },
+        "source_type": {
+          "const": "source",
+          "default": "source",
+          "title": "Source Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "title": "MemorySource",
+      "type": "object"
+    },
+    "MemoryUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/MemoryManifestEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        },
+        "phase": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Phase",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "request_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Sha256",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "request_id",
+        "attempt_id",
+        "phase",
+        "request_sha256",
+        "entries"
+      ],
+      "title": "MemoryUsage",
+      "type": "object"
+    },
+    "MemoryUsagePage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/MemoryUsage"
+          },
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "required": [
+        "items"
+      ],
+      "title": "MemoryUsagePage",
+      "type": "object"
+    },
+    "NarrowMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Revision Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_revision_id",
+        "scope_kind",
+        "scope_id"
+      ],
+      "title": "NarrowMemory",
+      "type": "object"
+    },
+    "ProposeMemory": {
+      "additionalProperties": false,
+      "description": "Human-submitted inference; no caller-selected origin, run or active status.",
+      "properties": {
+        "applicability": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Applicability",
+          "type": "string"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "confidence_basis": {
+          "default": "Explicit human statement",
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Confidence Basis",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "project_convention",
+            "episode",
+            "procedure"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "predicate_key": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+          "title": "Predicate Key",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "sensitivity": {
+          "const": "ordinary",
+          "default": "ordinary",
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "file": "#/$defs/MemoryFile",
+                "source": "#/$defs/MemorySource"
+              },
+              "propertyName": "source_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MemorySource"
+              },
+              {
+                "$ref": "#/$defs/MemoryFile"
+              }
+            ]
+          },
+          "maxItems": 16,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "subject_key": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+          "title": "Subject Key",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        }
+      },
+      "required": [
+        "kind",
+        "scope_kind",
+        "scope_id",
+        "subject_key",
+        "predicate_key",
+        "content",
+        "schema_version",
+        "request_id",
+        "command_id"
+      ],
+      "title": "ProposeMemory",
+      "type": "object"
+    },
+    "RecalledMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "revision": {
+          "$ref": "#/$defs/MemoryRevisionV1"
+        },
+        "unresolved_conflict": {
+          "default": false,
+          "title": "Unresolved Conflict",
+          "type": "boolean"
+        },
+        "why": {
+          "enum": [
+            "task",
+            "explicit_work_area_binding",
+            "owner_preference"
+          ],
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "revision",
+        "why"
+      ],
+      "title": "RecalledMemory",
+      "type": "object"
+    },
+    "RememberMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "applicability": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Applicability",
+          "type": "string"
+        },
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "confidence_basis": {
+          "default": "Explicit human statement",
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Confidence Basis",
+          "type": "string"
+        },
+        "content": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Content",
+          "type": "string"
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expires At"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "project_convention",
+            "episode",
+            "procedure"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "predicate_key": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+          "title": "Predicate Key",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Scope Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "sensitivity": {
+          "const": "ordinary",
+          "default": "ordinary",
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "source_refs": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "file": "#/$defs/MemoryFile",
+                "source": "#/$defs/MemorySource"
+              },
+              "propertyName": "source_type"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/MemorySource"
+              },
+              {
+                "$ref": "#/$defs/MemoryFile"
+              }
+            ]
+          },
+          "maxItems": 16,
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "subject_key": {
+          "maxLength": 160,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+          "title": "Subject Key",
+          "type": "string"
+        },
+        "valid_from": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        }
+      },
+      "required": [
+        "kind",
+        "scope_kind",
+        "scope_id",
+        "subject_key",
+        "predicate_key",
+        "content",
+        "schema_version",
+        "request_id",
+        "command_id"
+      ],
+      "title": "RememberMemory",
+      "type": "object"
+    },
+    "ReviewMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "decision": {
+          "enum": [
+            "accept",
+            "dispute",
+            "reject"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "expected_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Revision Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_revision_id",
+        "decision"
+      ],
+      "title": "ReviewMemory",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "external_version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "External Version",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "source_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "external_version",
+        "observed_at"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "bind": {
+      "$ref": "#/$defs/BindMemoryScope"
+    },
+    "binding": {
+      "$ref": "#/$defs/MemoryScopeBinding"
+    },
+    "candidate": {
+      "$ref": "#/$defs/ProposeMemory"
+    },
+    "correct": {
+      "$ref": "#/$defs/CorrectMemory"
+    },
+    "expire": {
+      "$ref": "#/$defs/MemoryCAS"
+    },
+    "forget": {
+      "$ref": "#/$defs/MemoryCAS"
+    },
+    "inspection": {
+      "$ref": "#/$defs/MemoryInspection"
+    },
+    "narrow": {
+      "$ref": "#/$defs/NarrowMemory"
+    },
+    "page": {
+      "$ref": "#/$defs/MemoryPage"
+    },
+    "receipt": {
+      "$ref": "#/$defs/MemoryReceipt"
+    },
+    "remember": {
+      "$ref": "#/$defs/RememberMemory"
+    },
+    "review": {
+      "$ref": "#/$defs/ReviewMemory"
+    },
+    "revision": {
+      "$ref": "#/$defs/MemoryRevisionV1"
+    },
+    "usage": {
+      "$ref": "#/$defs/MemoryUsagePage"
+    }
+  },
+  "required": [
+    "revision",
+    "receipt",
+    "inspection",
+    "page",
+    "remember",
+    "candidate",
+    "review",
+    "correct",
+    "narrow",
+    "expire",
+    "forget",
+    "bind",
+    "binding",
+    "usage"
+  ],
+  "title": "MemoryContract",
+  "type": "object"
+}

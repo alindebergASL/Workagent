@@ -268,6 +268,13 @@ class Conversations:
             message=retained_message.model_copy(update={'id':message.id,'run_id':run.id,
                 'sequence':message.sequence,'created_at':message.created_at})
         self._append_message(c,ws,message)
+        # Opted-in file/compute conversations expose the original attachment as
+        # an immutable file, not a copied draft or implicit execution grant.
+        if grant and retained_message is None and message.author_kind == 'human' and p.id == cv.owner_id:
+            from .capabilities.file_composition import enabled as files_enabled
+            if files_enabled(pinned):
+                from .source_snapshots import retain_attachments
+                retain_attachments(self,c,p,ws,cv,message)
         if responsibility is None and continuation is None and queued_intent is None:
             cv.work_version+=1
             self._store_conversation(c,cv)
@@ -329,6 +336,8 @@ class Conversations:
             observation['document_context']=context['document_context']
         if 'evidence_context' in context:
             observation['evidence_context']=context['evidence_context']
+        if 'memory_manifest' in context:
+            observation['memory_manifest']=context['memory_manifest']
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')
@@ -392,6 +401,10 @@ class Conversations:
             from .retained_results import enabled as retained_enabled, references, descriptor
             from .general_responses import check_pins
             config=check_pins(c,run)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context,include_own=True)
             if retained_enabled(config):
                 context['retained_results']=references(self,c,p,run,cv)
                 context['continuation']=config.get('continuation')
@@ -519,6 +532,13 @@ class Conversations:
                     'scope':'responsibility_dependencies' if config.get('responsibility') else 'current_conversation',
                     'first_page':{'kind':'discover_saved_work','after_artifact_id':None,'limit':12},
                     'notice':'Snapshot omission is not absence. Page descriptors, then read an exact target.'}
+            from .memory.runtime import enabled as memory_enabled, project as project_memory
+            if memory_enabled(config):
+                project_memory(self,c,p,run,cv,context)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context)
             if standing(grant.responses) or retained_enabled(config):
                 from .conversation_context import bound_context
                 bound_context(context,run.id,profile(run.profile)['max_context_bytes'])

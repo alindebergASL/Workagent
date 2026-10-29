@@ -1,0 +1,15 @@
+
+==================================== ERRORS ====================================
+____________ ERROR collecting backend/tests/test_memory_recovery.py ____________
+ImportError while importing test module '/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/tests/test_memory_recovery.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+backend/tests/test_memory_recovery.py:6: in <module>
+    from textual.app import App
+E   ModuleNotFoundError: No module named 'textual'
+=========================== short test summary info ============================
+ERROR backend/tests/test_memory_recovery.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.15s

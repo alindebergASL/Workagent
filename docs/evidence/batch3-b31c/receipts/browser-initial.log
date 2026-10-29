@@ -1,0 +1,15 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.setInputFiles: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByLabel('Attach a file', { exact: true })
+
+    at async send (/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/browser.mjs:22:40)
+    at async file:///home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/browser.mjs:41:32 {
+  log: [ "  - waiting for getByLabel('Attach a file', { exact: true })" ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4

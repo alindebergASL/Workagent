@@ -1,0 +1,9 @@
+{
+  "workspace_id": "b31c-065f64f1-3212-4565-b69c-d310f75026b4",
+  "grant_id": "16f11236-23ac-428b-96c2-7bfdd0eb1e14",
+  "projects": {
+    "study": "a2e21877-1eaa-4b7b-ba65-a9f991c3e5ff",
+    "irrelevant": "5e5c6444-5611-4b26-a9e4-5baffa045d22",
+    "confidential": "7ba5a280-30c3-4035-b560-003b9cc327cd"
+  }
+}
