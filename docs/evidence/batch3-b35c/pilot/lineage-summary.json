@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-29T17:42:27.855229+00:00",
+  "ended_at": "2026-10-29T17:42:48.278379+00:00",
+  "store_count": 13,
+  "allocation_usd": "99.605960",
+  "unallocated_usd": "0.394040",
+  "unknown_usage_steps": 3,
+  "unmatched_count_steps": 7,
+  "billing": "unknown",
+  "source_grant_id": "workagent-continuation-20261022-15",
+  "source_cap_usd": "67.62068",
+  "source_reserved_plus_carry_usd": "66.58608",
+  "source_nominal_residual_usd": "1.03460",
+  "selected_pilot_envelope_usd": "1.02768",
+  "hypothetical_reduced_source_cap_usd": "66.59300",
+  "hypothetical_remaining_source_usd": "0.00692",
+  "live_funding_activated": false,
+  "full_reconciliation_sha256": "beae91cd83fbb636def9adb8861390e09078d9ce585bec15a545462bb1a54039"
+}

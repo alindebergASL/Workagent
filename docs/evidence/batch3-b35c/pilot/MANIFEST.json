@@ -1,0 +1,37 @@
+{
+  "status": "conditional_pilot_stopped_technical_handoff_unproven",
+  "evidence_files": {
+    "docs/evidence/batch3-b35c/pilot/AMENDMENT_02_PILOT.md": "37fe4af2e57f666f8d76c249764746903986a9eaf66c76c5d26b514112bf3422",
+    "docs/evidence/batch3-b35c/pilot/BLOCKER.md": "c941d11468ffea7a124c7e91678e610fb7509caf57a844f11ae4b988cb4ca380",
+    "docs/evidence/batch3-b35c/pilot/admission.json": "c11ab274cceb3db24b3ad4bc08a826996549ea7ec38d9c075088619476ffa98c",
+    "docs/evidence/batch3-b35c/pilot/final-readonly-02.log": "39f26e8461bdb524d28c15b21504d44d81cd2a8a253e3f2437786bf408c95a27",
+    "docs/evidence/batch3-b35c/pilot/final-readonly.json": "39f26e8461bdb524d28c15b21504d44d81cd2a8a253e3f2437786bf408c95a27",
+    "docs/evidence/batch3-b35c/pilot/final-readonly.log": "81cebeb851986b16d773e1bceefd8cfa2981e5c2dfe07e294aac81a58f78c5ad",
+    "docs/evidence/batch3-b35c/pilot/lineage-summary.json": "98b25ec0fee7b50efdb74211197908ccbc1d7c857dc6d29bc87fed7d74d63391",
+    "docs/evidence/batch3-b35c/pilot/probe-01.log": "6c6383136f5b1170a67be8e8074c1719792685ddec8160e88e80edfb73036a55",
+    "docs/evidence/batch3-b35c/pilot/probe-02.log": "afc923c3ca159241248b49dbb55886aef3467a685d8c3f1db7c916745af87a8b",
+    "docs/evidence/batch3-b35c/pilot/probe-result.json": "62608004b1514e23ce2404fd5d1c971b2b4a32c01da51d10a2708939c2f62902",
+    "docs/evidence/batch3-b35c/pilot/probe_transfer.py.txt": "25fb076f0e8467d1263703e5c845956054e69a4b375d474d47aed8d8cf1fdbcf"
+  },
+  "unchanged_repair_source_files": {
+    "backend/workagent/models.py": "b67594cb14b8fbdc99fc1932f8deac9f32bbd2c87e9f18c0de6af857bd18cec8",
+    "backend/workagent/adaptive.py": "a1eff77c23678cb8e78d6a8692f85a2a0e6a1b4e21dedbe9c1b9786a0c36c930",
+    "backend/workagent/memory/runtime.py": "48e598aa7e4d6055150ec8fe50536136bdcf5e6e9b26f4ee817a4f746147d670",
+    "backend/migrations/073_full_tool_memory_treatment.sql": "ebf4d2e19109c23845c758c7d06219c7bccc8657bcaa7db175233f198ce1d3de",
+    "backend/tests/test_memory_full_tools.py": "91bb484d82f2825d9ecb1fdfae8f6f408eef77a37e167132a181cb587c4603d1",
+    "contracts/provider-grant.schema.json": "6ffb12565485824a09d9c5319a09cd869f1936c360236c2f8375c66de0f48d62"
+  },
+  "baseline_commit": "8fff438e6705d1d86b3057b93cc92e4d904918ea",
+  "source_function_matches": 7,
+  "disposable_assertions": 12,
+  "final_readonly_comparisons": 9,
+  "safe_handoff_proven": false,
+  "paid_product_requests": 0,
+  "new_allocation_usd": "0",
+  "installed_mutations": 0,
+  "pilot_episodes": "0/2",
+  "full_study_trajectories": "0/12",
+  "full_study_episodes": "0/72",
+  "development_model": "gpt-6-astra/openai-codex",
+  "development_tool_billing": "separate/unreconciled"
+}

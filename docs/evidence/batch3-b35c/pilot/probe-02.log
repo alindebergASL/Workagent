@@ -1,0 +1,64 @@
+Created isolated database workagent_test_fc8e19011435; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/pilot/source046.env. No credentials printed.
+{
+  "scope": "Disposable synthetic PostgreSQL counterexamples only; not pilot, transfer, or live funding",
+  "provider_requests": 0,
+  "live_mutations": 0,
+  "source_database": "workagent_test_fc8e19011435",
+  "checks": [
+    {
+      "name": "installed_function_exact:guard_general_grant()",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:require_alpha_budget_binding(jsonb)",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:require_alpha_budget_binding_pre_continuity(jsonb)",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:require_scoped_alpha_budget_binding(jsonb)",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:guard_responses_event()",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:guard_carried_budget_event()",
+      "passed": true
+    },
+    {
+      "name": "installed_function_exact:responses_budget_grants(text)",
+      "passed": true
+    },
+    {
+      "name": "atomic_no_send_successor",
+      "passed": true
+    },
+    {
+      "name": "original_reactivation_denied",
+      "passed": true,
+      "sqlstate": "P0001"
+    },
+    {
+      "name": "COUNTEREXAMPLE_normal_successor_restores_exported_capacity",
+      "passed": true,
+      "restored_capacity_usd": "1.02768",
+      "interpretation": "No durable outgoing debit constraint; this is a detected gap, not a safe-handoff PASS."
+    },
+    {
+      "name": "installed_prefix_rejects_current_full_tool_treatment",
+      "passed": true,
+      "error": "exact typed alpha budget binding required",
+      "sqlstate": "P0001"
+    },
+    {
+      "name": "failed_modern_transition_rolls_back",
+      "passed": true
+    }
+  ],
+  "safe_handoff_proven": false,
+  "source_prefix": "046_cancelled_response_observation.sql"
+}
