@@ -1,6 +1,13 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.2c confined diagnosis and real patch/test receipts accepted
+## Latest: B3.3a public read-only GitHub connector accepted
+
+- [Acceptance](docs/evidence/batch3-b33a/ACCEPTANCE.md): ordinary composer → four real unauthenticated public GitHub reads → versioned issue/release brief → actual export. Independent exact-URL response/body/hash/version readback passes. Deterministic model selection is explicit; zero paid product calls and no autonomous-model usefulness claim.
+- Actual optimized web1440/390/320 and native PTYs pass before/after restart; human v2 remains exact7,272bytes. Separate controlled fixtures render rate-limit/denied/unavailable/changed-source truthfully and clear preloaded title/receipt/source content on authenticated refresh after real scope reduction. Real-PG late-response/memory/provider denial and selective nonenumeration pass; unchanged86passed/1opt-in-network-skip evidence reused.
+- One unchanged Astra static PASS,38 current source/support hashes,319 retained build inputs/183 outputs and three disposable migration-journal continuity checks bind the proof. Build `GQzQ3yK6Zirw2co_DmK_5` is reused; one unconsumed catalog difference is explicit, generated web client inputs match. Historical failed fixtures/unknown receipts remain retained, credentials/raw review stderr excluded.
+- Owned proof services18238/13238 are stopped; installed services/data untouched. Feature publication/exact-head CI are in the task handoff, not deployment or Batch3 completion. Existing next card is `t_5f3bcb34` B3.3b protocol/synthetic OAuth; no private access or write authority inferred. Separate memory-link/Cloud work and untracked contracts lock are preserved.
+
+## Previous: B3.2c confined diagnosis and real patch/test receipts accepted
 
 - [B3.2c acceptance](docs/evidence/batch3-b32c/ACCEPTANCE.md): existing confined Python/shared-file gateway now has truthful web/native receipt viewers and verified patch downloads. Original tests fail, proposed exact-base fixes pass; independent frozen oracles pass494/518/494 for v1/changed-v2/transfer. Human v2 bypass remains unchanged, stale v1 acceptance is refused, and process restart does not duplicate computation.
 - Actual optimized web1440/390/320 and native PTY download/readback pass before/after restart. Failed tests remain failed; unavailable is uncertain, not proof nothing ran. Refused downloads withdraw the affected receipt and ignore late completions. One independent reviewer closes both initial P2 findings;39 native,23 web,8 restricted-PG and4 actual isolation checks pass (not additive with earlier attempts).

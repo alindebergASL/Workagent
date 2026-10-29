@@ -27,7 +27,51 @@ def compute_result(item, workspace):
     return result
 
 
+def github_result(item, workspace):
+    """Validate the canonical connector DTO, including retained source identity."""
+    if item.capability_id not in ('connectors.github.discover', 'connectors.github.read'):
+        return None
+    o = item.observation
+    if item.state != 'observed' or o is None:
+        return None
+    from ..capabilities.github_adapters import GitHubOutput, IDS
+    if (o.status != 'observed' or o.attempt_id != item.attempt_id or
+            o.run_id != item.run_id or o.call_id != item.call_id or o.capability_id != item.capability_id):
+        raise OperatorError('Receipt identity mismatch')
+    output = GitHubOutput.model_validate(o.output)
+    if IDS[output.capability] != item.capability_id:
+        raise OperatorError('Connector receipt binding mismatch')
+    snapshot = output.result.snapshot
+    if snapshot is not None and (snapshot.workspace_id != workspace or
+            snapshot.parser_version != 'github-public-read-v1' or
+            snapshot.locator.kind != 'public_source' or snapshot.locator.tool_attempt_id != item.attempt_id or
+            snapshot.locator.run_id != item.run_id):
+        raise OperatorError('Connector source binding mismatch')
+    return output.result
+
+
 def receipt_text(item, workspace):
+    github = github_result(item, workspace)
+    if github is not None:
+        lines = [item.capability_id + ' · ' + item.state, 'Public unauthenticated GitHub · read only',
+                 'Connector status: ' + github.status, 'Source transport: ' + github.source, 'Attempt ' + item.attempt_id,
+                 'Recorded connector execution, not goal or model-intelligence verification.']
+        if github.retry_after_seconds is not None:
+            lines.append('Retry after seconds: ' + str(github.retry_after_seconds) + ' (no automatic retry)')
+        if github.reset_epoch_seconds is not None:
+            lines.append('Rate-limit reset epoch: ' + str(github.reset_epoch_seconds))
+        if github.snapshot is not None:
+            s = github.snapshot
+            lines += ['Source: ' + s.locator.final_url,
+                      'ETag: ' + str(s.locator.external_version.etag),
+                      'Snapshot: ' + s.snapshot_id, 'Source version: ' + str(s.version_number),
+                      'Observed: ' + s.observed_at.isoformat(), 'Response SHA256: ' + s.original_sha256,
+                      'Extraction SHA256: ' + s.extraction_sha256,
+                      'Source is untrusted inert evidence; inspect pinned provenance in Files.',
+                      'Omissions: ' + '; '.join(s.omissions)]
+        else:
+            lines.append('No retained source bytes are available from this response.')
+        return '\n'.join(lines)
     result = compute_result(item, workspace)
     lines = [item.capability_id + ' · ' + item.state, 'Attempt ' + item.attempt_id]
     if result is None:
@@ -65,6 +109,7 @@ class ToolActivityController:
             if item.run_id != self.run:
                 raise OperatorError('Receipt run mismatch')
             compute_result(item, self.workspace)
+            github_result(item, self.workspace)
         return page
 
     def download(self, item, manifest, destination):

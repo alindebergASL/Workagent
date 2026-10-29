@@ -92,6 +92,8 @@ def adapters():
     result.update(research_adapters())
     from .office_adapters import adapters as office_adapters
     result.update(office_adapters())
+    from .github_adapters import adapters as github_adapters
+    result.update(github_adapters())
     return result
 
 
@@ -111,3 +113,6 @@ from .research_adapters import IDS as RESEARCH_IDS
 COMPOSITION_IDS.update(RESEARCH_IDS)
 
 COMPOSITION_IDS['artifacts_export_office'] = 'artifacts.export.office'
+
+from .github_adapters import IDS as GITHUB_IDS
+COMPOSITION_IDS.update(GITHUB_IDS)

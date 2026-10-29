@@ -4,6 +4,7 @@
  * execution (verification_scope is adapter_execution_only).
  */
 import type { components } from "../../../contracts/src/client";
+import { githubReceipt, isGitHubAttempt } from "./github-receipt";
 
 type S = components["schemas"];
 export type ToolAttemptView = S["ToolAttemptView"];
@@ -45,6 +46,23 @@ export function toolAttemptRow(
   ws?: string,
 ): ToolAttemptRow {
   const base = baseRow(attempt);
+  if (ws !== undefined && isGitHubAttempt(attempt)) {
+    // A recorded receipt for a rate-limited/unavailable call is not success.
+    const g = githubReceipt(attempt, ws);
+    return {
+      ...base,
+      stateLabel: g.headline,
+      tone:
+        g.kind === "withheld"
+          ? base.tone
+          : g.kind === "result" && g.ok
+            ? "ok"
+            : g.kind === "result" &&
+                (g.status === "not_found" || g.status === "denied")
+              ? "failed"
+              : "unknown",
+    };
+  }
   if (!isComputeAttempt(attempt) || ws === undefined) return base;
   const c = computeReceipt(attempt, ws);
   return {

@@ -13,6 +13,8 @@ import {
   type ToolAttemptView,
 } from "@/lib/tool-activity";
 import { ComputeReceipt } from "./ComputeReceipt";
+import { GitHubReceipt } from "./GitHubReceipt";
+import { githubReceipt, isGitHubAttempt } from "@/lib/github-receipt";
 import { describeError } from "@/lib/contract/errors";
 
 /**
@@ -106,6 +108,11 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
       .filter(isComputeAttempt)
       .map((a) => [a.attempt_id, computeReceipt(a, ws)] as const),
   );
+  const github = new Map(
+    (items ?? [])
+      .filter(isGitHubAttempt)
+      .map((a) => [a.attempt_id, githubReceipt(a, ws)] as const),
+  );
   return (
     <details
       ref={details}
@@ -169,6 +176,11 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
                     const key = receiptKey(ws, runId, r.attemptId);
                     setWithdrawn((w) => withdrawReceipt(w, key, reason));
                   }}
+                />
+              ) : github.has(r.attemptId) ? (
+                <GitHubReceipt
+                  key={`${scopeKey}:${r.attemptId}`}
+                  receipt={github.get(r.attemptId)!}
                 />
               ) : null}
               {r.costLine ? <p className="small muted">{r.costLine}</p> : null}

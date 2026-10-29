@@ -1,0 +1,99 @@
+{
+  "mode": "after",
+  "actions": [
+    {
+      "keys": "\u001b[<0;30;4M\u001b[<0;30;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;30;7M\u001b[<0;30;7m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;42;9M\u001b[<0;42;9m"
+    },
+    {
+      "keys": "\u001b[<0;5;15M\u001b[<0;5;15m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\r"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;5;7M\u001b[<0;5;7m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\u001b[B\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\u001b[<0;5;33M\u001b[<0;5;33m"
+    },
+    {
+      "keys": "\u001b[H\u001b[B\r"
+    },
+    {
+      "keys": "\u001b[<0;3;39M\u001b[<0;3;39m"
+    },
+    {
+      "keys": "\t"
+    },
+    {
+      "keys": "\u001b[<0;5;40M\u001b[<0;5;40m"
+    },
+    {
+      "keys": "\u001b[<0;5;40M\u001b[<0;5;40m"
+    },
+    {
+      "keys": "\u0001\u000b"
+    },
+    {
+      "keys": "\u001b[200~/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33a/evidence/pty/after-requests-brief.md\u001b[201~"
+    },
+    {
+      "keys": "\u001b[<0;3;43M\u001b[<0;3;43m"
+    }
+  ],
+  "passed": true,
+  "response_sha256": "051382ad10d2f9179696e0a7b6dde8be03b727c15beb03f253147b8246cfd556",
+  "export_sha256": "40a943ecada2743c5dcfcb50e318d552beebb8f36a50aac47934f1d4f651315a",
+  "export_bytes": 7272
+}

@@ -338,6 +338,11 @@ class Conversations:
             observation['evidence_context']=context['evidence_context']
         if 'memory_manifest' in context:
             observation['memory_manifest']=context['memory_manifest']
+        if run.profile=='general-responses-v1':
+            from .general_responses import check_pins
+            from .capabilities.github_composition import enabled as github_enabled
+            if github_enabled(check_pins(c,run)):
+                observation['research_source_ids']=[s['snapshot_id'] for s in context.get('research_sources',[])]
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')

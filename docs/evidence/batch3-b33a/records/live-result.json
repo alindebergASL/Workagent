@@ -1,0 +1,7 @@
+{
+  "state": "ready",
+  "run_id": "29ab694d-ca36-4be4-b331-2a0ef1ca90bd",
+  "product_model_calls": 0,
+  "model_transport": "deterministic fixture",
+  "connector_transport": "live public GitHub"
+}

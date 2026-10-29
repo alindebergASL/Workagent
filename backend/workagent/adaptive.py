@@ -45,6 +45,10 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.github_composition import enabled as github_enabled, POLICY as github_policy, SCHEMA as github_schema
+    if github_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return github_policy,github_schema
     from .capabilities.office_composition import enabled as office_enabled, POLICY as office_policy, SCHEMA as office_schema
     if office_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                     'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
@@ -113,6 +117,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if research_enabled(config): model=GatewayResearchDecision
         from .capabilities.office_composition import enabled as office_enabled, GatewayOfficeDecision
         if office_enabled(config): model=GatewayOfficeDecision
+        from .capabilities.github_composition import enabled as github_enabled, GatewayGitHubDecision
+        if github_enabled(config): model=GatewayGitHubDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:

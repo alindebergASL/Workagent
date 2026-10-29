@@ -34,7 +34,11 @@ def main():
     from workagent.capabilities.research_composition import GatewayResearchDecision
     from workagent.workspace_file_models import OfficeContract
     from workagent.capabilities.office_composition import GatewayOfficeDecision
-    outputs={'office-v1.json':OfficeContract.model_json_schema(),
+    from workagent.capabilities.github_composition import GatewayGitHubDecision
+    from workagent.connectors.base import PublicConnectorConsent
+    outputs={'gateway-github-decision.schema.json':GatewayGitHubDecision.model_json_schema(),
+             'public-connector-consent.schema.json':PublicConnectorConsent.model_json_schema(),
+             'office-v1.json':OfficeContract.model_json_schema(),
              'gateway-office-decision.schema.json':GatewayOfficeDecision.model_json_schema(),'gateway-research-decision.schema.json':GatewayResearchDecision.model_json_schema(),
              'gateway-memory-decision.schema.json':GatewayMemoryDecision.model_json_schema(),
              'memory-v1.json':MemoryContract.model_json_schema(),

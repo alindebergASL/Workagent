@@ -1,0 +1,63 @@
+**PASS — scoped static risk review only.** No actionable security flaw or regression found in the inspected candidate. This is **not B3.3a implementation acceptance**.
+
+Reviewed tracked changes and untracked candidates against `00da643e6762320d732e3fd18c1adb91ebfd9eaf` on `hermes/b2-conversational-client`. No edits, tests, network requests, service actions, secret reads, or delegated reviewers.
+
+The inspected paths enforce fixed-host public GETs, redirect rejection, public-address validation and pinned TLS; current repository/processor authorization around retrieval; owner-only append-only restrictions; and downstream snapshot, memory, export and provider fences. Both connector descriptors’ implementation and schema hashes match the generated catalog. No file:line risk findings warrant a fix.
+
+Evidence limits remain separate:
+
+- The retained targeted-test log reports **86 passed, 1 explicit network skip**; I did not rerun it.
+- Browser, native PTY, live-connector and export result records exist. Their summaries are not independent proof of complete acceptance or autonomous model usefulness.
+- Final restart, human-preservation and readback evidence was not established during this review.
+- Current migration 063 bytes are recorded below; continuity with its originally installed checksum was not independently verified.
+- No installed-runtime, optimized-build or comprehensive evidence-manifest attestation is claimed.
+
+The 34-file candidate manifest was unchanged across the final two hash checks. SHA-256 of the sorted `sha256␠␠path\n` manifest below:
+`eed9f0569d90ffc08d32f338b68850eca1c400e6af4a8b2aa8ed6a80318a6417`
+
+```text
+47b1a711a46914211e0872ea9ca7427c4d47c99811d207cc1dd3aff64bfdf277  backend/export_contracts.py
+bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9  backend/migrations/063_github_public.sql
+48af500a6e442b8223852144c0ba45cc3f723a170b316a1d373d61c31611ea0a  backend/migrations/064_tool_scope_reductions.sql
+2b4756bc9b1751b3275da125968a3020eb502119e8c3c030a397c206f6c28353  backend/tests/test_github_network.py
+71e770229bfa27e2993e429089b586165e1fb329bdb0ff64efa6f6e9162ae416  backend/tests/test_github_pg.py
+48b1192d454436f491f344b890b26baffc9ea53d93b1cc7035dc5dbafa840430  backend/tests/test_github_scope_pagination.py
+b8e191c0bc3d640d31726db8aba3b6753c420476c934c31e54ca9e5e8bc3957b  backend/tests/test_github_unit.py
+9c282fac1ca5f13f03fa9521f01547b130dc1fad6204af69defad0592fc00f79  backend/tests/test_tui_github_activity.py
+e48d588aba3a6c30c2d1112964764d6f01bb23b284f29e19f4a56eebb62e5ead  backend/workagent/adaptive.py
+79e438a83f577bd5b33cdaba1bcc41bf3c336039f84c4f50dcfe85230291152e  backend/workagent/capabilities/broker.py
+3bd11b4659a52027f84ea69c1ac233518331c66d14704250d9aa2c26bc721891  backend/workagent/capabilities/github_adapters.py
+312bb3fe3cc23b35d49471482178e75a64b712f68c5adc9652810941914f1618  backend/workagent/capabilities/github_composition.py
+2c7286bf5be8aab7ed0ffadfd7865b7eb9785861c6cb733f7e3c194c339d8572  backend/workagent/capabilities/office_composition.py
+fd2dbb25f64b942789ccc565f43bd61422b5c88953ef390c33138ce8eb317f4c  backend/workagent/capabilities/policy.py
+23f84013fbae227d39f70af53e7bddb3440f1355b0bccf1f7e38ef210ee1988d  backend/workagent/capabilities/registry.py
+5efb2c922ecb29428747867114bdcd8f936dc14a9a0bc407eb34e0ddc3053b1f  backend/workagent/connectors/__init__.py
+ecdffdd658de0175e34c99416ad27ba4777044620fef25c0b454bfae923161e8  backend/workagent/connectors/base.py
+a2fc857949b44a8f54f95b55ef5662bd9aa08b25026c2aa674bd17db2a3927f5  backend/workagent/connectors/github_read.py
+73f1be877bdf97bd73c809af57f45bf821bf659668dd2479bfa3d9548168f03e  backend/workagent/conversations.py
+ce42641922d4c50cd78f356dd679ebf16f3349730c62713b9bb3e29900e0db54  backend/workagent/general_responses.py
+586030c148869587a4a6a74eb0836dfcdcc4752be7790e01d7d465d31f6ba682  backend/workagent/products.py
+15c221dab6167522bf37d929c00b2d24bada486f0581f54db6f6c7c2fffe91cb  backend/workagent/research.py
+1039c9d0409a228ddf209f1f60d5a11f740709dfe61ac8367fa7e0f3d2813272  backend/workagent/responses_ledger.py
+6a06934629392d120118e753563f74ed4a48401856b101c870483ed4f72477ce  backend/workagent/responses_transport.py
+26ae5382a917335f4936c45d7ff69fd98d23b5ee901b2c5f08dd27e547b6f5d7  backend/workagent/tui/tool_activity.py
+38e4522488cc7b256440d5d7fb1fcc97f5bd85afc2191f90f86f8c381453cb09  contracts/capability-registry-v2.json
+da5d184644cda6e01467a46104ccd7724b73c43be17fda25829c2488a39ccb0f  contracts/gateway-github-decision.schema.json
+7fa6bd508e96303ecfecad186a4bb92d2469706d4a9609e28ff24405b825b879  contracts/public-connector-consent.schema.json
+858752f814dea48ff6f9db46b7c7bec04255c86bee4191d9da40d55e3af16aa7  docs/evidence/batch3-b33a/ACCEPTANCE.md
+e4d99ae9e61f728b28c1087b106d4b2a3c19b9cbdda93b6fe631659afb269402  web/src/components/GitHubReceipt.tsx
+16605f0f2d4ef555df4f65f19ca72c714490243b7f47cbe130041f98a0d0c491  web/src/components/ToolActivity.tsx
+7e37267772e46906efc237f901aaf4a50efa7942de8c8df2adece8331581a3a7  web/src/lib/github-receipt.ts
+c56ec83aef4e30534175b58623ad56fb4ca8600fbf50aa703508c04cadfc5ef0  web/src/lib/tool-activity.ts
+bee89fa32296e45d122e591c7d014a3bd7cc50b9f777e2962c3031ee17e9d433  web/test/github-receipt.test.ts
+```
+
+Supporting source inspected outside this candidate set remains anchored to the stated base commit. Independently checked hashes for the principal transport/read/render dependencies:
+
+```text
+e5b37288e6e51aabcf81ada626fd37fff245110485f4a0572ebc97a04cd855d8  backend/workagent/public_retrieval.py
+1f339de2e443df78decf7099f3002327bd5903d7a3151ad699d27babf90a0330  backend/workagent/source_snapshots.py
+4455b64aa5d167dc5d8399eea67c73419fcfcdff323d57dc7ce22c5d6fbcedd9  backend/workagent/capabilities/observations.py
+0b5c8b185ccaa3d645d086375c4b232902d2f37a37a4f5d6cb00cfca61191a68  backend/workagent/tui/tool_activity_screen.py
+d6dfa0a672f0e5a7ecddb754d1d4c6e4f9802b56e82467525fd767129b815c00  backend/workagent/tui/safe_text.py
+```

@@ -1,0 +1,112 @@
+[
+  {
+    "url": "https://api.github.com/repos/psf/requests",
+    "status": 200,
+    "observed_at": "2026-10-29T04:47:20.567461+00:00",
+    "sha256": "2a91af0251db4efd1672aa4108406caef00620510f146f294bd1f29c1ef94827",
+    "bytes": 6016,
+    "headers": {
+      "ETag": "W/\"04aeed8b0b58d922783d44cf1d5fc87aa77815bfe932a3715c9023b7e7abe182\"",
+      "Last-Modified": "Thu, 29 Oct 2026 04:44:26 GMT",
+      "X-RateLimit-Remaining": "59",
+      "X-RateLimit-Reset": "1793252840",
+      "X-GitHub-Request-Id": "BF04:15E58E:5D76B09:85861A9:6AE2CFD8"
+    },
+    "request_headers": {
+      "Host": "api.github.com",
+      "User-agent": "Workagent-Public-Acceptance/1",
+      "Accept": "application/vnd.github+json",
+      "X-github-api-version": "2022-11-28",
+      "Accept-encoding": "identity"
+    },
+    "file": "repository.json"
+  },
+  {
+    "url": "https://api.github.com/repos/psf/requests/commits/main",
+    "status": 200,
+    "observed_at": "2026-10-29T04:47:20.791257+00:00",
+    "sha256": "fcb1dc1b7482f078a217db2bb7b624d884f3e48e776ad3732d419b80785a5e3e",
+    "bytes": 12445,
+    "headers": {
+      "ETag": "W/\"6fe56a630458c5d85172a711d5dd0b4262dfc4b4228f9dd993b5041112b06a13\"",
+      "Last-Modified": "Mon, 26 Oct 2026 17:14:41 GMT",
+      "X-RateLimit-Remaining": "58",
+      "X-RateLimit-Reset": "1793252840",
+      "X-GitHub-Request-Id": "BF12:1214FD:6167DC4:8AB2869:6AE2CFD8"
+    },
+    "request_headers": {
+      "Host": "api.github.com",
+      "User-agent": "Workagent-Public-Acceptance/1",
+      "Accept": "application/vnd.github+json",
+      "X-github-api-version": "2022-11-28",
+      "Accept-encoding": "identity"
+    },
+    "file": "commit.json"
+  },
+  {
+    "url": "https://api.github.com/repos/psf/requests/readme?ref=3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+    "status": 200,
+    "observed_at": "2026-10-29T04:47:21.011490+00:00",
+    "sha256": "051382ad10d2f9179696e0a7b6dde8be03b727c15beb03f253147b8246cfd556",
+    "bytes": 4912,
+    "headers": {
+      "ETag": "W/\"4e5c44555c02f127cd0cca2efa8b22716c78ee23\"",
+      "Last-Modified": "Mon, 26 Oct 2026 17:14:41 GMT",
+      "X-RateLimit-Remaining": "57",
+      "X-RateLimit-Reset": "1793252840",
+      "X-GitHub-Request-Id": "BF16:3A0262:61AAF45:8AFB448:6AE2CFD8"
+    },
+    "request_headers": {
+      "Host": "api.github.com",
+      "User-agent": "Workagent-Public-Acceptance/1",
+      "Accept": "application/vnd.github+json",
+      "X-github-api-version": "2022-11-28",
+      "Accept-encoding": "identity"
+    },
+    "file": "readme.json"
+  },
+  {
+    "url": "https://api.github.com/repos/psf/requests/releases?per_page=2&page=1",
+    "status": 200,
+    "observed_at": "2026-10-29T04:47:21.253022+00:00",
+    "sha256": "6df8b7b068af44b83408901f523bcbe2bfcc346cf0f646b43dd6e1f893aa277f",
+    "bytes": 11022,
+    "headers": {
+      "ETag": "W/\"e1a0d7da98b10f67ad1eec9595384838a458fae637733be2826c3fdbb8159e69\"",
+      "Link": "<https://api.github.com/repositories/1362490/releases?per_page=2&page=2>; rel=\"next\", <https://api.github.com/repositories/1362490/releases?per_page=2&page=10>; rel=\"last\"",
+      "X-RateLimit-Remaining": "56",
+      "X-RateLimit-Reset": "1793252840",
+      "X-GitHub-Request-Id": "BF20:1F3C3D:617D2FC:8AC4147:6AE2CFD9"
+    },
+    "request_headers": {
+      "Host": "api.github.com",
+      "User-agent": "Workagent-Public-Acceptance/1",
+      "Accept": "application/vnd.github+json",
+      "X-github-api-version": "2022-11-28",
+      "Accept-encoding": "identity"
+    },
+    "file": "releases.json"
+  },
+  {
+    "url": "https://api.github.com/repos/psf/requests/issues?state=open&per_page=2&page=1",
+    "status": 200,
+    "observed_at": "2026-10-29T04:47:21.583300+00:00",
+    "sha256": "edf4e3219a8cee95747347bdeaec7149b66ecb53e13b2f2171e18c7fc1a896b9",
+    "bytes": 8497,
+    "headers": {
+      "ETag": "W/\"b6fca603d950031784bf2b8103af0eea73f6d585a44407596e1799c6cbdf2821\"",
+      "Link": "<https://api.github.com/repositories/1362490/issues?state=open&per_page=2&page=2&after=Y3Vyc29yOnYyOpLPAAABoXjvc2jPAAAAAWg12lc%3D>; rel=\"next\"",
+      "X-RateLimit-Remaining": "55",
+      "X-RateLimit-Reset": "1793252840",
+      "X-GitHub-Request-Id": "BF2E:1AF9A8:6023EC1:8942F51:6AE2CFD9"
+    },
+    "request_headers": {
+      "Host": "api.github.com",
+      "User-agent": "Workagent-Public-Acceptance/1",
+      "Accept": "application/vnd.github+json",
+      "X-github-api-version": "2022-11-28",
+      "Accept-encoding": "identity"
+    },
+    "file": "issues.json"
+  }
+]
