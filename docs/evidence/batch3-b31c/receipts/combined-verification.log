@@ -1,0 +1,244 @@
+{
+  "passed": true,
+  "controlled_transport": true,
+  "paid_calls": 0,
+  "causal_usefulness_claim": false,
+  "comparisons": [
+    {
+      "label": "initial",
+      "run_id": "f1ecd324-e368-4e59-be5b-e79fae86a464",
+      "expected": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "240.000",
+          "mean_seconds": "120.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "1",
+          "total_seconds": "240.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "actual": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "240.000",
+          "mean_seconds": "120.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "1",
+          "total_seconds": "240.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "output_sha256": "d46eb6bc8db9f901c1850047e909fd533474229e9d01bcd102fd73087007a856",
+      "memory_revisions": [],
+      "context_count": 6,
+      "usage_count": 6,
+      "fresh_process_no_repeat": true,
+      "oracle": "Independent explicit Fraction observations; not model output"
+    },
+    {
+      "label": "later",
+      "run_id": "cd66db57-9872-45eb-8a0d-a2b911f9b462",
+      "expected": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "actual": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "output_sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+      "memory_revisions": [
+        "0c419f24-befb-4903-9c92-af79888a3698"
+      ],
+      "context_count": 6,
+      "usage_count": 6,
+      "fresh_process_no_repeat": true,
+      "oracle": "Independent explicit Fraction observations; not model output"
+    },
+    {
+      "label": "control",
+      "run_id": "f9ac2ba7-953d-4d7e-8f5d-351d0152d51f",
+      "expected": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "actual": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "output_sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+      "memory_revisions": [],
+      "context_count": 6,
+      "usage_count": 6,
+      "fresh_process_no_repeat": true,
+      "oracle": "Independent explicit Fraction observations; not model output"
+    },
+    {
+      "label": "native100",
+      "run_id": "f26c1812-01f7-4882-932a-7c653b107e55",
+      "expected": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "180.000",
+          "mean_seconds": "90.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        }
+      ],
+      "actual": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "180.000",
+          "mean_seconds": "90.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        }
+      ],
+      "output_sha256": "c3c60081e6aceb559cda2bb855732a16559080cc8aae25ceba9f833420b9d868",
+      "memory_revisions": [
+        "0c419f24-befb-4903-9c92-af79888a3698"
+      ],
+      "context_count": 6,
+      "usage_count": 6,
+      "fresh_process_no_repeat": true,
+      "oracle": "Independent explicit Fraction observations; not model output"
+    },
+    {
+      "label": "forgotten",
+      "run_id": "20f2a276-609a-4704-85da-c6e4a0b9f33f",
+      "expected": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "actual": [
+        {
+          "group": "North",
+          "unique_valid_observations": "2",
+          "total_seconds": "360.000",
+          "mean_seconds": "180.000"
+        },
+        {
+          "group": "South",
+          "unique_valid_observations": "2",
+          "total_seconds": "480.000",
+          "mean_seconds": "240.000"
+        }
+      ],
+      "output_sha256": "93177837c18cf1b7f83ca8d5655f350a8b446dc952dd49280214263607804c08",
+      "memory_revisions": [],
+      "context_count": 6,
+      "usage_count": 6,
+      "fresh_process_no_repeat": true,
+      "oracle": "Independent explicit Fraction observations; not model output"
+    }
+  ],
+  "worker_processes": [
+    14998,
+    17280,
+    18123,
+    18756,
+    19992
+  ],
+  "verifier_pid": 20593,
+  "human_revision": {
+    "file_id": "c7cbc6ab-3196-4b10-86b9-85f14ab894cd",
+    "revision_id": "9811b267-b69e-458b-b474-f207ed244f9c",
+    "sha256": "191b764d57ea2263bc616e5660d5f0f2e9655ac9720b6ede2df925d5be6ae51d",
+    "author_kind": "human",
+    "exact_text": "group,unique_valid_observations,total_seconds,mean_seconds\nNorth,2,240.000,120.000\nSouth,1,240.000,240.000\n\nHuman annotation: South remains provisional; retain this exact wording \u2014 reviewed by test operator.\n"
+  },
+  "compute_observation_count": 5,
+  "equal_tools_no_memory_same_result": true,
+  "negative_scope_transfer_absent": true,
+  "forget_payloads_erased": true,
+  "unknown_no_repeat": {
+    "run_id": "f1f57e42-5573-4ad0-bc4e-6842a06ed472",
+    "state": "running",
+    "provider_calls": [],
+    "steps": [
+      {
+        "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+        "phase": "selection",
+        "request_sha256": "f377238c720a3597d956d918d76534d9fe4133fd4df51b3abb623cd1dfa723ae"
+      },
+      {
+        "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+        "phase": "selection_2",
+        "request_sha256": "d092faa902aefe6cd610cc184568684656b055d520afb71169cea348de9454a6"
+      },
+      {
+        "attempt_id": "4b11f7af-eaf0-4110-925f-7e7a52ee225f",
+        "phase": "selection_3",
+        "request_sha256": "426fd3d24fb04831f265dfb0ba9e72b5eeb9651a50741024312d3b47f8ccea39"
+      }
+    ],
+    "reason": "Controlled callback raised before returning a result; retained unknown, no blind resend"
+  }
+}

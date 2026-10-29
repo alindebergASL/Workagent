@@ -1,0 +1,97 @@
+......FF                                                                 [100%]
+=================================== FAILURES ===================================
+___________ test_parent_later_worker_request_manifest_correct_forget ___________
+
+context = (<workagent.service.Service object at 0x711ff5d09fd0>, Principal(id='local-human', kind='human'), 'test-574b6365-39d0-...ime.datetime(2026, 10, 28, 23, 23, 33, 68515, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/tmp/pytest-of-ubuntu/pytest-1/test_parent_later_worker_reque0')
+
+    def test_parent_later_worker_request_manifest_correct_forget(context, tmp_path):
+        s, p, ws, _, _ = context
+        first, later = conversation(context), conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='user', scope_id=p.id,
+            subject_key='writing', predicate_key='heading_style', content='Use concise headings'))
+        activated(context, later)
+        def execute(expected_revision):
+            cv = s.get_conversation(p, ws, later.id).conversation
+            q = post(context, cv, 'Prepare this next ordinary project summary')
+            provider = AlphaProvider([{'kind': 'reply', 'text': 'Controlled transport completed the request.'}])
+            w = worker(context, provider, tmp_path)
+            result = finish_safe_visits(context, w, q.run.id)
+            assert result.state == 'ready'
+            assert provider.contexts, 'Must capture an actual provider-bound request'
+            entries = provider.contexts[0]['memory_manifest']
+            assert [x['revision_id'] for x in entries] == ([expected_revision] if expected_revision else [])
+            usages = s.memory_usage(p, ws, q.run.id).items
+            assert len(usages) == 2
+            assert len({(u.attempt_id, u.phase, u.request_sha256) for u in usages}) == 2
+            with s.db.transaction() as c:
+                for usage in usages:
+                    actual = c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
+                                       (usage.attempt_id, usage.phase)).fetchone()
+                    assert actual['request_sha256'] == usage.request_sha256
+            assert all([x.revision_id for x in item.entries] == ([expected_revision] if expected_revision else []) for item in usages)
+            calls = list(provider.calls)
+            assert worker(context, provider, tmp_path).work(p, ws, q.run.id).state == 'ready'
+            assert provider.calls == calls, 'A completed run must not send again on restart'
+            return q, provider
+>       first_run, initial = execute(m.revision_id)
+
+../../b31b-recovery-tb7f7aa98/candidate/backend/tests/test_memory_parent_worker.py:52: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+expected_revision = 'c9a1c468-44e6-4800-a861-e030b074e06a'
+
+    def execute(expected_revision):
+        cv = s.get_conversation(p, ws, later.id).conversation
+        q = post(context, cv, 'Prepare this next ordinary project summary')
+        provider = AlphaProvider([{'kind': 'reply', 'text': 'Controlled transport completed the request.'}])
+        w = worker(context, provider, tmp_path)
+        result = finish_safe_visits(context, w, q.run.id)
+>       assert result.state == 'ready'
+E       AssertionError: assert 'partial' == 'ready'
+E         
+E         - ready
+E         + partial
+
+../../b31b-recovery-tb7f7aa98/candidate/backend/tests/test_memory_parent_worker.py:35: AssertionError
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 33, "utf8_bytes": 33}, "composition": {"estimated_tokens": 6603, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 2, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 4, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 4, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 19817, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 417, "utf8_bytes": 417}, "other_context": {"estimated_tokens": 4283, "utf8_bytes": 4283}, "saved_work": {"estimated_tokens": 95, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 4, "utf8_bytes": 4}, "text": {"estimated_tokens": 4, "utf8_bytes": 4}, "tools": {"estimated_tokens": 24886, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 448, "utf8_bytes": 448}}, "estimated_input_tokens": 58023, "estimated_packing_ceiling": 37000, "estimator": "utf8_byte_upper_bound", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 58023, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "89a99992f5e8fc0cbfcd04ef0b530ab559c91621d18ade81f561cdc756a44f5f", "run_id": "db9b5d9c-ff48-4f9e-8647-f6fce17591a1"}
+__________ test_parent_correction_during_model_io_fences_publication ___________
+
+context = (<workagent.service.Service object at 0x711ff5d5ba10>, Principal(id='local-human', kind='human'), 'test-4b13bfe5-1120-...me.datetime(2026, 10, 28, 23, 23, 33, 685533, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/tmp/pytest-of-ubuntu/pytest-1/test_parent_correction_during_0')
+
+    def test_parent_correction_during_model_io_fences_publication(context, tmp_path):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='task', scope_id=cv.id,
+            subject_key='writing', predicate_key='heading_style', content='Use concise headings'))
+        activated(context, cv)
+        q = post(context, cv, 'Prepare a summary')
+        class MidIOCorrection(AlphaProvider):
+            changed = False
+            def handle(self, request):
+                result = super().handle(request)
+                if request.method == 'POST' and not request.url.path.endswith('input_tokens') and not self.changed:
+                    self.changed = True
+                    s.correct_memory(p, ws, m.memory_id, cmd(CorrectMemory, expected_revision_id=m.revision_id,
+                        content='Use descriptive headings'))
+                return result
+        provider = MidIOCorrection([{'kind': 'reply', 'text': 'STALE RESULT MUST NEVER PUBLISH'}])
+        w = worker(context, provider, tmp_path)
+>       with pytest.raises(DomainError) as refusal:
+E       Failed: DID NOT RAISE <class 'workagent.errors.DomainError'>
+
+../../b31b-recovery-tb7f7aa98/candidate/backend/tests/test_memory_parent_worker.py:82: Failed
+----------------------------- Captured stderr call -----------------------------
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 33, "utf8_bytes": 33}, "composition": {"estimated_tokens": 6603, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 2, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 4, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 4, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 19817, "utf8_bytes": 19817}, "messages": {"estimated_tokens": 392, "utf8_bytes": 392}, "other_context": {"estimated_tokens": 4309, "utf8_bytes": 4309}, "saved_work": {"estimated_tokens": 95, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 4, "utf8_bytes": 4}, "text": {"estimated_tokens": 4, "utf8_bytes": 4}, "tools": {"estimated_tokens": 24886, "utf8_bytes": 24886}, "work_area_context": {"estimated_tokens": 448, "utf8_bytes": 448}}, "estimated_input_tokens": 58024, "estimated_packing_ceiling": 37000, "estimator": "utf8_byte_upper_bound", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 58024, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "d434c06fee05b1c9ae67e2722c4083eba1ff1ba3c9e8380ca899feb2cb5500db", "run_id": "36b8d587-0885-44a4-99f0-d1fefdc9ed6e"}
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_parent_worker.py::test_parent_later_worker_request_manifest_correct_forget
+FAILED backend/tests/test_memory_parent_worker.py::test_parent_correction_during_model_io_fences_publication
+2 failed, 6 passed, 1 warning in 3.91s

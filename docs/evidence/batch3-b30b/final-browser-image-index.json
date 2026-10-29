@@ -1,0 +1,58 @@
+{
+  "images": {
+    ".local/batch3/b30b/r34-browser4/r3-1440.png": {
+      "sha256": "9a1c4f47b3dc5f21f1b1f84ebfbcd46f26ffa2017fb7fe1276adbb59c0af857b",
+      "bytes": 115298
+    },
+    ".local/batch3/b30b/r34-browser4/r3-320.png": {
+      "sha256": "1ff2af9d0964cb3e26c861104c5a684855d97c682c33a325acb7d86ac568fafb",
+      "bytes": 92440
+    },
+    ".local/batch3/b30b/r34-browser4/r3-390.png": {
+      "sha256": "4f8e781b13dee866efa1faac65463cf2fcc3383d662afdda3dd7243688d51924",
+      "bytes": 92396
+    },
+    ".local/batch3/b30b/r34-browser4/r3-pending-1440.png": {
+      "sha256": "d7eba9e74ff7444f5514829bd2b6dfec56c44aa87faadaf7f9070d0e6a037673",
+      "bytes": 143189
+    },
+    ".local/batch3/b30b/r34-browser4/r3-pending-320.png": {
+      "sha256": "add64f8e1382c3b86c6d1f3c23e64b68caf840356d7eabca1b2e6c451078e4f4",
+      "bytes": 116785
+    },
+    ".local/batch3/b30b/r34-browser4/r3-pending-390.png": {
+      "sha256": "de7715636cc46ab32bb81a57afc89c59aaf9767dfa017878e938517509d178e7",
+      "bytes": 109708
+    },
+    ".local/batch3/b30b/r34-browser4/r4-1440.png": {
+      "sha256": "0ab93bfbb8e62a03a96b719739dfd7819400740b06a980a1109ff30ec51d24dd",
+      "bytes": 108739
+    },
+    ".local/batch3/b30b/r34-browser4/r4-320.png": {
+      "sha256": "93bd5307c55f668f6a1f0d502b228119dba90a860c6d297bbb58524bece2fcd7",
+      "bytes": 87404
+    },
+    ".local/batch3/b30b/r34-browser4/r4-390.png": {
+      "sha256": "c92048ef62ec904d4c91d9e93e850ceab619537b2125ecca835609e642fa0ffd",
+      "bytes": 87425
+    },
+    ".local/batch3/b30b/r34-browser4/r4-pending-1440.png": {
+      "sha256": "3652cd036fea2e1d8b24f31a712e240da5f50432e565efe696b0e011a602c286",
+      "bytes": 141021
+    },
+    ".local/batch3/b30b/r34-browser4/r4-pending-320.png": {
+      "sha256": "940a3304123a1936682f1a3e65e8ca69e03a7c3f00200cfda1e9694df312827d",
+      "bytes": 116255
+    },
+    ".local/batch3/b30b/r34-browser4/r4-pending-390.png": {
+      "sha256": "c9fb9901ae9e31231c1e9fbed40c192b158416eb89979133e420c9746cb7ff71",
+      "bytes": 113208
+    }
+  },
+  "inspected": [
+    "r3-1440.png",
+    "r4-pending-390.png",
+    "r4-pending-320.png"
+  ],
+  "assessment": "Preserved newer text and independent composer; readable pending text; controls focused/unobscured after ordinary center scroll; no horizontal overflow. Phone controls wrap at320. Earlier non-centered scroll hit-test failure retained."
+}

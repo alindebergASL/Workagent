@@ -72,9 +72,9 @@ def main():
   for _ in range(100):
    assert all(c.poll() is None for c in children),'Owned service exited'
    try:
-    with urlopen(Request('http://127.0.0.1:3266/api/domain/v1/workspaces',headers={'X-Workagent-Client':'local-ui'}),timeout=2) as r:
-     if r.status==200:break
-   except OSError:time.sleep(.2)
+    if launcher.scoped_ready('http://127.0.0.1:3266'):break
+   except (OSError, ValueError, KeyError):pass
+   time.sleep(.2)
   else:raise RuntimeError('Readiness failed')
   result=subprocess.run(['node',str(ROOT/'scripts/verify_native_target.mjs'),str(out/'fixture.json'),str(out/'browser.json')],env=env,cwd=ROOT)
   browser=json.loads((out/'browser.json').read_text());detail=s.get_conversation(who,ws,cv.id)

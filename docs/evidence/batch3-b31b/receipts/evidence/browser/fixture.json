@@ -1,0 +1,28 @@
+{
+  "workspace_id": "b31b-ui-aa44e1ef-73a0-43ad-9bd6-90800f65da0c",
+  "conversations": {
+    "desktop": "8489bc26-11f4-4306-8aca-3c5caea66176",
+    "mobile": "0b1e9224-099a-4a6c-912c-7f9ec35eb2ea",
+    "pty100": "1e2bb83b-1bae-40a0-ac8b-3f92f1e3721e",
+    "pty80": "e12eb4cd-31a9-4814-9f1e-2cce19a5d6e3"
+  },
+  "projects": {
+    "desktop": "422627c6-1dc9-4ff9-8343-c4dd8c4921ae",
+    "mobile": "b922c5a5-e9aa-44c5-8ddb-3ca38f7b1251",
+    "pty100": "fa6af23f-0da7-4d84-9809-54eafdc41e3d",
+    "pty80": "eac5305e-c89c-4e51-adbd-1303cc456dee"
+  },
+  "memories": {
+    "pty100": {
+      "memory_id": "3c69e572-cd21-4e41-8c3d-1d6f7c6e2930",
+      "revision_id": "83715a0b-f04a-4c17-a2bb-c083fe6e0574",
+      "status": "active"
+    },
+    "pty80": {
+      "memory_id": "0b6e4f20-574c-45bc-8aa5-586ac81e7541",
+      "revision_id": "de7b1f8e-4c52-463a-a183-0a5fc5af8e1d",
+      "status": "active"
+    }
+  },
+  "evidence": "synthetic fixture, real restricted PostgreSQL"
+}

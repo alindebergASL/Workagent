@@ -1,0 +1,13 @@
+{
+  "fixture": "fixture",
+  "read_only": true,
+  "history_modified": false,
+  "rows": [
+    {
+      "name": "063_github_public.sql",
+      "checksum": "bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9",
+      "applied_at": "2026-10-29T05:07:39.763725+00:00",
+      "current_sha256": "bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9"
+    }
+  ]
+}

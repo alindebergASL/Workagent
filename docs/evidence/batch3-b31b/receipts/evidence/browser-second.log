@@ -1,0 +1,11 @@
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+route.abort: Route is already handled!
+    at /home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/browser_recovery.mjs:59:142 {
+  log: [],
+  name: 'Error'
+}
+
+Node.js v22.23.4

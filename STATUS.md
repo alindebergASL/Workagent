@@ -1,6 +1,182 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: Batch 2 implementation active; first integration candidate verified
+## Latest: B3.5b offline held-out harness prepared; live trials unfunded
+
+- [Preparation evidence](docs/evidence/batch3-b35b/ACCEPTANCE.md): frozen accepted B0 `26e599b3` versus candidate `914043a`, external evaluator-only v2 corpus with21 cases including reserves, mixed B0/B1/M1 order and42 fresh primary stores.252 actual no-network request/custody episodes pass;42 whole-request cross-project controls and84 equal B1/M1 prompt/schema/model pairs are verified. These are deterministic receipts, not solved tasks or memory usefulness.
+- Real pinned gVisor oracle-path/network probe passes;29 focused harness controls and9 fresh ledger checks pass. One independent risk review identified5 issues; parent narrow closure, fresh v2 inputs and runtime/dependency locks retain all original failures/timeouts. Full136-row evaluation/correction/safety/T6/T7 matrix includes the conditional private pilot;66 unchanged B3.5a source bindings support scoped safety-proof reuse.
+- Read-only13-store reconciliation at2026-10-29T16:23Z retains99.60596USD of100USD allocated,0.39404USD globally unallocated,3 unknown-usage steps and7 unmatched-count steps. Unused expired/old scoped grants are not new money. No full preregistered live trajectory is funded: single-trajectory maximum29.61216USD; A/B maximum355.34592USD under installed conservative count/read reserves. These are upper envelopes, not expected fees or new allocations.
+- Current full-tool schema does not enable typed-memory SQL recall; offline M1 projection is explicitly not that runtime. Existing B3.5c `t_82b30c02` owns the narrow real-treatment integration/refreeze and exact funding blocker before any live execution. Named private consent remains separate/nonblocking for this completed preparation. No product code/migration changes, paid product calls, new authority, installed-data maintenance, deployment/default merge or whole-Batch3 acceptance. Feature publication/exact-head CI are recorded separately on the task/PR.
+
+## Previous: B3.5a correction/forget/revoke/isolated recovery verified
+
+- Exact dependency-aware memory correction, applicability, recursive erasure/tombstones and current-authority exclusion now cover queued/in-flight requests and automated conversation/file/proposal/export derivatives, while retaining human revisions and audit/unknown history. New migrations069–072; prior68 migrations unchanged.
+- All8 literal correction variants pass again in a new interpreter and two isolated restores from pre-change backup. Actual worker PID replacement/no-send replay, owned API/web restart, web1440/390/320 and full native120x40/80x24 are verified with exact preserved human-file readbacks. Restore is quarantined inspection/human recovery, never grant/balance resume.
+- The original4 independent risk findings are closed using named regressions and narrow follow-up. Original257-pass/1-fail core results and all later fixture repairs remain explicit; overlapping campaigns are not added. Full11 safety rows and measurement/report limitations are mapped in [acceptance/evidence](docs/evidence/batch3-b35a/ACCEPTANCE.md).
+- A later narrow web memory-source formatter bridge repairs the initial TypeScript CI failure;63 focused Vitest tests, current typecheck/format/lint and separate parent review cover that delta. The older browser build is not exact-current; unchanged safety journeys are reused with explicit scope, not relabeled fresh. Exact-head publication/CI is recorded separately.
+- Zero paid product calls, installed-data maintenance, new graph, cap changes, default merge or deployment. No general usefulness/Batch3 completion claim. Existing successor is B3.5b `t_726f2c10`; parent completion requires feature publication/exact-head CI and owned-proof-service shutdown receipts, attached to the card/PR.
+
+## Previous: B3.4b bounded deterministic delegation verified
+
+- Optional run-scoped `delegation.analysis` and `delegation.verify` use actual existing pinned gVisor child processes; the single product worker remains default. Two-child limit, exact source/processor intersection, shared cumulative reservations, unknown/no-replay protection and cancellation/revocation fences are enforced.
+- Child results stay proposals. Parent-accessible exact proposal hashes, separate executed checks, explicit discard recovery and draft/export assimilation gates retain evidence/cost without human acceptance or memory auto-admission.
+- Final fresh test-04: 43 focused PG/process/worker/native cases pass, plus one lost-parent-provider/no-replay control. Distinct parent subprocess restart and actual child completion followed by injected ACK loss are exercised. Actual full native PTYs at 120×40 and 80×24 show child/check status; the narrow keyboard proof exposes verification limits. Two live-TCP mounted native cases also clear revoked results.
+- One independent risk review and narrow closure: R1 alternate compute-export assimilation, R2 incorrect-child discard recovery and R3 nonfinite JSON were fixed and regressed. Canonical contracts and contract TypeScript checks pass. All 67 prior migration files and the preexisting untracked contracts lock are unchanged.
+- [Acceptance and exact-source evidence](docs/evidence/batch3-b34b/ACCEPTANCE.md). No paid product calls, model/profile/agent-cap increases, web implementation, new processor route, private access, default merge or deployment. This is deterministic analysis delegation, **not** paid multi-agent usefulness or Batch 3 completion. Existing successor: B3.5a `t_df70d103` correction/forget/revoke/restore safety. Final publication/CI and owned-service shutdown are recorded in the parent task/PR readback.
+
+## Latest: B3.4a reviewed-procedure mechanisms accepted
+
+- [Evidence package](docs/evidence/batch3-b34a/ACCEPTANCE.md) binds evidence-backed human-proposed procedures, versioned review/restore and exact later usage. Actual web/native lifecycles, both useful synthetic transfers and residual late-response/source-revoke boundaries are verified at their disclosed evidence levels. No causal learning/live-model benefit claim.
+- All R1–R5/C1 code defects are closed by the same independent reviewer; no new code delta or review campaign. Retained98 PG/HTTP/native and25 later native cases overlap by21, not an additive total;60 focused web tests and optimized build are reused, not freshly rerun.
+- All32 checkpoint source files remain unchanged. Full910-input source manifest,331 matching web/contracts build inputs,194 retained outputs and25 external traced files bind build `HAEr4yziKBlWBIpt1euzS`. Fresh read-only test-04 checks match all68 final table snapshots,67 migrations and exact saved human CSV/editorial versions. First66 migrations match base; preexisting contracts lock remains untracked/unchanged.
+- Actual [CSV](docs/evidence/batch3-b34a/outputs/duration-summary.csv), [editorial brief](docs/evidence/batch3-b34a/outputs/current-policy-brief.md) and corrected ZIP are packaged. Verified attachment7 on package card replaces use of malformed parent attachment6, which remains historical with its warning. Credentials/raw contexts/worker capabilities remain private; earlier failures and unknowns are retained.
+- Parent `t_0ff857b1` accepts this slice's implementation and synthetic mechanism evidence after verifying the exact staged package, source/build bindings, retained review and useful outputs. Feature publication/remote readback and exact-head CI identities are recorded in the final parent task/PR receipt, not inferred from predecessor CI. Parent completion requires those checks and releases existing B3.4b `t_73a6251f`; it does not complete Batch3. Owned18240/13240 are stopped/refused; compute-b34a inactive/MainPID0. No installed services, paid calls, deployment/default merge or cap change. [Parent handoff](docs/evidence/batch3-b34a/HANDOFF.md).
+
+## Previous: B3.3b pinned MCP and synthetic OAuth mechanisms verified
+
+- [Acceptance](docs/evidence/batch3-b33b/ACCEPTANCE.md): protocol2026-07-28 and maintained SDK2.3.0 pinned; real local TCP and isolated stdio, reviewed schema/tool subset, synthetic PKCE/vault/refresh/revoke and late-result/source/memory fences. Normal runtime SQL cannot attest provider outcomes; API remains trusted with vault/executor credentials.
+- Final46 integrated tests pass without skips; focused39 web tests pass. Exact optimized build `sVDEPH9Pel_-AQAeUFWDH` has328 matching web/contracts inputs and194 hashed outputs. Fresh current ordinary browser send → real MCP → saved reading brief → human edit/reload passes1440/390/320. Unchanged broad browser/native revoke/denial/restart proof is explicitly reused, not relabeled new-build evidence.
+- One same-reviewer security closure; source/build/evidence/private manifests and positive-controlled privacy scan. Both preserved v3 and fresh v5 human revisions read back exactly, all66 migration checksums match. Historical failures/unknown dispatches remain retained and unreplayed. Zero paid product calls; deterministic selection is not live-model usefulness.
+- Owned18769/18239/13239 services stopped; installed data/services untouched. Feature push/exact-head CI are recorded in the final card/PR handoff, not deployment/default merge or Batch3 completion. Existing successor `t_0ff857b1` is B3.4a human-reviewed procedures; separate private pilot `t_bb46e05f` remains unmet/nonblocking. No new graph/reviewer; preexisting lock and separate memory-link/Cloud work preserved. [Handoff](docs/evidence/batch3-b33b/HANDOFF.md).
+
+## Previous: B3.3a public read-only GitHub connector accepted
+
+- [Acceptance](docs/evidence/batch3-b33a/ACCEPTANCE.md): ordinary composer → four real unauthenticated public GitHub reads → versioned issue/release brief → actual export. Independent exact-URL response/body/hash/version readback passes. Deterministic model selection is explicit; zero paid product calls and no autonomous-model usefulness claim.
+- Actual optimized web1440/390/320 and native PTYs pass before/after restart; human v2 remains exact7,272bytes. Separate controlled fixtures render rate-limit/denied/unavailable/changed-source truthfully and clear preloaded title/receipt/source content on authenticated refresh after real scope reduction. Real-PG late-response/memory/provider denial and selective nonenumeration pass; unchanged86passed/1opt-in-network-skip evidence reused.
+- One unchanged Astra static PASS,38 current source/support hashes,319 retained build inputs/183 outputs and three disposable migration-journal continuity checks bind the proof. Build `GQzQ3yK6Zirw2co_DmK_5` is reused; one unconsumed catalog difference is explicit, generated web client inputs match. Historical failed fixtures/unknown receipts remain retained, credentials/raw review stderr excluded.
+- Owned proof services18238/13238 are stopped; installed services/data untouched. Feature publication/exact-head CI are in the task handoff, not deployment or Batch3 completion. Existing next card is `t_5f3bcb34` B3.3b protocol/synthetic OAuth; no private access or write authority inferred. Separate memory-link/Cloud work and untracked contracts lock are preserved.
+
+## Previous: B3.2c confined diagnosis and real patch/test receipts accepted
+
+- [B3.2c acceptance](docs/evidence/batch3-b32c/ACCEPTANCE.md): existing confined Python/shared-file gateway now has truthful web/native receipt viewers and verified patch downloads. Original tests fail, proposed exact-base fixes pass; independent frozen oracles pass494/518/494 for v1/changed-v2/transfer. Human v2 bypass remains unchanged, stale v1 acceptance is refused, and process restart does not duplicate computation.
+- Actual optimized web1440/390/320 and native PTY download/readback pass before/after restart. Failed tests remain failed; unavailable is uncertain, not proof nothing ran. Refused downloads withdraw the affected receipt and ignore late completions. One independent reviewer closes both initial P2 findings;39 native,23 web,8 restricted-PG and4 actual isolation checks pass (not additive with earlier attempts).
+- [B3.2b predecessor](docs/evidence/batch3-b32b/ACCEPTANCE.md) remains accepted: editable office copies, validated exports and computed charts. Neither slice is paid-model usefulness, deployment or Batch3 completion. B3.3a public read-only GitHub connector is the existing successor `t_aec74bff`; no private-account or write authority is inferred. Final feature publication/CI and owned-service shutdown are in the task handoff. Historical partial/failed runs remain retained.
+
+## Previous: B3.2a grounded research mechanisms accepted
+
+- [Acceptance](docs/evidence/batch3-b32a/ACCEPTANCE.md) closes immutable public
+  search/capture/citation/freshness and confined offline browser fallback. Missing
+  production search is explicit unavailable; no paid search/model usefulness claim.
+- Actual original saved working-file citations now render at1440/390/320 before/
+  after restart, with exact human revision/body, unsupported/stale flags and10/12-unit
+  captures. Refresh preserves saved/unsaved text and is GET-only. Native100×45/80×35,
+  real restricted-PG/production-worker recursive revocation and no-repeat proof pass.
+- Final37 backend/PG,3 HTTP-PG and67 focused web checks, isolated optimized build,
+  canonical contracts and one independent narrow review closure pass. Earlier38 web
+  and85/6/4 checks are overlapping inherited runs, not additive totals.56 changed
+  source hashes and521 candidate inputs bind build `f81VUigyJq5lbmurBaPTo`.
+- Historical missing-consumer warning is superseded by final Claude consumer proof;
+  initial review failures and raw failure receipts remain. Minor disclosure collapse
+  and no artifact-detail citation mount are disclosed. No arbitrary polish rerun.
+- [Handoff](docs/evidence/batch3-b32a/HANDOFF.md) carries owned-service cleanup,
+  evidence boundaries and existing B3.2b successor `t_acf5c8f0`. Feature commit/CI
+  identities belong to the final task receipt, not installed-runtime promotion.
+- No paid product calls, new processor, installed-data maintenance, default merge,
+  cap/config changes or automatic integration of isolated memory-link repair
+  `d8c0bc04689d1b50698bcd4f6b141e3f2ce0d0cf`. Cloud/shared-page reconciliation and
+  historical budget/unknown liabilities remain unchanged. Only B3.2a is accepted.
+
+## Previous: B3.1c combined computation and reviewed-memory mechanism verified
+
+- B3.1b typed-memory source `9657a06cfbbcfc5f7c4176a0e8360b12c9e4515d` is the base.
+  A generic opt-in bridge now exposes ordinary human attachments as immutable,
+  exact-reference working files in the admission transaction; no data-specific
+  handler, implicit tool authority, migration or web change.
+- [B3.1c acceptance](docs/evidence/batch3-b31c/ACCEPTANCE.md) records five real
+  confined computations, independent arithmetic/download hashes, exact human
+  annotation retention, reviewed project-memory transfer after process restarts,
+  equal-tools/no-memory and unrelated/confidential project controls, forgetting,
+  and successful/unknown no-repeat checks. Actual1440/390/320 browser and100×45/
+  80×35 PTY journeys,10 targeted tests, production build and one independent
+  narrow risk review pass;362 candidate source hashes verified.
+- Controlled model transport only: zero paid product calls, no live usefulness or
+  causal memory-gain claim. Reuse unaffected B3.0/1a/1b evidence; no full-suite
+  rerun or Batch3-complete claim. Feature publication/CI identities belong to the
+  final task checkpoint, not an installed-runtime promotion.
+- A definite409 can follow an immediate send after memory-project linking;
+  explicit refresh/new send succeeds. Isolated Claude-owner web follow-up
+  `t_8f2dc0c8` is recorded, without changing CAS or auto-replaying unknown writes.
+- Owned EC2 proof API/web/compute stopped, ports refused, lease released; installed
+  API/web PIDs917/918 and saved data unchanged. Main successor is existing
+  `t_2e868b13` (B3.2a research), not mission completion. [Handoff](docs/evidence/batch3-b31c/HANDOFF.md).
+
+## Previous: pinned Cloud/B3 integration and verifier handoff reconciled
+
+- Integrated Cloud `dff9dc068b4227018612f7a99866e7f565130fa0` onto accepted B3.1a
+  `307c184d1fcffa244165bf727631fa5ccbf6f878`, preserving newer shared-files,
+  export, gateway and computation work. The two overlapping web files merged
+  cleanly; no Cloud features were reimplemented. Later Cloud `88bf984`/`4f75f5d`
+  are **not integrated**. [Exact handoff/evidence](docs/evidence/cloud-reconcile/HANDOFF.md).
+- Canonical session + scoped domain readiness repairs A14 verifier failures;
+  four reported note verifiers now use exact NotesList arrays, not line splitting.
+  Analogous active verifier scope probes are corrected. Controlled fixture mode
+  is explicit, and isolated configurable ports protect installed services.
+- Real EC2 production-build/PostgreSQL/browser general integration passes, including
+  controlled-consumer outage and all-process restart. Exact multiline/trailing-space
+  note array save/reload/API readback passes at390px; invalid empty notes are retained
+  and saving refused.21 launcher tests,58 focused web tests,49 Cloud DOM regressions,
+  optimized build/typecheck/lint pass; source-bound independent material review PASS.
+  Two preexisting B3 test/config format failures were corrected by bounded Opus5.5,
+  checked for equivalent parsed AST, and rechecked (format +9 race tests PASS).
+- Responsibility observation time records **changed text**, not freshness/revision
+  verification; legacy NULL remains unknown. Existing retained explanation is reused
+  in the proposed typed list-preview contract. No backend contract was changed here;
+  [semantics and proposal](docs/evidence/cloud-reconcile/CONTRACTS.md) distinguish
+  existing fields from deferred additions. Primary Cloud owner retains UI ownership.
+- No product-provider calls, installed-data maintenance, public deployment or default
+  merge. Feature-branch publication/CI identities are recorded in the task/GitHub
+  checkpoint; saved runtime installations are not promoted by publication.
+- Sequencing correction: B3.1a did **not** release memory directly; this integration
+  card `t_481afd69` was inserted as an additional dependency. Completing this bounded
+  handoff releases existing `t_b7f7aa98` (B3.1b typed memory), not Batch3 completion.
+
+## Previous: B3.1a real confined computation accepted locally
+
+- B3.1a adds a real pinned gVisor/Python3.12 stdlib service and run-bound
+  `compute.python` adapter on `hermes/b2-conversational-client`, following B3.0b
+  `3cc340e6efea385000acac65a3b678a8d132a6a7`. [Acceptance and exact evidence](docs/evidence/batch3-b31a/ACCEPTANCE.md)
+  pins35 changed source/contracts/test/install files; [backend handoff](docs/evidence/batch3-b31a/HANDOFF.md).
+- Current real restricted-PG/service publication/gateway/worker/HTTP checks:
+  **14PASS exit0**; bounded predecessor gateway/file-worker compatibility:
+  **27PASS exit0**.57 migration checksums and current descriptor match on a fresh
+  disposable database; no historical database migrated.
+- Non-invoice Decimal/null/unit/timezone/group/join CSV passes an independent
+  Fraction oracle and actual authenticated HTTP download digest check. Supplied
+  code tests, durable worker checkpoint/restart, post-I/O revocation costs without
+  publication, and service-death unknown receipt/no resend are verified.
+- One narrow independent R1/R2 correction rereview PASS.19 actual unchanged-profile
+  attack records reused with explicit limits; changed client restart/disconnect
+  tests rerun. Inode workload hit gofer FD exhaustion, not proven inode enforcement.
+  Historical failed/incomplete runs remain indexed; no whole-suite-green claim.
+- Candidate is **local-only, not pushed or promoted**. Owned proof service stopped
+  with exact readback; immutable root-owned snapshot preserved. Transient unit
+  unloaded; saved config is retained. Three original API runtimes are unchanged.
+  No product provider calls, budget/cap increases, public exposure or default merge.
+- Existing successor `t_b7f7aa98` is scoped typed memory, released by this slice's
+  completion. Batch3 and combined computation/memory remain unfinished. Separate
+  Claude Cloud frontend overlap is a later integration gate; no web changes here.
+
+## Previous: B3.0b files/evidence/basic exports accepted locally
+
+- B3.0b is accepted on `hermes/b2-conversational-client`, following B3.0a
+  `8d90e353e92a403eed521e9feea43b037997f307`. [Exact-source acceptance](docs/evidence/batch3-b30b/ACCEPTANCE.md)
+  pins64 source/contracts/test files and preserves historical failures.
+- R3/R4 replay races are corrected by the sole Claude web owner, using requested
+  Opus5.5 on the same account.45 focused web tests, typecheck/full lint,10 parent
+  handler probes and one narrow independent Astra rereview pass.
+- New isolated optimized build and real API/browser lost/delayed-ACK journeys
+  pass at1440/390/320, including opposite remount completion orders, exact replay,
+  newer draft preservation, independent composer and reachable retry controls.
+- Unchanged backend/native/export proofs are explicitly rebound:163 transport/gateway
+  passes;13 final worker/R1/R2 passes; qualified core123PASS/1test-typoFAIL plus
+  corrected rerun; actual PTY80/120 and four-format download proof retained.
+  No whole-suite-green or paid-model-usefulness claim.
+- Candidate is locally committed, not remotely pushed or installed/promoted by
+  this task. Owned proof services stopped; original runtimes preserved. No product
+  provider calls, installed-data maintenance, default merge or private-account expansion.
+- Existing `t_ae17ebd1` owns computation next. Only B3.0b is complete; Batch3 and
+  the broader product mission remain active. Product budget/unknown liabilities unchanged.
+
+## Historical: Batch 2 first integration candidate verified
 
 - The two-batch plan is being executed, not replanned or reduced. Full scope and
   remaining slices: [execution checkpoint](docs/BATCH_2_3_EXECUTION.md).
@@ -946,3 +1122,88 @@ represented as an active successor. The product worker continues within the inst
 grant; the retained responsibility correctly waits for the human. No unattended
 continuation of the broader development backlog is claimed. Deferred work remains
 explicitly identified for the next integration owner, rather than silently shipped.
+
+## 2026-10-27 — Step 2 independent synthetic safety acceptance (history append)
+
+Independent card `t_99a458da` accepted the authorized Step 2 safety scope on the
+unchanged 612-file repaired candidate. Actual raw evidence and harness/production
+semantics support A09/A21/A22/A23/A26/A33/A34 PASS; A27 backend is accepted but
+**full A27 remains PENDING** for useful next actions rendered in both clients.
+A13/A25 remain previously accepted, without rerun. The exact 43-row matrix is now
+**29 PASS / 14 PENDING**, with 35 unrelated rows structurally unchanged and prior
+assessments/failures retained.
+
+Evidence: `/home/ubuntu/workagent-acceptance-remaining-20261026/step2-safety/acceptance/`
+contains `REVIEW.md`, `verification.json`, `acceptance-matrix.json` and
+`STEP2-RESULT.md`. Qualifications are explicit: A23 is the actual atomic local
+responsibility effect; A26 covers supported grant schemas, not an invented expiring
+general successor; A34 uses disposable application-version rollback/canonical reads,
+not an invented feature flag or installed-service rollback. Reviewer source/hash,
+raw-invariant and bounded remote read-only checks passed. All author attempts total
+107 synthetic provider operations plus two effect observations; reviewer ran no
+behavioral campaign. Zero paid calls/new paid reservations and zero product-source
+edits; only evidence/status history was appended. Harness failures stay historical.
+
+Remote cleanup was independently read back: 33 prior harness PID/start identities
+absent, zero fixture DB sessions, active services/idle timer, reviewer lease released
+and no active leases. Synthetic stores remain retained. **Full Batch 2/publication
+remain HOLD.** Step 3 paired-client work, paid/live evaluation and Batch 3 were not
+started; this card stops at accepted Step 2, with no claimed active successor.
+Existing cumulative $100 authority and historical/unknown liabilities are unchanged.
+
+## 2026-10-28 — Step 3 paired-client acceptance (history append)
+
+Independent card `t_a6098a56` accepted **all authorized synthetic paired-client
+obligations**, after inspecting actual production-browser/native-PTY actions,
+raw network/PG receipts and screenshots. The exact Step2-derived matrix contains
+**43 unique IDs: 36 PASS / 7 PENDING**. A04/A05/A06/A20/A27/A30/P4 advance to
+PASS; A01/A02 mechanisms pass but their live-quality gaps remain. A07/A08/A10/P7/P8
+remain live-evaluation pending.34 unrelated rows and prior failure history are preserved.
+
+Evidence: `/home/ubuntu/workagent-acceptance-remaining-20261026/step3-clients/acceptance/`
+contains REVIEW, verification, exact matrix, STEP3-RESULT and hash-bound raw/visual
+checks. The final622-file candidate remains intentionally uncommitted on
+`c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d`; manifest SHA256
+`a2bd405f417b5c6adba12ee67ed1dc59cb07a5cce5d2c1535a233beea555629f`.
+Production build `_0J4OPn8I5QJf9a-2c5nD` has149 verified bundle files. Step3 repairs
+changed/added37 source/test/contract files (10 new); reviewer changed no product code.
+Original A05 RED, native transient-scroll RED, harness failures and two inherited
+budget-test failures remain recorded; no whole-suite-green/live-quality claim.
+
+Zero paid product calls/reservations. Fresh read-only verification found synthetic-only
+grants in five campaign DBs, no live attempts/other sessions, no owned campaign
+browser/PTYS/processes/listeners, and no remaining idle leases. All1,437 staging
+hashes are unchanged. Synthetic DBs/originals/evidence retained; no production or
+publication change. **Step3 done is not full Batch2 done: publication remains HOLD.**
+
+Next already-authorized scope: read-only ledger/liability reconciliation and bounded
+live-evaluation-envelope preparation, not automatic paid dispatch. Existing successor
+`t_75bcdd10` was read back as todo with other unmet prerequisites, **not running**;
+completion notify+wake hands continuation to the orchestrator. No generic new
+permission is required for routine preparation; the user did not order work to stop
+after Step3. Cumulative$100 authority and historical/unknown liabilities are unchanged.
+
+## 2026-10-28 — Batch2 accepted; publication and private runtime checkpoint
+
+The later final acceptance supersedes the historical partial/HOLD statuses above:
+all43 literal A01–A35/P1–P8 criteria PASS at their disclosed evidence levels.
+See [current acceptance and publication proof](docs/evidence/batch2-publication/README.md).
+The original630-file/731-evidence validator passed; historical negatives remain.
+Source commit `1c36002cd2481ef2f3195ae4c52ba4dd05e0608c` includes all intentional
+untracked product source, with only four disclosed formatting-only deltas after
+acceptance. Final630-file manifest SHA256
+`8ca13f7aba1ec796ca48c019dd81f217aabb2e54d9c825957c72b687add60176`.
+
+Current isolated development runtime: web `http://127.0.0.1:3197` and API18967,
+fresh disposable PG fixture, no model worker. Optimized exact-source build,
+525 web tests,2 real HTTP/restart tests and desktop1440/phone390/narrow320 browser
+human-save/reload/build-restart readback PASS. Native HTTP agrees on exact saved
+revision/hash; actual PTY reads canonical messages. No production replacement,
+default merge or public exposure. Independent publication-risk review PASS.
+Feature publication targets `hermes/conversational-continuity`; exact final remote
+head/PR/CI are handed to final audit `t_99aaa2a0`, not inferred from sibling checks.
+
+Allocation remains99.60596USD/100USD, global unallocated0.39404USD; expired
+campaign pool remainder0.52700USD is separate. Billing unknown, no new product
+calls or liability refunds. Batch3 and the broader mission remain open and use
+the existing dependency chain from the verified published candidate, not c75fb58.

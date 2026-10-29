@@ -1,0 +1,35 @@
+ Sources & citations · read only                                                
+ 2 sources on this page; end of list. Metadata refreshed only; no public fetch  
+ or draft changes.                                                              
+▊  Sources (25 per page)                                                  ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+                               Next source page                                 
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▂▂
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+                           Inspect selected source                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ Snapshot 6c6ef59c-0271-4ada-a7bf-b666ee8e9801                              ▎  
+▊ Workspace file c0c80886-ff89-452f-bb24-959438cd0166                        ▎  
+▊ Version 2 · parent aa0ca4ca-9338-47e3-a378-1792c46002e5                    ▎  
+▊ Raw SHA256                                                                 ▎  
+▊ f8f15d385bbc5269b7e6c82e67eb26ab40b6c4e019d392ffc1606f48726537fa           ▎  
+▊ Text SHA256                                                             ▁▁ ▎  
+▊ ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb           ▎  
+▊ Raw bytes 287 · extracted bytes 217                                        ▎  
+▊ Observed 2026-10-29T01:09:51.718214+00:00 · version time 2026-10-28        ▎  
+▊ 00:00:00+00:00                                                             ▎▄▄
+▊ Parser public-text-v2 · extraction extracted                               ▎  
+▊ Trust: untrusted evidence. Source relationships do not verify claim        ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+ UTF-8 bytes [0, 217) of 217; end exclusive.                                    
+ Chunk SHA256                                                                   
+ ae916256563bc97d82606557f5bcae9ec7e4d0092b21da777cd78ed9d70314cb               
+ Omitted byte ranges: none                                                      
+ Controls escaped for display; citation offsets refer to original Unicode       
+ text, not escaped display.                                                     
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ Capacity bulletin B                                                        ▎  
+▊ Current public capacity: 12 units.                                         ▎  
+ esc Back  ^r Refresh details                                                   

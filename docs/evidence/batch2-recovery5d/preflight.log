@@ -1,0 +1,68 @@
+{
+  "status": "FAIL",
+  "checks": [
+    {
+      "screenshot": "a-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "a-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "a-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "same-principal/same-endpoint ordinary reload restores exact draft and staged bytes",
+    {
+      "screenshot": "identity-unavailable",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "Controlled unavailable-session fault: no durable UI exposure or dispatch; unchanged exact A recovery after real authentication returns",
+    {
+      "screenshot": "principal-transition",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    {
+      "stale_command": "principal-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "screenshot": "failure",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    }
+  ],
+  "error": "Error: expect(locator).toBeVisible() failed\n\nLocator: locator('textarea').first()\nExpected: visible\nTimeout: 20000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"to.be.visible\" with timeout 20000ms\n  - waiting for locator('textarea').first()\n\n    at captureRawStack (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright-core@1.62.0/node_modules/playwright-core/lib/coreBundle.js:9681:17)\n    at callMatcherAsStep (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13310:57)\n    at Object.toBeVisible (/home/ubuntu/workagent-overnight-20261015/web/node_modules/.pnpm/playwright@1.62.0/node_modules/playwright/lib/matchers/expect.js:13300:23)\n    at ready (/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5d/browser.mjs:26:71)\n    at /home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-recovery5d/browser.mjs:79:28",
+  "posts": 1
+}

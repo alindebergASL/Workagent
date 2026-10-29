@@ -1,0 +1,19 @@
+{
+  "staged_source_hashes_verified": 64,
+  "source_and_docs_diff_check_exit": 0,
+  "all_staged_diff_check_exit": 2,
+  "qualification": "Only preserved raw .log/.patch evidence has whitespace warnings (patch context blank lines, CR progress, EOF newlines); no source/docs whitespace errors. Historical bytes intentionally unchanged.",
+  "owned_ports_closed": {
+    "18772": true,
+    "3199": true
+  },
+  "original_processes_alive": {
+    "875172": true,
+    "875173": true,
+    "2688430": true,
+    "2718652": true,
+    "2733711": true
+  },
+  "private_secrets_scan": "final-precommit-check.json local: zero actual private env values/credentials in candidate",
+  "skill_lesson": "staged pending06c4aeb0; not active"
+}

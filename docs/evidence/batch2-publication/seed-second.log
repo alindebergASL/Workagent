@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-publication/fixture.py", line 32, in <module>
+    migrations=[dict(x) for x in c.execute('SELECT * FROM schema_migrations ORDER BY version').fetchall()]
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 257, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UndefinedColumn: column "version" does not exist
+LINE 1: SELECT * FROM schema_migrations ORDER BY version
+                                                 ^

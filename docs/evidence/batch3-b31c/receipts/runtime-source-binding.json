@@ -1,0 +1,91 @@
+{
+  "source_files_verified": 362,
+  "build_id": "1GYKfVftvvkpmkkDxRIb_",
+  "public_build_flags": {
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "1",
+    "NEXT_PUBLIC_WORKAGENT_API_MODE": "real"
+  },
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "processes": [
+    {
+      "name": "api",
+      "pid": 16436,
+      "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate",
+      "port": 18232,
+      "start": "617138",
+      "start_actual": "617138"
+    },
+    {
+      "name": "web",
+      "pid": 16440,
+      "cwd": "/home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/web",
+      "port": 13232,
+      "start": "0",
+      "start_actual": "617438"
+    }
+  ],
+  "compute_service": "MainPID=11800\nActiveState=active\nInvocationID=b04ac8bc660447a9883337bdd8d7d8da\n",
+  "compute_profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+  "compute_service_tree": {
+    ".": {
+      "gid": 0,
+      "kind": "directory",
+      "mode": 493,
+      "uid": 0
+    },
+    "__init__.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "4de039fac1e72901b78acb1f1e68b06884d9afd95017dba8ae2327406d7572e5",
+      "uid": 0
+    },
+    "client.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "2fb3a584389e6a3416273933a2dd1b73ae1264b7d9a8a7dc17ce257b7803cc93",
+      "uid": 0
+    },
+    "installation.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "0fc49c9532a80efbddf426f76625be80588932b431cb730f21b1e02a431e0459",
+      "uid": 0
+    },
+    "profiles.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "a3c8d9aba0db4b83ab7fa08e2dd1f9bd0ef53a8c86481eddc5423975fc84bde9",
+      "uid": 0
+    },
+    "results.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "8ac1014c7fb75e9a6c702dfcb746af70f96f83e50838c36ab4bc925ae81329bf",
+      "uid": 0
+    },
+    "runner_protocol.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "3c5e3fa6dbce9f271a9a457dd0c652b744e9009abbe365d4831f10a845928a98",
+      "uid": 0
+    },
+    "service.py": {
+      "gid": 0,
+      "kind": "file",
+      "mode": 420,
+      "sha256": "24996b5301579d97459bf3c1bae674bb47f69da1558413c7cff1765941fb03d6",
+      "uid": 0
+    }
+  },
+  "installed_services": {
+    "workagent-dev-api": "MainPID=917\nActiveState=active\n",
+    "workagent-dev-web": "MainPID=918\nActiveState=active\n"
+  },
+  "disk": "Filesystem      Size  Used Avail Use% Mounted on\n/dev/root       193G  9.9G  183G   6% /\n"
+}

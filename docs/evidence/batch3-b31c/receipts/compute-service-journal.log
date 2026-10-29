@@ -1,0 +1,15 @@
+Oct 28 23:18:51 ip-10-0-14-244 systemd[1]: Started workagent-compute-b31c.service - /usr/bin/python3 -m sandbox.service --runtime /run/workagent-compute-b31c --rootfs /run/workagent-compute-b31c/rootfs --pins /run/workagent-compute-b31c/pins.json --state /run/workagent-compute-b31c/state --socket /run/workagent-compute-b31c/compute.sock --client-uid 1000.
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]: Traceback (most recent call last):
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:   File "<frozen runpy>", line 198, in _run_module_as_main
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:   File "<frozen runpy>", line 88, in _run_code
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:   File "/run/workagent-compute-b31c/sandbox/service.py", line 245, in <module>
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:     main()
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:   File "/run/workagent-compute-b31c/sandbox/service.py", line 223, in main
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:     runner = Runner(args.runtime, args.rootfs, args.state, args.pins)
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:   File "/run/workagent-compute-b31c/sandbox/service.py", line 33, in __init__
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]:     raise RuntimeError('profile_digest_mismatch')
+Oct 28 23:18:52 ip-10-0-14-244 python3[11584]: RuntimeError: profile_digest_mismatch
+Oct 28 23:18:52 ip-10-0-14-244 systemd[1]: workagent-compute-b31c.service: Main process exited, code=exited, status=1/FAILURE
+Oct 28 23:18:52 ip-10-0-14-244 systemd[1]: workagent-compute-b31c.service: Failed with result 'exit-code'.
+Oct 28 23:19:49 ip-10-0-14-244 systemd[1]: Started workagent-compute-b31c.service - /usr/bin/python3 -B -m sandbox.service --runtime /run/workagent-compute-b31c --rootfs /run/workagent-compute-b31c/rootfs --pins /run/workagent-compute-b31c/pins.json --state /run/workagent-compute-b31c/state --socket /run/workagent-compute-b31c/compute.sock --client-uid 1000.

@@ -1,0 +1,71 @@
+{
+  "access_changed": "event: snapshot.required\ndata: {\"reason\":\"access_changed\"}\n\n",
+  "byte_chunk_sizes": [
+    1,
+    2,
+    3,
+    5,
+    64,
+    1024
+  ],
+  "cursors": [
+    "00000000-0000-4000-8000-000000000001.1.0fXwZFBLTvVTBsf4pjZrnsnPLC6G-hZo7JaRa4GMov4",
+    "00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA"
+  ],
+  "duplicate_delivery": [
+    "id: 00000000-0000-4000-8000-000000000001.1.0fXwZFBLTvVTBsf4pjZrnsnPLC6G-hZo7JaRa4GMov4\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"artifact.changed\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:01Z\",\"reason_code\":\"material_change\"}\n\n",
+    "id: 00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000002\",\"type\":\"revision.created\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:02Z\",\"reason_code\":\"created\"}\n\n",
+    "id: 00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000002\",\"type\":\"revision.created\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:02Z\",\"reason_code\":\"created\"}\n\n"
+  ],
+  "expected_unique_event_ids": [
+    "00000000-0000-4000-8000-000000000001",
+    "00000000-0000-4000-8000-000000000002"
+  ],
+  "heartbeat": ": heartbeat\n\n",
+  "out_of_order_delivery": [
+    "id: 00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000002\",\"type\":\"revision.created\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:02Z\",\"reason_code\":\"created\"}\n\n",
+    "id: 00000000-0000-4000-8000-000000000001.1.0fXwZFBLTvVTBsf4pjZrnsnPLC6G-hZo7JaRa4GMov4\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"artifact.changed\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:01Z\",\"reason_code\":\"material_change\"}\n\n"
+  ],
+  "page": {
+    "checked_at": "2026-10-26T00:01:00Z",
+    "events": [
+      {
+        "artifact_id": "fixture-artifact",
+        "assignment_id": null,
+        "conversation_id": "fixture-conversation",
+        "event_id": "00000000-0000-4000-8000-000000000001",
+        "occurred_at": "2026-10-26T00:00:01Z",
+        "proposal_id": null,
+        "reason_code": "material_change",
+        "run_id": null,
+        "type": "artifact.changed"
+      },
+      {
+        "artifact_id": "fixture-artifact",
+        "assignment_id": null,
+        "conversation_id": "fixture-conversation",
+        "event_id": "00000000-0000-4000-8000-000000000002",
+        "occurred_at": "2026-10-26T00:00:02Z",
+        "proposal_id": null,
+        "reason_code": "created",
+        "run_id": null,
+        "type": "revision.created"
+      }
+    ],
+    "has_more": false,
+    "next_cursor": "00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA",
+    "reset_required": false
+  },
+  "reset": "event: snapshot.required\ndata: {\"reason\":\"cursor_reset\"}\n\n",
+  "schema_version": "workagent/work-event-fixtures-v1",
+  "scope": {
+    "access_generation": 1,
+    "conversation_id": "fixture-conversation",
+    "principal_id": "fixture-person",
+    "workspace_id": "fixture-workspace"
+  },
+  "sse_frames": [
+    "id: 00000000-0000-4000-8000-000000000001.1.0fXwZFBLTvVTBsf4pjZrnsnPLC6G-hZo7JaRa4GMov4\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000001\",\"type\":\"artifact.changed\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:01Z\",\"reason_code\":\"material_change\"}\n\n",
+    "id: 00000000-0000-4000-8000-000000000002.1.cwi9zXGM5wet0yVHMiToUMv36m1Wc1nx-nAmXdWt-HA\nevent: work.changed\ndata: {\"event_id\":\"00000000-0000-4000-8000-000000000002\",\"type\":\"revision.created\",\"conversation_id\":\"fixture-conversation\",\"run_id\":null,\"artifact_id\":\"fixture-artifact\",\"proposal_id\":null,\"assignment_id\":null,\"occurred_at\":\"2026-10-26T00:00:02Z\",\"reason_code\":\"created\"}\n\n"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "base": "8d90e353e92a403eed521e9feea43b037997f307",
+  "prior_count": 62,
+  "current_count": 63,
+  "added": [
+    "backend/workagent/responses_ledger.py",
+    "backend/workagent/responses_transport.py"
+  ],
+  "changed_since_continuation": [
+    "backend/tests/test_b30b_final_journeys.py",
+    "backend/workagent/products.py",
+    "backend/workagent/workspace_files.py",
+    "contracts/capability-registry-v2.json",
+    "contracts/pnpm-lock.yaml"
+  ],
+  "excluded_incidental_file": "contracts/pnpm-lock.yaml"
+}

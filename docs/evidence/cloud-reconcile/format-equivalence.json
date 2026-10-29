@@ -1,0 +1,10 @@
+[
+  {
+    "path": "web/playwright.b30b.config.ts",
+    "parsed_ast_equal_ignoring_parentheses": true
+  },
+  {
+    "path": "web/test/workspace-files-races.test.ts",
+    "parsed_ast_equal_ignoring_parentheses": true
+  }
+]

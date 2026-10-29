@@ -1,0 +1,25 @@
+{
+  "role": {
+    "rolsuper": false,
+    "rolbypassrls": false
+  },
+  "runtime_role_check": "pass",
+  "migration_count": 56,
+  "all_checksums_match_current_source": true,
+  "migrations": [
+    {
+      "name": "054_workspace_files.sql",
+      "checksum": "8add07f2a7542636526901d2a4d4447584a2d94260dcde21b39d42ab957748e0"
+    },
+    {
+      "name": "055_file_gateway.sql",
+      "checksum": "3037abc2d40c6f9da955e399040f3156fc4c3e59364a6d8c28654af18c79ba99"
+    },
+    {
+      "name": "056_file_alias_visibility.sql",
+      "checksum": "b0d2c4205674845d35e8b81390f501e8f23facccb92d294c29c91499728e0472"
+    }
+  ],
+  "database_kind": "fresh disposable acceptance2; private DSNs excluded",
+  "installed_database_changed": false
+}

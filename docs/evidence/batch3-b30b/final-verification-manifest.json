@@ -1,0 +1,207 @@
+{
+  "state": "PASS_B3_0b_ONLY",
+  "generated_at_unix": 1793210325.1677725,
+  "checks": [
+    {
+      "label": "r34-final-focused",
+      "argv": [
+        "bash",
+        "-c",
+        "cd .local/batch3/b30b/web-owner/web && node node_modules/vitest/vitest.mjs run test/workspace-files-races.test.ts test/file-draft.test.ts test/files-contract.test.ts test/tool-activity.test.ts test/export-download-proxy.test.ts && npm run typecheck && npm run lint"
+      ],
+      "exit": 0,
+      "start": 1793209474.3037038,
+      "end": 1793209539.4975233,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "1879e7dbfd66be69603e2903223b8da4070b61889e2dea40fdf8c4c27146f25d"
+    },
+    {
+      "label": "r34-bound-parent",
+      "argv": [
+        "node",
+        ".local/batch3/b30b/r34_parent_handlers.cjs"
+      ],
+      "exit": 0,
+      "start": 1793209837.5127132,
+      "end": 1793209854.7470226,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "37ee05fdc6f930f1ee3f01c8616edd16b87cb0bdac44dd5d4406c6e4f6261fbf"
+    },
+    {
+      "label": "r34-final-build",
+      "argv": [
+        "bash",
+        "-c",
+        "cd .local/batch3/b30b/web-owner/web && node node_modules/next/dist/bin/next build --webpack"
+      ],
+      "exit": 0,
+      "start": 1793209653.335554,
+      "end": 1793209734.6732113,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "3c52bea56c9d76bf96b37a352cf444fee8f2c54f0899be23d768d2ed18ae8eb5"
+    },
+    {
+      "label": "r34-final-browser",
+      "argv": [
+        "node",
+        ".local/batch3/b30b/r34_final_browser.cjs"
+      ],
+      "exit": 1,
+      "start": 1793209748.9322546,
+      "end": 1793209783.5942218,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "9895e81e8fed45d120b6b63eb01d38bc58cedf5c47bfb7d8b985f285565fbbf4"
+    },
+    {
+      "label": "r34-final-browser2",
+      "argv": [
+        "node",
+        ".local/batch3/b30b/r34_final_browser.cjs"
+      ],
+      "exit": 1,
+      "start": 1793209827.7979686,
+      "end": 1793209862.3296614,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "312734af18c97f08a2ceaf33b00bad32c34ff11a6820548b7082f74eddc29686"
+    },
+    {
+      "label": "r34-final-browser3",
+      "argv": [
+        "node",
+        ".local/batch3/b30b/r34_final_browser.cjs"
+      ],
+      "exit": 1,
+      "start": 1793209937.541022,
+      "end": 1793209999.38125,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "99983eedc63f67e3d45f5f51d109d11f7a1ee0429c09a3d91b2a2e89a1c744a7"
+    },
+    {
+      "label": "r34-final-browser4",
+      "argv": [
+        "node",
+        ".local/batch3/b30b/r34_final_browser.cjs"
+      ],
+      "exit": 0,
+      "start": 1793210058.369246,
+      "end": 1793210158.660646,
+      "source_stable": true,
+      "source_matches_final_build": true,
+      "log_sha256": "9a92d31b77d122a838fe102228b026941009c3147a127f7ab00f824035b48451"
+    }
+  ],
+  "focused_web_tests": 45,
+  "parent_handler_tests": 10,
+  "independent_review": "r34-final-review.json",
+  "build_id": "zBl5D_CnV0WybW-13m2vQ",
+  "build_input_count": 209,
+  "build_inputs_match_main": true,
+  "source_file_count": 64,
+  "unchanged_prior_paths": 61,
+  "changed_allowlist": {
+    "web/src/components/WorkspaceFiles.tsx": "1c44d937b798e3b14051cbf3c214fe53748c4cf55f96d21f197c2ba93c63bf22",
+    "web/src/lib/file-draft.ts": "11ea527c7967fc917ba2c376607579aec4c5a7699a112e0615c6ffc3d54f5999",
+    "web/test/workspace-files-races.test.ts": "2c5ffb7c9f5e0fa7605e959359831eb54f18cdbbcdc259367908ffdb95a493b8"
+  },
+  "retained_checks": [
+    {
+      "label": "resume-final-core",
+      "exit": 1,
+      "summary": [
+        "1 failed, 123 passed, 1 warning in 598.75s (0:09:58)"
+      ],
+      "log_sha256": "04790fe69c4c5b1e9bec1e8b22553229969c22ca9950ef2a5618bedc3fc77cc8",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-final-journeys",
+      "exit": 0,
+      "summary": [
+        "13 passed, 1 warning in 170.87s (0:02:50)"
+      ],
+      "log_sha256": "dea1cbfed5e88757d36782c099c03d5b13d373c60ade401d9ac72b8e0be01125",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-transport-gateway",
+      "exit": 0,
+      "summary": [
+        "163 passed, 1 warning in 47.67s"
+      ],
+      "log_sha256": "bd97579ee61daf393aad05b39a08147f3f11c80fba1554fedfe4f25c3d09afa8",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-contracts",
+      "exit": 0,
+      "summary": [],
+      "log_sha256": "171c05300bad18a9aeed26c91d918fa1fe733f8d990a0687939620e806e48f97",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-browser",
+      "exit": 0,
+      "summary": [
+        "Actual browser 1440/390/320 PASS"
+      ],
+      "log_sha256": "eb07ece105b37c0dfbaacbfcca5c4d576c146b61b7074d2cc303951190f379f7",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-viewport",
+      "exit": 0,
+      "summary": [
+        "3 widths actual focus and unobscured control hit-tests PASS"
+      ],
+      "log_sha256": "3620a59e5d8cdd9ce112943068f28387612e42f293638335451a2a77be07ed4a",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-pty80",
+      "exit": 1,
+      "summary": [],
+      "log_sha256": "c75bdba614b84c2a21edb497d3092ad9a56cb6d19dc3b4e5cf981c1ec50d3303",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-pty80-reopen",
+      "exit": 0,
+      "summary": [
+        "pty80 ACTUAL RESTART/DOWNLOAD PASS"
+      ],
+      "log_sha256": "629efd3834951b11619483037b1ddc7cc2ddcb3fcfcf4938e3cfeb189c8ee41a",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    },
+    {
+      "label": "resume-pty120",
+      "exit": 0,
+      "summary": [
+        "pty120 ACTUAL PTY PASS"
+      ],
+      "log_sha256": "d2c69aecca4874635ba68971b5b5ae5aaf3a1e0d524ce49115d7c1cc75e6fde6",
+      "binding": "All backend/native/contracts unchanged from prior63 source checkpoint. Prior browser/export journey is reused only for unaffected behavior; new race/browser proof supersedes changed handler coverage."
+    }
+  ],
+  "retained_core_qualification": "123PASS/1test accessor typo FAIL remains exit1; corrected13case rerun contains that case. No all-suite-green claim.",
+  "negative_final_browser_attempts": {
+    "r34-final-browser": "BFF origin configuration missing; no product writes",
+    "r34-final-browser2": "getByLabel exact locator failed on populated Text; durable journal/draft comparison had passed; use textbox accessible name",
+    "r34-final-browser3": "1440 complete,390 retry center hit-test failed under sticky composer; normal scroll center and settle corrects viewport positioning without product changes"
+  },
+  "evidence_note": "First browser failure log retained; its screenshot/result path was inadvertently reused by second attempt. Second and later evidence copied/uniquely named; no claim first screenshot remains.",
+  "browser_acceptance": "final-browser-results.json",
+  "owned_ports_closed": {
+    "18772": true,
+    "3199": true
+  },
+  "installed_database_changed": false,
+  "runtime_promoted": false,
+  "product_provider_calls": 0,
+  "successor": "t_ae17ebd1"
+}

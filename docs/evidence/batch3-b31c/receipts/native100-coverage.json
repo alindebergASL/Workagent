@@ -1,0 +1,1 @@
+{"excluded": [{"id": "n2", "reason": "duplicate observation"}], "reviewed_procedure_revisions": ["0c419f24-befb-4903-9c92-af79888a3698"], "rows_supplied": 5, "spec": {"group": "cohort", "id": "record_id", "seconds_per_unit": "60", "value": "elapsed_minutes"}}

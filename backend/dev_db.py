@@ -39,17 +39,55 @@ def provision(env_file):
         c.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(sql.Identifier(runtime)))
         mutable=['assignments','assignment_sources','artifacts','revisions','proposals','tasks','task_inspections','commands','audit','outbox','runs','run_configurations','run_contexts','run_dispatches','provider_attempts','run_publications','responses_steps','responses_events','responses_consumer_uses','conversations','conversation_sources','conversation_messages','product_observations']
         c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.SQL(',').join(map(sql.Identifier,mutable)),sql.Identifier(runtime)))
+        for table in ['run_checkpoints','run_successors','conversation_intents','retained_result_reads','conversation_documents','workspace_files','source_snapshots','generated_blobs','artifact_exports','research_claims']:
+            if c.execute('SELECT to_regclass(%s)',('public.'+table,)).fetchone()[0]:
+                c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.Identifier(table),sql.Identifier(runtime)))
+        if c.execute("SELECT to_regclass('public.conversation_intents')").fetchone()[0]:
+            c.execute(sql.SQL('GRANT UPDATE ON conversation_intents TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT UPDATE ON assignments,artifacts,proposals,outbox,runs,run_dispatches,runtime_configuration,provider_attempts,conversations TO {}').format(sql.Identifier(runtime)))
+        # Prefix-upgrade tests provision historical schemas through this helper.
+        if c.execute("SELECT to_regclass('public.work_attention_seen')").fetchone()[0]:
+            c.execute(sql.SQL('GRANT INSERT,UPDATE ON work_attention_seen TO {}').format(sql.Identifier(runtime)))
         c.execute(sql.SQL('GRANT USAGE ON SEQUENCE run_dispatches_cursor_seq TO {}').format(sql.Identifier(runtime)))
+        # Fresh fixtures install migrations before the runtime role has table
+        # grants. Upgrade migrations can discover existing roles; new fixtures
+        # must explicitly grant only the guarded memory entry points.
+        memory_functions = [
+            'write_memory_revision(text,text,text,text,jsonb)',
+            'forget_memory(text,text,text,text,text)',
+            'rollback_memory_revision(text,text,text,jsonb,text)',
+            'bind_memory_scope(text,text,text,text,bigint)',
+            'record_memory_usage(text,text,text,text,text,text,jsonb)',
+            'connector_start(text,text,text,text,text)',
+            'connector_claim(text,text,text,text)',
+
+            'connector_revoke(text,text,text,integer,text)',
+
+        ]
+        for signature in memory_functions:
+            if c.execute('SELECT to_regprocedure(%s)', ('public.' + signature,)).fetchone()[0]:
+                c.execute(sql.SQL('GRANT EXECUTE ON FUNCTION {} TO {}').format(
+                    sql.SQL(signature), sql.Identifier(runtime)))
         # PostgreSQL SELECT FOR SHARE/UPDATE requires UPDATE privilege on >=1 column.
         # No ability to change authority/content: grant UPDATE on invariant keys only;
         # immutable authority triggers below reject all attempted runtime writes.
         for table in ['workspaces','memberships','sources','source_access']:
             c.execute(sql.SQL('GRANT UPDATE ON {} TO {}').format(sql.Identifier(table),sql.Identifier(runtime)))
+    executor_dsn=None
+    with psycopg.connect(owner_dsn) as c:
+        has_connector=c.execute("SELECT to_regprocedure('public.connector_finish(text,text,text,text,text,timestamptz)') IS NOT NULL").fetchone()[0]
+    if has_connector:
+        executor=name+'_connector';executor_secret=secrets.token_urlsafe(32)
+        admin(sql.SQL('CREATE ROLE {} LOGIN PASSWORD {};').format(sql.Identifier(executor),sql.Literal(executor_secret)).as_string())
+        with psycopg.connect(owner_dsn) as c:
+            c.execute(sql.SQL('GRANT USAGE ON SCHEMA public TO {}').format(sql.Identifier(executor)))
+            c.execute(sql.SQL('GRANT EXECUTE ON FUNCTION connector_finish(text,text,text,text,text,timestamptz),connector_revoke_result(text,text,text,text,text) TO {}').format(sql.Identifier(executor)))
+        executor_dsn=f'postgresql://{executor}:{executor_secret}@127.0.0.1:5432/{name}'
     path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
     with os.fdopen(fd,'w') as f:
         f.write(f'export DATABASE_URL={runtime_dsn}\nexport MIGRATION_DATABASE_URL={owner_dsn}\nexport LOCAL_TEST_MODE=true\nexport LOCAL_BEARER_TOKEN={secrets.token_urlsafe(32)}\nexport LOCAL_PRINCIPAL_ID=local-human\n')
+        if executor_dsn:f.write(f'export WORKAGENT_SYNTHETIC_LIFECYCLE_DATABASE_URL={executor_dsn}\n')
     print(f'Created isolated database {name}; environment: {path}. No credentials printed.')
     return name
 

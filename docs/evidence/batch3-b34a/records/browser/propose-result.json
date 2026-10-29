@@ -1,0 +1,24 @@
+{
+  "mode": "propose",
+  "passed": false,
+  "layouts": [
+    {
+      "width": 1440,
+      "scroll": 1440
+    },
+    {
+      "width": 390,
+      "scroll": 390
+    },
+    {
+      "width": 320,
+      "scroll": 320
+    }
+  ],
+  "errors": [],
+  "receipt": {
+    "memory_id": "5707807c-0cef-4d3f-aca8-98d576a68d49",
+    "revision_id": "b77974f2-758d-468b-8a55-0dfd636f8f8a",
+    "status": "candidate"
+  }
+}

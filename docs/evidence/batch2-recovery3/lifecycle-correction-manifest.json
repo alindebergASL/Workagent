@@ -1,0 +1,22 @@
+{
+  "web/src/components/Composer.tsx": {
+    "before": "2b46cb80a8dbbc1a353357eb940de0db84f62c8094d710921d82107e7deb1907",
+    "after": "54be7db66700024af3f0b5bd60962b88e80198cc719deaa148f8053db11ff82e"
+  },
+  "web/src/lib/client/home-start.ts": {
+    "before": "2d36c6e546fcdcb79005fec2efa2402733f2e98908a5681e9f5db482c87a73c9",
+    "after": "a7433d611d1a6a741655733d2dcba72ac969c2eb2cbd32ca84bfd4e0ef3fc576"
+  },
+  "web/src/lib/client/hooks.ts": {
+    "before": "f425e1ab1d782cae88798f2b7660d9081f554856c2cd4f3b9069c5977719354d",
+    "after": "227a07c7ea24e1cbdd1b94cf6cc5720ac4aed3fc379bf9e6a6016dd879a43961"
+  },
+  "web/src/lib/client/resource-freshness.ts": {
+    "before": "0615002524e9dd12b9c87b68b6927583ceeb07455031d2ed2f285a0b7758a0cf",
+    "after": "dd5ee4c68077163745c2ac3fe6dd9cec3afc6c06537f8f47075229c37eb385b0"
+  },
+  "web/test/b2-correction.test.ts": {
+    "before": "a54f1b85a90c7bcdc50ae531271b57e382c766cda5971700dc271d8db1e0459d",
+    "after": "3fec1e5a70ff39b7169bb08e3c2c053a4034f97db5ef6bd1abfc602ad35d802b"
+  }
+}

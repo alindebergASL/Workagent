@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "checks": [
+    "Home lists fresh canonical conversation through real proxy",
+    "Real browser human save persists new revision and survives reload",
+    "Saved human edit visible at 1440px without page overflow",
+    "Saved human edit visible at 390px without page overflow",
+    "Saved human edit visible at 320px without page overflow"
+  ],
+  "page_errors": [],
+  "external_requests": [],
+  "before_revision": "2fc4e3db-8f9a-4691-83a0-0e5fff3f72b9",
+  "after_revision": "9ae66ef6-9763-4470-a4fc-b502516222d5",
+  "after_body_hash": "eb1489c0d9c8485aae19a2c475c401d763de12add5fd8d8b5830e6b80e1a534b",
+  "fixture": "batch2-publication-smoke-final",
+  "url": "http://127.0.0.1:3197/conversations/2bb2a1b4-2561-4d21-bba7-5ba5afcdc7b0/artifacts/79f89f1b-4720-44be-96cb-d61b24357f96?workspace=batch2-publication-smoke-final"
+}

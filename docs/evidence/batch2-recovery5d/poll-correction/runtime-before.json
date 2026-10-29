@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "session": "b2r5b-api",
+      "pid": 4089836,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026",
+      "argv": "backend/.venv/bin/python docs/evidence/batch2-recovery5d/fixture.py api local-human 18965 "
+    },
+    {
+      "session": "b2r5b-web",
+      "pid": 4090481,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "argv": "next-server (v16.3.4)                                                       "
+    }
+  ],
+  "build_id": "i5pOBFPQ4PPNxZEwBji3l"
+}

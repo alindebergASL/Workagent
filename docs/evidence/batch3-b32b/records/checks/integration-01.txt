@@ -1,0 +1,35 @@
+EE...................................................................... [ 85%]
+............                                                             [100%]
+==================================== ERRORS ====================================
+____ ERROR at setup of test_tcp_all_binary_outputs_independent_read_restart ____
+file /home/ubuntu/workagent-continuation-20261026/backend/tests/test_office_acceptance.py, line 37
+  def test_tcp_all_binary_outputs_independent_read_restart(tcp):
+file /home/ubuntu/workagent-continuation-20261026/backend/tests/test_workspace_files_parent_http.py, line 30
+  @pytest.fixture
+  def tcp(context,tmp_path):
+E       fixture 'context' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, platformdirs_isolated, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tcp, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/workagent-continuation-20261026/backend/tests/test_workspace_files_parent_http.py:30
+_______ ERROR at setup of test_tcp_formula_vs_string_and_cached_evidence _______
+file /home/ubuntu/workagent-continuation-20261026/backend/tests/test_office_acceptance.py, line 71
+  def test_tcp_formula_vs_string_and_cached_evidence(tcp):
+file /home/ubuntu/workagent-continuation-20261026/backend/tests/test_workspace_files_parent_http.py, line 30
+  @pytest.fixture
+  def tcp(context,tmp_path):
+E       fixture 'context' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, monkeypatch, platformdirs_isolated, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, tcp, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/ubuntu/workagent-continuation-20261026/backend/tests/test_workspace_files_parent_http.py:30
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR backend/tests/test_office_acceptance.py::test_tcp_all_binary_outputs_independent_read_restart
+ERROR backend/tests/test_office_acceptance.py::test_tcp_formula_vs_string_and_cached_evidence
+82 passed, 1 warning, 2 errors in 45.97s

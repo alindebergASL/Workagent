@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "source_files": 362,
+  "review_bindings": 3,
+  "canonical_pins_match_executed_grants": true,
+  "initial_conversation_old_schema_output_hash_absent_from_later_initial_context": true,
+  "initial_saved_work_empty": true,
+  "contract_only_delta": [
+    "contracts/capability-registry-v2.json"
+  ]
+}

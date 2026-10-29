@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/docs/evidence/batch2-publication/fixture.py", line 21, in <module>
+    seed(os.environ['MIGRATION_DATABASE_URL'],[],ws,p.id)
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/fixture.py", line 15, in seed
+    c.execute('INSERT INTO workspaces(id,data) VALUES (%s,%s)',(w.id,encoded(w)))
+  File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 257, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.UniqueViolation: duplicate key value violates unique constraint "workspaces_pkey"
+DETAIL:  Key (id)=(batch2-publication-smoke-final) already exists.

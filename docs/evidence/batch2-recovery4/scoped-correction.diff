@@ -1,0 +1,40 @@
+--- pre-recovery4/backend/workagent/conversations.py
++++ final/backend/workagent/conversations.py
+@@ -216,8 +216,11 @@
+                      'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
+                      'tools':self.local_tool_registry() if cmd.operation else []}
+         from .general_responses import standing
+-        from .retained_results import enabled as retained_enabled
+-        bounded=grant is not None and (standing(grant.responses) or retained_enabled({'responses':grant.responses.model_dump(mode='json')}))
++        bounded=False
++        if grant is not None:
++            # Controlled fixture turns must not import provider transport/schema code.
++            from .retained_results import enabled as retained_enabled
++            bounded=standing(grant.responses) or retained_enabled({'responses':grant.responses.model_dump(mode='json')})
+         if not bounded and responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
+             raise DomainError('budget_exhausted')
+         if not bounded and sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
+--- pre-recovery4/backend/tests/test_general_responses_journey.py
++++ final/backend/tests/test_general_responses_journey.py
+@@ -126,7 +126,8 @@
+         assert len(fixture.inputs)==4 and len(fixture.local_results)==4
+         status=general_status(s.db,ws,grant.id)
+         assert status['budget']['request_counts']=={'count_send':8,'dispatch':8,'read':0,'cancel':0}
+-        assert status['budget']['reserved_input_tokens']==160000 and status['budget']['reserved_output_tokens']==65536
++        # Eight new reservations use the current 50k policy, not legacy 20k sends.
++        assert status['budget']['reserved_input_tokens']==400000 and status['budget']['reserved_output_tokens']==65536
+         assert ResponsesDispatcher(worker(context,fixture,tmp_path/'worker'),workspace=ws,grant_id=grant.id).once()['results']==[]
+         # Real read recipe, including pagination; canonical products and decisions survive restart.
+         listed=client.get(base+'/conversations',params={'limit':1}).json(); nextpage=client.get(base+'/conversations',params={'limit':1,'cursor':listed['next_cursor']}).json()
+--- pre-recovery4/backend/tests/test_general_responses_gates.py
++++ final/backend/tests/test_general_responses_gates.py
+@@ -55,7 +55,8 @@
+     with pytest.raises(Exception):w.work(p,ws,q.run.id)
+     assert len(fake.responses)==0 and len(fake.calls)==1
+     assert totals(s,g)['request_counts']['dispatch']==1
+-    assert totals(s,g)['reserved_input_tokens']==20000
++    # Revocation retains the full current 50k reservation despite no dispatch I/O.
++    assert totals(s,g)['reserved_input_tokens']==50000
+     with pytest.raises(Exception):worker(context,fake,tmp_path).work(p,ws,q.run.id)
+     assert len(fake.calls)==1
+ 

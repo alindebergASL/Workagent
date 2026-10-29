@@ -396,9 +396,12 @@ textarea.fit-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* No numbers show, so no indent for them: the boxes line up with the
+   heading and Add a note. */
 .notes-items {
   margin: 0;
-  padding-left: 1.8em;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: var(--sp-2);
   min-width: 0;
@@ -415,6 +418,11 @@ textarea.fit-text {
 }
 .notes-item-actions {
   gap: var(--sp-2);
+}
+/* Undo is a small link; give it room to be hit. */
+.undo-line .link-quiet {
+  padding: 4px 2px;
+  margin: -4px 0;
 }
 .view-fallback {
   white-space: pre-wrap;
@@ -971,7 +979,9 @@ textarea.fit-text {
   min-width: 0;
   max-width: 100%;
 }
+/* A removed value or note reads as it was written, line breaks kept. */
 .proposal-removed li {
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 .proposal-earlier {
@@ -995,4 +1005,153 @@ textarea.fit-text {
   background: color-mix(in srgb, var(--attn) 12%, transparent);
   text-decoration: underline dotted var(--attn);
   text-underline-offset: 3px;
+}
+
+/* A row a proposal adds: marked "New" in words, with a light tint. */
+.flex-table tr[data-added="true"] > td {
+  background: color-mix(in srgb, var(--ok) 8%, transparent);
+}
+.row-new {
+  display: inline-block;
+  /* Its own width, also where a phone card stacks a cell's contents. */
+  width: fit-content;
+  justify-self: start;
+  align-self: start;
+  margin-right: var(--sp-2);
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--ok) 55%, transparent);
+  border-radius: 6px;
+  color: var(--ok);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  vertical-align: 1px;
+}
+@media (max-width: 640px) {
+  /* On a phone a row is a card: the card carries the tint. */
+  .flex-table tbody tr[data-added="true"] {
+    background: color-mix(in srgb, var(--ok) 8%, var(--surface));
+    border-color: color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  .flex-table tbody tr[data-added="true"] > td {
+    background: transparent;
+  }
+}
+
+/* Synthetic connections (B3.3b): one column that wraps at any width. */
+.connector-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.connector-panel h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.connector-panel h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+.connector-mode,
+.connector-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--warn-line);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.connector-notice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.connector-notice p {
+  margin: 0;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.connector-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.connector-row,
+.connector-consent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+.connector-consent {
+  flex-direction: column;
+  align-items: stretch;
+}
+.connector-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.connector-resource {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+.connector-provider {
+  color: var(--warn-ink);
+}
+.connector-row[data-provider-revocation="revoked"] .connector-provider {
+  color: var(--ok-ink);
+}
+.connector-muted {
+  color: var(--ink-3);
+}
+.connector-consent dl {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+}
+.connector-consent dd {
+  margin: 0;
+  min-width: 0;
+}
+.connector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.connector-panel button {
+  min-height: 44px;
+  max-width: 100%;
+}
+@media (max-width: 400px) {
+  .connector-consent dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .connector-consent dt {
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .connector-actions > button {
+    flex: 1 1 100%;
+  }
 }

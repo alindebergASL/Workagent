@@ -1,0 +1,152 @@
+[
+  {
+    "kind": "pdf",
+    "document": {
+      "document_id": "95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "workspace_id": "recovery5a-workspace",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "owner_id": "local-human",
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "status": "extracted",
+      "reason": "text_extracted",
+      "parser_version": "confined-documents-v1",
+      "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+      "text_bytes": 45,
+      "coverage": {
+        "omissions": [
+          "images, layout and non-text content"
+        ],
+        "total_pages": 1,
+        "covered_pages": 1,
+        "omitted_pages": 0,
+        "empty_pages_needing_ocr": [],
+        "partial_last_page": false
+      },
+      "limits": {
+        "input_bytes": 5242880,
+        "text_bytes": 102400,
+        "pages": 50,
+        "sheets": 10,
+        "rows": 1000,
+        "cells": 10000,
+        "zip_bytes": 20971520,
+        "zip_entries": 1000,
+        "zip_ratio": 100
+      },
+      "text": "\n[Page 1]\nSynthetic document evidence page 1\n"
+    },
+    "original_path": ".local/recovery5a/original.pdf",
+    "download_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d"
+  },
+  {
+    "kind": "docx",
+    "document": {
+      "document_id": "841e656d-7860-4bb3-b158-f6973147582d",
+      "sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11",
+      "workspace_id": "recovery5a-workspace",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "owner_id": "local-human",
+      "filename": "continuity.docx",
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "byte_length": 891,
+      "status": "extracted",
+      "reason": "text_extracted",
+      "parser_version": "confined-documents-v1",
+      "text_sha256": "d4578dcc2654f5bbf06f4c4607b11a6cee1272d9e678de36d719cbd88518eba8",
+      "text_bytes": 54,
+      "coverage": {
+        "omissions": [
+          "headers",
+          "footers",
+          "comments",
+          "tracked changes",
+          "nested tables, drawings and exact list numbering/layout"
+        ],
+        "total_paragraphs": 2,
+        "omitted_paragraphs": 0,
+        "total_tables": 1,
+        "omitted_tables": 0,
+        "paragraphs_covered": 2,
+        "tables_covered": 1,
+        "partial_last_block": false
+      },
+      "limits": {
+        "input_bytes": 5242880,
+        "text_bytes": 102400,
+        "pages": 50,
+        "sheets": 10,
+        "rows": 1000,
+        "cells": 10000,
+        "zip_bytes": 20971520,
+        "zip_entries": 1000,
+        "zip_ratio": 100
+      },
+      "text": "Synthetic paragraph\n[Table]\nCell A\tCell B\nAfter table\n"
+    },
+    "original_path": ".local/recovery5a/original.docx",
+    "download_sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11"
+  },
+  {
+    "kind": "xlsx",
+    "document": {
+      "document_id": "9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+      "sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04",
+      "workspace_id": "recovery5a-workspace",
+      "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "owner_id": "local-human",
+      "filename": "continuity.xlsx",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "byte_length": 1451,
+      "status": "extracted",
+      "reason": "text_extracted",
+      "parser_version": "confined-documents-v1",
+      "text_sha256": "c559fbcd56f752c246f2311863854f72b39a00e61a2d4da72c88645ffbc441ea",
+      "text_bytes": 114,
+      "coverage": {
+        "omissions": [
+          "formatting, charts, comments; formula references unsupported; no recalculation"
+        ],
+        "total_sheets": 1,
+        "covered_sheets": 1,
+        "omitted_sheets": 0,
+        "sheets": [
+          {
+            "name": "Inputs",
+            "state": "visible",
+            "total_rows": 2,
+            "total_columns": 2,
+            "covered_rows": 2,
+            "merged_ranges": [
+              "A1"
+            ],
+            "omitted_merged_ranges": 0,
+            "visited_cells": 4,
+            "last_cell": "B2",
+            "partial_last_row": false,
+            "omitted_rows": 0,
+            "omitted_cell_positions": 0
+          }
+        ],
+        "covered_rows": 2,
+        "visited_cells": 4
+      },
+      "limits": {
+        "input_bytes": 5242880,
+        "text_bytes": 102400,
+        "pages": 50,
+        "sheets": 10,
+        "rows": 1000,
+        "cells": 10000,
+        "zip_bytes": 20971520,
+        "zip_entries": 1000,
+        "zip_ratio": 100
+      },
+      "text": "\n[Sheet Inputs; visible]\nA1: Synthetic cell\nB1: 3\nA2: inert formula =SUM(B1,2); cached=5; references not resolved\n"
+    },
+    "original_path": ".local/recovery5a/original.xlsx",
+    "download_sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04"
+  }
+]

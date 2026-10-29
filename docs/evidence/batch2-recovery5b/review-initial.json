@@ -1,0 +1,54 @@
+{
+  "older": "012d0d59-8027-4310-b3f7-8f0abf178d5b",
+  "latest": "3a6ce55e-6284-4b7e-b799-28fd249f3afd",
+  "base_revision": "3e36dfbb-8284-4f34-af59-f46a333d5302",
+  "notes": [
+    "Keep the shaded beds.",
+    "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+  ],
+  "body": {
+    "kind": "structured_table",
+    "version": "structured-table/v1",
+    "title": "Garden options \u2014 current human correction",
+    "fields": [
+      {
+        "key": "plant",
+        "label": "Plant",
+        "type": "text",
+        "editable": true,
+        "unit": null,
+        "scale": null,
+        "enum": null
+      },
+      {
+        "key": "height",
+        "label": "Height",
+        "type": "decimal",
+        "editable": true,
+        "unit": "cm",
+        "scale": 1,
+        "enum": null
+      }
+    ],
+    "rows": [
+      {
+        "row_id": "oak",
+        "cells": [
+          {
+            "field_key": "plant",
+            "value": "Oak \u2014 browser correction \u96ea 2026-10-26T21:05:55.473Z"
+          },
+          {
+            "field_key": "height",
+            "value": "12.5"
+          }
+        ]
+      }
+    ],
+    "notes": [
+      "Keep the shaded beds.",
+      "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+    ]
+  },
+  "evidence": "Direct synthetic proposal fixture; not a model-quality trial"
+}

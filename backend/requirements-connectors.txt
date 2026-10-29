@@ -1,0 +1,11 @@
+# Complete opt-in app profile; replaces requirements.txt for synthetic connector deployments.
+fastapi==0.115.12
+pydantic==2.12.5
+psycopg[binary]==3.2.9
+uvicorn==0.34.3
+httpx==0.28.1
+pytest==8.3.5
+tiktoken==0.12.0
+mcp==2.3.0
+mcp-types==2.3.0
+cryptography==46.0.3

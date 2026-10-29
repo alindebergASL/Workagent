@@ -1,0 +1,16 @@
+{
+  "run_id": "81ebe2a0-0a5d-4da2-a115-3384cbcb9329",
+  "conversation_id": "c57a350e-a944-42ea-afee-7497c9f8458f",
+  "request_count": 2,
+  "expected_manifest": [
+    [
+      "5707807c-0cef-4d3f-aca8-98d576a68d49",
+      "9027eae7-bf25-4336-bac2-1e2bf84cd5f9"
+    ]
+  ],
+  "request_hashes": [
+    "bb4b718808f1a37fccaa8809938b235f738534bede7c7026d71fea43e27011b5",
+    "d851fed927158c28c8344bb7235a86b5ac900fecf16cebd0c36f002a64e01fce"
+  ],
+  "restart_no_repeat": true
+}

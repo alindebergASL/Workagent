@@ -1,0 +1,226 @@
+{
+  "base": "d9cd7e4ddbca576986424f7664873286c1fcfa00",
+  "files": [
+    {
+      "path": "backend/dev_db.py",
+      "sha256": "f1796af31e022f492fdbb1259a035a2b0784aef1dbfa4d77d8c31209dab58b04"
+    },
+    {
+      "path": "backend/export_contracts.py",
+      "sha256": "b16e86ace55f28c0d1aec0deffc7eaba587dd77cdfb7f7371ec84180fbb2de36"
+    },
+    {
+      "path": "backend/migrations/065_synthetic_connectors.sql",
+      "sha256": "3cf588e01ea8a450b5eb2d72d2fc47304b8b288a69850a4bcecd6811ce2a79d6"
+    },
+    {
+      "path": "backend/migrations/066_connector_evidence_authority.sql",
+      "sha256": "fc1d28ddbe697f2b5e68db07b7a61114e67c1529a0375f84e66cac22a936c616"
+    },
+    {
+      "path": "backend/requirements-connectors.lock",
+      "sha256": "12aaa2b1774abc12d546141909e3783ff7c23410e3ceb08a29e39f634f1baf59"
+    },
+    {
+      "path": "backend/requirements-connectors.txt",
+      "sha256": "1714ee292f2f64782700dae8998dca12eaf9f27beb1a6ed30eb7e9c1bceeb70c"
+    },
+    {
+      "path": "backend/tests/fixtures/synthetic_connector_lifecycle.sql",
+      "sha256": "7ae6d70896745db56a8559391c4d9d9d68da86e67b357892ca326d75fa1a9929"
+    },
+    {
+      "path": "backend/tests/test_connector_security_pg.py",
+      "sha256": "64376257cd61c9b3d3854e6fac1f91c9ca2221db1f54a0b4261c8cdb5307c508"
+    },
+    {
+      "path": "backend/tests/test_mcp_stdio_isolation.py",
+      "sha256": "abcdf21526c83ab7a816af472218d0632b9b0cbdb6a4e2d2ebae270a322a8c75"
+    },
+    {
+      "path": "backend/tests/test_synthetic_connectors.py",
+      "sha256": "9f5e2413bed9aad1fd935215d93a182511b674c10620bb671fa8db9a314f54a9"
+    },
+    {
+      "path": "backend/tests/test_synthetic_connectors_pg.py",
+      "sha256": "e9993081ee7c90376000704d637851c147f901bed346729f4d838b22d3fc18d0"
+    },
+    {
+      "path": "backend/tests/test_synthetic_mcp_wire.py",
+      "sha256": "79166f85bb6a047134ed8c63b85a1c0e0ce536de41347336800e774473d0fa5f"
+    },
+    {
+      "path": "backend/workagent/adaptive.py",
+      "sha256": "c605596c262b2df43684ca4e4e16c9c5d63e46062ece1c191605f1d69d6326bd"
+    },
+    {
+      "path": "backend/workagent/api.py",
+      "sha256": "a0eb9b0975d6fdc20923b1381b13c5f9d7a00c00746a3e7138db2c51bc8890cd"
+    },
+    {
+      "path": "backend/workagent/capabilities/broker.py",
+      "sha256": "ad9d07897919c4ba092302e46a434036cad2b0c5c8d5341707c042df60cfc316"
+    },
+    {
+      "path": "backend/workagent/capabilities/github_composition.py",
+      "sha256": "13e6559ea61ec07ce11627bfae9a0610b67c845e934d3987f5c9581ddda7b566"
+    },
+    {
+      "path": "backend/workagent/capabilities/mcp_adapters.py",
+      "sha256": "bcd1b80768eb046d975b98636f8fc9f0df922d78ee5d5f88315996240e220826"
+    },
+    {
+      "path": "backend/workagent/capabilities/mcp_composition.py",
+      "sha256": "4498c3bcf1a4bd71945906b3a294e71af521c6e8053059dba27cd220db0fe4a5"
+    },
+    {
+      "path": "backend/workagent/capabilities/policy.py",
+      "sha256": "c0dba943972080e2f95eac6d3fd52f1f6ae36613c6c351b27998c265ae6993d6"
+    },
+    {
+      "path": "backend/workagent/capabilities/registry.py",
+      "sha256": "6a00110c9a09297466ad8742c9ea4c4d424f013dc02bdf62d97f2d4f9b6ecf2a"
+    },
+    {
+      "path": "backend/workagent/connectors/README.md",
+      "sha256": "1c69f5f971b9a5150c9177ca407b0444ac169a857755a5fa7a3760e7c819c8d3"
+    },
+    {
+      "path": "backend/workagent/connectors/api.py",
+      "sha256": "e99f337d1e33fa09b2041828f7b26557fb06c6833daa15153223f8d9239143ac"
+    },
+    {
+      "path": "backend/workagent/connectors/mcp_client.py",
+      "sha256": "c0bae39f4899a3442a3938ad3b7ee5740ec4f8758d57df073d925a09f23a1dfb"
+    },
+    {
+      "path": "backend/workagent/connectors/models.py",
+      "sha256": "57bcbf878b86146d1a2e2f417b198d96167205254ea18b3b024d697143b5f65c"
+    },
+    {
+      "path": "backend/workagent/connectors/oauth.py",
+      "sha256": "c58940f0bedb8e161a674f2c14c7037c0f6bb1c35865d33b8cac149585fad4ca"
+    },
+    {
+      "path": "backend/workagent/connectors/registry.py",
+      "sha256": "ae9d55d7519f5a6562385f6fa46cf24870e2a53547f4fe177fbf44fa047a5f57"
+    },
+    {
+      "path": "backend/workagent/connectors/revocation.py",
+      "sha256": "96995c9e2ae2ff3b95d7efdabe36fd6d0ee154f5e30302e709f16b0ccce257b7"
+    },
+    {
+      "path": "backend/workagent/connectors/service.py",
+      "sha256": "ed80302b4cf0a830ac90b7b9a07d41e5273a71b03d494f2c154b23af142ddce7"
+    },
+    {
+      "path": "backend/workagent/connectors/stdio_bootstrap.py",
+      "sha256": "3413e09ccd0911c957218b34ee615c1e9d91e68279ad7d8ac0fb6522311b394f"
+    },
+    {
+      "path": "backend/workagent/connectors/stdio_jail.py",
+      "sha256": "b4b30e3d0a0ff7cadff2c887bef6b4aef8a236fee479b66c94258b0880e7028d"
+    },
+    {
+      "path": "backend/workagent/connectors/synthetic-tools.json",
+      "sha256": "3026c5d9b595d42c4c4daf178be1db421a98eaba1a878470e6843bc633a597ea"
+    },
+    {
+      "path": "backend/workagent/connectors/synthetic_server.py",
+      "sha256": "d0f069f80d0e24e3fdb8b57cd34f7464c615f6f4c5b09f5a9c21fd1c5033d3cb"
+    },
+    {
+      "path": "backend/workagent/connectors/vault.py",
+      "sha256": "4411e00016bbb0d4c22fec6201a34048cd81e5e7de8c93d0151a07cb50ecd8e0"
+    },
+    {
+      "path": "backend/workagent/conversations.py",
+      "sha256": "4882a029a034fa7ebcb7329a54ae8327c35c1c8a4450d550aa0bf674be2cd552"
+    },
+    {
+      "path": "backend/workagent/general_responses.py",
+      "sha256": "f1f1e0547cc86f14608c72f7c429e73eaf68365aec4d40c62cc7836753170c59"
+    },
+    {
+      "path": "backend/workagent/operator_client.py",
+      "sha256": "7852275280800e2d76ffd61ad05d1d1cce415369299bb17d0ed31d48f2a817a8"
+    },
+    {
+      "path": "backend/workagent/operator_tui.py",
+      "sha256": "d96e238f332e6175308101c3ab0999ad599acf01884e13553ab023ae063f4ac4"
+    },
+    {
+      "path": "backend/workagent/products.py",
+      "sha256": "d98b31425c98f5838d9e34e4469e42e3b833d297dd08fe6e9d7f29159352ac58"
+    },
+    {
+      "path": "backend/workagent/responses_ledger.py",
+      "sha256": "1b0092180cf0063dbc52c890f4d4deed99840a6e9c17ff25d3780791443c7fdf"
+    },
+    {
+      "path": "backend/workagent/responses_transport.py",
+      "sha256": "3db17632da64d4e394b8ece786a08e7e3a35e86df2b716889832b1fe731aaa9e"
+    },
+    {
+      "path": "backend/workagent/tui/app.py",
+      "sha256": "99583f6c377004ae998603161cb0cde654fc7daa29e20773c6d05a3828f817af"
+    },
+    {
+      "path": "backend/workagent/tui/connectors.py",
+      "sha256": "e6124f11f2d4991d6e1cb7588285c70662dd889f2c690dac22511970e2e0c3d3"
+    },
+    {
+      "path": "backend/workagent/tui/connectors_screen.py",
+      "sha256": "e1286a45d9410b9c60ab16fe5ea5fa68e73fed890699560a9e342881b45ecb68"
+    },
+    {
+      "path": "contracts/capability-registry-v2.json",
+      "sha256": "e391d3cfd289b69b7ffea4e86e1cd1b91c1abfa7aa74ff39b13051f5ef898163"
+    },
+    {
+      "path": "contracts/connector-authorization-flow.schema.json",
+      "sha256": "97833b9cab7e0ee21f389f02f2e1ce342068adcf441f08890d85f5eef274f4d4"
+    },
+    {
+      "path": "contracts/connector-status.schema.json",
+      "sha256": "c76dda9708b091c9ff844bc096d5337dd84248b4787bc69d2dce9731ba416c74"
+    },
+    {
+      "path": "contracts/gateway-mcp-decision.schema.json",
+      "sha256": "44dae339873a39012bc872ac4d8e2ea840ddb4592ae02755bfdab5f37e766a20"
+    },
+    {
+      "path": "contracts/openapi.json",
+      "sha256": "a6fc6f734cb9da6ad1c10cf49b61182d0bbd6e986852e610a71f7ccaa94c1f60"
+    },
+    {
+      "path": "contracts/src/schema.d.ts",
+      "sha256": "172aef71024ead9e6c59c5b7fd07cbbb5757ad3a677ee184b37e5229e6b5c2ac"
+    },
+    {
+      "path": "web/src/app/connections/page.tsx",
+      "sha256": "e8c8a9bbaef7c86daf618d0051180f96dc10146bf140ea7aed31b4d94c05f0b9"
+    },
+    {
+      "path": "web/src/components/ConnectorPanel.tsx",
+      "sha256": "782035960058eda8dfa5905fb575b3bfedbf516806949197eac89b3352d92e66"
+    },
+    {
+      "path": "web/src/components/Shell.tsx",
+      "sha256": "7689250c2786828e8e4448a4815646234df636f91f8e568064f17a7033a62214"
+    },
+    {
+      "path": "web/src/lib/client/connectors.ts",
+      "sha256": "5ef6fdb95cfa38826e21cc274491d6df29d43900627f6f5833a8319feab1ffc7"
+    },
+    {
+      "path": "web/src/styles/products.css",
+      "sha256": "5c52b8c63addd9628d9aec233fa1e892557cffec77db11d56e302b54a5fbd736"
+    },
+    {
+      "path": "web/test/connectors.test.ts",
+      "sha256": "80671995ef26622a4ea7ec95618a17e1bba5be8dcb7ecebe331898357f9d2852"
+    }
+  ],
+  "review_session": "01a18673-bf52-7002-8035-960b460f6ceb"
+}

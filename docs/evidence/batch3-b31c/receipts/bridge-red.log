@@ -1,0 +1,68 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_________ test_opted_in_attachment_bridge_exact_idempotent_and_private _________
+
+context = (<workagent.service.Service object at 0x725176aae5d0>, Principal(id='local-human', kind='human'), 'test-3655b271-03bf-...time.datetime(2026, 10, 28, 23, 23, 0, 58115, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_opted_in_attachment_bridge_exact_idempotent_and_private(context):
+        s,p,ws,_,admin=context; cv=conversation(context); activated(context,cv)
+        content='record_id,elapsed_minutes\r\nr1,1.25\r\nr1,1.25\r\n'
+        command=cmd(PostMessage,expected_work_version=cv.work_version,text='Analyze this duration dataset',
+                    attachments=[dict(filename='observations.csv',mime_type='text/csv',content=content)])
+        queued=s.post_message(p,ws,cv.id,command)
+        files=s.list_workspace_files(p,ws,cv.id).items
+>       assert len(files)==1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+backend/tests/test_combined_attachment_bridge_pg.py:18: AssertionError
+_______________ test_old_profile_does_not_silently_create_files ________________
+
+context = (<workagent.service.Service object at 0x7251769397c0>, Principal(id='local-human', kind='human'), 'test-74350cd5-f045-...ime.datetime(2026, 10, 28, 23, 23, 0, 213505, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_old_profile_does_not_silently_create_files(context):
+        s,p,ws,_,_=context; cv=conversation(context)
+>       s.post_message(p,ws,cv.id,cmd(PostMessage,expected_work_version=cv.work_version,text='retain',
+          attachments=[dict(filename='evidence.txt',mime_type='text/plain',content='inert text')]))
+
+backend/tests/test_combined_attachment_bridge_pg.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/conversations.py:180: in post_message
+    return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
+backend/workagent/service.py:209: in _command
+    result = mutate(c, authorized)
+backend/workagent/conversations.py:182: in <lambda>
+    lambda c,cv:self._admit_conversation_turn(c,p,ws,cv,cmd))
+backend/workagent/conversations.py:193: in _admit_conversation_turn
+    grant=admission(self,c,p,ws,cv,cmd,human_steering=responsibility is None and continuation is None and queued_intent is None)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+service = <workagent.service.Service object at 0x7251769397c0>
+c = <psycopg.Connection [BAD] at 0x72517693b8c0>
+p = Principal(id='local-human', kind='human')
+ws = 'test-74350cd5-f045-4750-805c-095b31a4d63e'
+cv = Conversation(work_area=None, updated_at=None, last_message_preview=None, execution_profile='general-controlled-v1', mo...ate='open', selected_source_refs=[], created_at=datetime.datetime(2026, 10, 28, 23, 23, 0, 242252, tzinfo=TzInfo(UTC)))
+cmd = PostMessage(schema_version='workagent/v1', request_id='fb9ad389-7667-4d0b-8a78-d04f19224d72', command_id='5fd1a7bd-de3...mentInput(filename='evidence.txt', mime_type='text/plain', content='inert text')], target=None, acceptance_checks=None)
+
+    def admission(service,c,p,ws,cv,cmd,*,human_steering=False):
+        """An existing revoked/exhausted scoped activation never silently falls back."""
+        from .models import ProviderGrant
+        predicate=scope_predicate(c,'g','%s')
+        scoped=c.execute(f"SELECT data,active FROM provider_grants g WHERE workspace_id=%s AND principal_id=%s AND data->>'profile'=%s AND {predicate}",
+                         (ws,p.id,PROFILE,cv.id)).fetchall()
+        if not scoped:
+            if not service.allow_controlled_turns: raise DomainError('unsupported_operation')
+>           if cmd.attachments or cmd.target or cmd.acceptance_checks: raise DomainError('unsupported_operation')
+E           workagent.errors.DomainError: unsupported_operation
+
+backend/workagent/general_responses.py:265: DomainError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent/proofs/b31c-t5a57eb56/candidate/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_combined_attachment_bridge_pg.py::test_opted_in_attachment_bridge_exact_idempotent_and_private
+FAILED backend/tests/test_combined_attachment_bridge_pg.py::test_old_profile_does_not_silently_create_files
+2 failed, 1 warning in 1.23s

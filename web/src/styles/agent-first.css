@@ -1106,6 +1106,19 @@ details.disclosure.card {
 .decision-card .ids-details {
   margin-top: 2px;
 }
+/* A retained document: long names, omissions and read text wrap inside the
+   column instead of widening the page; every character stays visible. */
+.document-row {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.document-read-text {
+  margin: 0;
+  max-width: 100%;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: ui-monospace, monospace;
+}
 .work-row-status {
   display: flex;
   flex-wrap: wrap;

@@ -1,0 +1,61 @@
+{
+  "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+  "conversation_id": "cc253e20-24c9-41c4-898a-0c13b8cfb9e1",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "final",
+        "request_sha256": "be28f9f9a25efc7475dd7250f82f9da446dbbf92b5697d0f59b6dda61cbaf1ff",
+        "entries": []
+      },
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "selection",
+        "request_sha256": "547e84fb0b55aef97196a1d4f998a5aa71d0befe9796c36c07dd8a75069bcc85",
+        "entries": []
+      },
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "selection_2",
+        "request_sha256": "dc0820164fc17c243912f54004bdd3d67e890108b6ee17ec34d9f2ce9b36625c",
+        "entries": []
+      },
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "selection_3",
+        "request_sha256": "a99ae83c69fb14229905f24867effbc9f12e06a275ebf47aa039b679bfa108ac",
+        "entries": []
+      },
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "selection_4",
+        "request_sha256": "b8b10d30ed350f3af08c975d36433166d87afa85e288f306fa245e07a2201124",
+        "entries": []
+      },
+      {
+        "run_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "request_id": "322d57af-7175-4dbe-9f32-4bb920af40af",
+        "attempt_id": "4f953eb5-5cdf-4668-af38-b3786ff895da",
+        "phase": "selection_5",
+        "request_sha256": "48ae470e9a7a57f235996c411ecc4cc280fbd35d54d2cee0af40d9b88595e0d3",
+        "entries": []
+      }
+    ]
+  },
+  "controlled_model": true,
+  "real_tools": true,
+  "paid_product_calls": 0,
+  "restart_no_repeat": true
+}

@@ -1,0 +1,350 @@
+{
+  "$defs": {
+    "InputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "InputRef",
+      "type": "object"
+    },
+    "ToolCostV1": {
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "enum": [
+            "reserved",
+            "provider_reported",
+            "estimated",
+            "unknown",
+            "reconciled"
+          ],
+          "title": "Basis",
+          "type": "string"
+        },
+        "billed_cost_usd": {
+          "default": null,
+          "title": "Billed Cost Usd",
+          "type": "null"
+        },
+        "category": {
+          "enum": [
+            "local_compute",
+            "search",
+            "extraction",
+            "rendering",
+            "connector",
+            "child"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "cpu_ms": {
+          "minimum": 0,
+          "title": "Cpu Ms",
+          "type": "integer"
+        },
+        "elapsed_ms": {
+          "minimum": 0,
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "observed_cost_usd": {
+          "anyOf": [
+            {
+              "pattern": "^(0|[1-9][0-9]{0,2})(\\.[0-9]{1,6})?$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Cost Usd"
+        },
+        "observed_units": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Units"
+        },
+        "reserved_cost_usd": {
+          "pattern": "^(0|[1-9][0-9]{0,2})(\\.[0-9]{1,6})?$",
+          "title": "Reserved Cost Usd",
+          "type": "string"
+        },
+        "reserved_units": {
+          "minimum": 1,
+          "title": "Reserved Units",
+          "type": "integer"
+        },
+        "unit": {
+          "enum": [
+            "call",
+            "millisecond"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "unit",
+        "reserved_units",
+        "reserved_cost_usd",
+        "basis",
+        "elapsed_ms",
+        "cpu_ms"
+      ],
+      "title": "ToolCostV1",
+      "type": "object"
+    },
+    "ToolErrorV1": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "enum": [
+            "adapter_failed",
+            "invalid_output",
+            "authority_changed",
+            "outcome_unknown"
+          ],
+          "title": "Code",
+          "type": "string"
+        },
+        "retryable": {
+          "const": false,
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "ToolErrorV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "attempt_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Attempt Id",
+      "type": "string"
+    },
+    "call_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Call Id",
+      "type": "string"
+    },
+    "capability_id": {
+      "maxLength": 128,
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$",
+      "title": "Capability Id",
+      "type": "string"
+    },
+    "capability_version": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Capability Version",
+      "type": "string"
+    },
+    "cost": {
+      "$ref": "#/$defs/ToolCostV1"
+    },
+    "ended_at": {
+      "format": "date-time",
+      "title": "Ended At",
+      "type": "string"
+    },
+    "error": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ToolErrorV1"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "execution_profile": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Execution Profile",
+      "type": "string"
+    },
+    "implementation_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Implementation Sha256",
+      "type": "string"
+    },
+    "input_refs": {
+      "items": {
+        "$ref": "#/$defs/InputRef"
+      },
+      "title": "Input Refs",
+      "type": "array"
+    },
+    "omissions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 20,
+      "title": "Omissions",
+      "type": "array"
+    },
+    "output": {
+      "anyOf": [
+        {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Output"
+    },
+    "output_refs": {
+      "items": {
+        "$ref": "#/$defs/InputRef"
+      },
+      "title": "Output Refs",
+      "type": "array"
+    },
+    "output_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Output Sha256"
+    },
+    "privacy_label": {
+      "enum": [
+        "public",
+        "workspace_private"
+      ],
+      "title": "Privacy Label",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "tool-observation/v1",
+      "default": "tool-observation/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_refs": {
+      "items": {
+        "$ref": "#/$defs/InputRef"
+      },
+      "title": "Source Refs",
+      "type": "array"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "observed",
+        "failed",
+        "cost_only",
+        "outcome_unknown"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "truncated": {
+      "title": "Truncated",
+      "type": "boolean"
+    },
+    "verification_scope": {
+      "const": "adapter_execution_only",
+      "default": "adapter_execution_only",
+      "title": "Verification Scope",
+      "type": "string"
+    }
+  },
+  "required": [
+    "call_id",
+    "attempt_id",
+    "run_id",
+    "capability_id",
+    "capability_version",
+    "implementation_sha256",
+    "execution_profile",
+    "input_refs",
+    "output_refs",
+    "output_sha256",
+    "output",
+    "started_at",
+    "ended_at",
+    "status",
+    "error",
+    "truncated",
+    "omissions",
+    "source_refs",
+    "privacy_label",
+    "cost"
+  ],
+  "title": "ToolObservationV1",
+  "type": "object"
+}

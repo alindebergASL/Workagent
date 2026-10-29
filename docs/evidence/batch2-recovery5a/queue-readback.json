@@ -1,0 +1,450 @@
+{
+  "conversation": {
+    "conversation": {
+      "work_area": null,
+      "updated_at": "2026-10-26T20:24:01.781753Z",
+      "last_message_preview": "Newer human steering from a second actual API client.",
+      "execution_profile": "general-controlled-v1",
+      "model_activation": "disabled",
+      "id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+      "workspace_id": "recovery5a-workspace",
+      "owner_id": "local-human",
+      "title": "Community garden continuity",
+      "work_version": 3,
+      "state": "open",
+      "selected_source_refs": [],
+      "created_at": "2026-10-26T20:16:54.162225Z"
+    },
+    "messages": [
+      {
+        "id": "08e1a193-ca39-4794-b98d-3c824e52d3cf",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 1,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Keep this useful draft; no correctness claim.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": {
+          "artifact_id": null,
+          "base_revision_id": null,
+          "kind": "publish_artifact",
+          "body": {
+            "kind": "structured_table",
+            "version": "structured-table/v1",
+            "title": "Garden plot options",
+            "fields": [
+              {
+                "key": "plant",
+                "label": "Plant",
+                "type": "text",
+                "editable": true,
+                "unit": null,
+                "scale": null,
+                "enum": null
+              },
+              {
+                "key": "height",
+                "label": "Height",
+                "type": "decimal",
+                "editable": true,
+                "unit": "cm",
+                "scale": 1,
+                "enum": null
+              }
+            ],
+            "rows": [
+              {
+                "row_id": "oak",
+                "cells": [
+                  {
+                    "field_key": "plant",
+                    "value": "Oak"
+                  },
+                  {
+                    "field_key": "height",
+                    "value": "12.5"
+                  }
+                ]
+              }
+            ],
+            "notes": [
+              "Keep the shaded beds.",
+              "Volunteer notes:\n  water Tuesday\n  preserve this line \u266a"
+            ]
+          }
+        },
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:54.490353Z"
+      },
+      {
+        "id": "fea5d515-bed4-42e5-93b8-3d87607124b6",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "sequence": 2,
+        "author_id": "general-worker",
+        "author_kind": "assistant",
+        "text": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "result": {
+          "results": [
+            {
+              "kind": "text",
+              "text": "Draft retained; data shape only was checked. The requested goal needs validation."
+            },
+            {
+              "kind": "structured_table",
+              "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+              "revision_id": "056797bb-b48d-4d43-bc72-7f11725514c9",
+              "proposal_id": null,
+              "observation_id": "4144b450-1487-4c30-97ec-776d4db46ef3"
+            }
+          ]
+        },
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:16:56.457642Z"
+      },
+      {
+        "id": "da80be0c-dcac-4110-98ab-e2cd80766ed5",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "sequence": 3,
+        "author_id": "local-human",
+        "author_kind": "human",
+        "text": "Newer human steering from a second actual API client.",
+        "evidence_origin": "human",
+        "result": null,
+        "operation": null,
+        "attachments": [],
+        "target": null,
+        "model_receipt": null,
+        "created_at": "2026-10-26T20:24:01.781753Z"
+      }
+    ],
+    "runs": [
+      {
+        "id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "partial",
+        "fence": 1,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-products-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-products-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "6de411192661913bff7489b792cbd6dfb7e52421e9e18c3980bc2c7360f060ce",
+        "tool_registry_hash": "a7e1f2d458724ea53d595e450ecfb6af82f859336ffc5eb3ba99fa0e0ca10387",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 1,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [
+          "Draft retained; data shape only was checked. The requested goal needs validation."
+        ],
+        "observed_at": "2026-10-26T20:16:56.496781Z"
+      },
+      {
+        "id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "workspace_id": "recovery5a-workspace",
+        "assignment_id": null,
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "principal_id": "local-human",
+        "kind": "conversation_turn",
+        "state": "queued",
+        "fence": 0,
+        "access_generation": 1,
+        "lease_expires_at": null,
+        "profile": "general-controlled-v1",
+        "execution": {
+          "mode": "fixture",
+          "profile": "general-controlled-v1",
+          "model": null,
+          "grant_id": null,
+          "attempt_id": null,
+          "provider_observation": "not_observed",
+          "evidence_origin": "controlled_transport"
+        },
+        "bundle_hash": "dcd90d3d65afb2e1259f0badf7212b7bea8b1b647be1da540fb97967071e2eb4",
+        "tool_registry_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "provider_session_id": null,
+        "provider_turn_id": null,
+        "stop_reason": null,
+        "cursor": 0,
+        "budget_units": 1,
+        "used_units": 0,
+        "artifact_id": null,
+        "base_revision_id": null,
+        "instruction": null,
+        "proposal_id": null,
+        "unresolved": [],
+        "observed_at": "2026-10-26T20:24:01.700684Z"
+      }
+    ],
+    "assignment_ids": [],
+    "artifact_ids": [
+      "dfe536ed-23fa-44fc-8e3d-0f9796317304"
+    ],
+    "turns": [
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "e0fde2aa-375b-4465-907d-e57d7a5be8ea",
+        "state": "failed",
+        "reason": "Draft retained; data shape only was checked. The requested goal needs validation.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      },
+      {
+        "profile": "general-controlled-v1",
+        "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+        "state": "unavailable",
+        "reason": "No controlled consumer claim observed; start or check the local server worker. No provider fallback.",
+        "evidence_origin": "controlled_transport",
+        "provider_observation": "not_observed",
+        "response_steps": [],
+        "adaptive": null,
+        "retained_local_result": null,
+        "explanation": null,
+        "responsibility_origin": null,
+        "responsibility_recording": null
+      }
+    ]
+  },
+  "queue": {
+    "items": [
+      {
+        "id": "a65f8cf6-7a7e-469c-903e-1be9fcbf47cd",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "position": 1,
+        "queue_version": 1,
+        "created_at": "2026-10-26T20:28:59.806419Z",
+        "intent": {
+          "schema_version": "workagent/v1",
+          "request_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "command_id": "33eb1f64-cf32-47ba-8737-d155d2f1fafa",
+          "expected_work_version": 3,
+          "text": "  Garden plan \u96ea \u266a\nKeep Tuesday.\n  exact spaces \u03a9\n",
+          "operation": null,
+          "attachments": [],
+          "target": null
+        },
+        "admission_work_version": 3,
+        "access_generation": 1,
+        "dependency_fingerprint": "661c3d9e70da7428c22336653954d96b0645d79b7ab14a399de562efc55ae012",
+        "state": "pending",
+        "reason": null,
+        "run_id": null
+      }
+    ]
+  },
+  "snapshot": {
+    "schema_version": "workagent/work-v1",
+    "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+    "work_version": 3,
+    "access_generation": 1,
+    "checked_at": "2026-10-26T20:29:08.003852Z",
+    "snapshot_cursor": "3bd87085-3e3c-40ec-850a-3787413b97b8.1.zGsqFQwsAGV1eTBjBmlSeIW8K_BvkiLllgh7u20csGk",
+    "execution": {
+      "run_id": "c789faa9-7b66-428e-b914-c7a33a312a35",
+      "state": "queued",
+      "reason": "worker_unavailable",
+      "phase": null,
+      "admitted_at": "2026-10-26T20:24:01.700684Z",
+      "last_progress_at": "2026-10-26T20:24:01.700684Z",
+      "worker_observed_at": null,
+      "worker_live": false,
+      "admission": "admitted"
+    },
+    "responsibility": [],
+    "artifacts": [
+      {
+        "id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "title": "Latest candidate keeps human notes",
+        "kind": "structured_table",
+        "current_revision_id": "21bf6cd0-ea6a-472b-b97b-0594d79f0e85",
+        "body_hash": "c3efa3ef98661114aa3313695c311e68eecbe4d637408ffee4800403f1f74976"
+      }
+    ],
+    "pending_proposals": [
+      {
+        "proposal_id": "f29237a8-4da3-42c9-ac40-5328b36e5943",
+        "artifact_id": "dfe536ed-23fa-44fc-8e3d-0f9796317304",
+        "base_revision_id": "0e6c0a21-a5b7-40a3-bd3c-ddb287d7a96b",
+        "base_work_version": 1,
+        "created_at": "2026-10-26T20:16:58.207488Z",
+        "fresh": false,
+        "is_latest": false,
+        "removed_content_count": 3
+      }
+    ]
+  },
+  "checkpoints": {
+    "items": []
+  },
+  "documents": {
+    "items": [
+      {
+        "document_id": "841e656d-7860-4bb3-b158-f6973147582d",
+        "sha256": "01a4b011e18f811831ea538cd1ac51ce6bedacbdcebbeabd95bf817edcb42a11",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.docx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "byte_length": 891,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "d4578dcc2654f5bbf06f4c4607b11a6cee1272d9e678de36d719cbd88518eba8",
+        "text_bytes": 54,
+        "coverage": {
+          "omissions": [
+            "headers",
+            "footers",
+            "comments",
+            "tracked changes",
+            "nested tables, drawings and exact list numbering/layout"
+          ],
+          "total_paragraphs": 2,
+          "omitted_paragraphs": 0,
+          "total_tables": 1,
+          "omitted_tables": 0,
+          "paragraphs_covered": 2,
+          "tables_covered": 1,
+          "partial_last_block": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "95dff2ca-e855-4a4b-8ec0-c59d28a4ed60",
+        "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.pdf",
+        "mime_type": "application/pdf",
+        "byte_length": 568,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "cf9a40ab98a4d27a698dee59e121d34ecbbecef866343076026d8db4c12451e6",
+        "text_bytes": 45,
+        "coverage": {
+          "omissions": [
+            "images, layout and non-text content"
+          ],
+          "total_pages": 1,
+          "covered_pages": 1,
+          "omitted_pages": 0,
+          "empty_pages_needing_ocr": [],
+          "partial_last_page": false
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      },
+      {
+        "document_id": "9dc2ae7e-408f-47c5-8750-b32e53cda9be",
+        "sha256": "91fa36109ada144e8e061cb2bb94dac4dc63eacf52ee335ca0b50df0af7bbe04",
+        "workspace_id": "recovery5a-workspace",
+        "conversation_id": "cb848ce6-e383-4dc8-b2dc-7721720e45e6",
+        "owner_id": "local-human",
+        "filename": "continuity.xlsx",
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "byte_length": 1451,
+        "status": "extracted",
+        "reason": "text_extracted",
+        "parser_version": "confined-documents-v1",
+        "text_sha256": "c559fbcd56f752c246f2311863854f72b39a00e61a2d4da72c88645ffbc441ea",
+        "text_bytes": 114,
+        "coverage": {
+          "omissions": [
+            "formatting, charts, comments; formula references unsupported; no recalculation"
+          ],
+          "total_sheets": 1,
+          "covered_sheets": 1,
+          "omitted_sheets": 0,
+          "sheets": [
+            {
+              "name": "Inputs",
+              "state": "visible",
+              "total_rows": 2,
+              "total_columns": 2,
+              "covered_rows": 2,
+              "merged_ranges": [
+                "A1"
+              ],
+              "omitted_merged_ranges": 0,
+              "visited_cells": 4,
+              "last_cell": "B2",
+              "partial_last_row": false,
+              "omitted_rows": 0,
+              "omitted_cell_positions": 0
+            }
+          ],
+          "covered_rows": 2,
+          "visited_cells": 4
+        },
+        "limits": {
+          "rows": 1000,
+          "cells": 10000,
+          "pages": 50,
+          "sheets": 10,
+          "zip_bytes": 20971520,
+          "zip_ratio": 100,
+          "text_bytes": 102400,
+          "input_bytes": 5242880,
+          "zip_entries": 1000
+        }
+      }
+    ],
+    "next_cursor": null
+  }
+}

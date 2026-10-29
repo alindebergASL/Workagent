@@ -1,0 +1,25 @@
+{
+  "identity": {
+    "db": "workagent_test_0604a6a3b5d9",
+    "role": "workagent_test_0604a6a3b5d9_runtime",
+    "rolsuper": false,
+    "rolbypassrls": false
+  },
+  "ledger_tables": {
+    "provider_grants": {
+      "count": 30,
+      "sha256": "a8a5aad5a4e11bb6d663959321a1a7f93993fb4686741662d8994f663885f109"
+    },
+    "general_grant_continuations": {
+      "count": 0,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "run_dispatches": {
+      "count": 70,
+      "sha256": "dbe4450213342be226eed8d562525abaac8f6cd2c6835f035a931f65cebc03e5"
+    }
+  },
+  "preexisting_source_access_sha256": "6866c90d013dd8d1227083aed5c289607ff84202c1ca60437e327977558ba77d",
+  "preexisting5c_memberships_sha256": "d66da8b2635d8afd5a49ab44108a377bada27b83c235cd0d024b7afa3fb99e93",
+  "fixture_conversations": []
+}

@@ -1,0 +1,773 @@
+{
+  "started": "2026-10-26T23:16:28.946Z",
+  "label": "verified-browser",
+  "checks": [
+    {
+      "screenshot": "a-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "a-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "a-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "same-principal/same-endpoint ordinary reload restores exact draft and staged bytes",
+    {
+      "screenshot": "identity-unavailable-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "identity-unavailable-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "Controlled unavailable-session fault: no durable UI exposure or dispatch; unchanged exact A recovery after real authentication returns",
+    {
+      "screenshot": "principal-transition",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    {
+      "stale_command": "principal-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    "Principal B: existing owner-only work-snapshot refuses404 although ordinary shared conversation read200; no sampled transient draft or staged-file exposure",
+    {
+      "screenshot": "principal-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "principal-only change isolates drafts/bytes and stale dispatch; original scope restores",
+    {
+      "stale_command": "endpoint-stale",
+      "status": 401,
+      "body": {
+        "code": "unauthenticated",
+        "message": "Access for this page changed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "screenshot": "endpoint-b",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "endpoint-only change isolates drafts/bytes and stale dispatch; original endpoint restores",
+    {
+      "screenshot": "revoked-1440",
+      "overflow": {
+        "width": 1440,
+        "document": 1440,
+        "body": 1440
+      }
+    },
+    {
+      "screenshot": "revoked-390",
+      "overflow": {
+        "width": 390,
+        "document": 390,
+        "body": 390
+      }
+    },
+    {
+      "screenshot": "revoked-320",
+      "overflow": {
+        "width": 320,
+        "document": 320,
+        "body": 320
+      }
+    },
+    "active-midstream revocation sanitizes open browser, retains originals, refuses canonical reads; only2 intentional stale POST probes, no automatic dispatch"
+  ],
+  "posts": [
+    {
+      "url": "http://127.0.0.1:3195/api/domain/v1/workspaces/recovery5d2-scope/conversations",
+      "body": "{\"schema_version\":\"workagent/v1\",\"request_id\":\"recovery5d-principal-stale\",\"command_id\":\"recovery5d-principal-stale\",\"title\":\"MUST NEVER CREATE\",\"selected_source_refs\":[]}",
+      "scope": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+    },
+    {
+      "url": "http://127.0.0.1:3195/api/domain/v1/workspaces/recovery5d2-scope/conversations",
+      "body": "{\"schema_version\":\"workagent/v1\",\"request_id\":\"recovery5d-endpoint-stale\",\"command_id\":\"recovery5d-endpoint-stale\",\"title\":\"MUST NEVER CREATE\",\"selected_source_refs\":[]}",
+      "scope": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+    }
+  ],
+  "reads": [
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "local-human",
+        "scope_id": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/conversations/695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 200,
+      "body": {
+        "conversation": {
+          "work_area": null,
+          "updated_at": "2026-10-26T23:16:26.962907Z",
+          "last_message_preview": null,
+          "execution_profile": "general-controlled-v1",
+          "model_activation": "disabled",
+          "id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+          "workspace_id": "recovery5d2-scope",
+          "owner_id": "local-human",
+          "title": "A14 shared synthetic conversation",
+          "work_version": 1,
+          "state": "open",
+          "selected_source_refs": [],
+          "created_at": "2026-10-26T23:16:26.962907Z"
+        },
+        "messages": [],
+        "runs": [],
+        "assignment_ids": [],
+        "artifact_ids": [],
+        "turns": []
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "recovery5d-other",
+        "scope_id": "f44561381e49a7dc8c83405f4b46a05f26b7446a7e7c99cdf4e84699fd5099d3"
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "recovery5d-other",
+        "scope_id": "f44561381e49a7dc8c83405f4b46a05f26b7446a7e7c99cdf4e84699fd5099d3"
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/conversations/695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 200,
+      "body": {
+        "conversation": {
+          "work_area": null,
+          "updated_at": "2026-10-26T23:16:26.962907Z",
+          "last_message_preview": null,
+          "execution_profile": "general-controlled-v1",
+          "model_activation": "disabled",
+          "id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+          "workspace_id": "recovery5d2-scope",
+          "owner_id": "local-human",
+          "title": "A14 shared synthetic conversation",
+          "work_version": 1,
+          "state": "open",
+          "selected_source_refs": [],
+          "created_at": "2026-10-26T23:16:26.962907Z"
+        },
+        "messages": [],
+        "runs": [],
+        "assignment_ids": [],
+        "artifact_ids": [],
+        "turns": []
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "6673c2be-1fae-4b0a-9bf6-36b25180b959",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-a-only/conversations",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "c694415b-d81a-4b07-95a3-3b8d1647cec6",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 503,
+      "body": {
+        "code": "connection_required",
+        "message": "Access couldn’t be confirmed.",
+        "request_id": "local-proxy",
+        "next_action": "Check the local service configuration.",
+        "details": {}
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "local-human",
+        "scope_id": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "local-human",
+        "scope_id": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "local-human",
+        "scope_id": "6b34d0b202d9e0d82f476d0f60a6c8665237db5aa18c924f006c147d0b98c249"
+      }
+    },
+    {
+      "path": "/v1/session",
+      "status": 200,
+      "body": {
+        "principal_id": "local-human",
+        "scope_id": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 200,
+      "body": {
+        "schema_version": "workagent/work-v1",
+        "conversation_id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+        "work_version": 1,
+        "access_generation": 1,
+        "checked_at": "2026-10-26T23:18:23.234861Z",
+        "snapshot_cursor": "1eebd2ec-ccfb-4ff5-8743-b138fdaa7ec9.1.TFurLyVQO77XRF9lzVcPhH0L7iy4o5QP9ZLuI35dLG0",
+        "execution": {
+          "run_id": null,
+          "state": "idle",
+          "reason": null,
+          "phase": null,
+          "admitted_at": null,
+          "last_progress_at": null,
+          "worker_observed_at": null,
+          "worker_live": false,
+          "admission": "not_admitted"
+        },
+        "responsibility": [],
+        "artifacts": [],
+        "pending_proposals": []
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/conversations/695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "1952990c-aa3c-4fdc-a158-a31acf657cbf",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "c0fa160d-6d6c-4fab-91c9-1b1514a95da7",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    },
+    {
+      "path": "/v1/workspaces/recovery5d2-scope/events?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9&after=1eebd2ec-ccfb-4ff5-8743-b138fdaa7ec9.1.TFurLyVQO77XRF9lzVcPhH0L7iy4o5QP9ZLuI35dLG0",
+      "status": 404,
+      "body": {
+        "code": "not_found_or_not_authorized",
+        "message": "Resource unavailable.",
+        "request_id": "f328c4de-bdd2-4042-81dc-b9d2eeccce6d",
+        "next_action": "Check your workspace and current access.",
+        "details": {
+          "current_revision_id": null,
+          "current_version": null,
+          "proposal_id": null,
+          "fields": []
+        }
+      }
+    }
+  ],
+  "console": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "errors": [],
+  "switches": [
+    {
+      "type": "principal-only",
+      "principal": "recovery5d-other",
+      "previous": {
+        "session": "b2r5b-api",
+        "pid": "4074349",
+        "cwd": "/home/ubuntu/workagent-continuation-20261026",
+        "argv": "backend/.venv/bin/python docs/evidence/batch2-recovery5d/fixture.py api local-human 18965 "
+      }
+    },
+    {
+      "type": "principal-only",
+      "principal": "local-human",
+      "previous": {
+        "session": "b2r5b-api",
+        "pid": "4089691",
+        "cwd": "/home/ubuntu/workagent-continuation-20261026",
+        "argv": "backend/.venv/bin/python docs/evidence/batch2-recovery5d/fixture.py api recovery5d-other 18965 "
+      }
+    },
+    {
+      "type": "endpoint-only",
+      "port": 18966,
+      "previous": {
+        "session": "b2r5b-web",
+        "pid": "4075122",
+        "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+        "argv": "next-server (v16.3.4)                                                       "
+      }
+    },
+    {
+      "type": "endpoint-only",
+      "port": 18965,
+      "previous": {
+        "session": "b2r5b-web",
+        "pid": "4090166",
+        "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+        "argv": "next-server (v16.3.4)                                                       "
+      }
+    }
+  ],
+  "identityA": {
+    "principal_id": "local-human",
+    "scope_id": "3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304"
+  },
+  "legacy": "LEGACY UNPROVEN PRIVATE DRAFT",
+  "stagedA": [
+    {
+      "key": "scope:v1:3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304:recovery5d2-scope:conversation:695ce736-f723-499c-8c59-8cca946c6ed9|c0b45bf5-4ac0-4c63-8009-c82fce269b90",
+      "scope": "scope:v1:3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304:recovery5d2-scope:conversation:695ce736-f723-499c-8c59-8cca946c6ed9",
+      "generation": "c0b45bf5-4ac0-4c63-8009-c82fce269b90",
+      "staged_at": 1793056600522,
+      "filename": "continuity.pdf",
+      "mime_type": "application/pdf",
+      "byte_length": 568,
+      "sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "state": "local",
+      "ref": null,
+      "upload": null,
+      "actual_sha256": "7317e178602febc6fc60fbe6a10a3bf9843e8180c1e86936e1fb5f265f02012d",
+      "actual_length": 568
+    }
+  ],
+  "canonicalBefore": {
+    "path": "/v1/workspaces/recovery5d2-scope/conversations/695ce736-f723-499c-8c59-8cca946c6ed9",
+    "status": 200,
+    "body": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T23:16:26.962907Z",
+        "last_message_preview": null,
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+        "workspace_id": "recovery5d2-scope",
+        "owner_id": "local-human",
+        "title": "A14 shared synthetic conversation",
+        "work_version": 1,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T23:16:26.962907Z"
+      },
+      "messages": [],
+      "runs": [],
+      "assignment_ids": [],
+      "artifact_ids": [],
+      "turns": []
+    }
+  },
+  "pendingKey": "workagent:scope:v1:3479e062cd638e03604b3d4989a88a133b78e689c350e7ce7a493349dd3cb304:workagent:pending:recovery5d2-scope:conversation:695ce736-f723-499c-8c59-8cca946c6ed9:send",
+  "pendingEnvelope": {
+    "command_id": "recovery5d-never-dispatch",
+    "expected_work_version": 1,
+    "text": "  Principal A private synthetic draft 雪\nnot shared ♪\n",
+    "attachments": []
+  },
+  "identityB": {
+    "principal_id": "recovery5d-other",
+    "scope_id": "f44561381e49a7dc8c83405f4b46a05f26b7446a7e7c99cdf4e84699fd5099d3"
+  },
+  "principalBRead": {
+    "path": "/v1/workspaces/recovery5d2-scope/conversations/695ce736-f723-499c-8c59-8cca946c6ed9",
+    "status": 200,
+    "body": {
+      "conversation": {
+        "work_area": null,
+        "updated_at": "2026-10-26T23:16:26.962907Z",
+        "last_message_preview": null,
+        "execution_profile": "general-controlled-v1",
+        "model_activation": "disabled",
+        "id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+        "workspace_id": "recovery5d2-scope",
+        "owner_id": "local-human",
+        "title": "A14 shared synthetic conversation",
+        "work_version": 1,
+        "state": "open",
+        "selected_source_refs": [],
+        "created_at": "2026-10-26T23:16:26.962907Z"
+      },
+      "messages": [],
+      "runs": [],
+      "assignment_ids": [],
+      "artifact_ids": [],
+      "turns": []
+    }
+  },
+  "principalBSnapshot": {
+    "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+    "status": 404,
+    "body": {
+      "code": "not_found_or_not_authorized",
+      "message": "Resource unavailable.",
+      "request_id": "6673c2be-1fae-4b0a-9bf6-36b25180b959",
+      "next_action": "Check your workspace and current access.",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "proposal_id": null,
+        "fields": []
+      }
+    }
+  },
+  "principalBUiSamples": [
+    {
+      "values": [],
+      "staged": 0
+    }
+  ],
+  "pendingUnderB": {
+    "original": {
+      "command_id": "recovery5d-never-dispatch",
+      "expected_work_version": 1,
+      "text": "  Principal A private synthetic draft 雪\nnot shared ♪\n",
+      "attachments": []
+    },
+    "foreign": null
+  },
+  "privateRefusal": {
+    "path": "/v1/workspaces/recovery5d2-a-only/conversations",
+    "status": 404,
+    "body": {
+      "code": "not_found_or_not_authorized",
+      "message": "Resource unavailable.",
+      "request_id": "c694415b-d81a-4b07-95a3-3b8d1647cec6",
+      "next_action": "Check your workspace and current access.",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "proposal_id": null,
+        "fields": []
+      }
+    }
+  },
+  "identityEndpoint": {
+    "principal_id": "local-human",
+    "scope_id": "6b34d0b202d9e0d82f476d0f60a6c8665237db5aa18c924f006c147d0b98c249"
+  },
+  "liveStreamBeforeRevoke": [
+    {
+      "url": "http://127.0.0.1:3195/api/domain/v1/workspaces/recovery5d2-scope/events/stream?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9&after=1eebd2ec-ccfb-4ff5-8743-b138fdaa7ec9.1.TFurLyVQO77XRF9lzVcPhH0L7iy4o5QP9ZLuI35dLG0",
+      "status": 200
+    }
+  ],
+  "snapshotBefore": {
+    "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+    "status": 200,
+    "body": {
+      "schema_version": "workagent/work-v1",
+      "conversation_id": "695ce736-f723-499c-8c59-8cca946c6ed9",
+      "work_version": 1,
+      "access_generation": 1,
+      "checked_at": "2026-10-26T23:18:23.234861Z",
+      "snapshot_cursor": "1eebd2ec-ccfb-4ff5-8743-b138fdaa7ec9.1.TFurLyVQO77XRF9lzVcPhH0L7iy4o5QP9ZLuI35dLG0",
+      "execution": {
+        "run_id": null,
+        "state": "idle",
+        "reason": null,
+        "phase": null,
+        "admitted_at": null,
+        "last_progress_at": null,
+        "worker_observed_at": null,
+        "worker_live": false,
+        "admission": "not_admitted"
+      },
+      "responsibility": [],
+      "artifacts": [],
+      "pending_proposals": []
+    }
+  },
+  "revokedText": "workagent\nMore\n← Back to Private fixture workspace\n\nYour access to this conversation changed. What was shown before is hidden and new messages can’t be sent. Your unsent draft is kept on this device.\n\nYour unsent message (kept, not sent)\nLocal preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken",
+  "revokedInputs": [
+    {
+      "value": "  Principal A private synthetic draft 雪\nnot shared ♪\n",
+      "readOnly": true,
+      "disabled": false
+    }
+  ],
+  "revokedSnapshot": {
+    "path": "/v1/workspaces/recovery5d2-scope/work-snapshot?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9",
+    "status": 404,
+    "body": {
+      "code": "not_found_or_not_authorized",
+      "message": "Resource unavailable.",
+      "request_id": "c0fa160d-6d6c-4fab-91c9-1b1514a95da7",
+      "next_action": "Check your workspace and current access.",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "proposal_id": null,
+        "fields": []
+      }
+    }
+  },
+  "revokedEvents": {
+    "path": "/v1/workspaces/recovery5d2-scope/events?conversation_id=695ce736-f723-499c-8c59-8cca946c6ed9&after=1eebd2ec-ccfb-4ff5-8743-b138fdaa7ec9.1.TFurLyVQO77XRF9lzVcPhH0L7iy4o5QP9ZLuI35dLG0",
+    "status": 404,
+    "body": {
+      "code": "not_found_or_not_authorized",
+      "message": "Resource unavailable.",
+      "request_id": "f328c4de-bdd2-4042-81dc-b9d2eeccce6d",
+      "next_action": "Check your workspace and current access.",
+      "details": {
+        "current_revision_id": null,
+        "current_version": null,
+        "proposal_id": null,
+        "fields": []
+      }
+    }
+  },
+  "revocationFrames": [
+    {
+      "at": 1793056702195,
+      "text": ": heartbeat\n\n"
+    },
+    {
+      "at": 1793056711170,
+      "text": "event: snapshot.required\ndata: {\"reason\":\"access_changed\"}\n\n"
+    }
+  ],
+  "status": "PASS",
+  "finished": "2026-10-26T23:18:34.305Z"
+}

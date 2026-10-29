@@ -1,0 +1,35 @@
+ Working files · Ctrl+S save · Esc back                                         
+ Export ready; download verifies actual bytes and hash.                         
+ Export export.txt · SHA256                                                     
+ 191b764d57ea2263bc616e5660d5f0f2e9655ac9720b6ede2df925d5be6ae51d               
+ Export omissions: none                                                         
+ Complete editor content: 210 UTF-8 bytes. No omitted bytes. Original           
+ newline: lf. BOM retained.                                                     
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  summary.csv                                                               ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ 1  group,unique_valid_observations,total_seconds,mean_seconds              ▎  
+▊ 2  North,2,240.000,120.000                                                 ▎▆▆
+▊ 3  South,1,240.000,240.000                                                 ▎  
+▊ 4                                                                          ▎  
+▊ 5  Human annotation: South remains provisional; retain this exact          ▎  
+▊    wording — reviewed by test operator.                                    ▎  
+▊ 6                                                                          ▎  
+▊                                                                            ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎                    
+▊ ▐X▌ Allow LF normalization of edited mixed line endings  ▎                    
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎                    
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                    
+ Save human edit   Read back   Replay exact                                     
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                    
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                             
+ Resolve rejection                                                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                           ▁▁
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  
+  ▶ Exact pending envelope (no credentials)                                     
+                                                                                
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  txt                                                                    ▼  ▎  
+ esc Back  ^s Save file  ^r Refresh list                                        

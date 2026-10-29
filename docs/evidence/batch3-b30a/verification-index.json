@@ -1,0 +1,61 @@
+{
+  "gateway_checkpoint": {
+    "log": "capabilities-final-3.log",
+    "passed": 33,
+    "exit": 0,
+    "original_argv": "not retained in log; do not assert a reconstructed invocation",
+    "scope": [
+      "backend/tests/test_capability_gateway.py",
+      "backend/tests/test_capability_integration.py",
+      "backend/tests/test_capability_http_journey.py",
+      "backend/tests/test_capability_upgrade.py"
+    ],
+    "continuation_collection_command": [
+      "backend/.venv/bin/python",
+      "-m",
+      "pytest",
+      "backend/tests/test_capability_gateway.py",
+      "backend/tests/test_capability_integration.py",
+      "backend/tests/test_capability_http_journey.py",
+      "backend/tests/test_capability_upgrade.py",
+      "--collect-only",
+      "-q"
+    ],
+    "collection_exit": 0,
+    "collected": 33,
+    "collection_is_not_execution": true
+  },
+  "selected_legacy": {
+    "command_receipts": "commands.json",
+    "passed": 15,
+    "failed": 3,
+    "not_full_suites": true
+  },
+  "accepted_baseline": {
+    "command_receipt": "summary-baseline-command.json",
+    "failed": 3,
+    "same_failure_patterns": true
+  },
+  "additional_residual": {
+    "command_receipt": "residual-command.json",
+    "passed": 13,
+    "exit": 0
+  },
+  "contracts": [
+    {
+      "command": "npm run generate",
+      "cwd": "contracts",
+      "exit": 0,
+      "log": "contracts-generate.log"
+    },
+    {
+      "command": "npm run check",
+      "cwd": "contracts",
+      "exit": 0,
+      "log": "contracts-check.log"
+    }
+  ],
+  "paid_product_calls": 0,
+  "installed_runtime_changed": false,
+  "broad_regressions": "incomplete/timeouts; never passing suites"
+}

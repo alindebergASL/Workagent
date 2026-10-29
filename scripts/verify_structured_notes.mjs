@@ -9,7 +9,8 @@ if(!/^http:\/\/127\.0\.0\.1:\d+$/.test(origin))throw new Error('Disposable loopb
 await mkdir(out,{recursive:true});
 const fixture=JSON.parse(await readFile(fixturePath,'utf8'));
 const base=origin+'/api/domain/v1/workspaces/'+fixture.workspace;
-const headers={'X-Workagent-Client':'local-ui'};
+const {scopedHeaders} = await import('../web/scripts/lib/scope.mjs');
+const headers=await scopedHeaders(origin,{'X-Workagent-Client':'local-ui'});
 async function get(id){const r=await fetch(base+'/artifacts/'+id,{headers});expect(r.status).toBe(200);return r.json();}
 const report={mode:'real_browser_real_api_real_postgresql_controlled_synthetic_fixture',live_provider_calls:0,results:[],errors:[]};
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});

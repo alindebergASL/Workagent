@@ -1,0 +1,24 @@
+{
+  "api_pid": 3381113,
+  "api_source_match": true,
+  "next": {
+    "pid": 3394051,
+    "cwd": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b30b/web-owner/web",
+    "cmd": "next-server (v16.3.4)                                                       ",
+    "config": {
+      "WORKAGENT_BACKEND_URL": "http://127.0.0.1:18772",
+      "WORKAGENT_WEB_ORIGIN": "http://127.0.0.1:3199",
+      "LOCAL_TEST_MODE": "true",
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "build_id": "zBl5D_CnV0WybW-13m2vQ",
+  "original_processes_alive": {
+    "875172": true,
+    "875173": true,
+    "2688430": true,
+    "2718652": true,
+    "2733711": true
+  },
+  "main_next_touched": false
+}

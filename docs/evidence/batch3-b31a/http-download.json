@@ -1,0 +1,47 @@
+{
+  "status": 200,
+  "sha256": "c3bb4622c8bfcc703b496db47560d40842757459b6dac38b98f7cf4bb2a1a856",
+  "manifest": {
+    "annotations": "explicit_omissions",
+    "blob": {
+      "blob_id": "420b1227-4ee1-4a58-84a7-43157206ba96",
+      "byte_length": 27,
+      "kind": "generated_blob",
+      "mime_type": "text/plain",
+      "sha256": "c3bb4622c8bfcc703b496db47560d40842757459b6dac38b98f7cf4bb2a1a856"
+    },
+    "code_sha256": "24933e9e4744c3e1d594d60d5ee16c441ea11ca22a4766f83f9c4454cb8c1828",
+    "conversation_id": "bebd032e-5180-4ef5-91d5-1f2c985f8def",
+    "created_at": "2026-10-28T19:23:00.481778Z",
+    "export_id": "556e3a52-a724-4a82-8acb-d6d1f30bac62",
+    "exporter_version": "compute-python-v1",
+    "filename": "http.txt",
+    "format": "txt",
+    "input_refs": [
+      {
+        "id": "9b72cb66-c734-44c1-80b4-45bb07d49edf",
+        "kind": "workspace_file",
+        "sha256": "3f48d11458e37cd22c904295e44cb2e10fec3d19095046a0c9197efb3c5286c7",
+        "version": "bd7fcffa-9a52-4e0c-b460-be244b2154c7"
+      }
+    ],
+    "omissions": [
+      "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+    ],
+    "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+    "run_id": "e62ce01a-8398-4099-a85d-7bcac4aa6c61",
+    "sandbox_sha256": "c3bb4622c8bfcc703b496db47560d40842757459b6dac38b98f7cf4bb2a1a856",
+    "tool_attempt_id": "d4bc0413-dbe5-476a-9e40-a81fb233a1d0",
+    "workspace_id": "test-e7aafdf1-138c-464b-be41-1bd06830f319"
+  },
+  "anonymous_status": 401,
+  "wrong_workspace_status": 404,
+  "revoked_access_status": 404,
+  "headers": {
+    "content-disposition": "attachment; filename=\"http.txt\"",
+    "x-content-type-options": "nosniff",
+    "cache-control": "no-store",
+    "x-content-sha256": "c3bb4622c8bfcc703b496db47560d40842757459b6dac38b98f7cf4bb2a1a856"
+  },
+  "transport": "real loopback TCP uvicorn; authenticated principal; restricted PostgreSQL"
+}

@@ -92,12 +92,14 @@ def offer(c,run,cv,message,config,*,exclude_artifacts=()):
     dependencies += [{'kind':'artifact_revision','object_id':r['id'],'expected_version':r['current_revision_id']}
         for r in c.execute('SELECT id,current_revision_id FROM artifacts WHERE workspace_id=%s '
             'AND conversation_id=%s AND current_revision_id IS NOT NULL AND NOT (id=ANY(%s)) '
+            'AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=artifacts.workspace_id '
+            'AND f.artifact_id=artifacts.id AND f.owner_id<>%s) '
             # Keep new exact own references usable even when the older catalog
             # fills the bounded offer. This changes priority, never access scope.
             'ORDER BY EXISTS (SELECT 1 FROM product_observations po WHERE po.workspace_id=artifacts.workspace_id '
             "AND po.artifact_id=artifacts.id AND po.run_id=%s AND po.data->>'revision_id'=artifacts.current_revision_id "
             "AND po.data->'output'->>'kind'='artifact_draft') DESC,id LIMIT 50",
-            (run.workspace_id,cv.id,list(exclude_artifacts),run.id)).fetchall()]
+            (run.workspace_id,cv.id,list(exclude_artifacts),run.principal_id,run.id)).fetchall()]
     return {'available':message.author_kind=='human' and not config.get('responsibility'),
         'conversation_work_version':version,'dependencies':dependencies}
 
@@ -155,9 +157,13 @@ def stage(service,c,cap,receipt,phase,resolved,ledger):
             (encoded(saved),run.workspace_id,assignment.id))
     staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
             'mutation_result':result.model_dump(mode='json')}
-    staged.update(stage_metadata(c,ledger,phase,selected(c,ledger,phase,alpha=True),operation,
-        staged,config['responses']['max_steps'],message,base,alpha=True))
+    from .composition import continuity_enabled
+    continuity=continuity_enabled(config)
+    staged.update(stage_metadata(c,ledger,phase,selected(c,ledger,phase,alpha=True,continuity=continuity),operation,
+        staged,config['responses']['max_steps'],message,base,alpha=True,continuity=continuity))
     ledger.event(c,phase,'tool_result',staged)
+    from .run_checkpoints import record
+    record(service,c,run,cv,phase,'stage')
     # Re-resolve the original immutable receipt after our own mutation, including
     # current exact target and all source/grant/lease checks. Failure rolls back.
     from .general_responses import resolve_selection
@@ -270,4 +276,9 @@ def apply_advance(service,c,run,config):
               'responsibility_fence=responsibility_fence+1 WHERE workspace_id=%s AND id=%s',
               (encoded(a.model_dump(mode='json',exclude={'responsibility'})),encoded(life),run.workspace_id,a.id))
     service._event(c,p,run.workspace_id,'responsibility_advanced',a.id)
+    from .run_checkpoints import record
+    from .models import Conversation
+    cv=Conversation.model_validate(c.execute('SELECT data FROM conversations WHERE workspace_id=%s AND id=%s',
+        (run.workspace_id,run.conversation_id)).fetchone()['data'])
+    record(service,c,run,cv,'final','responsibility')
     return True

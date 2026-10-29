@@ -1,0 +1,74 @@
+{
+  "time": 1793201306.8702705,
+  "state": "HOLD: technical Claude session capacity and unfinished partial correction",
+  "main_source_count": 63,
+  "isolated_changed_count": 3,
+  "owned_proof_ports_open": {
+    "18772": false,
+    "3199": false
+  },
+  "original_processes_alive": {
+    "875172": true,
+    "875173": true,
+    "2688430": true,
+    "2718652": true,
+    "2733711": true
+  },
+  "artifacts": {
+    "r34-candidate-source.json": {
+      "sha256": "bb212366f8a88c2f21843d0ef43585fdad67a4a70883e19befed547436a27a4c",
+      "bytes": 324
+    },
+    "r34-candidate-diff.patch": {
+      "sha256": "8964afac677f307fc7fe2fa791c134472b7b59b39aa75afaaa83fce95d16fa3c",
+      "bytes": 28924
+    },
+    "r34-agent-receipts.json": {
+      "sha256": "f8a8f83ce1a4820a661717d5ade6af0b16ffc53e347aff352537badabf76f149",
+      "bytes": 916
+    },
+    "r34-red.log": {
+      "sha256": "532456ab5820686705ddcb4ac69fd9bc10aa337629287b5125bbc3fcb8b314bf",
+      "bytes": 3410
+    },
+    "r34-red.json": {
+      "sha256": "cec92b6fc6b3177dd8dfd0ad430afe7dd78c7fc3fb95397810ae94dcdc74a1bd",
+      "bytes": 45129
+    },
+    "r34-green.log": {
+      "sha256": "ab57dcdb79b518abdb78e78ee3dcb279bcb5ac822fad3e4eeed6437c5d2878aa",
+      "bytes": 1420
+    },
+    "r34-green.json": {
+      "sha256": "e6d0bc964ae21f437d75db09e5b0714431669ad67039237152fedd122cb9b8e0",
+      "bytes": 45371
+    },
+    "r34-static.log": {
+      "sha256": "51f2d7b5731f63ce5ae2f86a580835efaedc72b302c396e029c97b792d094f45",
+      "bytes": 1453
+    },
+    "r34-static.json": {
+      "sha256": "0ca348b10feba6a4d52acbe50cb4a53018a839e0e49f54387d5ec5c49d88b0c1",
+      "bytes": 45178
+    },
+    "r34-parent-handler-result.json": {
+      "sha256": "0e7270ff6655ae7ad8770104908b2b758fb88bcfac1524f2b657e52b34694493",
+      "bytes": 1162
+    },
+    "r34-parent-handler.log": {
+      "sha256": "b32661655069872901551c674dcc81e725159353c287e4a3d2118500b57b0ca0",
+      "bytes": 846
+    },
+    "r34_parent_handlers.cjs": {
+      "sha256": "9b288b0673376796276f6e46ab86b91a79c5d5d030c789fc613ef2cf37b97761",
+      "bytes": 2727
+    },
+    "r34-api-identity.json": {
+      "sha256": "b2603ff4d73c37a794352d77c6a09709b228451b3435d673d5ad46ad0916c143",
+      "bytes": 6019
+    }
+  },
+  "final_build_browser_review": "not run; partial candidate not final",
+  "product_calls": 0,
+  "skill_lesson": "staged pending dab2cf10; not active"
+}

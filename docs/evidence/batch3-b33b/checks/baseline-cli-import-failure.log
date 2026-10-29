@@ -1,0 +1,80 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_no_provider_imports_or_key_reads_in_cli_subprocess ____________
+
+context = (<workagent.service.Service object at 0x7c01b45b2810>, Principal(id='local-human', kind='human'), 'test-6d5a3729-b9af-...ime.datetime(2026, 10, 29, 6, 34, 11, 567953, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_no_provider_imports_or_key_reads_in_cli_subprocess(context):
+        s,p,ws,_,_=context
+        # Fresh interpreter with guarded provider modules, keys and non-loopback sockets.
+        script='''
+    import importlib.abc, os, socket, sys
+    class DenyProvider(importlib.abc.MetaPathFinder):
+        def find_spec(self,fullname,*args):
+            if fullname.split('.')[0] in ('openai','anthropic','agents','litellm') or fullname.startswith('workagent.responses'):
+                raise AssertionError('provider import denied')
+    sys.meta_path.insert(0,DenyProvider())
+    old=os._Environ.__getitem__
+    def guarded(self,key):
+        if any(word in key.upper() for word in ('OPENAI','ANTHROPIC','API_KEY','PROVIDER')):
+            raise AssertionError('provider credential lookup denied')
+        return old(self,key)
+    os._Environ.__getitem__=guarded
+    connect=socket.socket.connect
+    def local(self,address):
+        if isinstance(address,tuple) and address[0] not in ('127.0.0.1','localhost','::1'):
+            raise AssertionError('external network denied')
+        return connect(self,address)
+    socket.socket.connect=local
+    from workagent.prompt_cli import main
+    raise SystemExit(main(['--controlled','--workspace',sys.argv[1],'prompt','No provider path']))
+    '''
+        child=subprocess.run([sys.executable,'-c',script,ws],env=os.environ,capture_output=True,text=True)
+>       assert child.returncode==0,child.stderr
+E       AssertionError: Traceback (most recent call last):
+E           File "<string>", line 21, in <module>
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/prompt_cli.py", line 124, in main
+E             GeneralWorker(service,transport=ControlledTransport()).work(principal,workspace,queued.run.id)
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_worker.py", line 128, in work
+E             cap=service.claim_run(p,ws,run_id)
+E                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 558, in claim_run
+E             return self._claim_run(p,ws,run_id)
+E                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 607, in _claim_run
+E             self._general_context(c,cap)
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/conversations.py", line 363, in _general_context
+E             p,run,cv,context,materials=self._validate_general_context(c,cap)
+E                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/conversations.py", line 326, in _validate_general_context
+E             p,run,cv=self._check_capability(c,cap)
+E                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/service.py", line 645, in _check_capability
+E             from .capabilities.policy import require_run_tools
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/policy.py", line 8, in <module>
+E             from . import registry
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/registry.py", line 11, in <module>
+E             from .. import composition
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/composition.py", line 7, in <module>
+E             from .general_schema import Closed, Reply, CSVDecision, WasmDecision, PublishDecision, DecisionTarget, AttachmentRef
+E           File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/general_schema.py", line 6, in <module>
+E             from .responses_transport import FrozenSchema
+E           File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+E           File "<frozen importlib._bootstrap>", line 1322, in _find_and_load_unlocked
+E           File "<frozen importlib._bootstrap>", line 1262, in _find_spec
+E           File "<string>", line 6, in find_spec
+E         AssertionError: provider import denied
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python', '-c', "\nimport import...tstrap>", line 1262, in _find_spec\n  File "<string>", line 6, in find_spec\nAssertionError: provider import denied\n').returncode
+
+backend/tests/test_conversations.py:289: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_conversations.py::test_no_provider_imports_or_key_reads_in_cli_subprocess
+1 failed, 1 warning in 4.23s

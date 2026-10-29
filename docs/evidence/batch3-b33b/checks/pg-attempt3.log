@@ -1,0 +1,464 @@
+/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+EEEEEEEEE                                                                [100%]
+==================================== ERRORS ====================================
+__________ ERROR at setup of test_real_read_memory_revoke_and_restart __________
+
+context = (<workagent.service.Service object at 0x7ab11d1fe390>, Principal(id='local-human', kind='human'), 'test-713bc397-df0d-...ime.datetime(2026, 10, 29, 7, 13, 56, 650300, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-92/test_real_read_memory_revoke_a0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ab11bfb6d50>
+
+    @pytest.fixture
+    def connector(context,tmp_path,monkeypatch):
+        with socket.socket() as s:assert s.connect_ex(('127.0.0.1',18769))!=0,'fixture port occupied'
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_CONNECTOR','1')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_DIR',str(tmp_path/'vault'))
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY_ID','disposable-test')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY',base64.b64encode(os.urandom(32)).decode())
+        log=(tmp_path/'server.log').open('wb')
+        proc=subprocess.Popen([sys.executable,'-m','workagent.connectors.synthetic_server'],
+            env={'PATH':str(Path(sys.executable).parent),'PYTHONPATH':str(Path(__file__).resolve().parents[1]),'LANG':'C.UTF-8'},stdout=log,stderr=log)
+        try:
+            for _ in range(100):
+                assert proc.poll() is None
+                with socket.socket() as s:
+                    if s.connect_ex(('127.0.0.1',18769))==0:break
+                time.sleep(.05)
+            s,p,ws,_,_=context;request=StartAuthorization(resource='synthetic/catalog',idempotency_key=str(uuid4()))
+>           flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+
+backend/tests/test_synthetic_connectors_pg.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11bfea540>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-713bc397-df0d-404a-8bf6-49f0c44cc0f4', 'local-human', '47ce2e07-60ed-40e7-bade-a6ab31af1508', '6125da6b-db6e-4560-a81e-7f1aebda8daf', 'daeaa33f-8873-44a6-bd76-9e20617cde7a')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+________ ERROR at setup of test_inflight_late_result_and_queued_denied _________
+
+context = (<workagent.service.Service object at 0x7ab11bfeb9e0>, Principal(id='local-human', kind='human'), 'test-f4219f64-7299-...ime.datetime(2026, 10, 29, 7, 13, 58, 750392, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-92/test_inflight_late_result_and_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ab11bfeade0>
+
+    @pytest.fixture
+    def connector(context,tmp_path,monkeypatch):
+        with socket.socket() as s:assert s.connect_ex(('127.0.0.1',18769))!=0,'fixture port occupied'
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_CONNECTOR','1')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_DIR',str(tmp_path/'vault'))
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY_ID','disposable-test')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY',base64.b64encode(os.urandom(32)).decode())
+        log=(tmp_path/'server.log').open('wb')
+        proc=subprocess.Popen([sys.executable,'-m','workagent.connectors.synthetic_server'],
+            env={'PATH':str(Path(sys.executable).parent),'PYTHONPATH':str(Path(__file__).resolve().parents[1]),'LANG':'C.UTF-8'},stdout=log,stderr=log)
+        try:
+            for _ in range(100):
+                assert proc.poll() is None
+                with socket.socket() as s:
+                    if s.connect_ex(('127.0.0.1',18769))==0:break
+                time.sleep(.05)
+            s,p,ws,_,_=context;request=StartAuthorization(resource='synthetic/catalog',idempotency_key=str(uuid4()))
+>           flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+
+backend/tests/test_synthetic_connectors_pg.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11bfeb0e0>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-f4219f64-7299-4a20-b567-45c653b2d4c7', 'local-human', 'cbdb1880-c9b4-4c9a-9447-883acd48afd2', '28e7de9f-f786-4e58-8bb9-76ba8a2ce37f', '817b0021-f620-4899-a787-ddac3fdc45c9')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+____ ERROR at setup of test_provider_failure_does_not_restore_local_access _____
+
+context = (<workagent.service.Service object at 0x7ab11beb4770>, Principal(id='local-human', kind='human'), 'test-fd58419f-d1b8-...time.datetime(2026, 10, 29, 7, 14, 1, 349901, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-92/test_provider_failure_does_not0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7ab11beb4440>
+
+    @pytest.fixture
+    def connector(context,tmp_path,monkeypatch):
+        with socket.socket() as s:assert s.connect_ex(('127.0.0.1',18769))!=0,'fixture port occupied'
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_CONNECTOR','1')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_DIR',str(tmp_path/'vault'))
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY_ID','disposable-test')
+        monkeypatch.setenv('WORKAGENT_SYNTHETIC_VAULT_KEY',base64.b64encode(os.urandom(32)).decode())
+        log=(tmp_path/'server.log').open('wb')
+        proc=subprocess.Popen([sys.executable,'-m','workagent.connectors.synthetic_server'],
+            env={'PATH':str(Path(sys.executable).parent),'PYTHONPATH':str(Path(__file__).resolve().parents[1]),'LANG':'C.UTF-8'},stdout=log,stderr=log)
+        try:
+            for _ in range(100):
+                assert proc.poll() is None
+                with socket.socket() as s:
+                    if s.connect_ex(('127.0.0.1',18769))==0:break
+                time.sleep(.05)
+            s,p,ws,_,_=context;request=StartAuthorization(resource='synthetic/catalog',idempotency_key=str(uuid4()))
+>           flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+
+backend/tests/test_synthetic_connectors_pg.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11beb5f10>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-fd58419f-d1b8-47ec-8e4e-daa9ae35711b', 'local-human', 'b3af0ba0-8c1b-45ce-8883-24d81cf31cee', '67370c78-eb41-4178-9469-994cb7a331ea', 'a7c2315f-caeb-4149-9c08-544105746290')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+_________ ERROR at setup of test_complete_revoke_retires_late_exchange _________
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_complete_revoke_retires_late_exchange>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11beb5a60>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-7feb3ae3-e1ff-4147-beb2-be368b14cd75', 'local-human', '14931d8a-3767-47bb-aeb0-0bfd84b40245', '44838088-0a1e-43da-80fc-6bf847e64a51', '81ee1b11-42dc-4bbf-b8ab-be39664b05e0')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+_________________ ERROR at setup of test_product_gateway_stdio _________________
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_product_gateway_stdio>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11bfebb00>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-c4e313e3-44c8-44c1-af38-7fea593c4e00', 'local-human', 'd5dc67cc-50df-4215-b336-473377476fb2', '9f130764-8f3f-4855-80ff-44bc69d777f2', '123820fe-97da-4ca8-9e8a-e3b8b851674a')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+__ ERROR at setup of test_restricted_sql_cannot_mutate_authority_or_receipts ___
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_restricted_sql_cannot_mutate_authority_or_receipts>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11bfb7800>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-343e08c5-fc6e-400c-9572-746e1f85b103', 'local-human', '98094208-2b46-4e5e-8a24-7a00b649328d', '3f56a311-8027-4e7b-8f0a-e8a60a9a6c11', 'f40ebdc2-b00b-411f-8478-e9392fe30f5f')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+___ ERROR at setup of test_refresh_revoke_cleans_latest_real_provider_token ____
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_refresh_revoke_cleans_latest_real_provider_token>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11beb4ef0>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-4bbaf203-4e06-4c49-ad76-68ef320cf163', 'local-human', '2c281275-9266-4b71-8de3-752d62a68cf0', '1fb0e16b-b453-46f8-a9f2-4a0498be1ecb', '3442a8ac-9bbd-400a-b819-c97df5fa176e')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+______ ERROR at setup of test_real_callback_code_pkce_replay_and_metadata ______
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_real_callback_code_pkce_replay_and_metadata>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11bfeb9b0>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-926f42f8-0630-48d2-ae5d-d779e523e104', 'local-human', 'e41c2f7f-0031-4857-9677-33c86fd00a8a', 'd935e7eb-434f-400a-b269-dc41f46f6347', '6e0b57ca-7116-4886-8f29-308d1f777413')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+___ ERROR at setup of test_secret_absence_from_app_rows_and_encrypted_vault ____
+
+fixturedef = <FixtureDef argname='connector' scope='function' baseid='backend/tests/test_connector_security_pg.py'>
+request = <SubRequest 'connector' for <Function test_secret_absence_from_app_rows_and_encrypted_vault>>
+
+    @pytest.hookimpl(wrapper=True)
+    def pytest_fixture_setup(fixturedef: FixtureDef, request) -> object | None:
+        asyncio_mode = _get_asyncio_mode(request.config)
+        if not _is_asyncio_fixture_function(fixturedef.func):
+            if asyncio_mode == Mode.STRICT:
+                # Ignore async fixtures without explicit asyncio mark in strict mode
+                # This applies to pytest_trio fixtures, for example
+>               return (yield)
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:728: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:49: in connector
+    flow=L.start(s,p,ws,request);assert L.start(s,p,ws,request)==flow
+backend/workagent/connectors/service.py:50: in start
+    actual=c.execute('SELECT connector_start(%s,%s,%s,%s,%s) id',(ws,p.id,fid,request.idempotency_key,ref)).fetchone()['id']
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Connection [BAD] at 0x7ab11beb4710>
+query = 'SELECT connector_start(%s,%s,%s,%s,%s) id'
+params = ('test-f2bb5b86-6717-4a34-941b-acafd25e9844', 'local-human', '9a8a89cf-a8e7-49b0-9e91-1b0a605d548d', '3042e3fe-ea38-4c0e-a465-fced7a0f7897', '9feff544-dd91-40e4-8ba0-506189517c67')
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool = False,
+    ) -> Cursor[Row]:
+        """Execute a query and return a cursor to read its results."""
+        try:
+            cur = self.cursor()
+            if binary:
+                cur.format = BINARY
+    
+            return cur.execute(query, params, prepare=prepare)
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.InsufficientPrivilege: permission denied for function connector_start
+
+.local/batch3/b33b/venv/lib/python3.12/site-packages/psycopg/connection.py:257: InsufficientPrivilege
+=============================== warnings summary ===============================
+.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR backend/tests/test_synthetic_connectors_pg.py::test_real_read_memory_revoke_and_restart
+ERROR backend/tests/test_synthetic_connectors_pg.py::test_inflight_late_result_and_queued_denied
+ERROR backend/tests/test_synthetic_connectors_pg.py::test_provider_failure_does_not_restore_local_access
+ERROR backend/tests/test_connector_security_pg.py::test_complete_revoke_retires_late_exchange
+ERROR backend/tests/test_connector_security_pg.py::test_product_gateway_stdio
+ERROR backend/tests/test_connector_security_pg.py::test_restricted_sql_cannot_mutate_authority_or_receipts
+ERROR backend/tests/test_connector_security_pg.py::test_refresh_revoke_cleans_latest_real_provider_token
+ERROR backend/tests/test_connector_security_pg.py::test_real_callback_code_pkce_replay_and_metadata
+ERROR backend/tests/test_connector_security_pg.py::test_secret_absence_from_app_rows_and_encrypted_vault
+1 warning, 9 errors in 21.00s

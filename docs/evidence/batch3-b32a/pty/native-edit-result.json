@@ -1,0 +1,57 @@
+{
+  "mode": "edit",
+  "size": [
+    100,
+    45
+  ],
+  "pid": 4031188,
+  "actions": [
+    {
+      "keys": "\u001b[<0;23;4M\u001b[<0;23;4m"
+    },
+    {
+      "keys": "\u001b[<0;3;7M\u001b[<0;3;7m"
+    },
+    {
+      "keys": "\u001b[<0;5;7M\u001b[<0;5;7m"
+    },
+    {
+      "keys": "\r"
+    },
+    {
+      "keys": "\u001b[<0;5;11M\u001b[<0;5;11m"
+    },
+    {
+      "keys": "\u001b[<0;3;10M\u001b[<0;3;10m"
+    },
+    {
+      "keys": "\u001b[<0;8;30M\u001b[<0;8;30m"
+    },
+    {
+      "keys": "\u001b[18~"
+    },
+    {
+      "keys": "\u001b[200~Research conclusion (proposed)\nCurrent public capacity: 10 units.\nScope: synthetic east depot only.\nThe search snippet is not evidence.\n\nHuman native conclusion: reserve only ten units until the new source is reviewed \u2014 preserve exact wording.\n\u001b[201~"
+    },
+    {
+      "keys": "\u0013"
+    },
+    {
+      "keys": "\u001b"
+    },
+    {
+      "keys": "\u001b[<0;12;38M\u001b[<0;12;38m"
+    },
+    {
+      "keys": "Cite the exact retained source for my current human-edited conclusion. Keep any all-depots extrapolation explicitly unsupported."
+    },
+    {
+      "keys": "\u001b[15~"
+    },
+    {
+      "keys": "\u0012"
+    }
+  ],
+  "passed": true,
+  "conversation_id": "a7e8600d-8179-40ba-8126-251a91619c90"
+}

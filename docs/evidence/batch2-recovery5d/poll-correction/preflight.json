@@ -1,0 +1,10 @@
+{
+  "candidate2_manifest_sha256": "fd1c6bdb6d97727d5883d989bc6adb3d9c0690a1d02858f6b58d73377c68746c",
+  "source_files_verified": 610,
+  "mismatches": [],
+  "retained_evidence_files": 126,
+  "claude_session": "ae4ca6cd-e75c-4af8-8e4f-d6d0348d6387",
+  "model": "claude-opus-5-5",
+  "authentication": "firstParty claude.ai",
+  "active_claude_processes": 0
+}

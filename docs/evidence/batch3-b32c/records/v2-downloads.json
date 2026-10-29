@@ -1,0 +1,242 @@
+[
+  {
+    "manifest": {
+      "blob": {
+        "kind": "generated_blob",
+        "sha256": "556119257bf6fa5e700c3c0c6b22aea02724ac7d3dd8921159b23f5d304ca324",
+        "blob_id": "5022245a-876e-4fec-81f7-e0279beb2457",
+        "mime_type": "application/json",
+        "byte_length": 1263
+      },
+      "format": "json",
+      "run_id": "91df58fd-a0f0-4f35-b35b-3d91c894e202",
+      "filename": "applicability.json",
+      "export_id": "5ff7ebb4-86fb-47b0-bdf7-67086b4318a6",
+      "omissions": [
+        "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+      ],
+      "created_at": "2026-10-29T04:11:37.568952Z",
+      "input_refs": [
+        {
+          "id": "c3ae2590-f73b-475b-b975-26046b364b52",
+          "kind": "workspace_file",
+          "sha256": "54d81560fbb0cbdf9596d1ef21c935b12eb33926a7890f74b70971ecf7ebfc42",
+          "version": "4118774f-d003-4ca9-a3d9-5ff8b25c548d"
+        },
+        {
+          "id": "173bf9db-c3bb-4d06-b8fb-8bc1f9078751",
+          "kind": "workspace_file",
+          "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+          "version": "89f4494d-e5d4-452c-b35c-b439a54ccc5e"
+        },
+        {
+          "id": "acf74432-5492-4993-97ec-a952baecd7b4",
+          "kind": "workspace_file",
+          "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+          "version": "0fddbe40-f297-47ca-956d-8c198e9b917f"
+        },
+        {
+          "id": "239623b2-c46e-4d7a-a76b-41b31f658e99",
+          "kind": "workspace_file",
+          "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+          "version": "283bdac4-f0f7-4aaa-9b23-bad4e843656f"
+        },
+        {
+          "id": "04e77c23-a67a-4ea1-af66-2bbf447c3590",
+          "kind": "workspace_file",
+          "sha256": "b605083843173a261b69eb9245af83622b13b3adcf5f5d6b6f6b7a12c8d55856",
+          "version": "450b994d-9a56-4fec-8618-99b668689a27"
+        }
+      ],
+      "annotations": "explicit_omissions",
+      "code_sha256": "77fb3738e9084aca27ac56041b9ba189768121c049413cd68541913ecf3b58ac",
+      "workspace_id": "b32c-2505ecba-cd05-4b41-a3fc-3f5f566a0f65",
+      "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+      "sandbox_sha256": "556119257bf6fa5e700c3c0c6b22aea02724ac7d3dd8921159b23f5d304ca324",
+      "conversation_id": "b4095906-2898-47dc-b441-fc5102069b35",
+      "tool_attempt_id": "212aaeaf-830e-4742-bf5d-91d8e177634e",
+      "exporter_version": "compute-python-v1"
+    },
+    "path": ".local/batch3/b32c/evidence/v2-1-applicability.json"
+  },
+  {
+    "manifest": {
+      "blob": {
+        "kind": "generated_blob",
+        "sha256": "8a894c2807ded459c80e5232c5d336c4b2bf8110d8c7dd064c433d4d95cf6beb",
+        "blob_id": "777fbca8-5765-4310-9702-6be2bccd7058",
+        "mime_type": "text/plain",
+        "byte_length": 1188
+      },
+      "format": "txt",
+      "run_id": "91df58fd-a0f0-4f35-b35b-3d91c894e202",
+      "filename": "candidate.txt",
+      "export_id": "3e39a77f-7859-470e-870f-887d2bf17226",
+      "omissions": [
+        "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+      ],
+      "created_at": "2026-10-29T04:11:37.602941Z",
+      "input_refs": [
+        {
+          "id": "c3ae2590-f73b-475b-b975-26046b364b52",
+          "kind": "workspace_file",
+          "sha256": "54d81560fbb0cbdf9596d1ef21c935b12eb33926a7890f74b70971ecf7ebfc42",
+          "version": "4118774f-d003-4ca9-a3d9-5ff8b25c548d"
+        },
+        {
+          "id": "173bf9db-c3bb-4d06-b8fb-8bc1f9078751",
+          "kind": "workspace_file",
+          "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+          "version": "89f4494d-e5d4-452c-b35c-b439a54ccc5e"
+        },
+        {
+          "id": "acf74432-5492-4993-97ec-a952baecd7b4",
+          "kind": "workspace_file",
+          "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+          "version": "0fddbe40-f297-47ca-956d-8c198e9b917f"
+        },
+        {
+          "id": "239623b2-c46e-4d7a-a76b-41b31f658e99",
+          "kind": "workspace_file",
+          "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+          "version": "283bdac4-f0f7-4aaa-9b23-bad4e843656f"
+        },
+        {
+          "id": "04e77c23-a67a-4ea1-af66-2bbf447c3590",
+          "kind": "workspace_file",
+          "sha256": "b605083843173a261b69eb9245af83622b13b3adcf5f5d6b6f6b7a12c8d55856",
+          "version": "450b994d-9a56-4fec-8618-99b668689a27"
+        }
+      ],
+      "annotations": "explicit_omissions",
+      "code_sha256": "77fb3738e9084aca27ac56041b9ba189768121c049413cd68541913ecf3b58ac",
+      "workspace_id": "b32c-2505ecba-cd05-4b41-a3fc-3f5f566a0f65",
+      "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+      "sandbox_sha256": "8a894c2807ded459c80e5232c5d336c4b2bf8110d8c7dd064c433d4d95cf6beb",
+      "conversation_id": "b4095906-2898-47dc-b441-fc5102069b35",
+      "tool_attempt_id": "212aaeaf-830e-4742-bf5d-91d8e177634e",
+      "exporter_version": "compute-python-v1"
+    },
+    "path": ".local/batch3/b32c/evidence/v2-1-candidate.txt"
+  },
+  {
+    "manifest": {
+      "blob": {
+        "kind": "generated_blob",
+        "sha256": "d596e41e9aed6c8d1f0d7a9493e956642519f5a72542cecda65f490c93297156",
+        "blob_id": "cc23275f-5723-4716-9b82-930399875b8d",
+        "mime_type": "text/plain",
+        "byte_length": 897
+      },
+      "format": "txt",
+      "run_id": "91df58fd-a0f0-4f35-b35b-3d91c894e202",
+      "filename": "patch.txt",
+      "export_id": "f081abce-2872-4431-a4e4-1d3b3f314127",
+      "omissions": [
+        "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+      ],
+      "created_at": "2026-10-29T04:11:37.622381Z",
+      "input_refs": [
+        {
+          "id": "c3ae2590-f73b-475b-b975-26046b364b52",
+          "kind": "workspace_file",
+          "sha256": "54d81560fbb0cbdf9596d1ef21c935b12eb33926a7890f74b70971ecf7ebfc42",
+          "version": "4118774f-d003-4ca9-a3d9-5ff8b25c548d"
+        },
+        {
+          "id": "173bf9db-c3bb-4d06-b8fb-8bc1f9078751",
+          "kind": "workspace_file",
+          "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+          "version": "89f4494d-e5d4-452c-b35c-b439a54ccc5e"
+        },
+        {
+          "id": "acf74432-5492-4993-97ec-a952baecd7b4",
+          "kind": "workspace_file",
+          "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+          "version": "0fddbe40-f297-47ca-956d-8c198e9b917f"
+        },
+        {
+          "id": "239623b2-c46e-4d7a-a76b-41b31f658e99",
+          "kind": "workspace_file",
+          "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+          "version": "283bdac4-f0f7-4aaa-9b23-bad4e843656f"
+        },
+        {
+          "id": "04e77c23-a67a-4ea1-af66-2bbf447c3590",
+          "kind": "workspace_file",
+          "sha256": "b605083843173a261b69eb9245af83622b13b3adcf5f5d6b6f6b7a12c8d55856",
+          "version": "450b994d-9a56-4fec-8618-99b668689a27"
+        }
+      ],
+      "annotations": "explicit_omissions",
+      "code_sha256": "77fb3738e9084aca27ac56041b9ba189768121c049413cd68541913ecf3b58ac",
+      "workspace_id": "b32c-2505ecba-cd05-4b41-a3fc-3f5f566a0f65",
+      "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+      "sandbox_sha256": "d596e41e9aed6c8d1f0d7a9493e956642519f5a72542cecda65f490c93297156",
+      "conversation_id": "b4095906-2898-47dc-b441-fc5102069b35",
+      "tool_attempt_id": "212aaeaf-830e-4742-bf5d-91d8e177634e",
+      "exporter_version": "compute-python-v1"
+    },
+    "path": ".local/batch3/b32c/evidence/v2-1-patch.txt"
+  },
+  {
+    "manifest": {
+      "blob": {
+        "kind": "generated_blob",
+        "sha256": "861d3baf0aa4cd6255bcff47183fb06b414d398a1f1853af1d34521cb8522f6d",
+        "blob_id": "8f3e9743-7fb2-4a7d-8092-68e7c637f41b",
+        "mime_type": "application/json",
+        "byte_length": 278
+      },
+      "format": "json",
+      "run_id": "91df58fd-a0f0-4f35-b35b-3d91c894e202",
+      "filename": "tests.json",
+      "export_id": "b87ce6f1-c75c-4f8a-b36f-6d996622766c",
+      "omissions": [
+        "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+      ],
+      "created_at": "2026-10-29T04:11:37.646223Z",
+      "input_refs": [
+        {
+          "id": "c3ae2590-f73b-475b-b975-26046b364b52",
+          "kind": "workspace_file",
+          "sha256": "54d81560fbb0cbdf9596d1ef21c935b12eb33926a7890f74b70971ecf7ebfc42",
+          "version": "4118774f-d003-4ca9-a3d9-5ff8b25c548d"
+        },
+        {
+          "id": "173bf9db-c3bb-4d06-b8fb-8bc1f9078751",
+          "kind": "workspace_file",
+          "sha256": "4c61e8b9ce8ee260a224090b91354bcc30ec6d71250f19decd738e9a14cee776",
+          "version": "89f4494d-e5d4-452c-b35c-b439a54ccc5e"
+        },
+        {
+          "id": "acf74432-5492-4993-97ec-a952baecd7b4",
+          "kind": "workspace_file",
+          "sha256": "2ac8ffc08b7925a62fd47750c26faba639abfdca430e8f28938c35801c99808a",
+          "version": "0fddbe40-f297-47ca-956d-8c198e9b917f"
+        },
+        {
+          "id": "239623b2-c46e-4d7a-a76b-41b31f658e99",
+          "kind": "workspace_file",
+          "sha256": "3b9c39f601547bb73cc638d95b83610aee434b5de7c8a0b95c4b8398720b781f",
+          "version": "283bdac4-f0f7-4aaa-9b23-bad4e843656f"
+        },
+        {
+          "id": "04e77c23-a67a-4ea1-af66-2bbf447c3590",
+          "kind": "workspace_file",
+          "sha256": "b605083843173a261b69eb9245af83622b13b3adcf5f5d6b6f6b7a12c8d55856",
+          "version": "450b994d-9a56-4fec-8618-99b668689a27"
+        }
+      ],
+      "annotations": "explicit_omissions",
+      "code_sha256": "77fb3738e9084aca27ac56041b9ba189768121c049413cd68541913ecf3b58ac",
+      "workspace_id": "b32c-2505ecba-cd05-4b41-a3fc-3f5f566a0f65",
+      "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+      "sandbox_sha256": "861d3baf0aa4cd6255bcff47183fb06b414d398a1f1853af1d34521cb8522f6d",
+      "conversation_id": "b4095906-2898-47dc-b441-fc5102069b35",
+      "tool_attempt_id": "212aaeaf-830e-4742-bf5d-91d8e177634e",
+      "exporter_version": "compute-python-v1"
+    },
+    "path": ".local/batch3/b32c/evidence/v2-1-tests.json"
+  }
+]

@@ -16,7 +16,7 @@ const ws = "flexible-proof";
 const prefix = origin + "/api/domain/v1/workspaces/" + ws;
 async function api(route) {
   const r = await fetch(prefix + route, {
-    headers: { "X-Workagent-Client": "local-ui" },
+    headers: await (await import('../web/scripts/lib/scope.mjs')).scopedHeaders(origin, { "X-Workagent-Client": "local-ui" }),
   });
   assert.equal(r.status, 200);
   return r.json();

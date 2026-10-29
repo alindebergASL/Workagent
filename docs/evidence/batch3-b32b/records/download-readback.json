@@ -1,0 +1,250 @@
+[
+  {
+    "format": "docx",
+    "path": ".local/batch3/b32b/evidence/browser-downloads/export.docx",
+    "bytes": 36959,
+    "sha256": "6c643c53821103e9dc98fd86d3dfe9f7bb304c18b557c714f3bf421a399ed775",
+    "manifest": {
+      "export_id": "91d07218-297c-49ff-b134-c78653f1e308",
+      "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+      "revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+      "input_sha256": "4c650ae623da2ea62ec04f28ac7035b136e97186f24053361d57ffbc19cb95c0",
+      "workspace_file_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+      "source_snapshot_id": null,
+      "format": "docx",
+      "filename": "export.docx",
+      "blob": {
+        "kind": "generated_blob",
+        "blob_id": "cd80c4ab-ae42-4ac6-860d-95860f796681",
+        "sha256": "6c643c53821103e9dc98fd86d3dfe9f7bb304c18b557c714f3bf421a399ed775",
+        "byte_length": 36959,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      },
+      "created_at": "2026-10-29T03:16:20.743940Z",
+      "annotations": "explicit_omissions",
+      "omissions": [
+        "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+        "No OCR or vision was performed; PDF imports use only the text layer.",
+        "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+        "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+      ],
+      "tool_attempt_id": null,
+      "exporter_version": "office-exports-v1",
+      "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+      "provenance": null,
+      "chart": null
+    },
+    "text": "Operations brief\nExact quote: “Preserve this wording.”\nHuman web edit: use the revised figures.\nHuman annotation: Human web annotation retained across restart.\nOMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.\nOMITTED: No OCR or vision was performed; PDF imports use only the text layer.\nOMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.\nOMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+  },
+  {
+    "format": "pdf",
+    "path": ".local/batch3/b32b/evidence/browser-downloads/export.pdf",
+    "bytes": 23283,
+    "sha256": "79f9584c542faaa5c44a9ad9137f32542bd27807abe97dd08a161ba1180b67ed",
+    "manifest": {
+      "export_id": "4c203d5f-0fd6-4c8d-a055-9195a4e800c4",
+      "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+      "revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+      "input_sha256": "4c650ae623da2ea62ec04f28ac7035b136e97186f24053361d57ffbc19cb95c0",
+      "workspace_file_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+      "source_snapshot_id": null,
+      "format": "pdf",
+      "filename": "export.pdf",
+      "blob": {
+        "kind": "generated_blob",
+        "blob_id": "7914f511-17c3-4ebf-a29d-2b8752ebd127",
+        "sha256": "79f9584c542faaa5c44a9ad9137f32542bd27807abe97dd08a161ba1180b67ed",
+        "byte_length": 23283,
+        "mime_type": "application/pdf"
+      },
+      "created_at": "2026-10-29T03:16:50.600672Z",
+      "annotations": "explicit_omissions",
+      "omissions": [
+        "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+        "No OCR or vision was performed; PDF imports use only the text layer.",
+        "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+        "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+      ],
+      "tool_attempt_id": null,
+      "exporter_version": "office-exports-v1",
+      "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+      "provenance": null,
+      "chart": null
+    },
+    "pages": 1,
+    "text": "Operations brief\nExact quote: “Preserve this wording.”\nHuman web edit: use the revised figures.\nHuman annotation: Human web annotation retained across restart.\nOMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects\nare not preserved.\nOMITTED: No OCR or vision was performed; PDF imports use only the text layer.\nOMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted;\ndates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted\nfrom exported XLSX.\nOMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never\ncomputed results.\n"
+  },
+  {
+    "format": "xlsx",
+    "path": ".local/batch3/b32b/evidence/browser-downloads/export.xlsx",
+    "bytes": 6510,
+    "sha256": "d32534639252d75f1dfa0b264789eaaa3d04db6eab24e1bf4a56e158e531208c",
+    "manifest": {
+      "export_id": "d0a965df-099c-471f-a074-703b1efc6130",
+      "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+      "revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+      "input_sha256": "99aa564dd8a9e28efe14b75a63724df96b4c1bb64bbf9f4bd665bec990040717",
+      "workspace_file_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+      "source_snapshot_id": null,
+      "format": "xlsx",
+      "filename": "export.xlsx",
+      "blob": {
+        "kind": "generated_blob",
+        "blob_id": "6bde985e-c93c-4bea-a2b5-0b60c66c2f1f",
+        "sha256": "d32534639252d75f1dfa0b264789eaaa3d04db6eab24e1bf4a56e158e531208c",
+        "byte_length": 6510,
+        "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      },
+      "created_at": "2026-10-29T03:26:03.608342Z",
+      "annotations": "explicit_omissions",
+      "omissions": [
+        "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+        "No OCR or vision was performed; PDF imports use only the text layer.",
+        "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+        "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+      ],
+      "tool_attempt_id": null,
+      "exporter_version": "office-exports-v1",
+      "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+      "provenance": {
+        "source_snapshot_id": "32fcb6c3-589c-4be5-8ccc-baba34968f6b",
+        "original_sha256": "804ea4d5c44862031261044b51d2902a3a8409ba4533b337898587b0175e726c",
+        "extraction_sha256": "6140c35cab5cb738416cde59dc519eb974094b50b0207a3ea3505c1fce3ab619",
+        "parser_version": "confined-documents-v1",
+        "transformation_version": "office-v1"
+      },
+      "chart": null
+    },
+    "cells": [
+      {
+        "sheet": "Values",
+        "cell": "A1",
+        "type": "n",
+        "value": 2
+      },
+      {
+        "sheet": "Values",
+        "cell": "B1",
+        "type": "s",
+        "value": "=HYPERLINK(\"https://invalid.example\",\"not executable\")"
+      },
+      {
+        "sheet": "Values",
+        "cell": "A2",
+        "type": "n",
+        "value": 3
+      },
+      {
+        "sheet": "Values",
+        "cell": "A3",
+        "type": "f",
+        "value": "=SUM(A1:A2)"
+      },
+      {
+        "sheet": "Export notes",
+        "cell": "A1",
+        "type": "s",
+        "value": "Human annotation: Human annotation after import"
+      },
+      {
+        "sheet": "Export notes",
+        "cell": "A2",
+        "type": "s",
+        "value": "OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved."
+      },
+      {
+        "sheet": "Export notes",
+        "cell": "A3",
+        "type": "s",
+        "value": "OMITTED: No OCR or vision was performed; PDF imports use only the text layer."
+      },
+      {
+        "sheet": "Export notes",
+        "cell": "A4",
+        "type": "s",
+        "value": "OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX."
+      },
+      {
+        "sheet": "Export notes",
+        "cell": "A5",
+        "type": "s",
+        "value": "OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+      }
+    ]
+  },
+  {
+    "format": "png",
+    "path": ".local/batch3/b32b/evidence/browser-downloads/export.png",
+    "bytes": 16674,
+    "sha256": "1165fe97647f292ff803682d1527820076807c7a06f26ff537d0877ece9d057a",
+    "manifest": {
+      "export_id": "d1e2da8e-9ce6-4526-81f2-7abc4e5a624c",
+      "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+      "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+      "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+      "revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+      "input_sha256": "15689bbebab788a81ffcbe0597a6bfd982048e65b66643014256cb6c95ce5e01",
+      "workspace_file_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+      "source_snapshot_id": null,
+      "format": "png",
+      "filename": "export.png",
+      "blob": {
+        "kind": "generated_blob",
+        "blob_id": "c34243cb-1990-4630-8f9e-5257f9940e25",
+        "sha256": "1165fe97647f292ff803682d1527820076807c7a06f26ff537d0877ece9d057a",
+        "byte_length": 16674,
+        "mime_type": "image/png"
+      },
+      "created_at": "2026-10-29T03:18:34.884181Z",
+      "annotations": "explicit_omissions",
+      "omissions": [
+        "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+        "No OCR or vision was performed; PDF imports use only the text layer.",
+        "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+        "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results.",
+        "Chart pixels omit input annotations and source details; inspect this manifest and original input. Numeric rows are decimal results; plot coordinates use floating point."
+      ],
+      "tool_attempt_id": null,
+      "exporter_version": "office-exports-v1",
+      "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+      "provenance": null,
+      "chart": {
+        "computation_version": "decimal-grouped-v1",
+        "input_sha256": "15689bbebab788a81ffcbe0597a6bfd982048e65b66643014256cb6c95ce5e01",
+        "spec": {
+          "category_column": "region",
+          "value_column": "hours",
+          "aggregation": "sum",
+          "title": "Capacity by region",
+          "x_label": "Region",
+          "y_label": "Hours"
+        },
+        "rows": [
+          {
+            "category": "East",
+            "value": "0.3",
+            "count": 2
+          },
+          {
+            "category": "West",
+            "value": "1.5",
+            "count": 1
+          }
+        ],
+        "null_handling": "reject",
+        "decimal_precision": 160,
+        "rounding": "ROUND_HALF_EVEN"
+      }
+    },
+    "size": [
+      1000,
+      600
+    ]
+  }
+]

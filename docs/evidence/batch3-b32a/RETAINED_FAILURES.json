@@ -1,0 +1,117 @@
+{
+  "browser-file-citations-03.log": {
+    "sha256": "b5e2f3bba05105b987c2ad51c6ab5854da75481389710c3d65e2bf3a401b5590",
+    "bytes": 2327,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "backend-agent.log": {
+    "sha256": "f28426b491c5241debde9674abe6e22f81395f59da2af33069590c9fbc5d5734",
+    "bytes": 471724,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-edit-04.log": {
+    "sha256": "dc6625017d1cbbe02b3ae2e6f8362674f944b37c93be4c17c6780f77aa32b6e9",
+    "bytes": 8254,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "review-agent.log": {
+    "sha256": "88e6e4f013dde1daca3e2f6f0637b376c51e093e0a9c17570cc3d5f1c6e024b9",
+    "bytes": 151357,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "revocation-07.log": {
+    "sha256": "79d4b14ee84bf4bbd3149dcf45f1fa3e7670c49ea1317054c5ad891557b35816",
+    "bytes": 14249,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-edit-02.log": {
+    "sha256": "ae66f4c0d96c5bcd32c3ec93cc4492d9260b7b4ae0196f01d54267a03342dd2e",
+    "bytes": 1122,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "review-closure-agent.log": {
+    "sha256": "3aa65b8c89f3048bdac58cff3c0271062242da3ee7f33295a3cf9efacb94e657",
+    "bytes": 57735,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-edit-01.log": {
+    "sha256": "df88c12ba981563e629673f663fd3de7082e93076a0c70f6b69bff1964a992b5",
+    "bytes": 6616,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-edit-03.log": {
+    "sha256": "dbff8a700afa0419390631cfd00df4860daf44117f32ef2a4dd4e47b359947b8",
+    "bytes": 664,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-inspect-02.log": {
+    "sha256": "467a7becbc7a86a85cd72653697a752294ecaf8a4cccf7e07fa15dc77b672258",
+    "bytes": 7832,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "revocation-06.log": {
+    "sha256": "a86676fccfe3921241a9b0a22856a043925330e45b405e05afbde421a08d81f3",
+    "bytes": 9986,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-initial-01.log": {
+    "sha256": "6046a35f241a5a3a0e8e168d4c722c01de102aea26d88abf83ecb6bb94bf1961",
+    "bytes": 356,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "pg-01.log": {
+    "sha256": "fcd60f9948212329d8365eb8056a4f630f1a438f572c6ecd61ab146c26ecabba",
+    "bytes": 3283,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "browser-document-02.log": {
+    "sha256": "9dcc331e7602b4a98a9bc176ebe8ddaac800cd1fb2b4e73cf0dc77aa33870e2c",
+    "bytes": 421,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "focused-04.log": {
+    "sha256": "b225b1a221c3e32f77c50aa2b061a4960f8e4f23729c08d80ce182e7b8077fe2",
+    "bytes": 42537,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "pg-03.log": {
+    "sha256": "15dfdb5a6f235f813128c58853d6d3557a06f58649588a8801dd7d72e7f38049",
+    "bytes": 4955,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "browser-initial-01.log": {
+    "sha256": "602e9dbc1131f3fb48bce671fef3bd2c2f72e15dddd591e0af3798084c8837a7",
+    "bytes": 8077,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "revocation-debug-05.log": {
+    "sha256": "4bc7cc4b9fd200c303e61c85e5fc01722d8d67e244de82121ba963108dcf0f9d",
+    "bytes": 5156,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-inspect-01.log": {
+    "sha256": "4f1ad95d4807062cae4765f36a5746269ede44654adfc4cad8361ebae81e5df7",
+    "bytes": 8777,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "browserdoc-initialdoc-worker.log": {
+    "sha256": "bc20fbcc7cf225872532a1daa15b2df3abada848c614110f9d2924ebdb20d20e",
+    "bytes": 5459,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-initial-02.log": {
+    "sha256": "a0d93eeeb9cb27dd88edebfb47043cb434cfe1bc1447a6e6e4348abe2ce43626",
+    "bytes": 1224,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "native-inspect-03.log": {
+    "sha256": "b0f28e60ab3cbe79fa717c8c66d2ff576d4d7789960b90accaa0615377e7ed00",
+    "bytes": 8465,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  },
+  "pg-debug-02.log": {
+    "sha256": "ea6345c2bf29b690f7926f211641a9c91d6ac101488cd4eed0effa32359e23fd",
+    "bytes": 4702,
+    "retained": "private local; not deleted; raw provider/credential diagnostics not published"
+  }
+}

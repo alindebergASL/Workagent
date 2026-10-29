@@ -1,0 +1,304 @@
+{
+  "web": [
+    {
+      "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+      "file": {
+        "id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+        "filename": "capacity.csv",
+        "owner_id": "local-human",
+        "mime_type": "text/csv",
+        "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+        "office_source_snapshot_id": null
+      },
+      "current_revision_id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+      "revision": {
+        "id": "9785a2dd-ee82-4a4d-ab1f-ac325af27d54",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "region,hours\nEast,0.1\nEast,0.2\nWest,1.5\n",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "15689bbebab788a81ffcbe0597a6bfd982048e65b66643014256cb6c95ce5e01"
+        },
+        "author_id": "local-human",
+        "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386",
+        "created_at": "2026-10-29T02:49:15.709571Z",
+        "artifact_id": "9575c60f-e843-4772-ac62-c27debe9cabf",
+        "author_kind": "human",
+        "revision_number": 1,
+        "parent_revision_id": null,
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+      "file": {
+        "id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+        "filename": "brief.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+        "office_source_snapshot_id": null
+      },
+      "current_revision_id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+      "revision": {
+        "id": "3bf2b33c-390b-45ab-bc8c-79fa8f7afc4f",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{\"office_version\": \"office-v1\", \"kind\": \"document\", \"paragraphs\": [\"Operations brief\", \"Exact quote: \u201cPreserve this wording.\u201d\", \"Human web edit: use the revised figures.\"], \"annotations\": [\"Human web annotation retained across restart.\"]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "4c650ae623da2ea62ec04f28ac7035b136e97186f24053361d57ffbc19cb95c0"
+        },
+        "author_id": "local-human",
+        "body_hash": "bb09a3d1a35313105a34b6c3eaa43891e0e5d45ddb4f1eba0e180253bccd1ff2",
+        "created_at": "2026-10-29T02:51:17.872452Z",
+        "artifact_id": "98f3cb6c-4766-492f-8ce8-e1f265d189f4",
+        "author_kind": "human",
+        "revision_number": 2,
+        "parent_revision_id": "80c866c3-ba25-4e64-a334-2c554add034f",
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+      "file": {
+        "id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+        "filename": "office.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+        "office_source_snapshot_id": "591a04dd-03e5-492c-8c31-13ca38a79d6f"
+      },
+      "current_revision_id": "4dbb7ad7-deeb-4ae6-ac7a-cc28c92bac6d",
+      "revision": {
+        "id": "4dbb7ad7-deeb-4ae6-ac7a-cc28c92bac6d",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{  \"office_version\": \"office-v1\",  \"kind\": \"document\",  \"paragraphs\": [    \"\",    \"[Page 1]\",    \"Quarterly operations note\",    \"Exact quotation: \u201cPreserve this wording.\u201d\",    \"A measured draft, not an approved decision.\",    \"Human annotation: Human annotation: protect this exact sentence.\",    \"OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects\",    \"are not preserved.\",    \"OMITTED: No OCR or vision was performed; PDF imports use only the text layer.\",    \"OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted;\",    \"dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted\",    \"from exported XLSX.\",    \"OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never\",    \"computed results.\",    \"\"  ],  \"annotations\": [    \"Human pdf imported copy annotation retained.\"  ]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "071892488d2c6ec5fb68a8b565f46307679fe83d2e403dcb8a6e6f5a607d87aa"
+        },
+        "author_id": "local-human",
+        "body_hash": "927b8e88d5bc88f6b9cb7fc059fc6e977c9caf8e9215f4e96e4bce6876bde888",
+        "created_at": "2026-10-29T03:18:12.662416Z",
+        "artifact_id": "abdf57ed-d965-45f3-ba3c-c5c0f97f462d",
+        "author_kind": "human",
+        "revision_number": 2,
+        "parent_revision_id": "4054b43c-bb39-4b08-9271-a3e323b1012a",
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+      "file": {
+        "id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+        "filename": "office.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+        "office_source_snapshot_id": "b96f4a8c-282a-44df-8ab5-e8d98fb9a6f2"
+      },
+      "current_revision_id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+      "revision": {
+        "id": "9152797e-369b-4f74-99ff-eb8daba725d2",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{  \"office_version\": \"office-v1\",  \"kind\": \"document\",  \"paragraphs\": [    \"Quarterly operations note\",    \"Exact quotation: \u201cPreserve this wording.\u201d\",    \"A measured draft, not an approved decision.\",    \"Human annotation: Human annotation: protect this exact sentence.\",    \"OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.\",    \"OMITTED: No OCR or vision was performed; PDF imports use only the text layer.\",    \"OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.\",    \"OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results.\"  ],  \"annotations\": [    \"Human docx imported copy annotation retained.\"  ]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "e5f7810c3c542a97857fc676da03629e0e76f91a5fd3e0b3ac61698b64825fe9"
+        },
+        "author_id": "local-human",
+        "body_hash": "1fde4715b012753484a2d1986635f6fc56d9de60827f3c3d8fbec48952eeffe8",
+        "created_at": "2026-10-29T03:17:23.509140Z",
+        "artifact_id": "e84c245c-ba7f-4837-bc41-62a3d5e5c001",
+        "author_kind": "human",
+        "revision_number": 2,
+        "parent_revision_id": "2f52f781-639d-4bd2-8f0e-0a464f958eb9",
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+      "file": {
+        "id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+        "filename": "office.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "79498c29-b484-4756-a61b-0b2cccbf19a1",
+        "office_source_snapshot_id": "32fcb6c3-589c-4be5-8ccc-baba34968f6b"
+      },
+      "current_revision_id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+      "revision": {
+        "id": "ca1bde34-f777-4047-8976-393c43e2e24a",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{  \"office_version\": \"office-v1\",  \"kind\": \"workbook\",  \"sheets\": [    {      \"name\": \"Values\",      \"cells\": [        {          \"address\": \"A1\",          \"kind\": \"number\",          \"value\": \"2\",          \"cached_value\": null        },        {          \"address\": \"B1\",          \"kind\": \"string\",          \"value\": \"=HYPERLINK(\\\"https://invalid.example\\\",\\\"not executable\\\")\",          \"cached_value\": null        },        {          \"address\": \"A2\",          \"kind\": \"number\",          \"value\": \"3\",          \"cached_value\": null        },        {          \"address\": \"A3\",          \"kind\": \"formula\",          \"value\": \"=SUM(A1:A2)\",          \"cached_value\": null        }      ]    },    {      \"name\": \"Export notes\",      \"cells\": [        {          \"address\": \"A1\",          \"kind\": \"string\",          \"value\": \"Human annotation: Human annotation after import\",          \"cached_value\": null        },        {          \"address\": \"A2\",          \"kind\": \"string\",          \"value\": \"OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.\",          \"cached_value\": null        },        {          \"address\": \"A3\",          \"kind\": \"string\",          \"value\": \"OMITTED: No OCR or vision was performed; PDF imports use only the text layer.\",          \"cached_value\": null        },        {          \"address\": \"A4\",          \"kind\": \"string\",          \"value\": \"OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.\",          \"cached_value\": null        },        {          \"address\": \"A5\",          \"kind\": \"string\",          \"value\": \"OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results.\",          \"cached_value\": null        }      ]    }  ],  \"annotations\": [    \"Human xlsx imported copy annotation retained.\"  ]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "99aa564dd8a9e28efe14b75a63724df96b4c1bb64bbf9f4bd665bec990040717"
+        },
+        "author_id": "local-human",
+        "body_hash": "2ff8ace6aa3e73f81f5531083c15e8824b879e6f83eaf91bba8c03bd8e06853e",
+        "created_at": "2026-10-29T03:17:55.808804Z",
+        "artifact_id": "fd621846-2f1e-4525-9db1-ab417cdc7666",
+        "author_kind": "human",
+        "revision_number": 2,
+        "parent_revision_id": "47b54981-0e06-45fd-af9e-94e8c382d528",
+        "source_dependencies": []
+      }
+    }
+  ],
+  "native": [
+    {
+      "id": "08b10cc5-2c54-4e7b-9048-b2c195b46a7c",
+      "file": {
+        "id": "08b10cc5-2c54-4e7b-9048-b2c195b46a7c",
+        "filename": "office.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "08b10cc5-2c54-4e7b-9048-b2c195b46a7c",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "27200709-dc85-4045-9f06-aaeee664b6f6",
+        "office_source_snapshot_id": "09c0e4fd-884f-4a5f-aa5f-33d35b87968d"
+      },
+      "current_revision_id": "59bbf338-17fb-4355-8f57-f5b4a22b8a09",
+      "revision": {
+        "id": "59bbf338-17fb-4355-8f57-f5b4a22b8a09",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{\"office_version\":\"office-v1\",\"kind\":\"workbook\",\"sheets\":[{\"name\":\"Values\",\"cells\":[{\"address\":\"A1\",\"kind\":\"number\",\"value\":\"2\",\"cached_value\":null},{\"address\":\"B1\",\"kind\":\"string\",\"value\":\"=HYPERLINK(\\\"https://invalid.example\\\",\\\"not executable\\\")\",\"cached_value\":null},{\"address\":\"A2\",\"kind\":\"number\",\"value\":\"3\",\"cached_value\":null},{\"address\":\"A3\",\"kind\":\"formula\",\"value\":\"=SUM(A1:A2)\",\"cached_value\":null}]},{\"name\":\"Export notes\",\"cells\":[{\"address\":\"A1\",\"kind\":\"string\",\"value\":\"Human annotation: Human annotation after import\",\"cached_value\":null},{\"address\":\"A2\",\"kind\":\"string\",\"value\":\"OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.\",\"cached_value\":null},{\"address\":\"A3\",\"kind\":\"string\",\"value\":\"OMITTED: No OCR or vision was performed; PDF imports use only the text layer.\",\"cached_value\":null},{\"address\":\"A4\",\"kind\":\"string\",\"value\":\"OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.\",\"cached_value\":null},{\"address\":\"A5\",\"kind\":\"string\",\"value\":\"OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results.\",\"cached_value\":null}]}],\"annotations\":[]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "260406eff8e1459e6a72cbdf4ff55153dc9c6162f6b968039c03d565239e189e"
+        },
+        "author_id": "local-human",
+        "body_hash": "353cf50e22bb75b134c462f5af025c1dfa9743debc69d6415f391857377deb4a",
+        "created_at": "2026-10-29T03:10:29.651228Z",
+        "artifact_id": "08b10cc5-2c54-4e7b-9048-b2c195b46a7c",
+        "author_kind": "human",
+        "revision_number": 1,
+        "parent_revision_id": null,
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "1852e2bc-bb23-41d4-ab39-0e2abacc2fb8",
+      "file": {
+        "id": "1852e2bc-bb23-41d4-ab39-0e2abacc2fb8",
+        "filename": "office.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "1852e2bc-bb23-41d4-ab39-0e2abacc2fb8",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "27200709-dc85-4045-9f06-aaeee664b6f6",
+        "office_source_snapshot_id": "cccffc4b-c829-48b0-b428-3c409a06a31c"
+      },
+      "current_revision_id": "28e2a0ed-17a0-4986-9243-37685853f088",
+      "revision": {
+        "id": "28e2a0ed-17a0-4986-9243-37685853f088",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{\"office_version\":\"office-v1\",\"kind\":\"document\",\"paragraphs\":[\"Quarterly operations note\",\"Exact quotation: \u201cPreserve this wording.\u201d\",\"A measured draft, not an approved decision.\",\"Human annotation: Human annotation: protect this exact sentence.\",\"OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.\",\"OMITTED: No OCR or vision was performed; PDF imports use only the text layer.\",\"OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.\",\"OMITTED: Formulas are not evaluated; caches are imported or user-supplied observations, never computed results.\"],\"annotations\":[]}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "67711ddff33138f6a3c882e0ff43e668be5d24e19afbbd03f73630535e5c18b3"
+        },
+        "author_id": "local-human",
+        "body_hash": "9cc8da6760418382339bd3f6a67d59dd19f99db8ff290602a2477f920f8363f5",
+        "created_at": "2026-10-29T03:08:49.903252Z",
+        "artifact_id": "1852e2bc-bb23-41d4-ab39-0e2abacc2fb8",
+        "author_kind": "human",
+        "revision_number": 1,
+        "parent_revision_id": null,
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "8aa3c5ab-72c7-4c66-b571-6c97de42f98b",
+      "file": {
+        "id": "8aa3c5ab-72c7-4c66-b571-6c97de42f98b",
+        "filename": "capacity.csv",
+        "owner_id": "local-human",
+        "mime_type": "text/csv",
+        "artifact_id": "8aa3c5ab-72c7-4c66-b571-6c97de42f98b",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "27200709-dc85-4045-9f06-aaeee664b6f6",
+        "office_source_snapshot_id": null
+      },
+      "current_revision_id": "5487366b-f586-49ed-a1ca-29c0e5656b3a",
+      "revision": {
+        "id": "5487366b-f586-49ed-a1ca-29c0e5656b3a",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "region,hours\nEast,0.1\nEast,0.2\nWest,1.5\n",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "15689bbebab788a81ffcbe0597a6bfd982048e65b66643014256cb6c95ce5e01"
+        },
+        "author_id": "local-human",
+        "body_hash": "6502016440f1ce8e65241097b9c7b857da24176b8b466c6c3fbd7795a2c62386",
+        "created_at": "2026-10-29T02:49:15.918848Z",
+        "artifact_id": "8aa3c5ab-72c7-4c66-b571-6c97de42f98b",
+        "author_kind": "human",
+        "revision_number": 1,
+        "parent_revision_id": null,
+        "source_dependencies": []
+      }
+    },
+    {
+      "id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+      "file": {
+        "id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+        "filename": "native-brief.json",
+        "owner_id": "local-human",
+        "mime_type": "application/json",
+        "artifact_id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+        "workspace_id": "office-ef44149e-3de6-4b9a-ac72-36b4ffdc312d",
+        "conversation_id": "27200709-dc85-4045-9f06-aaeee664b6f6",
+        "office_source_snapshot_id": null
+      },
+      "current_revision_id": "f6676dae-6ff9-4c72-b4f5-d0c2b1fd46b6",
+      "revision": {
+        "id": "f6676dae-6ff9-4c72-b4f5-d0c2b1fd46b6",
+        "body": {
+          "kind": "file",
+          "title": "Working file",
+          "content": "{\n  \"office_version\": \"office-v1\",\n  \"kind\": \"document\",\n  \"paragraphs\": [\n    \"Native created brief\",\n    \"Exact quotation: \u201cKeep these words.\u201d\",\n    \"Human native edit: revised after creation.\"\n  ],\n  \"annotations\": [\n    \"Human native annotation retained across restart.\"\n  ]\n}",
+          "filename": "content.txt",
+          "mime_type": "text/plain",
+          "content_sha256": "dbe89e765a55acb758901e1adb979f1e92a235e84e1b097743e217d79470a47b"
+        },
+        "author_id": "local-human",
+        "body_hash": "df0a1ff804ba56003f5906fa4a23cb5c88ecabe1bda04f75ea36c26132f816ed",
+        "created_at": "2026-10-29T02:56:13.449651Z",
+        "artifact_id": "e29eac90-f393-4aac-be7b-04d6798006f3",
+        "author_kind": "human",
+        "revision_number": 2,
+        "parent_revision_id": "a69fe1e1-c68a-45ec-8dec-50fcbe435b70",
+        "source_dependencies": []
+      }
+    }
+  ],
+  "interpretation": "Saved human text and imported files remain in backend; unsaved web/native notes exist only in client draft evidence, not saved revisions."
+}

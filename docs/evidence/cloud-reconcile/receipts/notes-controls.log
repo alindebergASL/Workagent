@@ -1,0 +1,50 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+locator.click: Timeout 30000ms exceeded.
+Call log:
+  - waiting for getByRole('button', { name: 'Save my edits', exact: true })
+    - locator resolved to <button disabled class="btn btn-primary">Save my edits</button>
+  - attempting click action
+    2 × waiting for element to be visible, enabled and stable
+      - element is not enabled
+    - retrying click action
+    - waiting 20ms
+    2 × waiting for element to be visible, enabled and stable
+      - element is not enabled
+    - retrying click action
+      - waiting 100ms
+    58 × waiting for element to be visible, enabled and stable
+       - element is not enabled
+     - retrying click action
+       - waiting 500ms
+
+    at /home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/scripts/verify_notes_controls.mjs:25:67 {
+  log: [
+    "  - waiting for getByRole('button', { name: 'Save my edits', exact: true })",
+    '    - locator resolved to <button disabled class="btn btn-primary">Save my edits</button>',
+    '  - attempting click action',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '    - waiting 20ms',
+    '    2 × waiting for element to be visible, enabled and stable',
+    '      - element is not enabled',
+    '    - retrying click action',
+    '      - waiting 100ms',
+    '    58 × waiting for element to be visible, enabled and stable',
+    '       - element is not enabled',
+    '     - retrying click action',
+    '       - waiting 500ms'
+  ],
+  name: 'TimeoutError'
+}
+
+Node.js v22.23.4
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent/proofs/cloud-reconcile-t481afd69/candidate/../notes_runner.py", line 8, in <module>
+    subprocess.run(['node','scripts/verify_notes_controls.mjs','../evidence/general-3/products/result.json','../evidence/notes-controls.json'],env=env,check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['node', 'scripts/verify_notes_controls.mjs', '../evidence/general-3/products/result.json', '../evidence/notes-controls.json']' returned non-zero exit status 1.

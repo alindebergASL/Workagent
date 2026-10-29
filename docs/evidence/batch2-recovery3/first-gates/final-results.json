@@ -1,0 +1,97 @@
+{
+  "steps": [
+    {
+      "name": "contracts-check",
+      "command": [
+        "npm",
+        "--prefix",
+        "contracts",
+        "run",
+        "check"
+      ],
+      "exit": 0,
+      "seconds": 24.187128850026056
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "npm",
+        "--prefix",
+        "web",
+        "run",
+        "typecheck"
+      ],
+      "exit": 0,
+      "seconds": 58.496224750066176
+    },
+    {
+      "name": "tests",
+      "command": [
+        "npm",
+        "--prefix",
+        "web",
+        "test",
+        "--",
+        "--maxWorkers=1",
+        "--reporter=default",
+        "--reporter=junit",
+        "--outputFile.junit=../docs/evidence/batch2-recovery3/final-tests.xml"
+      ],
+      "exit": 0,
+      "seconds": 48.4485497350106
+    },
+    {
+      "name": "lint",
+      "command": [
+        "npm",
+        "--prefix",
+        "web",
+        "run",
+        "lint"
+      ],
+      "exit": 0,
+      "seconds": 37.72877039690502
+    },
+    {
+      "name": "format",
+      "command": [
+        "npm",
+        "--prefix",
+        "web",
+        "run",
+        "format:check"
+      ],
+      "exit": 0,
+      "seconds": 41.2464498920599
+    },
+    {
+      "name": "build",
+      "command": [
+        "npm",
+        "--prefix",
+        "web",
+        "run",
+        "build",
+        "--",
+        "--webpack"
+      ],
+      "exit": 0,
+      "seconds": 138.46221455500927
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit": 0,
+      "seconds": 0.16629202000331134
+    }
+  ],
+  "build_environment": {
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "NEXT_PUBLIC_WORKAGENT_API_BASE": "/api/domain",
+    "NEXT_PUBLIC_WORKAGENT_NATURAL_ADMISSION": "1"
+  }
+}

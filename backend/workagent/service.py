@@ -18,6 +18,8 @@ from .models import *
 from .provider_attempts import ProviderAttempts, admission_grant, attempt_row
 from .conversations import Conversations
 from .products import Products
+from .conversation_intents import ConversationIntents
+from .run_successors import RunSuccessors
 
 
 def canonical(value) -> str:
@@ -63,9 +65,16 @@ from .flexible_work import FlexibleWork
 
 
 from .work_areas import WorkAreas
+from .documents import Documents
+from .workspace_files import WorkspaceFiles
+from .artifact_exports import ArtifactExports
 
 
-class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAttempts):
+from .memory.store import MemoryStore
+from .memory.retrieval import MemoryRetrieval
+
+
+class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports, Documents, WorkAreas, FlexibleWork, Products, ConversationIntents, RunSuccessors, Conversations, ProviderAttempts):
     def __init__(self, db: Database, *, allow_controlled_turns=True):
         self.db = db
         # Historical controlled harnesses remain usable explicitly by their host.
@@ -74,6 +83,8 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         self.allow_controlled_turns = allow_controlled_turns
 
     def _scope(self, c, p, ws, write=False):
+        if write and getattr(p, 'kind', 'worker') != 'human' and c.execute("SELECT to_regclass('public.isolated_restore_receipt') AS marker").fetchone()['marker']:
+            raise DomainError('action_unresolved')
         lock = 'UPDATE' if write else 'SHARE'
         row = c.execute(f'SELECT * FROM workspaces WHERE id=%s FOR {lock}', (ws,)).fetchone()
         if not row:
@@ -108,11 +119,20 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         row = c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s', (ws, artifact_id)).fetchone()
         if not row:
             deny()
+        file_owner = c.execute('SELECT owner_id,office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',
+                               (ws, artifact_id)).fetchone()
+        if file_owner and file_owner['owner_id'] != p.id:
+            deny()
+        if file_owner and file_owner.get('office_source_snapshot_id'):
+            from .source_snapshots import read
+            read(self,c,p,ws,file_owner['office_source_snapshot_id'])
         a = (self._conversation(c,p,ws,row['conversation_id']) if row.get('conversation_id') else
              self._assignment(c, p, ws, row['assignment_id']))
         return row, a
 
     def _proposal(self, c, p, ws, proposal_id):
+        if not c.execute('SELECT memory_proposal_visible(%s,%s) AS ok', (ws,proposal_id)).fetchone()['ok']:
+            deny()
         row = c.execute('SELECT data FROM proposals WHERE workspace_id=%s AND id=%s', (ws, proposal_id)).fetchone()
         if not row:
             deny()
@@ -130,6 +150,9 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
 
     def _revision(self, c, p, ws, artifact, assignment, revision_id=None):
         rid = revision_id or artifact['current_revision_id']
+        if not c.execute('SELECT memory_revision_visible(%s,%s,%s) AS ok',
+                         (ws, artifact['id'], rid)).fetchone()['ok']:
+            deny()
         row = c.execute('SELECT data FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id=%s', (ws, artifact['id'], rid)).fetchone()
         if not row:
             deny()
@@ -174,6 +197,12 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         if p.kind != 'human':
             deny()
         payload = command.model_dump(mode='json', exclude={'request_id', 'command_id'})
+        if op in ('export_artifact','export_workspace_file') and payload.get('chart_spec') is None:
+            payload.pop('chart_spec',None)
+        if op in ('memory_remember', 'memory_candidate', 'memory_correct') and payload.get('procedure') is None:
+            payload.pop('procedure', None)  # Preserve pre-067 command replay hashes.
+        if op == 'memory_correct' and payload.get('applicability') is None:
+            payload.pop('applicability', None)  # Preserve pre-069 correction receipts.
         if op=='accept_proposal':
             # Default-false additive flags preserve historical receipt hashes.
             for flag in ('acknowledge_removed_content', 'acknowledge_older_proposal'):
@@ -182,9 +211,13 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
             # Additive optional inputs must not change legacy command replay hashes.
             if payload.get('operation') is None: payload.pop('operation',None)
             if not payload.get('attachments'): payload.pop('attachments',None)
+            if not payload.get('document_refs'): payload.pop('document_refs',None)
             if payload.get('target') is None: payload.pop('target',None)
         key = digest({'operation': op, 'arguments': path_args, 'payload': payload})
         with self.db.transaction() as c:
+            if (not op.startswith('memory_') and
+                c.execute("SELECT to_regclass('public.isolated_restore_receipt') AS marker").fetchone()['marker']):
+                raise DomainError('action_unresolved')
             self._scope(c, p, ws, write=True)
             authorized = authorize(c)  # Always current authorization, before cached result access.
             previous = c.execute('SELECT payload_hash,result FROM commands WHERE principal_id=%s AND workspace_id=%s AND command_id=%s', (p.id,ws,command.command_id)).fetchone()
@@ -314,7 +347,7 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         with self.db.transaction() as c:
             self._scope(c,p,ws)
             row,a=self._artifact(c,p,ws,artifact_id)
-            rows=c.execute('SELECT id FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id>%s ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
+            rows=c.execute('SELECT id FROM revisions WHERE workspace_id=%s AND artifact_id=%s AND id>%s AND memory_revision_visible(workspace_id,artifact_id,id) ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
             items=[self._revision(c,p,ws,row,a,r['id']) for r in rows[:limit]]
             return RevisionPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
 
@@ -323,7 +356,7 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
             self._scope(c,p,ws)
             artifact,owner=self._artifact(c,p,ws,artifact_id)
             latest=self._latest_review_candidate(c,p,ws,artifact,owner)
-            rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
+            rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s AND memory_proposal_visible(workspace_id,id) ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
             from .proposal_review import review_proposal
             items=[]
             for r in rows[:limit]:
@@ -338,6 +371,7 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         rows=c.execute("""SELECT id,data->'source_dependencies' AS source_dependencies
             FROM proposals WHERE workspace_id=%s
             AND artifact_id=%s AND base_revision_id=%s AND data->>'status'='pending'
+            AND memory_proposal_visible(workspace_id,id)
             ORDER BY (data->>'created_at')::timestamptz DESC,id DESC""",
             (ws,artifact['id'],artifact['current_revision_id'])).fetchall()
         for row in rows:
@@ -355,12 +389,19 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
         if row['current_revision_id'] != expected:
             raise DomainError('version_conflict',current_revision_id=row['current_revision_id'],proposal_id=proposal_id)
 
-    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind):
+    def _append_revision(self,c,p,ws,row,a,body,deps,author_kind,producer_run_id=None):
+        office=c.execute('SELECT office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',(ws,row['id'])).fetchone()
+        if office and office['office_source_snapshot_id']:
+            from .office_content import validate
+            try:
+                validate(json.loads(body.content.lstrip('\ufeff')))
+            except (ValueError,TypeError,AttributeError):
+                raise DomainError('validation_error') from None
         previous=self._revision(c,p,ws,row,a) if row['current_revision_id'] else None
         rev=Revision(id=new_id(),artifact_id=row['id'],revision_number=previous.revision_number+1 if previous else 1,
                      parent_revision_id=previous.id if previous else None,author_id=p.id,author_kind=author_kind,
                      body=body,body_hash=digest(body),source_dependencies=deps)
-        c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data) VALUES (%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev)))
+        c.execute('INSERT INTO revisions(workspace_id,artifact_id,id,revision_number,parent_revision_id,data,producer_run_id) VALUES (%s,%s,%s,%s,%s,%s,%s)',(ws,row['id'],rev.id,rev.revision_number,rev.parent_revision_id,encoded(rev),producer_run_id))
         c.execute('UPDATE artifacts SET current_revision_id=%s WHERE workspace_id=%s AND id=%s',(rev.id,ws,row['id']))
         return Artifact(id=row['id'],workspace_id=ws,assignment_id=row.get('assignment_id',a.id),conversation_id=row.get('conversation_id'),current_revision_id=rev.id,current_revision=rev)
 
@@ -399,38 +440,41 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
             return RevisionQueued(run=r)
         return self._command(p,ws,'request_revision',{'artifact_id':artifact_id},cmd,RevisionQueued,lambda c:self._artifact(c,p,ws,artifact_id),mutate)
 
+    def _accept_proposal_mutation(self,c,p,ws,cmd,state):
+        proposal,row,a=state
+        # Workspace lock already serializes domain writers; explicitly lock
+        # and reread the artifact before recomputing the review decision.
+        row=c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s FOR UPDATE',
+                      (ws,proposal.artifact_id)).fetchone()
+        self._cas(row,cmd.expected_current_revision_id,proposal.id)
+        # Supplying the new current ID is NOT an implicit rebase of old bytes.
+        self._cas(row,proposal.base_revision_id,proposal.id)
+        if proposal.status != 'pending':
+            raise DomainError('decision_stale')
+        self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
+        self._validate_flexible_body(c,p,ws,a,proposal.body)
+        base=self._revision(c,p,ws,row,a)
+        self._validate_flexible_edit(base.body,proposal.body)
+        from .proposal_review import review_proposal
+        review=review_proposal(proposal,base.body,self._latest_review_candidate(c,p,ws,row,a))
+        required=[]
+        if review.removed_content_count and not cmd.acknowledge_removed_content:
+            required.append('acknowledge_removed_content')
+        if not review.is_latest and not cmd.acknowledge_older_proposal:
+            required.append('acknowledge_older_proposal')
+        if required:
+            raise DomainError('review_required',proposal_id=proposal.id,fields=required)
+        result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
+        proposal.status='accepted'
+        proposal.accepted_revision_id=result.current_revision_id
+        c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
+                  (encoded({'status':'accepted','accepted_revision_id':result.current_revision_id}),ws,proposal.id))
+        self._event(c,p,ws,'accept_proposal',proposal.id)
+        return result
+
     def accept_proposal(self,p,ws,proposal_id,cmd):
         def mutate(c,state):
-            proposal,row,a=state
-            # Workspace lock already serializes domain writers; explicitly lock
-            # and reread the artifact before recomputing the review decision.
-            row=c.execute('SELECT * FROM artifacts WHERE workspace_id=%s AND id=%s FOR UPDATE',
-                          (ws,proposal.artifact_id)).fetchone()
-            self._cas(row,cmd.expected_current_revision_id,proposal.id)
-            # Supplying the new current ID is NOT an implicit rebase of old bytes.
-            self._cas(row,proposal.base_revision_id,proposal.id)
-            if proposal.status != 'pending':
-                raise DomainError('decision_stale')
-            self._dependencies(c,p,ws,a,proposal.source_dependencies,True)
-            self._validate_flexible_body(c,p,ws,a,proposal.body)
-            base=self._revision(c,p,ws,row,a)
-            self._validate_flexible_edit(base.body,proposal.body)
-            from .proposal_review import review_proposal
-            review=review_proposal(proposal,base.body,self._latest_review_candidate(c,p,ws,row,a))
-            required=[]
-            if review.removed_content_count and not cmd.acknowledge_removed_content:
-                required.append('acknowledge_removed_content')
-            if not review.is_latest and not cmd.acknowledge_older_proposal:
-                required.append('acknowledge_older_proposal')
-            if required:
-                raise DomainError('review_required',proposal_id=proposal.id,fields=required)
-            result=self._append_revision(c,p,ws,row,a,proposal.body,proposal.source_dependencies,'human')
-            proposal.status='accepted'
-            proposal.accepted_revision_id=result.current_revision_id
-            c.execute('UPDATE proposals SET data=data || %s WHERE workspace_id=%s AND id=%s',
-                      (encoded({'status':'accepted','accepted_revision_id':result.current_revision_id}),ws,proposal.id))
-            self._event(c,p,ws,'accept_proposal',proposal.id)
-            return result
+            return self._accept_proposal_mutation(c,p,ws,cmd,state)
         return self._command(p,ws,'accept_proposal',{'proposal_id':proposal_id},cmd,Artifact,lambda c:self._proposal(c,p,ws,proposal_id),mutate)
 
     def dismiss_proposal(self,p,ws,proposal_id,cmd):
@@ -610,6 +654,11 @@ class ServiceCore(WorkAreas, FlexibleWork, Products, Conversations, ProviderAtte
                 row=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',(r.workspace_id,source['id'])).fetchone()
                 if not row or digest(row['content'])!=source['sha256']:
                     raise DomainError('source_changed')
+        if context:
+            from .memory.runtime import revalidate as revalidate_memory
+            revalidate_memory(self,c,p,r,context['data'])
+        from .capabilities.policy import require_run_tools
+        require_run_tools(c,r)
         return p,r,a
 
     def worker_inputs(self,cap):

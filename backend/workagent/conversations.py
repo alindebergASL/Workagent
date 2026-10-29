@@ -47,7 +47,7 @@ def profile(name=PROFILE):
 def implementation_hash():
     # Refuse an in-flight run after an unreviewed local implementation change.
     return hashlib.sha256(b''.join(Path(__file__).with_name(name).read_bytes()
-        for name in ('composition.py', 'proposal_review.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
+        for name in ('document_models.py', 'document_sandbox.py', 'document_parser.py', 'documents.py', 'composition.py', 'proposal_review.py', 'general_schema.py', 'work_areas.py', 'models.py', 'conversations.py', 'general_worker.py', 'products.py', 'product_models.py', 'flexible_models.py', 'flexible_work.py', 'model_base.py', 'local_operations.py', 'wasm_tool.py'))).hexdigest()
 
 
 def check_general_pins(c, run):
@@ -105,11 +105,15 @@ class Conversations:
 
     def _conversation_messages(self,c,ws,cid):
         return [ConversationMessage.model_validate(r['data']) for r in c.execute(
-            'SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s ORDER BY sequence',
+            "SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+            "AND (author_kind<>'assistant' OR research_run_dependencies_visible(workspace_id,run_id)) ORDER BY sequence",
             (ws,cid)).fetchall()]
 
     def _append_message(self,c,ws,message):
         from .service import encoded
+        # Hidden stale automated replies still occupy immutable sequence slots.
+        message.sequence = c.execute('SELECT coalesce(max(sequence),0)+1 AS n FROM conversation_messages '
+            'WHERE workspace_id=%s AND conversation_id=%s', (ws,message.conversation_id)).fetchone()['n']
         c.execute('''INSERT INTO conversation_messages(workspace_id,conversation_id,id,run_id,sequence,author_kind,data)
                      VALUES (%s,%s,%s,%s,%s,%s,%s)''',
                   (ws,message.conversation_id,message.id,message.run_id,message.sequence,message.author_kind,encoded(message)))
@@ -148,13 +152,20 @@ class Conversations:
             self._scope(c,p,ws)
             cv=self._conversation(c,p,ws,cid)
             messages=self._conversation_messages(c,ws,cid)
+            for message in messages:
+                self._message_documents(c,p,ws,cid,message.document_refs)
             runs={r['id']:Run.model_validate(r['data']) for r in c.execute(
                 'SELECT id,data FROM runs WHERE workspace_id=%s AND conversation_id=%s',(ws,cid)).fetchall()}
             assignments=c.execute('SELECT id FROM assignments WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()
             from .products import turn_state
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
-            artifact_ids=[r['id'] for r in c.execute('SELECT id FROM artifacts WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()]
-            return ConversationDetail(conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
+            artifact_ids=[r['id'] for r in c.execute('''SELECT a.id FROM artifacts a
+                WHERE a.workspace_id=%s AND a.conversation_id=%s
+                AND memory_revision_visible(a.workspace_id,a.id,a.current_revision_id)
+                AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
+                    AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',(ws,cid,p.id)).fetchall()]
+            from .original_attachments import projection as attachment_projection
+            return ConversationDetail(attachment_context=attachment_projection(c,ws,messages),conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -167,18 +178,24 @@ class Conversations:
                 acknowledge(c,ws,run.id)
 
     def post_message(self,p,ws,cid,cmd):
+        def authorize(c):
+            cv=self._conversation(c,p,ws,cid)
+            self._message_documents(c,p,ws,cid,cmd.document_refs)
+            return cv
         return self._command(p,ws,'post_message',{'conversation_id':cid},cmd,MessageQueued,
-            lambda c:self._conversation(c,p,ws,cid),
+            authorize,
             lambda c,cv:self._admit_conversation_turn(c,p,ws,cv,cmd))
 
-    def _admit_conversation_turn(self,c,p,ws,cv,cmd,*,responsibility=None,required_grant_id=None):
+    def _admit_conversation_turn(self,c,p,ws,cv,cmd,*,responsibility=None,required_grant_id=None,
+                                 continuation=None,retained_message=None,queued_intent=None):
         from .service import digest, encoded
         cid=cv.id
+        document_refs=self._message_documents(c,p,ws,cid,cmd.document_refs)
         self._conversation_cas(cv,cmd.expected_work_version)
         self._conversation(c,p,ws,cid,True)
         from .general_responses import admission, PROFILE as GENERAL, PROFILE_HASH as GENERAL_HASH, consumer_hash
         try:
-            grant=admission(self,c,p,ws,cv,cmd,human_steering=responsibility is None)
+            grant=admission(self,c,p,ws,cv,cmd,human_steering=responsibility is None and continuation is None and queued_intent is None)
         except DomainError as exc:
             from .general_responses import has_unresolved_attempt
             if responsibility is not None and exc.code.value=='action_unresolved' and has_unresolved_attempt(c,ws,cid):
@@ -199,17 +216,25 @@ class Conversations:
         messages=self._conversation_messages(c,ws,cid)
         # Reject oversized history before admission rather than leaving queued work with no executable context.
         from .service import canonical
-        prospective={'messages':[m.model_dump(mode='json') for m in messages],
+        prior_messages=[m.model_dump(mode='json') for m in messages]
+        from .documents import project_message_documents
+        for message in prior_messages:
+            project_message_documents(message)
+        prospective={'messages':prior_messages,
                      'next':cmd.model_dump(mode='json'),
                      'sources':[self._source(c,p,ws,ref,True)['content'] for ref in cv.selected_source_refs],
                      'tools':self.local_tool_registry() if cmd.operation else []}
         from .general_responses import standing
-        bounded=grant is not None and standing(grant.responses)
+        bounded=False
+        if grant is not None:
+            # Controlled fixture turns must not import provider transport/schema code.
+            from .retained_results import enabled as retained_enabled
+            bounded=standing(grant.responses) or retained_enabled({'responses':grant.responses.model_dump(mode='json')})
         if not bounded and responsibility is None and len(canonical(prospective).encode())+4096>config['max_context_bytes']:
             raise DomainError('budget_exhausted')
         if not bounded and sum(m.author_kind in ('human','system') for m in messages)>=config['max_turns_per_conversation']:
             raise DomainError('budget_exhausted')
-        if responsibility is None:
+        if responsibility is None and continuation is None and queued_intent is None:
             self._cancel_conversation_runs(c,ws,cid)  # Only human steering supersedes other work.
         generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(ws,)).fetchone()['access_generation']
         run=Run(id=new_id(),workspace_id=ws,conversation_id=cid,principal_id=p.id,kind='conversation_turn',
@@ -227,6 +252,10 @@ class Conversations:
             pinned['evidence_context_version']=VERSION
         if responsibility is not None:
             pinned['responsibility']=responsibility.model_dump(mode='json')
+        if continuation is not None:
+            pinned['continuation']=continuation
+        if queued_intent is not None:
+            pinned['queued_intent']=queued_intent
         c.execute('INSERT INTO run_configurations(workspace_id,run_id,activation_id,data) VALUES (%s,%s,%s,%s)',
             (ws,run.id,selected,encoded(pinned)))
         message=ConversationMessage(id=new_id(),conversation_id=cid,run_id=run.id,sequence=len(messages)+1,
@@ -236,17 +265,29 @@ class Conversations:
                                     responsibility_origin=(ResponsibilityOrigin(assignment_id=responsibility.assignment_id,
                                         wake_id=responsibility.wake_id,work_version=responsibility.work_version) if responsibility else None),
                                     acceptance_checks=cmd.acceptance_checks,
-                                    target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
+                                    document_refs=document_refs,target=cmd.target,attachments=[MessageAttachment(**a.model_dump(),ref=new_id(),
                                         sha256=hashlib.sha256(a.content.encode()).hexdigest(),byte_length=len(a.content.encode())) for a in cmd.attachments])
+        if retained_message is not None:
+            # Same immutable human/runtime intent and attachment identities, not a
+            # new model-authored request. The configuration retains its provenance.
+            message=retained_message.model_copy(update={'id':message.id,'run_id':run.id,
+                'sequence':message.sequence,'created_at':message.created_at})
         self._append_message(c,ws,message)
-        if responsibility is None:
+        # Opted-in file/compute conversations expose the original attachment as
+        # an immutable file, not a copied draft or implicit execution grant.
+        if grant and retained_message is None and message.author_kind == 'human' and p.id == cv.owner_id:
+            from .capabilities.file_composition import enabled as files_enabled
+            if files_enabled(pinned):
+                from .source_snapshots import retain_attachments
+                retain_attachments(self,c,p,ws,cv,message)
+        if responsibility is None and continuation is None and queued_intent is None:
             cv.work_version+=1
             self._store_conversation(c,cv)
-        if bounded and responsibility is None:
+        if (bounded or document_refs) and responsibility is None and continuation is None:
             # Validate the exact bounded context in the admission transaction.
             # Oversized current intent rolls back rather than being truncated.
             self._materialize_general_context(c,p,run,cv)
-        self._event(c,p,ws,'post_message' if responsibility is None else 'responsibility_run_queued',run.id)
+        self._event(c,p,ws,'post_message' if responsibility is None and continuation is None else 'responsibility_run_queued',run.id)
         if grant: cv=cv.model_copy(update={'execution_profile':GENERAL,'model_activation':'active'})
         return MessageQueued(conversation=cv,message=message,run=run)
 
@@ -289,6 +330,8 @@ class Conversations:
         from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
         materials=self._own_new_drafts(c,p,run,cv) if run.profile=='general-responses-v1' else []
+        from .research import authorize_run_dependencies
+        authorize_run_dependencies(c,run.workspace_id,run.id)
         own=[m['artifact_id'] for m in materials]
         context,sources=self._materialize_general_context(c,p,run,cv,exclude_artifacts=own)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
@@ -296,14 +339,26 @@ class Conversations:
             observation['work_area_context']=context['work_area_context']
         if 'work_context_index' in context:
             observation['work_context_index']=context['work_context_index']
+        if 'document_context' in context:
+            observation['document_context']=context['document_context']
         if 'evidence_context' in context:
             observation['evidence_context']=context['evidence_context']
+        if 'memory_manifest' in context:
+            observation['memory_manifest']=context['memory_manifest']
+            observation['memory_human_request']=context['memory_human_request']
+        if run.profile=='general-responses-v1':
+            from .general_responses import check_pins
+            from .capabilities.github_composition import enabled as github_enabled
+            if github_enabled(check_pins(c,run)):
+                observation['research_source_ids']=[s['snapshot_id'] for s in context.get('research_sources',[])]
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')
         if previous and previous['data']!=observation:
             raise DomainError('source_changed')
         if not previous:
+            for item in context.get('document_context',{}).get('items',[]):
+                self._event(c,p,run.workspace_id,'read_document_context',item['document_id'])
             c.execute('INSERT INTO run_contexts(workspace_id,run_id,data) VALUES (%s,%s,%s)',(run.workspace_id,run.id,encoded(observation)))
         return p,run,cv,context,materials
 
@@ -355,6 +410,29 @@ class Conversations:
             from .service import canonical
             if request_projection and len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
                 raise DomainError('budget_exhausted')
+        if request_projection and run.profile=='general-responses-v1':
+            from .retained_results import enabled as retained_enabled, references, descriptor
+            from .general_responses import check_pins
+            config=check_pins(c,run)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context,include_own=True)
+            from .capabilities.mcp_composition import enabled as mcp_enabled
+            if mcp_enabled(config):
+                from .capabilities.mcp_adapters import project as project_connectors
+                project_connectors(self,c,p,run,context)
+            if retained_enabled(config):
+                context['retained_results']=references(self,c,p,run,cv)
+                context['continuation']=config.get('continuation')
+                context.get('composition',{}).get('capabilities',[]).append({k:v for k,v in descriptor().items() if k!='input_schema'})
+                from .original_attachments import descriptor as attachment_descriptor
+                context.get('composition',{}).get('capabilities',[]).append({k:v for k,v in attachment_descriptor().items() if k!='input_schema'})
+                from .service import canonical
+                while context['retained_results'] and len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
+                    context['retained_results'].pop()
+                if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:
+                    raise DomainError('budget_exhausted')
         return context
 
     def _materialize_general_context(self,c,p,run,cv,*,exclude_artifacts=()):
@@ -428,6 +506,13 @@ class Conversations:
             for message in context['messages']:
                 for field in ('attachments','target','model_receipt'): message.pop(field,None)
         latest=next(m for m in messages if m.run_id==run.id and m.author_kind in ('human','system'))
+        documents=self._document_context(c,p,run,cv,messages,latest,
+            config=config if run.profile=='general-responses-v1' else {},context=context)
+        if documents is not None:
+            context['document_context']=documents
+            from .documents import project_message_documents
+            for message in context['messages']:
+                project_message_documents(message)
         if latest.author_kind=='human' and run.profile=='general-responses-v1':
             previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
                 (run.workspace_id,run.id)).fetchone()
@@ -456,12 +541,22 @@ class Conversations:
             from .composition import continuity_enabled
             from .saved_work import revalidate_reads
             revalidate_reads(self,c,p,run,cv)
+            from .retained_results import enabled as retained_enabled, revalidate_reads as revalidate_results
+            if retained_enabled(config):
+                revalidate_results(self,c,p,run,cv)
             if continuity_enabled(config):
                 context['saved_work_discovery']={'capability':'discover_saved_work',
                     'scope':'responsibility_dependencies' if config.get('responsibility') else 'current_conversation',
                     'first_page':{'kind':'discover_saved_work','after_artifact_id':None,'limit':12},
                     'notice':'Snapshot omission is not absence. Page descriptors, then read an exact target.'}
-            if standing(grant.responses):
+            from .memory.runtime import enabled as memory_enabled, project as project_memory
+            if memory_enabled(config):
+                project_memory(self,c,p,run,cv,context)
+            from .capabilities.research_composition import enabled as research_enabled
+            if research_enabled(config):
+                from .research import project as project_research
+                project_research(self,c,p,run,cv,context)
+            if standing(grant.responses) or retained_enabled(config):
                 from .conversation_context import bound_context
                 bound_context(context,run.id,profile(run.profile)['max_context_bytes'])
         if len(canonical(context).encode())>profile(run.profile)['max_context_bytes']:

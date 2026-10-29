@@ -8,6 +8,7 @@ import { ScopedRecord } from "@/components/ScopedRecord";
 import { useResource } from "@/lib/client/hooks";
 import { CAPABILITIES } from "@/lib/client/capabilities";
 import { conversationApi } from "@/lib/client/real-api";
+import { scopedSession } from "@/lib/client/session-scope";
 import {
   currentObservation,
   resolveObservations,
@@ -134,7 +135,7 @@ function readDraft(key: string, artifact: S["Artifact"]): Draft {
   const body = artifact.current_revision.body;
   if (!isProduct(body)) throw new Error("Not a typed product.");
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = scopedSession.getItem(key);
     if (raw) {
       const d = JSON.parse(raw) as Draft;
       if (d.base && d.body?.kind === body.kind) return d;
@@ -404,7 +405,7 @@ function ProductEditor({
   function keep(next: Draft): boolean {
     setDraft(next);
     try {
-      sessionStorage.setItem(key, JSON.stringify(next));
+      scopedSession.setItem(key, JSON.stringify(next));
       return true;
     } catch {
       setNotice(
@@ -709,10 +710,21 @@ function ProductEditor({
                   <summary>See the proposed version</summary>
                   <ProductView body={p.body} />
                   {p.body.kind !== "file" ? (
-                    <p className="small">
-                      Your notes kept:{" "}
-                      {(p.body.notes ?? []).join("; ") || "none"}
-                    </p>
+                    // Each note as written: one to an item, line breaks kept.
+                    <div className="small" data-testid="proposal-kept-notes">
+                      {p.body.notes?.length ? (
+                        <>
+                          <p>Your notes kept:</p>
+                          <ul className="table-notes">
+                            {p.body.notes.map((n, i) => (
+                              <li key={i}>{n}</li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        <p>Your notes kept: none</p>
+                      )}
+                    </div>
                   ) : null}
                 </details>
               </>

@@ -1,0 +1,27 @@
+{
+  "passed": true,
+  "qualification": "Real production UI/API/PG, delayed genuine responses; no fabricated payloads, no paid calls",
+  "results": [
+    {
+      "case": "rendered_usage",
+      "run_id": "8507f235-d323-495c-9f00-cfc80705b114",
+      "revision_id": "185915fb-29cf-4c7c-a5e5-c5479dcf71d5",
+      "passed": true
+    },
+    {
+      "case": "old-list-before-forget-receipt",
+      "passed": true,
+      "memory_id": "372f1043-48a8-4f88-ae85-4c7fd3919542"
+    },
+    {
+      "case": "old-list-after-forget-receipt",
+      "passed": true,
+      "memory_id": "635ab9b6-0245-4d1c-a066-830a1c91c0c0"
+    },
+    {
+      "case": "actual_source_revocation_readback_denied",
+      "http_status": 404,
+      "passed": true
+    }
+  ]
+}

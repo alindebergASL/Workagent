@@ -1,0 +1,84 @@
+{
+  "$defs": {
+    "ComputeInput": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "name",
+        "ref"
+      ],
+      "title": "ComputeInput",
+      "type": "object"
+    },
+    "FileVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "version_id",
+        "sha256"
+      ],
+      "title": "FileVersionRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "maxLength": 65536,
+      "minLength": 1,
+      "title": "Code",
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/ComputeInput"
+      },
+      "maxItems": 8,
+      "title": "Inputs",
+      "type": "array"
+    },
+    "kind": {
+      "const": "compute_python",
+      "title": "Kind",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "code",
+    "inputs"
+  ],
+  "title": "ComputePython",
+  "type": "object"
+}

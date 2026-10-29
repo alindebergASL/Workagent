@@ -256,6 +256,9 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     """
     runtime_extension: Literal['general-alpha-v1']
     continuity_version: Literal['sustained-v1'] | None = None
+    # Explicit full-tool treatment, immutable with the grant/run binding. None
+    # preserves historical serialized authority and compute-memory behavior.
+    memory_recall: Literal['off', 'reviewed-v1'] | None = None
     max_steps: int = Field(default=4, strict=True, ge=1, le=8)
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
@@ -271,7 +274,19 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         data=handler(self)
         if self.continuity_version is None:
             data.pop('continuity_version',None)
+        if self.memory_recall is None:
+            data.pop('memory_recall',None)
         return data
+
+    @model_validator(mode='after')
+    def full_tool_memory_treatment(self):
+        if self.memory_recall is not None:
+            from hashlib import sha256
+            from .capabilities.delegation_composition import SCHEMA
+            if (self.continuity_version != 'sustained-v1' or
+                    self.scope_tool_sha256 != sha256(SCHEMA.material).hexdigest()):
+                raise ValueError('explicit memory treatment requires sustained full-tool schema')
+        return self
 
     @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
     @classmethod
@@ -504,10 +519,18 @@ class Conversation(Model):
     created_at: AwareDatetime = Field(default_factory=now)
 
 
+from .document_models import DocumentInput, DocumentRef, MessageDocument
+
+
+class IngestDocument(Command, DocumentInput):
+    pass
+
+
 class PostMessage(Command):
     expected_work_version: Version
     text: Text
     operation: LocalOperation | None = None
+    document_refs: list[DocumentRef] = Field(default_factory=list, max_length=2)
     attachments: list[AttachmentInput] = Field(default_factory=list,max_length=ATTACHMENT_COUNT)
     target: ExactTarget | None = None
     acceptance_checks: AcceptanceSpec | None = None
@@ -515,13 +538,15 @@ class PostMessage(Command):
     @model_serializer(mode='wrap')
     def preserve_legacy_payload(self, handler):
         data=handler(self)
+        if not self.document_refs:
+            data.pop('document_refs', None)
         if self.acceptance_checks is None:
             data.pop('acceptance_checks',None)
         return data
 
     @model_validator(mode='after')
     def bounded_inputs(self):
-        if self.operation is not None and (self.attachments or self.target or self.acceptance_checks):
+        if self.operation is not None and (self.attachments or self.document_refs or self.target or self.acceptance_checks):
             raise ValueError('controlled operation cannot mix with general inputs')
         if sum(len(a.content.encode()) for a in self.attachments)>ATTACHMENT_BYTES:
             raise ValueError('aggregate attachment bound')
@@ -571,6 +596,7 @@ class ConversationMessage(Model):
     evidence_origin: Literal['human', 'runtime', 'controlled_transport', 'synthetic_provider_receipt', 'live_provider_receipt']
     result: TurnResult | None = None
     operation: LocalOperation | None = None
+    document_refs: list[MessageDocument] = Field(default_factory=list, max_length=2)
     attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
     target: ExactTarget | None = None
     model_receipt: Id | None = None
@@ -592,11 +618,13 @@ class ConversationMessage(Model):
         if self.author_kind == 'system':
             if (self.evidence_origin != 'runtime' or self.author_id != 'responsibility-runtime'
                 or self.responsibility_origin is None
-                or self.result is not None or self.operation is not None or self.attachments
+                or self.result is not None or self.operation is not None or self.attachments or self.document_refs
                 or self.target is not None or self.model_receipt is not None):
                 raise ValueError('system requests require exact runtime provenance, not human authority')
         elif self.responsibility_origin is not None or self.evidence_origin == 'runtime':
             raise ValueError('runtime provenance is reserved for system requests')
+        if self.document_refs and self.author_kind!='human':
+            raise ValueError('only a human message can attach document references')
         if self.acceptance_checks is not None and self.author_kind!='human':
             raise ValueError('only a human message can supply acceptance checks')
         return self
@@ -604,6 +632,8 @@ class ConversationMessage(Model):
     @model_serializer(mode='wrap')
     def preserve_legacy_payload(self, handler):
         data=handler(self)
+        if not self.document_refs:
+            data.pop('document_refs', None)
         if self.acceptance_checks is None:
             data.pop('acceptance_checks',None)
         if self.responsibility_origin is None:
@@ -622,6 +652,24 @@ class ConversationPage(Model):
     next_cursor: Id | None = None
 
 
+class AttachmentContextChunk(Model):
+    phase: Literal['selection','selection_2','selection_3','selection_4','selection_5','selection_6','selection_7','selection_8']
+    offset: int = Field(ge=0)
+    next_offset: int = Field(ge=0)
+    chunk_sha256: str = Field(pattern=r'^[0-9a-f]{64}$')
+
+
+class AttachmentContextItem(Model):
+    run_id: Id
+    message_id: Id
+    ref: Id
+    sha256: str = Field(pattern=r'^[0-9a-f]{64}$')
+    filename: str
+    body_omitted: bool
+    omission_reason: str | None
+    chunks: list[AttachmentContextChunk] = Field(default_factory=list)
+
+
 class ConversationDetail(Model):
     conversation: Conversation
     messages: list[ConversationMessage]
@@ -629,6 +677,7 @@ class ConversationDetail(Model):
     assignment_ids: list[Id]
     artifact_ids: list[Id] = Field(default_factory=list)
     turns: list[TurnState] = Field(default_factory=list)
+    attachment_context: list[AttachmentContextItem] = Field(default_factory=list)
 
 
 class Revision(Model):

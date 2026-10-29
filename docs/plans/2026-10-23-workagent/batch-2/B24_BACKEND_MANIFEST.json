@@ -1,0 +1,56 @@
+{
+  "base_commit": "c75fb58ce07d8043b6ed58eba2ff6fd2b56af30d",
+  "uncommitted": true,
+  "installed": false,
+  "migration": "048_run_checkpoints.sql",
+  "requires_parent_migration047": true,
+  "checks": {
+    "local_main": {
+      "passed": 182,
+      "database": false
+    },
+    "local_final_focused": {
+      "passed": 26,
+      "database": false
+    },
+    "pg_collection": {
+      "collected": 23,
+      "executed": false
+    },
+    "compileall": "passed",
+    "diff_check": "passed",
+    "contract_check": "passed"
+  },
+  "external_provider_calls": 0,
+  "product_calls": 0,
+  "postgres_runs": 0,
+  "files": {
+    "backend/dev_db.py": "56efd65e7de795759e76dc501f173c6fc19fd6f6107c1ce3842dda91bdf19c37",
+    "backend/export_contracts.py": "d6543ee243f15d0db089e66f6aa92f417dc59a6798406a95144d197fb2897aba",
+    "backend/migrations/048_run_checkpoints.sql": "25efcfa901ca52b7d2a69a1cda2871c4a09750220fb405ecbdf771d45a753932",
+    "backend/tests/test_b24_checkpoints.py": "bed31564fc2ae5cd105e18d116f2362c7023ead9e485682160afea368eee7ea6",
+    "backend/tests/test_b24_runtime_pg.py": "792f21daa04c77c409a981e80c2a7363edc3390777fe1defc5f21461aa3f97c9",
+    "backend/workagent/adaptive.py": "ca0faf82dac0cc8276098a0a0e5c87fe09d613395ba4723464fe4172cefefefa",
+    "backend/workagent/api.py": "e3e3d313a79352811ed501da79332b8b3455e0af1f457053de6c6736954e2301",
+    "backend/workagent/checkpoint_models.py": "23b864c1e17b85ddbc0e8fb090623407b6e434012d8fafbc4f54e58a659e7b93",
+    "backend/workagent/composition.py": "f780382a0fad5b4920e4cc911017e2bf7ab951baff562f3a6adc28295ab7a202",
+    "backend/workagent/conversation_intents.py": "607b14ec1b0856e715bb9db00e110fa6e55b667213abe1f71a649ac97b11d11c",
+    "backend/workagent/conversations.py": "1d50bfe6b9531b3a1f93ee430835b9c6c7f2a6d8464fad307b9f294541963aba",
+    "backend/workagent/general_responses.py": "ef593469f2147dae19d83a6202cd9ccab81bc580c55009c720155a2605c5a22d",
+    "backend/workagent/products.py": "e9ec6a46c48f64c22e48f98910df1a90645526c79251660d07f014023444b108",
+    "backend/workagent/responses_dispatcher.py": "06f195c0fcc52233d4a8380b6661531f38f91ea00b307ce9a77b2b8bebd456ec",
+    "backend/workagent/responses_ledger.py": "02d43da020f5c4572caa44a3d12df194e33cae2508b373a9b2dea7e595f0b5e6",
+    "backend/workagent/responses_transport.py": "6b820e0b8912852e1258215cf8f27b06203c21f7cb1ca262715baa9babf15744",
+    "backend/workagent/responsibility_action.py": "b4cea92a304c36fad24ca11213be6041789a9f7de283401870a31c256b11ea0f",
+    "backend/workagent/responsibility_execution.py": "81db105d388fa7d6a12e076393cef77a00a9fef83d22806142bb51c8854cc3c6",
+    "backend/workagent/retained_results.py": "210c182fc463562af19ff3e28d56d874d5e0759427a70834bfe2cb1f5293fead",
+    "backend/workagent/run_checkpoints.py": "1c39e67b30d9c88483a80fb2277dfebb7dbcb78b03e4e474378c75ad0043b36a",
+    "backend/workagent/run_successors.py": "80e4d8c3b5f6c286eb7029079025ea534f842ca04dd466b192dc23bd51877ccd",
+    "backend/workagent/service.py": "61640915d5554c85095ad5c0949a3b32b56ec039bc6e7032f7160d3d8b5e3a58",
+    "contracts/openapi.json": "32cbbb6ae557fead9e66d6bb496244d543a9714ea51e92b4241015b70e382672",
+    "contracts/queued-message.schema.json": "574ecf0a3b725219a58a8a137e517afb4c0a36f06549347a7ddd971a72f6e5a4",
+    "contracts/run-checkpoint.schema.json": "bec49734b23798c47df78b87aa8dfa209ed78a72d3eae92c2f51315a4554b7cb",
+    "contracts/sustained-decision.schema.json": "ebb0b879e45472d47f101a850ede3211ec21180dcc797e16ec46fcb63eb73c81",
+    "docs/plans/2026-10-23-workagent/batch-2/B24_BACKEND_HANDOFF.md": "20692955ba0f6b9397e6b673617a85a6726efac66e21e5594efb6f5287a4bbe8"
+  }
+}

@@ -45,10 +45,51 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.delegation_composition import enabled as delegation_enabled, POLICY as delegation_policy, SCHEMA as delegation_schema
+    if delegation_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                        'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        # Both explicit treatments share exactly the same tools and guidance.
+        # The grant-bound switch changes only SQL recall projection, not policy.
+        if getattr(binding,'memory_recall',None) is not None:
+            from .memory.runtime import GUIDANCE
+            delegation_policy += GUIDANCE
+        return delegation_policy,delegation_schema
+    from .capabilities.mcp_composition import enabled as mcp_enabled, POLICY as mcp_policy, SCHEMA as mcp_schema
+    if mcp_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                 'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return mcp_policy,mcp_schema
+    from .capabilities.github_composition import enabled as github_enabled, POLICY as github_policy, SCHEMA as github_schema
+    if github_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return github_policy,github_schema
+    from .capabilities.office_composition import enabled as office_enabled, POLICY as office_policy, SCHEMA as office_schema
+    if office_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return office_policy,office_schema
+    from .capabilities.research_composition import enabled as research_enabled, POLICY as research_policy, SCHEMA as research_schema
+    if research_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                      'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return research_policy,research_schema
+    from .memory.runtime import enabled as memory_enabled, POLICY as memory_policy, SCHEMA as memory_schema
+    if memory_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return memory_policy,memory_schema
+    from .capabilities.compute_composition import enabled as compute_enabled, POLICY as compute_policy, SCHEMA as compute_schema
+    if compute_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return compute_policy,compute_schema
     from .general_schema import DECISION_SCHEMA as historical
     from .general_responses import POLICY as policy
+    from .capabilities.file_composition import enabled as file_enabled, POLICY as file_policy, SCHEMA as file_schema
+    if file_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                 'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return file_policy,file_schema
     if getattr(binding,'runtime_extension',None)=='general-alpha-v1':
         if getattr(binding,'continuity_version',None)=='sustained-v1':
+            from .retained_results import enabled as retained_enabled, POLICY as retained_policy, SCHEMA as retained_schema
+            if retained_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                               'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+                return retained_policy,retained_schema
             from .composition import CONTINUITY_POLICY, CONTINUITY_DECISION_SCHEMA
             return CONTINUITY_POLICY,CONTINUITY_DECISION_SCHEMA
         from .composition import POLICY as alpha_policy, DECISION_SCHEMA as alpha_schema
@@ -73,6 +114,28 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
     if result.get('state')!='function_call': raise DomainError('action_unresolved')
     from .composition import AlphaDecision, ContinuityDecision
     model=ContinuityDecision if continuity else AlphaDecision if alpha else AdaptiveDecision
+    if continuity:
+        from .retained_results import SustainedDecision, enabled as retained_enabled
+        config=c.execute('SELECT rc.data FROM provider_attempts a JOIN run_configurations rc '
+            'ON rc.workspace_id=a.workspace_id AND rc.run_id=a.run_id WHERE a.id=%s',
+            (ledger.receipt.attempt_id,)).fetchone()['data']
+        if retained_enabled(config): model=SustainedDecision
+        from .capabilities.file_composition import enabled as file_enabled, GatewayFilesDecision
+        if file_enabled(config): model=GatewayFilesDecision
+        from .capabilities.compute_composition import enabled as compute_enabled, GatewayComputeDecision
+        if compute_enabled(config): model=GatewayComputeDecision
+        from .memory.runtime import enabled as memory_enabled, GatewayMemoryDecision
+        if memory_enabled(config): model=GatewayMemoryDecision
+        from .capabilities.research_composition import enabled as research_enabled, GatewayResearchDecision
+        if research_enabled(config): model=GatewayResearchDecision
+        from .capabilities.office_composition import enabled as office_enabled, GatewayOfficeDecision
+        if office_enabled(config): model=GatewayOfficeDecision
+        from .capabilities.github_composition import enabled as github_enabled, GatewayGitHubDecision
+        if github_enabled(config): model=GatewayGitHubDecision
+        from .capabilities.mcp_composition import enabled as mcp_enabled, GatewayMCPDecision
+        if mcp_enabled(config): model=GatewayMCPDecision
+        from .capabilities.delegation_composition import enabled as delegation_enabled, GatewayDelegationDecision
+        if delegation_enabled(config): model=GatewayDelegationDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
@@ -156,6 +219,18 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
         staged['reason']=('Observation limit reached after reading guidance/context; no answer or operational completion was delivered.'
                           if outcome=='step_limit' else 'Read-only observation retained; no permissions or work-state changed.')
+        from .capabilities.file_adapters import FILE_OPERATIONS
+        if isinstance(operation,FILE_OPERATIONS):
+            staged['reason']='File operation retained with exact references. No human proposal accepted or overall task completion asserted.'
+        from .capabilities.compute_adapters import ComputePython
+        from .capabilities.research_adapters import RESEARCH_OPERATIONS
+        if isinstance(operation, RESEARCH_OPERATIONS):
+            staged['reason']='Research evidence retained with exact references and coverage; attribution is not claim truth or completion.'
+        if isinstance(operation, ComputePython):
+            staged['reason']='Confined computation receipt retained; generated files are draft outputs, not independent verification of task completion.'
+        from .capabilities.delegation import DelegateAnalysis, VerifyDelegate
+        if isinstance(operation, (DelegateAnalysis,VerifyDelegate)):
+            staged['reason']='Bounded child proposal or parent check retained with exact evidence and shared reservations; not acceptance or goal completion.'
     elif alpha and isinstance(value.decision,Reply):
         outcome='answered'
         staged['reason']='Answer delivered; no external action or independently verified objective completion is asserted.'

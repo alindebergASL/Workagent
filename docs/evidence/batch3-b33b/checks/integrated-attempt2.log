@@ -1,0 +1,225 @@
+/home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/pytest_asyncio/plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+..........................FF..FF......                                   [100%]
+=================================== FAILURES ===================================
+___________________ test_real_read_memory_revoke_and_restart ___________________
+
+context = (<workagent.service.Service object at 0x74d340bbf9b0>, Principal(id='local-human', kind='human'), 'test-1dbb2384-baa7-...ime.datetime(2026, 10, 29, 7, 12, 16, 847814, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 17, 18, 392801, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+
+    def test_real_read_memory_revoke_and_restart(context,connector):
+>       s,p,ws,_,_=context;cv,q,cap,request=install(context,connector)
+
+backend/tests/test_synthetic_connectors_pg.py:69: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:64: in install
+    policy.install(Database(admin),g,limits={'connector':10})
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <workagent.db.Database object at 0x74d340ab0980>
+tool_grant = ToolGrantV1(schema_version='tool-grant/v1', id='f04afd5d-a1f5-4437-9cec-6b204fdd87e6', workspace_id='test-1dbb2384-baa...e.timezone.utc), access_generation=1, budget_account_id='b2a7cb49-cb2b-42aa-8ce2-f2254b141bd2', approval_evidence=None)
+
+    def install(db, tool_grant, *, limits, provider_grant_id=None):
+        """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
+    
+        Reuse an existing account ID for parent/child/shared capacity; never manufacture
+        a new money limit. Dollars remain bounded by the existing project grant ledger.
+        """
+        g=ToolGrantV1.model_validate_json(tool_grant.model_dump_json())
+        allowed={'local_compute','search','extraction','rendering','connector','child'}
+        if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
+            raise ValueError('finite typed capacity limits required')
+        available=registry.adapters()
+        with db.transaction() as c:
+            _owner(c)
+            c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
+            r=c.execute('SELECT data,conversation_id,assignment_id FROM runs WHERE workspace_id=%s AND id=%s',
+                        (g.workspace_id,g.run_id)).fetchone()
+            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(g.workspace_id,)).fetchone()
+            if (not r or r['data']['principal_id']!=g.principal_id or g.scope_id!=(r['conversation_id'] or r['assignment_id'])
+                or generation['access_generation']!=g.access_generation or g.expires_at<=now()):
+                raise ValueError('exact current run-derived grant required')
+            for pin in g.capabilities:
+                d=available[pin.id].descriptor
+                if (pin.version!=d.version or pin.schema_sha256!=d.schema_sha256 or pin.implementation_sha256!=d.implementation_sha256
+                    or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)):
+                    raise ValueError('reviewed exact capability pin required')
+                c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
+                          (d.id,d.version,encoded(d)))
+                saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
+                if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
+>                   raise ValueError('installation drift; install a new version')
+E                   ValueError: installation drift; install a new version
+
+backend/workagent/capabilities/policy.py:208: ValueError
+_________________ test_inflight_late_result_and_queued_denied __________________
+
+context = (<workagent.service.Service object at 0x74d3408d81d0>, Principal(id='local-human', kind='human'), 'test-17af3382-ff7d-...ime.datetime(2026, 10, 29, 7, 12, 19, 892647, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro...26, 10, 29, 7, 17, 22, 869, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74d340953ef0>
+
+    def test_inflight_late_result_and_queued_denied(context,connector,monkeypatch):
+>       s,p,ws,_,_=context;cv,q,cap,request=install(context,connector);original=mcp_client.read;calls=[]
+
+backend/tests/test_synthetic_connectors_pg.py:93: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:64: in install
+    policy.install(Database(admin),g,limits={'connector':10})
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <workagent.db.Database object at 0x74d343bfeab0>
+tool_grant = ToolGrantV1(schema_version='tool-grant/v1', id='9c772d87-75d0-43e6-b2b2-43633a5e5f4a', workspace_id='test-17af3382-ff7...e.timezone.utc), access_generation=1, budget_account_id='44e1def0-0f59-4a33-b317-60ce7ee0e57b', approval_evidence=None)
+
+    def install(db, tool_grant, *, limits, provider_grant_id=None):
+        """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
+    
+        Reuse an existing account ID for parent/child/shared capacity; never manufacture
+        a new money limit. Dollars remain bounded by the existing project grant ledger.
+        """
+        g=ToolGrantV1.model_validate_json(tool_grant.model_dump_json())
+        allowed={'local_compute','search','extraction','rendering','connector','child'}
+        if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
+            raise ValueError('finite typed capacity limits required')
+        available=registry.adapters()
+        with db.transaction() as c:
+            _owner(c)
+            c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
+            r=c.execute('SELECT data,conversation_id,assignment_id FROM runs WHERE workspace_id=%s AND id=%s',
+                        (g.workspace_id,g.run_id)).fetchone()
+            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(g.workspace_id,)).fetchone()
+            if (not r or r['data']['principal_id']!=g.principal_id or g.scope_id!=(r['conversation_id'] or r['assignment_id'])
+                or generation['access_generation']!=g.access_generation or g.expires_at<=now()):
+                raise ValueError('exact current run-derived grant required')
+            for pin in g.capabilities:
+                d=available[pin.id].descriptor
+                if (pin.version!=d.version or pin.schema_sha256!=d.schema_sha256 or pin.implementation_sha256!=d.implementation_sha256
+                    or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)):
+                    raise ValueError('reviewed exact capability pin required')
+                c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
+                          (d.id,d.version,encoded(d)))
+                saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
+                if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
+>                   raise ValueError('installation drift; install a new version')
+E                   ValueError: installation drift; install a new version
+
+backend/workagent/capabilities/policy.py:208: ValueError
+__________________________ test_product_gateway_stdio __________________________
+
+context = (<workagent.service.Service object at 0x74d340779b50>, Principal(id='local-human', kind='human'), 'test-b6bfc6e9-ff10-...ime.datetime(2026, 10, 29, 7, 12, 28, 298800, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 17, 30, 418138, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x74d340810560>
+
+    def test_product_gateway_stdio(context,connector,monkeypatch):
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities.broker import CapabilityBroker
+>       s,p,ws,_,_=context;cv,q,cap,request=install(context,connector)
+
+backend/tests/test_connector_security_pg.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:64: in install
+    policy.install(Database(admin),g,limits={'connector':10})
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <workagent.db.Database object at 0x74d34091b440>
+tool_grant = ToolGrantV1(schema_version='tool-grant/v1', id='b4db4e99-e00d-4fe6-8bb1-bfb03909a631', workspace_id='test-b6bfc6e9-ff1...e.timezone.utc), access_generation=1, budget_account_id='07adc9b8-f326-4167-903e-9514ec90a180', approval_evidence=None)
+
+    def install(db, tool_grant, *, limits, provider_grant_id=None):
+        """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
+    
+        Reuse an existing account ID for parent/child/shared capacity; never manufacture
+        a new money limit. Dollars remain bounded by the existing project grant ledger.
+        """
+        g=ToolGrantV1.model_validate_json(tool_grant.model_dump_json())
+        allowed={'local_compute','search','extraction','rendering','connector','child'}
+        if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
+            raise ValueError('finite typed capacity limits required')
+        available=registry.adapters()
+        with db.transaction() as c:
+            _owner(c)
+            c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
+            r=c.execute('SELECT data,conversation_id,assignment_id FROM runs WHERE workspace_id=%s AND id=%s',
+                        (g.workspace_id,g.run_id)).fetchone()
+            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(g.workspace_id,)).fetchone()
+            if (not r or r['data']['principal_id']!=g.principal_id or g.scope_id!=(r['conversation_id'] or r['assignment_id'])
+                or generation['access_generation']!=g.access_generation or g.expires_at<=now()):
+                raise ValueError('exact current run-derived grant required')
+            for pin in g.capabilities:
+                d=available[pin.id].descriptor
+                if (pin.version!=d.version or pin.schema_sha256!=d.schema_sha256 or pin.implementation_sha256!=d.implementation_sha256
+                    or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)):
+                    raise ValueError('reviewed exact capability pin required')
+                c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
+                          (d.id,d.version,encoded(d)))
+                saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
+                if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
+>                   raise ValueError('installation drift; install a new version')
+E                   ValueError: installation drift; install a new version
+
+backend/workagent/capabilities/policy.py:208: ValueError
+___________ test_restricted_sql_cannot_mutate_authority_or_receipts ____________
+
+context = (<workagent.service.Service object at 0x74d340811c40>, Principal(id='local-human', kind='human'), 'test-0a326d95-9341-...ime.datetime(2026, 10, 29, 7, 12, 31, 618996, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+connector = ConnectorStatus(provider='synthetic', account='Synthetic library', resource='synthetic/catalog', effects=['read'], pro... 10, 29, 7, 17, 33, 966824, tzinfo=zoneinfo.ZoneInfo(key='Etc/UTC')), provider_revocation='not_requested', reason=None)
+
+    def test_restricted_sql_cannot_mutate_authority_or_receipts(context,connector):
+        from psycopg import errors
+        from test_synthetic_connectors_pg import install
+        from workagent.capabilities.broker import CapabilityBroker
+>       s,p,ws,_,_=context;cv,q,cap,request=install(context,connector)
+
+backend/tests/test_connector_security_pg.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_synthetic_connectors_pg.py:64: in install
+    policy.install(Database(admin),g,limits={'connector':10})
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+db = <workagent.db.Database object at 0x74d342e28a70>
+tool_grant = ToolGrantV1(schema_version='tool-grant/v1', id='ecb4e8a5-8f37-41e4-b648-ca46f0462793', workspace_id='test-0a326d95-934...e.timezone.utc), access_generation=1, budget_account_id='9ff83842-9781-4ee5-82aa-5e0e883158f2', approval_evidence=None)
+
+    def install(db, tool_grant, *, limits, provider_grant_id=None):
+        """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
+    
+        Reuse an existing account ID for parent/child/shared capacity; never manufacture
+        a new money limit. Dollars remain bounded by the existing project grant ledger.
+        """
+        g=ToolGrantV1.model_validate_json(tool_grant.model_dump_json())
+        allowed={'local_compute','search','extraction','rendering','connector','child'}
+        if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
+            raise ValueError('finite typed capacity limits required')
+        available=registry.adapters()
+        with db.transaction() as c:
+            _owner(c)
+            c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
+            r=c.execute('SELECT data,conversation_id,assignment_id FROM runs WHERE workspace_id=%s AND id=%s',
+                        (g.workspace_id,g.run_id)).fetchone()
+            generation=c.execute('SELECT access_generation FROM workspaces WHERE id=%s',(g.workspace_id,)).fetchone()
+            if (not r or r['data']['principal_id']!=g.principal_id or g.scope_id!=(r['conversation_id'] or r['assignment_id'])
+                or generation['access_generation']!=g.access_generation or g.expires_at<=now()):
+                raise ValueError('exact current run-derived grant required')
+            for pin in g.capabilities:
+                d=available[pin.id].descriptor
+                if (pin.version!=d.version or pin.schema_sha256!=d.schema_sha256 or pin.implementation_sha256!=d.implementation_sha256
+                    or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)):
+                    raise ValueError('reviewed exact capability pin required')
+                c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
+                          (d.id,d.version,encoded(d)))
+                saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
+                if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
+>                   raise ValueError('installation drift; install a new version')
+E                   ValueError: installation drift; install a new version
+
+backend/workagent/capabilities/policy.py:208: ValueError
+=============================== warnings summary ===============================
+.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/.local/batch3/b33b/venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_synthetic_connectors_pg.py::test_real_read_memory_revoke_and_restart
+FAILED backend/tests/test_synthetic_connectors_pg.py::test_inflight_late_result_and_queued_denied
+FAILED backend/tests/test_connector_security_pg.py::test_product_gateway_stdio
+FAILED backend/tests/test_connector_security_pg.py::test_restricted_sql_cannot_mutate_authority_or_receipts
+4 failed, 34 passed, 1 warning in 37.36s

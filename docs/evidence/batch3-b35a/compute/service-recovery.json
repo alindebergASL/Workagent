@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "profile": "python-analysis-v1",
+  "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+  "runtime_version": "release-20261026.0",
+  "image": "python@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+  "status": "succeeded",
+  "exit_code": 0,
+  "code_sha256": "ab30e8ec7f51373d19aa876a28bdbfecf289a7601932346961cb99e4a648b348",
+  "inputs": [],
+  "stdout": "ready\n",
+  "stderr": "",
+  "elapsed_ms": 292,
+  "resources": {
+    "cpu_usec": 154417,
+    "memory_peak_bytes": 15814656,
+    "oom_kill": 0,
+    "pids_peak": 31
+  },
+  "omissions": [],
+  "outputs": [],
+  "cleanup_verified": true
+}

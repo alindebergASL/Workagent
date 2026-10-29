@@ -13,10 +13,12 @@ from workagent import ROOT, Stack, environment, run
 NODE = r'''
 import {chromium,expect} from './web/node_modules/@playwright/test/index.mjs';
 import {readFile,writeFile} from 'node:fs/promises';
+import {scopedHeaders} from './web/scripts/lib/scope.mjs';
+import {expectNotes} from './scripts/notes_controls.mjs';
 const out=process.argv[1], phase=process.argv[2];
-const origin='http://127.0.0.1:3000';
+const origin=process.env.WORKAGENT_WEB_ORIGIN ?? 'http://127.0.0.1:3000';
 const base=origin+'/api/domain/v1/workspaces/local-workspace';
-const headers={'X-Workagent-Client':'local-ui','Content-Type':'application/json'};
+const headers=await scopedHeaders(origin,{'X-Workagent-Client':'local-ui','Content-Type':'application/json'});
 const cmd=()=>({schema_version:'workagent/v1',request_id:crypto.randomUUID(),command_id:crypto.randomUUID()});
 async function api(p,body){const r=await fetch(base+p,{method:body?'POST':'GET',headers,...(body?{body:JSON.stringify(body)}:{})});expect(r.ok).toBe(true);return r.json();}
 const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(process.env.PLAYWRIGHT_CHROMIUM_PATH?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_PATH}:{})});
@@ -39,11 +41,11 @@ try{
   const p=JSON.parse(await readFile(out+'/products/result.json','utf8'));
   await page.goto(origin+'/conversations/'+p.csv_conversation+'/artifacts/'+p.table_id);
   await expect(page.getByLabel('Row 2 note',{exact:true})).toHaveValue('Human credit note retained');
-  await expect(page.getByLabel('Your notes (one per line)')).toHaveValue('Newest human note');
+  await expectNotes(page,['Newest human note']);
   await expect(page.getByTestId('product-verification')).toHaveText('This saved version hasn’t been checked yet.');
   await page.goto(origin+'/conversations/'+p.tool_conversation+'/artifacts/'+p.tool_id);
   await expect(page.getByTestId('observed-return')).toHaveText('4250');
-  await expect(page.getByLabel('Your notes (one per line)')).toHaveValue('Human: all amounts are cents');
+  await expectNotes(page,['Human: all amounts are cents']);
   await expect(page.getByTestId('product-verification')).toHaveText('Checked against this saved version.');
   const exact=JSON.parse(await readFile(out+'/readback/readback.json','utf8'));
   await page.goto(exact.artifact_url);
@@ -60,11 +62,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
+    parser.add_argument('--web-port', type=int, default=3000)
+    parser.add_argument('--api-port', type=int, default=8000)
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     env = environment(args.env.resolve())
-    stack = Stack(env)
+    # This verifier intentionally exercises the controlled consumer, not a paid
+    # activation. Current APIs require that fixture mode be explicit.
+    env['WORKAGENT_FIXTURE_MODE'] = 'true'
+    stack = Stack(env, web_port=args.web_port, api_port=args.api_port)
     try:
         stack.start(worker=True)
         run(['node', ROOT / 'web/scripts/products-journey.mjs', output / 'products'], env=env)

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/workagent/tui/session.py", line 12, in __init__
+    self.state=self.store.load() or {'selected':'__new__','drafts':{'__new__':new_draft()}}
+               ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/workagent/tui/drafts.py", line 106, in load
+    with self.directory() as fd:
+  File "/usr/lib/python3.12/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/workagent/operator_journal.py", line 85, in directory
+    raise OperatorError('Journal requires an absolute non-traversing private path')
+workagent.operator_journal.OperatorError: Journal requires an absolute non-traversing private path
+Traceback (most recent call last):
+  File "/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/.local/batch3/b31b/closure_fixture.py", line 32, in <module>
+    subprocess.run([str(root/'backend/.venv/bin/python'),'-c','from workagent.operator_client import OperatorClient;from workagent.tui.session import Session;import sys;c=OperatorClient();s=Session(c,sys.argv[1],c.identity(sys.argv[1]));s.select(sys.argv[2])',ws,cid],check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['/home/ubuntu/workagent/proofs/b31b-recovery-tb7f7aa98/candidate/backend/.venv/bin/python', '-c', 'from workagent.operator_client import OperatorClient;from workagent.tui.session import Session;import sys;c=OperatorClient();s=Session(c,sys.argv[1],c.identity(sys.argv[1]));s.select(sys.argv[2])', 'b31b-closure-8de54b16-93f6-4f0c-9a9e-36907e3aa499', 'ac911dc0-6692-496c-a0b2-efe0278a6141']' returned non-zero exit status 1.

@@ -95,13 +95,16 @@ class ResponsesDispatcher:
             return {'mode':self.worker.transport.provenance.mode,'local':local,
                     'results':[],'model_status':'authority_unavailable',**health}
         if getattr(self.worker, 'phases', None) is not None:
-            try:
-                service.advance_responsibilities(self.workspace, self.grant_id)
-            except (DomainError,BundleDenied):
-                pass  # Revoked owner authority must not terminate the serving loop.
-            except Exception as error:
-                logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,None)))
-                health['responsibility_status']='runtime_error'
+            for status_key,advance in (('queue_status',service.drain_queued_messages),
+                    ('successor_status',service.advance_run_successors),
+                    ('responsibility_status',service.advance_responsibilities)):
+                try:
+                    advance(self.workspace, self.grant_id)
+                except (DomainError,BundleDenied):
+                    pass  # Revoked owner authority must not terminate the serving loop.
+                except Exception as error:
+                    logging.getLogger(__name__).warning('%s',json.dumps(runtime_failure_diagnostic(error,None)))
+                    health[status_key]='runtime_error'
         with service.db.transaction() as c:
             rows=c.execute('''SELECT d.cursor,d.run_id,r.data,g.active FROM run_dispatches d
                 JOIN runs r ON r.workspace_id=d.workspace_id AND r.id=d.run_id
@@ -269,7 +272,8 @@ def serve(dispatcher,verify,interval):
                 authorized=False
             result=dispatcher.once() if authorized else dispatcher.once(model_authorized=False)
             if result!=previous and (result['results'] or result.get('model_status') or result.get('local_status')
-                                    or result.get('responsibility_status') or any(result.get('local',{}).values())):
+                                    or result.get('responsibility_status') or result.get('queue_status')
+                                    or result.get('successor_status') or any(result.get('local',{}).values())):
                 print(json.dumps(result),flush=True)
             previous=result; delay=interval
         except Exception as error:

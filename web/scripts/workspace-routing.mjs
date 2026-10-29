@@ -10,11 +10,13 @@ import { chromium, expect } from "@playwright/test";
 import assert from "node:assert/strict";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sessionScope } from "./lib/scope.mjs";
 
 const out = path.resolve(process.argv[2]);
 const ids = JSON.parse(await readFile(process.argv[3], "utf8"));
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
+const scope = await sessionScope(origin);
 const first = ids.workspace;
 const {
   workspace: second,
@@ -305,6 +307,7 @@ try {
   const execution = await (
     await home.request.get(
       `${origin}/api/domain/v1/workspaces/${second}/execution`,
+      { headers: { "X-Workagent-Scope": scope } },
     )
   ).json();
   const note = home.getByTestId("home-destination-note");

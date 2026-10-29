@@ -3,6 +3,11 @@
 Workagent is in active build mode. Andrew's October 16 direction is explicit:
 “can we blow up these contracts, we are still in build mode and not prod”.
 
+Read [development authority](docs/DEVELOPMENT_AUTHORITY.md) and
+[model authorization](docs/GENERAL_MODEL_AUTHORIZATION.md) before dispatch/resume or
+claiming a permission blocker. These distinguish actual owner limits from adjustable
+engineering settings; historical task restrictions do not override standing build-mode
+authority. Remove contradictory task wording rather than accumulating overrides.
 Read [product direction](docs/PRODUCT_CONTRACT.md), [current work](docs/BUILD_PLAN.md)
 and [STATUS](STATUS.md). The other contract filenames are short supporting guides,
 not additional approval gates. These instructions supersede historical checkpoint

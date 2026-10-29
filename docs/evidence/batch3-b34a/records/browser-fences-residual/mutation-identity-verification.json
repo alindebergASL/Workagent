@@ -1,0 +1,49 @@
+{
+  "commands": {
+    "added": 3,
+    "all_bind_dedicated_memory_id": true,
+    "row_columns": [
+      "principal_id",
+      "workspace_id",
+      "command_id",
+      "payload_hash",
+      "result",
+      "created_at"
+    ]
+  },
+  "memory_items": {
+    "added": 1,
+    "all_bind_dedicated_memory_id": true,
+    "row_columns": [
+      "workspace_id",
+      "id",
+      "owner_id",
+      "current_revision_id"
+    ]
+  },
+  "memory_revisions": {
+    "added": 3,
+    "all_bind_dedicated_memory_id": true,
+    "row_columns": [
+      "workspace_id",
+      "memory_id",
+      "id",
+      "recorded_at",
+      "data"
+    ]
+  },
+  "memory_tombstones": {
+    "added": 1,
+    "all_bind_dedicated_memory_id": true,
+    "row_columns": [
+      "workspace_id",
+      "owner_id",
+      "memory_id",
+      "scope_kind",
+      "scope_id",
+      "key_sha256",
+      "source_fingerprint",
+      "forgotten_at"
+    ]
+  }
+}

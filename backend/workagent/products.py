@@ -68,6 +68,12 @@ def adaptive_readback(c,run,attempt):
 
 def turn_state(run,c=None):
     from .service import encoded
+    if c is not None and not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+            (run.workspace_id,run.id)).fetchone()['ok']:
+        # Hide every model-authored projection, not just the assistant message.
+        # Immutable provider accounting is retained separately, without payload.
+        return TurnState(run_id=run.id,state='unavailable',profile=run.profile,
+            reason='Generated content withheld because its memory or source dependencies changed. Human work and accounting are retained.')
     if run.profile=='general-responses-v1':
         from .responses_ledger import observations
         attempt=c.execute('SELECT id FROM provider_attempts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone() if c else None
@@ -326,6 +332,8 @@ class Products:
         ledger=Ledger(self,receipt)
         with self.db.transaction() as c:
             p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
+            from .capabilities.policy import require_operation
+            require_operation(c,run,operation)
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
@@ -335,8 +343,22 @@ class Products:
             if isinstance(operation,RecordResponsibility):
                 from .responsibility_action import stage
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
+        from .capabilities.file_adapters import FILE_OPERATIONS
+        from .capabilities.compute_adapters import ComputePython
+        from .capabilities.delegation import VerifyDelegate
+        from .capabilities.research_adapters import RESEARCH_OPERATIONS
+        from .capabilities.github_adapters import GITHUB_OPERATIONS
+        from .capabilities.mcp_adapters import MCPRead
+        from .capabilities.office_adapters import ArtifactsOfficeExport
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
-        if isinstance(operation,AdvanceResponsibility):
+        from .retained_results import ReadResult, ReadAttachment, read as read_retained
+        if isinstance(operation,(ReadResult,ReadAttachment)):
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=read_retained(self,c,current[0],current[1],current[2],operation,phase,binding)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,'capability_result':read}
+        elif isinstance(operation,AdvanceResponsibility):
             from .responsibility_action import authorize_advance
             from .general_responses import check_pins
             with self.db.transaction() as c:
@@ -371,10 +393,10 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS):
-            context=self.conversation_worker_context(cap)
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport, MCPRead, VerifyDelegate) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
+            from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
-                    'capability_result':execute_read(operation,context)}
+                    'capability_result':execute_composition(self,cap,operation,phase)}
         elif operation is None:
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding}
         else:
@@ -407,6 +429,8 @@ class Products:
                 if prior!=staged: raise DomainError('command_conflict')
             else:
                 ledger.event(c,phase,'tool_result',staged)
+                from .run_checkpoints import record
+                record(self,c,current[1],current[2],phase,'stage')
             self._publish_new_draft(c,staged,current)
         with self.db.transaction() as c:
             resolve_selection(self,c,cap,receipt,phase)
@@ -450,6 +474,11 @@ class Products:
             raise DomainError('action_unresolved')
         self._publish_product(c,p,run,cv,operation,None,type(operation.body).model_validate(staged['body']),
             None,DraftObservation.model_validate(staged['output']),staged['reason'],origin,binding,materials_only=True)
+        from .run_checkpoints import record
+        from .service import encoded
+        phase=c.execute("SELECT phase FROM responses_events WHERE attempt_id=%s AND kind='tool_result' "
+            "AND data->'binding'=%s",(binding['attempt_id'],encoded(binding))).fetchone()['phase']
+        record(self,c,run,cv,phase,'publication')
 
     def _own_new_drafts(self,c,p,run,cv):
         """Only exact own receipt-bound additions may leave the frozen catalogs.
@@ -486,6 +515,7 @@ class Products:
                 'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
                 'observation_id':o['id'],'body_hash':o['body_hash'],
                 'validation':'shape_only','goal_status':'needs_validation'})
+        materials.extend(self._own_file_drafts(c,p,run,cv))
         return materials
 
     def complete_general_product(self,cap,receipt,phase='selection'):
@@ -582,6 +612,8 @@ class Products:
                 from .responsibility_action import apply_advance
                 apply_advance(self,c,run,config)
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             if continuity:
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
         detail=self.get_conversation(p,run.workspace_id,cv.id)
@@ -608,11 +640,13 @@ class Products:
             body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(observation['body'])
             file=FileBody.model_validate(observation['file']) if observation['file'] else None
             output=(DraftObservation if isinstance(operation,PublishArtifact) else CSVObservation if isinstance(operation,ReconcileCSV) else WasmObservation).model_validate(observation['output'])
-            prepared.append((p,operation,base,binding,body,file,output))
+            prepared.append((p,operation,base,binding,body,file,output,observation['phase']))
         results=[]
-        for p,operation,base,binding,body,file,output in prepared:
+        for p,operation,base,binding,body,file,output,phase in prepared:
             prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) and base is None else []
             results.extend(prior or self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
+            from .run_checkpoints import record
+            record(self,c,run,cv,phase,'publication')
         return results
 
     def stop_general_budget(self,cap,receipt):
@@ -656,6 +690,8 @@ class Products:
                 run.execution.provider_observation='received'
                 run.execution.evidence_origin=origin
             self._store_run(c,run)
+            from .run_checkpoints import record
+            record(self,c,run,cv,'final','settlement')
             self._event(c,p,run.workspace_id,'general_budget_stop',run.id)
             acknowledge(c,run.workspace_id,run.id)
         observed=self.get_run(p,run.workspace_id,run.id)
@@ -680,6 +716,8 @@ class Products:
             if not row:
                 deny()
             observation=ProductObservation.model_validate(row['data'])
+            if not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+                (ws,observation.run_id)).fetchone()['ok']: deny()
             artifact,owner=self._artifact(c,p,ws,observation.artifact_id)
             current=self._revision(c,p,ws,artifact,owner)
             state='historical'

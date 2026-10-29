@@ -1,0 +1,13 @@
+# B3.2c handoff
+
+Read ACCEPTANCE, REVIEW_INITIAL/REVIEW_CLOSURE and the source/build/evidence manifests. These are mechanism and actual-client proofs, not paid-model usefulness, deployment or Batch3 completion.
+
+Reuse unchanged `compute.python`, file refs/proposals and authenticated export downloads. Native now exposes Tool activity under Status, with a recorded-run selector and verified exports; web exposes stdout/stderr/failure/resource details in its existing latest-run Tool activity. No new execution endpoint or runtime dependency. Python/log files remain inert TXT working files; staging names resolve only exact refs. Generated `patch.txt` is unified diff plus applicability manifest, not a repository write.
+
+Private harness lives `.local/batch3/b32c`; main-fixture.json contains v1/v2, fixture.json completed transfer. Initial failed schema/transfer-budget records are retained, not overwritten with success. Source `.local/batch3/b32b/fixture-03.env` privately for API18236, never print credentials. Backend uses root backend/.venv. Candidate web is `.local/batch3/b32c/web-lane/web/.next`, not root `.next`. `services.py` checks PID/start/cwd and port ownership. Final stop receipt is in records. No installed user database was migrated; predecessor disposable fixture was reused with unique workspace IDs.
+
+Compute runtime: unchanged owned `workagent-compute-b31a-v3` and `/run/workagent-compute-b31a-v3`; source service/protocol/profile/pins unchanged, installed unused client remains historical. Handoff snapshot/config is in B3.1a; service is stopped at completion and transient unit may unload. Do not blindly restart an absent unit or mutate its tree. Unknown calls retain unknown liability and must not be blindly replayed.
+
+Independent fixture/oracle writer was Astra, not implementer/reviewer. Oracle stayed evaluator-private and was used only after candidate freeze in separate gVisor jobs. One independent Astra/high risk reviewer session `01a185e4-eceb-7b73-9649-d3e1ed88a4ee` performed initial review and narrow closure. Sole web owner Opus5.5 session `c514fcb4-3cd4-4626-b0ba-e995f7dc3da7` used bounded15min/30turn/$3 invocations; reported cumulative CLI cost snapshots are in final board metadata (not additive or settled billing, outside product ledger). No paid product requests.
+
+Continue only existing `t_aec74bff` B3.3a public GitHub connector after final verification/publication. No graph duplication. Preserve separately unintegrated memory-link d8c0bc04689d1b50698bcd4f6b141e3f2ce0d0cf and later Cloud work; do not silently merge the shared conversations page. Preexisting `contracts/pnpm-lock.yaml` remains untracked at SHA256 f04d544c1cc611dd3b4e6caa260b850cadf18be42ebd283308e5ff01aaad5a4d.

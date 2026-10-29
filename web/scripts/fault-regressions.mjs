@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { scopedHeaders } from "./lib/scope.mjs";
 const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -10,6 +11,10 @@ const root = path.resolve(
 const out = path.join(root, ".local/evidence/fault-regressions");
 await mkdir(out, { recursive: true });
 const origin = process.env.WORKAGENT_WEB_ORIGIN ?? "http://127.0.0.1:3000";
+const headers = await scopedHeaders(origin, {
+  "X-Workagent-Client": "local-ui",
+  "Content-Type": "application/json",
+});
 const cmd = () => ({
   schema_version: "workagent/v1",
   request_id: crypto.randomUUID(),
@@ -20,10 +25,7 @@ const api = async (p, body, status = 200) => {
     origin + "/api/domain/v1/workspaces/local-workspace" + p,
     {
       method: body ? "POST" : "GET",
-      headers: {
-        "X-Workagent-Client": "local-ui",
-        "Content-Type": "application/json",
-      },
+      headers,
       ...(body ? { body: JSON.stringify(body) } : {}),
     },
   );

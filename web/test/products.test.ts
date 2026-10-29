@@ -14,6 +14,7 @@ import {
 import examples from "../../contracts/examples.json";
 import { GET } from "../src/app/api/domain/[...path]/route";
 import { NextRequest } from "next/server";
+import { proxyScope, TEST_SCOPE, withBackendSession } from "./scope-helper";
 
 const { transport } = vi.hoisted(() => {
   const transport = vi.fn();
@@ -115,6 +116,14 @@ describe("product integration boundaries", () => {
     );
     vi.stubGlobal("fetch", transport);
     vi.resetModules();
+    // A reload is a new page: it binds its own proven scope first (A14).
+    await (
+      await import("../src/lib/client/session-scope")
+    ).probeSession((async () =>
+      Response.json({
+        principal_id: "test-human",
+        scope_id: TEST_SCOPE,
+      })) as unknown as typeof fetch);
     const reloaded = await import("../src/lib/client/real-api");
     await expect(
       reloaded.conversationApi.send(
@@ -422,7 +431,16 @@ describe("same-origin download proxy", () => {
   const request = () =>
     new NextRequest(
       "http://127.0.0.1:3000/api/domain/v1/workspaces/w/artifacts/a/download",
-      { headers: { host: "127.0.0.1:3000", "x-workagent-client": "local-ui" } },
+      {
+        headers: {
+          host: "127.0.0.1:3000",
+          "x-workagent-client": "local-ui",
+          "x-workagent-scope": proxyScope(
+            "synthetic-test-bearer-not-a-secret".padEnd(40, "x"),
+            "http://127.0.0.1:8000",
+          ),
+        },
+      },
     );
   const params = {
     params: Promise.resolve({
@@ -437,14 +455,17 @@ describe("same-origin download proxy", () => {
     );
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue(
-        new Response("(module)", {
-          headers: {
-            "content-type": type,
-            "content-disposition": name,
-            "x-content-sha256": digest,
-          },
-        }),
+      vi.fn(
+        withBackendSession(
+          async () =>
+            new Response("(module)", {
+              headers: {
+                "content-type": type,
+                "content-disposition": name,
+                "x-content-sha256": digest,
+              },
+            }),
+        ),
       ),
     );
   }

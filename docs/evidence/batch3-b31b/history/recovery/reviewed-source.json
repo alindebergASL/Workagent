@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "review_scope": "B3.1b narrow correction rereview of five prior findings; not broad acceptance",
+  "workspace": "/home/ubuntu/workagent-continuation-20261026",
+  "base_commit": "6f5897974b3e50024d46ecf09a053e969ab2cd03",
+  "head_commit": "6f5897974b3e50024d46ecf09a053e969ab2cd03",
+  "captured_at": "2026-10-28T22:31:28.655084+00:00",
+  "source_file_count": 18,
+  "coverage_note": "Full requested correction files and supporting memory files were read. app.py, service.py and the conversation page were inspected through their integration diff only; full-file hashes identify those context files without asserting a broad full-file review.",
+  "verdict": "FAIL",
+  "files": {
+    "backend/workagent/memory/review.py": {
+      "sha256": "bbfcbdc3f2c2dfcfd4c34ee6ac2d574e55abbb6c5a3f92ec607bac5fe7a4b675",
+      "bytes": 792
+    },
+    "backend/workagent/memory/store.py": {
+      "sha256": "0a95b5d42eacfed54edd91ddd1826dcfd63c9054df88ec0004c7eccb23fa6c24",
+      "bytes": 11102
+    },
+    "backend/workagent/memory/retrieval.py": {
+      "sha256": "4c22441f35be5ea2e7b996300ee341fdc9bb1e6feb74d7f1ed8e739d99f97162",
+      "bytes": 6232
+    },
+    "backend/workagent/memory/corrections.py": {
+      "sha256": "ae6c849c86fdd874a66b269ffae7fc36e2596705800bd007888e331b783d9a26",
+      "bytes": 2109
+    },
+    "backend/workagent/memory/models.py": {
+      "sha256": "dfdac926572e38d219730a833a8e24c5ee330c09da9cf9e22fc4c98a35210480",
+      "bytes": 6637
+    },
+    "backend/migrations/058_typed_memory.sql": {
+      "sha256": "da8ca8d6a90f979e7d732cf74e76dc6b53ead608313bf7f168196a41f521f8cb",
+      "bytes": 21880
+    },
+    "backend/workagent/tui/memory.py": {
+      "sha256": "4163f71b007c32167846cdba0f3ae77d95ec68d78cbb97b72491a684b2e980da",
+      "bytes": 4469
+    },
+    "backend/workagent/tui/memory_screen.py": {
+      "sha256": "255cd44835be4cbdbca618f81e1984e16c471cc70fddf2f2e5f870d30025336f",
+      "bytes": 13078
+    },
+    "backend/workagent/tui/app.py": {
+      "sha256": "6925a2730fdcd55c829c4f3ca7d279718ad807e42870ab0ba687a7f0708066d1",
+      "bytes": 60330
+    },
+    "backend/workagent/service.py": {
+      "sha256": "700caab2b41f279589a6c656dc9f1bd377a285ab608ddda0ef8e0476c5db25ed",
+      "bytes": 43025
+    },
+    "web/src/components/MemoryPanel.tsx": {
+      "sha256": "fdcd912b4c049656141632a83b38adea6714f6ac1290253ea7f2d6340d988b8a",
+      "bytes": 38217
+    },
+    "web/src/lib/memory-contract.ts": {
+      "sha256": "d00c29034e0ead1821137a5a65239a74957a4f7c0ba9956fad9d2167b1f24b92",
+      "bytes": 10706
+    },
+    "web/src/lib/client/memory-commands.ts": {
+      "sha256": "b6c803fb7a5b1f041180f40edd50cbbbd820cae12a377573a7881113c4dfe666",
+      "bytes": 6176
+    },
+    "web/src/lib/client/memory.ts": {
+      "sha256": "06e7ee6a13c7c156169662f42dc81b625e24c98d878349d8ef0d5b3fcec12fac",
+      "bytes": 4816
+    },
+    "web/src/app/conversations/[id]/page.tsx": {
+      "sha256": "ac3cfc705670fd12593e52ea3758324fa81f5b69863b1b610dee209a2196f90e",
+      "bytes": 39916
+    },
+    "backend/tests/test_memory_recovery.py": {
+      "sha256": "1ecc406a7613bc8f30254a9f334c5248332e4a7c8bcf026dae3631eccc55fd59",
+      "bytes": 4648
+    },
+    "backend/tests/test_tui_memory.py": {
+      "sha256": "ebebc115fe61b57641697f7186bbc36ef2d9fc001ab6ef5c4dd69fadd7409f82",
+      "bytes": 4646
+    },
+    "web/test/memory-commands.test.ts": {
+      "sha256": "8bb88369622fdedf83ffde930d28a5c73bcec36e19c47f51185ffe24ee3dc956",
+      "bytes": 20934
+    }
+  }
+}

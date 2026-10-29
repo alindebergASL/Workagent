@@ -39,6 +39,13 @@ class ObservationAuthority:
     principal: object
 
 
+@dataclass(frozen=True)
+class ExactObservationAuthority(ObservationAuthority):
+    """Owner-installed, finite authority to read one revoked response only."""
+    observer_id: str
+    phase: str
+
+
 class Ledger:
     def __init__(self,service,receipt):
         self.service=service
@@ -49,14 +56,25 @@ class Ledger:
         if isinstance(cap,ObservationAuthority):
             if not observation:raise DomainError('unsupported_operation')
             self.service._scope(c,cap.principal,run.workspace_id,write=True)
-            if cap.principal.id!=run.principal_id or not c.execute(
+            if isinstance(cap,ExactObservationAuthority):
+                from .receipt_observer import observer_hash
+                row=c.execute('SELECT observer_sha256 FROM exact_receipt_observers WHERE id=%s',
+                              (cap.observer_id,)).fetchone()
+                permitted=bool(row and row['observer_sha256']==observer_hash() and c.execute(
+                    'SELECT exact_receipt_observation_permits(%s,%s,%s) permitted',
+                    (cap.observer_id,attempt.id,cap.phase)).fetchone()['permitted'])
+            else:
+                permitted=c.execute(
                     'SELECT cancelled_response_observation_permits(%s) permitted',
-                    (attempt.id,)).fetchone()['permitted']:
+                    (attempt.id,)).fetchone()['permitted']
+            if cap.principal.id!=run.principal_id or not permitted:
                 raise DomainError('not_found_or_not_authorized')
         elif cap is not None:
             _,current,_=self.service._check_capability(c,cap)
             if current.id!=run.id:
                 raise DomainError('not_found_or_not_authorized')
+            from .research import authorize_run_dependencies
+            authorize_run_dependencies(c,run.workspace_id,run.id)
         return run,attempt,origin
 
     def _events(self,c,phase):
@@ -72,6 +90,8 @@ class Ledger:
 
     def snapshot(self,phase,cap):
         if cap is None:raise DomainError('not_found_or_not_authorized')
+        if isinstance(cap,ExactObservationAuthority) and phase!=cap.phase:
+            raise DomainError('not_found_or_not_authorized')
         with self.service.db.transaction() as c:
             run,_,_=self._auth(c,cap,observation=True)
             row=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -87,7 +107,8 @@ class Ledger:
                     config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                         (run.workspace_id,run.id)).fetchone()['data']
                     from .provider_attempts import check_grant
-                    check_grant(c,run,config)
+                    if not isinstance(cap,ExactObservationAuthority):
+                        check_grant(c,run,config)
                 else:
                     config=check_pins(c,run)
                 if enabled(config):
@@ -98,6 +119,24 @@ class Ledger:
                     if continuity_enabled(config):
                         from .composition import CONTINUITY_DECISION_SCHEMA as DECISION_SCHEMA
                     policy=CAPABILITY
+                from .retained_results import enabled as retained_enabled, SCHEMA as RETAINED_SCHEMA
+                if retained_enabled(config): DECISION_SCHEMA=RETAINED_SCHEMA
+                from .capabilities.file_composition import enabled as file_enabled, SCHEMA as FILE_SCHEMA
+                if file_enabled(config): DECISION_SCHEMA=FILE_SCHEMA
+                from .capabilities.compute_composition import enabled as compute_enabled, SCHEMA as COMPUTE_SCHEMA
+                if compute_enabled(config): DECISION_SCHEMA=COMPUTE_SCHEMA
+                from .memory.runtime import enabled as memory_enabled, SCHEMA as MEMORY_SCHEMA
+                if memory_enabled(config): DECISION_SCHEMA=MEMORY_SCHEMA
+                from .capabilities.research_composition import enabled as research_enabled, SCHEMA as RESEARCH_SCHEMA
+                if research_enabled(config): DECISION_SCHEMA=RESEARCH_SCHEMA
+                from .capabilities.office_composition import enabled as office_enabled, SCHEMA as OFFICE_SCHEMA
+                if office_enabled(config): DECISION_SCHEMA=OFFICE_SCHEMA
+                from .capabilities.github_composition import enabled as github_enabled, SCHEMA as GITHUB_SCHEMA
+                if github_enabled(config): DECISION_SCHEMA=GITHUB_SCHEMA
+                from .capabilities.mcp_composition import enabled as mcp_enabled, SCHEMA as MCP_SCHEMA
+                if mcp_enabled(config): DECISION_SCHEMA=MCP_SCHEMA
+                from .capabilities.delegation_composition import enabled as delegation_enabled, SCHEMA as DELEGATION_SCHEMA
+                if delegation_enabled(config): DECISION_SCHEMA=DELEGATION_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never
@@ -118,7 +157,7 @@ class Ledger:
 
     def prepare(self,request,cap):
         with self.service.db.transaction() as c:
-            _,attempt,_=self._auth(c,cap)
+            run,attempt,_=self._auth(c,cap)
             if request.metadata.attempt_id!=attempt.id or request.metadata.step_id!=request.phase:
                 raise DomainError('command_conflict')
             prior=c.execute('SELECT request_sha256 FROM responses_steps WHERE attempt_id=%s AND phase=%s',
@@ -132,6 +171,8 @@ class Ledger:
                          VALUES (%s,%s,%s,%s,%s,%s,%s,%s)''',
                       (attempt.id,request.phase,attempt.grant_id,request.body.decode(),request.sha256,count.decode(),
                        sha256(count).hexdigest(),encoded(request.metadata.model_dump())))
+            from .memory.runtime import record_request
+            record_request(self.service,c,run,request)
 
     def reserve_operation(self,request,kind,cap,*,ready=None):
         if cap is None:raise DomainError('not_found_or_not_authorized')
@@ -141,6 +182,8 @@ class Ledger:
             run,attempt,_=self._auth(c,cap,observation=True)
             if isinstance(cap,ObservationAuthority):
                 if kind!='read':raise DomainError('unsupported_operation')
+                if isinstance(cap,ExactObservationAuthority) and request.phase!=cap.phase:
+                    raise DomainError('not_found_or_not_authorized')
             elif run.profile=='general-responses-v1':
                 self.service._general_context(c,cap)
             events=self._events(c,request.phase)
@@ -175,20 +218,26 @@ class Ledger:
                 raise DomainError('budget_exhausted')
             data={'input_token_limit':MAX_INPUT_TOKENS} if kind=='count_send' else {}
             if isinstance(cap,ObservationAuthority):
-                data={'cancelled_observation':True}
-            if kind=='dispatch':
+                data=({'receipt_observer':cap.observer_id} if isinstance(cap,ExactObservationAuthority)
+                      else {'cancelled_observation':True})
+            if kind in ('count_send','dispatch'):
                 # Same lock/order and isolation as the DB guard. Check after the
                 # lock so a racing workspace yields a typed budget stop, not SQL
                 # exception/retry. Never change the caller's isolation implicitly.
+                # A fresh count is futile if its generation cannot fit. This is
+                # feasibility, not a reservation: dispatch still rechecks. Reads
+                # and already committed dispatch permits must remain usable.
                 if c.execute('SHOW transaction_isolation').fetchone()['transaction_isolation']!='read committed':
                     raise DomainError('unsupported_operation')
                 c.execute('SELECT pg_advisory_xact_lock(721004120)')
                 totals=summary(c,attempt.grant_id,shared=alpha)
                 shared=summary(c,attempt.grant_id,shared=True)
-                if (totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
+                if (totals['request_counts']['dispatch']>=b.generation_limit or
+                    totals['reserved_input_tokens']+RESERVED_INPUT>b.input_limit or
                     totals['reserved_output_tokens']+RESERVED_OUTPUT>b.output_limit or
                     Decimal(shared['reserved_cost_usd'])+RESERVED_COST>Decimal(b.cost_limit_usd)):
                     raise DomainError('budget_exhausted')
+            if kind=='dispatch':
                 data={'reserved_input_tokens':RESERVED_INPUT,'reserved_output_tokens':RESERVED_OUTPUT,
                       'reserved_cost_usd':str(RESERVED_COST),'billed_cost_usd':None}
                 if attempt.state=='prepared':
@@ -412,9 +461,17 @@ def summary(c,grant_id,*,shared=False):
         carried = carry['cost']
         if carry['n']:
             carry_fields = {'carried_reserved_cost_usd':str(carried)}
-    return {**carry_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
+    from .capabilities.observations import accounting
+    tools=accounting(c,grant_id,shared=shared)
+    tool_fields=({'tool_accounting':tools,'model_calculated_cost_usd':str(calculated) if not unknown else None}
+                 if tools else {})
+    tool_reserved=Decimal(tools['reserved_cost_usd']) if tools else Decimal(0)
+    # Local elapsed/CPU measurements do not establish dollars or provider billing.
+    # Never label the model-only calculation as the combined cost.
+    total_calculated=None if tools else (str(calculated) if not unknown else None)
+    return {**carry_fields,**tool_fields,'request_counts':counts,'reserved_input_tokens':int(totals['reserved_input']),
             'reserved_output_tokens':int(totals['reserved_output']),
-            'reserved_cost_usd':str(carried+totals['reserved_cost']),
+            'reserved_cost_usd':str(carried+totals['reserved_cost']+tool_reserved),
             'reported_usage':{'input_tokens':int(totals['reported_input']),'output_tokens':int(totals['reported_output'])},
-            'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':str(calculated) if not unknown else None,
+            'unknown_usage_steps':unknown,'conservatively_calculated_cost_usd':total_calculated,
             'billed_cost_usd':None,'cost_basis':'undiscounted reservation rates; not provider billing'}

@@ -1,0 +1,168 @@
+{
+  "files": [
+    {
+      "path": "fixtures/B-270ae87ba737/1/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/1/source.docx",
+      "sha256": "9e8ffca38c65ff8fdac0c4225dbd24875fdc62b1a22d2b2a89f7e80adec51e61",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/2/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/2/source.docx",
+      "sha256": "9e8ffca38c65ff8fdac0c4225dbd24875fdc62b1a22d2b2a89f7e80adec51e61",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/3/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/3/source.docx",
+      "sha256": "9e8ffca38c65ff8fdac0c4225dbd24875fdc62b1a22d2b2a89f7e80adec51e61",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/4/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/4/source.docx",
+      "sha256": "9e8ffca38c65ff8fdac0c4225dbd24875fdc62b1a22d2b2a89f7e80adec51e61",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-270ae87ba737/5/announcement.docx",
+      "sha256": "107b46a2ab20ddc574e594bb02906973cf9ac942d463b191f9af8931b21f13bc",
+      "text_chars": 176,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/1/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/1/source.docx",
+      "sha256": "b4b95bfc56eb30ddfbeac96b753c80e6ca496367ad10410815c629e1a81d6aa9",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/2/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/2/source.docx",
+      "sha256": "b4b95bfc56eb30ddfbeac96b753c80e6ca496367ad10410815c629e1a81d6aa9",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/3/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/3/source.docx",
+      "sha256": "b4b95bfc56eb30ddfbeac96b753c80e6ca496367ad10410815c629e1a81d6aa9",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/4/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/4/source.docx",
+      "sha256": "b4b95bfc56eb30ddfbeac96b753c80e6ca496367ad10410815c629e1a81d6aa9",
+      "text_chars": 273,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-cf1c7cb53c69/5/announcement.docx",
+      "sha256": "b459e9ed280aa0a5a9dd47db7283ede2c4a776aeffc0f0d1f3e50c2c97d840ae",
+      "text_chars": 176,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/1/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/1/source.docx",
+      "sha256": "99df13aa4f5a314f37ce6ba5ca39495c964296030fb088ccea2009e00046f476",
+      "text_chars": 272,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/2/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/2/source.docx",
+      "sha256": "99df13aa4f5a314f37ce6ba5ca39495c964296030fb088ccea2009e00046f476",
+      "text_chars": 272,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/3/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/3/source.docx",
+      "sha256": "99df13aa4f5a314f37ce6ba5ca39495c964296030fb088ccea2009e00046f476",
+      "text_chars": 272,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/4/review.pdf",
+      "sha256": "80b7e7a69f5f367135fbd08dcf385d2a41fbbf14b56658457dbd0e6d94964ee7",
+      "text_chars": 122,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/4/source.docx",
+      "sha256": "99df13aa4f5a314f37ce6ba5ca39495c964296030fb088ccea2009e00046f476",
+      "text_chars": 272,
+      "opens": true
+    },
+    {
+      "path": "fixtures/B-f3a6fc0f4541/5/announcement.docx",
+      "sha256": "cc8714142775d75e4c0862a1c778815bae8298626e4cd6879b2f85a4131b0ba3",
+      "text_chars": 176,
+      "opens": true
+    }
+  ],
+  "count": 27,
+  "fixture_only_not_model_output": true
+}

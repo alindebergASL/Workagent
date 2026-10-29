@@ -1,0 +1,73 @@
+{
+  "observation": {
+    "schema_version": "tool-observation/v1",
+    "call_id": "cc13d019-5043-4a0d-8894-9070ef3c1961",
+    "attempt_id": "7ef17bf6-0bc2-4b25-a1e5-4825b4351c38",
+    "run_id": "01e9db2f-a2cc-429f-b082-88ff0cbab260",
+    "capability_id": "compute.python",
+    "capability_version": "1",
+    "implementation_sha256": "5556a5b91f1f36506dc10c811e90bbf035dd4ee4288fa01b97d081edf9d10093",
+    "execution_profile": "python-analysis-v1",
+    "input_refs": [],
+    "output_refs": [],
+    "output_sha256": null,
+    "output": null,
+    "started_at": "2026-10-28T19:20:20.427819Z",
+    "ended_at": "2026-10-28T19:20:21.135075Z",
+    "status": "cost_only",
+    "error": {
+      "code": "authority_changed",
+      "retryable": false
+    },
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "local_compute",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": 1,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "estimated",
+      "elapsed_ms": 707,
+      "cpu_ms": 163,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  },
+  "unpublished_export": {
+    "exporter_version": "compute-python-v1",
+    "export_id": "57a38f22-2cd9-4672-97c2-91edd71c6d54",
+    "workspace_id": "test-e1e37f98-ad29-4b2d-bf05-d79edff526b2",
+    "conversation_id": "8004bdeb-8c0f-4aae-b729-8ecd85b57750",
+    "run_id": "01e9db2f-a2cc-429f-b082-88ff0cbab260",
+    "tool_attempt_id": "7ef17bf6-0bc2-4b25-a1e5-4825b4351c38",
+    "code_sha256": "f813285195b03073ccb1f6f18d4a2f20044f5045573058ca8214d7677e6c1c23",
+    "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+    "input_refs": [
+      {
+        "kind": "workspace_file",
+        "id": "45782edd-e5d2-4521-aa5b-e1c55cd9561f",
+        "version": "061aa05b-9012-412d-b9f2-62d2e5ed36e0",
+        "sha256": "74eed87e06a875c3ba9f093320d339feae81bcff2a0bbfe49f85ff75401ddc78"
+      }
+    ],
+    "format": "txt",
+    "filename": "result.txt",
+    "blob": {
+      "kind": "generated_blob",
+      "blob_id": "9fe1b4eb-e738-47fb-9269-2fe09d9980d8",
+      "sha256": "74eed87e06a875c3ba9f093320d339feae81bcff2a0bbfe49f85ff75401ddc78",
+      "byte_length": 25,
+      "mime_type": "text/plain"
+    },
+    "created_at": "2026-10-28T19:20:21.034385Z",
+    "annotations": "explicit_omissions",
+    "omissions": [
+      "Generated output: no independent correctness or annotation-preservation guarantee; inspect the computation receipt."
+    ],
+    "sandbox_sha256": "74eed87e06a875c3ba9f093320d339feae81bcff2a0bbfe49f85ff75401ddc78"
+  }
+}

@@ -1,0 +1,455 @@
+{
+  "$defs": {
+    "ComputeExportManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "const": "explicit_omissions",
+          "default": "explicit_omissions",
+          "title": "Annotations",
+          "type": "string"
+        },
+        "blob": {
+          "$ref": "#/$defs/GeneratedBlobRef"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "export_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Export Id",
+          "type": "string"
+        },
+        "exporter_version": {
+          "const": "compute-python-v1",
+          "default": "compute-python-v1",
+          "title": "Exporter Version",
+          "type": "string"
+        },
+        "filename": {
+          "maxLength": 85,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+          "title": "Filename",
+          "type": "string"
+        },
+        "format": {
+          "enum": [
+            "txt",
+            "markdown",
+            "csv",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "input_refs": {
+          "items": {
+            "$ref": "#/$defs/InputRef"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        },
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Omissions",
+          "type": "array"
+        },
+        "profile_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Profile Sha256",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sandbox_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sandbox Sha256",
+          "type": "string"
+        },
+        "tool_attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Tool Attempt Id",
+          "type": "string"
+        },
+        "workspace_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "export_id",
+        "workspace_id",
+        "conversation_id",
+        "run_id",
+        "tool_attempt_id",
+        "code_sha256",
+        "profile_sha256",
+        "input_refs",
+        "format",
+        "filename",
+        "blob",
+        "created_at",
+        "omissions",
+        "sandbox_sha256"
+      ],
+      "title": "ComputeExportManifest",
+      "type": "object"
+    },
+    "ComputeResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_usec": {
+          "minimum": 0,
+          "title": "Cpu Usec",
+          "type": "integer"
+        },
+        "memory_peak_bytes": {
+          "minimum": 0,
+          "title": "Memory Peak Bytes",
+          "type": "integer"
+        },
+        "oom_kill": {
+          "minimum": 0,
+          "title": "Oom Kill",
+          "type": "integer"
+        },
+        "pids_peak": {
+          "minimum": 0,
+          "title": "Pids Peak",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "cpu_usec",
+        "memory_peak_bytes",
+        "oom_kill",
+        "pids_peak"
+      ],
+      "title": "ComputeResources",
+      "type": "object"
+    },
+    "ComputeResult": {
+      "additionalProperties": false,
+      "properties": {
+        "cleanup_verified": {
+          "const": true,
+          "title": "Cleanup Verified",
+          "type": "boolean"
+        },
+        "code_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Code Sha256",
+          "type": "string"
+        },
+        "elapsed_ms": {
+          "maximum": 60000,
+          "minimum": 0,
+          "title": "Elapsed Ms",
+          "type": "integer"
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Exit Code"
+        },
+        "image": {
+          "title": "Image",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/StagedInput"
+          },
+          "maxItems": 8,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Omissions",
+          "type": "array"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/ComputeExportManifest"
+          },
+          "maxItems": 8,
+          "title": "Outputs",
+          "type": "array"
+        },
+        "profile": {
+          "const": "python-analysis-v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "profile_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Profile Sha256",
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/ComputeResources"
+        },
+        "runtime_version": {
+          "title": "Runtime Version",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "succeeded",
+            "failed",
+            "wall_limit",
+            "cpu_limit",
+            "output_limit",
+            "cancelled",
+            "unavailable"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "stderr": {
+          "title": "Stderr",
+          "type": "string"
+        },
+        "stdout": {
+          "title": "Stdout",
+          "type": "string"
+        },
+        "version": {
+          "const": 1,
+          "title": "Version",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "version",
+        "profile",
+        "profile_sha256",
+        "runtime_version",
+        "image",
+        "status",
+        "exit_code",
+        "code_sha256",
+        "inputs",
+        "stdout",
+        "stderr",
+        "elapsed_ms",
+        "resources",
+        "omissions",
+        "outputs",
+        "cleanup_verified"
+      ],
+      "title": "ComputeResult",
+      "type": "object"
+    },
+    "ComputeUnavailable": {
+      "additionalProperties": false,
+      "properties": {
+        "omissions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 20,
+          "title": "Omissions",
+          "type": "array"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/ComputeExportManifest"
+          },
+          "maxItems": 0,
+          "title": "Outputs",
+          "type": "array"
+        },
+        "status": {
+          "const": "unavailable",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "omissions",
+        "outputs"
+      ],
+      "title": "ComputeUnavailable",
+      "type": "object"
+    },
+    "GeneratedBlobRef": {
+      "additionalProperties": false,
+      "description": "Bytes live separately from FileBody; future office exporters can reuse this.",
+      "properties": {
+        "blob_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Blob Id",
+          "type": "string"
+        },
+        "byte_length": {
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Byte Length",
+          "type": "integer"
+        },
+        "kind": {
+          "const": "generated_blob",
+          "default": "generated_blob",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mime_type": {
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "blob_id",
+        "sha256",
+        "byte_length",
+        "mime_type"
+      ],
+      "title": "GeneratedBlobRef",
+      "type": "object"
+    },
+    "InputRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id",
+        "version",
+        "sha256"
+      ],
+      "title": "InputRef",
+      "type": "object"
+    },
+    "StagedInput": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "maximum": 1048576,
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "sha256",
+        "bytes"
+      ],
+      "title": "StagedInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "capability": {
+      "const": "compute_python",
+      "title": "Capability",
+      "type": "string"
+    },
+    "result": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ComputeResult"
+        },
+        {
+          "$ref": "#/$defs/ComputeUnavailable"
+        }
+      ],
+      "title": "Result"
+    },
+    "version": {
+      "const": "1",
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "capability",
+    "version",
+    "result"
+  ],
+  "title": "ComputeOutput",
+  "type": "object"
+}

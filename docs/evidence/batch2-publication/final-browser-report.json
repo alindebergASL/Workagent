@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "checks": [
+    "1440px exact saved note survives actual Next process/build restart",
+    "390px exact saved note survives actual Next process/build restart",
+    "320px exact saved note survives actual Next process/build restart"
+  ],
+  "source_manifest": "source-manifest.json",
+  "build_id": "-Ht3aou39ZL-34eAkNd-t",
+  "page_errors": []
+}

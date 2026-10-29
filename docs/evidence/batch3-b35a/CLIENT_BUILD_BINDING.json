@@ -1,0 +1,43 @@
+{
+  "build_id": "HAEr4yziKBlWBIpt1euzS",
+  "build_manifest_sha256": "e1c2a9ed1dca383dfcf17ac434ca7a577822812ad2265a58eb6ffc2b917f3ed3",
+  "historical_build_binding": "docs/evidence/batch3-b34a/BUILD_MANIFEST.json",
+  "historical_build_binding_sha256": "d2aeb1f98ed81b8c69fa8a3d2443a477098562d6050227023ec4ab6bf2755171",
+  "retained_outputs_verified": 194,
+  "compared_inputs": 331,
+  "current_input_differences": [
+    {
+      "path": "contracts/capability-registry-v2.json",
+      "consumed_sha256": "e972c97be22701d1a49aa6d10925f1dfe20ec0c07f45ebf842b2ab312d9df6b7",
+      "current_sha256": "ecab7c057a236de7e649fa876da27ca96380f095dda773e2d6026ad815b417bc"
+    },
+    {
+      "path": "contracts/memory-v1.json",
+      "consumed_sha256": "041cfd638b64eea65cb5073e07b5cf3ce5690713af0f5444913b1059a2f45219",
+      "current_sha256": "73cf61b2cda0c8ed19efc2b5db5d57f9c39416383bdd86766891b65ef05e7147"
+    },
+    {
+      "path": "contracts/openapi.json",
+      "consumed_sha256": "223b41681eaf5309067fcbc17d3a8b60ec3d75137108519f94dc8d126cbe4418",
+      "current_sha256": "34c45078abdd1a9bfeb0d4ec045bdc170477004c791593a6003b77971fc85380"
+    },
+    {
+      "path": "contracts/src/schema.d.ts",
+      "consumed_sha256": "7f9285360fb911b9bca533256928b7e77138f2413f312da78114bacef483bc9d",
+      "current_sha256": "d83b710d0599d3a8eefd98b312e4b6db32e18af9f0a4ab61dfa5ca6cba18cb55"
+    },
+    {
+      "path": "web/src/lib/memory-contract.ts",
+      "consumed_sha256": "c037a5e686a7ddd133fea5be298fcbb2117fddd06114dd1688f4f573b8abb777",
+      "current_sha256": "091394c03a567e622509e7cc7659645937f9b8ddf88a4f27b0cebe97d2d714ac"
+    }
+  ],
+  "web_source_changed_in_increment": true,
+  "exact_current_build": false,
+  "actual_http_and_browser_readbacks": "clients/restart/results.json",
+  "original_60_source_hashes_unchanged": true,
+  "reused_scope": "unchanged correct/forget/revoke/readback paths; not new memory reference rendering",
+  "new_render_verification": "results/bridge-verification.json",
+  "current_build_verification": "exact published head frontend CI, bound in attached PUBLICATION_FINAL receipt",
+  "services_restarted_for_packaging": false
+}

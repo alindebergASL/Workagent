@@ -1,0 +1,397 @@
+{
+  "$defs": {
+    "CheckpointData": {
+      "additionalProperties": false,
+      "properties": {
+        "access_generation": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Access Generation",
+          "type": "integer"
+        },
+        "assignment_fence": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assignment Fence"
+        },
+        "assignment_work_version": {
+          "anyOf": [
+            {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Assignment Work Version"
+        },
+        "configuration_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Configuration Sha256",
+          "type": "string"
+        },
+        "context_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Context Sha256"
+        },
+        "conversation_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Conversation Work Version",
+          "type": "integer"
+        },
+        "intent_message_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Intent Message Id",
+          "type": "string"
+        },
+        "intent_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Intent Sha256",
+          "type": "string"
+        },
+        "last_observed_phase": {
+          "enum": [
+            "selection",
+            "selection_2",
+            "selection_3",
+            "selection_4",
+            "selection_5",
+            "selection_6",
+            "selection_7",
+            "selection_8",
+            "final",
+            "stop"
+          ],
+          "title": "Last Observed Phase",
+          "type": "string"
+        },
+        "latest_human_intent_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latest Human Intent Id"
+        },
+        "next_safe_action": {
+          "enum": [
+            "resume_phase",
+            "continue_slice",
+            "await_person",
+            "await_event",
+            "reconcile",
+            "stopped",
+            "settled"
+          ],
+          "title": "Next Safe Action",
+          "type": "string"
+        },
+        "pending_proposal_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "maxItems": 100,
+          "title": "Pending Proposal Ids",
+          "type": "array"
+        },
+        "principal_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Principal Id",
+          "type": "string"
+        },
+        "run_fence": {
+          "minimum": 0,
+          "title": "Run Fence",
+          "type": "integer"
+        },
+        "runtime_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Runtime Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "run-checkpoint/v1",
+          "default": "run-checkpoint/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scope_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scope Fingerprint",
+          "type": "string"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/StepReference"
+          },
+          "maxItems": 9,
+          "title": "Steps",
+          "type": "array"
+        },
+        "waiting": {
+          "enum": [
+            "none",
+            "person",
+            "event",
+            "blocked",
+            "unknown",
+            "stopped"
+          ],
+          "title": "Waiting",
+          "type": "string"
+        }
+      },
+      "required": [
+        "principal_id",
+        "access_generation",
+        "run_fence",
+        "conversation_work_version",
+        "assignment_work_version",
+        "assignment_fence",
+        "configuration_sha256",
+        "runtime_sha256",
+        "scope_fingerprint",
+        "context_sha256",
+        "intent_message_id",
+        "intent_sha256",
+        "latest_human_intent_id",
+        "last_observed_phase",
+        "steps",
+        "pending_proposal_ids",
+        "waiting",
+        "next_safe_action"
+      ],
+      "title": "CheckpointData",
+      "type": "object"
+    },
+    "StepReference": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "operation_hash": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Operation Hash"
+        },
+        "phase": {
+          "enum": [
+            "selection",
+            "selection_2",
+            "selection_3",
+            "selection_4",
+            "selection_5",
+            "selection_6",
+            "selection_7",
+            "selection_8",
+            "final",
+            "stop"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "request_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Sha256",
+          "type": "string"
+        },
+        "response_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Response Id"
+        },
+        "result_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result Sha256"
+        },
+        "tool_result_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tool Result Sha256"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "phase",
+        "request_sha256",
+        "response_id",
+        "result_sha256",
+        "operation_hash",
+        "tool_result_sha256"
+      ],
+      "title": "StepReference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "assignment_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Assignment Id"
+    },
+    "checkpoint_hash": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Checkpoint Hash",
+      "type": "string"
+    },
+    "checkpoint_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Checkpoint Id",
+      "type": "string"
+    },
+    "checkpoint_kind": {
+      "enum": [
+        "stage",
+        "publication",
+        "settlement",
+        "responsibility",
+        "stop"
+      ],
+      "title": "Checkpoint Kind",
+      "type": "string"
+    },
+    "continuation_supported": {
+      "default": false,
+      "title": "Continuation Supported",
+      "type": "boolean"
+    },
+    "conversation_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Conversation Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data": {
+      "$ref": "#/$defs/CheckpointData"
+    },
+    "phase": {
+      "enum": [
+        "selection",
+        "selection_2",
+        "selection_3",
+        "selection_4",
+        "selection_5",
+        "selection_6",
+        "selection_7",
+        "selection_8",
+        "final",
+        "stop"
+      ],
+      "title": "Phase",
+      "type": "string"
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "workspace_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Workspace Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "checkpoint_id",
+    "workspace_id",
+    "run_id",
+    "conversation_id",
+    "assignment_id",
+    "phase",
+    "checkpoint_kind",
+    "created_at",
+    "checkpoint_hash",
+    "data"
+  ],
+  "title": "RunCheckpoint",
+  "type": "object"
+}

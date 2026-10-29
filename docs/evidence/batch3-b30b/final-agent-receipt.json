@@ -1,0 +1,15 @@
+{
+  "model_ids": [
+    "claude-opus-5-5[1m]"
+  ],
+  "exit": 0,
+  "subtype": "success",
+  "max_turns_argument": 30,
+  "timeout_seconds": 1200,
+  "reported_num_turns": 37,
+  "counter_caveat": "CLI returned num_turns37 despite --max-turns30; configured invocation cap was not changed. Counter is preserved, not relabeled.",
+  "permission_denials_count": 5,
+  "reported_list_cost_usd": "1.1643188000000002",
+  "billing": "unmeasured; development tools outside product ledger",
+  "product_provider_calls": 0
+}

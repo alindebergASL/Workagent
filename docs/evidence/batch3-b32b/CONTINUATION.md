@@ -1,0 +1,35 @@
+# B3.2b implementation checkpoint — NOT accepted
+
+Base HEAD cac4b343091db6d7d443d656f34f6ba548936c79, branch hermes/b2-conversational-client. Uncommitted implementation remains in root `/home/ubuntu/workagent-continuation-20261026`. Do not release B3.2c. No paid product calls, migrations only fresh disposable DBs, no deployment/default merge. Existing unknown liabilities unchanged. Preexisting contracts/pnpm-lock.yaml must remain untracked/unchanged.
+
+## Implemented and exercised
+
+- Shared editable office-v1 JSON copies retaining original/extraction provenance; fixed confined DOCX/XLSX/PDF/PNG adapters; typed formulas/caches not evaluated; grouped Decimal charts; scoped digested downloads. Canonical models/contracts and native+Claude web integrated.
+- New pinned backend/.venv-office installed from requirements-office.lock using system Python3.12; uv check passed. Existing docs/app envs untouched. LibreOffice Writer/Calc+Poppler installed for independent rendering.
+- Actual bwrap tests exposed matplotlib stderr due missing mpl_toolkits/fontconfig. Parent repaired mounts (selected pinned mpl_toolkits and public read-only /etc/fonts, never wholesale /etc). DOCX/XLSX/PDF/PNG conversion, environment/network/host-write checks pass. Parent actual ZIP/formula/symlink/secret refusal checks pass.
+- Root integration run:82 passed/2 parent fixture-collection errors; corrected parent fixture import and reran actual TCP/security4 tests PASS. Separate126 lane unit checks and88 parent focused web tests+TS pass; counts overlap, not additive. Contracts generation/check passes. Latest Claude correction reports100 focused/692 full web tests; parent has not rerun that delta.
+- Actual downloaded bytes independently parsed with python-docx/openpyxl/pypdf/PIL, quotes/annotations/formula-vs-string/cache omission verified. API restart downloaded identical bytes. Actual DOCX (LibreOffice), PDF and1000x600 PNG renders inspected: readable no clipping/overlap, chart East0.3/West1.5 and actual axes.
+- Actual native PTY100x45 created office JSON, exported/downloaded DOCX, edited human text. Restarted owned API/web and actual native80x35 reopened human revision; backend exact content verified. Human annotation exists below captured fold. Initial harness mistakes (clicked retained-draft selector instead of filename, double-toggled format selector) retained, not product failures.
+- Actual production browser created/edited brief.json and exported DOCX. Download exposed preexisting proxy text-only allowlist. Same Claude session fixed proxy binary exact MIME/digest/cap mapping, long detail wrapping, PDF import eligibility. Delta now integrated into root; **candidate production build does not include this last delta**. No successful browser binary download/office import/chart proof yet.
+
+## Independent review and remaining fixes
+
+One Astra/high reviewer only; report `REVIEW_INITIAL.md` is FAIL with three P2 findings and47-file bindings. Reuse same reviewer for narrow closure, do not start replacement. Its session id is in `.local/batch3/b32b/review-agent.log` header.
+
+1. Web copy journal cleared before exact readback/open completes; opening failure can create a second copy with new command ID. Retain acknowledged command/result until validated readback and successful opening; failed opening reuses result, not new POST.
+2. Web copy checks omit exact source snapshot/hash/workspace/conversation; chart readback omits chart.input_sha256 equality. Fix scope/provenance matching and negative tests; mismatches keep unresolved journal.
+3. BOM JSON regression: parent patched workspace_files text_body and office proposal inspection to strip BOM in parsing view only, leaving original bytes/hash. New test_office_bom_regression.py. Check latest result before closure; reviewer has not rechecked.
+
+Remaining full acceptance: fix1/2 through existing Claude lane, narrow reviewer closure; final regenerate contracts as needed; recopy latest web+contracts+fixtures into isolated candidate and `next build --webpack`; actual browser binary downloads, DOCX/XLSX/PDF editable import, saved+unsaved human edits retained after restart, chart controls/rows at1440/390/320; native final annotated reopened view and any missing import/chart consumer proof; record source/build/evidence hashes with real file artifacts; privacy scan; publish coherent feature commit/private PR18 and exact-head CI. No need to repeat unrelated full suites or old research proof.
+
+## Existing lanes and resources
+
+- Backend implementation completed (Codex Astra/high), isolated `.local/batch3/b32b/backend-lane`, handoff `.local/B32B_HANDOFF.md`. All backend source integrated; do not wholesale recopy over parent fixes.
+- Sole Claude Opus5.5 session `80e463c4-c27b-4886-a415-39bfdb82abdd`, worktree `.local/batch3/b32b/web-lane`. Bounded three invocations completed, final9 web files integrated. Resume same lane for reviewer fixes using acceptEdits with explicit allowed Read/Write/Edit/Bash/Glob/Grep; previous permissions without explicit tools prevented tests. Last handoff `.local/WEB_HANDOFF.md`. Development tool costs outside product ledger, reported CLI cumulative totals not assumed additive/settled.
+- Parent helpers `.local/batch3/b32b/services.py` seed/start/stop/restart verify owned PIDs/cwd/start and ports; `.local/batch3/b32b/native.py` actual pexpect/pyte. Env `.local/batch3/b32b/fixture-03.env` private (source, never print). API18235/web13235 stopped at checkpoint; exact receipts in evidence/process-stop*.json. Other services unchanged. Source path root, web cwd `.local/batch3/b32b/candidate/web`.
+- Runtime env: `PYTHONPATH=$PWD/backend:$PWD/backend/tests`, `WORKAGENT_OFFICE_PACKAGES=$PWD/backend/.venv-office/lib/python3.12/site-packages`, native `WORKAGENT_OPERATOR_URL=http://127.0.0.1:18235`. Fixture seed metadata in fixture.json; web conversation79498c29-b484-4756-a61b-0b2cccbf19a1, native27200709-dc85-4045-9f06-aaeee664b6f6, workspaceoffice-ef44149e-3de6-4b9a-ac72-36b4ffdc312d.
+- PG tests use test-02.env; early test-01 ran incomplete lane and preserved unknown PNG receipt. Never replay old failed/unknown broker request; new fixtures for new evidence. Current migration061 checksum must be compared before reuse if changed.
+- Tests needing independent office readers append office site-packages to sys.path AFTER app venv paths; prepending causes typing_extensions/anyio conflict. Do not alter app dependencies to fix test harness.
+- Evidence private `.local/batch3/b32b/evidence`: outputs binary manifests, rendered images, browser screenshots, PTY transcripts, checks. Not yet sanitized/packaged for commit. `checkpoint-source-manifest.json` binds current candidate but is not final acceptance manifest. Browser session b32b remains on old optimized preview page; no app process still running after stop.
+
+This run reached its execution-turn ceiling with known review findings and incomplete client acceptance. Resume this same card; do not mark done or reroute successor until criteria are verified.

@@ -1,0 +1,28 @@
+{
+  "source_files": 602,
+  "source_delta": [],
+  "source_manifest_sha256": "1a969241aa7dfba5f77cf7382f2c521cb1d5fd12bb1ce831e230968fba89017f",
+  "matrix_rows": 43,
+  "supplement_rows": 3,
+  "untouched_rows": 40,
+  "secret_scan_matches": [],
+  "source_hashes_verified": true,
+  "services": {
+    "b2r5b-api": {
+      "pid": 3933826,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/backend",
+      "argv": "/home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python -m uvicorn workagent.api:app --host 127.0.0.1 --port 18965 --log-level warning "
+    },
+    "b2r5b-web": {
+      "pid": 3982762,
+      "cwd": "/home/ubuntu/workagent-continuation-20261026/web",
+      "argv": "next-server (v16.3.4)                                                       ",
+      "backend": "http://127.0.0.1:18965"
+    }
+  },
+  "aux_api_stopped": true,
+  "tui_detached": true,
+  "product_provider_calls": 0,
+  "pty_capture_pairs": 38,
+  "git_diff_check": 0
+}

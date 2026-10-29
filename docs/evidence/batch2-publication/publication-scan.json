@@ -1,0 +1,72 @@
+{
+  "staged_files": 910,
+  "potential_matches": [
+    {
+      "path": "docs/evidence/batch2-publication/scan_candidate.py",
+      "kind": "credential_url",
+      "line": 26
+    },
+    {
+      "path": "docs/evidence/batch2-recovery1/baseline.log",
+      "kind": "literal_credential",
+      "line": 435
+    },
+    {
+      "path": "docs/evidence/batch2-recovery1/baseline.xml",
+      "kind": "literal_credential",
+      "line": 408
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "credential_url",
+      "line": 11
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "credential_url",
+      "line": 41
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "credential_url",
+      "line": 349
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "literal_credential",
+      "line": 11
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "literal_credential",
+      "line": 41
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/backend-session-red2.txt",
+      "kind": "literal_credential",
+      "line": 349
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/candidate1-delta.patch",
+      "kind": "credential_url",
+      "line": 9
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/candidate1-delta.patch",
+      "kind": "credential_url",
+      "line": 43
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/candidate2-delta.patch",
+      "kind": "credential_url",
+      "line": 9
+    },
+    {
+      "path": "docs/evidence/batch2-recovery5d/candidate2-delta.patch",
+      "kind": "credential_url",
+      "line": 43
+    }
+  ],
+  "classification": "All URL/literal matches are synthetic test fixtures or scanner controls; independent review classified retained historical copies. No key/private-key/restricted-customer hits. No .local/env/raw task context staged.",
+  "not_scanned": "binary pixels and repository history"
+}

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { carryDraftHome } from "@/lib/client/conversation-reply";
+import { scopedKey } from "./scope-helper";
 
 describe("carryDraftHome", () => {
   let store: Map<string, string>;
@@ -17,15 +18,17 @@ describe("carryDraftHome", () => {
 
   it("moves an unsent message to Home's composer for the workspace", () => {
     expect(carryDraftHome("ws1", "Plan the room swap")).toBe(true);
-    expect(store.get("workagent:composer-draft:ws1")).toBe(
+    expect(store.get(scopedKey("workagent:composer-draft:ws1"))).toBe(
       "Plan the room swap",
     );
   });
 
   it("never overwrites a draft already waiting on Home", () => {
-    store.set("workagent:composer-draft:ws1", "Earlier idea");
+    store.set(scopedKey("workagent:composer-draft:ws1"), "Earlier idea");
     expect(carryDraftHome("ws1", "Plan the room swap")).toBe(false);
-    expect(store.get("workagent:composer-draft:ws1")).toBe("Earlier idea");
+    expect(store.get(scopedKey("workagent:composer-draft:ws1"))).toBe(
+      "Earlier idea",
+    );
   });
 
   it("carries nothing for an empty message", () => {

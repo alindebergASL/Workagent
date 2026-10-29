@@ -7,6 +7,30 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium, expect } from "@playwright/test";
 
+// Notes are one box each (NotesList), saved exactly as written.
+const notesGroup = (scope, name = "Your notes") =>
+  scope.getByRole("group", { name, exact: true });
+const notesOf = (scope, name = "Your notes") =>
+  notesGroup(scope, name)
+    .locator("textarea")
+    .evaluateAll((els) => els.map((e) => e.value));
+async function setNotes(scope, list, name = "Your notes") {
+  const g = notesGroup(scope, name);
+  // The list arrives with the work; count it only once it's there.
+  await g.waitFor();
+  while (
+    (await g.getByRole("button", { name: /^Remove note \d+$/ }).count()) > 0
+  )
+    await g.getByRole("button", { name: "Remove note 1", exact: true }).click();
+  for (const [i, text] of list.entries()) {
+    await g.getByRole("button", { name: "Add a note", exact: true }).click();
+    await g
+      .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
+      .fill(text);
+  }
+  await expect.poll(() => notesOf(scope, name)).toEqual(list);
+}
+
 const web = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const viteRequire = createRequire(require.resolve("vitest/package.json"));
@@ -20,6 +44,29 @@ import {InPlaceView} from '@/components/FlexibleWork';
 import {useConversationReply} from '@/lib/client/conversation-reply';
 import {AttachedFiles} from '@/components/AttachedFiles';
 import {readAttachment} from '@/lib/contract/natural';
+import {bindMockIdentity} from '@/lib/client/session-scope';
+import {StopRun, QueuedMessages, DocumentPicker} from '@/components/Batch2Controls';
+import {setFetch} from '@/lib/client/batch2-api';
+// Batch 2 controls write through their own client: answer every write.
+window.b2calls = [];
+setFetch(async (url, init) => {
+  window.b2calls.push({url: String(url), method: init?.method ?? 'GET'});
+  return new Response(JSON.stringify(window.b2reply ?? {}), {status: 200, headers: {'content-type': 'application/json'}});
+});
+function Queue() {
+  const [items, setItems] = React.useState(window.queueItems);
+  return <QueuedMessages ws="w" cid="c" items={items} refresh={() => setItems(window.queueAfter(items))}/>;
+}
+function Docs() {
+  const [docs, setDocs] = React.useState(window.docItems);
+  return <DocumentPicker docs={docs} error="" locked={false} onAdd={() => {}} onRemove={i => setDocs(d => d.filter((_, j) => j !== i))}/>;
+}
+function Stop() {
+  return <><section data-testid="current-work" tabIndex={-1}>Current work</section><StopRun ws="w" cid="c" runId="run-1" version={3} refresh={() => {}}/></>;
+}
+// No ScopeGate in the fixture: bind the demo scope before the first render.
+bindMockIdentity();
+window.sk = (k) => 'workagent:scope:v1:' + '0'.repeat(64) + ':' + k;
 function Reply({ws,cid,version}) {
   const reply = useConversationReply({wsId:ws,cid,version,refresh:window.refresh,attach:Boolean(window.natural),held:Boolean(window.replyHeld)});
   return <><textarea aria-label="Test reply" value={reply.text} disabled={reply.sending || reply.uncertain} onChange={e=>reply.setText(e.target.value)}/>
@@ -34,7 +81,7 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
   window.scope = {ws,cid};
   root.render(mode === 'operation'
     ? <OperationComposer ws={ws} cid={cid} version={version} refresh={window.refresh}/>
-    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : <div>Navigation away</div>);
+    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : mode === 'stop' ? <Stop/> : mode === 'queue' ? <Queue/> : mode === 'docs' ? <Docs/> : <div>Navigation away</div>);
 };
 window.reads = {};
 const realArrayBuffer = File.prototype.arrayBuffer;
@@ -348,14 +395,16 @@ try {
     await expect(page.getByLabel("Test reply")).toHaveValue("Newer reply B");
     assert.equal(
       await page.evaluate(() =>
-        sessionStorage.getItem("workagent:conversation:c"),
+        sessionStorage.getItem(window.sk("workagent:conversation:c")),
       ),
       "Newer reply B",
     );
     assert.deepEqual(
       JSON.parse(
         await page.evaluate(() =>
-          sessionStorage.getItem("workagent:pending:w:conversation:c:send"),
+          sessionStorage.getItem(
+            window.sk("workagent:pending:w:conversation:c:send"),
+          ),
         ),
       ),
       newer.payload,
@@ -384,7 +433,7 @@ try {
       window.ambiguous = ambiguous;
       const original = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key.startsWith("workagent:pending:"))
+        if (key.startsWith(window.sk("workagent:pending:")))
           throw new DOMException("full", "QuotaExceededError");
         return original.call(this, key, value);
       };
@@ -654,9 +703,7 @@ try {
     await expect(
       page.getByRole("button", { name: "Apply proposed version", exact: true }),
     ).toBeDisabled();
-    await page
-      .getByRole("textbox", { name: "Your notes (one per line)", exact: true })
-      .fill("Keep my note");
+    await setNotes(page, ["Keep my note"]);
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
@@ -683,12 +730,7 @@ try {
           exact: true,
         }),
       ).toHaveValue(invalid === "value" ? "3.5" : "");
-      await expect(
-        page.getByRole("textbox", {
-          name: "Your notes (one per line)",
-          exact: true,
-        }),
-      ).toHaveValue("Keep my note");
+      await expect.poll(() => notesOf(page)).toEqual(["Keep my note"]);
       await expect(
         page.getByRole("button", { name: "Save my edits", exact: true }),
       ).toBeDisabled();
@@ -699,7 +741,9 @@ try {
         }),
       ).toBeDisabled();
       const kept = await page.evaluate(() =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")),
+        JSON.parse(
+          sessionStorage.getItem(window.sk("workagent:product:w:c:a")),
+        ),
       );
       assert.deepEqual(kept.body.arguments, [3]);
       assert.equal(kept.body.input_form[0].label, "Quantity");
@@ -709,12 +753,7 @@ try {
       "Quantity",
     );
     await expect(page.getByLabel("Quantity", { exact: true })).toHaveValue("3");
-    await expect(
-      page.getByRole("textbox", {
-        name: "Your notes (one per line)",
-        exact: true,
-      }),
-    ).toHaveValue("");
+    await expect.poll(() => notesOf(page)).toEqual([]);
     await expect(
       page.getByRole("button", { name: "Run saved tool", exact: true }),
     ).toBeEnabled();
@@ -733,8 +772,8 @@ try {
   assert.deepEqual(
     await page.evaluate(
       () =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
-          .arguments,
+        JSON.parse(sessionStorage.getItem(window.sk("workagent:product:w:c:a")))
+          .body.arguments,
     ),
     [4],
   );
@@ -745,7 +784,7 @@ try {
   await mount("away");
   await expect(page.getByText("Navigation away")).toBeVisible();
   await page.evaluate(() => {
-    const key = "workagent:product:w:c:a";
+    const key = window.sk("workagent:product:w:c:a");
     const kept = JSON.parse(sessionStorage.getItem(key));
     kept.toolInputs = [{ name: "quantity", label: "Quantity", value: "9" }];
     sessionStorage.setItem(key, JSON.stringify(kept));
@@ -771,8 +810,8 @@ try {
   assert.deepEqual(
     await page.evaluate(
       () =>
-        JSON.parse(sessionStorage.getItem("workagent:product:w:c:a")).body
-          .arguments,
+        JSON.parse(sessionStorage.getItem(window.sk("workagent:product:w:c:a")))
+          .body.arguments,
     ),
     [4],
   );
@@ -821,7 +860,9 @@ try {
   assert.equal(lost.payload.target, undefined);
   const stored = await page.evaluate(() =>
     sessionStorage.getItem(
-      `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
+      window.sk(
+        `workagent:pending:${window.scope.ws}:conversation:${window.scope.cid}:send`,
+      ),
     ),
   );
   assert.deepEqual(JSON.parse(stored), lost.payload);
@@ -870,7 +911,7 @@ try {
   await mount("away");
   await expect(page.getByText("Navigation away")).toBeVisible();
   await page.evaluate((data) => {
-    sessionStorage.removeItem("workagent:product:w:c:a");
+    sessionStorage.removeItem(window.sk("workagent:product:w:c:a"));
     window.resource = {
       data,
       error: null,
@@ -1707,9 +1748,7 @@ try {
     revision_id: window.resource.data.artifact.current_revision_id,
     body_hash: window.resource.data.artifact.current_revision.body_hash,
   }));
-  await page
-    .getByLabel("Your notes (one per line)")
-    .fill("Unsaved working note");
+  await setNotes(page, ["Unsaved working note"]);
   await expect(
     page.getByText(
       "Your unsaved edits aren’t included. Replies work from your saved version.",
@@ -2071,6 +2110,18 @@ try {
     ...extra,
   });
   // Writes go through the real client; the network answers per test.
+  // Writes still in flight are counted: their answers update what the
+  // client keeps in storage, even after the work that sent them has left.
+  let inFlight = 0;
+  const isWrite = (r) =>
+    r.method() === "POST" && r.url().includes("/v1/workspaces/");
+  page.on("request", (r) => {
+    if (isWrite(r)) inFlight++;
+  });
+  for (const done of ["requestfinished", "requestfailed"])
+    page.on(done, (r) => {
+      if (isWrite(r)) inFlight--;
+    });
   let flexPosts = [];
   let flexReply = () => ({ status: 500, json: {} });
   await page.route("**/v1/workspaces/**", async (route) => {
@@ -2102,11 +2153,21 @@ try {
   // Flexible work opens on its result; these cases edit it, so each opens
   // on the Edit tab the way a person who chose it last time would.
   async function showFlex(data, mode = "edit") {
+    // The last case settles first: its writes answered and handled, and its
+    // work gone. Otherwise either can write its draft back after storage is
+    // cleared, and this case would open on it.
+    await expect.poll(() => inFlight).toBe(0);
+    await page.evaluate(() => new Promise((r) => setTimeout(r, 50)));
     flexPosts = [];
+    await away();
     await page.evaluate(
       ([data, mode]) => {
         sessionStorage.clear();
-        if (mode) sessionStorage.setItem("workagent:product:w:c:a:mode", mode);
+        if (mode)
+          sessionStorage.setItem(
+            window.sk("workagent:product:w:c:a:mode"),
+            mode,
+          );
         window.resource = {
           data,
           error: null,
@@ -2116,7 +2177,6 @@ try {
       },
       [data, mode],
     );
-    await away();
     await page.evaluate(() => window.mount("product"));
   }
 
@@ -2185,17 +2245,32 @@ try {
         exact: true,
       })
       .pressSequentially("Added by a person");
-    // Typed key by key, notes keep their spaces and line breaks exactly.
-    const notes = page.getByLabel("Notes (one per line)", { exact: true });
-    await notes.focus();
-    await page.keyboard.press("Control+End");
+    // Typed key by key, each note is its own box and keeps its spaces and
+    // line breaks exactly.
+    const notesBox = notesGroup(page, "Notes");
+    const before = (table.notes ?? []).length;
+    await notesBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    const first = notesBox.getByRole("textbox", {
+      name: `Note ${before + 1}`,
+      exact: true,
+    });
+    await first.pressSequentially("Hello world");
     await page.keyboard.press("Enter");
-    await notes.pressSequentially("Hello world");
-    await page.keyboard.press("Enter");
-    await notes.pressSequentially("Second note ");
-    const typedNotes =
-      (table.notes ?? []).join("\n") + "\nHello world\nSecond note ";
-    await expect(notes).toHaveValue(typedNotes);
+    await first.pressSequentially("  indented");
+    await notesBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    await notesBox
+      .getByRole("textbox", { name: `Note ${before + 2}`, exact: true })
+      .pressSequentially("Second note ");
+    const typedNotes = [
+      ...(table.notes ?? []),
+      "Hello world\n  indented",
+      "Second note ",
+    ];
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(typedNotes);
     // Survives leaving and coming back before saving.
     await page.evaluate(() => {
       window.mount("away");
@@ -2203,7 +2278,7 @@ try {
     await page.evaluate(() => window.mount("product"));
     // What the person typed is kept as typed; the body holds the normalized value.
     await expect(decInput).toHaveValue("199");
-    await expect(notes).toHaveValue(typedNotes);
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(typedNotes);
     flexReply = (url, body) =>
       artifactAfterSave("saved-2", body.body, "e".repeat(64));
     await page
@@ -2227,12 +2302,8 @@ try {
     assert.equal(cell(sentRow, dec.key), `199.${"0".repeat(dec.scale)}`);
     assert.equal(cell(sentRow, bool.key), false);
     assert.equal(cell(sent.rows.at(-1), textField.key), "Added by a person");
-    // Only the saved list is tidied: blank lines and outer spaces dropped.
-    assert.deepEqual(sent.notes, [
-      ...(table.notes ?? []),
-      "Hello world",
-      "Second note",
-    ]);
+    // Saved exactly as written: nothing trimmed or split.
+    assert.deepEqual(sent.notes, typedNotes);
     // Every other saved value is untouched.
     for (const r of table.rows)
       for (const c of r.cells)
@@ -2501,34 +2572,54 @@ try {
 
   {
     // Notes over the service's limit are refused visibly, never cut short.
+    // A person can't add an eleventh; a version that already holds more
+    // (written elsewhere) is kept whole until they choose what goes.
     const table = tableRev.body;
     await page.setViewportSize({ width: 1280, height: 800 });
     await showFlex(flexData(tableRev));
-    const notes = page.getByLabel("Notes (one per line)", { exact: true });
+    const box = notesGroup(page, "Notes");
+    const add = box.getByRole("button", { name: "Add a note", exact: true });
+    await expect(box.getByTestId("notes-hint")).toContainText("Up to 10.");
+    for (let i = table.notes.length; i < 10; i++) {
+      await add.click();
+      await box
+        .getByRole("textbox", { name: `Note ${i + 1}`, exact: true })
+        .fill(`Human note ${i + 1}`);
+    }
+    await expect(add).toBeDisabled();
     const extra = Array.from(
       { length: 11 - table.notes.length },
       (_, i) => `Human note ${table.notes.length + i + 1}`,
     );
-    await notes.focus();
-    await page.keyboard.press("Control+End");
-    for (const line of extra) {
-      await page.keyboard.press("Enter");
-      await notes.pressSequentially(line);
-    }
-    const eleven = [...table.notes, ...extra].join("\n");
-    await expect(notes).toHaveValue(eleven);
+    const elevenNotes = [...table.notes, ...extra];
+    const overRev = {
+      ...tableRev,
+      id: "over-limit",
+      body: { ...table, notes: elevenNotes },
+    };
+    await showFlex(flexData(overRev));
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(elevenNotes);
+    await expect(add).toBeDisabled();
+    // Any edit shows why it can't be saved yet; nothing is removed.
+    await box
+      .getByRole("textbox", { name: "Note 1", exact: true })
+      .fill(`${elevenNotes[0]} (checked)`);
+    const edited = [`${elevenNotes[0]} (checked)`, ...elevenNotes.slice(1)];
     await expect(page.getByTestId("draft-problem")).toHaveText(
-      "Keep notes to 10 lines. There are 11; nothing has been removed.",
+      "Keep to 10 notes. There are 11; nothing has been removed.",
     );
     await expect(
       page.getByRole("button", { name: "Save my edits", exact: true }),
     ).toBeDisabled();
     await away();
     await page.evaluate(() => window.mount("product"));
-    await expect(notes).toHaveValue(eleven);
+    await expect.poll(() => notesOf(page, "Notes")).toEqual(edited);
     await expect(page.getByTestId("draft-problem")).toBeVisible();
-    // Removing one line makes it savable, with all ten kept.
-    await notes.fill([...table.notes, ...extra].slice(0, 10).join("\n"));
+    // Removing one makes it savable, with the other ten kept as they are.
+    await box
+      .getByRole("button", { name: "Remove note 11", exact: true })
+      .click();
+    await expect(page.getByTestId("draft-problem")).toHaveCount(0);
     flexPosts = [];
     flexReply = (url, body) =>
       artifactAfterSave("saved-3", body.body, "f".repeat(64));
@@ -2536,14 +2627,264 @@ try {
       .getByRole("button", { name: "Save my edits", exact: true })
       .click();
     await expect(page.getByText("Your edits are saved.")).toBeVisible();
-    assert.deepEqual(
-      flexPosts[0].body.body.notes,
-      [...table.notes, ...extra].slice(0, 10),
-    );
+    assert.deepEqual(flexPosts[0].body.body.notes, edited.slice(0, 10));
   }
   passed++;
   console.log(
-    "PASS notes over the limit are refused visibly and kept through reload, never truncated on save",
+    "PASS notes stop at the limit; a version already over it is refused visibly, kept through reload, and never truncated on save",
+  );
+
+  {
+    // A note can run over several lines; wherever it's shown outside the
+    // editor it reads as written, one note to an item, never run together.
+    await page.addStyleTag({
+      path: path.join(web, "src", "styles", "products.css"),
+    });
+    const twoLines =
+      "Call Priya at the hall.\nAsk for the hold to be extended.";
+    const saved = {
+      ...tableRev,
+      id: "notes-saved",
+      body: { ...tableRev.body, notes: [twoLines, "Keep the receipt."] },
+    };
+    await showFlex(
+      flexData(saved, {
+        proposals: [
+          {
+            id: "drops-note",
+            status: "pending",
+            base_revision_id: saved.id,
+            body: { ...saved.body, notes: ["Keep the receipt."] },
+            body_hash: "c".repeat(64),
+            reason: "Synthetic proposal",
+            created_at: "2026-11-02T10:00:00Z",
+          },
+        ],
+      }),
+      "changes",
+    );
+    const lost = page.getByTestId("proposal-removed-notes").locator("li");
+    await expect(lost).toHaveCount(1);
+    for (const li of [
+      lost,
+      page.getByTestId("proposal-removed").locator("li").first(),
+    ]) {
+      assert.equal(
+        await li.evaluate((e) => getComputedStyle(e).whiteSpace),
+        "pre-wrap",
+      );
+      assert.match(await li.innerText(), /hall\.\nAsk for/);
+    }
+    // A tool's proposal lists the notes it keeps, each as written.
+    const toolBody = {
+      kind: "tool",
+      title: "Saved tool",
+      code: '(module (func (export "total") (result i64) i64.const 1))',
+      entrypoint: "total",
+      arguments: [],
+      input_form: [],
+      notes: [twoLines, "Amounts; in cents"],
+    };
+    const rev = {
+      id: "tool-r",
+      artifact_id: "a",
+      revision_number: 1,
+      body: toolBody,
+      body_hash: "e".repeat(64),
+      author_kind: "worker",
+      author_id: "worker",
+      source_dependencies: [],
+    };
+    await showFlex(
+      flexData(rev, {
+        proposals: [
+          {
+            id: "tool-p",
+            status: "pending",
+            base_revision_id: rev.id,
+            body: toolBody,
+            body_hash: "e".repeat(64),
+            reason: "Synthetic proposal",
+          },
+        ],
+      }),
+      null,
+    );
+    const card = page.getByTestId("product-proposal");
+    await card.getByText("See the proposed version").click();
+    const kept = card.getByTestId("proposal-kept-notes").locator("li");
+    await expect(kept).toHaveCount(2);
+    assert.match(await kept.first().innerText(), /hall\.\nAsk for/);
+    await expect(kept.nth(1)).toHaveText("Amounts; in cents");
+  }
+  passed++;
+  console.log(
+    "PASS a note over several lines reads as written where a proposal removes or keeps it",
+  );
+
+  {
+    // Batch 2 controls keep the keyboard beside what the person pressed:
+    // Stop's confirmation swaps buttons in place (and a stop lands on the
+    // work's status); a cancelled queued message or a removed document
+    // hands focus to the next one, else the one before, else a heading or
+    // the attach control. Never the top of the page.
+    const focused = () =>
+      page.evaluate(() => {
+        const a = document.activeElement;
+        return a === document.body
+          ? "body"
+          : a.getAttribute("aria-label") ||
+              a.getAttribute("data-testid") ||
+              a.textContent.trim();
+      });
+    await away();
+    await page.evaluate(() => window.mount("stop"));
+    await page.getByRole("button", { name: "Stop this run…" }).press("Enter");
+    expect(await focused()).toBe("Stop this run");
+    await page.getByRole("button", { name: "Keep going" }).press("Enter");
+    expect(await focused()).toBe("Stop this run…");
+    await page.getByRole("button", { name: "Stop this run…" }).press("Enter");
+    await page.getByRole("button", { name: "Stop this run" }).press("Enter");
+    await expect.poll(focused).toBe("current-work");
+
+    const queued = (id, position) => ({
+      id,
+      conversation_id: "c",
+      owner_id: "h",
+      position,
+      queue_version: 1,
+      created_at: "2026-10-28T00:00:00Z",
+      intent: { text: `Queued ${id}` },
+      admission_work_version: 1,
+      access_generation: 1,
+      dependency_fingerprint: "f",
+      state: "pending",
+      reason: null,
+      run_id: null,
+    });
+    await away();
+    await page.evaluate(
+      ([a, b]) => {
+        window.queueItems = [a, b];
+        // The service answers with the cancelled message no longer open.
+        window.queueAfter = (items) =>
+          items.map((q) =>
+            window.b2calls.some((c) => c.url.includes(q.id))
+              ? { ...q, state: "cancelled" }
+              : q,
+          );
+        window.mount("queue");
+      },
+      [queued("q1", 1), queued("q2", 2)],
+    );
+    const cancels = page.getByRole("button", {
+      name: "Cancel this queued message",
+    });
+    await cancels.first().press("Enter");
+    await expect(cancels).toHaveCount(1);
+    await expect.poll(focused).toBe("Cancel this queued message");
+    await cancels.first().press("Enter");
+    await expect(cancels).toHaveCount(0);
+    await expect.poll(focused).toBe("Queued for later");
+
+    const staged = (name, n) => ({
+      doc: {
+        filename: name,
+        byte_length: 1000 + n,
+        sha256: String(n).repeat(64),
+      },
+      generation: `g${n}`,
+      staged_at: n,
+      durable: true,
+      state: "staged",
+      ref: null,
+      upload: null,
+    });
+    await away();
+    await page.evaluate(
+      (docs) => {
+        window.docItems = docs;
+        window.mount("docs");
+      },
+      [staged("brief.pdf", 1), staged("budget.xlsx", 2)],
+    );
+    await page.getByRole("button", { name: "Remove brief.pdf" }).press("Enter");
+    await expect.poll(focused).toBe("Remove budget.xlsx");
+    await page
+      .getByRole("button", { name: "Remove budget.xlsx" })
+      .press("Enter");
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.type))
+      .toBe("file");
+  }
+  passed++;
+  console.log(
+    "PASS Stop's confirmation, cancelling a queued message and removing a document keep the keyboard beside them",
+  );
+
+  {
+    // Removing a note or a row keeps the keyboard where the person was (the
+    // next one, else the one before, else Add), never the top of the page,
+    // and what was removed is announced from a region already on the page.
+    const table = tableRev.body;
+    await showFlex(flexData(tableRev));
+    const box = notesGroup(page, "Notes");
+    await expect(box.getByRole("status")).toHaveCount(1);
+    await expect(box.getByRole("status")).toHaveText("");
+    const before = table.notes.length;
+    for (const [i, text] of ["First added", "Second added"].entries()) {
+      await box
+        .getByRole("button", { name: "Add a note", exact: true })
+        .click();
+      await box
+        .getByRole("textbox", { name: `Note ${before + i + 1}`, exact: true })
+        .fill(text);
+    }
+    await box
+      .getByRole("button", { name: `Remove note ${before + 1}`, exact: true })
+      .press("Enter");
+    const took = box.getByRole("textbox", {
+      name: `Note ${before + 1}`,
+      exact: true,
+    });
+    await expect(took).toBeFocused();
+    await expect(took).toHaveValue("Second added");
+    await expect(box.getByRole("status")).toHaveText(
+      "Removed “First added”. Undo",
+    );
+    await box
+      .getByRole("button", { name: `Remove note ${before + 1}`, exact: true })
+      .press("Enter");
+    await expect(
+      before
+        ? box.getByRole("textbox", { name: `Note ${before}`, exact: true })
+        : box.getByRole("button", { name: "Add a note", exact: true }),
+    ).toBeFocused();
+    const region = page.getByRole("region", { name: "Editable table" });
+    const firstField = region
+      .locator("tbody > tr:not(.long-row)")
+      .first()
+      .locator("input, select, textarea")
+      .first();
+    const rowStatus = page
+      .getByRole("status")
+      .filter({ hasText: /^$|Removed/ });
+    assert.ok((await rowStatus.count()) >= 2, "a row status is on the page");
+    await region
+      .getByRole("button", { name: /^Remove / })
+      .first()
+      .press("Enter");
+    await expect(firstField).toBeFocused();
+    const undoRow = page
+      .getByTestId("undo-remove")
+      .getByRole("button", { name: "Undo", exact: true });
+    await undoRow.press("Enter");
+    await expect(firstField).toBeFocused();
+    await expect(page.getByTestId("undo-remove")).toHaveCount(0);
+  }
+  passed++;
+  console.log(
+    "PASS removing a note or a row keeps the keyboard beside it, undo returns it there, and the removal is announced",
   );
 
   {
@@ -2552,13 +2893,20 @@ try {
     // this tab then holds the exact retry.
     const table = tableRev.body;
     await showFlex(flexData(tableRev));
-    await page
-      .getByLabel("Notes (one per line)", { exact: true })
-      .fill([...table.notes, "Kept only in this tab"].join("\n"));
+    const tabBox = notesGroup(page, "Notes");
+    await tabBox
+      .getByRole("button", { name: "Add a note", exact: true })
+      .click();
+    await tabBox
+      .getByRole("textbox", {
+        name: `Note ${table.notes.length + 1}`,
+        exact: true,
+      })
+      .fill("Kept only in this tab");
     await page.evaluate(() => {
       window.realSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key === "workagent:product:w:c:a")
+        if (key === window.sk("workagent:product:w:c:a"))
           throw new DOMException("full", "QuotaExceededError");
         return window.realSetItem.call(this, key, value);
       };
@@ -2612,7 +2960,7 @@ try {
     await page.evaluate(() => {
       window.realSetItem = Storage.prototype.setItem;
       Storage.prototype.setItem = function (key, value) {
-        if (key === "workagent:product:w:c:a")
+        if (key === window.sk("workagent:product:w:c:a"))
           throw new DOMException("full", "QuotaExceededError");
         return window.realSetItem.call(this, key, value);
       };
@@ -2799,6 +3147,60 @@ try {
   passed++;
   console.log(
     "PASS of two proposals for the same version the latest is the decision; an earlier one is a step away and applying it waits for both acknowledgements, which it sends",
+  );
+
+  {
+    // A table proposal that adds one row and takes another out, with no
+    // value changed in place: the Changes tab opens the whole version, marks
+    // the added row "New" on its name, and names the row it takes out.
+    const body = structuredClone(tableRev.body);
+    const gone = body.rows[0];
+    const goneName = gone.cells.find((c) => c.field_key === "venue").value;
+    const fresh = structuredClone(body.rows[1]);
+    fresh.row_id = "venue-birch-barn";
+    fresh.cells.find((c) => c.field_key === "venue").value = "Birch Barn";
+    const proposedBody = { ...body, rows: [...body.rows.slice(1), fresh] };
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await showFlex(
+      flexData(tableRev, {
+        proposals: [
+          {
+            id: "rows",
+            status: "pending",
+            base_revision_id: tableRev.id,
+            body: proposedBody,
+            body_hash: "d".repeat(64),
+            reason: "Synthetic proposal",
+            created_at: "2026-11-02T10:00:00Z",
+          },
+        ],
+      }),
+      "changes",
+    );
+    const panel = page.locator("#work-panel-changes");
+    await expect(
+      panel.locator("details[open] > summary", {
+        hasText: "The whole proposed version",
+      }),
+    ).toHaveCount(1);
+    const added = panel.locator('tr[data-added="true"]');
+    await expect(added).toHaveCount(1);
+    await expect(added).toContainText("Birch Barn");
+    await expect(
+      added.locator('td[data-name="true"] [data-testid="row-new"]'),
+    ).toHaveText("New");
+    await expect(panel.getByTestId("row-new")).toHaveCount(1);
+    await expect(panel.getByTestId("proposal-removed-rows")).toHaveText(
+      `Takes out “${goneName}”.`,
+    );
+    // On a phone the row is a card, still marked in words.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(added.getByTestId("row-new")).toBeVisible();
+    await page.setViewportSize({ width: 1280, height: 800 });
+  }
+  passed++;
+  console.log(
+    "PASS a table proposal's Changes tab marks the rows it adds as New, names the rows it takes out, and opens the whole version when no value changes in place",
   );
 
   {
@@ -3171,7 +3573,7 @@ try {
     const long =
       "quarterly-volunteer-schedule-with-a-very-long-descriptive-name";
     sessionStorage.setItem(
-      "workagent:conversation:c:files",
+      window.sk("workagent:conversation:c:files"),
       JSON.stringify([
         { filename: `${long}.csv`, mime_type: "text/csv", content: "id\n1\n" },
         {

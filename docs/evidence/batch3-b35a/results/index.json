@@ -1,0 +1,240 @@
+{
+  "batches": [
+    {
+      "batch": "initial.xml",
+      "sha256": "9bbf24cfc66b6d8a26c3199a382514837ef312e12c62cc25a05c401b3204234e",
+      "counts": {
+        "passed": 49,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 49,
+      "seconds": 91.619,
+      "timestamp": "2026-10-29T12:45:26.162803+00:00"
+    },
+    {
+      "batch": "safety-01.xml",
+      "sha256": "52f75e4a281b0150fd207da292865f5809391a8b98252c8d00174aa3b774273a",
+      "counts": {
+        "passed": 1,
+        "failed": 7,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 8,
+      "seconds": 41.767,
+      "timestamp": "2026-10-29T12:50:24.624053+00:00"
+    },
+    {
+      "batch": "safety-02.xml",
+      "sha256": "5ee862d1f646deece9502113d1abce115f34a3b88ff422e904767d64d0cb5ba0",
+      "counts": {
+        "passed": 8,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 8,
+      "seconds": 42.45,
+      "timestamp": "2026-10-29T12:51:46.968152+00:00"
+    },
+    {
+      "batch": "closure-02.xml",
+      "sha256": "439b4e8c47091697c771dcaa95b471e929a25baa0ac8729a87652a44e6695760",
+      "counts": {
+        "passed": 21,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 21,
+      "seconds": 251.152,
+      "timestamp": "2026-10-29T13:15:53.204255+00:00"
+    },
+    {
+      "batch": "matrix-01.xml",
+      "sha256": "462ef5f930c308c506a62fea6cc686a3203e24c034f41d4714389491facb0b80",
+      "counts": {
+        "passed": 0,
+        "failed": 0,
+        "error": 1,
+        "skipped": 0
+      },
+      "declared_tests": 1,
+      "seconds": 7.167,
+      "timestamp": "2026-10-29T13:31:21.171429+00:00"
+    },
+    {
+      "batch": "connectors-01.xml",
+      "sha256": "b4b2974b336985346c9310235315e1f2111093d0593fe87d2d90e2646afd367b",
+      "counts": {
+        "passed": 46,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 46,
+      "seconds": 265.842,
+      "timestamp": "2026-10-29T13:38:29.078841+00:00"
+    },
+    {
+      "batch": "matrix-02.xml",
+      "sha256": "0e04f897dcf5490c8f5d106320d2cf7f050e87f39cc64eae33936342019570c7",
+      "counts": {
+        "passed": 257,
+        "failed": 1,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 258,
+      "seconds": 1133.569,
+      "timestamp": "2026-10-29T13:38:22.211435+00:00"
+    },
+    {
+      "batch": "http-fix-03.xml",
+      "sha256": "3a5725b8837b93c121c62b1677ee871461b703cf3c1a6a8e63183838a52e5899",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 2,
+      "seconds": 21.448,
+      "timestamp": "2026-10-29T13:59:55.371116+00:00"
+    },
+    {
+      "batch": "closure-03.xml",
+      "sha256": "c9989d2468a3d279230e293ffb118810b51132413cc180bbebedbac8ad18ca31",
+      "counts": {
+        "passed": 15,
+        "failed": 1,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 16,
+      "seconds": 439.391,
+      "timestamp": "2026-10-29T14:09:31.577277+00:00"
+    },
+    {
+      "batch": "narrow-04.xml",
+      "sha256": "88c1cd73540b8a2400454f42022b239b92c65c9dd2ef0c85f31db89196e40e71",
+      "counts": {
+        "passed": 2,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 2,
+      "seconds": 15.667,
+      "timestamp": "2026-10-29T14:19:29.901747+00:00"
+    },
+    {
+      "batch": "projections-05.xml",
+      "sha256": "3ae69e16846dc74814b8b637f43c3221b2f20377eb85e5116dc726e88bb7ad9d",
+      "counts": {
+        "passed": 6,
+        "failed": 1,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 7,
+      "seconds": 100.981,
+      "timestamp": "2026-10-29T14:22:35.974528+00:00"
+    },
+    {
+      "batch": "publication-06.xml",
+      "sha256": "1bd561f046e366dfce485d268169d5d81a9261ad8d18d9fd4b725af87282c0ad",
+      "counts": {
+        "passed": 0,
+        "failed": 1,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 1,
+      "seconds": 31.012,
+      "timestamp": "2026-10-29T14:23:48.546331+00:00"
+    },
+    {
+      "batch": "projections-07.xml",
+      "sha256": "79deda25f69131b8842cdb879ff6f967f94c42a20c78b7ffb82a50e27018d4d0",
+      "counts": {
+        "passed": 6,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 6,
+      "seconds": 77.294,
+      "timestamp": "2026-10-29T14:25:34.522700+00:00"
+    },
+    {
+      "batch": "restore-matrix-08.xml",
+      "sha256": "a14b282e0e949480746aea09d3059a2b9cf2d2a18a7bcee20cb97cea28ca180d",
+      "counts": {
+        "passed": 0,
+        "failed": 1,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 1,
+      "seconds": 9.365,
+      "timestamp": "2026-10-29T14:27:32.406261+00:00"
+    },
+    {
+      "batch": "metadata-11.xml",
+      "sha256": "5f0963f447c43c0ab8cabff71573ef5f108b0f64b715d477ed1317e92b4094f4",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 1,
+      "seconds": 76.37,
+      "timestamp": "2026-10-29T14:31:11.123435+00:00"
+    },
+    {
+      "batch": "retrieval-09.xml",
+      "sha256": "71cf842eaef4f97f0921822cf3b3e38cdfbb6d9d8a8647c673fc5e1e6d1a7520",
+      "counts": {
+        "passed": 22,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 22,
+      "seconds": 519.332,
+      "timestamp": "2026-10-29T14:28:36.088190+00:00"
+    },
+    {
+      "batch": "closure-10.xml",
+      "sha256": "f0670f46b79839d6bfa83e32fd546dfbdd31501a0e51ffb3f5b6871eb722004d",
+      "counts": {
+        "passed": 8,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 8,
+      "seconds": 465.752,
+      "timestamp": "2026-10-29T14:30:03.643745+00:00"
+    },
+    {
+      "batch": "process-binding-12.xml",
+      "sha256": "4da375171f74f315d1f91556a12a62c0222e31db2932353f85c63f234590d16a",
+      "counts": {
+        "passed": 1,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0
+      },
+      "declared_tests": 1,
+      "seconds": 28.925,
+      "timestamp": "2026-10-29T14:45:43.693896+00:00"
+    }
+  ],
+  "totals_not_added": true,
+  "paid_product_calls": 0
+}

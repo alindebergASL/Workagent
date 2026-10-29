@@ -21,6 +21,7 @@ import type {
 } from "@/lib/contract/types";
 import { blocksEqual, countChanges, diffBlocks } from "@/lib/diff";
 import { clearDraft, readDraft, writeDraft } from "@/lib/draft";
+import { scopedSession } from "@/lib/client/session-scope";
 import { EXECUTION } from "@/lib/execution";
 import { formatTime } from "@/lib/time";
 import { threadFrom } from "@/lib/thread";
@@ -166,7 +167,7 @@ function ArtifactView({ scope }: { scope: WorkspaceScope }) {
   const askKey = `workagent:ask:${artifactId}`;
   useEffect(() => {
     try {
-      const saved = sessionStorage.getItem(askKey);
+      const saved = scopedSession.getItem(askKey);
       if (saved) setInstruction((v) => v || saved);
     } catch {
       /* storage unavailable */
@@ -174,8 +175,8 @@ function ArtifactView({ scope }: { scope: WorkspaceScope }) {
   }, [askKey]);
   useEffect(() => {
     try {
-      if (instruction) sessionStorage.setItem(askKey, instruction);
-      else sessionStorage.removeItem(askKey);
+      if (instruction) scopedSession.setItem(askKey, instruction);
+      else scopedSession.removeItem(askKey);
     } catch {
       /* storage unavailable: the in-memory text still exists */
     }
