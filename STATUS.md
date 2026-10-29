@@ -1,6 +1,13 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.5a correction/forget/revoke/isolated recovery verified
+## Latest: B3.5b offline held-out harness prepared; live trials unfunded
+
+- [Preparation evidence](docs/evidence/batch3-b35b/ACCEPTANCE.md): frozen accepted B0 `26e599b3` versus candidate `914043a`, external evaluator-only v2 corpus with21 cases including reserves, mixed B0/B1/M1 order and42 fresh primary stores.252 actual no-network request/custody episodes pass;42 whole-request cross-project controls and84 equal B1/M1 prompt/schema/model pairs are verified. These are deterministic receipts, not solved tasks or memory usefulness.
+- Real pinned gVisor oracle-path/network probe passes;29 focused harness controls and9 fresh ledger checks pass. One independent risk review identified5 issues; parent narrow closure, fresh v2 inputs and runtime/dependency locks retain all original failures/timeouts. Full136-row evaluation/correction/safety/T6/T7 matrix includes the conditional private pilot;66 unchanged B3.5a source bindings support scoped safety-proof reuse.
+- Read-only13-store reconciliation at2026-10-29T16:23Z retains99.60596USD of100USD allocated,0.39404USD globally unallocated,3 unknown-usage steps and7 unmatched-count steps. Unused expired/old scoped grants are not new money. No full preregistered live trajectory is funded: single-trajectory maximum29.61216USD; A/B maximum355.34592USD under installed conservative count/read reserves. These are upper envelopes, not expected fees or new allocations.
+- Current full-tool schema does not enable typed-memory SQL recall; offline M1 projection is explicitly not that runtime. Existing B3.5c `t_82b30c02` owns the narrow real-treatment integration/refreeze and exact funding blocker before any live execution. Named private consent remains separate/nonblocking for this completed preparation. No product code/migration changes, paid product calls, new authority, installed-data maintenance, deployment/default merge or whole-Batch3 acceptance. Feature publication/exact-head CI are recorded separately on the task/PR.
+
+## Previous: B3.5a correction/forget/revoke/isolated recovery verified
 
 - Exact dependency-aware memory correction, applicability, recursive erasure/tombstones and current-authority exclusion now cover queued/in-flight requests and automated conversation/file/proposal/export derivatives, while retaining human revisions and audit/unknown history. New migrations069–072; prior68 migrations unchanged.
 - All8 literal correction variants pass again in a new interpreter and two isolated restores from pre-change backup. Actual worker PID replacement/no-send replay, owned API/web restart, web1440/390/320 and full native120x40/80x24 are verified with exact preserved human-file readbacks. Restore is quarantined inspection/human recovery, never grant/balance resume.

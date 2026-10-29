@@ -1,0 +1,92 @@
+{
+  "reservation_rates_usd_per_million": {
+    "input": "2.5",
+    "output": "10"
+  },
+  "per_generation_model_reserve_usd": "0.20692",
+  "one_generation_with_40_reads_usd": "0.61692",
+  "design": "Two held-out variations per family x B0/B1/M1 x six episodes x up to eight total generation calls per episode, including final/explanation/recovery; no retries outside this cap.",
+  "ancillary_design": "One count per generation and at most 40 lifetime response GETs per generation, not 40 per worker visit; .01 USD each as enforced by actual Batch2 campaign SQL. Zero cancels (forbidden). Read exhaustion retains partial/unknown outcomes; no blind resend.",
+  "auxiliary_paid_judge_search_calls": 0,
+  "tools": "Local/public tools unpriced; measured usage is not proved free or dollar billing. No paid auxiliary judge/search permitted.",
+  "designs": {
+    "single_episode": {
+      "families": null,
+      "trajectories": null,
+      "episodes": 1,
+      "generations": 8,
+      "count_sends": 8,
+      "response_reads": 320,
+      "cancels": 0,
+      "input_tokens": 400000,
+      "output_tokens": 65536,
+      "model_reserve_usd": "1.65536",
+      "count_read_reserve_usd": "3.28",
+      "total_reserve_usd": "4.93536",
+      "total_with_one_read_per_generation_usd": "1.81536"
+    },
+    "single_trajectory": {
+      "families": null,
+      "trajectories": 1,
+      "episodes": 6,
+      "generations": 48,
+      "count_sends": 48,
+      "response_reads": 1920,
+      "cancels": 0,
+      "input_tokens": 2400000,
+      "output_tokens": 393216,
+      "model_reserve_usd": "9.93216",
+      "count_read_reserve_usd": "19.68",
+      "total_reserve_usd": "29.61216",
+      "total_with_one_read_per_generation_usd": "10.89216"
+    },
+    "one_family": {
+      "families": 1,
+      "trajectories": 6,
+      "episodes": 36,
+      "generations": 288,
+      "count_sends": 288,
+      "response_reads": 11520,
+      "cancels": 0,
+      "input_tokens": 14400000,
+      "output_tokens": 2359296,
+      "model_reserve_usd": "59.59296",
+      "count_read_reserve_usd": "118.08",
+      "total_reserve_usd": "177.67296",
+      "total_with_one_read_per_generation_usd": "65.35296"
+    },
+    "A_B": {
+      "families": 2,
+      "trajectories": 12,
+      "episodes": 72,
+      "generations": 576,
+      "count_sends": 576,
+      "response_reads": 23040,
+      "cancels": 0,
+      "input_tokens": 28800000,
+      "output_tokens": 4718592,
+      "model_reserve_usd": "119.18592",
+      "count_read_reserve_usd": "236.16",
+      "total_reserve_usd": "355.34592",
+      "total_with_one_read_per_generation_usd": "130.70592"
+    },
+    "A_G": {
+      "families": 7,
+      "trajectories": 42,
+      "episodes": 252,
+      "generations": 2016,
+      "count_sends": 2016,
+      "response_reads": 80640,
+      "cancels": 0,
+      "input_tokens": 100800000,
+      "output_tokens": 16515072,
+      "model_reserve_usd": "417.15072",
+      "count_read_reserve_usd": "826.56",
+      "total_reserve_usd": "1243.71072",
+      "total_with_one_read_per_generation_usd": "457.47072"
+    }
+  },
+  "executable": false,
+  "new_allocation_usd": "0",
+  "provider_calls": 0
+}
