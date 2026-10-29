@@ -1,0 +1,46 @@
+......F..................                                                [100%]
+=================================== FAILURES ===================================
+____________ test_full_tool_project_isolation_and_stale_capability _____________
+
+context = (<workagent.service.Service object at 0x7fea90f55e20>, Principal(id='local-human', kind='human'), 'test-f70f4ab6-4e88-...me.datetime(2026, 10, 29, 16, 58, 46, 140635, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_full_tool_project_isolation_and_stale_capability(context):
+        from test_memory_pg import remember
+        from workagent.models import CreateWorkArea
+        from workagent.service import Principal
+        from test_runtime import expire
+        s, p, ws, _, _ = context
+        area = s.create_work_area(p, ws, cmd(CreateWorkArea, title='Private project', goal='Private project',
+            kind='project', selected_source_refs=[]))
+        private, _ = remember(context, area, scope_kind='work_area', content='OTHER_PROJECT_MEMORY_CANARY')
+        cv = conversation(context)
+        activated(context, cv, 'reviewed-v1')
+        q = post(context, cv, 'Prepare a project summary')
+        cap = s.claim_run(p, ws, q.run.id)
+        frozen = s.conversation_worker_context(cap)
+        assert frozen['memory_manifest'] == []
+        assert 'OTHER_PROJECT_MEMORY_CANARY' not in json.dumps(frozen)
+        with pytest.raises(DomainError) as denied:
+            s.inspect_memory(Principal('another-owner'), ws, private.memory_id)
+        assert denied.value.code.value == 'not_found_or_not_authorized'
+        expire(context, q.run.id)
+        replacement = s.claim_run(p, ws, q.run.id)
+        assert replacement is not None and replacement != cap
+        with pytest.raises(DomainError) as stale:
+            s.conversation_worker_context(cap)
+>       assert stale.value.code.value == 'stale_worker'
+E       AssertionError: assert 'not_found_or_not_authorized' == 'stale_worker'
+E         
+E         - stale_worker
+E         + not_found_or_not_authorized
+
+backend/tests/test_memory_full_tools.py:168: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_full_tools.py::test_full_tool_project_isolation_and_stale_capability
+1 failed, 24 passed, 1 warning in 63.22s (0:01:03)

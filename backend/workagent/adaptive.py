@@ -48,6 +48,11 @@ def contract(binding):
     from .capabilities.delegation_composition import enabled as delegation_enabled, POLICY as delegation_policy, SCHEMA as delegation_schema
     if delegation_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                         'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        # Both explicit treatments share exactly the same tools and guidance.
+        # The grant-bound switch changes only SQL recall projection, not policy.
+        if getattr(binding,'memory_recall',None) is not None:
+            from .memory.runtime import GUIDANCE
+            delegation_policy += GUIDANCE
         return delegation_policy,delegation_schema
     from .capabilities.mcp_composition import enabled as mcp_enabled, POLICY as mcp_policy, SCHEMA as mcp_schema
     if mcp_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
