@@ -1,0 +1,97 @@
+workagent
+Agent
+Spaces
+Conversations
+YOUR WORK
+Reviewed methods study
+Activity & details
+Connections
+← Back to agent
+Reviewed duration transfer — fresh input
+Keep as a project
+
+You:
+Prepare a duration summary by batch using unique valid observations; minutes must become seconds. Do not copy old values.
+
+different-shape.json · 587 bytes
+Agent:
+
+Saved a fresh result from the current input. Reviewed guidance is advisory, not proof of correctness. Controlled transport; no causal learning claim.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 09:46 UTC
+New version saved
+Mark as seen
+Details
+Files
+different-shape.json
+text/plain · 587 bytes · read-only evidence
+duration-summary.csv
+text/csv · 90 bytes
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+No captured web sources in this conversation.
+
+New file…
+Memory
+Remember
+Kind
+Fact
+Preference
+Project convention
+Something that happened
+Procedure
+Applies to
+This conversation only
+This project
+All my work in this workspace
+Remember
+
+Linked to a project. Project memories can be used here.
+
+In use
+Waiting for review
+
+Inspect current units; deduplicate identified records, omit missing values rather than treating them as zero, and use the unique valid denominator. Preserve excluded counts and present units. Never transfer old totals.
+
+Procedure · This project · In use
+
+Why this is here
+This conversation is linked to the project
+You reviewed and accepted this
+Confidence: Inferred, not directly stated
+You accepted this, which adopts it for use. It is still an inference: accepting it didn’t test that it works.
+Basis: Observed actual failed computation and human correction; applicability is inferred, not empirically validated.
+Applies when: Duration or rate analysis with identified records and explicit units.
+Valid: Since 10/29/2026
+No file or source selected; this rests only on the observations it cites.
+Used in the latest answer
+Doesn’t apply when (part of when it applies, as reviewed):
+Missing is not zero; raw row count is a different denominator. Never skip current-unit and duplicate verification.
+Checked vs. guessed: Actual sandbox run failed, no numerical conclusion taken from it. Later deterministic transfer is mechanism evidence only.
+Based on (references, not instructions):
+Observed tool result (conversation_id: 4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0, event_id: 51995133-31e7-4bd8-9cec-8c032a79cde9, sha256: 0b6f0893f340c009894baab1b787d7108721742313c59d768391dc1573c00759)
+Your message (conversation_id: 4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0, event_id: a98e9923-aee9-4d09-b37f-2fc4a8da3e0e, sha256: 8a986a94923e82e5caad47cf435edaf22aea02d096124853c851e688c695c940)
+Used when a request mentions: duration, rate
+Never when a request mentions: raw row count
+Correct
+Restore an earlier version…
+Limit to this conversation only
+Expire
+Forget…
+Tool activity
+Continue the conversation
+Attach PDF, Word or Excel (up to 2, 5 MB each)
+Ask, steer, or add detail.
+Record a hand-over
+Queue for later
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

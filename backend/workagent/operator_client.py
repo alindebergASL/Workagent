@@ -66,7 +66,7 @@ class OperatorClient:
         req=urllib.request.Request(self.base+('/v1/identity' if path=='/identity' else '/v1/workspaces'+path),
             data=self.wire_body(body,document_upload=bool(re.fullmatch(r'/[^/]+/conversations/[^/]+/documents',path))) if body is not None else None,
             headers={'Authorization':'Bearer '+self.token,'Content-Type':'application/json',
-                     'X-Schema-Version':'workagent/v1','X-Request-Id':body['request_id'] if body is not None else str(uuid.uuid4())},
+                     'X-Schema-Version':'workagent/v1','X-Request-Id':(body.get('request_id') or body.get('idempotency_key')) if body is not None else str(uuid.uuid4())},
             method='POST' if body is not None else 'GET')
         try:
             with self.opener.open(req,timeout=15) as response:
@@ -89,7 +89,9 @@ class OperatorClient:
                 raise
             except Exception:
                 code='http_error'
-            error=ReadUnavailable if body is None and (exc.code>=500 or exc.code in (408,429)) else OperatorError
+            from .operator_journal import AccessDenied
+            error=(AccessDenied if exc.code in (401,403,404) else
+                   ReadUnavailable if body is None and (exc.code>=500 or exc.code in (408,429)) else OperatorError)
             raise error(f'HTTP {exc.code}: {code}; inspect saved state before any new command') from None
         except (OSError,ValueError,http.client.HTTPException) as exc:
             error=ReadUnavailable if body is None and not isinstance(exc,ValueError) else OperatorError
@@ -116,7 +118,9 @@ class OperatorClient:
         """Download canonical export bytes with bounded verification and no overwrite."""
         from .workspace_file_models import ExportManifest
         from .operator_attachments import save_download
-        manifest=ExportManifest.model_validate(manifest)
+        from .capabilities.compute_adapters import ComputeExportManifest
+        model = ComputeExportManifest if manifest.get('exporter_version') == 'compute-python-v1' else ExportManifest
+        manifest=model.model_validate(manifest)
         if manifest.workspace_id!=identifier(ws):
             raise OperatorError('Export workspace mismatch')
         path='/'+identifier(ws)+'/exports/'+identifier(manifest.export_id)+'/download'
@@ -162,6 +166,15 @@ class OperatorClient:
                 expected_work_version=expected_work_version,attachments=attachments,document_refs=document_refs,document=document,
                 principal_id=principal_id,acknowledge_removed_content=acknowledge_removed_content,
                 acknowledge_older_proposal=acknowledge_older_proposal)
+            self.journal.reserve(record)
+            return self.execute(record,announce)
+        if action in ('connectors','connector-status'):
+            root='/'+identifier(ws)+'/connectors'
+            return self.request(root if action=='connectors' else root+'/'+identifier(args[0])+'/status')
+        from .tui.connectors import ACTIONS as CONNECTOR_ACTIONS
+        if action in CONNECTOR_ACTIONS:
+            principal=self.identity(ws)
+            record=self.prepare(ws,action,args,command_id=command_id,principal_id=principal)
             self.journal.reserve(record)
             return self.execute(record,announce)
         acknowledgements=self.acknowledgements(action,acknowledge_removed_content,acknowledge_older_proposal)
@@ -282,6 +295,9 @@ class OperatorClient:
         Pure preflight: does not reserve an ID or perform HTTP. A UI can persist
         its pending pointer, reserve this exact record, then execute it once.
         """
+        from .tui.connectors import ACTIONS as CONNECTOR_ACTIONS, build as build_connector
+        if action in CONNECTOR_ACTIONS:
+            return build_connector(self,ws,action,args,command_id=command_id or str(uuid.uuid4()),principal_id=principal_id)
         from .tui.lifecycle import ACTIONS
         if action in ACTIONS:
             from .tui.lifecycle import build
@@ -333,6 +349,9 @@ class OperatorClient:
             raise OperatorError('Corrupt format-3 command; replay refused') from None
 
     def validate_record(self,record,ws,*,principal_id=None):
+        if record.get('format')==6:
+            from .tui.connectors import validate
+            return validate(self,record,ws,principal_id)
         if record.get('format')==5:
             from .tui.lifecycle import validate
             return validate(self,record,ws,principal_id)
@@ -364,6 +383,7 @@ class OperatorClient:
 
     def execute(self,record,announce):
         cid=record['command_id']
+        if record.get('format')==6:self.validate_record(record,record['workspace'],principal_id=self.identity(record['workspace']))
         retained=self.journal.read(cid)
         if retained['record']!=record:raise OperatorError('Dispatch differs from exact reserved journal record')
         prior=retained['outcome']
@@ -397,6 +417,9 @@ class OperatorClient:
 
     def readback(self,record,saved):
         root='/'+record['workspace']; action=record['action']; args=record['args']
+        if record['format']==6:
+            from .tui.connectors import readback
+            return readback(self,record,saved)
         if record['format']==5:
             from .tui.lifecycle import readback
             return readback(self,record,saved)

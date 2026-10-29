@@ -54,18 +54,19 @@ def jail_argv(input_path, module_path, kind, packages=None):
     return argv
 
 
-def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WALL_SECONDS):
+def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WALL_SECONDS,
+                 launcher=None, output_limit=OUTPUT_LIMIT, input_limit=MAX_ORIGINAL):
     """Bound both pipes concurrently and kill the entire jail on every early exit.
 
     module_path is an internal testing seam, never supplied by an HTTP command.
     """
-    if len(raw) > MAX_ORIGINAL:
+    if len(raw) > input_limit:
         raise ValueError('input_limit')
     module_path = module_path or Path(__file__).with_name('document_parser.py')
     with tempfile.TemporaryDirectory(prefix='workagent-document-') as directory:
         input_path = Path(directory) / 'original'
         input_path.write_bytes(raw)
-        argv = jail_argv(input_path, module_path, kind, packages)
+        argv = (launcher or jail_argv)(input_path, module_path, kind, packages)
         process = subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE, close_fds=True, start_new_session=True,
                                    env={}, cwd=directory)
@@ -86,7 +87,7 @@ def run_confined(raw, kind, *, module_path=None, packages=None, wall_seconds=WAL
                             selector.unregister(key.fileobj)
                         else:
                             key.data.extend(chunk)
-                            if len(output) + len(errors) > OUTPUT_LIMIT:
+                            if len(output) + len(errors) > output_limit:
                                 raise ValueError('parser_output_limit')
             returncode = process.wait(timeout=max(0.01, deadline - time.monotonic()))
             return returncode, bytes(output), bytes(errors)

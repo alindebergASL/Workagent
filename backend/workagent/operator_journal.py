@@ -28,6 +28,10 @@ class ReadUnavailable(OperatorError):
     """Transient GET failure, never a mutation outcome or access denial."""
 
 
+class AccessDenied(OperatorError):
+    """Authorization/resource denial; does not settle an earlier unknown write."""
+
+
 # Deliberately narrow: these domain failures reject the transaction before effects.
 REJECTION_CODES = {'version_conflict', 'source_changed', 'review_required'}
 

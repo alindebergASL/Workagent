@@ -24,11 +24,8 @@ import {
   sha256HexOfText,
   toDisplayText,
   utf8Length,
-  EXPORT_FORMATS,
   type CreateWorkspaceFile as CreateBody,
   type EditWorkspaceFile as EditBody,
-  type ExportFormat,
-  type ExportManifest,
   type FileComparison,
   type FileRange,
   type FileVersionRef,
@@ -46,16 +43,16 @@ import {
 import {
   compareVersions,
   createFile,
-  downloadVerifiedExport,
   editFile,
   envelope,
   listFiles,
   readVersion,
-  requestExport,
 } from "@/lib/client/workspace-files";
 import { client, meta, unwrap } from "@/lib/client/real-api";
 import { parseWorkSnapshot } from "@/lib/contract/work-events";
 import { ArtifactCitations, ResearchSources } from "./ResearchSources";
+import { BTN, FileExport, FIT, SHRINK, WRAP } from "./FileExport";
+import { openTargetProblem } from "@/lib/office-export";
 
 interface CitationBinding {
   artifactId: string;
@@ -126,11 +123,32 @@ export function WorkspaceFiles({
     void refresh();
   }, [refresh]);
 
+  // A new file (e.g. an editable office copy) opens only after a fresh list
+  // read confirms that exact file and version. Any failure is thrown to the
+  // caller (which keeps its journal) instead of selecting an unconfirmed id.
+  const openFile = useCallback(
+    async (target: WorkspaceFile) => {
+      const next = await listFiles(ws, cid);
+      setPage(next);
+      setListError(null);
+      const problem = openTargetProblem(next, target);
+      if (problem)
+        throw new ApiError({
+          code: "validation_error",
+          status: 0,
+          message: problem,
+        });
+      setSelected(target.workspace_file_id);
+    },
+    [ws, cid],
+  );
+
   const file = page?.items.find((f) => f.workspace_file_id === selected);
   return (
     <section
       className="card card-quiet stack-sm"
       aria-labelledby="wfiles-title"
+      style={FIT}
     >
       <h2 id="wfiles-title">Files</h2>
       {listError ? (
@@ -143,16 +161,20 @@ export function WorkspaceFiles({
           No working files in this conversation yet.
         </p>
       ) : null}
-      <ul className="stack-sm" style={{ listStyle: "none", padding: 0 }}>
+      <ul
+        className="stack-sm"
+        style={{ ...FIT, listStyle: "none", padding: 0 }}
+      >
         {(page?.items ?? []).map((f) => (
           <li
             key={f.workspace_file_id}
             className="row"
-            style={{ flexWrap: "wrap", gap: 8 }}
+            style={{ ...SHRINK, flexWrap: "wrap", gap: 8 }}
           >
             <button
               type="button"
               className="btn btn-sm btn-quiet"
+              style={{ ...WRAP, whiteSpace: "normal", textAlign: "start" }}
               aria-expanded={selected === f.workspace_file_id}
               onClick={() =>
                 setSelected((s) =>
@@ -162,7 +184,7 @@ export function WorkspaceFiles({
             >
               {f.filename}
             </button>
-            <span className="small muted">
+            <span className="small muted" style={WRAP}>
               {f.mime_type} · {f.byte_length.toLocaleString()} bytes
               {f.editable ? "" : " · read-only evidence"}
             </span>
@@ -177,6 +199,7 @@ export function WorkspaceFiles({
           file={file}
           workVersion={workVersion}
           refreshList={refresh}
+          openFile={openFile}
         />
       ) : null}
       <FileCreator
@@ -340,6 +363,7 @@ function FileCreator({
         <button
           type="button"
           className="btn btn-sm"
+          style={BTN}
           onClick={() => setOpen(true)}
         >
           New file…
@@ -348,7 +372,7 @@ function FileCreator({
     );
   const held = pending.current !== null;
   return (
-    <div className="stack-sm">
+    <div className="stack-sm" style={FIT}>
       <label className="field">
         <span className="field-label">
           Filename (.txt, .md, .markdown, .csv or .json)
@@ -393,6 +417,7 @@ function FileCreator({
         <button
           type="button"
           className="btn btn-primary btn-sm"
+          style={BTN}
           onClick={() => void submit()}
           disabled={busy || (!held && Boolean(problem))}
         >
@@ -402,6 +427,7 @@ function FileCreator({
           <button
             type="button"
             className="btn btn-sm btn-quiet"
+            style={BTN}
             onClick={() => void refreshList()}
             disabled={busy}
           >
@@ -417,6 +443,7 @@ function FileCreator({
           <button
             type="button"
             className="btn btn-sm btn-quiet"
+            style={BTN}
             onClick={() => setOpen(false)}
             disabled={busy}
           >
@@ -441,11 +468,19 @@ function FileEditor({
   file,
   workVersion,
   refreshList,
+  openFile = async () => {
+    throw new ApiError({
+      code: "validation_error",
+      status: 0,
+      message: "Opening another file is not available here.",
+    });
+  },
 }: {
   ws: string;
   file: WorkspaceFile;
   workVersion: number;
   refreshList: () => Promise<void>;
+  openFile?: (target: WorkspaceFile) => Promise<void>;
 }) {
   // The editor is pinned to the exact version it loaded; a newer current
   // version arriving later is announced via the list, never swapped under an
@@ -460,8 +495,6 @@ function FileEditor({
   const [unknownOutcome, setUnknownOutcome] = useState(false);
   const [previousRef, setPreviousRef] = useState<FileVersionRef | null>(null);
   const [comparison, setComparison] = useState<FileComparison | null>(null);
-  const [manifest, setManifest] = useState<ExportManifest | null>(null);
-  const [format, setFormat] = useState<ExportFormat>("txt");
   const pending = usePendingCommand<EditBody>(
     `workagent:file-save:${file.workspace_file_id}`,
   );
@@ -642,7 +675,6 @@ function FileEditor({
       setConsent(false);
       setPreviousRef(prev);
       setComparison(null);
-      setManifest(null);
       await refreshList();
     } catch (e) {
       if (!alive.current) return;
@@ -677,54 +709,24 @@ function FileEditor({
     }
   }
 
-  async function exportNow() {
-    if (!loaded) return;
-    setBusy(true);
-    setError(null);
-    try {
-      // Export the exact loaded version and bytes, not the moving head.
-      const m = await requestExport(ws, fileId, {
-        ...envelope(newCommandId()),
-        version_id: loaded.ref.version_id,
-        sha256: loaded.ref.sha256,
-        format,
-      });
-      setManifest(m);
-    } catch (e) {
-      setError(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function download(m: ExportManifest) {
-    setBusy(true);
-    setError(null);
-    try {
-      const bytes = await downloadVerifiedExport(ws, m.export_id, m.blob);
-      const url = URL.createObjectURL(
-        new Blob([bytes], { type: m.blob.mime_type }),
-      );
-      try {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = m.filename;
-        a.rel = "noopener";
-        a.click();
-      } finally {
-        setTimeout(() => URL.revokeObjectURL(url), 30000);
-      }
-    } catch (e) {
-      setError(errText(e));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const held = pending.current !== null;
   return (
-    <div className="card stack-sm" aria-label={`File ${file.filename}`}>
-      <h3 className="small">{file.filename}</h3>
+    <div
+      className="card stack-sm"
+      aria-label={`File ${file.filename}`}
+      style={FIT}
+    >
+      <h3 className="small" style={WRAP}>
+        {file.filename}
+      </h3>
+      {file.office_provenance ? (
+        <p className="small muted" data-testid="office-provenance" style={WRAP}>
+          Editable office-v1 copy of an unchanged original (snapshot{" "}
+          {file.office_provenance.source_snapshot_id}, original SHA-256{" "}
+          {file.office_provenance.original_sha256}). Saving changes only this
+          copy.
+        </p>
+      ) : null}
       {loaded === null && !error ? (
         <p className="small muted">Loading and verifying…</p>
       ) : null}
@@ -735,6 +737,7 @@ function FileEditor({
           <button
             type="button"
             className="btn btn-sm btn-quiet"
+            style={BTN}
             onClick={() => {
               edit(staleDraft);
               setStaleDraft(null);
@@ -789,6 +792,7 @@ function FileEditor({
             <button
               type="button"
               className="btn btn-primary btn-sm"
+              style={BTN}
               onClick={() => void save()}
               disabled={
                 busy || (!held && (!dirty || (needsConsent && !consent)))
@@ -800,6 +804,7 @@ function FileEditor({
               <button
                 type="button"
                 className="btn btn-sm btn-quiet"
+                style={BTN}
                 onClick={() => {
                   pending.set(null);
                   setUnknownOutcome(false);
@@ -849,6 +854,7 @@ function FileEditor({
             <button
               type="button"
               className="btn btn-sm btn-quiet"
+              style={BTN}
               onClick={() => void compare()}
               disabled={busy}
             >
@@ -857,7 +863,7 @@ function FileEditor({
           ) : comparison.identical ? (
             <p className="small muted">The two versions are byte-identical.</p>
           ) : (
-            <div className="stack-sm">
+            <div className="stack-sm" style={FIT}>
               <pre
                 className="small"
                 style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
@@ -883,53 +889,15 @@ function FileEditor({
           )}
         </details>
       ) : null}
-      <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
-        <label className="field" style={{ margin: 0 }}>
-          <span className="field-label">Export as</span>
-          <select
-            value={format}
-            onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            disabled={busy}
-          >
-            {EXPORT_FORMATS.map((f) => (
-              <option key={f} value={f}>
-                {f}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className="btn btn-sm"
-          onClick={() => void exportNow()}
-          disabled={busy || !loaded}
-        >
-          Export this version
-        </button>
-      </div>
-      {manifest ? (
-        <div className="stack-sm">
-          <p className="small muted">
-            {manifest.filename} · {manifest.blob.byte_length.toLocaleString()}{" "}
-            bytes
-            {manifest.annotations === "explicit_omissions"
-              ? ` · omissions: ${manifest.omissions.join("; ")}`
-              : manifest.annotations === "included"
-                ? " · annotations included"
-                : ""}
-          </p>
-          <div className="row">
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={() => void download(manifest)}
-              disabled={busy}
-            >
-              Download (verified bytes)
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <FileExport
+        ws={ws}
+        file={file}
+        saved={loaded?.ref ?? null}
+        savedText={loaded?.display ?? null}
+        dirty={dirty}
+        workVersion={workVersion}
+        openFile={openFile}
+      />
       {error ? (
         <p className="hint" role="alert">
           {error}

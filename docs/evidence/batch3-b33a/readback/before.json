@@ -1,0 +1,98 @@
+{
+  "mode": "before",
+  "sources": [
+    {
+      "snapshot_id": "3706ccfb-a8f1-44f5-8dc9-e0246c9275c7",
+      "version_number": 1,
+      "url": "https://api.github.com/repos/psf/requests/readme?ref=3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+      "original_sha256": "051382ad10d2f9179696e0a7b6dde8be03b727c15beb03f253147b8246cfd556",
+      "extraction_sha256": "2fc811dec2a80fed069c2a06540d08c2565fd6fdd10ae806f756bd660ca14c5e",
+      "bytes": 4912,
+      "git_blob_sha": "4e5c44555c02f127cd0cca2efa8b22716c78ee23",
+      "external_sha256": "051382ad10d2f9179696e0a7b6dde8be03b727c15beb03f253147b8246cfd556",
+      "external_exact_match": true
+    },
+    {
+      "snapshot_id": "73033e08-caf1-4725-83da-42666f8bd098",
+      "version_number": 1,
+      "url": "https://api.github.com/repos/psf/requests/issues?state=all&page=1&per_page=2",
+      "original_sha256": "031ce1131e5cfb5dc20efb56293b3d3ea6416bb10bc3af4e58c22844df883361",
+      "extraction_sha256": "f03850ff274f51bb3423b4a280dc0f3c009d0c578e320bbbdb2004194b31502c",
+      "bytes": 54495,
+      "external_sha256": "031ce1131e5cfb5dc20efb56293b3d3ea6416bb10bc3af4e58c22844df883361",
+      "external_exact_match": true
+    },
+    {
+      "snapshot_id": "b39167fd-ec19-44da-a34d-18f331907015",
+      "version_number": 1,
+      "url": "https://api.github.com/repos/psf/requests/commits?per_page=1",
+      "original_sha256": "7afcac35e1e461cc99d126213c4e397c39a2581e5d75c26b01197a0a27ba3f70",
+      "extraction_sha256": "16cf4a5f9fae71187f90ae8011b23f8214e6bbbdba9e5c6f41f8d7387b18d0bd",
+      "bytes": 9740,
+      "external_sha256": "7afcac35e1e461cc99d126213c4e397c39a2581e5d75c26b01197a0a27ba3f70",
+      "external_exact_match": true
+    },
+    {
+      "snapshot_id": "e0020c0f-3394-4ef6-9d56-8804bf151289",
+      "version_number": 1,
+      "url": "https://api.github.com/repos/psf/requests/releases?page=1&per_page=2",
+      "original_sha256": "6df8b7b068af44b83408901f523bcbe2bfcc346cf0f646b43dd6e1f893aa277f",
+      "extraction_sha256": "afa3ee6b3029d878854b9685d5e0590c7f67b8cd7901c7a9ea0964c729007765",
+      "bytes": 11022,
+      "external_sha256": "6df8b7b068af44b83408901f523bcbe2bfcc346cf0f646b43dd6e1f893aa277f",
+      "external_exact_match": true
+    }
+  ],
+  "exports": [
+    {
+      "blob": {
+        "kind": "generated_blob",
+        "sha256": "534499eae5afc7b80cf61fc90720eba89c9cfc1395471eeba460e2eaf6807e57",
+        "blob_id": "fe56ea5e-d4b0-4245-a3c7-254437d74fdc",
+        "mime_type": "text/markdown",
+        "byte_length": 7202
+      },
+      "chart": null,
+      "format": "markdown",
+      "fidelity": null,
+      "filename": "export.md",
+      "export_id": "5f2db8c6-449c-4d2b-b476-f6c64b7e98f0",
+      "omissions": [],
+      "created_at": "2026-10-29T05:42:15.468297Z",
+      "provenance": null,
+      "annotations": "not_present",
+      "artifact_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+      "revision_id": "eeff4ca0-aff4-4d6f-bbc7-61d8bbae19ed",
+      "input_sha256": "534499eae5afc7b80cf61fc90720eba89c9cfc1395471eeba460e2eaf6807e57",
+      "workspace_id": "b33a-96dc1e88-e1e8-420f-8057-06a6603c7c2d",
+      "conversation_id": "adf6d81b-0fb8-4a37-9fd0-16699e0526bf",
+      "tool_attempt_id": "ec5f7232-ba87-4071-b4b1-cd36c7aa8289",
+      "exporter_version": "basic-exports-v1",
+      "workspace_file_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+      "source_snapshot_id": null
+    }
+  ],
+  "counts": {
+    "tool_attempts": 6,
+    "source_snapshots": 4,
+    "product_observations": 0,
+    "provider_attempts": 2
+  },
+  "human": {
+    "workspace_file_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+    "workspace_id": "b33a-96dc1e88-e1e8-420f-8057-06a6603c7c2d",
+    "conversation_id": "adf6d81b-0fb8-4a37-9fd0-16699e0526bf",
+    "filename": "requests-brief.md",
+    "mime_type": "text/markdown",
+    "storage": "artifact_revision",
+    "current": {
+      "workspace_file_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+      "version_id": "77db5344-554f-4adc-b54e-c69c16a623af",
+      "sha256": "40a943ecada2743c5dcfcb50e318d552beebb8f36a50aac47934f1d4f651315a"
+    },
+    "byte_length": 7272,
+    "editable": true,
+    "office_provenance": null
+  },
+  "passed": true
+}

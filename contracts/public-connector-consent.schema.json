@@ -1,0 +1,55 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "access_generation": {
+      "minimum": 1,
+      "title": "Access Generation",
+      "type": "integer"
+    },
+    "account": {
+      "const": "public unauthenticated",
+      "default": "public unauthenticated",
+      "title": "Account",
+      "type": "string"
+    },
+    "effects": {
+      "items": {
+        "const": "read",
+        "type": "string"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "title": "Effects",
+      "type": "array"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "processor": {
+      "const": "github-public-api-v1",
+      "default": "github-public-api-v1",
+      "title": "Processor",
+      "type": "string"
+    },
+    "resources": {
+      "items": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,38}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Resources",
+      "type": "array"
+    }
+  },
+  "required": [
+    "resources",
+    "effects",
+    "expires_at",
+    "access_generation"
+  ],
+  "title": "PublicConnectorConsent",
+  "type": "object"
+}

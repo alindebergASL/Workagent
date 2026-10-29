@@ -1,0 +1,20 @@
+{
+  "batch": "matrix-01.xml",
+  "sha256": "462ef5f930c308c506a62fea6cc686a3203e24c034f41d4714389491facb0b80",
+  "counts": {
+    "passed": 0,
+    "failed": 0,
+    "error": 1,
+    "skipped": 0
+  },
+  "declared_tests": 1,
+  "cases": [
+    {
+      "nodeid": "::tests.test_synthetic_connectors",
+      "status": "error",
+      "seconds": 0.0
+    }
+  ],
+  "seconds": 7.167,
+  "timestamp": "2026-10-29T13:31:21.171429+00:00"
+}

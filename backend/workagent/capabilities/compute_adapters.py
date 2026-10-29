@@ -8,7 +8,7 @@ from ..composition import ReadDecision
 from ..model_base import Model, Id, Hash
 from ..models import now, new_id
 from ..errors import DomainError, deny
-from ..workspace_file_models import FileVersionRef, GeneratedBlobRef, ExportFormat, Filename
+from ..workspace_file_models import FileVersionRef, GeneratedBlobRef, BasicExportFormat, Filename
 from ..sandbox import client, profiles as P
 from ..sandbox.runner_protocol import blob, unblob, digest, NAME
 from .models import InputRef
@@ -43,7 +43,7 @@ class ComputeExportManifest(Model):
     code_sha256: Hash
     profile_sha256: Hash
     input_refs: list[InputRef]
-    format: ExportFormat
+    format: BasicExportFormat
     filename: Filename
     blob: GeneratedBlobRef
     created_at: AwareDatetime

@@ -1,0 +1,69 @@
+Tool activity
+
+Recorded tool calls for the latest run, as the tool adapter observed them. This lists what actually ran and what it cost — it isn’t a claim about anything else the model did.
+
+connectors.github.read
+Public GitHub source read
+
+Public GitHub source read — octocat/Hello-World
+
+Public, unauthenticated read. Deterministic fixture — not live GitHub
+
+Issue #1
+
+Saved as source version 1 in Files.
+
+Provenance
+Source excerpt (untrusted text)
+#1 CONTROLLED_REVOKED_TITLE
+
+reserved 0 USD (1 call); basis estimated
+
+connectors.github.discover
+GitHub unavailable — nothing was read
+
+GitHub unavailable — nothing was read
+
+Public, unauthenticated discovery. Deterministic fixture — not live GitHub
+
+reserved 0 USD (1 call); basis estimated
+
+connectors.github.discover
+Refused — nothing was read
+
+Refused — nothing was read
+
+Public, unauthenticated discovery. Deterministic fixture — not live GitHub
+
+reserved 0 USD (1 call); basis estimated
+
+connectors.github.read
+Source changed from the expected version — current copy retained, not the one expected
+
+Source changed from the expected version — current copy retained, not the one expected — octocat/Hello-World
+
+The fetched response hash differs from the version this call expected.
+
+Public, unauthenticated read. Deterministic fixture — not live GitHub
+
+Issue #1
+
+Saved as source version 2 in Files.
+
+Provenance
+Source excerpt (untrusted text)
+
+reserved 0 USD (1 call); basis estimated
+
+connectors.github.discover
+GitHub rate limit reached — nothing was read
+
+GitHub rate limit reached — nothing was read
+
+GitHub asked to wait 9s before retrying.
+
+Public, unauthenticated discovery. Deterministic fixture — not live GitHub
+
+reserved 0 USD (1 call); basis estimated
+
+Refresh

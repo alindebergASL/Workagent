@@ -1,0 +1,61 @@
+{
+  "schema_version": "tool-observation/v1",
+  "call_id": "bff1d248-089a-4835-923d-84c7736bee09",
+  "attempt_id": "74d47b79-8249-4b5a-b8bf-517dba1db400",
+  "run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+  "capability_id": "files.create_draft",
+  "capability_version": "1",
+  "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
+  "execution_profile": "native-bounded-files-v1",
+  "input_refs": [
+    {
+      "kind": "run_scope",
+      "id": "27533930-c46a-40b9-be74-e702d61f1930",
+      "version": "2",
+      "sha256": "f4d1d58a738529d4ce5abb1cecea21fa480c059d939160e402c5a46bc2e619a2"
+    }
+  ],
+  "output_refs": [],
+  "output_sha256": "5d63e0a79bd6144c85f320ba94f1f346ca0dd3c7a2089da674fba8e2a752e1fc",
+  "output": {
+    "capability": "files_create_draft",
+    "result": {
+      "byte_length": 51,
+      "conversation_id": "ff7e7f12-2cc9-4ef6-8aa4-cd2c4f8f29a9",
+      "current": {
+        "sha256": "d59046d6dc5f524e04fed986ba176cd473ad6f0365b7ecb38d6fc204c3250266",
+        "version_id": "b977ef95-9880-40eb-9337-eca45ca5a712",
+        "workspace_file_id": "74d47b79-8249-4b5a-b8bf-517dba1db400"
+      },
+      "editable": true,
+      "filename": "comparison.txt",
+      "mime_type": "text/plain",
+      "office_provenance": null,
+      "storage": "artifact_revision",
+      "workspace_file_id": "74d47b79-8249-4b5a-b8bf-517dba1db400",
+      "workspace_id": "test-0668d3d2-de38-41af-b8c9-9be2b8e53e0d"
+    },
+    "version": "1"
+  },
+  "started_at": "2026-10-29T11:59:10.558149Z",
+  "ended_at": "2026-10-29T11:59:11.259267Z",
+  "status": "observed",
+  "error": null,
+  "truncated": false,
+  "omissions": [],
+  "source_refs": [],
+  "privacy_label": "workspace_private",
+  "cost": {
+    "category": "local_compute",
+    "unit": "call",
+    "reserved_units": 1,
+    "observed_units": 1,
+    "reserved_cost_usd": "0",
+    "observed_cost_usd": null,
+    "basis": "estimated",
+    "elapsed_ms": 701,
+    "cpu_ms": 616,
+    "billed_cost_usd": null
+  },
+  "verification_scope": "adapter_execution_only"
+}

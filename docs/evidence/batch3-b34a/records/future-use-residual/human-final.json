@@ -1,0 +1,14 @@
+{
+  "transfer": {
+    "file_id": "ddc1be52-603f-4662-b930-5ece9d1e466a",
+    "version_id": "32afa607-802c-45f1-bc29-ecb9ca173014",
+    "sha256": "c0b01b8262cc1d3c7d00d54d84ef3617b908a2ef4f488a3c6c2351760f413b35",
+    "bytes": 107
+  },
+  "editorial": {
+    "file_id": "c2f360cd-7e8c-480d-8ba5-63c78e48d575",
+    "version_id": "3644ff0c-d3c0-4ffc-a2bb-cc4794917893",
+    "sha256": "0cb5a5d85b274785ecca405a8b15c05612ee67dcf8031ed1801304206e9f53b2",
+    "bytes": 554
+  }
+}

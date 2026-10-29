@@ -1,0 +1,42 @@
+..F                                                                      [100%]
+=================================== FAILURES ===================================
+________ test_run_office_chart_exact_receipt_replay_and_human_download _________
+
+context = (<workagent.service.Service object at 0x7b40a3dd2450>, Principal(id='local-human', kind='human'), 'test-df26bb53-5e33-...time.datetime(2026, 10, 29, 2, 33, 2, 485601, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+
+    def test_run_office_chart_exact_receipt_replay_and_human_download(context):
+        from test_workspace_files_pg import make
+        from test_workspace_file_gateway_pg import install,call
+        from workagent.capabilities.models import InputRef
+        from workagent.capabilities.broker import CapabilityBroker
+        from workagent.workspace_file_models import WorkingText
+        from workagent.models import new_id
+        s,p,ws,_,admin=context
+        cv=s.create_conversation(p,ws,cmd(CreateConversation,selected_source_refs=[]))
+        content='team,hours\na,0.1\na,0.2\nb,1.5\n'
+        file=s.create_workspace_file(p,ws,cv.id,cmd(CreateWorkspaceFile,expected_work_version=cv.work_version,
+            source=WorkingText(filename='dataset.csv',mime_type='text/csv',content=content,sha256=sha256(content.encode()).hexdigest())))
+        ref=InputRef(kind='workspace_file',id=file.workspace_file_id,version=file.current.version_id,sha256=file.current.sha256)
+        cap,grant,q=install(context,cv,[ref],['artifacts.export.office'])
+        args=dict(kind='artifacts_export_office',input_ref=ref.model_dump(),format='png',chart_spec=dict(
+            category_column='team',value_column='hours',aggregation='sum',title='Hours by team',x_label='Team',y_label='Hours'))
+        request=call(cap,q,'artifacts.export.office',args,[ref])
+        broker=CapabilityBroker(s,cap)
+        receipt=broker.call(request)
+>       assert receipt.status=='observed',receipt.status
+E       AssertionError: outcome_unknown
+E       assert 'outcome_unknown' == 'observed'
+E         
+E         - observed
+E         + outcome_unknown
+
+.local/batch3/b32b/backend-lane/backend/tests/test_office_pg.py:100: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED .local/batch3/b32b/backend-lane/backend/tests/test_office_pg.py::test_run_office_chart_exact_receipt_replay_and_human_download
+1 failed, 2 passed, 1 warning in 26.31s

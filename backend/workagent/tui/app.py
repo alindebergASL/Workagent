@@ -72,7 +72,9 @@ class WorkagentApp(App):
         from .files_screen import WorkingFilesScreen
         from .memory_screen import MemoryScreen
         from .research_screen import ResearchScreen
-        if isinstance(self.screen, (WorkingFilesScreen, MemoryScreen, ResearchScreen)) and action in ('send', 'refresh'):
+        from .tool_activity_screen import ToolActivityScreen
+        from .connectors_screen import ConnectorsScreen
+        if isinstance(self.screen, (WorkingFilesScreen, MemoryScreen, ResearchScreen, ToolActivityScreen, ConnectorsScreen)) and action in ('send', 'refresh'):
             return False
         return super().check_action(action, parameters)
 
@@ -115,6 +117,7 @@ class WorkagentApp(App):
                 with VerticalScroll():
                     yield Button('Working files',id='working-files')
                     yield Button('Memory',id='memory')
+                    yield Button('Synthetic connectors',id='connectors')
                     yield Button('Research sources',id='research-sources')
                     yield Input(placeholder='Local UTF-8 file path (inert snapshot)',id='file-path')
                     with Horizontal(classes='actions'):
@@ -134,6 +137,7 @@ class WorkagentApp(App):
                     yield Button('Download original',id='download-document')
             with TabPane('Status',id='status-panel'):
                 with VerticalScroll():
+                    yield Button('Tool activity',id='tool-activity')
                     yield Static('Execution has not been read.',markup=False,id='execution',classes='prose')
                     yield Static('Pause stops this responsibility; Resume requests a fresh authorized wake. Take over ends agent ownership. Saved work is retained.',markup=False,classes='prose')
                     yield Select([],prompt='Ongoing responsibility',id='responsibility')
@@ -644,6 +648,11 @@ class WorkagentApp(App):
                 if self.queue_back:self.queue_after=self.queue_back.pop();self.action_refresh(deliberate=False)
             elif action in ('stop','continue','seen','queue-cancel'):self.start_write(self.continuity_write(action,self.control_selection()))
             elif action in LIFECYCLE_ACTIONS:self.start_write(self.lifecycle_write(action,self.lifecycle_selection()))
+            elif action=='tool-activity':
+                if not self.session or not self.conversation or not self.read_authorized:
+                    raise OperatorError('Open an authenticated conversation before inspecting receipts')
+                from .tool_activity_screen import ToolActivityScreen
+                self.push_screen(ToolActivityScreen(self.client,self.workspace,self.session.principal,(self.detail or {}).get('runs',[])))
             elif action in ('research-sources','research-claims'):
                 if not self.session or not self.conversation or not self.read_authorized:
                     raise OperatorError('Open an authenticated conversation before inspecting research')
@@ -651,6 +660,11 @@ class WorkagentApp(App):
                 from .research import selected_binding
                 binding=selected_binding(self.artifact,self.history,self.selected_revision) if action=='research-claims' else None
                 self.push_screen(ResearchScreen(self.client,self.workspace,self.session.principal,self.conversation,binding=binding))
+            elif action=='connectors':
+                if not self.session or not self.read_authorized:
+                    raise OperatorError('Open an authenticated workspace before inspecting connectors')
+                from .connectors_screen import ConnectorsScreen
+                self.push_screen(ConnectorsScreen(self.client,self.workspace,self.session.principal))
             elif action=='memory':
                 if not self.session or not self.conversation or not self.read_authorized:
                     raise OperatorError('Open an authenticated conversation before inspecting memory')

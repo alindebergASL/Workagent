@@ -19,13 +19,28 @@ def enabled(config):
             and config.get('responses', {}).get('scope_tool_sha256') == sha256(SCHEMA.material).hexdigest())
 
 
+def selected(service, c, p, run, cid):
+    from ..service import digest
+    service._memory_scope(c, p, run.workspace_id, 'task', cid)
+    row = c.execute("SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+                    "AND author_kind='human' AND data->>'author_kind'='human' AND data->>'author_id'=%s "
+                    "ORDER BY sequence DESC LIMIT 1", (run.workspace_id, cid, p.id)).fetchone()
+    data = row['data'] if row else None
+    request = {'event_id': data['id'], 'sha256': digest(data)} if data else None
+    page = service._recall_memory(c, p, run.workspace_id, cid, autonomous=True,
+                                 human_request=data['text'] if data else '')
+    return page, request
+
+
 def project(service, c, p, run, cv, context):
-    page = service._recall_memory(c, p, run.workspace_id, cv.id)
+    page, request = selected(service, c, p, run, cv.id)
     entries = [e.model_dump(mode='json') for e in manifest(page)]
     previous = c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
                          (run.workspace_id, run.id)).fetchone()
-    if previous and previous['data'].get('memory_manifest') != entries:
+    if previous and (previous['data'].get('memory_manifest') != entries or
+                     previous['data'].get('memory_human_request') != request):
         raise DomainError('source_changed')
+    context['memory_human_request'] = request
     context['memory_manifest'] = entries
     context['memory_context'] = page.model_dump(mode='json')
 
@@ -33,7 +48,9 @@ def project(service, c, p, run, cv, context):
 def revalidate(service, c, p, run, snapshot):
     if 'memory_manifest' not in snapshot:
         return
-    page = service._recall_memory(c, p, run.workspace_id, run.conversation_id)
+    page, request = selected(service, c, p, run, run.conversation_id)
+    if request != snapshot.get('memory_human_request'):
+        raise DomainError('source_changed')
     if [e.model_dump(mode='json') for e in manifest(page)] != snapshot['memory_manifest']:
         raise DomainError('source_changed')
 

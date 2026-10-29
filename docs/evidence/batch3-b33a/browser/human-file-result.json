@@ -1,0 +1,34 @@
+{
+  "mode": "human",
+  "passed": true,
+  "layouts": [
+    {
+      "width": 1440,
+      "pageWidth": 1440
+    },
+    {
+      "width": 390,
+      "pageWidth": 390
+    },
+    {
+      "width": 320,
+      "pageWidth": 320
+    }
+  ],
+  "saved": {
+    "workspace_file_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+    "workspace_id": "b33a-96dc1e88-e1e8-420f-8057-06a6603c7c2d",
+    "conversation_id": "adf6d81b-0fb8-4a37-9fd0-16699e0526bf",
+    "filename": "requests-brief.md",
+    "mime_type": "text/markdown",
+    "storage": "artifact_revision",
+    "current": {
+      "workspace_file_id": "a4aebd07-32f5-4153-ab91-6bc48d9ba5f1",
+      "version_id": "77db5344-554f-4adc-b54e-c69c16a623af",
+      "sha256": "40a943ecada2743c5dcfcb50e318d552beebb8f36a50aac47934f1d4f651315a"
+    },
+    "byte_length": 7272,
+    "editable": true,
+    "office_provenance": null
+  }
+}

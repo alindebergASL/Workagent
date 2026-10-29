@@ -1,0 +1,269 @@
+{
+  "classification": "controlled fixture + real loopback HTTP; not GitHub outages",
+  "workspace_id": "test-5c87fac1-06c6-487b-a43b-400d97691cdf",
+  "conversation_id": "2042be8a-c79b-4de6-ac4f-3c644bf31ee3",
+  "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+  "cases": [
+    {
+      "status": "rate_limited",
+      "http": 200,
+      "receipt": {
+        "attempt_id": "e911770c-7424-41d7-8d99-2b53ee2c66cf",
+        "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+        "call_id": "b0524e1c-be0d-4522-a2c5-fbeb22ebb912",
+        "capability_id": "connectors.github.discover",
+        "state": "observed",
+        "observation": {
+          "schema_version": "tool-observation/v1",
+          "call_id": "b0524e1c-be0d-4522-a2c5-fbeb22ebb912",
+          "attempt_id": "e911770c-7424-41d7-8d99-2b53ee2c66cf",
+          "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+          "capability_id": "connectors.github.discover",
+          "capability_version": "1",
+          "implementation_sha256": "bed7615cafaaa62aa9b3a8c048c08cfb297e55cffbf6ff55d91cb9841b9c7117",
+          "execution_profile": "native-github-public-v1",
+          "input_refs": [
+            {
+              "kind": "run_scope",
+              "id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+              "version": "2",
+              "sha256": "47b85f104b14417fff67ae2bd89aa140863f04c60951cba0166174f3fa5b716e"
+            }
+          ],
+          "output_refs": [],
+          "output_sha256": "3584d5861d7caafe1b532bac9dd8e5c32f81ff58373504cacdf528cf07426a41",
+          "output": {
+            "capability": "github_discover",
+            "result": {
+              "pagination": null,
+              "reset_epoch_seconds": null,
+              "retry_after_seconds": 9,
+              "snapshot": null,
+              "source": "fixture",
+              "status": "rate_limited"
+            },
+            "version": "1"
+          },
+          "started_at": "2026-10-29T05:57:22.210326Z",
+          "ended_at": "2026-10-29T05:57:23.066356Z",
+          "status": "observed",
+          "error": null,
+          "truncated": false,
+          "omissions": [],
+          "source_refs": [],
+          "privacy_label": "public",
+          "cost": {
+            "category": "connector",
+            "unit": "call",
+            "reserved_units": 1,
+            "observed_units": 1,
+            "reserved_cost_usd": "0",
+            "observed_cost_usd": null,
+            "basis": "estimated",
+            "elapsed_ms": 855,
+            "cpu_ms": 645,
+            "billed_cost_usd": null
+          },
+          "verification_scope": "adapter_execution_only"
+        }
+      }
+    },
+    {
+      "status": "denied",
+      "http": 200,
+      "receipt": {
+        "attempt_id": "1844cb4e-8463-4376-8a85-df295938ecc5",
+        "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+        "call_id": "54669b25-b334-4659-bb66-82d26d8c1342",
+        "capability_id": "connectors.github.discover",
+        "state": "observed",
+        "observation": {
+          "schema_version": "tool-observation/v1",
+          "call_id": "54669b25-b334-4659-bb66-82d26d8c1342",
+          "attempt_id": "1844cb4e-8463-4376-8a85-df295938ecc5",
+          "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+          "capability_id": "connectors.github.discover",
+          "capability_version": "1",
+          "implementation_sha256": "bed7615cafaaa62aa9b3a8c048c08cfb297e55cffbf6ff55d91cb9841b9c7117",
+          "execution_profile": "native-github-public-v1",
+          "input_refs": [
+            {
+              "kind": "run_scope",
+              "id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+              "version": "2",
+              "sha256": "47b85f104b14417fff67ae2bd89aa140863f04c60951cba0166174f3fa5b716e"
+            }
+          ],
+          "output_refs": [],
+          "output_sha256": "3b7c83af41b24536297d2e2835585b92a37d3de14add591c7b2fef57d3dea31c",
+          "output": {
+            "capability": "github_discover",
+            "result": {
+              "pagination": null,
+              "reset_epoch_seconds": null,
+              "retry_after_seconds": null,
+              "snapshot": null,
+              "source": "fixture",
+              "status": "denied"
+            },
+            "version": "1"
+          },
+          "started_at": "2026-10-29T05:57:25.658136Z",
+          "ended_at": "2026-10-29T05:57:26.324200Z",
+          "status": "observed",
+          "error": null,
+          "truncated": false,
+          "omissions": [],
+          "source_refs": [],
+          "privacy_label": "public",
+          "cost": {
+            "category": "connector",
+            "unit": "call",
+            "reserved_units": 1,
+            "observed_units": 1,
+            "reserved_cost_usd": "0",
+            "observed_cost_usd": null,
+            "basis": "estimated",
+            "elapsed_ms": 665,
+            "cpu_ms": 563,
+            "billed_cost_usd": null
+          },
+          "verification_scope": "adapter_execution_only"
+        }
+      }
+    },
+    {
+      "status": "unavailable",
+      "http": 200,
+      "receipt": {
+        "attempt_id": "452b7217-36c4-4db1-8701-387f0618e564",
+        "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+        "call_id": "1596937c-09eb-4e24-8d59-d688f21053fe",
+        "capability_id": "connectors.github.discover",
+        "state": "observed",
+        "observation": {
+          "schema_version": "tool-observation/v1",
+          "call_id": "1596937c-09eb-4e24-8d59-d688f21053fe",
+          "attempt_id": "452b7217-36c4-4db1-8701-387f0618e564",
+          "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+          "capability_id": "connectors.github.discover",
+          "capability_version": "1",
+          "implementation_sha256": "bed7615cafaaa62aa9b3a8c048c08cfb297e55cffbf6ff55d91cb9841b9c7117",
+          "execution_profile": "native-github-public-v1",
+          "input_refs": [
+            {
+              "kind": "run_scope",
+              "id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+              "version": "2",
+              "sha256": "47b85f104b14417fff67ae2bd89aa140863f04c60951cba0166174f3fa5b716e"
+            }
+          ],
+          "output_refs": [],
+          "output_sha256": "85afcc303c5bfd6ea56b80737e65ba7aa10a1a9b8c35a09f5bcb11aa2a944315",
+          "output": {
+            "capability": "github_discover",
+            "result": {
+              "pagination": null,
+              "reset_epoch_seconds": null,
+              "retry_after_seconds": null,
+              "snapshot": null,
+              "source": "fixture",
+              "status": "unavailable"
+            },
+            "version": "1"
+          },
+          "started_at": "2026-10-29T05:57:28.343765Z",
+          "ended_at": "2026-10-29T05:57:29.179262Z",
+          "status": "observed",
+          "error": null,
+          "truncated": false,
+          "omissions": [],
+          "source_refs": [],
+          "privacy_label": "public",
+          "cost": {
+            "category": "connector",
+            "unit": "call",
+            "reserved_units": 1,
+            "observed_units": 1,
+            "reserved_cost_usd": "0",
+            "observed_cost_usd": null,
+            "basis": "estimated",
+            "elapsed_ms": 835,
+            "cpu_ms": 621,
+            "billed_cost_usd": null
+          },
+          "verification_scope": "adapter_execution_only"
+        }
+      }
+    },
+    {
+      "status": "changed_source",
+      "http": 200,
+      "receipt": {
+        "attempt_id": "c4916efa-d43a-461d-ac7f-8b56cfc51424",
+        "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+        "call_id": "db85892d-56cc-4b74-a627-f58f098a94c8",
+        "capability_id": "connectors.github.discover",
+        "state": "observed",
+        "observation": {
+          "schema_version": "tool-observation/v1",
+          "call_id": "db85892d-56cc-4b74-a627-f58f098a94c8",
+          "attempt_id": "c4916efa-d43a-461d-ac7f-8b56cfc51424",
+          "run_id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+          "capability_id": "connectors.github.discover",
+          "capability_version": "1",
+          "implementation_sha256": "bed7615cafaaa62aa9b3a8c048c08cfb297e55cffbf6ff55d91cb9841b9c7117",
+          "execution_profile": "native-github-public-v1",
+          "input_refs": [
+            {
+              "kind": "run_scope",
+              "id": "f363ad47-48f2-4e6f-a89d-e2d5478ce1ad",
+              "version": "2",
+              "sha256": "47b85f104b14417fff67ae2bd89aa140863f04c60951cba0166174f3fa5b716e"
+            }
+          ],
+          "output_refs": [],
+          "output_sha256": "350f87aa636a61facb7958c07ec83ea3a0d8266a1bf7cd06fb7ec22024a5f443",
+          "output": {
+            "capability": "github_discover",
+            "result": {
+              "pagination": null,
+              "reset_epoch_seconds": null,
+              "retry_after_seconds": null,
+              "snapshot": null,
+              "source": "fixture",
+              "status": "changed_source"
+            },
+            "version": "1"
+          },
+          "started_at": "2026-10-29T05:57:32.467341Z",
+          "ended_at": "2026-10-29T05:57:33.655774Z",
+          "status": "observed",
+          "error": null,
+          "truncated": false,
+          "omissions": [],
+          "source_refs": [],
+          "privacy_label": "public",
+          "cost": {
+            "category": "connector",
+            "unit": "call",
+            "reserved_units": 1,
+            "observed_units": 1,
+            "reserved_cost_usd": "0",
+            "observed_cost_usd": null,
+            "basis": "estimated",
+            "elapsed_ms": 1188,
+            "cpu_ms": 695,
+            "billed_cost_usd": null
+          },
+          "verification_scope": "adapter_execution_only"
+        }
+      }
+    }
+  ],
+  "passed": true,
+  "denied_status": 404,
+  "unknown_status": 404,
+  "remaining_file_count": 1,
+  "denied_run_receipts_status": 404
+}

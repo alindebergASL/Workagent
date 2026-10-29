@@ -1,0 +1,32 @@
+{
+  "export_id": "74ebf472-58e5-440b-82b6-43b2f5138cd1",
+  "workspace_id": "test-bba45ba9-7932-4cac-b795-f79ae1b2e609",
+  "conversation_id": "de94354e-7f3f-4b32-8141-d29980b250ff",
+  "artifact_id": "571f9c00-d58b-4e00-ba36-d5238c2bf3e1",
+  "revision_id": "79d649a1-b18d-46dc-a1e1-e60174481f46",
+  "input_sha256": "21715b05620a186ffde9a4010923e339dbe8c0c2b4549cfe83f5a487418cda26",
+  "workspace_file_id": "571f9c00-d58b-4e00-ba36-d5238c2bf3e1",
+  "source_snapshot_id": null,
+  "format": "pdf",
+  "filename": "export.pdf",
+  "blob": {
+    "kind": "generated_blob",
+    "blob_id": "80932af8-10cb-4f3e-b69f-999c4c02758f",
+    "sha256": "93b675a775499e64f2e56b9fc33ceb5b1e8036a44eecc582d519a15699498d81",
+    "byte_length": 23290,
+    "mime_type": "application/pdf"
+  },
+  "created_at": "2026-10-29T02:45:53.617770Z",
+  "annotations": "explicit_omissions",
+  "omissions": [
+    "Rich formatting, layout, comments, tracked changes, drawings and embedded objects are not preserved.",
+    "No OCR or vision was performed; PDF imports use only the text layer.",
+    "Tables, merged cells, date formatting, headers and footers are simplified or omitted; dates become ISO text. XLSX numbers use spreadsheet numeric precision; caches are omitted from exported XLSX.",
+    "Formulas are not evaluated; caches are imported or user-supplied observations, never computed results."
+  ],
+  "tool_attempt_id": null,
+  "exporter_version": "office-exports-v1",
+  "fidelity": "Editable values and plain paragraphs; constrained layout; no office-suite fidelity.",
+  "provenance": null,
+  "chart": null
+}

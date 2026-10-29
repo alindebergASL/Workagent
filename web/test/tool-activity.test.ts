@@ -61,7 +61,7 @@ const attempt = (over: Partial<ToolAttemptView> = {}): ToolAttemptView => ({
 describe("tool attempt rows", () => {
   it("shows exact state, cost and timing for a completed call", () => {
     const row = toolAttemptRow(attempt());
-    expect(row.stateLabel).toBe("Completed");
+    expect(row.stateLabel).toBe("Receipt recorded");
     expect(row.tone).toBe("ok");
     expect(row.costLine).toContain("reserved 0.0100 USD");
     expect(row.costLine).toContain("observed 0.0021 USD (provider_reported)");

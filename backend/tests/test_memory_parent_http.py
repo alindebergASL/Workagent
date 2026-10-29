@@ -32,8 +32,15 @@ def test_parent_tcp_remember_review_race_forget_restart(tcp):
     assert initial['status'] == 'active' and initial['origin'] == 'human_explicit'
     assert initial['reviewed_by_principal_id'] is None
     root = f'/v1/workspaces/{ws}/memory'
+    # Procedures require exact observed evidence since B3.4a; a prose claim is
+    # not proof. Retain the real TCP review/CAS journey with valid provenance.
+    from test_procedure_memory_pg import evidence, details
+    service, principal, _, _, _ = ctx
+    _, observed = evidence(ctx, service.get_conversation(principal, ws, cv['id']).conversation)
     fields = dict(kind='procedure', scope_kind='task', scope_id=cv['id'], subject_key='analysis',
                   predicate_key='denominator_check', content='Verify units and denominator before calculating',
+                  applicability='Current data joins after checking present inputs',
+                  procedure=details(observed.evidence).model_dump(mode='json'),
                   confidence_basis='Proposed from synthetic local observation')
     candidate_body = command(**fields)
     candidate = checked(client.post(root + '/candidates', json=candidate_body), 201)

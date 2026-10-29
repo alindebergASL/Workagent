@@ -5,7 +5,7 @@ from pydantic import Field, model_validator, create_model
 from ..composition import ReadDecision
 from ..model_base import Model, Id, Hash
 from ..workspace_file_models import (WorkingText, FileVersionRef, WorkspaceFile, WorkspaceFilePage,
-    FileRange, FileComparison, ExportManifest, Content, ExportFormat)
+    FileRange, FileComparison, ExportManifest, Content, BasicExportFormat)
 from ..errors import DomainError, deny
 from .models import InputRef
 
@@ -59,7 +59,7 @@ class ExportInputRef(InputRef):
 class ArtifactsExport(ReadDecision):
     kind: Literal['artifacts_export']
     input_ref: ExportInputRef
-    format: ExportFormat
+    format: BasicExportFormat
 
 
 FILE_OPERATIONS = (FilesList, FilesReadRange, FilesCreateDraft, FilesProposePatch, FilesCompare, ArtifactsExport)
@@ -146,10 +146,10 @@ def invoke(service, cap, request, call):
                                 (ws, run.id, call.call_id)).fetchone()
             if not attempt:
                 deny()
-            result = service._create_text_file(c, p, ws, scope, request.source, 'worker', file_id=attempt['id'])
+            result = service._create_text_file(c, p, ws, scope, request.source, 'worker', file_id=attempt['id'],producer_run_id=run.id)
         elif isinstance(request, FilesProposePatch):
             patch = SimpleNamespace(base_version_id=request.ref.version_id, base_sha256=request.ref.sha256,
-                content=request.content, sha256=request.sha256, reason=request.reason, expected_work_version=call.expected_work_version)
+                content=request.content, sha256=request.sha256, reason=request.reason, expected_work_version=call.expected_work_version,producer_run_id=run.id)
             proposal = service._propose_file_patch(c, p, ws, request.ref.workspace_file_id, patch)
             result = {'proposal_id':proposal.id, 'workspace_file_id':proposal.artifact_id,
                       'base':request.ref.model_dump(mode='json'), 'proposed_sha256':request.sha256, 'status':'pending'}

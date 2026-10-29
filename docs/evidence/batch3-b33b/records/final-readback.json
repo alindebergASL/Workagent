@@ -1,0 +1,117 @@
+{
+  "credential_hits": 0,
+  "db_tables": [
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 11,
+      "table": "source_snapshots"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 11,
+      "table": "generated_blobs"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 28,
+      "table": "tool_attempt_events"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 13,
+      "table": "run_contexts"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 6,
+      "table": "responses_steps"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 32,
+      "table": "responses_events"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 1,
+      "table": "memory_revisions"
+    },
+    {
+      "fixture": "fixture-v3.env",
+      "rows": 0,
+      "table": "memory_usage"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 11,
+      "table": "source_snapshots"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 11,
+      "table": "generated_blobs"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 28,
+      "table": "tool_attempt_events"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 14,
+      "table": "run_contexts"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 6,
+      "table": "responses_steps"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 29,
+      "table": "responses_events"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 1,
+      "table": "memory_revisions"
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "rows": 0,
+      "table": "memory_usage"
+    }
+  ],
+  "fixtures": [
+    {
+      "fixture": "fixture-v3.env",
+      "human_bytes": 825,
+      "human_exact_current_revision": true,
+      "human_sha256": "77be8ede29d7f3d34e63a535b34c61a7c8daf63cfbcb1ffa0292bce601ce08f4",
+      "migration065": "3cf588e01ea8a450b5eb2d72d2fc47304b8b288a69850a4bcecd6811ce2a79d6",
+      "migration066": "fc1d28ddbe697f2b5e68db07b7a61114e67c1529a0375f84e66cac22a936c616",
+      "migrations_verified": 66,
+      "runtime_attestation_execute": false
+    },
+    {
+      "fixture": "fixture-v5.env",
+      "human_bytes": 825,
+      "human_exact_current_revision": true,
+      "human_sha256": "eeb3a3a1e0d29640962c15c2d77dae24223873c32513dcf056f306e81c100cce",
+      "migration065": "3cf588e01ea8a450b5eb2d72d2fc47304b8b288a69850a4bcecd6811ce2a79d6",
+      "migration066": "fc1d28ddbe697f2b5e68db07b7a61114e67c1529a0375f84e66cac22a936c616",
+      "migrations_verified": 66,
+      "runtime_attestation_execute": false
+    }
+  ],
+  "minted_credential_canaries": 4,
+  "owned_ports_refused": [
+    18769,
+    18239,
+    13239
+  ],
+  "passed": true,
+  "private_files_scanned": 204,
+  "protocol_snapshot_hashes_verified": 5,
+  "source_files_verified": 55
+}

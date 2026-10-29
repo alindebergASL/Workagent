@@ -1,0 +1,8 @@
+# Optional fixed converter environment. Parent installs; never the application venv.
+python-docx==1.2.0
+openpyxl==3.1.5
+defusedxml==0.7.1
+lxml==6.1.3
+reportlab==4.4.3
+matplotlib==3.10.6
+pypdf==6.21.2

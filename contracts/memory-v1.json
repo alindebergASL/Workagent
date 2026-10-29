@@ -57,6 +57,19 @@
     "CorrectMemory": {
       "additionalProperties": false,
       "properties": {
+        "applicability": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Applicability"
+        },
         "command_id": {
           "maxLength": 128,
           "minLength": 1,
@@ -86,6 +99,17 @@
           "title": "Mode",
           "type": "string"
         },
+        "procedure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcedureDetails"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "request_id": {
           "maxLength": 128,
           "minLength": 1,
@@ -103,6 +127,7 @@
             "discriminator": {
               "mapping": {
                 "file": "#/$defs/MemoryFile",
+                "memory": "#/$defs/MemoryDerived",
                 "source": "#/$defs/MemorySource"
               },
               "propertyName": "source_type"
@@ -113,6 +138,9 @@
               },
               {
                 "$ref": "#/$defs/MemoryFile"
+              },
+              {
+                "$ref": "#/$defs/MemoryDerived"
               }
             ]
           },
@@ -227,6 +255,25 @@
       "title": "MemoryCAS",
       "type": "object"
     },
+    "MemoryDerived": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/MemoryRevisionRef"
+        },
+        "source_type": {
+          "const": "memory",
+          "default": "memory",
+          "title": "Source Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "title": "MemoryDerived",
+      "type": "object"
+    },
     "MemoryFile": {
       "additionalProperties": false,
       "properties": {
@@ -262,6 +309,16 @@
             "$ref": "#/$defs/MemoryRevisionV1"
           },
           "title": "Revisions",
+          "type": "array"
+        },
+        "rollback_revision_ids": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "type": "string"
+          },
+          "title": "Rollback Revision Ids",
           "type": "array"
         }
       },
@@ -361,12 +418,38 @@
     "MemoryReceipt": {
       "additionalProperties": false,
       "properties": {
+        "erased_memory_items": {
+          "anyOf": [
+            {
+              "maximum": 1024,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Erased Memory Items"
+        },
         "memory_id": {
           "maxLength": 128,
           "minLength": 1,
           "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
           "title": "Memory Id",
           "type": "string"
+        },
+        "retention_notice": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retention Notice"
         },
         "revision_id": {
           "maxLength": 128,
@@ -394,6 +477,37 @@
         "status"
       ],
       "title": "MemoryReceipt",
+      "type": "object"
+    },
+    "MemoryRevisionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "memory_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Memory Id",
+          "type": "string"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "memory_id",
+        "revision_id",
+        "sha256"
+      ],
+      "title": "MemoryRevisionRef",
       "type": "object"
     },
     "MemoryRevisionV1": {
@@ -562,6 +676,17 @@
           ],
           "title": "Predicate Key"
         },
+        "procedure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcedureDetails"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "proposed_by_run_id": {
           "anyOf": [
             {
@@ -625,6 +750,7 @@
             "discriminator": {
               "mapping": {
                 "file": "#/$defs/MemoryFile",
+                "memory": "#/$defs/MemoryDerived",
                 "source": "#/$defs/MemorySource"
               },
               "propertyName": "source_type"
@@ -635,6 +761,9 @@
               },
               {
                 "$ref": "#/$defs/MemoryFile"
+              },
+              {
+                "$ref": "#/$defs/MemoryDerived"
               }
             ]
           },
@@ -912,6 +1041,187 @@
       "title": "NarrowMemory",
       "type": "object"
     },
+    "ProcedureDetails": {
+      "additionalProperties": false,
+      "properties": {
+        "counterexamples": {
+          "items": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Counterexamples",
+          "type": "array"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/ProcedureEvidence"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Evidence",
+          "type": "array"
+        },
+        "excluded_terms": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "title": "Excluded Terms",
+          "type": "array"
+        },
+        "retrieval_terms": {
+          "items": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Retrieval Terms",
+          "type": "array"
+        },
+        "validation_notes": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Validation Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "retrieval_terms",
+        "counterexamples",
+        "evidence",
+        "validation_notes"
+      ],
+      "title": "ProcedureDetails",
+      "type": "object"
+    },
+    "ProcedureEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "human_message",
+            "tool_observation"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "conversation_id",
+        "event_id",
+        "sha256"
+      ],
+      "title": "ProcedureEvidence",
+      "type": "object"
+    },
+    "ProcedureEvidenceOption": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "$ref": "#/$defs/ProcedureEvidence"
+        },
+        "label": {
+          "maxLength": 240,
+          "title": "Label",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "operational_outcome": {
+          "anyOf": [
+            {
+              "enum": [
+                "succeeded",
+                "failed",
+                "wall_limit",
+                "cpu_limit",
+                "output_limit",
+                "cancelled",
+                "unavailable",
+                "available",
+                "rate_limited",
+                "not_found",
+                "denied",
+                "changed_source",
+                "captured",
+                "uncertain",
+                "outcome_unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operational Outcome"
+        },
+        "outcome": {
+          "enum": [
+            "human_statement",
+            "observed",
+            "failed",
+            "cost_only",
+            "outcome_unknown"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evidence",
+        "label",
+        "outcome",
+        "observed_at"
+      ],
+      "title": "ProcedureEvidenceOption",
+      "type": "object"
+    },
+    "ProcedureEvidencePage": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ProcedureEvidenceOption"
+          },
+          "maxItems": 50,
+          "title": "Items",
+          "type": "array"
+        }
+      },
+      "title": "ProcedureEvidencePage",
+      "type": "object"
+    },
     "ProposeMemory": {
       "additionalProperties": false,
       "description": "Human-submitted inference; no caller-selected origin, run or active status.",
@@ -973,6 +1283,17 @@
           "title": "Predicate Key",
           "type": "string"
         },
+        "procedure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcedureDetails"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "request_id": {
           "maxLength": 128,
           "minLength": 1,
@@ -1012,6 +1333,7 @@
             "discriminator": {
               "mapping": {
                 "file": "#/$defs/MemoryFile",
+                "memory": "#/$defs/MemoryDerived",
                 "source": "#/$defs/MemorySource"
               },
               "propertyName": "source_type"
@@ -1022,6 +1344,9 @@
               },
               {
                 "$ref": "#/$defs/MemoryFile"
+              },
+              {
+                "$ref": "#/$defs/MemoryDerived"
               }
             ]
           },
@@ -1165,6 +1490,17 @@
           "title": "Predicate Key",
           "type": "string"
         },
+        "procedure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProcedureDetails"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "request_id": {
           "maxLength": 128,
           "minLength": 1,
@@ -1204,6 +1540,7 @@
             "discriminator": {
               "mapping": {
                 "file": "#/$defs/MemoryFile",
+                "memory": "#/$defs/MemoryDerived",
                 "source": "#/$defs/MemorySource"
               },
               "propertyName": "source_type"
@@ -1214,6 +1551,9 @@
               },
               {
                 "$ref": "#/$defs/MemoryFile"
+              },
+              {
+                "$ref": "#/$defs/MemoryDerived"
               }
             ]
           },
@@ -1318,6 +1658,53 @@
       "title": "ReviewMemory",
       "type": "object"
     },
+    "RollbackMemory": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Expected Revision Id",
+          "type": "string"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "target_revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Target Revision Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_revision_id",
+        "target_revision_id"
+      ],
+      "title": "RollbackMemory",
+      "type": "object"
+    },
     "SourceRef": {
       "additionalProperties": false,
       "properties": {
@@ -1373,6 +1760,9 @@
     "inspection": {
       "$ref": "#/$defs/MemoryInspection"
     },
+    "lesson_evidence": {
+      "$ref": "#/$defs/ProcedureEvidencePage"
+    },
     "narrow": {
       "$ref": "#/$defs/NarrowMemory"
     },
@@ -1391,6 +1781,9 @@
     "revision": {
       "$ref": "#/$defs/MemoryRevisionV1"
     },
+    "rollback": {
+      "$ref": "#/$defs/RollbackMemory"
+    },
     "usage": {
       "$ref": "#/$defs/MemoryUsagePage"
     }
@@ -1404,6 +1797,8 @@
     "candidate",
     "review",
     "correct",
+    "rollback",
+    "lesson_evidence",
     "narrow",
     "expire",
     "forget",

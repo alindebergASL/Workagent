@@ -1,0 +1,125 @@
+{
+  "batch": "retrieval-09.xml",
+  "sha256": "71cf842eaef4f97f0921822cf3b3e38cdfbb6d9d8a8647c673fc5e1e6d1a7520",
+  "counts": {
+    "passed": 22,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 22,
+  "cases": [
+    {
+      "nodeid": "tests.test_research_retrieval::test_real_tls_versions_and_exact_prefixes",
+      "status": "passed",
+      "seconds": 1.162
+    },
+    {
+      "nodeid": "tests.test_research_retrieval::test_real_tls_empty_body_and_truncation",
+      "status": "passed",
+      "seconds": 0.697
+    },
+    {
+      "nodeid": "tests.test_research_retrieval::test_real_redirect_metadata_refused",
+      "status": "passed",
+      "seconds": 1.0
+    },
+    {
+      "nodeid": "tests.test_research_retrieval::test_source_subprocess_boundaries",
+      "status": "passed",
+      "seconds": 0.297
+    },
+    {
+      "nodeid": "tests.test_research_retrieval::test_static_content_never_triggers_browser",
+      "status": "passed",
+      "seconds": 0.002
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_query_bytes_and_url_egress_are_exact",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_read_permission_never_authorizes_private_egress[egress]",
+      "status": "passed",
+      "seconds": 0.197
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_read_permission_never_authorizes_private_egress[query]",
+      "status": "passed",
+      "seconds": 0.178
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_read_permission_never_authorizes_private_egress[processor]",
+      "status": "passed",
+      "seconds": 0.235
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_read_permission_never_authorizes_private_egress[url]",
+      "status": "passed",
+      "seconds": 0.2
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_read_permission_never_authorizes_private_egress[disabled]",
+      "status": "passed",
+      "seconds": 0.279
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_missing_search_zero_calls_and_snippets_not_evidence",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_quote_ranges_are_unicode_exact_and_not_entailment",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_opt_in_schema_and_legacy_catalog_stay_distinct",
+      "status": "passed",
+      "seconds": 0.264
+    },
+    {
+      "nodeid": "tests.test_research_unit::test_capture_exact_raw_mime_and_empty_coverage",
+      "status": "passed",
+      "seconds": 0.001
+    },
+    {
+      "nodeid": "tests.test_research_http_pg::test_real_http_search_snippet_is_discovery_not_capture",
+      "status": "passed",
+      "seconds": 9.758
+    },
+    {
+      "nodeid": "tests.test_research_http_pg::test_exact_private_query_url_and_processor_selectors_refuse_zero_http",
+      "status": "passed",
+      "seconds": 6.273
+    },
+    {
+      "nodeid": "tests.test_research_http_pg::test_missing_production_search_processor_explicit_zero_calls",
+      "status": "passed",
+      "seconds": 3.623
+    },
+    {
+      "nodeid": "tests.test_research_revocation_pg::test_capture_a_cite_b_revoke_a_blocks_observations_and_next_send[after_tool_result]",
+      "status": "passed",
+      "seconds": 81.033
+    },
+    {
+      "nodeid": "tests.test_research_revocation_pg::test_capture_a_cite_b_revoke_a_blocks_observations_and_next_send[prepared]",
+      "status": "passed",
+      "seconds": 130.525
+    },
+    {
+      "nodeid": "tests.test_research_revocation_pg::test_capture_a_cite_b_revoke_a_blocks_observations_and_next_send[counted]",
+      "status": "passed",
+      "seconds": 102.802
+    },
+    {
+      "nodeid": "tests.test_research_revocation_pg::test_read_result_transitive_checkpoint_dependency_denied_after_revoke",
+      "status": "passed",
+      "seconds": 177.255
+    }
+  ],
+  "seconds": 519.332,
+  "timestamp": "2026-10-29T14:28:36.088190+00:00"
+}

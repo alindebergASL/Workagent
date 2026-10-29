@@ -1,0 +1,45 @@
+ Working files · Ctrl+S save · Esc back                                                             
+ Exact file loaded; edits are private until Save human edit.                                        
+▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔                                                   
+   Back     Refresh list   Next page   New draft                                                    
+▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁                                                   
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.pdf · 48f01da2-d417-4584-9a4b-9c77fa1730c1                                        ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔                                                              
+ Open exact   Read range   Next range                                                               
+▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁                                                              
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                           
+ Inspect source metadata                                                                            
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                           
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.pdf · be70832d-6b45-424c-86a2-67dba5ff4bc2:48f01da2-d417-4584-9a4b-9c77fa1730c1   ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                                      
+ Reopen draft                                                                                       
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                                      
+ File be70832d-6b45-424c-86a2-67dba5ff4bc2                                                          
+ Version 48f01da2-d417-4584-9a4b-9c77fa1730c1                                                       
+ SHA256 ffec2f6bdc37bc7bcbca582a60e94e49e622191cadc6a23b6d0612a2531ce90b                            
+ Complete editor content: 697 UTF-8 bytes. No omitted bytes. Extraction omissions: images, layout   
+ and non-text content Original newline: lf. BOM retained.                                           
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                         
+ Make editable office copy                                                                        ▆▆
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                         
+Open a retained DOCX/XLSX source, then make a separate editable office-v1 JSON copy. The original   
+is unchanged. Edit paragraphs, cells and annotations in JSON. Formulas are not computed; imported   
+caches are historical. Rich formatting/layout may be omitted. No OCR or image understanding.        
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.pdf                                                                                  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  1                                                                                             ▎  
+▊  2  [Page 1]                                                                                   ▎  
+▊  3  Quarterly operations note                                                                  ▎  
+▊  4  Exact quotation: “Preserve this wording.”                                               ▆▆ ▎  
+▊  5  A measured draft, not an approved decision.                                                ▎  
+▊  6  Human annotation: Human annotation: protect this exact sentence.                           ▎  
+▊  7  OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded         ▎  
+▊     objects                                                                                    ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+ esc Back  ^s Save file  ^r Refresh list                                                            

@@ -1037,3 +1037,121 @@ textarea.fit-text {
     background: transparent;
   }
 }
+
+/* Synthetic connections (B3.3b): one column that wraps at any width. */
+.connector-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.connector-panel h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+.connector-panel h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+.connector-mode,
+.connector-notice {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--warn-line);
+  background: var(--warn-soft);
+  color: var(--warn-ink);
+}
+.connector-notice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border-color: var(--line-strong);
+  background: var(--surface-2);
+  color: var(--ink);
+}
+.connector-notice p {
+  margin: 0;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.connector-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.connector-row,
+.connector-consent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-width: 0;
+}
+.connector-consent {
+  flex-direction: column;
+  align-items: stretch;
+}
+.connector-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 220px;
+  min-width: 0;
+}
+.connector-resource {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+}
+.connector-provider {
+  color: var(--warn-ink);
+}
+.connector-row[data-provider-revocation="revoked"] .connector-provider {
+  color: var(--ok-ink);
+}
+.connector-muted {
+  color: var(--ink-3);
+}
+.connector-consent dl {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+}
+.connector-consent dd {
+  margin: 0;
+  min-width: 0;
+}
+.connector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.connector-panel button {
+  min-height: 44px;
+  max-width: 100%;
+}
+@media (max-width: 400px) {
+  .connector-consent dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .connector-consent dt {
+    margin-top: 6px;
+    font-weight: 600;
+  }
+  .connector-actions > button {
+    flex: 1 1 100%;
+  }
+}

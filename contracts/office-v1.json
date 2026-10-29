@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "FileVersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Version Id",
+          "type": "string"
+        },
+        "workspace_file_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Workspace File Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_file_id",
+        "version_id",
+        "sha256"
+      ],
+      "title": "FileVersionRef",
+      "type": "object"
+    },
+    "ImportOfficeDraft": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Command Id",
+          "type": "string"
+        },
+        "expected_work_version": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Expected Work Version",
+          "type": "integer"
+        },
+        "request_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "workagent/v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/FileVersionRef"
+        }
+      },
+      "required": [
+        "schema_version",
+        "request_id",
+        "command_id",
+        "expected_work_version",
+        "source"
+      ],
+      "title": "ImportOfficeDraft",
+      "type": "object"
+    },
+    "OfficeCell": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "title": "Address",
+          "type": "string"
+        },
+        "cached_value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cached Value"
+        },
+        "kind": {
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "blank",
+            "formula"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "address",
+        "kind",
+        "value"
+      ],
+      "title": "OfficeCell",
+      "type": "object"
+    },
+    "OfficeDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Annotations",
+          "type": "array"
+        },
+        "kind": {
+          "const": "document",
+          "title": "Kind",
+          "type": "string"
+        },
+        "office_version": {
+          "const": "office-v1",
+          "default": "office-v1",
+          "title": "Office Version",
+          "type": "string"
+        },
+        "paragraphs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Paragraphs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "paragraphs",
+        "annotations"
+      ],
+      "title": "OfficeDocument",
+      "type": "object"
+    },
+    "OfficeSheet": {
+      "additionalProperties": false,
+      "properties": {
+        "cells": {
+          "items": {
+            "$ref": "#/$defs/OfficeCell"
+          },
+          "title": "Cells",
+          "type": "array"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "cells"
+      ],
+      "title": "OfficeSheet",
+      "type": "object"
+    },
+    "OfficeWorkbook": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Annotations",
+          "type": "array"
+        },
+        "kind": {
+          "const": "workbook",
+          "title": "Kind",
+          "type": "string"
+        },
+        "office_version": {
+          "const": "office-v1",
+          "default": "office-v1",
+          "title": "Office Version",
+          "type": "string"
+        },
+        "sheets": {
+          "items": {
+            "$ref": "#/$defs/OfficeSheet"
+          },
+          "title": "Sheets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "sheets",
+        "annotations"
+      ],
+      "title": "OfficeWorkbook",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "document": {
+      "$ref": "#/$defs/OfficeDocument"
+    },
+    "import_draft": {
+      "$ref": "#/$defs/ImportOfficeDraft"
+    },
+    "workbook": {
+      "$ref": "#/$defs/OfficeWorkbook"
+    }
+  },
+  "required": [
+    "import_draft",
+    "document",
+    "workbook"
+  ],
+  "title": "OfficeContract",
+  "type": "object"
+}

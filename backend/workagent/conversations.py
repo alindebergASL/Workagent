@@ -105,11 +105,15 @@ class Conversations:
 
     def _conversation_messages(self,c,ws,cid):
         return [ConversationMessage.model_validate(r['data']) for r in c.execute(
-            'SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s ORDER BY sequence',
+            "SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+            "AND (author_kind<>'assistant' OR research_run_dependencies_visible(workspace_id,run_id)) ORDER BY sequence",
             (ws,cid)).fetchall()]
 
     def _append_message(self,c,ws,message):
         from .service import encoded
+        # Hidden stale automated replies still occupy immutable sequence slots.
+        message.sequence = c.execute('SELECT coalesce(max(sequence),0)+1 AS n FROM conversation_messages '
+            'WHERE workspace_id=%s AND conversation_id=%s', (ws,message.conversation_id)).fetchone()['n']
         c.execute('''INSERT INTO conversation_messages(workspace_id,conversation_id,id,run_id,sequence,author_kind,data)
                      VALUES (%s,%s,%s,%s,%s,%s,%s)''',
                   (ws,message.conversation_id,message.id,message.run_id,message.sequence,message.author_kind,encoded(message)))
@@ -157,6 +161,7 @@ class Conversations:
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('''SELECT a.id FROM artifacts a
                 WHERE a.workspace_id=%s AND a.conversation_id=%s
+                AND memory_revision_visible(a.workspace_id,a.id,a.current_revision_id)
                 AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
                     AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',(ws,cid,p.id)).fetchall()]
             from .original_attachments import projection as attachment_projection
@@ -325,6 +330,8 @@ class Conversations:
         from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
         materials=self._own_new_drafts(c,p,run,cv) if run.profile=='general-responses-v1' else []
+        from .research import authorize_run_dependencies
+        authorize_run_dependencies(c,run.workspace_id,run.id)
         own=[m['artifact_id'] for m in materials]
         context,sources=self._materialize_general_context(c,p,run,cv,exclude_artifacts=own)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
@@ -338,6 +345,12 @@ class Conversations:
             observation['evidence_context']=context['evidence_context']
         if 'memory_manifest' in context:
             observation['memory_manifest']=context['memory_manifest']
+            observation['memory_human_request']=context['memory_human_request']
+        if run.profile=='general-responses-v1':
+            from .general_responses import check_pins
+            from .capabilities.github_composition import enabled as github_enabled
+            if github_enabled(check_pins(c,run)):
+                observation['research_source_ids']=[s['snapshot_id'] for s in context.get('research_sources',[])]
         previous=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',(run.workspace_id,run.id)).fetchone()
         if own and not previous:
             raise DomainError('source_changed')
@@ -405,6 +418,10 @@ class Conversations:
             if research_enabled(config):
                 from .research import project as project_research
                 project_research(self,c,p,run,cv,context,include_own=True)
+            from .capabilities.mcp_composition import enabled as mcp_enabled
+            if mcp_enabled(config):
+                from .capabilities.mcp_adapters import project as project_connectors
+                project_connectors(self,c,p,run,context)
             if retained_enabled(config):
                 context['retained_results']=references(self,c,p,run,cv)
                 context['continuation']=config.get('continuation')

@@ -1,0 +1,83 @@
+{
+  "sha256": "b3b4acef76d6d7202903331ff32b4895880b4c42837d7236598c6efa82e49d08",
+  "tools": [
+    {
+      "name": "catalog_read",
+      "description": "Read one fixed page of the synthetic library. All records are invented.",
+      "inputSchema": {
+        "properties": {
+          "page": {
+            "maximum": 3,
+            "minimum": 1,
+            "title": "Page",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page"
+        ],
+        "title": "catalog_readArguments",
+        "type": "object"
+      },
+      "outputSchema": {
+        "$defs": {
+          "CatalogItem": {
+            "properties": {
+              "id": {
+                "title": "Id",
+                "type": "string"
+              },
+              "title": {
+                "title": "Title",
+                "type": "string"
+              },
+              "summary": {
+                "title": "Summary",
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "summary"
+            ],
+            "title": "CatalogItem",
+            "type": "object"
+          }
+        },
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/$defs/CatalogItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Page"
+          }
+        },
+        "required": [
+          "items",
+          "next_page"
+        ],
+        "title": "CatalogPage",
+        "type": "object"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

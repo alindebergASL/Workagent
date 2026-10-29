@@ -14,9 +14,20 @@ from ..workspace_file_models import MAX_FILE_BYTES
 MAX_TEXT_BYTES = MAX_FILE_BYTES
 
 
+EXPORT_FORMATS = ('txt', 'markdown', 'csv', 'json', 'docx', 'xlsx', 'pdf', 'png')
+
+
+def new_chart_draft():
+    # Incomplete form values are retained locally; canonical ChartSpec validates
+    # only when preparing a command, not on every keystroke.
+    return dict(category_column='', value_column=None, aggregation='sum',
+                title='', x_label='', y_label='')
+
+
 def new_file_draft():
     return dict(filename='notes.md', mime_type='text/markdown', content='',
-                base=None, proposal=None, export=None, generation=0, pending=None)
+                base=None, proposal=None, export=None, generation=0, pending=None,
+                export_format='txt', chart_spec=new_chart_draft(), export_request=None)
 
 
 class FileDraftStore(DraftStore):
@@ -40,6 +51,10 @@ class FileDraftStore(DraftStore):
                 state['selected'] not in state['drafts']):
             raise OperatorError('Corrupt private file draft state')
         for key, draft in state['drafts'].items():
+            if isinstance(draft, dict):
+                # Additive migration: never rewrite text, bases or old envelopes.
+                for field in ('export_format', 'chart_spec', 'export_request'):
+                    draft.setdefault(field, copy.deepcopy(new_file_draft()[field]))
             if (not isinstance(key, str) or not isinstance(draft, dict) or
                     set(draft) != set(new_file_draft()) or
                     not isinstance(draft['filename'], str) or len(draft['filename']) > 180 or
@@ -48,7 +63,17 @@ class FileDraftStore(DraftStore):
                     len(draft['content'].encode('utf-8')) > MAX_TEXT_BYTES or
                     type(draft['generation']) is not int or draft['generation'] < 0):
                 raise OperatorError('Invalid or excessive private file draft')
-            for field in ('base', 'proposal', 'export', 'pending'):
+            if draft['export_format'] not in EXPORT_FORMATS:
+                raise OperatorError('Invalid retained export format')
+            chart = draft['chart_spec']
+            if (not isinstance(chart, dict) or set(chart) != set(new_chart_draft()) or
+                    chart['aggregation'] not in ('sum', 'count', 'mean') or
+                    any(not isinstance(chart[k], str) or len(chart[k]) > limit for k, limit in
+                        (('category_column', 100), ('title', 200), ('x_label', 100), ('y_label', 100))) or
+                    (chart['value_column'] is not None and
+                     (not isinstance(chart['value_column'], str) or len(chart['value_column']) > 100))):
+                raise OperatorError('Invalid retained chart configuration')
+            for field in ('base', 'proposal', 'export', 'pending', 'export_request'):
                 if draft[field] is not None and not isinstance(draft[field], dict):
                     raise OperatorError('Invalid retained exact file binding')
         return state

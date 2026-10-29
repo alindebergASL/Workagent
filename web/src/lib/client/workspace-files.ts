@@ -26,6 +26,7 @@ import type {
   FileRange,
   FileVersionRef,
   GeneratedBlobRef,
+  ImportOfficeDraft,
   WorkspaceFile,
   WorkspaceFilePage,
 } from "@/lib/files-contract";
@@ -157,6 +158,26 @@ export async function requestExport(
       params: { path: { workspace_id: ws, file_id: fileId } },
       body,
     }),
+  );
+}
+
+/**
+ * Creates a NEW editable office-v1 JSON working file from an exact immutable
+ * DOCX/XLSX source version; the original snapshot is never modified.
+ */
+export async function importOfficeDraft(
+  ws: string,
+  conversation: string,
+  body: ImportOfficeDraft,
+): Promise<WorkspaceFile> {
+  return unwrap(
+    client.POST(
+      "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/office-drafts",
+      {
+        params: { path: { workspace_id: ws, conversation_id: conversation } },
+        body,
+      },
+    ),
   );
 }
 

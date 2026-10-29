@@ -377,6 +377,9 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     from .research_api import register as register_research
     register_research(app,service,principal,query_meta,errors)
 
+    from .connectors.api import register as register_connectors
+    register_connectors(app,service,principal,query_meta,errors)
+
     from .memory.api import register as register_memory
     register_memory(app,service,principal,query_meta,errors)
 

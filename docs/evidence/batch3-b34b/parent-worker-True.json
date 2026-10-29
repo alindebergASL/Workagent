@@ -1,0 +1,581 @@
+{
+  "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+  "workspace_id": "test-e5387582-4fe8-4b35-8fb4-f09aefcf59c8",
+  "conversation_id": "79f22c7e-0455-4dad-a9c2-b6d170a2263e",
+  "state": "ready",
+  "restart": true,
+  "process_receipts": [
+    {
+      "pid": 868401,
+      "mode": "interrupt",
+      "state": "interrupted_after_child_observation",
+      "calls": 2
+    },
+    {
+      "pid": 869074,
+      "mode": "resume",
+      "state": "ready",
+      "calls": 14
+    }
+  ],
+  "no_duplicate_launch": true,
+  "paid_product_calls": 0,
+  "transport": "controlled selection; real GeneralWorker, PG and gVisor children",
+  "tool_observations": [
+    {
+      "id": "762aa348-f10a-4eec-a67e-2c0e198b6685",
+      "capability_id": "delegation.analysis",
+      "data": {
+        "cost": {
+          "unit": "call",
+          "basis": "estimated",
+          "cpu_ms": 505,
+          "category": "child",
+          "elapsed_ms": 5078,
+          "observed_units": 1,
+          "reserved_units": 1,
+          "billed_cost_usd": null,
+          "observed_cost_usd": null,
+          "reserved_cost_usd": "0"
+        },
+        "error": null,
+        "output": {
+          "result": {
+            "task": "Summarize west.csv",
+            "state": "proposal",
+            "proposal": {
+              "mean": "120",
+              "rows": 2,
+              "total": "240",
+              "source": "west.csv"
+            },
+            "authority": {
+              "accept": false,
+              "actions": [
+                "read_staged_inputs",
+                "local_compute",
+                "propose_json"
+              ],
+              "effects": [
+                "read",
+                "local_compute",
+                "draft"
+              ],
+              "sources": [
+                {
+                  "id": "6c714590-dcfa-439c-b035-aeb68a607c5f",
+                  "kind": "workspace_file",
+                  "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac",
+                  "version": "b29fc443-90e3-428d-b6ad-a2eeda4504e3"
+                }
+              ],
+              "grant_id": "976e02ca-bbfa-415c-9fec-99a8681f788e",
+              "processor": "local-confined-analysis-v1",
+              "parent_run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+              "memory_admission": false,
+              "access_generation": 1,
+              "budget_account_id": "1c15b5cd-6362-4f53-a46a-340284833347",
+              "nested_delegation": false
+            },
+            "execution": {
+              "inputs": [
+                {
+                  "name": "west.csv",
+                  "bytes": 24,
+                  "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+                },
+                {
+                  "name": "task.json",
+                  "bytes": 732,
+                  "sha256": "a2f4d0adcfeea6ff1355682878c590e034599c7a8439d0e575f97386a74bcb84"
+                }
+              ],
+              "status": "succeeded",
+              "exit_code": 0,
+              "resources": {
+                "cpu_usec": 505615,
+                "oom_kill": 0,
+                "pids_peak": 31,
+                "memory_peak_bytes": 22024192
+              },
+              "elapsed_ms": 810,
+              "code_sha256": "ba5bbc83f0f8aa49e17c94b8aa892ba648c8f19aa8eb2bfcab074394468b5bae",
+              "stdout_sha256": "11a27298bb1c76ad920936787e47c4dc297950c7b057b57a8f9feaba44aafc0c",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "cleanup_verified": true
+            },
+            "limitation": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+            "verification": "unreviewed",
+            "provider_calls": 0,
+            "output_contract": "JSON rows, total seconds and mean seconds with exact decimals",
+            "proposal_sha256": "5313722ddf2963cb57ba05168a38084d7da1e18a8cc724084568f8222d2dd628",
+            "child_attempt_id": "762aa348-f10a-4eec-a67e-2c0e198b6685"
+          },
+          "version": "1",
+          "capability": "delegate_analysis"
+        },
+        "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+        "status": "observed",
+        "call_id": "selection",
+        "ended_at": "2026-10-29T12:04:56.876856Z",
+        "omissions": [],
+        "truncated": false,
+        "attempt_id": "762aa348-f10a-4eec-a67e-2c0e198b6685",
+        "input_refs": [
+          {
+            "id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+            "kind": "run_scope",
+            "sha256": "d8e1ae923fa35d51bd078acb794fda104aa461acab09b87d54c712884819a73d",
+            "version": "2"
+          }
+        ],
+        "started_at": "2026-10-29T12:04:51.798453Z",
+        "output_refs": [],
+        "source_refs": [
+          {
+            "id": "6c714590-dcfa-439c-b035-aeb68a607c5f",
+            "kind": "workspace_file",
+            "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac",
+            "version": "b29fc443-90e3-428d-b6ad-a2eeda4504e3"
+          },
+          {
+            "id": "local-confined-analysis-v1",
+            "kind": "processor",
+            "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f",
+            "version": "1"
+          }
+        ],
+        "capability_id": "delegation.analysis",
+        "output_sha256": "feb5a41f39c909ca27bf75539e283fa21d9f0b85c8ab48f3b1e4b923ff0dd9db",
+        "privacy_label": "workspace_private",
+        "schema_version": "tool-observation/v1",
+        "execution_profile": "bounded-delegation-v1",
+        "capability_version": "1",
+        "verification_scope": "adapter_execution_only",
+        "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7"
+      }
+    },
+    {
+      "id": "a1c9e6ef-c87a-4fa0-a40c-cd2d5895b125",
+      "capability_id": "delegation.analysis",
+      "data": {
+        "cost": {
+          "unit": "call",
+          "basis": "estimated",
+          "cpu_ms": 511,
+          "category": "child",
+          "elapsed_ms": 3428,
+          "observed_units": 1,
+          "reserved_units": 1,
+          "billed_cost_usd": null,
+          "observed_cost_usd": null,
+          "reserved_cost_usd": "0"
+        },
+        "error": null,
+        "output": {
+          "result": {
+            "task": "Summarize east.csv",
+            "state": "proposal",
+            "proposal": {
+              "mean": "180",
+              "rows": 2,
+              "total": "360",
+              "source": "east.csv"
+            },
+            "authority": {
+              "accept": false,
+              "actions": [
+                "read_staged_inputs",
+                "local_compute",
+                "propose_json"
+              ],
+              "effects": [
+                "read",
+                "local_compute",
+                "draft"
+              ],
+              "sources": [
+                {
+                  "id": "d235d094-730a-4e6b-a8f7-a97f7175819e",
+                  "kind": "workspace_file",
+                  "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a",
+                  "version": "27110c02-57cb-4e6a-8eaa-0d61fe20c564"
+                }
+              ],
+              "grant_id": "976e02ca-bbfa-415c-9fec-99a8681f788e",
+              "processor": "local-confined-analysis-v1",
+              "parent_run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+              "memory_admission": false,
+              "access_generation": 1,
+              "budget_account_id": "1c15b5cd-6362-4f53-a46a-340284833347",
+              "nested_delegation": false
+            },
+            "execution": {
+              "inputs": [
+                {
+                  "name": "east.csv",
+                  "bytes": 25,
+                  "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+                },
+                {
+                  "name": "task.json",
+                  "bytes": 732,
+                  "sha256": "db1091af62f1f9e02d0c31fd1c3aea8d272c9825d1b1be6b761782beef6202cc"
+                }
+              ],
+              "status": "succeeded",
+              "exit_code": 0,
+              "resources": {
+                "cpu_usec": 511575,
+                "oom_kill": 0,
+                "pids_peak": 29,
+                "memory_peak_bytes": 22155264
+              },
+              "elapsed_ms": 736,
+              "code_sha256": "ba5bbc83f0f8aa49e17c94b8aa892ba648c8f19aa8eb2bfcab074394468b5bae",
+              "stdout_sha256": "22902510b35b4d2e23a6f16831ae05bcde6c856b84fa931f8447ec9e4fb202b3",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "cleanup_verified": true
+            },
+            "limitation": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+            "verification": "unreviewed",
+            "provider_calls": 0,
+            "output_contract": "JSON rows, total seconds and mean seconds with exact decimals",
+            "proposal_sha256": "eed9c283508c8dba2578eae699c6757d6e67cce35ffbc3042c76cf1f30b7dc89",
+            "child_attempt_id": "a1c9e6ef-c87a-4fa0-a40c-cd2d5895b125"
+          },
+          "version": "1",
+          "capability": "delegate_analysis"
+        },
+        "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+        "status": "observed",
+        "call_id": "selection_2",
+        "ended_at": "2026-10-29T12:05:25.523502Z",
+        "omissions": [],
+        "truncated": false,
+        "attempt_id": "a1c9e6ef-c87a-4fa0-a40c-cd2d5895b125",
+        "input_refs": [
+          {
+            "id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+            "kind": "run_scope",
+            "sha256": "d8e1ae923fa35d51bd078acb794fda104aa461acab09b87d54c712884819a73d",
+            "version": "2"
+          }
+        ],
+        "started_at": "2026-10-29T12:05:22.095151Z",
+        "output_refs": [],
+        "source_refs": [
+          {
+            "id": "d235d094-730a-4e6b-a8f7-a97f7175819e",
+            "kind": "workspace_file",
+            "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a",
+            "version": "27110c02-57cb-4e6a-8eaa-0d61fe20c564"
+          },
+          {
+            "id": "local-confined-analysis-v1",
+            "kind": "processor",
+            "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f",
+            "version": "1"
+          }
+        ],
+        "capability_id": "delegation.analysis",
+        "output_sha256": "6733d422e82c8263dfecf37f9d8186fe6dc5c4ecf91d1624f42d0168aa852729",
+        "privacy_label": "workspace_private",
+        "schema_version": "tool-observation/v1",
+        "execution_profile": "bounded-delegation-v1",
+        "capability_version": "1",
+        "verification_scope": "adapter_execution_only",
+        "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7"
+      }
+    },
+    {
+      "id": "728576c6-3590-4e83-bbf7-660568b5807b",
+      "capability_id": "delegation.verify",
+      "data": {
+        "cost": {
+          "unit": "call",
+          "basis": "estimated",
+          "cpu_ms": 501,
+          "category": "local_compute",
+          "elapsed_ms": 3914,
+          "observed_units": 1,
+          "reserved_units": 1,
+          "billed_cost_usd": null,
+          "observed_cost_usd": null,
+          "reserved_cost_usd": "0"
+        },
+        "error": null,
+        "output": {
+          "result": {
+            "state": "checks_passed",
+            "checks": [
+              "exact source rows",
+              "independent rational sum",
+              "independent rational mean"
+            ],
+            "proposal": {
+              "mean": "120",
+              "rows": 2,
+              "total": "240",
+              "source": "west.csv"
+            },
+            "execution": {
+              "inputs": [
+                {
+                  "name": "west.csv",
+                  "bytes": 24,
+                  "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+                },
+                {
+                  "name": "task.json",
+                  "bytes": 732,
+                  "sha256": "a2f4d0adcfeea6ff1355682878c590e034599c7a8439d0e575f97386a74bcb84"
+                },
+                {
+                  "name": "child.json",
+                  "bytes": 1779,
+                  "sha256": "36e05ea730787e1f7e4f4060b36698be33c585882e28356223bca6abfea5d5ae"
+                }
+              ],
+              "status": "succeeded",
+              "exit_code": 0,
+              "resources": {
+                "cpu_usec": 501712,
+                "oom_kill": 0,
+                "pids_peak": 29,
+                "memory_peak_bytes": 21786624
+              },
+              "elapsed_ms": 835,
+              "code_sha256": "8b4c175ac8d5c15141aa98f33f2bf24eaf1c6d29082c5ae44a84201be50568e7",
+              "stdout_sha256": "481ee8a5c0380582551594231646d99f06ae2ff54f105e36bfafb22d9455d252",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "cleanup_verified": true
+            },
+            "inspection": "Inspect exact regional rows; recompute sum and mean with rational arithmetic",
+            "limitation": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+            "proposal_sha256": "5313722ddf2963cb57ba05168a38084d7da1e18a8cc724084568f8222d2dd628",
+            "child_attempt_id": "762aa348-f10a-4eec-a67e-2c0e198b6685"
+          },
+          "version": "1",
+          "capability": "verify_delegate"
+        },
+        "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+        "status": "observed",
+        "call_id": "selection_3",
+        "ended_at": "2026-10-29T12:05:43.157605Z",
+        "omissions": [],
+        "truncated": false,
+        "attempt_id": "728576c6-3590-4e83-bbf7-660568b5807b",
+        "input_refs": [
+          {
+            "id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+            "kind": "run_scope",
+            "sha256": "d8e1ae923fa35d51bd078acb794fda104aa461acab09b87d54c712884819a73d",
+            "version": "2"
+          }
+        ],
+        "started_at": "2026-10-29T12:05:39.243236Z",
+        "output_refs": [],
+        "source_refs": [
+          {
+            "id": "6c714590-dcfa-439c-b035-aeb68a607c5f",
+            "kind": "workspace_file",
+            "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac",
+            "version": "b29fc443-90e3-428d-b6ad-a2eeda4504e3"
+          },
+          {
+            "id": "local-confined-analysis-v1",
+            "kind": "processor",
+            "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f",
+            "version": "1"
+          }
+        ],
+        "capability_id": "delegation.verify",
+        "output_sha256": "d9fadd1ef295f966eb3a68284dcd0e33ec7bea5583e8bc3c4f32b11d754a3993",
+        "privacy_label": "workspace_private",
+        "schema_version": "tool-observation/v1",
+        "execution_profile": "bounded-delegation-v1",
+        "capability_version": "1",
+        "verification_scope": "adapter_execution_only",
+        "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7"
+      }
+    },
+    {
+      "id": "3df3e889-b973-4744-b53b-993c10ce200f",
+      "capability_id": "delegation.verify",
+      "data": {
+        "cost": {
+          "unit": "call",
+          "basis": "estimated",
+          "cpu_ms": 498,
+          "category": "local_compute",
+          "elapsed_ms": 3652,
+          "observed_units": 1,
+          "reserved_units": 1,
+          "billed_cost_usd": null,
+          "observed_cost_usd": null,
+          "reserved_cost_usd": "0"
+        },
+        "error": null,
+        "output": {
+          "result": {
+            "state": "checks_passed",
+            "checks": [
+              "exact source rows",
+              "independent rational sum",
+              "independent rational mean"
+            ],
+            "proposal": {
+              "mean": "180",
+              "rows": 2,
+              "total": "360",
+              "source": "east.csv"
+            },
+            "execution": {
+              "inputs": [
+                {
+                  "name": "east.csv",
+                  "bytes": 25,
+                  "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+                },
+                {
+                  "name": "task.json",
+                  "bytes": 732,
+                  "sha256": "db1091af62f1f9e02d0c31fd1c3aea8d272c9825d1b1be6b761782beef6202cc"
+                },
+                {
+                  "name": "child.json",
+                  "bytes": 1779,
+                  "sha256": "de5cd0abbe73c73aeb9817b0ff64c86965fa6f0e85e4361aabf6c50bc545fcbe"
+                }
+              ],
+              "status": "succeeded",
+              "exit_code": 0,
+              "resources": {
+                "cpu_usec": 498861,
+                "oom_kill": 0,
+                "pids_peak": 30,
+                "memory_peak_bytes": 21954560
+              },
+              "elapsed_ms": 751,
+              "code_sha256": "8b4c175ac8d5c15141aa98f33f2bf24eaf1c6d29082c5ae44a84201be50568e7",
+              "stdout_sha256": "481ee8a5c0380582551594231646d99f06ae2ff54f105e36bfafb22d9455d252",
+              "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+              "cleanup_verified": true
+            },
+            "inspection": "Inspect exact regional rows; recompute sum and mean with rational arithmetic",
+            "limitation": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+            "proposal_sha256": "eed9c283508c8dba2578eae699c6757d6e67cce35ffbc3042c76cf1f30b7dc89",
+            "child_attempt_id": "a1c9e6ef-c87a-4fa0-a40c-cd2d5895b125"
+          },
+          "version": "1",
+          "capability": "verify_delegate"
+        },
+        "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+        "status": "observed",
+        "call_id": "selection_4",
+        "ended_at": "2026-10-29T12:06:01.214218Z",
+        "omissions": [],
+        "truncated": false,
+        "attempt_id": "3df3e889-b973-4744-b53b-993c10ce200f",
+        "input_refs": [
+          {
+            "id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+            "kind": "run_scope",
+            "sha256": "d8e1ae923fa35d51bd078acb794fda104aa461acab09b87d54c712884819a73d",
+            "version": "2"
+          }
+        ],
+        "started_at": "2026-10-29T12:05:57.561248Z",
+        "output_refs": [],
+        "source_refs": [
+          {
+            "id": "d235d094-730a-4e6b-a8f7-a97f7175819e",
+            "kind": "workspace_file",
+            "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a",
+            "version": "27110c02-57cb-4e6a-8eaa-0d61fe20c564"
+          },
+          {
+            "id": "local-confined-analysis-v1",
+            "kind": "processor",
+            "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f",
+            "version": "1"
+          }
+        ],
+        "capability_id": "delegation.verify",
+        "output_sha256": "de9de94f89ea546a729a2139fba5b4119f91b56a7f3d35b8c999e18981d23d08",
+        "privacy_label": "workspace_private",
+        "schema_version": "tool-observation/v1",
+        "execution_profile": "bounded-delegation-v1",
+        "capability_version": "1",
+        "verification_scope": "adapter_execution_only",
+        "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7"
+      }
+    },
+    {
+      "id": "b58b9764-8904-4c26-bd15-81ab24dea441",
+      "capability_id": "files.create_draft",
+      "data": {
+        "cost": {
+          "unit": "call",
+          "basis": "estimated",
+          "cpu_ms": 755,
+          "category": "local_compute",
+          "elapsed_ms": 986,
+          "observed_units": 1,
+          "reserved_units": 1,
+          "billed_cost_usd": null,
+          "observed_cost_usd": null,
+          "reserved_cost_usd": "0"
+        },
+        "error": null,
+        "output": {
+          "result": {
+            "current": {
+              "sha256": "c9a1c9907b616271eaaed49bf599a08b11aaa0a636f621fcfb2bb75a13d61bc1",
+              "version_id": "869d55d5-205d-4951-8384-47dedcbaa3ad",
+              "workspace_file_id": "b58b9764-8904-4c26-bd15-81ab24dea441"
+            },
+            "storage": "artifact_revision",
+            "editable": true,
+            "filename": "verified-regional-comparison.txt",
+            "mime_type": "text/plain",
+            "byte_length": 214,
+            "workspace_id": "test-e5387582-4fe8-4b35-8fb4-f09aefcf59c8",
+            "conversation_id": "79f22c7e-0455-4dad-a9c2-b6d170a2263e",
+            "office_provenance": null,
+            "workspace_file_id": "b58b9764-8904-4c26-bd15-81ab24dea441"
+          },
+          "version": "1",
+          "capability": "files_create_draft"
+        },
+        "run_id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+        "status": "observed",
+        "call_id": "selection_5",
+        "ended_at": "2026-10-29T12:06:14.755047Z",
+        "omissions": [],
+        "truncated": false,
+        "attempt_id": "b58b9764-8904-4c26-bd15-81ab24dea441",
+        "input_refs": [
+          {
+            "id": "b7c7a0b3-47d0-4a59-a178-0b8dd960294d",
+            "kind": "run_scope",
+            "sha256": "d8e1ae923fa35d51bd078acb794fda104aa461acab09b87d54c712884819a73d",
+            "version": "2"
+          }
+        ],
+        "started_at": "2026-10-29T12:06:13.768532Z",
+        "output_refs": [],
+        "source_refs": [],
+        "capability_id": "files.create_draft",
+        "output_sha256": "c8abca305cb99c8a7fd4bf51c83c89b80419e18fd8a0ca2c9b80488b84685645",
+        "privacy_label": "workspace_private",
+        "schema_version": "tool-observation/v1",
+        "execution_profile": "native-bounded-files-v1",
+        "capability_version": "1",
+        "verification_scope": "adapter_execution_only",
+        "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5"
+      }
+    }
+  ]
+}

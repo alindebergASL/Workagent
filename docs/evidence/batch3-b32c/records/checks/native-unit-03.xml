@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="39" time="26.456" timestamp="2026-10-29T04:19:36.297988+00:00" hostname="ip-10-0-3-214"><testcase classname="backend.tests.test_tui_tool_activity" name="test_truthful_failures_unknown_and_unavailable" time="0.002" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_observation_identity_rejected[run_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_observation_identity_rejected[attempt_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_observation_identity_rejected[call_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_observation_identity_rejected[capability_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[workspace_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[run_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[tool_attempt_id]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[code_sha256]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[profile_sha256]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_export_binding_rejected[input_refs]" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_run_scope_is_not_export_input_and_refreshes_before_download" time="0.001" /><testcase classname="backend.tests.test_tui_tool_activity" name="test_actual_widgets_read_clear_refusal_inert_output[size0]" time="4.496"><failure message="assert None is not None&#10; +  where None = ToolActivityScreen().page">size = (120, 40)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen)
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if screen.page is not None:break
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '&lt;script&gt;BAD&lt;/script&gt;' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh()
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if not screen.busy:break
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+&gt;       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen)
+            for _ in range(40):
+                await pilot.pause(.1)
+                if screen.page is not None:break
+&gt;           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:89: AssertionError</failure></testcase><testcase classname="backend.tests.test_tui_tool_activity" name="test_actual_widgets_read_clear_refusal_inert_output[size1]" time="4.349"><failure message="assert None is not None&#10; +  where None = ToolActivityScreen().page">size = (80, 24)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen)
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if screen.page is not None:break
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '&lt;script&gt;BAD&lt;/script&gt;' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh()
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if not screen.busy:break
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+&gt;       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen)
+            for _ in range(40):
+                await pilot.pause(.1)
+                if screen.page is not None:break
+&gt;           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:89: AssertionError</failure></testcase><testcase classname="backend.tests.test_tui_files" name="test_exact_lost_ack_reopen_replay_and_old_version_readback" time="0.094" /><testcase classname="backend.tests.test_tui_files" name="test_refresh_never_rebases_and_mixed_requires_consent" time="0.034" /><testcase classname="backend.tests.test_tui_files" name="test_stale_hash_scope_and_utf8_bounds_preserve_draft" time="0.030" /><testcase classname="backend.tests.test_tui_files" name="test_export_exact_saved_version[txt]" time="0.048" /><testcase classname="backend.tests.test_tui_files" name="test_export_exact_saved_version[markdown]" time="0.049" /><testcase classname="backend.tests.test_tui_files" name="test_export_exact_saved_version[csv]" time="0.048" /><testcase classname="backend.tests.test_tui_files" name="test_export_exact_saved_version[json]" time="0.051" /><testcase classname="backend.tests.test_tui_files" name="test_offscreen_editor_roundtrip_and_responsive_http[size0]" time="1.583" /><testcase classname="backend.tests.test_tui_files" name="test_offscreen_editor_roundtrip_and_responsive_http[size1]" time="1.657" /><testcase classname="backend.tests.test_tui_files" name="test_download_bytes_hash_and_no_follow" time="0.042" /><testcase classname="backend.tests.test_tui_files" name="test_create_envelope_is_durable_before_post_and_validated" time="0.054" /><testcase classname="backend.tests.test_tui_files" name="test_actual_shell_files_tab_preserves_composer_and_keys" time="3.559" /><testcase classname="backend.tests.test_tui_files" name="test_blocked_http_does_not_block_ui" time="0.584" /><testcase classname="backend.tests.test_tui_research" name="test_canonical_metadata_claims_and_exact_read_routes" time="0.878" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[workspace]" time="0.001" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[revision]" time="0.002" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[hash]" time="0.002" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[claim-scope]" time="0.002" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[snapshot]" time="0.001" /><testcase classname="backend.tests.test_tui_research" name="test_reject_mismatched_scope_identity_and_hash[range]" time="0.002" /><testcase classname="backend.tests.test_tui_research" name="test_binding_requires_real_saved_revision_and_is_immutable" time="0.002" /><testcase classname="backend.tests.test_tui_research" name="test_offscreen_refresh_preserves_draft_pin_literal_and_revoke_clear[size0]" time="1.243" /><testcase classname="backend.tests.test_tui_research" name="test_offscreen_refresh_preserves_draft_pin_literal_and_revoke_clear[size1]" time="1.085" /><testcase classname="backend.tests.test_tui_research" name="test_actual_shell_research_entry_blocks_send_and_preserves_composer" time="2.819" /><testcase classname="backend.tests.test_tui_research" name="test_file_detail_entry_preserves_exact_draft" time="1.570" /></testsuite></testsuites>

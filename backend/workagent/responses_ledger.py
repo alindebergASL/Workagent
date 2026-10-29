@@ -129,6 +129,14 @@ class Ledger:
                 if memory_enabled(config): DECISION_SCHEMA=MEMORY_SCHEMA
                 from .capabilities.research_composition import enabled as research_enabled, SCHEMA as RESEARCH_SCHEMA
                 if research_enabled(config): DECISION_SCHEMA=RESEARCH_SCHEMA
+                from .capabilities.office_composition import enabled as office_enabled, SCHEMA as OFFICE_SCHEMA
+                if office_enabled(config): DECISION_SCHEMA=OFFICE_SCHEMA
+                from .capabilities.github_composition import enabled as github_enabled, SCHEMA as GITHUB_SCHEMA
+                if github_enabled(config): DECISION_SCHEMA=GITHUB_SCHEMA
+                from .capabilities.mcp_composition import enabled as mcp_enabled, SCHEMA as MCP_SCHEMA
+                if mcp_enabled(config): DECISION_SCHEMA=MCP_SCHEMA
+                from .capabilities.delegation_composition import enabled as delegation_enabled, SCHEMA as DELEGATION_SCHEMA
+                if delegation_enabled(config): DECISION_SCHEMA=DELEGATION_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never

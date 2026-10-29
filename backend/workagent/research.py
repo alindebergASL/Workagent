@@ -57,6 +57,11 @@ def append_capture(service, c, p, run, scope, aid, request, material):
         "WHERE s.workspace_id=%s AND f.conversation_id=%s AND f.owner_id=%s AND s.data->'locator'->>'kind'='public_source' "
         "AND s.data->'locator'->>'url'=%s ORDER BY s.version_number DESC LIMIT 1",
         (run.workspace_id, scope.id, p.id, request.url)).fetchone()
+    # A newly authorized capture must not disclose a denied version count or
+    # parent identity through a previously retained file's version chain.
+    if prior and not c.execute('SELECT research_source_visible(%s,%s) AS ok',
+            (run.workspace_id, prior['data']['snapshot_id'])).fetchone()['ok']:
+        prior = None
     previous = SourceSnapshot.model_validate(prior['data']) if prior else None
     fid = previous.workspace_file_id if previous else new_id()
     if not previous:

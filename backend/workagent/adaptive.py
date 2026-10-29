@@ -45,6 +45,22 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.delegation_composition import enabled as delegation_enabled, POLICY as delegation_policy, SCHEMA as delegation_schema
+    if delegation_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                        'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return delegation_policy,delegation_schema
+    from .capabilities.mcp_composition import enabled as mcp_enabled, POLICY as mcp_policy, SCHEMA as mcp_schema
+    if mcp_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                 'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return mcp_policy,mcp_schema
+    from .capabilities.github_composition import enabled as github_enabled, POLICY as github_policy, SCHEMA as github_schema
+    if github_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return github_policy,github_schema
+    from .capabilities.office_composition import enabled as office_enabled, POLICY as office_policy, SCHEMA as office_schema
+    if office_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return office_policy,office_schema
     from .capabilities.research_composition import enabled as research_enabled, POLICY as research_policy, SCHEMA as research_schema
     if research_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                       'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
@@ -107,6 +123,14 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if memory_enabled(config): model=GatewayMemoryDecision
         from .capabilities.research_composition import enabled as research_enabled, GatewayResearchDecision
         if research_enabled(config): model=GatewayResearchDecision
+        from .capabilities.office_composition import enabled as office_enabled, GatewayOfficeDecision
+        if office_enabled(config): model=GatewayOfficeDecision
+        from .capabilities.github_composition import enabled as github_enabled, GatewayGitHubDecision
+        if github_enabled(config): model=GatewayGitHubDecision
+        from .capabilities.mcp_composition import enabled as mcp_enabled, GatewayMCPDecision
+        if mcp_enabled(config): model=GatewayMCPDecision
+        from .capabilities.delegation_composition import enabled as delegation_enabled, GatewayDelegationDecision
+        if delegation_enabled(config): model=GatewayDelegationDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
@@ -199,6 +223,9 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
             staged['reason']='Research evidence retained with exact references and coverage; attribution is not claim truth or completion.'
         if isinstance(operation, ComputePython):
             staged['reason']='Confined computation receipt retained; generated files are draft outputs, not independent verification of task completion.'
+        from .capabilities.delegation import DelegateAnalysis, VerifyDelegate
+        if isinstance(operation, (DelegateAnalysis,VerifyDelegate)):
+            staged['reason']='Bounded child proposal or parent check retained with exact evidence and shared reservations; not acceptance or goal completion.'
     elif alpha and isinstance(value.decision,Reply):
         outcome='answered'
         staged['reason']='Answer delivered; no external action or independently verified objective completion is asserted.'

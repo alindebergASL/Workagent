@@ -231,7 +231,11 @@ def _validate_request(request: PreparedRequest) -> dict:
             from .capabilities.compute_composition import SCHEMA as COMPUTE_SCHEMA
             from .memory.runtime import SCHEMA as MEMORY_SCHEMA
             from .capabilities.research_composition import SCHEMA as RESEARCH_SCHEMA
-            if request.schema in (RESEARCH_SCHEMA,MEMORY_SCHEMA,COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
+            from .capabilities.office_composition import SCHEMA as OFFICE_SCHEMA
+            from .capabilities.github_composition import SCHEMA as GITHUB_SCHEMA
+            from .capabilities.mcp_composition import SCHEMA as MCP_SCHEMA
+            from .capabilities.delegation_composition import SCHEMA as DELEGATION_SCHEMA
+            if request.schema in (DELEGATION_SCHEMA,MCP_SCHEMA,GITHUB_SCHEMA,OFFICE_SCHEMA,RESEARCH_SCHEMA,MEMORY_SCHEMA,COMPUTE_SCHEMA,FILE_SCHEMA,RETAINED_SCHEMA,ALPHA_SCHEMA,CONTINUITY_DECISION_SCHEMA,
                                    LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA):
                 DECISION_SCHEMA=request.schema
                 alpha=True

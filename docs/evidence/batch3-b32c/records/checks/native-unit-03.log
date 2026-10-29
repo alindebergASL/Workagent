@@ -1,0 +1,103 @@
+............FF.........................                                  [100%]
+=================================== FAILURES ===================================
+__________ test_actual_widgets_read_clear_refusal_inert_output[size0] __________
+
+size = (120, 40)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen)
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if screen.page is not None:break
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '<script>BAD</script>' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh()
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if not screen.busy:break
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+>       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen)
+            for _ in range(40):
+                await pilot.pause(.1)
+                if screen.page is not None:break
+>           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:89: AssertionError
+__________ test_actual_widgets_read_clear_refusal_inert_output[size1] __________
+
+size = (80, 24)
+
+    @pytest.mark.parametrize('size',[(120,40),(80,24)])
+    def test_actual_widgets_read_clear_refusal_inert_output(size):
+        async def check():
+            client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+            async with app.run_test(size=size) as pilot:
+                app.push_screen(screen)
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if screen.page is not None:break
+                assert screen.page is not None
+                screen.query_one('#tool-attempt',Select).value='attempt';await pilot.pause(.1)
+                text=screen.query_one('#tool-receipt',TextArea).text
+                assert 'Execution not successful: failed' in text and '<script>BAD</script>' in text
+                assert '\x1b' not in text and '\u202e' not in text
+                client.denied=True;screen.action_refresh()
+                for _ in range(40):
+                    await pilot.pause(.1)
+                    if not screen.busy:break
+                assert screen.page is None and screen.query_one('#tool-receipt',TextArea).text==''
+                assert screen.exports=={}
+>       asyncio.run(check())
+
+backend/tests/test_tui_tool_activity.py:100: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.12/asyncio/runners.py:194: in run
+    return runner.run(main)
+/usr/lib/python3.12/asyncio/runners.py:118: in run
+    return self._loop.run_until_complete(task)
+/usr/lib/python3.12/asyncio/base_events.py:687: in run_until_complete
+    return future.result()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    async def check():
+        client=HTTP();app=App();screen=ToolActivityScreen(client,'ws','human',[dict(id='run',state='ready')])
+        async with app.run_test(size=size) as pilot:
+            app.push_screen(screen)
+            for _ in range(40):
+                await pilot.pause(.1)
+                if screen.page is not None:break
+>           assert screen.page is not None
+E           assert None is not None
+E            +  where None = ToolActivityScreen().page
+
+backend/tests/test_tui_tool_activity.py:89: AssertionError
+- generated xml file: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b32c/native-unit-03.xml -
+=========================== short test summary info ============================
+FAILED backend/tests/test_tui_tool_activity.py::test_actual_widgets_read_clear_refusal_inert_output[size0]
+FAILED backend/tests/test_tui_tool_activity.py::test_actual_widgets_read_clear_refusal_inert_output[size1]
+2 failed, 37 passed in 26.47s

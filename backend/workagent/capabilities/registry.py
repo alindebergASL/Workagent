@@ -90,6 +90,14 @@ def adapters():
     result.update(compute_adapters())
     from .research_adapters import adapters as research_adapters
     result.update(research_adapters())
+    from .office_adapters import adapters as office_adapters
+    result.update(office_adapters())
+    from .github_adapters import adapters as github_adapters
+    result.update(github_adapters())
+    from .mcp_adapters import adapters as mcp_adapters
+    result.update(mcp_adapters())
+    from .delegation import adapters as delegation_adapters
+    result.update(delegation_adapters())
     return result
 
 
@@ -107,3 +115,11 @@ COMPOSITION_IDS['compute_python'] = 'compute.python'
 
 from .research_adapters import IDS as RESEARCH_IDS
 COMPOSITION_IDS.update(RESEARCH_IDS)
+
+COMPOSITION_IDS['artifacts_export_office'] = 'artifacts.export.office'
+
+from .github_adapters import IDS as GITHUB_IDS
+COMPOSITION_IDS.update(GITHUB_IDS)
+
+COMPOSITION_IDS['mcp_read'] = 'connectors.mcp.read'
+COMPOSITION_IDS.update(delegate_analysis='delegation.analysis', verify_delegate='delegation.verify')

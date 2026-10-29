@@ -1,0 +1,120 @@
+{
+  "batch": "closure-02.xml",
+  "sha256": "439b4e8c47091697c771dcaa95b471e929a25baa0ac8729a87652a44e6695760",
+  "counts": {
+    "passed": 21,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 21,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-correct]",
+      "status": "passed",
+      "seconds": 4.142
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-forget]",
+      "status": "passed",
+      "seconds": 3.909
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[count-revoke]",
+      "status": "passed",
+      "seconds": 2.988
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-correct]",
+      "status": "passed",
+      "seconds": 3.841
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-forget]",
+      "status": "passed",
+      "seconds": 3.411
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_mutation_inflight_no_stale_publication_or_restart_send[send-revoke]",
+      "status": "passed",
+      "seconds": 3.497
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_queued_context_regenerates_and_published_reply_hidden",
+      "status": "passed",
+      "seconds": 10.852
+    },
+    {
+      "nodeid": "tests.test_memory_safety_pg::test_real_backup_restore_current_tombstones_permissions_and_process_readback",
+      "status": "passed",
+      "seconds": 7.005
+    },
+    {
+      "nodeid": "tests.test_memory_review_closure_pg::test_forget_closes_every_conversation_readback_projection",
+      "status": "passed",
+      "seconds": 6.427
+    },
+    {
+      "nodeid": "tests.test_memory_review_closure_pg::test_file_producer_closes_read_export_descendant_and_preserves_human[False]",
+      "status": "passed",
+      "seconds": 32.71
+    },
+    {
+      "nodeid": "tests.test_memory_review_closure_pg::test_file_producer_closes_read_export_descendant_and_preserves_human[True]",
+      "status": "passed",
+      "seconds": 32.532
+    },
+    {
+      "nodeid": "tests.test_memory_review_closure_pg::test_proposal_hidden_and_cannot_be_accepted_after_forget",
+      "status": "passed",
+      "seconds": 10.153
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_file_schema_request_counting_uses_exact_opted_in_validator[selection]",
+      "status": "passed",
+      "seconds": 0.072
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_file_schema_request_counting_uses_exact_opted_in_validator[selection_2]",
+      "status": "passed",
+      "seconds": 0.066
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_file_schema_request_counting_uses_exact_opted_in_validator[selection_8]",
+      "status": "passed",
+      "seconds": 0.071
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_docx_old_snapshot_refresh_restart_retains_original_bytes",
+      "status": "passed",
+      "seconds": 2.208
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_opted_in_file_schema_real_worker_stage_and_checkpoint[False]",
+      "status": "passed",
+      "seconds": 30.863
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_opted_in_file_schema_real_worker_stage_and_checkpoint[True]",
+      "status": "passed",
+      "seconds": 33.833
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_opted_in_file_schema_real_worker_stage_and_checkpoint[before_stage]",
+      "status": "passed",
+      "seconds": 35.393
+    },
+    {
+      "nodeid": "tests.test_b30b_final_journeys::test_opted_in_file_schema_real_worker_stage_and_checkpoint[human_edit]",
+      "status": "passed",
+      "seconds": 15.906
+    },
+    {
+      "nodeid": "tests.test_github_pg::test_prior_source_title_in_prepared_prompt_cannot_survive_reduction",
+      "status": "passed",
+      "seconds": 6.234
+    }
+  ],
+  "seconds": 251.152,
+  "timestamp": "2026-10-29T13:15:53.204255+00:00"
+}

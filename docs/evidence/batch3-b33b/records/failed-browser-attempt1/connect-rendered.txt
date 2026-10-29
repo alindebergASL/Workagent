@@ -1,0 +1,25 @@
+workagent
+More
+← Back to agent
+Synthetic library reading brief
+Keep as a project
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Files
+
+No working files in this conversation yet.
+
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+No captured web sources in this conversation.
+
+New file…
+Memory
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

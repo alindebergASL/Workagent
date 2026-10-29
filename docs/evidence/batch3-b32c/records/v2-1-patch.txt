@@ -1,0 +1,26 @@
+--- a/bands_v2.py
++++ b/bands_v2.py
+@@ -13,12 +13,19 @@
+         if row.get("status") == "maintenance-bypass":
+             continue
+         record = decode(row)
+-        start, stop = record["anchor"], record["span"]
++        start, duration = record["anchor"], record["span"]
++        stop = start + duration
+         if stop < start:
+             raise ValueError("negative duration")
+-        lo, hi = start % size, stop % size
+-        if lo < hi:
+-            pieces.append((lo, hi))
++        duration = stop - start
++        lo = start % size
++        if duration >= size:
++            pieces.append((0, size))
++        elif duration:
++            end = lo + duration
++            pieces.append((lo, min(end, size)))
++            if end > size:
++                pieces.append((0, end - size))
+     merged = []
+     for lo, hi in sorted(pieces):
+         if merged and lo <= merged[-1][1]:

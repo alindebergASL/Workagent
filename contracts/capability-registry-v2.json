@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "cf8c1f5b8dfc8fed95422b598eec50fd006ca09f0ce52a6ce11948e36fe49358",
+    "implementation_sha256": "cb251f06a899d5c2dcc35318f295ff410c979602aed355947f376d5c2f6ff4ac",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "f7226995ee49b67b725a4d406c88b9607b20c15741985a8aeabd971dd1f67d5f",
+    "implementation_sha256": "e68cb98064788e16de20435069963c4e1e3d16472764a48e3138748202c9a09d",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "7759db5db9ad806dc1b7f46a0c6b808b0e7203d152905adbaf7f01f5afa68d41",
+    "implementation_sha256": "2584800b1341ebebd47d9106afb9fb5040eb73f276451f88ac7f06b941ae7850",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "dc71ccfc2d12d2778a2f753f620582d13d86548a2570bffb52a261970a78c87a",
+    "implementation_sha256": "328690d0d5f8e244834b674a4800f1c453332c2383d55cd9a4d5b748f844ca4d",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "dc71ccfc2d12d2778a2f753f620582d13d86548a2570bffb52a261970a78c87a",
+    "implementation_sha256": "328690d0d5f8e244834b674a4800f1c453332c2383d55cd9a4d5b748f844ca4d",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "362065112915568cee42f784daee2298e94708516cc90c7b7e14475f72db3c9d",
+    "implementation_sha256": "5c37e413a901c3dc5b9e615a337f6b0d4de00e262fdaad395eb64cbe293c1f6a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "362065112915568cee42f784daee2298e94708516cc90c7b7e14475f72db3c9d",
+    "implementation_sha256": "5c37e413a901c3dc5b9e615a337f6b0d4de00e262fdaad395eb64cbe293c1f6a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2348,6 +2348,46 @@
           "title": "FileVersionRef",
           "type": "object"
         },
+        "OfficeProvenance": {
+          "additionalProperties": false,
+          "properties": {
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "transformation_version": {
+              "const": "office-v1",
+              "default": "office-v1",
+              "title": "Transformation Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_snapshot_id",
+            "original_sha256",
+            "extraction_sha256",
+            "parser_version"
+          ],
+          "title": "OfficeProvenance",
+          "type": "object"
+        },
         "WorkspaceFile": {
           "additionalProperties": false,
           "properties": {
@@ -2377,6 +2417,17 @@
             "mime_type": {
               "title": "Mime Type",
               "type": "string"
+            },
+            "office_provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OfficeProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             },
             "storage": {
               "enum": [
@@ -2481,7 +2532,7 @@
     ],
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
-    "schema_sha256": "4dae751ed7acadba68844d366c58511a688b63d9e0827451ad38b79a70c21362",
+    "schema_sha256": "2e0cad9a624ba4c4b75fa3b247403d896ab479142cdca02ae2a154b022eb00b9",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
@@ -2500,7 +2551,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2763,7 +2814,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -2865,6 +2916,46 @@
           "title": "FileVersionRef",
           "type": "object"
         },
+        "OfficeProvenance": {
+          "additionalProperties": false,
+          "properties": {
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "transformation_version": {
+              "const": "office-v1",
+              "default": "office-v1",
+              "title": "Transformation Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_snapshot_id",
+            "original_sha256",
+            "extraction_sha256",
+            "parser_version"
+          ],
+          "title": "OfficeProvenance",
+          "type": "object"
+        },
         "WorkspaceFile": {
           "additionalProperties": false,
           "properties": {
@@ -2894,6 +2985,17 @@
             "mime_type": {
               "title": "Mime Type",
               "type": "string"
+            },
+            "office_provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OfficeProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             },
             "storage": {
               "enum": [
@@ -2966,7 +3068,7 @@
     ],
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
-    "schema_sha256": "1bb88253c5f069a3265ba2a6ed68aca58f25f51522d185f779c577325bdc9382",
+    "schema_sha256": "a9cc6c2951df7c1c8e796cbc3c7e45e31154db57d669ca05cac68a5779deaa06",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
@@ -2986,7 +3088,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3187,7 +3289,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3423,7 +3525,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "5a53bcd2231de252e2dd2b2fbb650adcfed4f76c63ab63c878ec33adf7fc04b7",
+    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -3499,6 +3601,150 @@
     "installation_state": "installed",
     "output_schema": {
       "$defs": {
+        "ChartResult": {
+          "additionalProperties": false,
+          "properties": {
+            "computation_version": {
+              "const": "decimal-grouped-v1",
+              "default": "decimal-grouped-v1",
+              "title": "Computation Version",
+              "type": "string"
+            },
+            "decimal_precision": {
+              "const": 160,
+              "default": 160,
+              "title": "Decimal Precision",
+              "type": "integer"
+            },
+            "input_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Input Sha256",
+              "type": "string"
+            },
+            "null_handling": {
+              "const": "reject",
+              "default": "reject",
+              "title": "Null Handling",
+              "type": "string"
+            },
+            "rounding": {
+              "const": "ROUND_HALF_EVEN",
+              "default": "ROUND_HALF_EVEN",
+              "title": "Rounding",
+              "type": "string"
+            },
+            "rows": {
+              "items": {
+                "$ref": "#/$defs/ChartRow"
+              },
+              "maxItems": 50,
+              "minItems": 1,
+              "title": "Rows",
+              "type": "array"
+            },
+            "spec": {
+              "$ref": "#/$defs/ChartSpec"
+            }
+          },
+          "required": [
+            "input_sha256",
+            "spec",
+            "rows"
+          ],
+          "title": "ChartResult",
+          "type": "object"
+        },
+        "ChartRow": {
+          "additionalProperties": false,
+          "properties": {
+            "category": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Category",
+              "type": "string"
+            },
+            "count": {
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Count",
+              "type": "integer"
+            },
+            "value": {
+              "maxLength": 1200,
+              "minLength": 1,
+              "title": "Value",
+              "type": "string"
+            }
+          },
+          "required": [
+            "category",
+            "value",
+            "count"
+          ],
+          "title": "ChartRow",
+          "type": "object"
+        },
+        "ChartSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "aggregation": {
+              "enum": [
+                "sum",
+                "count",
+                "mean"
+              ],
+              "title": "Aggregation",
+              "type": "string"
+            },
+            "category_column": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Category Column",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "value_column": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Value Column"
+            },
+            "x_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "X Label",
+              "type": "string"
+            },
+            "y_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Y Label",
+              "type": "string"
+            }
+          },
+          "required": [
+            "category_column",
+            "aggregation",
+            "title",
+            "x_label",
+            "y_label"
+          ],
+          "title": "ChartSpec",
+          "type": "object"
+        },
         "ExportManifest": {
           "additionalProperties": false,
           "properties": {
@@ -3528,6 +3774,17 @@
             "blob": {
               "$ref": "#/$defs/GeneratedBlobRef"
             },
+            "chart": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ChartResult"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
             "conversation_id": {
               "anyOf": [
                 {
@@ -3555,14 +3812,28 @@
               "type": "string"
             },
             "exporter_version": {
-              "const": "basic-exports-v1",
               "default": "basic-exports-v1",
+              "enum": [
+                "basic-exports-v1",
+                "office-exports-v1"
+              ],
               "title": "Exporter Version",
               "type": "string"
             },
+            "fidelity": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Fidelity"
+            },
             "filename": {
-              "maxLength": 85,
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|markdown|csv|json)$",
+              "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
               "title": "Filename",
               "type": "string"
             },
@@ -3571,7 +3842,11 @@
                 "txt",
                 "markdown",
                 "csv",
-                "json"
+                "json",
+                "docx",
+                "xlsx",
+                "pdf",
+                "png"
               ],
               "title": "Format",
               "type": "string"
@@ -3587,6 +3862,17 @@
               },
               "title": "Omissions",
               "type": "array"
+            },
+            "provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OfficeProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             },
             "revision_id": {
               "maxLength": 128,
@@ -3706,6 +3992,46 @@
           ],
           "title": "GeneratedBlobRef",
           "type": "object"
+        },
+        "OfficeProvenance": {
+          "additionalProperties": false,
+          "properties": {
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "transformation_version": {
+              "const": "office-v1",
+              "default": "office-v1",
+              "title": "Transformation Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_snapshot_id",
+            "original_sha256",
+            "extraction_sha256",
+            "parser_version"
+          ],
+          "title": "OfficeProvenance",
+          "type": "object"
         }
       },
       "additionalProperties": false,
@@ -3741,7 +4067,7 @@
     ],
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
-    "schema_sha256": "95a17315772a6b3db2586cd423d253b7d4fff53bfcf0b3fbcb31599344b787ca",
+    "schema_sha256": "17ba5aabea63fd8c177e248230e6e4f4ce3e2671e35f9ed4845a634c647c5a04",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
@@ -3762,7 +4088,7 @@
     ],
     "execution_profile": "python-analysis-v1",
     "id": "compute.python",
-    "implementation_sha256": "43e8a585c2c88ae465850dc41c6649ee0fb2534edbf403d94276b8e690b205be",
+    "implementation_sha256": "4376b243ecfef8e4b6815bdf0a14e97a9c160370faac25ce265618fdd4332133",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -4331,7 +4657,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.search",
-    "implementation_sha256": "9febe8f28f0c1252321c63e8657a7ee74dc007557fb27899ead951d9d1c88cab",
+    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -4521,7 +4847,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.capture",
-    "implementation_sha256": "9febe8f28f0c1252321c63e8657a7ee74dc007557fb27899ead951d9d1c88cab",
+    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -5472,7 +5798,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.cite",
-    "implementation_sha256": "9febe8f28f0c1252321c63e8657a7ee74dc007557fb27899ead951d9d1c88cab",
+    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
     "input_schema": {
       "$defs": {
         "QuoteRef": {
@@ -5802,6 +6128,4448 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "rendering",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "confined-office-v1",
+    "id": "artifacts.export.office",
+    "implementation_sha256": "98e086c04625518baae0ca530e8162a59099651ccdee6d5f8ed969fa1eb8d02f",
+    "input_schema": {
+      "$defs": {
+        "ExportInputRef": {
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Id",
+              "type": "string"
+            },
+            "kind": {
+              "enum": [
+                "workspace_file",
+                "artifact_revision"
+              ],
+              "title": "Kind",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "id",
+            "version",
+            "sha256"
+          ],
+          "title": "ExportInputRef",
+          "type": "object"
+        },
+        "ToolChartSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "aggregation": {
+              "enum": [
+                "sum",
+                "count",
+                "mean"
+              ],
+              "title": "Aggregation",
+              "type": "string"
+            },
+            "category_column": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Category Column",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "value_column": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Value Column"
+            },
+            "x_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "X Label",
+              "type": "string"
+            },
+            "y_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Y Label",
+              "type": "string"
+            }
+          },
+          "required": [
+            "category_column",
+            "value_column",
+            "aggregation",
+            "title",
+            "x_label",
+            "y_label"
+          ],
+          "title": "ToolChartSpec",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "chart_spec": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ToolChartSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "format": {
+          "enum": [
+            "docx",
+            "xlsx",
+            "pdf",
+            "png"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "input_ref": {
+          "$ref": "#/$defs/ExportInputRef"
+        },
+        "kind": {
+          "const": "artifacts_export_office",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "input_ref",
+        "format",
+        "chart_spec"
+      ],
+      "title": "ArtifactsOfficeExport",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ChartResult": {
+          "additionalProperties": false,
+          "properties": {
+            "computation_version": {
+              "const": "decimal-grouped-v1",
+              "default": "decimal-grouped-v1",
+              "title": "Computation Version",
+              "type": "string"
+            },
+            "decimal_precision": {
+              "const": 160,
+              "default": 160,
+              "title": "Decimal Precision",
+              "type": "integer"
+            },
+            "input_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Input Sha256",
+              "type": "string"
+            },
+            "null_handling": {
+              "const": "reject",
+              "default": "reject",
+              "title": "Null Handling",
+              "type": "string"
+            },
+            "rounding": {
+              "const": "ROUND_HALF_EVEN",
+              "default": "ROUND_HALF_EVEN",
+              "title": "Rounding",
+              "type": "string"
+            },
+            "rows": {
+              "items": {
+                "$ref": "#/$defs/ChartRow"
+              },
+              "maxItems": 50,
+              "minItems": 1,
+              "title": "Rows",
+              "type": "array"
+            },
+            "spec": {
+              "$ref": "#/$defs/ChartSpec"
+            }
+          },
+          "required": [
+            "input_sha256",
+            "spec",
+            "rows"
+          ],
+          "title": "ChartResult",
+          "type": "object"
+        },
+        "ChartRow": {
+          "additionalProperties": false,
+          "properties": {
+            "category": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Category",
+              "type": "string"
+            },
+            "count": {
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Count",
+              "type": "integer"
+            },
+            "value": {
+              "maxLength": 1200,
+              "minLength": 1,
+              "title": "Value",
+              "type": "string"
+            }
+          },
+          "required": [
+            "category",
+            "value",
+            "count"
+          ],
+          "title": "ChartRow",
+          "type": "object"
+        },
+        "ChartSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "aggregation": {
+              "enum": [
+                "sum",
+                "count",
+                "mean"
+              ],
+              "title": "Aggregation",
+              "type": "string"
+            },
+            "category_column": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Category Column",
+              "type": "string"
+            },
+            "title": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            },
+            "value_column": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Value Column"
+            },
+            "x_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "X Label",
+              "type": "string"
+            },
+            "y_label": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Y Label",
+              "type": "string"
+            }
+          },
+          "required": [
+            "category_column",
+            "aggregation",
+            "title",
+            "x_label",
+            "y_label"
+          ],
+          "title": "ChartSpec",
+          "type": "object"
+        },
+        "ExportManifest": {
+          "additionalProperties": false,
+          "properties": {
+            "annotations": {
+              "enum": [
+                "included",
+                "not_present",
+                "explicit_omissions"
+              ],
+              "title": "Annotations",
+              "type": "string"
+            },
+            "artifact_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Artifact Id"
+            },
+            "blob": {
+              "$ref": "#/$defs/GeneratedBlobRef"
+            },
+            "chart": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ChartResult"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "conversation_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Conversation Id"
+            },
+            "created_at": {
+              "format": "date-time",
+              "title": "Created At",
+              "type": "string"
+            },
+            "export_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Export Id",
+              "type": "string"
+            },
+            "exporter_version": {
+              "default": "basic-exports-v1",
+              "enum": [
+                "basic-exports-v1",
+                "office-exports-v1"
+              ],
+              "title": "Exporter Version",
+              "type": "string"
+            },
+            "fidelity": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Fidelity"
+            },
+            "filename": {
+              "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
+              "title": "Filename",
+              "type": "string"
+            },
+            "format": {
+              "enum": [
+                "txt",
+                "markdown",
+                "csv",
+                "json",
+                "docx",
+                "xlsx",
+                "pdf",
+                "png"
+              ],
+              "title": "Format",
+              "type": "string"
+            },
+            "input_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Input Sha256",
+              "type": "string"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Omissions",
+              "type": "array"
+            },
+            "provenance": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/OfficeProvenance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "revision_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Revision Id",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Snapshot Id"
+            },
+            "tool_attempt_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tool Attempt Id"
+            },
+            "workspace_file_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Workspace File Id"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "export_id",
+            "workspace_id",
+            "conversation_id",
+            "artifact_id",
+            "revision_id",
+            "input_sha256",
+            "workspace_file_id",
+            "source_snapshot_id",
+            "format",
+            "filename",
+            "blob",
+            "created_at",
+            "annotations",
+            "omissions"
+          ],
+          "title": "ExportManifest",
+          "type": "object"
+        },
+        "GeneratedBlobRef": {
+          "additionalProperties": false,
+          "description": "Bytes live separately from FileBody; future office exporters can reuse this.",
+          "properties": {
+            "blob_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Blob Id",
+              "type": "string"
+            },
+            "byte_length": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Byte Length",
+              "type": "integer"
+            },
+            "kind": {
+              "const": "generated_blob",
+              "default": "generated_blob",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "blob_id",
+            "sha256",
+            "byte_length",
+            "mime_type"
+          ],
+          "title": "GeneratedBlobRef",
+          "type": "object"
+        },
+        "OfficeProvenance": {
+          "additionalProperties": false,
+          "properties": {
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "transformation_version": {
+              "const": "office-v1",
+              "default": "office-v1",
+              "title": "Transformation Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_snapshot_id",
+            "original_sha256",
+            "extraction_sha256",
+            "parser_version"
+          ],
+          "title": "OfficeProvenance",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "artifacts_export_office",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ExportManifest"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "version",
+        "result"
+      ],
+      "title": "OfficeExportOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "artifact_revision"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "0abcb4cb8d564bbca65774e7fed64e6a389df262717807660b68c823aae71be9",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 60000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "connector",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-github-public-v1",
+    "id": "connectors.github.discover",
+    "implementation_sha256": "5fa00ad4ee358a81c438e03538f2182b0e16746bc60166b02d31ebb042fffb3d",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "github_discover",
+          "title": "Kind",
+          "type": "string"
+        },
+        "page": {
+          "maximum": 5,
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "per_page": {
+          "maximum": 20,
+          "minimum": 1,
+          "title": "Per Page",
+          "type": "integer"
+        },
+        "repository": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,38}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+          "title": "Repository",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "readme",
+            "issues",
+            "releases"
+          ],
+          "title": "Resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "repository",
+        "resource",
+        "page",
+        "per_page"
+      ],
+      "title": "GitHubDiscover",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "AttachmentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "attachment",
+              "title": "Kind",
+              "type": "string"
+            },
+            "message_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Message Id",
+              "type": "string"
+            },
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "message_id",
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentEvidence",
+          "type": "object"
+        },
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_pages": {
+              "anyOf": [
+                {
+                  "maximum": 50,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Pages"
+            },
+            "covered_rows": {
+              "anyOf": [
+                {
+                  "maximum": 1000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Rows"
+            },
+            "covered_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 10,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Sheets"
+            },
+            "empty_pages_needing_ocr": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Empty Pages Needing Ocr"
+            },
+            "omissions": {
+              "items": {
+                "maxLength": 320,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "omitted_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Pages"
+            },
+            "omitted_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Paragraphs"
+            },
+            "omitted_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Sheets"
+            },
+            "omitted_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Tables"
+            },
+            "paragraphs_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Paragraphs Covered"
+            },
+            "partial_last_block": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Block"
+            },
+            "partial_last_page": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Page"
+            },
+            "sheets": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/SheetCoverage"
+                  },
+                  "maxItems": 10,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sheets"
+            },
+            "tables_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tables Covered"
+            },
+            "total_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Pages"
+            },
+            "total_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Paragraphs"
+            },
+            "total_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Sheets"
+            },
+            "total_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Tables"
+            },
+            "visited_cells": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visited Cells"
+            }
+          },
+          "required": [
+            "omissions"
+          ],
+          "title": "Coverage",
+          "type": "object"
+        },
+        "DocumentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "document_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Document Id",
+              "type": "string"
+            },
+            "kind": {
+              "const": "document",
+              "title": "Kind",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "sha256"
+          ],
+          "title": "DocumentEvidence",
+          "type": "object"
+        },
+        "ExternalVersion": {
+          "additionalProperties": false,
+          "properties": {
+            "etag": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Etag"
+            },
+            "last_modified": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Modified"
+            }
+          },
+          "required": [
+            "etag",
+            "last_modified"
+          ],
+          "title": "ExternalVersion",
+          "type": "object"
+        },
+        "GitHubPagination": {
+          "additionalProperties": false,
+          "properties": {
+            "has_more": {
+              "title": "Has More",
+              "type": "boolean"
+            },
+            "item_count": {
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Item Count",
+              "type": "integer"
+            },
+            "limit_reached": {
+              "title": "Limit Reached",
+              "type": "boolean"
+            },
+            "next_page": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next Page"
+            },
+            "page": {
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "per_page": {
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Per Page",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "page",
+            "per_page",
+            "item_count",
+            "next_page",
+            "has_more",
+            "limit_reached"
+          ],
+          "title": "GitHubPagination",
+          "type": "object"
+        },
+        "GitHubResult": {
+          "additionalProperties": false,
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitHubPagination"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "reset_epoch_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 4102444800,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reset Epoch Seconds"
+            },
+            "retry_after_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 86400,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Retry After Seconds"
+            },
+            "snapshot": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceSnapshot"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source": {
+              "default": "fixture",
+              "enum": [
+                "live_public",
+                "fixture"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "available",
+                "rate_limited",
+                "unavailable",
+                "not_found",
+                "denied",
+                "changed_source"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "title": "GitHubResult",
+          "type": "object"
+        },
+        "PublicEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "blob_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Blob Id",
+              "type": "string"
+            },
+            "browser_used": {
+              "title": "Browser Used",
+              "type": "boolean"
+            },
+            "coverage": {
+              "$ref": "#/$defs/ResearchCoverage"
+            },
+            "external_version": {
+              "$ref": "#/$defs/ExternalVersion"
+            },
+            "extraction_status": {
+              "enum": [
+                "extracted",
+                "empty",
+                "truncated",
+                "unavailable"
+              ],
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "extractor_version": {
+              "title": "Extractor Version",
+              "type": "string"
+            },
+            "fetched_at": {
+              "format": "date-time",
+              "title": "Fetched At",
+              "type": "string"
+            },
+            "final_url": {
+              "title": "Final Url",
+              "type": "string"
+            },
+            "kind": {
+              "const": "public_source",
+              "default": "public_source",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "redirects": {
+              "items": {
+                "$ref": "#/$defs/PublicRedirect"
+              },
+              "title": "Redirects",
+              "type": "array"
+            },
+            "run_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Run Id",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "status_code": {
+              "title": "Status Code",
+              "type": "integer"
+            },
+            "text": {
+              "maxLength": 200000,
+              "title": "Text",
+              "type": "string"
+            },
+            "text_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Text Sha256",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Title"
+            },
+            "tool_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Tool Attempt Id",
+              "type": "string"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "blob_id",
+            "sha256",
+            "mime_type",
+            "title",
+            "url",
+            "final_url",
+            "status_code",
+            "redirects",
+            "fetched_at",
+            "extractor_version",
+            "coverage",
+            "external_version",
+            "extraction_status",
+            "browser_used",
+            "text",
+            "text_sha256",
+            "run_id",
+            "tool_attempt_id"
+          ],
+          "title": "PublicEvidence",
+          "type": "object"
+        },
+        "PublicRedirect": {
+          "additionalProperties": false,
+          "properties": {
+            "location": {
+              "title": "Location",
+              "type": "string"
+            },
+            "status": {
+              "title": "Status",
+              "type": "integer"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "status",
+            "location"
+          ],
+          "title": "PublicRedirect",
+          "type": "object"
+        },
+        "ResearchCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "body_complete": {
+              "title": "Body Complete",
+              "type": "boolean"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "text_complete": {
+              "title": "Text Complete",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "body_complete",
+            "text_complete",
+            "omissions"
+          ],
+          "title": "ResearchCoverage",
+          "type": "object"
+        },
+        "SheetCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_rows": {
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Covered Rows",
+              "type": "integer"
+            },
+            "last_cell": {
+              "anyOf": [
+                {
+                  "maxLength": 20,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Cell"
+            },
+            "merged_ranges": {
+              "items": {
+                "maxLength": 40,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Merged Ranges",
+              "type": "array"
+            },
+            "name": {
+              "maxLength": 31,
+              "title": "Name",
+              "type": "string"
+            },
+            "omitted_cell_positions": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Cell Positions",
+              "type": "integer"
+            },
+            "omitted_merged_ranges": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Merged Ranges",
+              "type": "integer"
+            },
+            "omitted_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Rows",
+              "type": "integer"
+            },
+            "partial_last_row": {
+              "title": "Partial Last Row",
+              "type": "boolean"
+            },
+            "state": {
+              "enum": [
+                "visible",
+                "hidden",
+                "veryHidden"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "total_columns": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Columns",
+              "type": "integer"
+            },
+            "total_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Rows",
+              "type": "integer"
+            },
+            "visited_cells": {
+              "maximum": 10000,
+              "minimum": 0,
+              "title": "Visited Cells",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "state",
+            "total_rows",
+            "total_columns",
+            "covered_rows",
+            "merged_ranges",
+            "omitted_merged_ranges",
+            "visited_cells",
+            "last_cell",
+            "partial_last_row",
+            "omitted_rows",
+            "omitted_cell_positions"
+          ],
+          "title": "SheetCoverage",
+          "type": "object"
+        },
+        "SourceSnapshot": {
+          "additionalProperties": false,
+          "properties": {
+            "conversation_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            },
+            "coverage": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Coverage"
+                },
+                {
+                  "$ref": "#/$defs/ResearchCoverage"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Coverage"
+            },
+            "extraction_byte_length": {
+              "minimum": 0,
+              "title": "Extraction Byte Length",
+              "type": "integer"
+            },
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "extraction_status": {
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "locator": {
+              "discriminator": {
+                "mapping": {
+                  "attachment": "#/$defs/AttachmentEvidence",
+                  "document": "#/$defs/DocumentEvidence",
+                  "public_source": "#/$defs/PublicEvidence"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/DocumentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/AttachmentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/PublicEvidence"
+                }
+              ],
+              "title": "Locator"
+            },
+            "observed_at": {
+              "format": "date-time",
+              "title": "Observed At",
+              "type": "string"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Omissions",
+              "type": "array"
+            },
+            "original_byte_length": {
+              "minimum": 0,
+              "title": "Original Byte Length",
+              "type": "integer"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parent_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parent Snapshot Id"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "trust_label": {
+              "const": "untrusted_evidence",
+              "default": "untrusted_evidence",
+              "title": "Trust Label",
+              "type": "string"
+            },
+            "version_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version At"
+            },
+            "version_number": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Version Number",
+              "type": "integer"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "workspace_file_id",
+            "workspace_id",
+            "conversation_id",
+            "version_number",
+            "parent_snapshot_id",
+            "locator",
+            "observed_at",
+            "version_at",
+            "original_sha256",
+            "extraction_sha256",
+            "original_byte_length",
+            "extraction_byte_length",
+            "parser_version",
+            "extraction_status",
+            "coverage",
+            "omissions"
+          ],
+          "title": "SourceSnapshot",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "enum": [
+            "github_discover",
+            "github_read"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/GitHubResult"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "GitHubOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "public"
+    ],
+    "required_permission_template": "public_https",
+    "resource_kinds": [
+      "github_repository",
+      "processor"
+    ],
+    "result_byte_limit": 1048576,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "18bf0bad9a95a2f5e056add4f8b3f32bf5f1198b48e207203d6388a18f344517",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 20000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "connector",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "native-github-public-v1",
+    "id": "connectors.github.read",
+    "implementation_sha256": "5fa00ad4ee358a81c438e03538f2182b0e16746bc60166b02d31ebb042fffb3d",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "commit": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{40}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Commit"
+        },
+        "expected_response_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Expected Response Sha256"
+        },
+        "kind": {
+          "const": "github_read",
+          "title": "Kind",
+          "type": "string"
+        },
+        "number": {
+          "anyOf": [
+            {
+              "maximum": 9999999999,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Number"
+        },
+        "repository": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,38}/[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$",
+          "title": "Repository",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "readme",
+            "issues",
+            "releases"
+          ],
+          "title": "Resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "repository",
+        "resource",
+        "number",
+        "commit",
+        "expected_response_sha256"
+      ],
+      "title": "GitHubRead",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "AttachmentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "attachment",
+              "title": "Kind",
+              "type": "string"
+            },
+            "message_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Message Id",
+              "type": "string"
+            },
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "message_id",
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentEvidence",
+          "type": "object"
+        },
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_pages": {
+              "anyOf": [
+                {
+                  "maximum": 50,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Pages"
+            },
+            "covered_rows": {
+              "anyOf": [
+                {
+                  "maximum": 1000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Rows"
+            },
+            "covered_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 10,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Sheets"
+            },
+            "empty_pages_needing_ocr": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Empty Pages Needing Ocr"
+            },
+            "omissions": {
+              "items": {
+                "maxLength": 320,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "omitted_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Pages"
+            },
+            "omitted_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Paragraphs"
+            },
+            "omitted_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Sheets"
+            },
+            "omitted_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Tables"
+            },
+            "paragraphs_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Paragraphs Covered"
+            },
+            "partial_last_block": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Block"
+            },
+            "partial_last_page": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Page"
+            },
+            "sheets": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/SheetCoverage"
+                  },
+                  "maxItems": 10,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sheets"
+            },
+            "tables_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tables Covered"
+            },
+            "total_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Pages"
+            },
+            "total_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Paragraphs"
+            },
+            "total_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Sheets"
+            },
+            "total_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Tables"
+            },
+            "visited_cells": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visited Cells"
+            }
+          },
+          "required": [
+            "omissions"
+          ],
+          "title": "Coverage",
+          "type": "object"
+        },
+        "DocumentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "document_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Document Id",
+              "type": "string"
+            },
+            "kind": {
+              "const": "document",
+              "title": "Kind",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "sha256"
+          ],
+          "title": "DocumentEvidence",
+          "type": "object"
+        },
+        "ExternalVersion": {
+          "additionalProperties": false,
+          "properties": {
+            "etag": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Etag"
+            },
+            "last_modified": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Modified"
+            }
+          },
+          "required": [
+            "etag",
+            "last_modified"
+          ],
+          "title": "ExternalVersion",
+          "type": "object"
+        },
+        "GitHubPagination": {
+          "additionalProperties": false,
+          "properties": {
+            "has_more": {
+              "title": "Has More",
+              "type": "boolean"
+            },
+            "item_count": {
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Item Count",
+              "type": "integer"
+            },
+            "limit_reached": {
+              "title": "Limit Reached",
+              "type": "boolean"
+            },
+            "next_page": {
+              "anyOf": [
+                {
+                  "maximum": 5,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next Page"
+            },
+            "page": {
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            },
+            "per_page": {
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Per Page",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "page",
+            "per_page",
+            "item_count",
+            "next_page",
+            "has_more",
+            "limit_reached"
+          ],
+          "title": "GitHubPagination",
+          "type": "object"
+        },
+        "GitHubResult": {
+          "additionalProperties": false,
+          "properties": {
+            "pagination": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/GitHubPagination"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "reset_epoch_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 4102444800,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Reset Epoch Seconds"
+            },
+            "retry_after_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 86400,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Retry After Seconds"
+            },
+            "snapshot": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceSnapshot"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source": {
+              "default": "fixture",
+              "enum": [
+                "live_public",
+                "fixture"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "available",
+                "rate_limited",
+                "unavailable",
+                "not_found",
+                "denied",
+                "changed_source"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "title": "GitHubResult",
+          "type": "object"
+        },
+        "PublicEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "blob_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Blob Id",
+              "type": "string"
+            },
+            "browser_used": {
+              "title": "Browser Used",
+              "type": "boolean"
+            },
+            "coverage": {
+              "$ref": "#/$defs/ResearchCoverage"
+            },
+            "external_version": {
+              "$ref": "#/$defs/ExternalVersion"
+            },
+            "extraction_status": {
+              "enum": [
+                "extracted",
+                "empty",
+                "truncated",
+                "unavailable"
+              ],
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "extractor_version": {
+              "title": "Extractor Version",
+              "type": "string"
+            },
+            "fetched_at": {
+              "format": "date-time",
+              "title": "Fetched At",
+              "type": "string"
+            },
+            "final_url": {
+              "title": "Final Url",
+              "type": "string"
+            },
+            "kind": {
+              "const": "public_source",
+              "default": "public_source",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "redirects": {
+              "items": {
+                "$ref": "#/$defs/PublicRedirect"
+              },
+              "title": "Redirects",
+              "type": "array"
+            },
+            "run_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Run Id",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "status_code": {
+              "title": "Status Code",
+              "type": "integer"
+            },
+            "text": {
+              "maxLength": 200000,
+              "title": "Text",
+              "type": "string"
+            },
+            "text_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Text Sha256",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Title"
+            },
+            "tool_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Tool Attempt Id",
+              "type": "string"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "blob_id",
+            "sha256",
+            "mime_type",
+            "title",
+            "url",
+            "final_url",
+            "status_code",
+            "redirects",
+            "fetched_at",
+            "extractor_version",
+            "coverage",
+            "external_version",
+            "extraction_status",
+            "browser_used",
+            "text",
+            "text_sha256",
+            "run_id",
+            "tool_attempt_id"
+          ],
+          "title": "PublicEvidence",
+          "type": "object"
+        },
+        "PublicRedirect": {
+          "additionalProperties": false,
+          "properties": {
+            "location": {
+              "title": "Location",
+              "type": "string"
+            },
+            "status": {
+              "title": "Status",
+              "type": "integer"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "status",
+            "location"
+          ],
+          "title": "PublicRedirect",
+          "type": "object"
+        },
+        "ResearchCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "body_complete": {
+              "title": "Body Complete",
+              "type": "boolean"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "text_complete": {
+              "title": "Text Complete",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "body_complete",
+            "text_complete",
+            "omissions"
+          ],
+          "title": "ResearchCoverage",
+          "type": "object"
+        },
+        "SheetCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_rows": {
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Covered Rows",
+              "type": "integer"
+            },
+            "last_cell": {
+              "anyOf": [
+                {
+                  "maxLength": 20,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Cell"
+            },
+            "merged_ranges": {
+              "items": {
+                "maxLength": 40,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Merged Ranges",
+              "type": "array"
+            },
+            "name": {
+              "maxLength": 31,
+              "title": "Name",
+              "type": "string"
+            },
+            "omitted_cell_positions": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Cell Positions",
+              "type": "integer"
+            },
+            "omitted_merged_ranges": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Merged Ranges",
+              "type": "integer"
+            },
+            "omitted_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Rows",
+              "type": "integer"
+            },
+            "partial_last_row": {
+              "title": "Partial Last Row",
+              "type": "boolean"
+            },
+            "state": {
+              "enum": [
+                "visible",
+                "hidden",
+                "veryHidden"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "total_columns": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Columns",
+              "type": "integer"
+            },
+            "total_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Rows",
+              "type": "integer"
+            },
+            "visited_cells": {
+              "maximum": 10000,
+              "minimum": 0,
+              "title": "Visited Cells",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "state",
+            "total_rows",
+            "total_columns",
+            "covered_rows",
+            "merged_ranges",
+            "omitted_merged_ranges",
+            "visited_cells",
+            "last_cell",
+            "partial_last_row",
+            "omitted_rows",
+            "omitted_cell_positions"
+          ],
+          "title": "SheetCoverage",
+          "type": "object"
+        },
+        "SourceSnapshot": {
+          "additionalProperties": false,
+          "properties": {
+            "conversation_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            },
+            "coverage": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Coverage"
+                },
+                {
+                  "$ref": "#/$defs/ResearchCoverage"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Coverage"
+            },
+            "extraction_byte_length": {
+              "minimum": 0,
+              "title": "Extraction Byte Length",
+              "type": "integer"
+            },
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "extraction_status": {
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "locator": {
+              "discriminator": {
+                "mapping": {
+                  "attachment": "#/$defs/AttachmentEvidence",
+                  "document": "#/$defs/DocumentEvidence",
+                  "public_source": "#/$defs/PublicEvidence"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/DocumentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/AttachmentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/PublicEvidence"
+                }
+              ],
+              "title": "Locator"
+            },
+            "observed_at": {
+              "format": "date-time",
+              "title": "Observed At",
+              "type": "string"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Omissions",
+              "type": "array"
+            },
+            "original_byte_length": {
+              "minimum": 0,
+              "title": "Original Byte Length",
+              "type": "integer"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parent_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parent Snapshot Id"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "trust_label": {
+              "const": "untrusted_evidence",
+              "default": "untrusted_evidence",
+              "title": "Trust Label",
+              "type": "string"
+            },
+            "version_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version At"
+            },
+            "version_number": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Version Number",
+              "type": "integer"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "workspace_file_id",
+            "workspace_id",
+            "conversation_id",
+            "version_number",
+            "parent_snapshot_id",
+            "locator",
+            "observed_at",
+            "version_at",
+            "original_sha256",
+            "extraction_sha256",
+            "original_byte_length",
+            "extraction_byte_length",
+            "parser_version",
+            "extraction_status",
+            "coverage",
+            "omissions"
+          ],
+          "title": "SourceSnapshot",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "enum": [
+            "github_discover",
+            "github_read"
+          ],
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/GitHubResult"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "GitHubOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "public"
+    ],
+    "required_permission_template": "public_https",
+    "resource_kinds": [
+      "github_repository",
+      "processor"
+    ],
+    "result_byte_limit": 1048576,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "1dfb93cf4bc9b7ff247130edc47b60422bf49e509455fd8544f43a9927711847",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 20000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "connector",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read"
+    ],
+    "execution_profile": "synthetic-mcp-v1",
+    "id": "connectors.mcp.read",
+    "implementation_sha256": "bff9c6e127bc7b16eef5c1656b542f33d91ce35dbb26a6e23ad8299f06812dd5",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "access_generation": {
+          "maximum": 2147483646,
+          "minimum": 1,
+          "title": "Access Generation",
+          "type": "integer"
+        },
+        "connector_id": {
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "title": "Connector Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "mcp_read",
+          "title": "Kind",
+          "type": "string"
+        },
+        "page": {
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "connector_id",
+        "access_generation",
+        "page"
+      ],
+      "title": "MCPRead",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "AttachmentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "const": "attachment",
+              "title": "Kind",
+              "type": "string"
+            },
+            "message_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Message Id",
+              "type": "string"
+            },
+            "ref": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Ref",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "message_id",
+            "ref",
+            "sha256"
+          ],
+          "title": "AttachmentEvidence",
+          "type": "object"
+        },
+        "Coverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_pages": {
+              "anyOf": [
+                {
+                  "maximum": 50,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Pages"
+            },
+            "covered_rows": {
+              "anyOf": [
+                {
+                  "maximum": 1000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Rows"
+            },
+            "covered_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 10,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Covered Sheets"
+            },
+            "empty_pages_needing_ocr": {
+              "anyOf": [
+                {
+                  "items": {
+                    "maximum": 50,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "maxItems": 50,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Empty Pages Needing Ocr"
+            },
+            "omissions": {
+              "items": {
+                "maxLength": 320,
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "omitted_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Pages"
+            },
+            "omitted_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Paragraphs"
+            },
+            "omitted_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Sheets"
+            },
+            "omitted_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Omitted Tables"
+            },
+            "paragraphs_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Paragraphs Covered"
+            },
+            "partial_last_block": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Block"
+            },
+            "partial_last_page": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Partial Last Page"
+            },
+            "sheets": {
+              "anyOf": [
+                {
+                  "items": {
+                    "$ref": "#/$defs/SheetCoverage"
+                  },
+                  "maxItems": 10,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sheets"
+            },
+            "tables_covered": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Tables Covered"
+            },
+            "total_pages": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Pages"
+            },
+            "total_paragraphs": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Paragraphs"
+            },
+            "total_sheets": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Sheets"
+            },
+            "total_tables": {
+              "anyOf": [
+                {
+                  "maximum": 9007199254740991,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Tables"
+            },
+            "visited_cells": {
+              "anyOf": [
+                {
+                  "maximum": 10000,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Visited Cells"
+            }
+          },
+          "required": [
+            "omissions"
+          ],
+          "title": "Coverage",
+          "type": "object"
+        },
+        "DocumentEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "document_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Document Id",
+              "type": "string"
+            },
+            "kind": {
+              "const": "document",
+              "title": "Kind",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "document_id",
+            "sha256"
+          ],
+          "title": "DocumentEvidence",
+          "type": "object"
+        },
+        "ExternalVersion": {
+          "additionalProperties": false,
+          "properties": {
+            "etag": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Etag"
+            },
+            "last_modified": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Modified"
+            }
+          },
+          "required": [
+            "etag",
+            "last_modified"
+          ],
+          "title": "ExternalVersion",
+          "type": "object"
+        },
+        "MCPResult": {
+          "additionalProperties": false,
+          "properties": {
+            "snapshot": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SourceSnapshot"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "source": {
+              "const": "synthetic",
+              "default": "synthetic",
+              "title": "Source",
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "available",
+                "unavailable"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status"
+          ],
+          "title": "MCPResult",
+          "type": "object"
+        },
+        "PublicEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "blob_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Blob Id",
+              "type": "string"
+            },
+            "browser_used": {
+              "title": "Browser Used",
+              "type": "boolean"
+            },
+            "coverage": {
+              "$ref": "#/$defs/ResearchCoverage"
+            },
+            "external_version": {
+              "$ref": "#/$defs/ExternalVersion"
+            },
+            "extraction_status": {
+              "enum": [
+                "extracted",
+                "empty",
+                "truncated",
+                "unavailable"
+              ],
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "extractor_version": {
+              "title": "Extractor Version",
+              "type": "string"
+            },
+            "fetched_at": {
+              "format": "date-time",
+              "title": "Fetched At",
+              "type": "string"
+            },
+            "final_url": {
+              "title": "Final Url",
+              "type": "string"
+            },
+            "kind": {
+              "const": "public_source",
+              "default": "public_source",
+              "title": "Kind",
+              "type": "string"
+            },
+            "mime_type": {
+              "title": "Mime Type",
+              "type": "string"
+            },
+            "redirects": {
+              "items": {
+                "$ref": "#/$defs/PublicRedirect"
+              },
+              "title": "Redirects",
+              "type": "array"
+            },
+            "run_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Run Id",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "status_code": {
+              "title": "Status Code",
+              "type": "integer"
+            },
+            "text": {
+              "maxLength": 200000,
+              "title": "Text",
+              "type": "string"
+            },
+            "text_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Text Sha256",
+              "type": "string"
+            },
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Title"
+            },
+            "tool_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Tool Attempt Id",
+              "type": "string"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "blob_id",
+            "sha256",
+            "mime_type",
+            "title",
+            "url",
+            "final_url",
+            "status_code",
+            "redirects",
+            "fetched_at",
+            "extractor_version",
+            "coverage",
+            "external_version",
+            "extraction_status",
+            "browser_used",
+            "text",
+            "text_sha256",
+            "run_id",
+            "tool_attempt_id"
+          ],
+          "title": "PublicEvidence",
+          "type": "object"
+        },
+        "PublicRedirect": {
+          "additionalProperties": false,
+          "properties": {
+            "location": {
+              "title": "Location",
+              "type": "string"
+            },
+            "status": {
+              "title": "Status",
+              "type": "integer"
+            },
+            "url": {
+              "title": "Url",
+              "type": "string"
+            }
+          },
+          "required": [
+            "url",
+            "status",
+            "location"
+          ],
+          "title": "PublicRedirect",
+          "type": "object"
+        },
+        "ResearchCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "body_complete": {
+              "title": "Body Complete",
+              "type": "boolean"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 30,
+              "title": "Omissions",
+              "type": "array"
+            },
+            "text_complete": {
+              "title": "Text Complete",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "body_complete",
+            "text_complete",
+            "omissions"
+          ],
+          "title": "ResearchCoverage",
+          "type": "object"
+        },
+        "SheetCoverage": {
+          "additionalProperties": false,
+          "properties": {
+            "covered_rows": {
+              "maximum": 1000,
+              "minimum": 0,
+              "title": "Covered Rows",
+              "type": "integer"
+            },
+            "last_cell": {
+              "anyOf": [
+                {
+                  "maxLength": 20,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Cell"
+            },
+            "merged_ranges": {
+              "items": {
+                "maxLength": 40,
+                "type": "string"
+              },
+              "maxItems": 100,
+              "title": "Merged Ranges",
+              "type": "array"
+            },
+            "name": {
+              "maxLength": 31,
+              "title": "Name",
+              "type": "string"
+            },
+            "omitted_cell_positions": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Cell Positions",
+              "type": "integer"
+            },
+            "omitted_merged_ranges": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Merged Ranges",
+              "type": "integer"
+            },
+            "omitted_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Omitted Rows",
+              "type": "integer"
+            },
+            "partial_last_row": {
+              "title": "Partial Last Row",
+              "type": "boolean"
+            },
+            "state": {
+              "enum": [
+                "visible",
+                "hidden",
+                "veryHidden"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "total_columns": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Columns",
+              "type": "integer"
+            },
+            "total_rows": {
+              "maximum": 9007199254740991,
+              "minimum": 0,
+              "title": "Total Rows",
+              "type": "integer"
+            },
+            "visited_cells": {
+              "maximum": 10000,
+              "minimum": 0,
+              "title": "Visited Cells",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "state",
+            "total_rows",
+            "total_columns",
+            "covered_rows",
+            "merged_ranges",
+            "omitted_merged_ranges",
+            "visited_cells",
+            "last_cell",
+            "partial_last_row",
+            "omitted_rows",
+            "omitted_cell_positions"
+          ],
+          "title": "SheetCoverage",
+          "type": "object"
+        },
+        "SourceSnapshot": {
+          "additionalProperties": false,
+          "properties": {
+            "conversation_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Conversation Id",
+              "type": "string"
+            },
+            "coverage": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Coverage"
+                },
+                {
+                  "$ref": "#/$defs/ResearchCoverage"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Coverage"
+            },
+            "extraction_byte_length": {
+              "minimum": 0,
+              "title": "Extraction Byte Length",
+              "type": "integer"
+            },
+            "extraction_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Extraction Sha256",
+              "type": "string"
+            },
+            "extraction_status": {
+              "title": "Extraction Status",
+              "type": "string"
+            },
+            "locator": {
+              "discriminator": {
+                "mapping": {
+                  "attachment": "#/$defs/AttachmentEvidence",
+                  "document": "#/$defs/DocumentEvidence",
+                  "public_source": "#/$defs/PublicEvidence"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/DocumentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/AttachmentEvidence"
+                },
+                {
+                  "$ref": "#/$defs/PublicEvidence"
+                }
+              ],
+              "title": "Locator"
+            },
+            "observed_at": {
+              "format": "date-time",
+              "title": "Observed At",
+              "type": "string"
+            },
+            "omissions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Omissions",
+              "type": "array"
+            },
+            "original_byte_length": {
+              "minimum": 0,
+              "title": "Original Byte Length",
+              "type": "integer"
+            },
+            "original_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Original Sha256",
+              "type": "string"
+            },
+            "parent_snapshot_id": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parent Snapshot Id"
+            },
+            "parser_version": {
+              "title": "Parser Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "trust_label": {
+              "const": "untrusted_evidence",
+              "default": "untrusted_evidence",
+              "title": "Trust Label",
+              "type": "string"
+            },
+            "version_at": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version At"
+            },
+            "version_number": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "title": "Version Number",
+              "type": "integer"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            },
+            "workspace_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "workspace_file_id",
+            "workspace_id",
+            "conversation_id",
+            "version_number",
+            "parent_snapshot_id",
+            "locator",
+            "observed_at",
+            "version_at",
+            "original_sha256",
+            "extraction_sha256",
+            "original_byte_length",
+            "extraction_byte_length",
+            "parser_version",
+            "extraction_status",
+            "coverage",
+            "omissions"
+          ],
+          "title": "SourceSnapshot",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "mcp_read",
+          "default": "mcp_read",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/MCPResult"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "result"
+      ],
+      "title": "MCPOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "connector",
+      "processor"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "a049c33f66b29f12c30bf0ec75bced4afc227910831b1a9e5c789faec90f68a6",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 30000,
+    "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "child",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "bounded-delegation-v1",
+    "id": "delegation.analysis",
+    "implementation_sha256": "427ba47ad02501ae341c1ad34f2d173faa04b4cf8b3c55951f2574ec78ece65a",
+    "input_schema": {
+      "$defs": {
+        "ComputeInput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "ref": {
+              "$ref": "#/$defs/FileVersionRef"
+            }
+          },
+          "required": [
+            "name",
+            "ref"
+          ],
+          "title": "ComputeInput",
+          "type": "object"
+        },
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "independent_benefit": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Independent Benefit",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/ComputeInput"
+          },
+          "maxItems": 6,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "kind": {
+          "const": "delegate_analysis",
+          "title": "Kind",
+          "type": "string"
+        },
+        "output_contract": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "task": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Task",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "inputs",
+        "task",
+        "independent_benefit",
+        "output_contract"
+      ],
+      "title": "DelegateAnalysis",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ChildProposal": {
+          "additionalProperties": false,
+          "properties": {
+            "authority": {
+              "additionalProperties": true,
+              "title": "Authority",
+              "type": "object"
+            },
+            "child_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Child Attempt Id",
+              "type": "string"
+            },
+            "execution": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExecutionEvidence"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "limitation": {
+              "default": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+              "title": "Limitation",
+              "type": "string"
+            },
+            "output_contract": {
+              "title": "Output Contract",
+              "type": "string"
+            },
+            "proposal": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal"
+            },
+            "proposal_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal Sha256"
+            },
+            "provider_calls": {
+              "const": 0,
+              "default": 0,
+              "title": "Provider Calls",
+              "type": "integer"
+            },
+            "state": {
+              "enum": [
+                "proposal",
+                "failed",
+                "unavailable"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "task": {
+              "title": "Task",
+              "type": "string"
+            },
+            "verification": {
+              "const": "unreviewed",
+              "default": "unreviewed",
+              "title": "Verification",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "child_attempt_id",
+            "task",
+            "output_contract",
+            "authority",
+            "proposal",
+            "proposal_sha256",
+            "execution"
+          ],
+          "title": "ChildProposal",
+          "type": "object"
+        },
+        "ComputeResources": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu_usec": {
+              "minimum": 0,
+              "title": "Cpu Usec",
+              "type": "integer"
+            },
+            "memory_peak_bytes": {
+              "minimum": 0,
+              "title": "Memory Peak Bytes",
+              "type": "integer"
+            },
+            "oom_kill": {
+              "minimum": 0,
+              "title": "Oom Kill",
+              "type": "integer"
+            },
+            "pids_peak": {
+              "minimum": 0,
+              "title": "Pids Peak",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "cpu_usec",
+            "memory_peak_bytes",
+            "oom_kill",
+            "pids_peak"
+          ],
+          "title": "ComputeResources",
+          "type": "object"
+        },
+        "ExecutionEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "cleanup_verified": {
+              "const": true,
+              "title": "Cleanup Verified",
+              "type": "boolean"
+            },
+            "code_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Code Sha256",
+              "type": "string"
+            },
+            "elapsed_ms": {
+              "title": "Elapsed Ms",
+              "type": "integer"
+            },
+            "exit_code": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exit Code"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/StagedInput"
+              },
+              "title": "Inputs",
+              "type": "array"
+            },
+            "profile_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Profile Sha256",
+              "type": "string"
+            },
+            "resources": {
+              "$ref": "#/$defs/ComputeResources"
+            },
+            "status": {
+              "title": "Status",
+              "type": "string"
+            },
+            "stdout_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Stdout Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "code_sha256",
+            "profile_sha256",
+            "inputs",
+            "elapsed_ms",
+            "resources",
+            "exit_code",
+            "cleanup_verified",
+            "stdout_sha256"
+          ],
+          "title": "ExecutionEvidence",
+          "type": "object"
+        },
+        "StagedInput": {
+          "additionalProperties": false,
+          "properties": {
+            "bytes": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Bytes",
+              "type": "integer"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "bytes"
+          ],
+          "title": "StagedInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "delegate_analysis",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ChildProposal"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "ChildOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "processor"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "12674fdea1de3e3593127bb548f6a9b66ca371d5235449625023f62db741c721",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 60000,
+    "transport": "sandbox",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "bounded-delegation-v1",
+    "id": "delegation.verify",
+    "implementation_sha256": "427ba47ad02501ae341c1ad34f2d173faa04b4cf8b3c55951f2574ec78ece65a",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "child_attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Child Attempt Id",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "inspection": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Inspection",
+          "type": "string"
+        },
+        "kind": {
+          "const": "verify_delegate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposal_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Proposal Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "child_attempt_id",
+        "proposal_sha256",
+        "inspection",
+        "code"
+      ],
+      "title": "VerifyDelegate",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ComputeResources": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu_usec": {
+              "minimum": 0,
+              "title": "Cpu Usec",
+              "type": "integer"
+            },
+            "memory_peak_bytes": {
+              "minimum": 0,
+              "title": "Memory Peak Bytes",
+              "type": "integer"
+            },
+            "oom_kill": {
+              "minimum": 0,
+              "title": "Oom Kill",
+              "type": "integer"
+            },
+            "pids_peak": {
+              "minimum": 0,
+              "title": "Pids Peak",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "cpu_usec",
+            "memory_peak_bytes",
+            "oom_kill",
+            "pids_peak"
+          ],
+          "title": "ComputeResources",
+          "type": "object"
+        },
+        "ExecutionEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "cleanup_verified": {
+              "const": true,
+              "title": "Cleanup Verified",
+              "type": "boolean"
+            },
+            "code_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Code Sha256",
+              "type": "string"
+            },
+            "elapsed_ms": {
+              "title": "Elapsed Ms",
+              "type": "integer"
+            },
+            "exit_code": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exit Code"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/StagedInput"
+              },
+              "title": "Inputs",
+              "type": "array"
+            },
+            "profile_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Profile Sha256",
+              "type": "string"
+            },
+            "resources": {
+              "$ref": "#/$defs/ComputeResources"
+            },
+            "status": {
+              "title": "Status",
+              "type": "string"
+            },
+            "stdout_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Stdout Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "code_sha256",
+            "profile_sha256",
+            "inputs",
+            "elapsed_ms",
+            "resources",
+            "exit_code",
+            "cleanup_verified",
+            "stdout_sha256"
+          ],
+          "title": "ExecutionEvidence",
+          "type": "object"
+        },
+        "StagedInput": {
+          "additionalProperties": false,
+          "properties": {
+            "bytes": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Bytes",
+              "type": "integer"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "bytes"
+          ],
+          "title": "StagedInput",
+          "type": "object"
+        },
+        "VerificationResult": {
+          "additionalProperties": false,
+          "properties": {
+            "checks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Checks",
+              "type": "array"
+            },
+            "child_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Child Attempt Id",
+              "type": "string"
+            },
+            "execution": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExecutionEvidence"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "inspection": {
+              "title": "Inspection",
+              "type": "string"
+            },
+            "limitation": {
+              "default": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+              "title": "Limitation",
+              "type": "string"
+            },
+            "proposal": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal"
+            },
+            "proposal_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Proposal Sha256",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "checks_passed",
+                "discarded",
+                "checks_failed",
+                "unavailable"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "child_attempt_id",
+            "proposal_sha256",
+            "inspection",
+            "checks",
+            "proposal",
+            "execution"
+          ],
+          "title": "VerificationResult",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "verify_delegate",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/VerificationResult"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "VerificationOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "processor"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "a4de8ca75b253c3cdfa58790d7d0a551a91659e38934957e32c40c3891ba75fd",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 60000,
+    "transport": "sandbox",
     "version": "1"
   }
 ]

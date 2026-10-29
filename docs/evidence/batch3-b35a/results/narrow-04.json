@@ -1,0 +1,25 @@
+{
+  "batch": "narrow-04.xml",
+  "sha256": "88c1cd73540b8a2400454f42022b239b92c65c9dd2ef0c85f31db89196e40e71",
+  "counts": {
+    "passed": 2,
+    "failed": 0,
+    "error": 0,
+    "skipped": 0
+  },
+  "declared_tests": 2,
+  "cases": [
+    {
+      "nodeid": "tests.test_memory_restart_matrix_pg::test_external_conflicts_keep_exact_sources_and_untrusted_human_claims_inert",
+      "status": "passed",
+      "seconds": 0.447
+    },
+    {
+      "nodeid": "tests.test_office_pg::test_run_office_chart_exact_receipt_replay_and_human_download",
+      "status": "passed",
+      "seconds": 11.295
+    }
+  ],
+  "seconds": 15.667,
+  "timestamp": "2026-10-29T14:19:29.901747+00:00"
+}

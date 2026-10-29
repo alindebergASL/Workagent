@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "profile": "python-analysis-v1",
+  "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+  "runtime_version": "release-20261026.0",
+  "image": "python@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c",
+  "status": "succeeded",
+  "exit_code": 0,
+  "code_sha256": "6516260ada818ee04afa43303b09947062c664b15ae4b206d3269bc2030dbcc2",
+  "inputs": [
+    {
+      "name": "heldout_test.py",
+      "sha256": "39fc05a6829ea8fd280a95f000b8f93f1f3e39bc0cada41a745f0d99ea848af6",
+      "bytes": 9979
+    },
+    {
+      "name": "candidate.py",
+      "sha256": "8a894c2807ded459c80e5232c5d336c4b2bf8110d8c7dd064c433d4d95cf6beb",
+      "bytes": 1188
+    }
+  ],
+  "stdout": "{\"candidate_sha256\": \"8a894c2807ded459c80e5232c5d336c4b2bf8110d8c7dd064c433d4d95cf6beb\", \"failed\": 0, \"oracle_sha256\": \"39fc05a6829ea8fd280a95f000b8f93f1f3e39bc0cada41a745f0d99ea848af6\", \"passed\": 518, \"stage\": \"v2\", \"total\": 518, \"verdict\": \"PASS\"}\n",
+  "stderr": "",
+  "elapsed_ms": 1130,
+  "resources": {
+    "cpu_usec": 1031359,
+    "memory_peak_bytes": 36188160,
+    "oom_kill": 0,
+    "pids_peak": 33
+  },
+  "omissions": [],
+  "outputs": [],
+  "cleanup_verified": true
+}

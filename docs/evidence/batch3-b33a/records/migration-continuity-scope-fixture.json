@@ -1,0 +1,19 @@
+{
+  "fixture": "scope-fixture",
+  "read_only": true,
+  "history_modified": false,
+  "rows": [
+    {
+      "name": "063_github_public.sql",
+      "checksum": "bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9",
+      "applied_at": "2026-10-29T05:17:31.063832+00:00",
+      "current_sha256": "bc934c7b1928cb532f0404a7865904b40b897299864f652769b064902b4bece9"
+    },
+    {
+      "name": "064_tool_scope_reductions.sql",
+      "checksum": "48af500a6e442b8223852144c0ba45cc3f723a170b316a1d373d61c31611ea0a",
+      "applied_at": "2026-10-29T05:17:31.063832+00:00",
+      "current_sha256": "48af500a6e442b8223852144c0ba45cc3f723a170b316a1d373d61c31611ea0a"
+    }
+  ]
+}

@@ -55,8 +55,14 @@ def provision(env_file):
         memory_functions = [
             'write_memory_revision(text,text,text,text,jsonb)',
             'forget_memory(text,text,text,text,text)',
+            'rollback_memory_revision(text,text,text,jsonb,text)',
             'bind_memory_scope(text,text,text,text,bigint)',
             'record_memory_usage(text,text,text,text,text,text,jsonb)',
+            'connector_start(text,text,text,text,text)',
+            'connector_claim(text,text,text,text)',
+
+            'connector_revoke(text,text,text,integer,text)',
+
         ]
         for signature in memory_functions:
             if c.execute('SELECT to_regprocedure(%s)', ('public.' + signature,)).fetchone()[0]:
@@ -67,10 +73,21 @@ def provision(env_file):
         # immutable authority triggers below reject all attempted runtime writes.
         for table in ['workspaces','memberships','sources','source_access']:
             c.execute(sql.SQL('GRANT UPDATE ON {} TO {}').format(sql.Identifier(table),sql.Identifier(runtime)))
+    executor_dsn=None
+    with psycopg.connect(owner_dsn) as c:
+        has_connector=c.execute("SELECT to_regprocedure('public.connector_finish(text,text,text,text,text,timestamptz)') IS NOT NULL").fetchone()[0]
+    if has_connector:
+        executor=name+'_connector';executor_secret=secrets.token_urlsafe(32)
+        admin(sql.SQL('CREATE ROLE {} LOGIN PASSWORD {};').format(sql.Identifier(executor),sql.Literal(executor_secret)).as_string())
+        with psycopg.connect(owner_dsn) as c:
+            c.execute(sql.SQL('GRANT USAGE ON SCHEMA public TO {}').format(sql.Identifier(executor)))
+            c.execute(sql.SQL('GRANT EXECUTE ON FUNCTION connector_finish(text,text,text,text,text,timestamptz),connector_revoke_result(text,text,text,text,text) TO {}').format(sql.Identifier(executor)))
+        executor_dsn=f'postgresql://{executor}:{executor_secret}@127.0.0.1:5432/{name}'
     path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
     with os.fdopen(fd,'w') as f:
         f.write(f'export DATABASE_URL={runtime_dsn}\nexport MIGRATION_DATABASE_URL={owner_dsn}\nexport LOCAL_TEST_MODE=true\nexport LOCAL_BEARER_TOKEN={secrets.token_urlsafe(32)}\nexport LOCAL_PRINCIPAL_ID=local-human\n')
+        if executor_dsn:f.write(f'export WORKAGENT_SYNTHETIC_LIFECYCLE_DATABASE_URL={executor_dsn}\n')
     print(f'Created isolated database {name}; environment: {path}. No credentials printed.')
     return name
 

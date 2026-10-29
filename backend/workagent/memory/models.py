@@ -23,7 +23,18 @@ class MemoryFile(Model):
     ref: FileVersionRef
 
 
-MemorySourceRef = Annotated[MemorySource | MemoryFile, Field(discriminator='source_type')]
+class MemoryRevisionRef(Model):
+    memory_id: Id
+    revision_id: Id
+    sha256: Hash
+
+
+class MemoryDerived(Model):
+    source_type: Literal['memory'] = 'memory'
+    ref: MemoryRevisionRef
+
+
+MemorySourceRef = Annotated[MemorySource | MemoryFile | MemoryDerived, Field(discriminator='source_type')]
 
 
 def validate_content(text):
@@ -33,6 +44,49 @@ def validate_content(text):
     if re.search(r'(?i)\b(?:social security|ssn|sexual orientation|medical diagnosis|religious belief|biometric)\b', text):
         raise ValueError('sensitive personal categories are prohibited')
     return text
+
+
+Phrase = Annotated[str, Field(min_length=1, max_length=200)]
+Limit = Annotated[str, Field(min_length=1, max_length=500)]
+
+
+class ProcedureEvidence(Model):
+    kind: Literal['human_message', 'tool_observation']
+    conversation_id: Id
+    event_id: Id
+    sha256: Hash
+
+
+class ProcedureDetails(Model):
+    retrieval_terms: list[Phrase] = Field(min_length=1, max_length=16)
+    excluded_terms: list[Phrase] = Field(default_factory=list, max_length=16)
+    counterexamples: list[Limit] = Field(min_length=1, max_length=16)
+    evidence: list[ProcedureEvidence] = Field(min_length=1, max_length=16)
+    validation_notes: str = Field(min_length=1, max_length=1000)
+
+    @model_validator(mode='after')
+    def safe(self):
+        for text in [*self.retrieval_terms, *self.excluded_terms, *self.counterexamples, self.validation_notes]:
+            if not text.strip():
+                raise ValueError('procedure text must not be blank')
+            validate_content(text)
+        if len({(e.kind, e.conversation_id, e.event_id) for e in self.evidence}) != len(self.evidence):
+            raise ValueError('duplicate procedure evidence')
+        return self
+
+
+class ProcedureEvidenceOption(Model):
+    evidence: ProcedureEvidence
+    label: str = Field(max_length=240)
+    outcome: Literal['human_statement', 'observed', 'failed', 'cost_only', 'outcome_unknown']
+    operational_outcome: Literal['succeeded', 'failed', 'wall_limit', 'cpu_limit', 'output_limit',
+        'cancelled', 'unavailable', 'available', 'rate_limited', 'not_found', 'denied',
+        'changed_source', 'captured', 'uncertain', 'outcome_unknown'] | None = None
+    observed_at: AwareDatetime
+
+
+class ProcedureEvidencePage(Model):
+    items: list[ProcedureEvidenceOption] = Field(default_factory=list, max_length=50)
 
 
 class MemoryInput(Model):
@@ -49,11 +103,14 @@ class MemoryInput(Model):
     expires_at: AwareDatetime | None = None
     applicability: str = Field(default='', max_length=500)
     sensitivity: Literal['ordinary'] = 'ordinary'
+    procedure: ProcedureDetails | None = None
 
     @model_validator(mode='after')
     def safe(self):
         for text in (self.content, self.confidence_basis, self.applicability, self.subject_key, self.predicate_key):
             validate_content(text)
+        if self.procedure is not None and (self.kind != 'procedure' or not self.applicability.strip() or not self.confidence_basis.strip()):
+            raise ValueError('procedure details require procedure kind, applicability and confidence basis')
         if self.valid_until and self.valid_from and self.valid_until <= self.valid_from:
             raise ValueError('valid interval must be finite and increasing')
         return self
@@ -72,11 +129,18 @@ class MemoryCAS(Command):
     expected_revision_id: Id
 
 
+class RollbackMemory(MemoryCAS):
+    target_revision_id: Id
+
+
 class ReviewMemory(MemoryCAS):
     decision: Literal['accept', 'dispute', 'reject']
 
 
 class CorrectMemory(MemoryCAS):
+    # None preserves the prior value, including for legacy command replay.
+    applicability: str | None = Field(default=None, max_length=500)
+    procedure: ProcedureDetails | None = None
     content: str = Field(min_length=1, max_length=4000)
     mode: Literal['permanent', 'temporary'] = 'permanent'
     valid_from: AwareDatetime | None = None
@@ -86,6 +150,8 @@ class CorrectMemory(MemoryCAS):
     @model_validator(mode='after')
     def safe(self):
         validate_content(self.content)
+        if self.applicability is not None:
+            validate_content(self.applicability)
         if self.mode == 'temporary':
             if not self.valid_from or not self.valid_until or self.valid_until <= self.valid_from:
                 raise ValueError('temporary correction requires an explicit finite interval')
@@ -112,6 +178,7 @@ class MemoryScopeBinding(Model):
 
 
 class MemoryRevisionV1(Model):
+    procedure: ProcedureDetails | None = None
     memory_id: Id
     revision_id: Id
     workspace_id: Id
@@ -147,11 +214,15 @@ class MemoryReceipt(Model):
     memory_id: Id
     revision_id: Id
     status: Status
+    erased_memory_items: int | None = Field(default=None, ge=1, le=1024)
+    retention_notice: str | None = None
 
 
 class MemoryInspection(Model):
     current: MemoryRevisionV1
     revisions: list[MemoryRevisionV1]
+    # Read-time eligibility only; mutation still checks current access and CAS.
+    rollback_revision_ids: list[Id] = Field(default_factory=list)
     notice: str = 'Forget erases memory payloads. It cannot unsend prior requests or remove other source documents, saved outputs, or historical outgoing receipts.'
 
 
@@ -198,6 +269,8 @@ class MemoryContract(Model):
     candidate: ProposeMemory
     review: ReviewMemory
     correct: CorrectMemory
+    rollback: RollbackMemory
+    lesson_evidence: ProcedureEvidencePage
     narrow: NarrowMemory
     expire: MemoryCAS
     forget: MemoryCAS

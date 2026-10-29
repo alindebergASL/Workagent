@@ -1,0 +1,214 @@
+[
+  {
+    "path": ".github/workflows/frontend.yml",
+    "sha256": "e0d23dfb549a8bb15148235f1c82ed62a3c4265b5329cff80d634bdd10b8919c"
+  },
+  {
+    "path": "backend/export_contracts.py",
+    "sha256": "ce4a6e2cbc5e70bf4880e1db5c1b0a448f51a8f314f7291dd19e216159cd0b37"
+  },
+  {
+    "path": "backend/migrations/061_office_outputs.sql",
+    "sha256": "b38984f4ab3b145e1eaed906b7ab4fcbae15fc2a286733f0a98653da5892acc0"
+  },
+  {
+    "path": "backend/migrations/062_office_bom_inspection.sql",
+    "sha256": "0de42b8740dfa9d2e9c2ea7e0a1a5cb41c3f119496edf8fa552ba98f8b4fff1a"
+  },
+  {
+    "path": "backend/requirements-office.lock",
+    "sha256": "ea04a15df1a30fde5d2606cfb3681d898e4f7a3289cb72ed8673851fd346d305"
+  },
+  {
+    "path": "backend/requirements-office.txt",
+    "sha256": "aeb12d0374a048369428083d78a7e138aefeae9846e5483be8d0fba7dcf3a6a0"
+  },
+  {
+    "path": "backend/tests/test_office_acceptance.py",
+    "sha256": "438d18e054f1127ead9a6f96704d19af33857d2a97e8ad49f8a11da95cb9088f"
+  },
+  {
+    "path": "backend/tests/test_office_bom_pg.py",
+    "sha256": "2ec59aaf4fefc0e8178f6bfb0e7220d08f6d5c3a751a84a2fbd529984a7e2aaf"
+  },
+  {
+    "path": "backend/tests/test_office_bom_regression.py",
+    "sha256": "9b0d72117aa63cd59a407d233aecb58e5a4b7db0065289f6f01c0b8211116f6a"
+  },
+  {
+    "path": "backend/tests/test_office_parent.py",
+    "sha256": "41517df0a5f58dba6e68c9cca1361f34df163dfc286e813bca7e47a757ee3c5b"
+  },
+  {
+    "path": "backend/tests/test_office_pg.py",
+    "sha256": "1970ae16b97a3f2318ac33fa088fbba275c5fa425832b0cf5781cbbdab692001"
+  },
+  {
+    "path": "backend/tests/test_office_unit.py",
+    "sha256": "a8898222fe7b430391eb1a128eb99090f860845ae4dbfc42f1f724d54957ab2a"
+  },
+  {
+    "path": "backend/tests/test_tui_files.py",
+    "sha256": "71d348cea0dd2d08271d7af4467385283c32fbae6ebc4b064fc62715ca4ed10c"
+  },
+  {
+    "path": "backend/tests/test_tui_office_files.py",
+    "sha256": "28b6fc4a55bf647670416e6ccb5b312839caa95b734cb156dc143c349f28908b"
+  },
+  {
+    "path": "backend/workagent/adaptive.py",
+    "sha256": "0f44a140b0facc5839a26f080bb9d870dd8c0967c2825c9bad1db18bbc40a44f"
+  },
+  {
+    "path": "backend/workagent/artifact_exports.py",
+    "sha256": "6c9d54b25c691e1187bab9c392c95b09658f6e157e33a27351eb9f6727d29f37"
+  },
+  {
+    "path": "backend/workagent/capabilities/broker.py",
+    "sha256": "d77b49356a239dd04e20b3aae2cf30c252811a78c6c310a559ea49ff52e2d1b9"
+  },
+  {
+    "path": "backend/workagent/capabilities/compute_adapters.py",
+    "sha256": "f8c727bba20dc8c6d8dc5f84822a0f220ab633954a7f7e842317455170cf4f0b"
+  },
+  {
+    "path": "backend/workagent/capabilities/file_adapters.py",
+    "sha256": "4f5b25fa9dedf897af5b4ac4644e1fdc0d7de7f992e639c46b03a12ecdb6ef12"
+  },
+  {
+    "path": "backend/workagent/capabilities/office_adapters.py",
+    "sha256": "44a46891d5b20bf6ecd7fe682a4be5616cbd1d275c8e00373d02cb357fae12bc"
+  },
+  {
+    "path": "backend/workagent/capabilities/office_composition.py",
+    "sha256": "2c01215fb0cee96a7c2dc2f5e651f14c15a8d374299b239267f3cdb8f0304ea2"
+  },
+  {
+    "path": "backend/workagent/capabilities/policy.py",
+    "sha256": "9321868aa2d487c4bcba84ea1da8628d67979628f4439643fd56367fff9e3214"
+  },
+  {
+    "path": "backend/workagent/capabilities/registry.py",
+    "sha256": "515e50873dd147600b7564150d28778a7548be672cebe2bfbe779754264b0098"
+  },
+  {
+    "path": "backend/workagent/capabilities/research_composition.py",
+    "sha256": "a83f1b09a621889e6761d8f466deb6da313985f678a134d74c8b0f1a77361d99"
+  },
+  {
+    "path": "backend/workagent/document_sandbox.py",
+    "sha256": "5553508a93151c50232e250eadce9754a27eebe61cdbd97b65354f2caf103df8"
+  },
+  {
+    "path": "backend/workagent/general_responses.py",
+    "sha256": "f06a77db31ed09acc96dc2932658131b3e8664b22b0c1c693cd100adf1daa2c4"
+  },
+  {
+    "path": "backend/workagent/office_content.py",
+    "sha256": "3a43436026bfeac67e13f73d220af3aadc4ffcef924cb443539f3b3c5fdc4639"
+  },
+  {
+    "path": "backend/workagent/office_converter.py",
+    "sha256": "7eeb08f65d74fb1d0a927edb79a95177b4e7ffd378cc2f7855941d86d90459ad"
+  },
+  {
+    "path": "backend/workagent/office_models.py",
+    "sha256": "afc5fafcf66128266db37617a9dcd9633603a5339c23aae8861fa142bd227e8e"
+  },
+  {
+    "path": "backend/workagent/office_sandbox.py",
+    "sha256": "0a63ad941f59ea2a3ed8661932e39afefe30f66fc507a8e22b01e7483d18e7fb"
+  },
+  {
+    "path": "backend/workagent/office_service.py",
+    "sha256": "48a57effa682ff865f5bf1fbbc3bcfb0041376900dd9c6b02e4066bde1bf5ece"
+  },
+  {
+    "path": "backend/workagent/service.py",
+    "sha256": "d73487d15770c296ae7e02e865ece01eb746b0c7a935446e396ce17fae59b453"
+  },
+  {
+    "path": "backend/workagent/tui/file_drafts.py",
+    "sha256": "f57597a1997b9547b0121d13d97831529ad5fb93f734f77989c4eb72aab14feb"
+  },
+  {
+    "path": "backend/workagent/tui/files.py",
+    "sha256": "4bc38bcb69b175cf38bf5932f429fed8b8be6ae296f7a233b7f778cca0a9e8b4"
+  },
+  {
+    "path": "backend/workagent/tui/files_screen.py",
+    "sha256": "057c11543d3570367c4db71062d534d2b84aea1166d16eaa75eafaa864becde7"
+  },
+  {
+    "path": "backend/workagent/workspace_file_api.py",
+    "sha256": "7e62c96482f5dde5af5d6480c7c1f1da3a34ef69c34b13c20fd81122c89600d3"
+  },
+  {
+    "path": "backend/workagent/workspace_file_models.py",
+    "sha256": "08ef3ea540ff1d7862444c080b29e8e4a15aefc3126b1f7fcea758fa618360ce"
+  },
+  {
+    "path": "backend/workagent/workspace_files.py",
+    "sha256": "adc3b1e6c1404888f1c4ab165049d4d73d550e6c00c184b09d2916cacbb35266"
+  },
+  {
+    "path": "contracts/capability-registry-v2.json",
+    "sha256": "dc4bc82c020cf88e6a4720fe298768036462395ebbcc41b9532369baf3f14f2b"
+  },
+  {
+    "path": "contracts/gateway-office-decision.schema.json",
+    "sha256": "64f597e5c9c2ac190a34cb15d4ab3fdc6fa3e6886ae3ec5b8bc2ff182dc7a00a"
+  },
+  {
+    "path": "contracts/office-v1.json",
+    "sha256": "e8ec7dba143f5d6a34e10fa84c9d78d279d4cc0efa81694cbbe4da73c7840ec9"
+  },
+  {
+    "path": "contracts/openapi.json",
+    "sha256": "4e8b8fccbd13ebd4414933d748b848f2538ec8901185bcf234d653e81abd227e"
+  },
+  {
+    "path": "contracts/src/schema.d.ts",
+    "sha256": "6084a8d6503b5ac5ffc2719035d79225d3d690367405ba777c01a3298bbf99e4"
+  },
+  {
+    "path": "contracts/workspace-files-v1.json",
+    "sha256": "9d9b2cae68cdcbf1f9000789814b01c326d3a9fff59ca8cc5f15e115ddac8671"
+  },
+  {
+    "path": "web/src/app/api/domain/[...path]/route.ts",
+    "sha256": "2c023ee7c0bd4eae37c873c6243aefc283e9645aa8d31838b8fbc4d9aff61598"
+  },
+  {
+    "path": "web/src/components/FileExport.tsx",
+    "sha256": "b8d4696e8ed24788fc05d9ab22fca6fdab92ebf2936beb9edfbd489353a92210"
+  },
+  {
+    "path": "web/src/components/WorkspaceFiles.tsx",
+    "sha256": "5d5f39afd3aed5fdc4b3f30463b762dbcb4aba21f334b2a2d2e062f5e74a0e73"
+  },
+  {
+    "path": "web/src/lib/client/workspace-files.ts",
+    "sha256": "5cc3f2f82a9a521df6507e9d1c14016de7b4c9a6a2e4db698c26a94646c986df"
+  },
+  {
+    "path": "web/src/lib/files-contract.ts",
+    "sha256": "06879398fdf3ad460f9f9f69c29a16b805bc812af769704f6cd3a8fa6dd65813"
+  },
+  {
+    "path": "web/src/lib/office-export.ts",
+    "sha256": "e3f0dd9c6cbb7b3366b491bdf10a8419a184318f43fb1cefe163372baf48c136"
+  },
+  {
+    "path": "web/test/export-download-proxy.test.ts",
+    "sha256": "a23b2626d05a317bab88c1ec8ccd15609cc2aff8553297544feac86ca3e4da21"
+  },
+  {
+    "path": "web/test/office-export.test.ts",
+    "sha256": "c22689315025501b7d8e53762f9cb5d1397a9eabc9b30fbba0d15e5e64ff70c2"
+  },
+  {
+    "path": "web/test/workspace-files-races.test.ts",
+    "sha256": "a0dcb8c49ce45f3d198fec7ad7457cde43d0b4daae18e45419d9a8e750d49e6a"
+  }
+]

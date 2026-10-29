@@ -1,0 +1,61 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "account": {
+      "const": "Synthetic library",
+      "default": "Synthetic library",
+      "title": "Account",
+      "type": "string"
+    },
+    "effects": {
+      "items": {
+        "const": "read",
+        "type": "string"
+      },
+      "maxItems": 1,
+      "minItems": 1,
+      "title": "Effects",
+      "type": "array"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "flow_id": {
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "title": "Flow Id",
+      "type": "string"
+    },
+    "processor": {
+      "const": "local-synthetic-mcp",
+      "default": "local-synthetic-mcp",
+      "title": "Processor",
+      "type": "string"
+    },
+    "provider": {
+      "const": "synthetic",
+      "default": "synthetic",
+      "title": "Provider",
+      "type": "string"
+    },
+    "resource": {
+      "const": "synthetic/catalog",
+      "default": "synthetic/catalog",
+      "title": "Resource",
+      "type": "string"
+    },
+    "retention": {
+      "const": "synthetic-only; no private account access",
+      "default": "synthetic-only; no private account access",
+      "title": "Retention",
+      "type": "string"
+    }
+  },
+  "required": [
+    "flow_id",
+    "expires_at"
+  ],
+  "title": "AuthorizationFlow",
+  "type": "object"
+}

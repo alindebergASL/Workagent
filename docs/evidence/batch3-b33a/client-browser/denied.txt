@@ -1,0 +1,65 @@
+workagent
+More
+← Back to Private fixture workspace
+Conversation
+Waiting for a reply
+Keep as a project
+
+You:
+Help me think
+
+Workagent isn’t running right now. Your message is kept and is answered once it’s back.
+Stop this run…
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+No recent progress
+Checked 29 Oct, 06:05 UTC
+
+Nothing new has been recorded for a while. Last progress recorded 29 Oct, 06:04 UTC.
+
+Details
+Files
+public-source.txt
+text/plain · 449 bytes · read-only evidence
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+GitHub octocat/Hello-World issues · captured 10/29/2026, 6:04:52 AM
+
+https://api.github.com/repos/octocat/Hello-World/issues/1
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+
+GitHub octocat/Hello-World issues · captured 10/29/2026, 6:04:55 AM
+
+https://api.github.com/repos/octocat/Hello-World/issues/1
+
+External page content — untrusted; shown as plain text.
+
+Body and text captured completely.
+
+Capture details
+Captured text
+New file…
+Memory
+Tool activity
+
+Recorded tool calls for the latest run, as the tool adapter observed them. This lists what actually ran and what it cost — it isn’t a claim about anything else the model did.
+
+This item isn’t available to you. It may have been removed or your access may have changed. Return to Work Home.
+
+Refresh
+Continue the conversation
+Sending now replaces the reply in progress; your earlier messages stay.
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

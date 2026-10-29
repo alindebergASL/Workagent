@@ -11,6 +11,13 @@ from ..workspace_file_models import (MAX_FILE_BYTES, TEXT_MIMES, CreateWorkspace
 from .file_drafts import new_file_draft
 
 
+OFFICE_MIMES = {
+    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'pdf': 'application/pdf', 'png': 'image/png',
+}
+
+
 def normalized(text):
     return text.replace('\r\n', '\n').replace('\r', '\n')
 
@@ -120,7 +127,7 @@ class FilesController:
             self.session.select(key)
         return key
 
-    def prepare(self, action, format='txt'):
+    def prepare(self, action, format='txt', chart_spec=None):
         draft = self.session.draft
         if draft['pending']:
             raise OperatorError('Resolve pending command using Read back, Replay exact or Resolve rejection')
@@ -131,9 +138,26 @@ class FilesController:
             if not base:
                 raise OperatorError('Save a file before exporting an exact version')
             ref = base['file']['current']
-            body = ExportFile(**common, version_id=ref['version_id'], sha256=ref['sha256'], format=format)
+            options = {}
+            if chart_spec is not None:
+                from ..office_models import ChartSpec
+                options['chart_spec'] = ChartSpec.model_validate(chart_spec)
+            body = ExportFile(**common, version_id=ref['version_id'], sha256=ref['sha256'], format=format, **options)
             path = self.root + '/files/' + identifier(ref['workspace_file_id']) + '/exports'
+        elif action == 'import':
+            from ..workspace_file_models import ImportOfficeDraft
+            if self.version is None:
+                raise OperatorError('Refresh to read the current conversation version first')
+            if not base or base['file']['storage'] != 'source_snapshot' or base['file']['editable']:
+                raise OperatorError('Open an immutable DOCX/XLSX source before making an editable copy')
+            if base['file']['mime_type'] not in (OFFICE_MIMES['docx'], OFFICE_MIMES['xlsx']):
+                raise OperatorError('Editable office copies support DOCX/XLSX sources only')
+            body = ImportOfficeDraft(**common, expected_work_version=self.version,
+                                     source=base['file']['current'])
+            path = self.area + '/office-drafts'
         else:
+            if action != 'save':
+                raise OperatorError('Unknown file action')
             if self.version is None:
                 raise OperatorError('Refresh to read the current conversation version first')
             content = draft['content']
@@ -168,11 +192,22 @@ class FilesController:
             raise OperatorError('No pending command in this authenticated scope')
         models = {'create': CreateWorkspaceFile, 'edit': EditWorkspaceFile, 'export': ExportFile}
         action = record['action']
+        if action == 'import':
+            from ..workspace_file_models import ImportOfficeDraft
+            models['import'] = ImportOfficeDraft
+        if action not in models:
+            raise OperatorError('Unknown retained file action')
         body = models[action].model_validate(record['body'])
         if body.command_id != body.request_id:
             raise OperatorError('Retained command identity mismatch')
         if action == 'create':
             expected = self.area + '/files'
+        elif action == 'import':
+            base = self.session.draft['base']['file']
+            expected = self.area + '/office-drafts'
+            if (base['storage'] != 'source_snapshot' or base['editable'] or
+                    body.source != FileVersionRef.model_validate(base['current'])):
+                raise OperatorError('Retained office source mismatch')
         else:
             base = self.session.draft['base']['file']['current']
             expected = self.root + '/files/' + identifier(base['workspace_file_id']) + ('/versions' if action == 'edit' else '/exports')
@@ -227,16 +262,25 @@ class FilesController:
         if receipt is None:
             raise OperatorError('No acknowledged receipt. Explicit Replay exact reuses the saved command ID and body')
         if record['action'] == 'export':
-            manifest = ExportManifest.model_validate(receipt)
-            if (manifest.workspace_id != self.scope['workspace'] or manifest.conversation_id != self.scope['conversation']
-                    or manifest.workspace_file_id != self.session.draft['base']['file']['workspace_file_id']
-                    or manifest.revision_id != record['body']['version_id']
-                    or manifest.input_sha256 != record['body']['sha256'] or manifest.format != record['body']['format']):
-                raise OperatorError('Export receipt exact binding mismatch')
-            self.session.edit(export=manifest.model_dump(mode='json'), pending=None, proposal=record)
+            manifest = self.check_export(receipt, record)
+            self.session.edit(export=manifest.model_dump(mode='json'), pending=None, proposal=record,
+                              export_request=dict(body=record['body'], path=record['path']))
             return 'Export ready; download verifies actual bytes and hash.'
         item = WorkspaceFile.model_validate(receipt)
         self.check_file(item)
+        if record['action'] == 'import':
+            self.check_import(item, record)
+            self.read_exact(item.current)
+            source_key = self.session.state['selected']
+            # Opening can still fail on authorization, range read or local CAS.
+            # Keep the acknowledged command on the source until the copy opens.
+            self.open_file(item)
+            source_draft = self.session.state['drafts'][source_key]
+            source_draft.update(pending=None, proposal=copy.deepcopy(record))
+            source_draft['generation'] += 1
+            self.session.save()
+            self.version = None
+            return 'Editable office copy verified. Original unchanged; formulas not computed. Refresh list before saving.'
         expected = record['body']['source']['sha256'] if record['action'] == 'create' else record['body']['sha256']
         if item.current.sha256 != expected or (record['action'] == 'edit' and item.workspace_file_id != self.session.draft['base']['file']['workspace_file_id']):
             raise OperatorError('Saved file receipt hash/identity mismatch')
@@ -246,3 +290,82 @@ class FilesController:
         self.open_file(item)
         self.version = None
         return 'Saved exact version and SHA256 verified. Earlier draft retained. Refresh list before the next save.'
+
+    def check_import(self, item, record):
+        source = FileVersionRef.model_validate(record['body']['source'])
+        snapshot = self.exact_snapshot(source)
+        provenance = item.office_provenance
+        if (not item.editable or item.storage != 'artifact_revision' or
+                item.workspace_file_id == source.workspace_file_id or item.mime_type != 'application/json' or
+                provenance is None or provenance.source_snapshot_id != source.version_id or
+                provenance.original_sha256 != snapshot.original_sha256 or
+                provenance.extraction_sha256 != source.sha256 or provenance.parser_version != snapshot.parser_version):
+            raise OperatorError('Editable office copy provenance mismatch; source and pending command retained')
+
+    def exact_snapshot(self, ref):
+        ref = FileVersionRef.model_validate(ref)
+        snapshot = SourceSnapshot.model_validate(self.client.request(
+            self.root + '/source-snapshots/' + identifier(ref.version_id)))
+        if (snapshot.workspace_id != self.scope['workspace'] or
+                snapshot.conversation_id != self.scope['conversation'] or
+                snapshot.workspace_file_id != ref.workspace_file_id or
+                snapshot.snapshot_id != ref.version_id or snapshot.extraction_sha256 != ref.sha256):
+            raise OperatorError('Source snapshot exact binding mismatch')
+        return snapshot
+
+    def check_export(self, receipt, record):
+        manifest = ExportManifest.model_validate(receipt)
+        body = record['body']
+        base = self.session.draft['base']['file']
+        if (manifest.workspace_id != self.scope['workspace'] or manifest.conversation_id != self.scope['conversation']
+                or manifest.workspace_file_id != base['workspace_file_id']
+                or record['path'] != self.root + '/files/' + identifier(base['workspace_file_id']) + '/exports'
+                or manifest.revision_id != body['version_id'] or manifest.input_sha256 != body['sha256']
+                or manifest.revision_id != base['current']['version_id'] or manifest.input_sha256 != base['current']['sha256']
+                or manifest.format != body['format']):
+            raise OperatorError('Export receipt exact binding mismatch')
+        chart = getattr(manifest, 'chart', None)
+        if manifest.format in OFFICE_MIMES and (manifest.blob.mime_type != OFFICE_MIMES[manifest.format]
+                or manifest.filename != 'export.' + manifest.format or manifest.exporter_version != 'office-exports-v1'):
+            raise OperatorError('Export output format/MIME mismatch')
+        if manifest.format == 'png':
+            from ..office_models import ChartSpec
+            if (chart is None or chart.input_sha256 != manifest.input_sha256 or
+                    chart.spec != ChartSpec.model_validate(body.get('chart_spec'))):
+                raise OperatorError('Export chart exact binding mismatch')
+        elif chart is not None or body.get('chart_spec') is not None:
+            raise OperatorError('Unexpected export chart binding')
+        provenance = getattr(manifest, 'provenance', None)
+        expected_provenance = base.get('office_provenance')
+        if base['storage'] == 'source_snapshot' and manifest.format in OFFICE_MIMES:
+            from ..office_models import OfficeProvenance
+            snapshot = self.exact_snapshot(base['current'])
+            expected_provenance = OfficeProvenance(source_snapshot_id=snapshot.snapshot_id,
+                original_sha256=snapshot.original_sha256, extraction_sha256=snapshot.extraction_sha256,
+                parser_version=snapshot.parser_version).model_dump(mode='json')
+        if (manifest.format in OFFICE_MIMES or provenance is not None) and (
+                provenance.model_dump(mode='json') if provenance else None) != expected_provenance:
+            raise OperatorError('Export office provenance mismatch')
+        expected_snapshot = base['current']['version_id'] if base['storage'] == 'source_snapshot' else None
+        if manifest.source_snapshot_id != expected_snapshot:
+            raise OperatorError('Export source snapshot binding mismatch')
+        return manifest
+
+    def download(self, destination):
+        self.authorize()
+        draft = self.session.draft
+        if not draft['export'] or not draft['base']:
+            raise OperatorError('Export an exact saved version first')
+        record = draft['export_request']
+        if record is None:
+            # Legacy basic exports predate retained chart requests. Never infer
+            # an office/chart envelope from a manifest or the live form.
+            if draft['export']['format'] not in ('txt', 'markdown', 'csv', 'json'):
+                raise OperatorError('Retained exact export request required')
+            ref = draft['base']['file']['current']
+            record = dict(path=self.root + '/files/' + identifier(ref['workspace_file_id']) + '/exports',
+                          body=dict(version_id=ref['version_id'], sha256=ref['sha256'], format=draft['export']['format']))
+        manifest = self.check_export(draft['export'], record)
+        # OperatorClient bounds the response, checks MIME/length and verifies the
+        # actual byte digest before exclusive/no-follow destination creation.
+        return self.client.download_export(self.scope['workspace'], manifest.model_dump(mode='json'), destination)

@@ -1,0 +1,45 @@
+ Working files · Ctrl+S save · Esc back                                                             
+ Exact file loaded; edits are private until Save human edit.                                        
+▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔                                                   
+   Back     Refresh list   Next page   New draft                                                    
+▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁                                                   
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.docx · cccffc4b-c829-48b0-b428-3c409a06a31c                                       ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔                                                              
+ Open exact   Read range   Next range                                                               
+▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁                                                              
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                           
+ Inspect source metadata                                                                            
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                           
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.docx · 80eb85c6-5f55-4c1c-ac08-e2bef77a9b95:cccffc4b-c829-48b0-b428-3c409a06a31c  ▼  ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                                      
+ Reopen draft                                                                                       
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                                      
+ File 80eb85c6-5f55-4c1c-ac08-e2bef77a9b95                                                          
+ Version cccffc4b-c829-48b0-b428-3c409a06a31c                                                       
+ SHA256 c29da46d713488575d6d0f78363132f23eeecd042afeed63f1a1ab88a0e799ae                            
+ Complete editor content: 686 UTF-8 bytes. No omitted bytes. Extraction omissions: headers;         
+ footers; comments; tracked changes; nested tables, drawings and exact list numbering/layout        
+ Original newline: lf. BOM retained.                                                              ▁▁
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔                                                                         
+ Make editable office copy                                                                          
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁                                                                         
+Open a retained DOCX/XLSX source, then make a separate editable office-v1 JSON copy. The original   
+is unchanged. Edit paragraphs, cells and annotations in JSON. Formulas are not computed; imported   
+caches are historical. Rich formatting/layout may be omitted. No OCR or image understanding.        
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊  original.docx                                                                                 ▎  
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎  
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎  
+▊ 1  Quarterly operations note                                                                   ▎  
+▊ 2  Exact quotation: “Preserve this wording.”                                                   ▎  
+▊ 3  A measured draft, not an approved decision.                                                 ▎  
+▊ 4  Human annotation: Human annotation: protect this exact sentence.                            ▎  
+▊ 5  OMITTED: Rich formatting, layout, comments, tracked changes, drawings and embedded          ▎  
+▊    objects are not preserved.                                                                  ▎  
+▊ 6  OMITTED: No OCR or vision was performed; PDF imports use only the text layer.               ▎  
+▊ 7  OMITTED: Tables, merged cells, date formatting, headers and footers are simplified or       ▎  
+ esc Back  ^s Save file  ^r Refresh list                                                            

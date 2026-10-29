@@ -1,7 +1,7 @@
 """Run-derived policy and explicit owner installation; no descriptor-as-grant."""
 from decimal import Decimal
 from ..errors import DomainError, deny
-from ..models import now
+from ..models import now, Run
 from ..provider_attempts import _owner
 from ..service import canonical, encoded
 from .models import ToolGrantV1, CapabilityPage
@@ -12,7 +12,9 @@ def grant(c,ws,rid):
     row=c.execute('SELECT data,active FROM tool_grants WHERE workspace_id=%s AND run_id=%s',(ws,rid)).fetchone()
     if not row or not row['active']:
         deny()
-    return ToolGrantV1.model_validate_json(canonical(row['data']))
+    g=ToolGrantV1.model_validate_json(canonical(row['data']))
+    denied=[r['selector'] for r in c.execute('SELECT selector FROM tool_scope_reductions WHERE grant_id=%s',(g.id,)).fetchall()]
+    return g.model_copy(update={'resource_selectors':[ref for ref in g.resource_selectors if ref.model_dump(mode='json') not in denied]})
 
 
 def require_run_tools(c,run):
@@ -59,7 +61,7 @@ def authorize(service,c,cap,call,adapter):
         or any(ref not in g.resource_selectors for ref in call.input_refs)
         or (d.required_permission_template=='public_https' and g.egress!='public_https')):
         deny()
-    if d.execution_profile == 'native-bounded-files-v1':
+    if d.execution_profile in ('native-bounded-files-v1','confined-office-v1'):
         from .file_adapters import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
     elif d.execution_profile == 'python-analysis-v1':
@@ -67,6 +69,15 @@ def authorize(service,c,cap,call,adapter):
         authorize_resources(service,c,p,run,scope,call,adapter)
     elif d.execution_profile == 'native-grounded-research-v1':
         from .research_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'native-github-public-v1':
+        from .github_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'synthetic-mcp-v1':
+        from .mcp_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'bounded-delegation-v1':
+        from .delegation import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
     elif call.input_refs:
         deny()
@@ -125,8 +136,55 @@ def discover(service,p,ws,rid):
                         if (set(d.effects)<=set(g.effects) and set(d.privacy_classes)<=set(g.privacy_classes)
                             and (d.required_permission_template!='public_https' or g.egress=='public_https')):
                             reason='available'
+                            if d.execution_profile == 'native-github-public-v1':
+                                from .github_adapters import selector
+                                from ..connectors.base import PROCESSOR
+                                if (selector('processor',PROCESSOR) not in g.resource_selectors
+                                    or not any(ref.kind=='github_repository' and ref.version=='1' and ref.id==ref.sha256
+                                               for ref in g.resource_selectors)):
+                                    reason='blocked_by_scope'
+            if d.execution_profile=='bounded-delegation-v1' and reason=='available':
+                from .delegation import processor_ref
+                if processor_ref() not in g.resource_selectors:
+                    reason='blocked_by_scope'
+            if d.execution_profile=='synthetic-mcp-v1':
+                from ..connectors.registry import configured
+                if not configured():reason='temporarily_unavailable'
+                elif reason=='available':
+                    from .mcp_adapters import project
+                    offered={}
+                    try:project(service,c,p,Run.model_validate(run),offered)
+                    except DomainError:offered={}
+                    if not offered.get('synthetic_connectors'):reason='blocked_by_scope'
             items.append(d.model_copy(update={'installation_state':state,'availability_reason':reason}))
         return CapabilityPage(items=items)
+
+
+def restrict_resources(db, grant_id, selectors):
+    """Owner-only monotone restriction; original grant and receipts stay immutable.
+
+    This is a trusted bootstrap seam like install(), not an HTTP/model tool.
+    Restoring access requires a new grant, never deletion of a restriction.
+    """
+    from .models import InputRef
+    refs=[InputRef.model_validate_json(ref.model_dump_json()) for ref in selectors]
+    if not refs:
+        raise ValueError('explicit selectors required')
+    with db.transaction() as c:
+        _owner(c)
+        row=c.execute('SELECT workspace_id,data FROM tool_grants WHERE id=%s',(grant_id,)).fetchone()
+        if not row:
+            raise ValueError('unknown grant')
+        c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(row['workspace_id'],))
+        if any(ref.model_dump(mode='json') not in row['data']['resource_selectors'] for ref in refs):
+            raise ValueError('original selectors required')
+        for ref in refs:
+            c.execute('INSERT INTO tool_scope_reductions(grant_id,selector) VALUES(%s,%s) ON CONFLICT DO NOTHING',
+                      (grant_id,encoded(ref)))
+    with db.transaction() as c:
+        saved=[r['selector'] for r in c.execute('SELECT selector FROM tool_scope_reductions WHERE grant_id=%s',(grant_id,)).fetchall()]
+        if any(ref.model_dump(mode='json') not in saved for ref in refs):
+            raise RuntimeError('scope restriction readback mismatch')
 
 
 def install(db, tool_grant, *, limits, provider_grant_id=None):

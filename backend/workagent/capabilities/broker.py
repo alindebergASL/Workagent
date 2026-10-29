@@ -75,6 +75,10 @@ class CapabilityBroker:
                 reserved_units=d.cost_profile.reserved_units,reserved_cost_usd=d.cost_profile.reserved_cost_usd,
                 observed_units=1 if status=='observed' else None,basis='estimated' if status=='observed' else 'unknown',
                 elapsed_ms=elapsed,cpu_ms=cpu_elapsed))
+        if d.id.startswith('delegation.') and output is not None:
+            execution = output['result'].get('execution') or {}
+            obs = obs.model_copy(update={'source_refs':call.input_refs,
+                'cost':obs.cost.model_copy(update={'cpu_ms':execution.get('resources',{}).get('cpu_usec',0)//1000})})
         if d.id == 'compute.python' and output is not None:
             material = output['result']
             refs = [InputRef(kind='generated_blob', id=m['blob']['blob_id'],
@@ -85,7 +89,7 @@ class CapabilityBroker:
                 'source_refs': call.input_refs, 'output_refs': refs,
                 'omissions': omissions[:20], 'truncated': bool(omissions),
                 'cost': obs.cost.model_copy(update={'cpu_ms': material.get('resources', {}).get('cpu_usec', 0) // 1000})})
-        if d.id == 'research.capture' and output is not None and output['result']['snapshot'] is not None:
+        if d.id in ('research.capture','connectors.github.discover','connectors.github.read','connectors.mcp.read') and output is not None and output['result']['snapshot'] is not None:
             snapshot = output['result']['snapshot']
             obs = obs.model_copy(update={'output_refs':[InputRef(kind='workspace_file',
                 id=snapshot['workspace_file_id'], version=snapshot['snapshot_id'], sha256=snapshot['extraction_sha256'])],
@@ -120,11 +124,19 @@ def execute_composition(service,cap,operation,phase):
     if not name:
         deny()
     from .file_adapters import FILE_OPERATIONS, input_refs
-    refs=input_refs(operation) if isinstance(operation,FILE_OPERATIONS) else []
+    from .office_adapters import ArtifactsOfficeExport
+    refs=input_refs(operation) if isinstance(operation,(*FILE_OPERATIONS,ArtifactsOfficeExport)) else []
     from .compute_adapters import ComputePython, input_refs as compute_refs
     if isinstance(operation, ComputePython): refs = compute_refs(operation)
     from .research_adapters import RESEARCH_OPERATIONS, input_refs as research_refs
     if isinstance(operation, RESEARCH_OPERATIONS): refs = research_refs(operation)
+    from .github_adapters import GITHUB_OPERATIONS, input_refs as github_refs
+    if isinstance(operation, GITHUB_OPERATIONS): refs = github_refs(operation)
+    from .mcp_adapters import MCPRead, input_refs as mcp_refs
+    if isinstance(operation, MCPRead): refs = mcp_refs(operation)
+    from .delegation import DelegateAnalysis, VerifyDelegate, input_refs as delegation_refs
+    if isinstance(operation, (DelegateAnalysis, VerifyDelegate)):
+        refs = delegation_refs(service,cap,operation)
     call=ToolCallV1(call_id=phase,capability_id=name,capability_version=registry.adapters()[name].descriptor.version,
         arguments=operation.model_dump(mode='json'),input_refs=refs,expected_work_version=scope.work_version)
     observation=CapabilityBroker(service,cap).call(call)

@@ -232,7 +232,8 @@ def test_http_typed_receipts_and_erased_inspection(context):
         response=client.post(root+'/remember',headers=headers,json=command.model_dump(mode='json'))
         assert response.status_code==201,response.text
         receipt=response.json()
-        assert set(receipt)=={'memory_id','revision_id','status'}
+        assert set(receipt)=={'memory_id','revision_id','status','erased_memory_items','retention_notice'}
+        assert receipt['erased_memory_items'] is None and receipt['retention_notice'] is None
         item=root+'/'+receipt['memory_id']
         assert client.get(item,headers=headers).json()['current']['content']=='UTC'
         forgotten=client.post(item+'/forget',headers=headers,json=cmd(MemoryCAS,

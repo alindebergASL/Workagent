@@ -1,0 +1,103 @@
+{
+  "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+  "conversation_id": "84e187b9-4841-4502-9c9f-0a637d3b32d5",
+  "state": "ready",
+  "usage": {
+    "items": [
+      {
+        "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "request_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "attempt_id": "b7956b0b-2c7c-4433-9945-bdc9bc248e21",
+        "phase": "final",
+        "request_sha256": "9e85844505fd582a5cf5f07af30e18ad08e368623ac072b29d3192f4e87aab82",
+        "entries": [
+          {
+            "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+            "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+            "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+            "scope_kind": "work_area",
+            "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "why": "explicit_work_area_binding",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "request_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "attempt_id": "b7956b0b-2c7c-4433-9945-bdc9bc248e21",
+        "phase": "selection",
+        "request_sha256": "32709dd61513d8705d1689efc3937541d3559b8039a2668ac64fa95dc2917256",
+        "entries": [
+          {
+            "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+            "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+            "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+            "scope_kind": "work_area",
+            "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "why": "explicit_work_area_binding",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "request_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "attempt_id": "b7956b0b-2c7c-4433-9945-bdc9bc248e21",
+        "phase": "selection_2",
+        "request_sha256": "25738b81a5817bb172a63611b1f9dbb8df503a792a13e5dd5bba6bc6dacebefe",
+        "entries": [
+          {
+            "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+            "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+            "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+            "scope_kind": "work_area",
+            "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "why": "explicit_work_area_binding",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "request_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "attempt_id": "b7956b0b-2c7c-4433-9945-bdc9bc248e21",
+        "phase": "selection_3",
+        "request_sha256": "35c57241be56012b87266b6a926dd4321fdb8582638392db7ff7a86fa67fa7f4",
+        "entries": [
+          {
+            "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+            "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+            "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+            "scope_kind": "work_area",
+            "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "why": "explicit_work_area_binding",
+            "unresolved_conflict": false
+          }
+        ]
+      },
+      {
+        "run_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "request_id": "f8e2d0cb-2d2a-4ad1-816a-b1f7e6c877f2",
+        "attempt_id": "b7956b0b-2c7c-4433-9945-bdc9bc248e21",
+        "phase": "selection_4",
+        "request_sha256": "3614d8c1a8d5707a0fa4d022ceff31cf7d91de41f9aaaabbdce8b9a46633dcf7",
+        "entries": [
+          {
+            "memory_id": "50ed049a-8c11-48ab-9093-6e44f077987d",
+            "revision_id": "7bb17eb6-a3d8-4aba-a4aa-cf62d8a25337",
+            "content_sha256": "3ac080eb746d4636d90aa9a471048372519f63fefcf74265e17d61413264d4ff",
+            "scope_kind": "work_area",
+            "scope_id": "4f0c0dc9-9d80-49b1-b6dd-decfc2f4ecc0",
+            "why": "explicit_work_area_binding",
+            "unresolved_conflict": false
+          }
+        ]
+      }
+    ]
+  },
+  "controlled_model": true,
+  "real_tools": true,
+  "paid_product_calls": 0,
+  "restart_no_repeat": true
+}

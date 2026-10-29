@@ -83,7 +83,7 @@ class FilesHTTP:
 def manifest(version='v1', input_hash=None, format='txt'):
     return dict(export_id='export-a', workspace_id='workspace-a', conversation_id='conversation-a', artifact_id='file-a',
         revision_id=version, input_sha256=input_hash or hash_('\ufeffhello\r\nworld\n'), workspace_file_id='file-a', source_snapshot_id=None,
-        format=format, filename='notes.txt', blob=dict(kind='generated_blob', blob_id='blob-a', sha256=hash_('export bytes'), byte_length=12,
+        format=format, filename='export.' + ('md' if format == 'markdown' else format), blob=dict(kind='generated_blob', blob_id='blob-a', sha256=hash_('export bytes'), byte_length=12,
         mime_type='text/plain'), created_at='2026-10-28T00:00:00Z', annotations='not_present', omissions=[])
 
 

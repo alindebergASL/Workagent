@@ -99,8 +99,19 @@ export const emptyRememberForm = (): RememberForm => ({
   applicability: "",
 });
 
+/**
+ * Procedures are lessons from specific work: they stay in this conversation
+ * or an explicitly chosen project, never all work in the workspace.
+ */
+export const PROCEDURE_SCOPES: readonly MemoryScopeKind[] = [
+  "task",
+  "work_area",
+];
+
 export function rememberProblem(f: RememberForm): string | null {
   if (!f.content.trim()) return "Write what should be remembered.";
+  if (f.kind === "procedure" && !PROCEDURE_SCOPES.includes(f.scope_kind))
+    return "Procedures apply to this conversation or a chosen project only.";
   if (f.content.length > MAX_CONTENT)
     return `Keep it under ${MAX_CONTENT} characters.`;
   return null;
@@ -156,8 +167,9 @@ export const isErased = (r: MemoryRevision): boolean =>
  */
 export function renderable(r: MemoryRevision): MemoryRevision {
   if (!isErased(r)) return r;
-  return {
+  const erased: MemoryRevision = {
     ...r,
+    procedure: null,
     subject_key: null,
     predicate_key: null,
     content: null,
@@ -166,6 +178,7 @@ export function renderable(r: MemoryRevision): MemoryRevision {
     applicability: null,
     source_refs: [],
   };
+  return erased;
 }
 
 /**
@@ -244,6 +257,13 @@ export interface CorrectionDraft {
   mode: "permanent" | "temporary";
   from: string;
   until: string;
+  /**
+   * Procedures only: edited details. Applicability/basis are shown read-only
+   * and never sent; evidence stays the base's (not editable).
+   */
+  procedure?: ProcedureForm;
+  /** Procedures only: the base's exact evidence and source dependencies. */
+  keep?: { evidence: ProcedureEvidence[]; source_refs: MemorySourceRef[] };
 }
 
 /**
@@ -265,7 +285,11 @@ export function correctionBody(
     expected_revision_id: d.base,
     content: d.content,
     mode: d.mode,
-    source_refs: [],
+    source_refs: d.keep ? d.keep.source_refs : [],
+    // Applicability and basis are fixed at correction; only details change.
+    ...(d.procedure && d.keep
+      ? { procedure: procedureDetails(d.procedure, d.keep.evidence) }
+      : {}),
     ...(d.mode === "temporary"
       ? {
           valid_from: new Date(d.from).toISOString(),
@@ -325,6 +349,9 @@ export type MemorySourceRef = NonNullable<
  * (IDs, version, hash). Never the source's content.
  */
 export function sourceRefText(s: MemorySourceRef): string {
+  if (s.source_type === "memory") {
+    return `Memory (memory_id: ${s.ref.memory_id}, revision_id: ${s.ref.revision_id}, sha256: ${s.ref.sha256})`;
+  }
   return s.source_type === "file"
     ? `Saved file (workspace_file_id: ${s.ref.workspace_file_id}, version_id: ${s.ref.version_id}, sha256: ${s.ref.sha256})`
     : `Source (source_id: ${s.ref.source_id}, external_version: ${s.ref.external_version}, observed_at: ${s.ref.observed_at})`;
@@ -341,3 +368,241 @@ export const isAccessLoss = (e: unknown): boolean => {
       x.code === "not_found_or_not_authorized")
   );
 };
+
+/* B3.4a evidence-backed procedures and rollback (generated aliases). */
+export type ProcedureEvidence = S["ProcedureEvidence"];
+export type ProcedureDetails = S["ProcedureDetails"];
+export type ProcedureEvidenceOption = S["ProcedureEvidenceOption"];
+export type OperationalOutcome = NonNullable<
+  ProcedureEvidenceOption["operational_outcome"]
+>;
+export type ProcedureEvidencePage = S["ProcedureEvidencePage"];
+export type EvidenceOutcome = ProcedureEvidenceOption["outcome"];
+export type RollbackMemory = S["RollbackMemory"];
+export type ProposeProcedureMemory = ProposeMemory & {
+  procedure: ProcedureDetails;
+};
+
+export const procedureOf = (r: MemoryRevision): ProcedureDetails | null =>
+  isErased(r) ? null : (r.procedure ?? null);
+
+export const EVIDENCE_KIND_LABEL: Record<ProcedureEvidence["kind"], string> = {
+  human_message: "Your message",
+  tool_observation: "Observed tool result",
+};
+
+/**
+ * Exact server outcome labels. "observed" is only a receipt that something
+ * happened, never a success; nothing here falls back to success.
+ */
+export const OUTCOME_LABEL: Record<EvidenceOutcome, string> = {
+  human_statement: "What you said",
+  observed: "Observed (a record it happened, not proof it worked)",
+  failed: "Failed",
+  cost_only: "Only a cost was recorded",
+  outcome_unknown: "Outcome unknown",
+};
+
+/** What the operation itself reported, exactly as the server derived it. */
+export const OPERATIONAL_LABEL: Record<OperationalOutcome, string> = {
+  succeeded: "Operation reported success",
+  failed: "Operation failed",
+  wall_limit: "Stopped at the time limit",
+  cpu_limit: "Stopped at the compute limit",
+  output_limit: "Stopped at the output limit",
+  cancelled: "Cancelled",
+  unavailable: "Unavailable",
+  available: "Available",
+  rate_limited: "Rate limited",
+  not_found: "Not found",
+  denied: "Denied",
+  changed_source: "Source changed",
+  captured: "Captured",
+  uncertain: "Uncertain",
+  outcome_unknown: "Operation outcome unknown",
+};
+
+const NOT_SUCCESS_OUTER: ReadonlySet<EvidenceOutcome> = new Set([
+  "failed",
+  "cost_only",
+  "outcome_unknown",
+]);
+const OPERATIONAL_OK: ReadonlySet<OperationalOutcome> = new Set([
+  "succeeded",
+  "available",
+  "captured",
+]);
+
+/** The outer receipt or the operation itself says this didn't succeed. */
+export const isFailureOutcome = (
+  o: EvidenceOutcome,
+  operational?: OperationalOutcome | null,
+): boolean =>
+  NOT_SUCCESS_OUTER.has(o) ||
+  (!!operational && !OPERATIONAL_OK.has(operational));
+
+/**
+ * Inert, honest line: label, outer outcome, and the operation's own outcome
+ * when known. An outer "observed" never reads as success on its own.
+ */
+export function evidenceOptionText(o: ProcedureEvidenceOption): string {
+  const when = new Date(o.observed_at).toLocaleString();
+  const op = o.operational_outcome
+    ? ` · Operation: ${OPERATIONAL_LABEL[o.operational_outcome]}`
+    : "";
+  return `${EVIDENCE_KIND_LABEL[o.evidence.kind]}: ${o.label} · ${OUTCOME_LABEL[o.outcome]}${op} · ${when}`;
+}
+
+/** Inert provenance line: exact event and digest, never the event content. */
+export const evidenceRefText = (e: ProcedureEvidence): string =>
+  `${EVIDENCE_KIND_LABEL[e.kind]} (conversation_id: ${e.conversation_id}, event_id: ${e.event_id}, sha256: ${e.sha256})`;
+
+export const sameEvidence = (a: ProcedureEvidence, b: ProcedureEvidence) =>
+  a.kind === b.kind &&
+  a.conversation_id === b.conversation_id &&
+  a.event_id === b.event_id &&
+  a.sha256 === b.sha256;
+
+/** Plain fields a person fills; lists are one entry per line. */
+export interface ProcedureForm {
+  applicability: string;
+  confidence_basis: string;
+  counterexamples: string;
+  validation_notes: string;
+  retrieval_terms: string;
+  excluded_terms: string;
+}
+
+export const emptyProcedureForm = (): ProcedureForm => ({
+  applicability: "",
+  confidence_basis: "",
+  counterexamples: "",
+  validation_notes: "",
+  retrieval_terms: "",
+  excluded_terms: "",
+});
+
+const lines = (s: string): string[] =>
+  s
+    .split("\n")
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+export const procedureFormOf = (
+  r: MemoryRevision,
+  p: ProcedureDetails | null,
+): ProcedureForm => ({
+  applicability: r.applicability ?? "",
+  confidence_basis: r.confidence_basis ?? "",
+  counterexamples: (p?.counterexamples ?? []).join("\n"),
+  validation_notes: p?.validation_notes ?? "",
+  retrieval_terms: (p?.retrieval_terms ?? []).join("\n"),
+  excluded_terms: (p?.excluded_terms ?? []).join("\n"),
+});
+
+export function procedureDetails(
+  f: ProcedureForm,
+  evidence: ProcedureEvidence[],
+): ProcedureDetails {
+  return {
+    retrieval_terms: lines(f.retrieval_terms),
+    excluded_terms: lines(f.excluded_terms),
+    counterexamples: lines(f.counterexamples),
+    evidence: [...evidence],
+    validation_notes: f.validation_notes.trim(),
+  };
+}
+
+/** Mirrors the server's required fields; the server still decides. */
+export function procedureProblem(
+  f: ProcedureForm,
+  evidence: readonly ProcedureEvidence[],
+): string | null {
+  if (!f.applicability.trim()) return "Say when this applies.";
+  if (!f.confidence_basis.trim()) return "Say what this is based on.";
+  if (!lines(f.counterexamples).length)
+    return "Add at least one limit or case where it doesn’t apply.";
+  if (!evidence.length) return "Choose at least one observation it comes from.";
+  if (!lines(f.retrieval_terms).length)
+    return "Add at least one matching word (under Matching words).";
+  return null;
+}
+
+/**
+ * An explicit human proposal of an inferred lesson. Always a candidate: it
+ * stays out of future work until reviewed. Evidence is exact references the
+ * server derived; no evidence content is copied here.
+ */
+export function procedureCandidateBody(
+  f: RememberForm,
+  p: ProcedureForm,
+  evidence: ProcedureEvidence[],
+  sourceRefs: MemorySourceRef[],
+  scopeId: string,
+  env: Envelope,
+): ProposeProcedureMemory {
+  return {
+    ...env,
+    kind: "procedure",
+    scope_kind: f.scope_kind,
+    scope_id: scopeId,
+    subject_key: toKey(f.subject || f.content.slice(0, 60), "procedure"),
+    predicate_key: "procedure",
+    content: f.content,
+    source_refs: [...sourceRefs],
+    confidence_basis: p.confidence_basis.trim(),
+    applicability: p.applicability.trim(),
+    sensitivity: "ordinary",
+    procedure: procedureDetails(p, evidence),
+  };
+}
+
+/** A procedure without evidence-backed details can't be adopted or recalled. */
+export const needsProcedureDetails = (r: MemoryRevision): boolean =>
+  r.kind === "procedure" && !isErased(r) && procedureOf(r) === null;
+
+/**
+ * Earlier versions a person may restore: exactly the revisions the server
+ * lists in `rollback_revision_ids` (it derives original adoption and checks
+ * rollback authorization against the current one). Status is not consulted:
+ * history legitimately shows an adopted version as superseded. Absent or
+ * empty means nothing can be restored. The server still decides on send.
+ */
+export function rollbackTargets(ins: MemoryInspection): MemoryRevision[] {
+  const ids = new Set(ins.rollback_revision_ids ?? []);
+  return ins.revisions.filter(
+    (r) =>
+      ids.has(r.revision_id) &&
+      r.memory_id === ins.current.memory_id &&
+      r.revision_id !== ins.current.revision_id &&
+      !isErased(r),
+  );
+}
+
+/**
+ * Confidence describes where the content came from, not whether it was
+ * approved. A reviewed inference stays "inferred": accepting adopts it for
+ * use, it doesn't test that it works.
+ */
+export const CONFIDENCE_LABEL: Record<
+  MemoryRevision["confidence_label"],
+  string
+> = {
+  explicit: "Stated directly by you",
+  observed: "Observed",
+  inferred: "Inferred, not directly stated",
+  uncertain: "Uncertain",
+};
+
+export const reviewedInference = (r: MemoryRevision): boolean =>
+  r.origin === "human_reviewed" && r.confidence_label === "inferred";
+
+export const rollbackBody = (
+  env: Envelope,
+  currentRevisionId: string,
+  targetRevisionId: string,
+): RollbackMemory => ({
+  ...env,
+  expected_revision_id: currentRevisionId,
+  target_revision_id: targetRevisionId,
+});
