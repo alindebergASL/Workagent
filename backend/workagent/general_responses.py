@@ -32,6 +32,7 @@ def consumer_hash():
     names += ('connectors/base.py','connectors/github_read.py','capabilities/github_adapters.py','capabilities/github_composition.py')
     names += ('capabilities/mcp_adapters.py','capabilities/mcp_composition.py','connectors/mcp_client.py','connectors/registry.py','connectors/synthetic-tools.json','connectors/service.py','connectors/oauth.py','connectors/vault.py','connectors/revocation.py')
     names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
+    names += ('capabilities/delegation.py','capabilities/delegation_composition.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 
@@ -344,7 +345,15 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .capabilities.github_composition import enabled as github_enabled
     from .capabilities.mcp_adapters import MCPRead
     from .capabilities.mcp_composition import enabled as mcp_enabled
-    if isinstance(decision,MCPRead):
+    from .capabilities.delegation import DelegateAnalysis, VerifyDelegate
+    from .capabilities.delegation_composition import enabled as delegation_enabled
+    if isinstance(decision,(DelegateAnalysis,VerifyDelegate)):
+        if not delegation_enabled(config): raise DomainError('unsupported_operation')
+        from .capabilities.policy import require_operation
+        require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision,MCPRead):
         if not mcp_enabled(config): raise DomainError('unsupported_operation')
         from .capabilities.policy import require_operation
         require_operation(c,run,decision)

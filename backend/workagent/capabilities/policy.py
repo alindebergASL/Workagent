@@ -76,6 +76,9 @@ def authorize(service,c,cap,call,adapter):
     elif d.execution_profile == 'synthetic-mcp-v1':
         from .mcp_adapters import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'bounded-delegation-v1':
+        from .delegation import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
     elif call.input_refs:
         deny()
     return p,run,scope,g
@@ -140,6 +143,10 @@ def discover(service,p,ws,rid):
                                     or not any(ref.kind=='github_repository' and ref.version=='1' and ref.id==ref.sha256
                                                for ref in g.resource_selectors)):
                                     reason='blocked_by_scope'
+            if d.execution_profile=='bounded-delegation-v1' and reason=='available':
+                from .delegation import processor_ref
+                if processor_ref() not in g.resource_selectors:
+                    reason='blocked_by_scope'
             if d.execution_profile=='synthetic-mcp-v1':
                 from ..connectors.registry import configured
                 if not configured():reason='temporarily_unavailable'

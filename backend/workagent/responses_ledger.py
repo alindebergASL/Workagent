@@ -135,6 +135,8 @@ class Ledger:
                 if github_enabled(config): DECISION_SCHEMA=GITHUB_SCHEMA
                 from .capabilities.mcp_composition import enabled as mcp_enabled, SCHEMA as MCP_SCHEMA
                 if mcp_enabled(config): DECISION_SCHEMA=MCP_SCHEMA
+                from .capabilities.delegation_composition import enabled as delegation_enabled, SCHEMA as DELEGATION_SCHEMA
+                if delegation_enabled(config): DECISION_SCHEMA=DELEGATION_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never

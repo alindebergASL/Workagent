@@ -1,5 +1,13 @@
 # WorkAgent — authoritative delivery status
 
+## Latest: B3.4b bounded deterministic delegation verified
+
+- Optional run-scoped `delegation.analysis` and `delegation.verify` use actual existing pinned gVisor child processes; the single product worker remains default. Two-child limit, exact source/processor intersection, shared cumulative reservations, unknown/no-replay protection and cancellation/revocation fences are enforced.
+- Child results stay proposals. Parent-accessible exact proposal hashes, separate executed checks, explicit discard recovery and draft/export assimilation gates retain evidence/cost without human acceptance or memory auto-admission.
+- Final fresh test-04: 43 focused PG/process/worker/native cases pass, plus one lost-parent-provider/no-replay control. Distinct parent subprocess restart and actual child completion followed by injected ACK loss are exercised. Actual full native PTYs at 120×40 and 80×24 show child/check status; the narrow keyboard proof exposes verification limits. Two live-TCP mounted native cases also clear revoked results.
+- One independent risk review and narrow closure: R1 alternate compute-export assimilation, R2 incorrect-child discard recovery and R3 nonfinite JSON were fixed and regressed. Canonical contracts and contract TypeScript checks pass. All 67 prior migration files and the preexisting untracked contracts lock are unchanged.
+- [Acceptance and exact-source evidence](docs/evidence/batch3-b34b/ACCEPTANCE.md). No paid product calls, model/profile/agent-cap increases, web implementation, new processor route, private access, default merge or deployment. This is deterministic analysis delegation, **not** paid multi-agent usefulness or Batch 3 completion. Existing successor: B3.5a `t_df70d103` correction/forget/revoke/restore safety. Final publication/CI and owned-service shutdown are recorded in the parent task/PR readback.
+
 ## Latest: B3.4a reviewed-procedure mechanisms accepted
 
 - [Evidence package](docs/evidence/batch3-b34a/ACCEPTANCE.md) binds evidence-backed human-proposed procedures, versioned review/restore and exact later usage. Actual web/native lifecycles, both useful synthetic transfers and residual late-response/source-revoke boundaries are verified at their disclosed evidence levels. No causal learning/live-model benefit claim.

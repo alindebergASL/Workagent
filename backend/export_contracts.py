@@ -38,7 +38,12 @@ def main():
     from workagent.connectors.base import PublicConnectorConsent
     from workagent.connectors.models import ConnectorStatus, AuthorizationFlow, StartAuthorization, CompleteAuthorization, RevokeConnector, ConnectorPage
     from workagent.capabilities.mcp_composition import GatewayMCPDecision
+    from workagent.capabilities.delegation_composition import GatewayDelegationDecision
+    from workagent.capabilities.delegation import ChildOutput, VerificationOutput
     outputs={'connector-status.schema.json':ConnectorStatus.model_json_schema(),
+             'gateway-delegation-decision.schema.json':GatewayDelegationDecision.model_json_schema(),
+             'delegation-child-output.schema.json':ChildOutput.model_json_schema(),
+             'delegation-verification-output.schema.json':VerificationOutput.model_json_schema(),
              'connector-authorization-flow.schema.json':AuthorizationFlow.model_json_schema(),
              'gateway-mcp-decision.schema.json':GatewayMCPDecision.model_json_schema(),
              'gateway-github-decision.schema.json':GatewayGitHubDecision.model_json_schema(),

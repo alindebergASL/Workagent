@@ -1,0 +1,260 @@
+[
+  {
+    "schema_version": "tool-observation/v1",
+    "call_id": "6206b55b-c834-4923-ac43-a96c56db35a7",
+    "attempt_id": "c8bd99f7-dfbe-45bd-bd31-adfd30306b91",
+    "run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+    "capability_id": "delegation.analysis",
+    "capability_version": "1",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "execution_profile": "bounded-delegation-v1",
+    "input_refs": [
+      {
+        "kind": "run_scope",
+        "id": "27533930-c46a-40b9-be74-e702d61f1930",
+        "version": "2",
+        "sha256": "f4d1d58a738529d4ce5abb1cecea21fa480c059d939160e402c5a46bc2e619a2"
+      }
+    ],
+    "output_refs": [],
+    "output_sha256": "c93886b95f24016a440c1d18070006813a03e723fac1ca7b5be5dd1b4c3821cd",
+    "output": {
+      "capability": "delegate_analysis",
+      "result": {
+        "authority": {
+          "accept": false,
+          "access_generation": 1,
+          "actions": [
+            "read_staged_inputs",
+            "local_compute",
+            "propose_json"
+          ],
+          "budget_account_id": "686ec889-8f15-46af-ad6b-0478826ffd11",
+          "effects": [
+            "read",
+            "local_compute",
+            "draft"
+          ],
+          "grant_id": "ea163c40-a587-42d9-b89b-98325ecfeccd",
+          "memory_admission": false,
+          "nested_delegation": false,
+          "parent_run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+          "processor": "local-confined-analysis-v1",
+          "sources": [
+            {
+              "id": "ade0a69b-3abf-409c-8705-df848d7c24f6",
+              "kind": "workspace_file",
+              "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac",
+              "version": "34f97a1e-e8a1-4002-82dd-d7e207552dcc"
+            }
+          ]
+        },
+        "child_attempt_id": "c8bd99f7-dfbe-45bd-bd31-adfd30306b91",
+        "execution": {
+          "cleanup_verified": true,
+          "code_sha256": "ba5bbc83f0f8aa49e17c94b8aa892ba648c8f19aa8eb2bfcab074394468b5bae",
+          "elapsed_ms": 806,
+          "exit_code": 0,
+          "inputs": [
+            {
+              "bytes": 24,
+              "name": "west.csv",
+              "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+            },
+            {
+              "bytes": 732,
+              "name": "task.json",
+              "sha256": "dd038f52808b0d25258cd9b283bfb96450d4a2f69cc5b1be839d12b95d36c8ee"
+            }
+          ],
+          "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+          "resources": {
+            "cpu_usec": 517159,
+            "memory_peak_bytes": 22409216,
+            "oom_kill": 0,
+            "pids_peak": 35
+          },
+          "status": "succeeded",
+          "stdout_sha256": "11a27298bb1c76ad920936787e47c4dc297950c7b057b57a8f9feaba44aafc0c"
+        },
+        "limitation": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+        "output_contract": "JSON rows, total seconds and mean seconds with exact decimals",
+        "proposal": {
+          "mean": "120",
+          "rows": 2,
+          "source": "west.csv",
+          "total": "240"
+        },
+        "proposal_sha256": "5313722ddf2963cb57ba05168a38084d7da1e18a8cc724084568f8222d2dd628",
+        "provider_calls": 0,
+        "state": "proposal",
+        "task": "Summarize west.csv",
+        "verification": "unreviewed"
+      },
+      "version": "1"
+    },
+    "started_at": "2026-10-29T11:58:34.940544Z",
+    "ended_at": "2026-10-29T11:58:40.896812Z",
+    "status": "observed",
+    "error": null,
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [
+      {
+        "kind": "workspace_file",
+        "id": "ade0a69b-3abf-409c-8705-df848d7c24f6",
+        "version": "34f97a1e-e8a1-4002-82dd-d7e207552dcc",
+        "sha256": "34a841c3214e7673e8504911d5df07bf827731b88c382f0aa3dd01b8092985ac"
+      },
+      {
+        "kind": "processor",
+        "id": "local-confined-analysis-v1",
+        "version": "1",
+        "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f"
+      }
+    ],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "child",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": 1,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "estimated",
+      "elapsed_ms": 5956,
+      "cpu_ms": 517,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  },
+  {
+    "schema_version": "tool-observation/v1",
+    "call_id": "a94f5b89-e805-4091-9357-590b2829818e",
+    "attempt_id": "ddad656f-407c-4639-af58-7bf642aed687",
+    "run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+    "capability_id": "delegation.analysis",
+    "capability_version": "1",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "execution_profile": "bounded-delegation-v1",
+    "input_refs": [
+      {
+        "kind": "run_scope",
+        "id": "27533930-c46a-40b9-be74-e702d61f1930",
+        "version": "2",
+        "sha256": "f4d1d58a738529d4ce5abb1cecea21fa480c059d939160e402c5a46bc2e619a2"
+      }
+    ],
+    "output_refs": [],
+    "output_sha256": "b0e8508d0525be257e2052b72821392afc4018603cc4259051dff572f4eeca22",
+    "output": {
+      "capability": "delegate_analysis",
+      "result": {
+        "authority": {
+          "accept": false,
+          "access_generation": 1,
+          "actions": [
+            "read_staged_inputs",
+            "local_compute",
+            "propose_json"
+          ],
+          "budget_account_id": "686ec889-8f15-46af-ad6b-0478826ffd11",
+          "effects": [
+            "read",
+            "local_compute",
+            "draft"
+          ],
+          "grant_id": "ea163c40-a587-42d9-b89b-98325ecfeccd",
+          "memory_admission": false,
+          "nested_delegation": false,
+          "parent_run_id": "27533930-c46a-40b9-be74-e702d61f1930",
+          "processor": "local-confined-analysis-v1",
+          "sources": [
+            {
+              "id": "3726a3be-2733-4e4d-a3d4-9896c3ff4332",
+              "kind": "workspace_file",
+              "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a",
+              "version": "c6040409-d42d-474c-a21b-f638c8856a62"
+            }
+          ]
+        },
+        "child_attempt_id": "ddad656f-407c-4639-af58-7bf642aed687",
+        "execution": {
+          "cleanup_verified": true,
+          "code_sha256": "ba5bbc83f0f8aa49e17c94b8aa892ba648c8f19aa8eb2bfcab074394468b5bae",
+          "elapsed_ms": 742,
+          "exit_code": 0,
+          "inputs": [
+            {
+              "bytes": 25,
+              "name": "east.csv",
+              "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+            },
+            {
+              "bytes": 732,
+              "name": "task.json",
+              "sha256": "bd9120dd3d64a176c351dda2fe6c6abc20a87b5e890a290d6e93936f321a017f"
+            }
+          ],
+          "profile_sha256": "69ff94d387bef41a0210653b213bdae301a9e0600a62d273d469f34385b44578",
+          "resources": {
+            "cpu_usec": 517080,
+            "memory_peak_bytes": 22183936,
+            "oom_kill": 0,
+            "pids_peak": 30
+          },
+          "status": "succeeded",
+          "stdout_sha256": "22902510b35b4d2e23a6f16831ae05bcde6c856b84fa931f8447ec9e4fb202b3"
+        },
+        "limitation": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+        "output_contract": "JSON rows, total seconds and mean seconds with exact decimals",
+        "proposal": {
+          "mean": "180",
+          "rows": 2,
+          "source": "east.csv",
+          "total": "360"
+        },
+        "proposal_sha256": "eed9c283508c8dba2578eae699c6757d6e67cce35ffbc3042c76cf1f30b7dc89",
+        "provider_calls": 0,
+        "state": "proposal",
+        "task": "Summarize east.csv",
+        "verification": "unreviewed"
+      },
+      "version": "1"
+    },
+    "started_at": "2026-10-29T11:58:45.014176Z",
+    "ended_at": "2026-10-29T11:58:51.964884Z",
+    "status": "observed",
+    "error": null,
+    "truncated": false,
+    "omissions": [],
+    "source_refs": [
+      {
+        "kind": "workspace_file",
+        "id": "3726a3be-2733-4e4d-a3d4-9896c3ff4332",
+        "version": "c6040409-d42d-474c-a21b-f638c8856a62",
+        "sha256": "68f51d577c6e061716e2a0e16caa0a5a55be851b7f71edf8d8ad9741cfe6666a"
+      },
+      {
+        "kind": "processor",
+        "id": "local-confined-analysis-v1",
+        "version": "1",
+        "sha256": "8ab07d5717016c49dd196807c7f79c04f3d8ce927f30c7026962f4f6da248c5f"
+      }
+    ],
+    "privacy_label": "workspace_private",
+    "cost": {
+      "category": "child",
+      "unit": "call",
+      "reserved_units": 1,
+      "observed_units": 1,
+      "reserved_cost_usd": "0",
+      "observed_cost_usd": null,
+      "basis": "estimated",
+      "elapsed_ms": 6950,
+      "cpu_ms": 517,
+      "billed_cost_usd": null
+    },
+    "verification_scope": "adapter_execution_only"
+  }
+]

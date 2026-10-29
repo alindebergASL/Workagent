@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "2768934a773577d36dda0919f11fb33a990a0fe16dd6f2bdb780a302b75f4b12",
+    "implementation_sha256": "641b8281df7a2ea990233635913ff9c2e158d2d5ce6e36e6a6920545c5548358",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "392b88e0cd31c29256f9dfc166ab4f22b546cc2e96e78243d63117c7d2ce37df",
+    "implementation_sha256": "3429c9b31f1ab20c04c1320b7de49b9acadfd7d3bd00ae68cfd866a6eaf4cbb6",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "be9437e3208c21b2ed1e953070930253b22042196236b11d80fd8dcb2616fa81",
+    "implementation_sha256": "6b17c6a966596b3a439317d0c9096a1045da1c611deb9371c4974eec0c87835f",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "4603d30b49a7796fc1e7336faf8864a6b20506c67b3c8c5e81eb7d3f6a98f4b5",
+    "implementation_sha256": "d1911ca755ff16c25fafe0b396e1ed18ef0ef55cea13be5f5bd32cc570e70399",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "4603d30b49a7796fc1e7336faf8864a6b20506c67b3c8c5e81eb7d3f6a98f4b5",
+    "implementation_sha256": "d1911ca755ff16c25fafe0b396e1ed18ef0ef55cea13be5f5bd32cc570e70399",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "6e7b8485a2ed37723b5ac4a6124f0a46205507eff84043bdaec71bb03c8cae91",
+    "implementation_sha256": "f7a7aaf8db677f5fd354781956ee58a73c9620431665152fe88f2c588dc3ff66",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "6e7b8485a2ed37723b5ac4a6124f0a46205507eff84043bdaec71bb03c8cae91",
+    "implementation_sha256": "f7a7aaf8db677f5fd354781956ee58a73c9620431665152fe88f2c588dc3ff66",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2551,7 +2551,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2814,7 +2814,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -3088,7 +3088,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3289,7 +3289,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3525,7 +3525,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "04a78ffced47dedb1e0ff6905a661b94f26af30cbf1de34930d5d90026b26185",
+    "implementation_sha256": "b052453af9bc053a748077506e538cce486c4905ef0ad52b54312cb8f77838e5",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -4088,7 +4088,7 @@
     ],
     "execution_profile": "python-analysis-v1",
     "id": "compute.python",
-    "implementation_sha256": "87cfc44bc86c30afd99ea80605715a090943e00c1d15acad373eaea914e0a5ee",
+    "implementation_sha256": "f7f74357d47c126e81857982303420f5351304cfc56a9718a2495f2a7d78631c",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -4657,7 +4657,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.search",
-    "implementation_sha256": "57e630ec3271c61e64a0c3aad30fa0b9171bb90f2ccd05b0a523130afddae653",
+    "implementation_sha256": "533a3180046491f27edba40d54d6c14e8941ceb23ea6e811a9810fcb43fdcb3a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -4847,7 +4847,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.capture",
-    "implementation_sha256": "57e630ec3271c61e64a0c3aad30fa0b9171bb90f2ccd05b0a523130afddae653",
+    "implementation_sha256": "533a3180046491f27edba40d54d6c14e8941ceb23ea6e811a9810fcb43fdcb3a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -5798,7 +5798,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.cite",
-    "implementation_sha256": "57e630ec3271c61e64a0c3aad30fa0b9171bb90f2ccd05b0a523130afddae653",
+    "implementation_sha256": "533a3180046491f27edba40d54d6c14e8941ceb23ea6e811a9810fcb43fdcb3a",
     "input_schema": {
       "$defs": {
         "QuoteRef": {
@@ -6145,7 +6145,7 @@
     ],
     "execution_profile": "confined-office-v1",
     "id": "artifacts.export.office",
-    "implementation_sha256": "62b2e9f43e91d18a384f25334719ebd8dd69b812759d909670e6fd3660958089",
+    "implementation_sha256": "970a41d14585e1e8a8d65d04a7ee876d62c852649f3d7f490e1343efb0b4b5d1",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -6776,7 +6776,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.discover",
-    "implementation_sha256": "f73cdf14f8ced051d5bcedc0a16709a48714c515cd7608ead10cd77effb8ce59",
+    "implementation_sha256": "feea88d5c21345d0c02470a262365b64b1325cc70a4a0df1603f637da8ee02b9",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -7843,7 +7843,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.read",
-    "implementation_sha256": "f73cdf14f8ced051d5bcedc0a16709a48714c515cd7608ead10cd77effb8ce59",
+    "implementation_sha256": "feea88d5c21345d0c02470a262365b64b1325cc70a4a0df1603f637da8ee02b9",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -8936,7 +8936,7 @@
     ],
     "execution_profile": "synthetic-mcp-v1",
     "id": "connectors.mcp.read",
-    "implementation_sha256": "34c4b35cd3ee40f3370a493f9c730b652a2c7210d862c14dca2293fd81bb1ac4",
+    "implementation_sha256": "6a2750f5f2acda8b5fef39c38e9d83a29e9bb48d336ceafe35730fd646af2eca",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -9875,6 +9875,701 @@
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "child",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "bounded-delegation-v1",
+    "id": "delegation.analysis",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "input_schema": {
+      "$defs": {
+        "ComputeInput": {
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "ref": {
+              "$ref": "#/$defs/FileVersionRef"
+            }
+          },
+          "required": [
+            "name",
+            "ref"
+          ],
+          "title": "ComputeInput",
+          "type": "object"
+        },
+        "FileVersionRef": {
+          "additionalProperties": false,
+          "properties": {
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "version_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Version Id",
+              "type": "string"
+            },
+            "workspace_file_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace File Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "workspace_file_id",
+            "version_id",
+            "sha256"
+          ],
+          "title": "FileVersionRef",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "independent_benefit": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Independent Benefit",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/ComputeInput"
+          },
+          "maxItems": 6,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "kind": {
+          "const": "delegate_analysis",
+          "title": "Kind",
+          "type": "string"
+        },
+        "output_contract": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "task": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Task",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "code",
+        "inputs",
+        "task",
+        "independent_benefit",
+        "output_contract"
+      ],
+      "title": "DelegateAnalysis",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ChildProposal": {
+          "additionalProperties": false,
+          "properties": {
+            "authority": {
+              "additionalProperties": true,
+              "title": "Authority",
+              "type": "object"
+            },
+            "child_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Child Attempt Id",
+              "type": "string"
+            },
+            "execution": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExecutionEvidence"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "limitation": {
+              "default": "Deterministic analysis worker; not paid-model delegation or independently verified task completion.",
+              "title": "Limitation",
+              "type": "string"
+            },
+            "output_contract": {
+              "title": "Output Contract",
+              "type": "string"
+            },
+            "proposal": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal"
+            },
+            "proposal_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal Sha256"
+            },
+            "provider_calls": {
+              "const": 0,
+              "default": 0,
+              "title": "Provider Calls",
+              "type": "integer"
+            },
+            "state": {
+              "enum": [
+                "proposal",
+                "failed",
+                "unavailable"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "task": {
+              "title": "Task",
+              "type": "string"
+            },
+            "verification": {
+              "const": "unreviewed",
+              "default": "unreviewed",
+              "title": "Verification",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "child_attempt_id",
+            "task",
+            "output_contract",
+            "authority",
+            "proposal",
+            "proposal_sha256",
+            "execution"
+          ],
+          "title": "ChildProposal",
+          "type": "object"
+        },
+        "ComputeResources": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu_usec": {
+              "minimum": 0,
+              "title": "Cpu Usec",
+              "type": "integer"
+            },
+            "memory_peak_bytes": {
+              "minimum": 0,
+              "title": "Memory Peak Bytes",
+              "type": "integer"
+            },
+            "oom_kill": {
+              "minimum": 0,
+              "title": "Oom Kill",
+              "type": "integer"
+            },
+            "pids_peak": {
+              "minimum": 0,
+              "title": "Pids Peak",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "cpu_usec",
+            "memory_peak_bytes",
+            "oom_kill",
+            "pids_peak"
+          ],
+          "title": "ComputeResources",
+          "type": "object"
+        },
+        "ExecutionEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "cleanup_verified": {
+              "const": true,
+              "title": "Cleanup Verified",
+              "type": "boolean"
+            },
+            "code_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Code Sha256",
+              "type": "string"
+            },
+            "elapsed_ms": {
+              "title": "Elapsed Ms",
+              "type": "integer"
+            },
+            "exit_code": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exit Code"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/StagedInput"
+              },
+              "title": "Inputs",
+              "type": "array"
+            },
+            "profile_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Profile Sha256",
+              "type": "string"
+            },
+            "resources": {
+              "$ref": "#/$defs/ComputeResources"
+            },
+            "status": {
+              "title": "Status",
+              "type": "string"
+            },
+            "stdout_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Stdout Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "code_sha256",
+            "profile_sha256",
+            "inputs",
+            "elapsed_ms",
+            "resources",
+            "exit_code",
+            "cleanup_verified",
+            "stdout_sha256"
+          ],
+          "title": "ExecutionEvidence",
+          "type": "object"
+        },
+        "StagedInput": {
+          "additionalProperties": false,
+          "properties": {
+            "bytes": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Bytes",
+              "type": "integer"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "bytes"
+          ],
+          "title": "StagedInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "delegate_analysis",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/ChildProposal"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "ChildOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "processor"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "12674fdea1de3e3593127bb548f6a9b66ca371d5235449625023f62db741c721",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 60000,
+    "transport": "sandbox",
+    "version": "1"
+  },
+  {
+    "availability_reason": "needs_consent",
+    "cost_profile": {
+      "category": "local_compute",
+      "reserved_cost_usd": "0",
+      "reserved_units": 1,
+      "unit": "call"
+    },
+    "effects": [
+      "read",
+      "local_compute",
+      "draft"
+    ],
+    "execution_profile": "bounded-delegation-v1",
+    "id": "delegation.verify",
+    "implementation_sha256": "652c7a466a46cfe87802be984b885b80b1fa0ebea692e4acd127acac010f7fc7",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "child_attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Child Attempt Id",
+          "type": "string"
+        },
+        "code": {
+          "maxLength": 65536,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "inspection": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Inspection",
+          "type": "string"
+        },
+        "kind": {
+          "const": "verify_delegate",
+          "title": "Kind",
+          "type": "string"
+        },
+        "proposal_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Proposal Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "child_attempt_id",
+        "proposal_sha256",
+        "inspection",
+        "code"
+      ],
+      "title": "VerifyDelegate",
+      "type": "object"
+    },
+    "installation_state": "installed",
+    "output_schema": {
+      "$defs": {
+        "ComputeResources": {
+          "additionalProperties": false,
+          "properties": {
+            "cpu_usec": {
+              "minimum": 0,
+              "title": "Cpu Usec",
+              "type": "integer"
+            },
+            "memory_peak_bytes": {
+              "minimum": 0,
+              "title": "Memory Peak Bytes",
+              "type": "integer"
+            },
+            "oom_kill": {
+              "minimum": 0,
+              "title": "Oom Kill",
+              "type": "integer"
+            },
+            "pids_peak": {
+              "minimum": 0,
+              "title": "Pids Peak",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "cpu_usec",
+            "memory_peak_bytes",
+            "oom_kill",
+            "pids_peak"
+          ],
+          "title": "ComputeResources",
+          "type": "object"
+        },
+        "ExecutionEvidence": {
+          "additionalProperties": false,
+          "properties": {
+            "cleanup_verified": {
+              "const": true,
+              "title": "Cleanup Verified",
+              "type": "boolean"
+            },
+            "code_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Code Sha256",
+              "type": "string"
+            },
+            "elapsed_ms": {
+              "title": "Elapsed Ms",
+              "type": "integer"
+            },
+            "exit_code": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exit Code"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/StagedInput"
+              },
+              "title": "Inputs",
+              "type": "array"
+            },
+            "profile_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Profile Sha256",
+              "type": "string"
+            },
+            "resources": {
+              "$ref": "#/$defs/ComputeResources"
+            },
+            "status": {
+              "title": "Status",
+              "type": "string"
+            },
+            "stdout_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Stdout Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "code_sha256",
+            "profile_sha256",
+            "inputs",
+            "elapsed_ms",
+            "resources",
+            "exit_code",
+            "cleanup_verified",
+            "stdout_sha256"
+          ],
+          "title": "ExecutionEvidence",
+          "type": "object"
+        },
+        "StagedInput": {
+          "additionalProperties": false,
+          "properties": {
+            "bytes": {
+              "maximum": 1048576,
+              "minimum": 0,
+              "title": "Bytes",
+              "type": "integer"
+            },
+            "name": {
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "bytes"
+          ],
+          "title": "StagedInput",
+          "type": "object"
+        },
+        "VerificationResult": {
+          "additionalProperties": false,
+          "properties": {
+            "checks": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Checks",
+              "type": "array"
+            },
+            "child_attempt_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Child Attempt Id",
+              "type": "string"
+            },
+            "execution": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ExecutionEvidence"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "inspection": {
+              "title": "Inspection",
+              "type": "string"
+            },
+            "limitation": {
+              "default": "Parent-supplied checks executed; not human acceptance, memory admission or independent goal truth.",
+              "title": "Limitation",
+              "type": "string"
+            },
+            "proposal": {
+              "anyOf": [
+                {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Proposal"
+            },
+            "proposal_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Proposal Sha256",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "checks_passed",
+                "discarded",
+                "checks_failed",
+                "unavailable"
+              ],
+              "title": "State",
+              "type": "string"
+            }
+          },
+          "required": [
+            "state",
+            "child_attempt_id",
+            "proposal_sha256",
+            "inspection",
+            "checks",
+            "proposal",
+            "execution"
+          ],
+          "title": "VerificationResult",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "const": "verify_delegate",
+          "title": "Capability",
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/$defs/VerificationResult"
+        },
+        "version": {
+          "const": "1",
+          "default": "1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "capability",
+        "result"
+      ],
+      "title": "VerificationOutput",
+      "type": "object"
+    },
+    "privacy_classes": [
+      "workspace_private"
+    ],
+    "required_permission_template": "run_context",
+    "resource_kinds": [
+      "workspace_file",
+      "processor"
+    ],
+    "result_byte_limit": 262144,
+    "retry_policy": "never_resend_unknown",
+    "schema_sha256": "a4de8ca75b253c3cdfa58790d7d0a551a91659e38934957e32c40c3891ba75fd",
+    "schema_version": "capability-descriptor/v2",
+    "timeout_ms": 60000,
+    "transport": "sandbox",
     "version": "1"
   }
 ]

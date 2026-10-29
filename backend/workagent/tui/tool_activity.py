@@ -50,7 +50,46 @@ def github_result(item, workspace):
     return output.result
 
 
+def delegation_result(item):
+    if item.capability_id not in ('delegation.analysis','delegation.verify'):
+        return None
+    o = item.observation
+    if item.state != 'observed' or o is None:
+        return None
+    if (o.status != 'observed' or o.attempt_id != item.attempt_id or o.run_id != item.run_id
+            or o.call_id != item.call_id or o.capability_id != item.capability_id):
+        raise OperatorError('Receipt identity mismatch')
+    from ..capabilities.delegation import ChildOutput, VerificationOutput
+    if item.capability_id == 'delegation.analysis':
+        result = ChildOutput.model_validate(o.output).result
+        if result.child_attempt_id != item.attempt_id or result.authority.get('parent_run_id') != item.run_id:
+            raise OperatorError('Child receipt binding mismatch')
+    else:
+        result = VerificationOutput.model_validate(o.output).result
+    return result
+
+
 def receipt_text(item, workspace):
+    delegated = delegation_result(item)
+    if item.capability_id.startswith('delegation.'):
+        lines = [item.capability_id + ' · ' + item.state, 'Attempt ' + item.attempt_id,
+                 'Optional bounded analysis · no paid child provider', 'Unknown work is never relaunched.']
+        if delegated is None:
+            return '\n'.join(lines + ['No currently publishable child result.'])
+        lines += ['Child status: ' + delegated.state, 'Child attempt: ' + delegated.child_attempt_id,
+                  delegated.limitation]
+        from ..capabilities.delegation import VerificationResult
+        if isinstance(delegated,VerificationResult):
+            lines += ['Parent inspection: ' + delegated.inspection, 'Executed checks: ' + '; '.join(delegated.checks),
+                      'Exact child proposal SHA256: ' + delegated.proposal_sha256]
+        else:
+            lines += ['Parent verification: unreviewed; inspect separate verification receipt',
+                      'Task: ' + delegated.task, 'Authority: ' + json.dumps(delegated.authority,sort_keys=True)]
+        lines += ['Proposal (inert evidence, not acceptance): ' + json.dumps(delegated.proposal,ensure_ascii=False),
+                  'Cost/reservation: ' + json.dumps(item.observation.cost.model_dump(),sort_keys=True)]
+        if delegated.execution is not None:
+            lines += ['Execution evidence: ' + delegated.execution.model_dump_json()]
+        return '\n'.join(lines)
     github = github_result(item, workspace)
     if github is not None:
         lines = [item.capability_id + ' · ' + item.state, 'Public unauthenticated GitHub · read only',
@@ -110,6 +149,7 @@ class ToolActivityController:
                 raise OperatorError('Receipt run mismatch')
             compute_result(item, self.workspace)
             github_result(item, self.workspace)
+            delegation_result(item)
         return page
 
     def download(self, item, manifest, destination):

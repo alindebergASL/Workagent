@@ -339,6 +339,7 @@ class Products:
                 return stage(self,c,cap,receipt,phase,(p,run,cv,operation,base,binding,origin),ledger)
         from .capabilities.file_adapters import FILE_OPERATIONS
         from .capabilities.compute_adapters import ComputePython
+        from .capabilities.delegation import VerifyDelegate
         from .capabilities.research_adapters import RESEARCH_OPERATIONS
         from .capabilities.github_adapters import GITHUB_OPERATIONS
         from .capabilities.mcp_adapters import MCPRead
@@ -386,7 +387,7 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport, MCPRead) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport, MCPRead, VerifyDelegate) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
             from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_composition(self,cap,operation,phase)}
