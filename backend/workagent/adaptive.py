@@ -45,6 +45,10 @@ def enabled(config):
 
 
 def contract(binding):
+    from .capabilities.mcp_composition import enabled as mcp_enabled, POLICY as mcp_policy, SCHEMA as mcp_schema
+    if mcp_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                 'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        return mcp_policy,mcp_schema
     from .capabilities.github_composition import enabled as github_enabled, POLICY as github_policy, SCHEMA as github_schema
     if github_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                     'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
@@ -119,6 +123,8 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if office_enabled(config): model=GatewayOfficeDecision
         from .capabilities.github_composition import enabled as github_enabled, GatewayGitHubDecision
         if github_enabled(config): model=GatewayGitHubDecision
+        from .capabilities.mcp_composition import enabled as mcp_enabled, GatewayMCPDecision
+        if mcp_enabled(config): model=GatewayMCPDecision
     value=model.model_validate(result['value'],strict=True)
     first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:

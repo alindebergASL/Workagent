@@ -325,6 +325,8 @@ class Conversations:
         from .service import digest, encoded
         p,run,cv=self._check_capability(c,cap)
         materials=self._own_new_drafts(c,p,run,cv) if run.profile=='general-responses-v1' else []
+        from .research import authorize_run_dependencies
+        authorize_run_dependencies(c,run.workspace_id,run.id)
         own=[m['artifact_id'] for m in materials]
         context,sources=self._materialize_general_context(c,p,run,cv,exclude_artifacts=own)
         observation={'context_sha256':digest(context),'source_manifest':[{'id':r['id'],'sha256':digest(r['content'])} for r in sources]}
@@ -410,6 +412,10 @@ class Conversations:
             if research_enabled(config):
                 from .research import project as project_research
                 project_research(self,c,p,run,cv,context,include_own=True)
+            from .capabilities.mcp_composition import enabled as mcp_enabled
+            if mcp_enabled(config):
+                from .capabilities.mcp_adapters import project as project_connectors
+                project_connectors(self,c,p,run,context)
             if retained_enabled(config):
                 context['retained_results']=references(self,c,p,run,cv)
                 context['continuation']=config.get('continuation')

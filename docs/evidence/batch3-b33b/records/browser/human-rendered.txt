@@ -1,0 +1,64 @@
+workagent
+More
+← Back to agent
+Synthetic library reading brief
+Keep as a project
+
+You:
+Read the connected synthetic library and save a useful reading brief with its source and limitations.
+
+Agent:
+
+Saved the synthetic library reading brief in Files. It uses a real local MCP read and preserves the source snapshot. Synthetic evidence only; no private account access.
+
+Details
+
+Workagent isn’t running right now. You can read and edit your work; new requests wait until it’s back.
+
+Refresh conversation
+Now
+Checked 29 Oct, 07:36 UTC
+2 changes since you last looked
+Mark as seen
+Details
+Files
+public-source.txt
+text/plain · 438 bytes · read-only evidence
+synthetic-reading-brief.md
+text/markdown · 825 bytes
+Captured web sources
+Refresh sources Re-reads saved records; nothing new is fetched from the web.
+
+Synthetic library · captured 10/29/2026, 7:36:02 AM
+
+https://synthetic.invalid/catalog/96c4d030-cfd0-436a-95ff-1126562f0bf7/1
+
+External page content — untrusted; shown as plain text.
+
+Omitted: One bounded synthetic catalog page; no private account.
+Capture details
+Captured text
+synthetic-reading-brief.md
+Text (825 bytes)
+Save
+
+Refresh citations Re-reads saved records; nothing new is fetched from the web.
+
+Export as
+Plain text (.txt)
+Markdown (.md)
+CSV (.csv)
+JSON (.json)
+Word document (.docx)
+Excel workbook (.xlsx)
+PDF (.pdf)
+Bar chart image (.png)
+Export saved version 315a7ad1-49a…
+New file…
+Memory
+Tool activity
+Continue the conversation
+↑
+Run a local operation
+End this conversation
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken

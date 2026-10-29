@@ -1,6 +1,13 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.3a public read-only GitHub connector accepted
+## Latest: B3.3b pinned MCP and synthetic OAuth mechanisms verified
+
+- [Acceptance](docs/evidence/batch3-b33b/ACCEPTANCE.md): protocol2026-07-28 and maintained SDK2.3.0 pinned; real local TCP and isolated stdio, reviewed schema/tool subset, synthetic PKCE/vault/refresh/revoke and late-result/source/memory fences. Normal runtime SQL cannot attest provider outcomes; API remains trusted with vault/executor credentials.
+- Final46 integrated tests pass without skips; focused39 web tests pass. Exact optimized build `sVDEPH9Pel_-AQAeUFWDH` has328 matching web/contracts inputs and194 hashed outputs. Fresh current ordinary browser send → real MCP → saved reading brief → human edit/reload passes1440/390/320. Unchanged broad browser/native revoke/denial/restart proof is explicitly reused, not relabeled new-build evidence.
+- One same-reviewer security closure; source/build/evidence/private manifests and positive-controlled privacy scan. Both preserved v3 and fresh v5 human revisions read back exactly, all66 migration checksums match. Historical failures/unknown dispatches remain retained and unreplayed. Zero paid product calls; deterministic selection is not live-model usefulness.
+- Owned18769/18239/13239 services stopped; installed data/services untouched. Feature push/exact-head CI are recorded in the final card/PR handoff, not deployment/default merge or Batch3 completion. Existing successor `t_0ff857b1` is B3.4a human-reviewed procedures; separate private pilot `t_bb46e05f` remains unmet/nonblocking. No new graph/reviewer; preexisting lock and separate memory-link/Cloud work preserved. [Handoff](docs/evidence/batch3-b33b/HANDOFF.md).
+
+## Previous: B3.3a public read-only GitHub connector accepted
 
 - [Acceptance](docs/evidence/batch3-b33a/ACCEPTANCE.md): ordinary composer → four real unauthenticated public GitHub reads → versioned issue/release brief → actual export. Independent exact-URL response/body/hash/version readback passes. Deterministic model selection is explicit; zero paid product calls and no autonomous-model usefulness claim.
 - Actual optimized web1440/390/320 and native PTYs pass before/after restart; human v2 remains exact7,272bytes. Separate controlled fixtures render rate-limit/denied/unavailable/changed-source truthfully and clear preloaded title/receipt/source content on authenticated refresh after real scope reduction. Real-PG late-response/memory/provider denial and selective nonenumeration pass; unchanged86passed/1opt-in-network-skip evidence reused.

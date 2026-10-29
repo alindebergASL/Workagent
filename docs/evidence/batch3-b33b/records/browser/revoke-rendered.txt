@@ -1,0 +1,16 @@
+workagent
+More
+Connections
+
+Synthetic only. This connects a made-up local sample library, with no sign-in and no private account data. Connecting real accounts isn’t available yet.
+
+Synthetic library
+synthetic/catalog
+Local access revoked
+Provider revocation failed: the provider hasn’t confirmed removal.
+Access ended or ends Oct 29, 2026, 7:40 AM
+Connect synthetic library
+Local preview · Each item shows how it was prepared · No connected email, calendar or task accounts · No external actions are taken
+Agent
+Spaces
+Conversations

@@ -1,7 +1,7 @@
 """Run-derived policy and explicit owner installation; no descriptor-as-grant."""
 from decimal import Decimal
 from ..errors import DomainError, deny
-from ..models import now
+from ..models import now, Run
 from ..provider_attempts import _owner
 from ..service import canonical, encoded
 from .models import ToolGrantV1, CapabilityPage
@@ -73,6 +73,9 @@ def authorize(service,c,cap,call,adapter):
     elif d.execution_profile == 'native-github-public-v1':
         from .github_adapters import authorize_resources
         authorize_resources(service,c,p,run,scope,call,adapter)
+    elif d.execution_profile == 'synthetic-mcp-v1':
+        from .mcp_adapters import authorize_resources
+        authorize_resources(service,c,p,run,scope,call,adapter)
     elif call.input_refs:
         deny()
     return p,run,scope,g
@@ -137,6 +140,15 @@ def discover(service,p,ws,rid):
                                     or not any(ref.kind=='github_repository' and ref.version=='1' and ref.id==ref.sha256
                                                for ref in g.resource_selectors)):
                                     reason='blocked_by_scope'
+            if d.execution_profile=='synthetic-mcp-v1':
+                from ..connectors.registry import configured
+                if not configured():reason='temporarily_unavailable'
+                elif reason=='available':
+                    from .mcp_adapters import project
+                    offered={}
+                    try:project(service,c,p,Run.model_validate(run),offered)
+                    except DomainError:offered={}
+                    if not offered.get('synthetic_connectors'):reason='blocked_by_scope'
             items.append(d.model_copy(update={'installation_state':state,'availability_reason':reason}))
         return CapabilityPage(items=items)
 

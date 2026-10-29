@@ -1468,6 +1468,67 @@
         "title": "AttentionSeenResult",
         "type": "object"
       },
+      "AuthorizationFlow": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "const": "Synthetic library",
+            "default": "Synthetic library",
+            "title": "Account",
+            "type": "string"
+          },
+          "effects": {
+            "items": {
+              "const": "read",
+              "type": "string"
+            },
+            "maxItems": 1,
+            "minItems": 1,
+            "title": "Effects",
+            "type": "array"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "flow_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Flow Id",
+            "type": "string"
+          },
+          "processor": {
+            "const": "local-synthetic-mcp",
+            "default": "local-synthetic-mcp",
+            "title": "Processor",
+            "type": "string"
+          },
+          "provider": {
+            "const": "synthetic",
+            "default": "synthetic",
+            "title": "Provider",
+            "type": "string"
+          },
+          "resource": {
+            "const": "synthetic/catalog",
+            "default": "synthetic/catalog",
+            "title": "Resource",
+            "type": "string"
+          },
+          "retention": {
+            "const": "synthetic-only; no private account access",
+            "default": "synthetic-only; no private account access",
+            "title": "Retention",
+            "type": "string"
+          }
+        },
+        "required": [
+          "flow_id",
+          "expires_at"
+        ],
+        "title": "AuthorizationFlow",
+        "type": "object"
+      },
       "AutomaticVerification": {
         "additionalProperties": false,
         "properties": {
@@ -2562,6 +2623,134 @@
           "scope_id"
         ],
         "title": "ClientSession",
+        "type": "object"
+      },
+      "CompleteAuthorization": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotency_key": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key"
+        ],
+        "title": "CompleteAuthorization",
+        "type": "object"
+      },
+      "ConnectorPage": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectorStatus"
+            },
+            "maxItems": 100,
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "ConnectorPage",
+        "type": "object"
+      },
+      "ConnectorStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "access_generation": {
+            "minimum": 1.0,
+            "title": "Access Generation",
+            "type": "integer"
+          },
+          "account": {
+            "const": "Synthetic library",
+            "default": "Synthetic library",
+            "title": "Account",
+            "type": "string"
+          },
+          "connector_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Connector Id",
+            "type": "string"
+          },
+          "effects": {
+            "items": {
+              "const": "read",
+              "type": "string"
+            },
+            "maxItems": 1,
+            "minItems": 1,
+            "title": "Effects",
+            "type": "array"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "processor": {
+            "const": "local-synthetic-mcp",
+            "default": "local-synthetic-mcp",
+            "title": "Processor",
+            "type": "string"
+          },
+          "provider": {
+            "const": "synthetic",
+            "default": "synthetic",
+            "title": "Provider",
+            "type": "string"
+          },
+          "provider_revocation": {
+            "enum": [
+              "not_requested",
+              "pending",
+              "failed",
+              "revoked"
+            ],
+            "title": "Provider Revocation",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "resource": {
+            "const": "synthetic/catalog",
+            "default": "synthetic/catalog",
+            "title": "Resource",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "connected",
+              "revoked",
+              "expired",
+              "unavailable"
+            ],
+            "title": "State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "connector_id",
+          "state",
+          "access_generation",
+          "expires_at",
+          "provider_revocation"
+        ],
+        "title": "ConnectorStatus",
         "type": "object"
       },
       "ContinueRun": {
@@ -10469,6 +10658,28 @@
         "title": "RevisionQueued",
         "type": "object"
       },
+      "RevokeConnector": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_generation": {
+            "maximum": 2147483646.0,
+            "minimum": 1.0,
+            "title": "Expected Generation",
+            "type": "integer"
+          },
+          "idempotency_key": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "idempotency_key",
+          "expected_generation"
+        ],
+        "title": "RevokeConnector",
+        "type": "object"
+      },
       "Run": {
         "additionalProperties": false,
         "properties": {
@@ -11695,6 +11906,27 @@
           "omissions"
         ],
         "title": "SourceSnapshot",
+        "type": "object"
+      },
+      "StartAuthorization": {
+        "additionalProperties": false,
+        "properties": {
+          "idempotency_key": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "resource": {
+            "const": "synthetic/catalog",
+            "title": "Resource",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resource",
+          "idempotency_key"
+        ],
+        "title": "StartAuthorization",
         "type": "object"
       },
       "StepReference": {
@@ -18572,6 +18804,821 @@
           }
         ],
         "summary": "Capabilities"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/connectors": {
+      "get": {
+        "operationId": "list_connectors",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listing"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/connectors/authorization-flows": {
+      "post": {
+        "operationId": "start_connector_authorization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartAuthorization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorizationFlow"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/connectors/authorization-flows/{flow_id}/complete": {
+      "post": {
+        "operationId": "complete_connector_authorization",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "flow_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Flow Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteAuthorization"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Complete"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/connectors/{connector_id}/revoke": {
+      "post": {
+        "operationId": "revoke_connector",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Connector Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeConnector"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove"
+      }
+    },
+    "/v1/workspaces/{workspace_id}/connectors/{connector_id}/status": {
+      "get": {
+        "operationId": "get_connector_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "Workspace Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "connector_id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Connector Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-schema-version",
+            "required": true,
+            "schema": {
+              "const": "workagent/v1",
+              "title": "X-Schema-Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-request-id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "title": "X-Request-Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectorStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Missing or invalid local authentication"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": "not_found_or_not_authorized",
+                  "details": {
+                    "current_revision_id": null,
+                    "current_version": null,
+                    "fields": [],
+                    "proposal_id": null
+                  },
+                  "message": "Resource unavailable.",
+                  "next_action": "Check your workspace and current access.",
+                  "request_id": "request-example"
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Absent and inaccessible resources are indistinguishable"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "examples": {
+                  "command_conflict": {
+                    "value": {
+                      "code": "command_conflict",
+                      "details": {
+                        "current_revision_id": null,
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": null
+                      },
+                      "message": "This command ID has a different payload.",
+                      "next_action": "Use the original payload or a new command ID for a different intent.",
+                      "request_id": "request-example"
+                    }
+                  },
+                  "stale": {
+                    "value": {
+                      "code": "version_conflict",
+                      "details": {
+                        "current_revision_id": "revision-2",
+                        "current_version": null,
+                        "fields": [],
+                        "proposal_id": "proposal-example"
+                      },
+                      "message": "The current version changed.",
+                      "next_action": "Refresh current work and review a new proposal against that base.",
+                      "request_id": "request-example"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Domain conflict, unavailable source, decision, budget or unresolved state"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Schema validation or unsupported operation"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Sanitized internal adapter/storage failure; inspect state before retrying a mutation"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Status"
       }
     },
     "/v1/workspaces/{workspace_id}/conversation-work": {

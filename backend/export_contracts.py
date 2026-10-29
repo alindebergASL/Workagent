@@ -36,7 +36,12 @@ def main():
     from workagent.capabilities.office_composition import GatewayOfficeDecision
     from workagent.capabilities.github_composition import GatewayGitHubDecision
     from workagent.connectors.base import PublicConnectorConsent
-    outputs={'gateway-github-decision.schema.json':GatewayGitHubDecision.model_json_schema(),
+    from workagent.connectors.models import ConnectorStatus, AuthorizationFlow, StartAuthorization, CompleteAuthorization, RevokeConnector, ConnectorPage
+    from workagent.capabilities.mcp_composition import GatewayMCPDecision
+    outputs={'connector-status.schema.json':ConnectorStatus.model_json_schema(),
+             'connector-authorization-flow.schema.json':AuthorizationFlow.model_json_schema(),
+             'gateway-mcp-decision.schema.json':GatewayMCPDecision.model_json_schema(),
+             'gateway-github-decision.schema.json':GatewayGitHubDecision.model_json_schema(),
              'public-connector-consent.schema.json':PublicConnectorConsent.model_json_schema(),
              'office-v1.json':OfficeContract.model_json_schema(),
              'gateway-office-decision.schema.json':GatewayOfficeDecision.model_json_schema(),'gateway-research-decision.schema.json':GatewayResearchDecision.model_json_schema(),

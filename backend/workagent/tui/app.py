@@ -73,7 +73,8 @@ class WorkagentApp(App):
         from .memory_screen import MemoryScreen
         from .research_screen import ResearchScreen
         from .tool_activity_screen import ToolActivityScreen
-        if isinstance(self.screen, (WorkingFilesScreen, MemoryScreen, ResearchScreen, ToolActivityScreen)) and action in ('send', 'refresh'):
+        from .connectors_screen import ConnectorsScreen
+        if isinstance(self.screen, (WorkingFilesScreen, MemoryScreen, ResearchScreen, ToolActivityScreen, ConnectorsScreen)) and action in ('send', 'refresh'):
             return False
         return super().check_action(action, parameters)
 
@@ -116,6 +117,7 @@ class WorkagentApp(App):
                 with VerticalScroll():
                     yield Button('Working files',id='working-files')
                     yield Button('Memory',id='memory')
+                    yield Button('Synthetic connectors',id='connectors')
                     yield Button('Research sources',id='research-sources')
                     yield Input(placeholder='Local UTF-8 file path (inert snapshot)',id='file-path')
                     with Horizontal(classes='actions'):
@@ -658,6 +660,11 @@ class WorkagentApp(App):
                 from .research import selected_binding
                 binding=selected_binding(self.artifact,self.history,self.selected_revision) if action=='research-claims' else None
                 self.push_screen(ResearchScreen(self.client,self.workspace,self.session.principal,self.conversation,binding=binding))
+            elif action=='connectors':
+                if not self.session or not self.read_authorized:
+                    raise OperatorError('Open an authenticated workspace before inspecting connectors')
+                from .connectors_screen import ConnectorsScreen
+                self.push_screen(ConnectorsScreen(self.client,self.workspace,self.session.principal))
             elif action=='memory':
                 if not self.session or not self.conversation or not self.read_authorized:
                     raise OperatorError('Open an authenticated conversation before inspecting memory')

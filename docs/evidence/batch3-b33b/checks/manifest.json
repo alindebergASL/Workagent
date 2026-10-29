@@ -1,0 +1,48 @@
+{
+  "observed_at": "2026-10-29T06:25:39.992822+00:00",
+  "protocol": "2026-07-28",
+  "sdk": "2.3.0",
+  "types": "2.3.0",
+  "pydantic": "2.12.5",
+  "license": "MIT",
+  "sources": [
+    {
+      "url": "https://modelcontextprotocol.io/specification/versioning",
+      "status": 200,
+      "path": "protocol/versioning.snapshot",
+      "sha256": "a7ad329a7a8803062f67fe10748bb631f2e1e3bdda000e79a3ca8744408e7d70",
+      "bytes": 128565
+    },
+    {
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/lifecycle",
+      "status": 200,
+      "path": "protocol/lifecycle.snapshot",
+      "sha256": "99c00e2200a9f86f7ebef5a3a4c535c0c01405a220ce65a13f569917d8bdd44c",
+      "bytes": 175109
+    },
+    {
+      "url": "https://pypi.org/pypi/mcp/2.3.0/json",
+      "status": 200,
+      "path": "protocol/sdk-release.snapshot",
+      "sha256": "d9348a2813cdf05df82f7852afb9f13d8a8035d62c3a5e07fb9657bc5382aad7",
+      "bytes": 8676
+    },
+    {
+      "url": "https://py.sdk.modelcontextprotocol.io/client/",
+      "status": 200,
+      "path": "protocol/sdk-client.snapshot",
+      "sha256": "1f60e3bb5dbf03a57e1671215feaec6f3300564bae12ab6abeb063219ee98869",
+      "bytes": 96430
+    },
+    {
+      "url": "https://py.sdk.modelcontextprotocol.io/client/callbacks/",
+      "status": 200,
+      "path": "protocol/sdk-callbacks.snapshot",
+      "sha256": "8bc112ddd567f55b66d3ecfb5f0bac43765daf22267353c3056120497da061f6",
+      "bytes": 76151
+    }
+  ],
+  "client_signature": "(server: 'Server[Any] | MCPServer | Transport | StdioServerParameters | str', *, raise_exceptions: 'bool' = False, read_timeout_seconds: 'float | None' = None, sampling_callback: 'SamplingFnT | None' = None, sampling_capabilities: 'types.SamplingCapability | None' = None, list_roots_callback: 'ListRootsFnT | None' = None, logging_callback: 'LoggingFnT | None' = None, log_level: 'LoggingLevel | None' = None, message_handler: 'MessageHandlerFnT | None' = None, client_info: 'Implementation | None' = None, mode: 'ConnectMode' = 'auto', prior_discover: 'types.DiscoverResult | None' = None, elicitation_callback: 'ElicitationFnT | None' = None, input_required_max_rounds: 'int' = 10, extensions: 'Sequence[ClientExtension] | None' = None, cache: 'CacheConfig | None' = <factory>) -> None",
+  "server_signature": "(name: 'str | None' = None, title: 'str | None' = None, description: 'str | None' = None, instructions: 'str | None' = None, website_url: 'str | None' = None, icons: 'list[Icon] | None' = None, version: 'str' = '', auth_server_provider: 'OAuthAuthorizationServerProvider[Any, Any, Any] | None' = None, token_verifier: 'TokenVerifier | None' = None, *, tools: 'list[Tool] | None' = None, resources: 'list[Resource] | None' = None, extensions: 'Sequence[Extension] | None' = None, debug: 'bool' = False, log_level: \"Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']\" = 'INFO', warn_on_duplicate_resources: 'bool' = True, warn_on_duplicate_tools: 'bool' = True, warn_on_duplicate_prompts: 'bool' = True, dependencies: 'list[str] | None' = None, lifespan: 'Callable[[MCPServer[LifespanResultT]], AbstractAsyncContextManager[LifespanResultT]] | None' = None, auth: 'AuthSettings | None' = None, resource_security: 'ResourceSecurity' = ResourceSecurity(reject_path_traversal=True, reject_absolute_paths=True, reject_null_bytes=True, exempt_params=frozenset()), request_state_security: 'RequestStateSecurity | None' = None, cache_hints: 'Mapping[CacheableMethod, CacheHint] | None' = None, subscriptions: 'SubscriptionBus | Literal[False] | None' = None, middleware: 'Sequence[ServerMiddleware[Any]] | None' = None)",
+  "dependency_note": "Existing pydantic2.11.5 incompatible; isolated environment uses2.12.5; existing venv untouched."
+}

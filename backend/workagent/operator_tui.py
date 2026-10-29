@@ -13,6 +13,8 @@ import sys
 from .operator_client import OperatorClient, OperatorError, identifier
 
 ACTIONS={
+    'connectors':(), 'connector-status':('connector',), 'connector-connect':(),
+    'connector-confirm':('flow',), 'connector-revoke':('connector','generation'),
     'areas':(), 'conversations':(), 'show':('conversation',), 'area':('conversation',),
     'create':('title','goal','kind'), 'chat':('title',),
     'follow':('conversation','text'), 'promote':('conversation','title','goal','kind'),

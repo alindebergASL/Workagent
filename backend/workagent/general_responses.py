@@ -30,6 +30,7 @@ def consumer_hash():
     names += ('office_service.py','office_models.py','office_content.py','office_sandbox.py','office_converter.py','capabilities/office_adapters.py','capabilities/office_composition.py')
     names += ('research.py','research_models.py','capabilities/research_adapters.py','capabilities/research_composition.py')
     names += ('connectors/base.py','connectors/github_read.py','capabilities/github_adapters.py','capabilities/github_composition.py')
+    names += ('capabilities/mcp_adapters.py','capabilities/mcp_composition.py','connectors/mcp_client.py','connectors/registry.py','connectors/synthetic-tools.json','connectors/service.py','connectors/oauth.py','connectors/vault.py','connectors/revocation.py')
     names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
@@ -341,7 +342,15 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     from .capabilities.office_composition import enabled as office_enabled
     from .capabilities.github_adapters import GITHUB_OPERATIONS
     from .capabilities.github_composition import enabled as github_enabled
-    if isinstance(decision,GITHUB_OPERATIONS):
+    from .capabilities.mcp_adapters import MCPRead
+    from .capabilities.mcp_composition import enabled as mcp_enabled
+    if isinstance(decision,MCPRead):
+        if not mcp_enabled(config): raise DomainError('unsupported_operation')
+        from .capabilities.policy import require_operation
+        require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision,GITHUB_OPERATIONS):
         if not github_enabled(config): raise DomainError('unsupported_operation')
         from .capabilities.policy import require_operation
         require_operation(c,run,decision)

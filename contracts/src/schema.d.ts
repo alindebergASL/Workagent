@@ -380,6 +380,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/workspaces/{workspace_id}/connectors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listing */
+        get: operations["list_connectors"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/connectors/authorization-flows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_connector_authorization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/connectors/authorization-flows/{flow_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete */
+        post: operations["complete_connector_authorization"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/connectors/{connector_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove */
+        post: operations["revoke_connector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workspaces/{workspace_id}/connectors/{connector_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status */
+        get: operations["get_connector_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/workspaces/{workspace_id}/conversation-work": {
         parameters: {
             query?: never;
@@ -1805,6 +1890,48 @@ export interface components {
             /** Cursor */
             cursor: string;
         };
+        /** AuthorizationFlow */
+        AuthorizationFlow: {
+            /**
+             * Account
+             * @default Synthetic library
+             * @constant
+             */
+            account: "Synthetic library";
+            /** Effects */
+            effects?: "read"[];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /** Flow Id */
+            flow_id: string;
+            /**
+             * Processor
+             * @default local-synthetic-mcp
+             * @constant
+             */
+            processor: "local-synthetic-mcp";
+            /**
+             * Provider
+             * @default synthetic
+             * @constant
+             */
+            provider: "synthetic";
+            /**
+             * Resource
+             * @default synthetic/catalog
+             * @constant
+             */
+            resource: "synthetic/catalog";
+            /**
+             * Retention
+             * @default synthetic-only; no private account access
+             * @constant
+             */
+            retention: "synthetic-only; no private account access";
+        };
         /** AutomaticVerification */
         AutomaticVerification: {
             /** Base Hash */
@@ -2207,6 +2334,66 @@ export interface components {
             principal_id: string;
             /** Scope Id */
             scope_id: string;
+        };
+        /** CompleteAuthorization */
+        CompleteAuthorization: {
+            /** Idempotency Key */
+            idempotency_key: string;
+        };
+        /** ConnectorPage */
+        ConnectorPage: {
+            /** Items */
+            items: components["schemas"]["ConnectorStatus"][];
+        };
+        /** ConnectorStatus */
+        ConnectorStatus: {
+            /** Access Generation */
+            access_generation: number;
+            /**
+             * Account
+             * @default Synthetic library
+             * @constant
+             */
+            account: "Synthetic library";
+            /** Connector Id */
+            connector_id: string;
+            /** Effects */
+            effects?: "read"[];
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Processor
+             * @default local-synthetic-mcp
+             * @constant
+             */
+            processor: "local-synthetic-mcp";
+            /**
+             * Provider
+             * @default synthetic
+             * @constant
+             */
+            provider: "synthetic";
+            /**
+             * Provider Revocation
+             * @enum {string}
+             */
+            provider_revocation: "not_requested" | "pending" | "failed" | "revoked";
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Resource
+             * @default synthetic/catalog
+             * @constant
+             */
+            resource: "synthetic/catalog";
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "connected" | "revoked" | "expired" | "unavailable";
         };
         /** ContinueRun */
         ContinueRun: {
@@ -4720,6 +4907,13 @@ export interface components {
         RevisionQueued: {
             run: components["schemas"]["Run"];
         };
+        /** RevokeConnector */
+        RevokeConnector: {
+            /** Expected Generation */
+            expected_generation: number;
+            /** Idempotency Key */
+            idempotency_key: string;
+        };
         /** Run */
         Run: {
             /** Access Generation */
@@ -5081,6 +5275,16 @@ export interface components {
             workspace_file_id: string;
             /** Workspace Id */
             workspace_id: string;
+        };
+        /** StartAuthorization */
+        StartAuthorization: {
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * Resource
+             * @constant
+             */
+            resource: "synthetic/catalog";
         };
         /** StepReference */
         StepReference: {
@@ -8225,6 +8429,431 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CapabilityPage"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_connectors: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorPage"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    start_connector_authorization: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartAuthorization"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizationFlow"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    complete_connector_authorization: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                flow_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteAuthorization"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorStatus"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    revoke_connector: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeConnector"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorStatus"];
+                };
+            };
+            /** @description Missing or invalid local authentication */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Absent and inaccessible resources are indistinguishable */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /** @example {
+                     *       "code": "not_found_or_not_authorized",
+                     *       "details": {
+                     *         "current_revision_id": null,
+                     *         "current_version": null,
+                     *         "fields": [],
+                     *         "proposal_id": null
+                     *       },
+                     *       "message": "Resource unavailable.",
+                     *       "next_action": "Check your workspace and current access.",
+                     *       "request_id": "request-example"
+                     *     } */
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Domain conflict, unavailable source, decision, budget or unresolved state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Schema validation or unsupported operation */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Sanitized internal adapter/storage failure; inspect state before retrying a mutation */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_connector_status: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-schema-version": "workagent/v1";
+                "x-request-id": string;
+            };
+            path: {
+                workspace_id: string;
+                connector_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectorStatus"];
                 };
             };
             /** @description Missing or invalid local authentication */

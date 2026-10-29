@@ -341,6 +341,7 @@ class Products:
         from .capabilities.compute_adapters import ComputePython
         from .capabilities.research_adapters import RESEARCH_OPERATIONS
         from .capabilities.github_adapters import GITHUB_OPERATIONS
+        from .capabilities.mcp_adapters import MCPRead
         from .capabilities.office_adapters import ArtifactsOfficeExport
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         from .retained_results import ReadResult, ReadAttachment, read as read_retained
@@ -385,7 +386,7 @@ class Products:
                 read=saved_result(c,binding['attempt_id'],phase,operation.target,current[4])
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':read}
-        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
+        elif isinstance(operation,READ_DECISIONS + FILE_OPERATIONS + (ComputePython, ArtifactsOfficeExport, MCPRead) + RESEARCH_OPERATIONS + GITHUB_OPERATIONS):
             from .capabilities.broker import execute_composition
             staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,
                     'capability_result':execute_composition(self,cap,operation,phase)}

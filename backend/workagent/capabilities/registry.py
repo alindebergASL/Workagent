@@ -94,6 +94,8 @@ def adapters():
     result.update(office_adapters())
     from .github_adapters import adapters as github_adapters
     result.update(github_adapters())
+    from .mcp_adapters import adapters as mcp_adapters
+    result.update(mcp_adapters())
     return result
 
 
@@ -116,3 +118,5 @@ COMPOSITION_IDS['artifacts_export_office'] = 'artifacts.export.office'
 
 from .github_adapters import IDS as GITHUB_IDS
 COMPOSITION_IDS.update(GITHUB_IDS)
+
+COMPOSITION_IDS['mcp_read'] = 'connectors.mcp.read'
