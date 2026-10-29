@@ -1,6 +1,12 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.2a grounded research mechanisms accepted
+## Latest: B3.2c confined diagnosis and real patch/test receipts accepted
+
+- [B3.2c acceptance](docs/evidence/batch3-b32c/ACCEPTANCE.md): existing confined Python/shared-file gateway now has truthful web/native receipt viewers and verified patch downloads. Original tests fail, proposed exact-base fixes pass; independent frozen oracles pass494/518/494 for v1/changed-v2/transfer. Human v2 bypass remains unchanged, stale v1 acceptance is refused, and process restart does not duplicate computation.
+- Actual optimized web1440/390/320 and native PTY download/readback pass before/after restart. Failed tests remain failed; unavailable is uncertain, not proof nothing ran. Refused downloads withdraw the affected receipt and ignore late completions. One independent reviewer closes both initial P2 findings;39 native,23 web,8 restricted-PG and4 actual isolation checks pass (not additive with earlier attempts).
+- [B3.2b predecessor](docs/evidence/batch3-b32b/ACCEPTANCE.md) remains accepted: editable office copies, validated exports and computed charts. Neither slice is paid-model usefulness, deployment or Batch3 completion. B3.3a public read-only GitHub connector is the existing successor `t_aec74bff`; no private-account or write authority is inferred. Final feature publication/CI and owned-service shutdown are in the task handoff. Historical partial/failed runs remain retained.
+
+## Previous: B3.2a grounded research mechanisms accepted
 
 - [Acceptance](docs/evidence/batch3-b32a/ACCEPTANCE.md) closes immutable public
   search/capture/citation/freshness and confined offline browser fallback. Missing

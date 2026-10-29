@@ -1,0 +1,8 @@
+{
+  "steps": [
+    "refusal-withdrawn",
+    "refresh-restored",
+    "stale-download-ignored"
+  ],
+  "passed": true
+}

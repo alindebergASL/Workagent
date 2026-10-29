@@ -116,7 +116,9 @@ class OperatorClient:
         """Download canonical export bytes with bounded verification and no overwrite."""
         from .workspace_file_models import ExportManifest
         from .operator_attachments import save_download
-        manifest=ExportManifest.model_validate(manifest)
+        from .capabilities.compute_adapters import ComputeExportManifest
+        model = ComputeExportManifest if manifest.get('exporter_version') == 'compute-python-v1' else ExportManifest
+        manifest=model.model_validate(manifest)
         if manifest.workspace_id!=identifier(ws):
             raise OperatorError('Export workspace mismatch')
         path='/'+identifier(ws)+'/exports/'+identifier(manifest.export_id)+'/download'

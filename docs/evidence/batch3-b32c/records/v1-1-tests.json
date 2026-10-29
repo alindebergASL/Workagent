@@ -1,0 +1,1 @@
+{"candidate_sha256": "c599ff469e3c488566bc1694e3245870a0a9bba9b4a439ad94c7e98d864e4df4", "entrypoint": ["tests.py", "v1", "/tmp/candidate.py"], "exit_code": 0, "stderr": "", "stdout": "{\"stage\": \"v1\", \"total\": 4, \"passed\": 4, \"verdict\": \"PASS\", \"failures\": []}\n"}

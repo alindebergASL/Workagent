@@ -1,0 +1,43 @@
+{
+  "patches": [
+    {
+      "stage": "v1",
+      "patch_sha256": "0640c2a3cf6fcfea1421abaf0212fa2a89a73d074d34273dbba6b0ac74d5d012",
+      "candidate_sha256": "c599ff469e3c488566bc1694e3245870a0a9bba9b4a439ad94c7e98d864e4df4",
+      "exact_apply": true,
+      "test_entrypoint": [
+        "tests.py",
+        "v1",
+        "/tmp/candidate.py"
+      ],
+      "tests_immutable": true
+    },
+    {
+      "stage": "v2",
+      "patch_sha256": "d596e41e9aed6c8d1f0d7a9493e956642519f5a72542cecda65f490c93297156",
+      "candidate_sha256": "8a894c2807ded459c80e5232c5d336c4b2bf8110d8c7dd064c433d4d95cf6beb",
+      "exact_apply": true,
+      "test_entrypoint": [
+        "tests.py",
+        "v2",
+        "/tmp/candidate.py"
+      ],
+      "tests_immutable": true
+    },
+    {
+      "stage": "transfer",
+      "patch_sha256": "2210fff0d69182dc5afc22c69c114d64021624c9971e3e7fed35e4a72e4ef7b1",
+      "candidate_sha256": "37905a5ec87ec728682200cb6b93964d5eeb162fb7b003254f5b3ee87b000e0f",
+      "exact_apply": true,
+      "test_entrypoint": [
+        "tests.py",
+        "transfer",
+        "/tmp/candidate.py"
+      ],
+      "tests_immutable": true
+    }
+  ],
+  "stale_proposal_refused": "version_conflict",
+  "human_v2_preserved": true,
+  "oracle_not_product_staged": true
+}
