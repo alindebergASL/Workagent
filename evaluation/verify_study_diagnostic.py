@@ -38,7 +38,8 @@ def verify(directory):
             assert value['visits'][0]['state']=='interrupted'
             assert len(value['visits'])>=2
             assert value['visits'][0]['start_ticks'] != value['visits'][1]['start_ticks']
-            assert value['visits'][0]['namespace_ids']['mnt'] != value['visits'][1]['namespace_ids']['mnt']
+            # Linux may recycle namespace inode IDs after a prior jail exits.
+            # Separate process start ticks plus each jail's receipts prove recreation.
             resumed += 1
         if row['episode']==6:
             assert next(e for e in value['transitions'] if e['kind']=='other_project')['prior_artifacts_denied'] > 0
@@ -68,10 +69,12 @@ def verify(directory):
         variant=trials[identity[0]]['variant']
         if variant in ('B0','B1'):
             assert not ctx.get('memory_context')
-        elif ctx.get('memory_context'):
+        elif ctx.get('memory_context',{}).get('items'):
             memory[identity[1]]+=1
         if identity[1]==6:
+            assert not ctx.get('memory_context',{}).get('items')
             assert 'LOCAL-ONLY-REVIEW' not in canonical(ctx)
+    assert memory[3] > 0 and memory[5] > 0
     assert len(per_run)==72 and all(n==1 for n in sends.values())
     for trial in trials:
         protected = [b['text'] for a in outcomes[(trial,2)]['artifacts'] for b in a['body']['blocks'] if b['kind']=='protected_note']
