@@ -19,6 +19,7 @@ def main():
     require(inventory('/inputs') == cfg['input_files'], 'episode_input_drift')
     require(all(h(p) == expected for p, expected in cfg['execution_files'].items()), 'execution_file_drift')
     require(inventory('/deps') == cfg['dependencies'], 'dependency_drift')
+    require(not any('__pycache__' not in p.parts for p in Path('/deps').rglob('*.pyc')), 'sourceless_dependency_bytecode')
     require(not list(Path('/product/workagent').rglob('*.pyc')), 'product_bytecode')
     require(sys.pycache_prefix == '/pycache' and not list(Path('/pycache').iterdir()), 'cache_not_isolated')
     network = restrict_network(cfg)

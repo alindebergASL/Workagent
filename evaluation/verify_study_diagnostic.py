@@ -8,12 +8,16 @@ import sqlite3
 from study_controller import Controller, canonical, digest, ingress, load_schedule
 
 
-def verify(directory):
+def verify(directory, episodes=72):
+    assert episodes in (18,72), 'full_schedule_or_representative_three_arms_only'
     database = sqlite3.connect(f'file:{directory / "controller.sqlite"}?mode=ro', uri=True)
     database.row_factory = sqlite3.Row
     rows = database.execute("SELECT * FROM operations WHERE operation='collect' AND state='complete' ORDER BY trial,episode").fetchall()
-    assert len(rows) == 72
+    assert len(rows) == episodes
     _, schedule = load_schedule()
+    if episodes == 18:
+        schedule = schedule[:3]
+        assert {t['variant'] for t in schedule} == {'B0','B1','M1'}
     trials = {t['blind_id']:t for t in schedule}
     expected = {(t['blind_id'],e['episode']):e for t in schedule for e in t['episodes']}
     assert {(r['trial'],r['episode']) for r in rows} == set(expected)
@@ -75,7 +79,7 @@ def verify(directory):
             assert not ctx.get('memory_context',{}).get('items')
             assert 'LOCAL-ONLY-REVIEW' not in canonical(ctx)
     assert memory[3] > 0 and memory[5] > 0
-    assert len(per_run)==72 and all(n==1 for n in sends.values())
+    assert len(per_run)==episodes and all(n==1 for n in sends.values())
     for trial in trials:
         protected = [b['text'] for a in outcomes[(trial,2)]['artifacts'] for b in a['body']['blocks'] if b['kind']=='protected_note']
         assert len(protected)==1
@@ -85,11 +89,8 @@ def verify(directory):
             assert protected[0] in canonical(outcomes[(trial,ep)]['artifacts'])
         assert protected[0] not in canonical(outcomes[(trial,6)]['artifacts'])
     packets=list((directory/'evaluation-packets').glob('*.json'))
-    assert len(packets)==72
-    for path in packets:
-        packet=json.loads(path.read_text())
-        assert packet['quality'] is None and packet['effort'] is None
-        assert 'variant' not in packet
+    assert len(packets)==episodes
+    verify_packets(directory/'evaluation-packets', outcomes)
     return {'status':'PASS','kind':'scripted_mechanisms_not_usefulness','trajectories':len(trials),'episodes':len(rows),
             'worker_interruption_resumes':resumed,'duplicate_create_sends':sum(n-1 for n in sends.values()),
             'loopback_requests':len(wire),'scripted_generations':len(sends),'blinded_unscored_packets':len(packets),
@@ -98,7 +99,21 @@ def verify(directory):
             'normal_max_output_tokens':8192,'model_quality':'unmeasured','client_usefulness':'unmeasured'}
 
 
+def verify_packets(directory, outcomes):
+    expected = {}
+    for (trial, episode), value in outcomes.items():
+        assert value['blind_id'] == trial and value['episode'] == episode
+        packet = {k:value[k] for k in ('blind_id','episode','artifacts','messages','oracle_sha256','evidence_level')}
+        packet.update(quality=None, effort=None, judgment='pending_independent_review')
+        expected[f'{trial}-{episode}.json'] = packet
+    assert {p.name for p in directory.iterdir()} == set(expected), 'packet_file_set_mismatch'
+    for name, packet in expected.items():
+        assert canonical(json.loads((directory/name).read_text())) == canonical(packet), 'packet_receipt_mismatch:' + name
+
+
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory',type=Path)
-    print(json.dumps(verify(parser.parse_args().directory),sort_keys=True,indent=2))
+    parser.add_argument('--episodes',type=int,choices=(18,72),default=72)
+    args=parser.parse_args()
+    print(json.dumps(verify(args.directory,args.episodes),sort_keys=True,indent=2))

@@ -128,9 +128,15 @@ class Controller:
         schedule_hash, self.schedule = load_schedule()
         # Freeze all input bytes AND both actual product trees across controller restart.
         self.sources = {v: inventory(ROOT / ('.local/batch3/b35b/baseline/workagent' if v == 'B0' else 'backend/workagent')) for v in ('B0', 'B1', 'M1')}
+        from study_binding import validate_sources, environment, validate_environment, BASELINE_COMMIT
+        validate_sources(self.sources)
+        self.environment = environment()
+        validate_environment(self.environment)
         binding = canonical({'schedule_sha256': schedule_hash, 'mode': mode,
+                             'baseline_commit': BASELINE_COMMIT, 'environment': self.environment,
+                             'live_mapping_sha256': getattr(adapter, 'live_mapping_sha256', None),
                              'execution': {name:digest((ROOT/'evaluation'/name).read_bytes()) for name in
-                                           ('study_controller.py','study_application.py','study_worker.py','study_transport.py','study_diagnostic.py','network_harness.py','network_worker.py')},
+                                           ('study_controller.py','study_application.py','study_worker.py','study_transport.py','study_diagnostic.py','study_binding.py','network_harness.py','network_worker.py')},
                              'sources': self.sources,
                              'inputs': {e['input_directory']: ingress(e)['input_files'] for t in self.schedule for e in t['episodes']}})
         self.execution = json.loads(binding)['execution']

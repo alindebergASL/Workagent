@@ -79,11 +79,26 @@ class ProductAdapter:
             from study_transport import require_live_release
             require_live_release()
         self.live_bindings, self.credential = live_bindings, credential
+        from study_binding import environment, validate_environment, validate_contexts
+        from study_controller import load_schedule
+        self.environment = environment()
+        validate_environment(self.environment)
+        self.live_mapping_sha256 = validate_contexts(live_bindings, load_schedule()[1]) if live_bindings is not None else None
         self.directory, self.origin = directory, origin
         self.db = sqlite3.connect(directory/'bridge.sqlite')
         self.db.row_factory = sqlite3.Row
         self.db.execute('PRAGMA synchronous=FULL')
         self.db.execute('CREATE TABLE IF NOT EXISTS receipts(key TEXT PRIMARY KEY, payload TEXT NOT NULL, state TEXT NOT NULL, result TEXT)')
+        self.db.execute('CREATE TABLE IF NOT EXISTS admission_binding(value TEXT NOT NULL)')
+        binding = canonical({'environment':self.environment, 'live_mapping_sha256':self.live_mapping_sha256})
+        with self.db:
+            previous = self.db.execute('SELECT value FROM admission_binding').fetchone()
+            if previous is None:
+                if self.db.execute('SELECT 1 FROM receipts LIMIT 1').fetchone():
+                    raise Hold('legacy_bridge_requires_new_campaign')
+                self.db.execute('INSERT INTO admission_binding VALUES (?)',(binding,))
+            elif previous[0] != binding:
+                raise Hold('bridge_admission_binding_drift')
         self.drop_ack = False
 
     def observe(self, key):
@@ -91,6 +106,13 @@ class ProductAdapter:
         return json.loads(row['result']) if row and row['state'] == 'complete' else {'key':key, 'state':'unknown'}
 
     def call(self, key, operation, payload):
+        from study_binding import validate_environment, validate_sources, validate_contexts
+        from network_harness import inventory
+        from study_controller import load_schedule
+        validate_environment(self.environment)
+        validate_sources({v:inventory(ROOT/('.local/batch3/b35b/baseline/workagent' if v=='B0' else 'backend/workagent')) for v in ('B0','B1','M1')})
+        if self.live_bindings is not None and validate_contexts(self.live_bindings, load_schedule()[1]) != self.live_mapping_sha256:
+            raise Hold('live_mapping_drift')
         body = canonical(payload)
         existing = self.db.execute('SELECT * FROM receipts WHERE key=?', (key,)).fetchone()
         if existing:
@@ -117,7 +139,7 @@ class ProductAdapter:
         env = {'PATH':os.environ['PATH'], 'HOME':os.environ['HOME'], 'PYTHONPATH':str(source)+':'+str(ROOT/'evaluation')+':'+str(ROOT),
                'PYTHONDONTWRITEBYTECODE':'1'}
         process = subprocess.run([str(ROOT/'backend/.venv/bin/python'), str(ROOT/'evaluation/study_application.py'), str(slot)],
-            input=canonical({'operation':operation,'payload':payload,'controlled_origin':self.origin,
+            input=canonical({'operation':operation,'payload':payload,'controlled_origin':self.origin,'environment':self.environment,
                              'live_binding':self.live_bindings[trial] if self.live_bindings else None,
                              'credential':self.credential if operation=='execute' else None}),
             text=True, capture_output=True, cwd=ROOT, env=env, timeout=1200)

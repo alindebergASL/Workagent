@@ -63,6 +63,10 @@ def open_trajectory(directory, payload, live_binding=None):
     if payload['mode'] == 'official_api':
         from study_transport import require_live_release
         require_live_release()
+        from study_binding import validate_context
+        if live_binding is None:
+            raise Hold('exact_installed_binding_required')
+        validate_context(live_binding)
         # Supplied by the execution owner, not discovered or generated. This path
         # cannot create databases, install grants, allocate, or expand authority.
         from workagent.service import Service, Principal
@@ -251,7 +255,7 @@ def execute(directory, state, payload):
         dsn=env['DATABASE_URL'], workspace=state['workspace'], principal=principal.id,
         run_id=state['current_run'], grant_id=state['active_grant']['id'], grant=state['active_grant'],
         run_configuration=config, source_manifest=inventory(product), input_files=state['input_files'],
-        dependencies=inventory(DEPS), execution_files={k:digest(v.read_bytes()) for k,v in files.items()})
+        dependencies=state['environment']['dependencies'], execution_files=state['environment']['files'])
     if state['mode'] == 'official_api':
         cfg['credential'] = state.pop('_credential',None)
         if state['variant'] != 'B0':
@@ -333,7 +337,10 @@ def main():
     if op == 'open_trajectory':
         payload['controlled_origin'] = request['controlled_origin']
         state, value = open_trajectory(directory, payload, request.get('live_binding'))
+        state['environment'] = request['environment']
     else:
+        if state['environment'] != request['environment']:
+            raise Hold('application_environment_drift')
         if payload['trajectory']['id'] != state['blind_id'] or payload['trajectory']['variant'] != state['variant']:
             raise Hold('trajectory_drift')
         functions = {'transition':transition, 'ingress':admit, 'execute':execute, 'collect':collect}
