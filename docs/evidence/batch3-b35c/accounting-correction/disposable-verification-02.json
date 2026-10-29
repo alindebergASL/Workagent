@@ -1,0 +1,30 @@
+{
+  "disposable_database": "workagent_test_correction_3a60e0f9ff55",
+  "backup_sha256": "c72935850cfef1729ea6a0461030435c203c5f6205abfe370549eb187ee9e60e",
+  "backup_bytes": 12655183,
+  "restore_succeeded": true,
+  "original_tables": 35,
+  "original_rows": 8764,
+  "checks": {
+    "unmodified_source_denies_restored_copy_release_and_issue": true,
+    "mid_batch_failure_rollback": true,
+    "exact_release_recomputed": true,
+    "retry_idempotency": true,
+    "four_concurrent_replays_no_duplicate_release": true,
+    "advisory_first_sender_completes_without_deadlock": true,
+    "table_first_sender_completes_without_deadlock": true,
+    "history_update_delete_truncate_denied": true,
+    "runtime_cannot_release": true,
+    "concurrent_allocation_cap_and_exact_retry": true,
+    "non_read_committed_denied": true,
+    "certificate_history_immutable": true,
+    "all_original_public_tables_unchanged": true
+  },
+  "release_count": 186,
+  "release_usd": "31.54626000000000000000",
+  "retained_usage_upper_usd": "6.94086000000000000000",
+  "source_mutations": 0,
+  "provider_calls": 0,
+  "billed_cost": null,
+  "sql_sha256": "d141fe3c1dc863a28a9852314f4d676dd9ba01a143734988d391e1b66d968f6e"
+}
