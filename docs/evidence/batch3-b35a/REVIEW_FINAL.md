@@ -1,6 +1,6 @@
 # Parent closure of the existing independent risk review
 
-This supplements, rather than rewrites, `REVIEW_INITIAL.md` and `REVIEW_CLOSURE.md`. The independent assessment explicitly allowed the parent to close named verification gaps from real results without another broad audit. Those reports remain historical snapshots. Product source is unchanged from the reviewed fixes; added tests are bound separately in `SOURCE_MANIFEST.json`.
+This supplements, rather than rewrites, `REVIEW_INITIAL.md` and `REVIEW_CLOSURE.md`. The independent assessment explicitly allowed the parent to close named verification gaps from real results without another broad audit. Those reports remain historical snapshots. At this assessment, product source was unchanged from the reviewed fixes; added tests were bound separately in `SOURCE_MANIFEST.json`. The later frontend formatter bridge is outside this assessment: see `BRIDGE_REVIEW.md` for its separate parent review and verification. The original independent reports are not retroactively attributed to that bridge.
 
 | Finding | Final narrow closure evidence |
 |---|---|

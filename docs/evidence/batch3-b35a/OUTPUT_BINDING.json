@@ -1,0 +1,12 @@
+{
+  "verification": "offline hash match of preserved actual HTTP-downloaded bytes; no fresh download",
+  "http_receipt": "clients/restart/results.json",
+  "http_receipt_sha256": "5135f390774740d6f36e028c8eb210aba72f369e8ee9fab7d3405f0c939d10c3",
+  "outputs": {
+    "outputs/web1440-preserved-human.txt": "60e2c1e946cd808a91bad7d493be656e1e696c4fe0d26b43a2aeef142a10a9e2",
+    "outputs/web390-preserved-human.txt": "b0152afd45869b0e8b708a33bab7aa46a25f5719fb2ce069c024e6dd2678a4b1",
+    "outputs/web320-preserved-human.txt": "e16fb5c819cc594c0ee0c3ad3dd8857f06f42cf9eddad283052e24c6186b2a19",
+    "outputs/pty120-preserved-human.txt": "a871064ad3c142e00fcc0aa150dd58ee72e9b310991f70ab7afc45c8f897b733",
+    "outputs/pty80-preserved-human.txt": "091786a40d4218da4c056c61747ae48fb08db2b29f7fe0880701b58190e69fb9"
+  }
+}

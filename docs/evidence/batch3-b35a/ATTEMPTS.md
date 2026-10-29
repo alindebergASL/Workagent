@@ -18,4 +18,7 @@ Campaigns are separate, overlapping executions, not additive totals. `results/in
 
 - The staged whitespace check flagged fixed-width trailing spaces in raw native screen text. Those bytes are preserved as evidence; the final source/document whitespace check excludes only `clients/native-*/*.txt`, not code or prose. No global whitespace rule was weakened.
 
+- Initial feature head `5887758fadd3f3cf00db180ba2adae88d881113b` failed frontend TypeScript: the new memory-source union fell through to external-source fields. Failed runs40895284299 and40895268881 remain failed. The pending three-line formatter bridge was completed with the repository's existing `node node_modules/vitest/vitest.mjs` runner, without dependency installs or symlink-target edits. Initial focused1/1 passed; expanded focused63/63 passed, plus typecheck/format/lint. The new React text-child probe is not a full browser journey. Earlier unsuccessful runner-wrapper attempts remain private logs; they are not test passes.
+- Final repair packaging is offline: source/evidence/privacy/build bindings refreshed and five previously downloaded human files verified against retained HTTP readback hashes. No finalizer/download/service restart or broad safety campaign was repeated. Old build proof and old independent review are explicitly scoped away from the later bridge.
+
 All failed/unknown historical records remain. No synthetic outcome is described as paid/live model quality. No installed database, broad cleanup, default merge or deployment was performed.

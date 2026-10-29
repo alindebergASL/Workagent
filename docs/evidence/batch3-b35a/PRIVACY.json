@@ -5,5 +5,8 @@
   "private_envs_and_backups_excluded": true,
   "preserved_unrelated_lock": "f04d544c1cc611dd3b4e6caa260b850cadf18be42ebd283308e5ff01aaad5a4d",
   "prior_68_migrations_unchanged": true,
-  "product_sources_match_parent_checkpoint": true
+  "original_60_source_hashes_unchanged": true,
+  "later_bridge_separately_bound": true,
+  "scan_scope": "source manifest, STATUS and all public text evidence",
+  "positive_control_private_values_loaded": true
 }

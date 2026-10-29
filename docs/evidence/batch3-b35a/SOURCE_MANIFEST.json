@@ -58,5 +58,11 @@
   "contracts/capability-registry-v2.json": "ecab7c057a236de7e649fa876da27ca96380f095dda773e2d6026ad815b417bc",
   "contracts/memory-v1.json": "73cf61b2cda0c8ed19efc2b5db5d57f9c39416383bdd86766891b65ef05e7147",
   "contracts/openapi.json": "34c45078abdd1a9bfeb0d4ec045bdc170477004c791593a6003b77971fc85380",
-  "contracts/src/schema.d.ts": "d83b710d0599d3a8eefd98b312e4b6db32e18af9f0a4ab61dfa5ca6cba18cb55"
+  "contracts/src/schema.d.ts": "d83b710d0599d3a8eefd98b312e4b6db32e18af9f0a4ab61dfa5ca6cba18cb55",
+  "web/src/components/MemoryPanel.tsx": "fc376e871352b3b2d7b49a18c4f91f51c2853db073baeeb94acce3ed8e24328c",
+  "web/src/lib/memory-contract.ts": "091394c03a567e622509e7cc7659645937f9b8ddf88a4f27b0cebe97d2d714ac",
+  "web/test/memory-commands.test.ts": "8bb88369622fdedf83ffde930d28a5c73bcec36e19c47f51185ffe24ee3dc956",
+  "web/test/memory-procedure.test.ts": "b0a5e1ee815286dc3bb356442aa2f27fac203b5e74d32c686ce804da94088d91",
+  "web/test/memory-reads.test.ts": "23c337a3aba25b412bf6cf27cd564b0ae4e0650297f9cd0004632ec0e6d8486f",
+  "web/test/memory-source-ref.test.ts": "5bba92dc0cebc03bcc1191bc1fe09e6d7ec2cfe67cb251497faf95207757ed93"
 }

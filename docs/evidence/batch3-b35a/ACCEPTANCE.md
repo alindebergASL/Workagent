@@ -28,7 +28,8 @@
 | Actual service/client restart |Owned API/web PID replacement, five saved-state/human-file HTTP readbacks, three fresh browser clients. |
 | Quarantine repeats |Two further restore cases preserve human originals and historical provider attempts, exclude old summaries, disable all provider/tool grants and reject adapter-style/explicit worker identities. |
 | Contracts |Canonical Python export, generated TypeScript/OpenAPI checks, TypeScript compile and source/document whitespace check pass (raw fixed-width native screen text excluded). |
-| Binding/privacy |60 source/test files bound; product source matches the prior checkpoint underlying browser/native proof; private credentials/envs/backups excluded; exact private-value scan and raw credential scan clean. |
+| Binding/privacy |Original60 source/test hashes remain unchanged; final manifest additionally binds the formatter, its consumer and focused web tests. Private credentials/envs/backups excluded; refreshed exact private-value/raw credential scan is in PRIVACY.json. |
+| Frontend CI repair |Three-line memory-source formatter bridge;63 focused Vitest checks pass, TypeScript/format/lint pass. Exact identity and inert React text-child rendering checked; existing file/external-source formatting unchanged. See BRIDGE_REVIEW.md and results/bridge-verification.json. |
 
 **Do not add campaign totals:** campaigns overlap and include revised/parameterized tests. `results/index.json` and individual JSON preserve every initial failure and subsequent repair. Full matrix mapping covers all8 correction variants,11 safety bullets,12 measurement dimensions and8 reporting fields; measurements not made are explicitly unavailable rather than invented.
 
@@ -36,6 +37,8 @@
 
 - [Literal mapping](EVALUATION_MATRIX.md) · [Attempt history](ATTEMPTS.md) · [Original review](REVIEW_INITIAL.md) · [Narrow independent assessment](REVIEW_CLOSURE.md) · [Final named-gap closure](REVIEW_FINAL.md).
 - `SOURCE_MANIFEST.json` binds changed code/contracts and consumed test modules; `EVIDENCE_MANIFEST.json` binds this package. Client receipts/screenshots are under `clients/`. `outputs/` contains five actual HTTP-read-back human files and a downloadable proof ZIP, not synthesized substitutes.
+- The retained browser build `HAEr4yziKBlWBIpt1euzS` predates the formatter bridge and is **not exact-current**. Earlier browser journeys remain evidence for unchanged correct/forget/revoke/readback paths, not the new memory-reference label. The label has focused formatter/React-render verification; no fresh mounted-panel/browser journey is claimed. Exact-head frontend CI provides current build checks. `CLIENT_BUILD_BINDING.json` records the source differences and retained build outputs.
+- `REVIEW_FINAL.md` closes the earlier backend findings only; it did not review the later bridge. The bridge has a separate narrow parent assessment, not another independent campaign.
 - No vector index is installed; embedding deletion is not claimed. Prompt-injection controls establish authority/data boundaries, not broad model-behavior resistance. Restore is an offline safety snapshot, not a live authority replica. Provider-side revocation/deletion is not inferred from local exclusion.
 - Human active time, blinded preference, actual matched B0/B1/M1 task quality, useful overnight behavior and settled development-tool billing are unmeasured. Development/review used gpt-6-astra/openai-codex outside the product ledger; no Claude call in this continuation.
 - Proof services are owned and disposable, not installed product deployment. Shutdown verification is recorded separately. Failed records, unknown liabilities, private fixtures and the pre-existing untracked lock remain retained.

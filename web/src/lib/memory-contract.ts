@@ -349,6 +349,9 @@ export type MemorySourceRef = NonNullable<
  * (IDs, version, hash). Never the source's content.
  */
 export function sourceRefText(s: MemorySourceRef): string {
+  if (s.source_type === "memory") {
+    return `Memory (memory_id: ${s.ref.memory_id}, revision_id: ${s.ref.revision_id}, sha256: ${s.ref.sha256})`;
+  }
   return s.source_type === "file"
     ? `Saved file (workspace_file_id: ${s.ref.workspace_file_id}, version_id: ${s.ref.version_id}, sha256: ${s.ref.sha256})`
     : `Source (source_id: ${s.ref.source_id}, external_version: ${s.ref.external_version}, observed_at: ${s.ref.observed_at})`;
