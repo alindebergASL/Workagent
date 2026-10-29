@@ -1177,7 +1177,13 @@ function ItemControls({
   const rebased = !!c && correctionRebased(c, currentRevisionId);
   // Opening or closing the confirmation or the correction keeps the
   // keyboard beside it: into the step that opened, back to what opened it.
-  const mode = c ? "correct" : f.confirmForget ? "confirm" : "idle";
+  const mode = c
+    ? "correct"
+    : f.restore
+      ? "restore"
+      : f.confirmForget
+        ? "confirm"
+        : "idle";
   const root = useRef<HTMLDivElement>(null);
   const was = useRef(mode);
   useEffect(() => {
@@ -1190,7 +1196,15 @@ function ItemControls({
       root.current?.querySelector<HTMLElement>(sel)?.focus();
     if (mode === "confirm") at("[data-forget-confirm]");
     else if (mode === "correct") at("textarea");
-    else at(from === "confirm" ? "[data-forget-open]" : "[data-correct-open]");
+    else if (mode === "restore") at("[data-restore-step]");
+    else
+      at(
+        from === "confirm"
+          ? "[data-forget-open]"
+          : from === "restore"
+            ? "[data-restore-open]"
+            : "[data-correct-open]",
+      );
   }, [mode]);
   const procBad =
     !!c?.procedure &&
@@ -1365,18 +1379,20 @@ function ItemControls({
           <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
             <button
               className="btn btn-sm btn-primary"
-              disabled={busy || restoreRebased || !rs.choice}
-              onClick={() => onRestore(rs.base, rs.choice)}
+              data-restore-step
+              aria-describedby={describedBy}
+              {...held(busy || restoreRebased || !rs.choice, () =>
+                onRestore(rs.base, rs.choice),
+              )}
             >
               Restore this version
             </button>
             <button
               className="btn btn-sm btn-quiet"
-              disabled={locked}
-              onClick={() => {
+              {...held(locked, () => {
                 onCloseRestore();
                 setF({ ...f, restore: undefined });
-              }}
+              })}
             >
               Cancel
             </button>
@@ -1431,8 +1447,9 @@ function ItemControls({
           {canRestore ? (
             <button
               className="btn btn-sm btn-quiet"
-              disabled={busy}
-              onClick={onOpenRestore}
+              data-restore-open
+              aria-describedby={describedBy}
+              {...held(busy, onOpenRestore)}
             >
               Restore an earlier version…
             </button>
