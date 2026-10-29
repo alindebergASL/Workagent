@@ -121,6 +121,12 @@
   display: grid;
   gap: var(--sp-1);
 }
+/* Tighter than stack-sm: lines that belong together (a quote and its
+   range, a label and its value). Used across the work panels. */
+.stack-xs {
+  display: grid;
+  gap: 2px;
+}
 
 /* ---------- conversation beside work ---------- */
 .conversation {

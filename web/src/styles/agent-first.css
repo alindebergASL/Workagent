@@ -1273,3 +1273,51 @@ details.disclosure.card {
   padding: 2px 6px;
   max-width: 100%;
 }
+
+/* Memory: a remembered value can be one long path or link; it wraps
+   inside its card rather than widening the page. */
+.memory-item {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.memory-item:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+/* A choice's text wraps beside its radio, not below it. */
+.memory-choice {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+.memory-choice > span {
+  min-width: 0;
+}
+
+/* Research sources: captured page text is untrusted, so it sits in its own
+   box, set apart from the app's words; quotes don't eat a phone's width. */
+.research-text {
+  margin: 0;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.research-quote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 3px solid var(--line-strong);
+}
+.research-context mark {
+  background: var(--surface-2);
+  color: var(--ink);
+  outline: 1px solid var(--line-strong);
+  border-radius: 2px;
+}
+.research-sources li:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}

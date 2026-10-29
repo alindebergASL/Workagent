@@ -1,5 +1,11 @@
 "use client";
-import { useEffect, useMemo, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { ApiError, describeError } from "@/lib/contract/errors";
 import {
   checkQuote,
@@ -49,7 +55,9 @@ function When({ iso }: { iso: string }) {
   const d = new Date(iso);
   return (
     <time dateTime={iso} title={iso}>
-      {Number.isNaN(d.getTime()) ? iso : d.toLocaleString()}
+      {Number.isNaN(d.getTime())
+        ? iso
+        : d.toLocaleString(undefined, { timeZoneName: "short" })}
     </time>
   );
 }
@@ -98,6 +106,7 @@ export function SnapshotDetails({
       </div>
     );
   const notes = coverageNotes(ev);
+  const sourceName = ev.title?.trim() ? ev.title : "Untitled page";
   return (
     <div
       className="research-snapshot stack-xs"
@@ -128,7 +137,10 @@ export function SnapshotDetails({
         </p>
       )}
       <details>
-        <summary className="small">Capture details</summary>
+        <summary className="small">
+          Capture details
+          <span className="sr-only">: {sourceName}</span>
+        </summary>
         <dl
           className="small research-meta"
           style={{ overflowWrap: "anywhere" }}
@@ -195,12 +207,18 @@ export function SnapshotDetails({
         </dl>
       </details>
       <details>
-        <summary className="small">Captured text</summary>
+        <summary className="small">
+          Captured text
+          <span className="sr-only">: {sourceName}</span>
+        </summary>
         {ev.text.length === 0 ? (
           <p className="small muted">No text was captured.</p>
         ) : (
           <pre
             className="small research-text"
+            tabIndex={0}
+            role="region"
+            aria-label={`Captured text of ${sourceName}`}
             style={{
               whiteSpace: "pre-wrap",
               overflowWrap: "anywhere",
@@ -273,8 +291,11 @@ function RefreshButton({
       <button
         type="button"
         className="btn btn-sm btn-quiet"
-        disabled={checking}
-        onClick={onRefresh}
+        // Busy, not disabled: a disabled button drops keyboard focus.
+        aria-disabled={checking || undefined}
+        onClick={() => {
+          if (!checking) onRefresh();
+        }}
         data-testid="research-refresh"
       >
         {checking ? "Checking…" : label}
@@ -302,10 +323,26 @@ export function ResearchSourceList({
   onRefresh?: () => void;
 }) {
   const shown = error ? null : items;
+  // "Show more" hands focus to the first source it added.
+  const list = useRef<HTMLUListElement>(null);
+  const firstNew = useRef<number | null>(null);
+  useEffect(() => {
+    const at = firstNew.current;
+    if (at === null || !shown || shown.length <= at) return;
+    firstNew.current = null;
+    (list.current?.children[at] as HTMLElement | undefined)?.focus();
+  }, [shown]);
   if (!onRefresh && !error && shown && shown.length === 0) return null;
   return (
     <div className="stack-sm research-sources" data-testid="research-sources">
       <h3 className="small">Captured web sources</h3>
+      <p className="sr-only" role="status">
+        {checking
+          ? "Checking saved sources…"
+          : shown
+            ? `${shown.length} captured source${shown.length === 1 ? "" : "s"} shown.`
+            : ""}
+      </p>
       {onRefresh ? (
         <RefreshButton
           label="Refresh sources"
@@ -324,9 +361,13 @@ export function ResearchSourceList({
         </p>
       ) : null}
       {shown && shown.length > 0 ? (
-        <ul className="stack-sm" style={{ listStyle: "none", padding: 0 }}>
+        <ul
+          className="stack-sm"
+          style={{ listStyle: "none", padding: 0 }}
+          ref={list}
+        >
           {shown.map((s) => (
-            <li key={s.snapshot_id}>
+            <li key={s.snapshot_id} tabIndex={-1}>
               <SnapshotDetails snapshot={s} />
             </li>
           ))}
@@ -338,8 +379,12 @@ export function ResearchSourceList({
           <button
             type="button"
             className="btn btn-sm btn-quiet"
-            disabled={busy}
-            onClick={onMore}
+            aria-disabled={busy || undefined}
+            onClick={() => {
+              if (busy || !onMore) return;
+              firstNew.current = shown.length;
+              onMore();
+            }}
           >
             {busy ? "Loading…" : "Show more sources"}
           </button>
@@ -408,6 +453,7 @@ function EvidenceRow({
           onClick={() => onLoad(ev.snapshot_id)}
         >
           Check against the capture
+          <span className="sr-only">: “{ev.quote.slice(0, 60)}”</span>
         </button>
       ) : null}
       {loadError ? (
@@ -418,7 +464,14 @@ function EvidenceRow({
       {snapshot ? (
         <details>
           <summary className="small">Cited capture</summary>
-          <SnapshotDetails snapshot={snapshot} heading="Original capture" />
+          <SnapshotDetails
+            snapshot={snapshot}
+            heading={
+              check.state === "different_capture"
+                ? "Loaded capture (differs from the cited text)"
+                : "Original capture"
+            }
+          />
         </details>
       ) : null}
     </li>
@@ -469,8 +522,8 @@ export function ClaimView({
         </span>
       </p>
       {stale ? (
-        <div className="stack-xs" role="status" data-testid="stale-warning">
-          <p className="small">
+        <div className="stack-xs" data-testid="stale-warning">
+          <p className="small" role="status">
             A newer capture of a cited source exists. Review it before relying
             on this claim. Your saved work and this citation have not been
             changed, and the original capture stays available below.
@@ -577,6 +630,10 @@ export function ClaimsList({
   checking?: boolean;
   onRefresh?: () => void;
 }) {
+  // One wrapper in every phase, the refresh control always in the same
+  // place: refreshing keeps the keyboard on it, and the list reopens as the
+  // person left it once the records are read again.
+  const [open, setOpen] = useState(false);
   const refresh = onRefresh ? (
     <RefreshButton
       label="Refresh citations"
@@ -584,26 +641,74 @@ export function ClaimsList({
       onRefresh={onRefresh}
     />
   ) : null;
-  if (error)
-    return (
-      <div className="stack-xs research-claims">
+  const empty = !error && (!claims || claims.items.length === 0);
+  if (!refresh && (empty || !claims) && !error) return null;
+  const stale = claims
+    ? claims.items.filter((i) => i.freshness === "potentially_stale").length
+    : 0;
+  return (
+    <div className="stack-xs research-claims">
+      {refresh}
+      <p className="sr-only" role="status">
+        {checking
+          ? "Checking citations…"
+          : error
+            ? ""
+            : claims && claims.items.length > 0
+              ? `${claims.items.length} cited claim${claims.items.length === 1 ? "" : "s"}.`
+              : claims
+                ? "No claims in this version cite a captured source."
+                : ""}
+      </p>
+      {error ? (
         <p className="small hint" role="alert" data-testid="claims-error">
           {error}
         </p>
-        {refresh}
-      </div>
-    );
-  if (!claims || claims.items.length === 0)
-    return refresh ? (
-      <p className="research-claims" data-testid="claims-empty">
-        {refresh}
-      </p>
-    ) : null;
-  const stale = claims.items.filter(
-    (i) => i.freshness === "potentially_stale",
-  ).length;
+      ) : empty ? (
+        claims ? (
+          <p className="small muted" data-testid="claims-empty">
+            No claims in this version cite a captured source.
+          </p>
+        ) : null
+      ) : (
+        <ClaimsDetails
+          claims={claims!}
+          stale={stale}
+          open={open}
+          setOpen={setOpen}
+          snapshots={snapshots}
+          loadErrors={loadErrors}
+          onLoad={onLoad}
+        />
+      )}
+    </div>
+  );
+}
+
+function ClaimsDetails({
+  claims,
+  stale,
+  open,
+  setOpen,
+  snapshots,
+  loadErrors,
+  onLoad,
+}: {
+  claims: ArtifactClaims;
+  stale: number;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  snapshots: Record<string, SourceSnapshot | undefined>;
+  loadErrors?: Record<string, string | undefined>;
+  onLoad?: (id: string) => void;
+}) {
   return (
-    <details className="research-claims" data-testid="research-claims">
+    <details
+      className="research-claims"
+      data-testid="research-claims"
+      open={open}
+      onToggle={(e) => setOpen(e.currentTarget.open)}
+    >
       <summary className="small">
         Sources for this version · {claims.items.length} cited claim
         {claims.items.length === 1 ? "" : "s"}
@@ -614,7 +719,6 @@ export function ClaimsList({
           </span>
         ) : null}
       </summary>
-      {refresh}
       <p className="small muted">{claims.semantic_notice}</p>
       {claims.items.map((item) => (
         <ClaimView

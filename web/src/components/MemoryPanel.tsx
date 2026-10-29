@@ -100,6 +100,19 @@ function outcomeText(o: CommandOutcome): string | null {
   }
 }
 
+/**
+ * Busy, not disabled: a disabled button drops keyboard focus to the page, so
+ * a pressed control stays focusable and ignores presses until it can act.
+ */
+function held(unavailable: boolean, act: () => void) {
+  return {
+    "aria-disabled": unavailable || undefined,
+    onClick: () => {
+      if (!unavailable) act();
+    },
+  };
+}
+
 /** Per-memory human forms, kept across unrelated refreshes and failures. */
 interface ItemForm {
   correct?: CorrectionDraft;
@@ -173,6 +186,15 @@ export function MemoryPanel({
   const [writing, setWriting] = useState<string | null>(null);
   const liveKey = useRef(key);
   const listSeq = useRef(0);
+  /** An item acted on from the keyboard: where focus goes if it leaves. */
+  const restore = useRef<{ id: string; index: number } | null>(null);
+  const list = useRef<HTMLUListElement>(null);
+  const viewGroup = useRef<HTMLDivElement>(null);
+  /** Kind of each item seen, to name an outcome after the item has gone. */
+  const lineKinds = useRef<Record<string, string>>({});
+  for (const it of items ?? [])
+    lineKinds.current[it.revision.memory_id] =
+      `${KIND_LABEL[it.revision.kind]} memory`;
   /** Memories with a forget receipt on this page: never shown with payload. */
   const forgottenIds = useRef(new Set<string>());
   liveKey.current = key;
@@ -248,6 +270,25 @@ export function MemoryPanel({
     void refresh();
   }, [refresh]);
 
+  // An item acted on from the keyboard that left the list (accepted,
+  // rejected, forgotten, expired, narrowed away) hands focus to the next
+  // item, else the one before, else the view switch; never the page top.
+  useEffect(() => {
+    const r = restore.current;
+    if (!r || !items) return;
+    if (items.some((it) => it.revision.memory_id === r.id)) {
+      // Written and read again, still listed: focus stayed where it was.
+      if (!writing) restore.current = null;
+      return;
+    }
+    restore.current = null;
+    const rows = list.current?.children;
+    const next = rows?.length
+      ? (rows[Math.min(r.index, rows.length - 1)] as HTMLElement)
+      : viewGroup.current?.querySelector<HTMLElement>("[aria-pressed=true]");
+    next?.focus();
+  }, [items, writing]);
+
   useEffect(() => {
     if (!key || !runId) return;
     const asked = key;
@@ -289,7 +330,7 @@ export function MemoryPanel({
   }, [journal, dropForm]);
 
   const settle = useCallback(
-    (o: CommandOutcome, memoryId: string | null) => {
+    (o: CommandOutcome, memoryId: string | null): Promise<void> | void => {
       if (o.kind === "closed") return;
       if (
         (o.kind === "refused" && isAccessLoss(o.error)) ||
@@ -313,11 +354,11 @@ export function MemoryPanel({
             ? maskForgotten(withInspection(cur, ins), forgottenIds.current)
             : cur,
         );
-        void refresh();
+        return refresh();
       } else if (o.kind === "unverified") {
         // Readback failed or disagreed: pause changes until a fresh list.
         setListStale(true);
-        void refresh();
+        return refresh();
       } else if (o.kind === "stale" && memoryId) {
         // Show the current version; no automatic rebase. The person's form
         // text (and the revision it was written against) is kept as typed
@@ -348,11 +389,21 @@ export function MemoryPanel({
       if (!journal) return;
       // The submitting form stays locked through send and readback.
       const target = memoryId ?? "remember";
+      const li = memoryId
+        ? list.current?.querySelector<HTMLElement>(
+            `[data-memory-id="${CSS.escape(memoryId)}"]`,
+          )
+        : null;
+      if (memoryId && li?.contains(document.activeElement))
+        restore.current = {
+          id: memoryId,
+          index: [...(list.current?.children ?? [])].indexOf(li),
+        };
       setWriting(target);
       try {
         const o = await journal.submit(cmd);
         if (o.kind === "verified" || o.kind === "unverified") after?.();
-        settle(o, memoryId);
+        await settle(o, memoryId);
       } finally {
         setWriting((w) => (w === target ? null : w));
       }
@@ -370,6 +421,17 @@ export function MemoryPanel({
     : null;
   const problem = rememberProblem(form);
   const busy = pending !== null || listStale || accessLost;
+
+  const lineItem =
+    line?.id != null
+      ? items?.find((it) => it.revision.memory_id === line.id)
+      : undefined;
+  /** The outcome's item has left this list: say which kind it was. */
+  const lineGone =
+    line?.id != null && !lineItem
+      ? (lineKinds.current[line.id] ?? "Memory")
+      : "";
+  const lineShownHere = !!line?.text && (line.id === null || !lineItem);
 
   if (!key) return null;
 
@@ -431,11 +493,17 @@ export function MemoryPanel({
         </div>
       ) : null}
 
-      {line && line.id === null ? (
-        <p className="small" role="status">
-          {line.text}
-        </p>
-      ) : null}
+      {/* One always-mounted live region announces every outcome. It's shown
+          here when it belongs to no listed item (a new memory, or one that
+          has left the list); otherwise it's shown on the item itself. */}
+      <p
+        className={lineShownHere ? "small" : "sr-only"}
+        role="status"
+        data-testid="memory-outcome"
+      >
+        {line?.text && lineGone && line.id ? `${lineGone}: ` : ""}
+        {line?.text ?? ""}
+      </p>
       {loadError ? (
         <p className="hint" role="alert">
           Couldn’t refresh memory. {loadError}
@@ -496,7 +564,7 @@ export function MemoryPanel({
           <fieldset className="field" style={{ border: 0, padding: 0 }}>
             <legend className="field-label">Applies to</legend>
             {(["task", "work_area", "user"] as const).map((s) => (
-              <label key={s} className="row small">
+              <label key={s} className="row small memory-choice">
                 <input
                   type="radio"
                   name={`memory-scope-${cid}`}
@@ -506,7 +574,7 @@ export function MemoryPanel({
                   }
                   onChange={() => setForm({ ...form, scope_kind: s })}
                 />
-                {SCOPE_LABEL[s]}
+                <span>{SCOPE_LABEL[s]}</span>
               </label>
             ))}
           </fieldset>
@@ -526,7 +594,9 @@ export function MemoryPanel({
         <button
           className="btn btn-primary btn-sm"
           type="submit"
-          disabled={!!problem || !rememberScopeId || busy || !!writing}
+          aria-disabled={
+            !!problem || !rememberScopeId || busy || !!writing || undefined
+          }
         >
           {form.kind === "procedure" ? "Save for review" : "Remember"}
         </button>
@@ -564,7 +634,13 @@ export function MemoryPanel({
         />
       ) : null}
 
-      <div className="row" role="group" aria-label="Show" style={{ gap: 8 }}>
+      <div
+        className="row"
+        role="group"
+        aria-label="Show"
+        style={{ gap: 8 }}
+        ref={viewGroup}
+      >
         {(
           [
             ["current", "In use"],
@@ -589,13 +665,21 @@ export function MemoryPanel({
       </div>
 
       {accessLost ? null : items === null ? (
-        <p className="small muted">Loading…</p>
+        loadError ? null : (
+          <p className="small muted">Loading…</p>
+        )
       ) : items.length === 0 ? (
         <p className="small muted">
-          Nothing is remembered for this conversation.
+          {view === "candidate"
+            ? "Nothing is waiting for review."
+            : "Nothing is remembered for this conversation."}
         </p>
       ) : (
-        <ul className="stack-sm" style={{ listStyle: "none", padding: 0 }}>
+        <ul
+          className="stack-sm"
+          style={{ listStyle: "none", padding: 0 }}
+          ref={list}
+        >
           {items.map((it) => {
             const r = it.revision;
             const f = forms[r.memory_id] ?? {};
@@ -612,16 +696,23 @@ export function MemoryPanel({
             return (
               <li
                 key={r.memory_id}
-                className="card stack-sm"
+                className="card stack-sm memory-item"
                 data-testid="memory-item"
-                aria-label={`${KIND_LABEL[r.kind]} memory`}
+                data-memory-id={r.memory_id}
+                tabIndex={-1}
+                aria-labelledby={`memory-${r.memory_id}`}
               >
                 {erased ? (
-                  <p className="small muted">
+                  <p className="small muted" id={`memory-${r.memory_id}`}>
                     Forgotten. Its content has been erased.
                   </p>
                 ) : (
-                  <p style={{ whiteSpace: "pre-wrap" }}>{r.content}</p>
+                  <p
+                    style={{ whiteSpace: "pre-wrap" }}
+                    id={`memory-${r.memory_id}`}
+                  >
+                    {r.content}
+                  </p>
                 )}
                 <p className="small muted">
                   {KIND_LABEL[r.kind]} · {SCOPE_LABEL[r.scope_kind]} ·{" "}
@@ -670,17 +761,19 @@ export function MemoryPanel({
                       <button
                         key={d}
                         className={`btn btn-sm ${d === "accept" ? "btn-primary" : "btn-quiet"}`}
-                        disabled={busy}
-                        onClick={() =>
-                          void submit(
-                            {
-                              op: "review",
-                              memoryId: r.memory_id,
-                              body: { ...cas(r.revision_id), decision: d },
-                            },
-                            r.memory_id,
-                          )
-                        }
+                        aria-describedby={`memory-${r.memory_id}`}
+                        {...held(
+                          busy,
+                          () =>
+                            void submit(
+                              {
+                                op: "review",
+                                memoryId: r.memory_id,
+                                body: { ...cas(r.revision_id), decision: d },
+                              },
+                              r.memory_id,
+                            ),
+                        )}
                       >
                         {label}
                       </button>
@@ -690,6 +783,7 @@ export function MemoryPanel({
 
                 {r.status === "active" || r.status === "contested" ? (
                   <ItemControls
+                    describedBy={`memory-${r.memory_id}`}
                     f={f}
                     setF={setF}
                     busy={busy || !!writing}
@@ -774,7 +868,7 @@ export function MemoryPanel({
                   />
                 ) : null}
                 {line && line.id === r.memory_id ? (
-                  <p className="small" role="status">
+                  <p className="small" aria-hidden="true">
                     {line.text}
                   </p>
                 ) : null}
@@ -791,6 +885,7 @@ export function MemoryPanel({
 }
 
 function ItemControls({
+  describedBy,
   f,
   setF,
   busy,
@@ -802,6 +897,8 @@ function ItemControls({
   onExpire,
   onForget,
 }: {
+  /** The memory's own text: gives each repeated button its item. */
+  describedBy: string;
   f: ItemForm;
   setF: (f: ItemForm) => void;
   busy: boolean;
@@ -819,8 +916,25 @@ function ItemControls({
     c?.mode === "temporary" &&
     (!c.from || !c.until || new Date(c.until) <= new Date(c.from));
   const rebased = !!c && correctionRebased(c, currentRevisionId);
+  // Opening or closing the confirmation or the correction keeps the
+  // keyboard beside it: into the step that opened, back to what opened it.
+  const mode = c ? "correct" : f.confirmForget ? "confirm" : "idle";
+  const root = useRef<HTMLDivElement>(null);
+  const was = useRef(mode);
+  useEffect(() => {
+    const from = was.current;
+    was.current = mode;
+    if (from === mode) return;
+    const a = document.activeElement;
+    if (a && a !== document.body && !root.current?.contains(a)) return;
+    const at = (sel: string) =>
+      root.current?.querySelector<HTMLElement>(sel)?.focus();
+    if (mode === "confirm") at("[data-forget-confirm]");
+    else if (mode === "correct") at("textarea");
+    else at(from === "confirm" ? "[data-forget-open]" : "[data-correct-open]");
+  }, [mode]);
   return (
-    <div className="stack-sm">
+    <div className="stack-sm" ref={root}>
       {c ? (
         <div className="stack-sm">
           <label className="field">
@@ -885,11 +999,10 @@ function ItemControls({
                 current version above before saving over it.
               </p>
               <button
-                className="btn btn-sm btn-quiet"
-                disabled={locked}
-                onClick={() =>
-                  setF({ ...f, correct: { ...c, base: currentRevisionId } })
-                }
+                className="btn btn-sm btn-quiet btn-wrap"
+                {...held(locked, () =>
+                  setF({ ...f, correct: { ...c, base: currentRevisionId } }),
+                )}
               >
                 Correct the current version instead
               </button>
@@ -898,22 +1011,23 @@ function ItemControls({
           <div className="row" style={{ gap: 8 }}>
             <button
               className="btn btn-primary btn-sm"
-              disabled={busy || rebased || !c.content.trim() || tempBad}
-              onClick={() => onCorrect(c)}
+              aria-describedby={describedBy}
+              {...held(busy || rebased || !c.content.trim() || tempBad, () =>
+                onCorrect(c),
+              )}
             >
               Save correction
             </button>
             <button
               className="btn btn-sm btn-quiet"
-              disabled={locked}
-              onClick={() => setF({ ...f, correct: undefined })}
+              {...held(locked, () => setF({ ...f, correct: undefined }))}
             >
               Cancel
             </button>
           </div>
         </div>
       ) : f.confirmForget ? (
-        <div className="hint stack-sm" role="alert">
+        <div className="hint stack-sm">
           <p>
             Forget erases this memory’s content. It can’t unsend earlier
             requests, and it doesn’t delete source documents, saved outputs or
@@ -922,8 +1036,9 @@ function ItemControls({
           <div className="row" style={{ gap: 8 }}>
             <button
               className="btn btn-sm btn-primary"
-              disabled={busy}
-              onClick={onForget}
+              data-forget-confirm
+              aria-describedby={describedBy}
+              {...held(busy, onForget)}
             >
               Forget it
             </button>
@@ -939,8 +1054,9 @@ function ItemControls({
         <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
           <button
             className="btn btn-sm btn-quiet"
-            disabled={busy}
-            onClick={() =>
+            data-correct-open
+            aria-describedby={describedBy}
+            {...held(busy, () =>
               setF({
                 ...f,
                 correct: {
@@ -950,32 +1066,33 @@ function ItemControls({
                   from: "",
                   until: "",
                 },
-              })
-            }
+              }),
+            )}
           >
             Correct
           </button>
           {narrowOptions.map((to) => (
             <button
               key={to}
-              className="btn btn-sm btn-quiet"
-              disabled={busy}
-              onClick={() => onNarrow(to)}
+              className="btn btn-sm btn-quiet btn-wrap"
+              aria-describedby={describedBy}
+              {...held(busy, () => onNarrow(to))}
             >
               Limit to {SCOPE_LABEL[to].toLowerCase()}
             </button>
           ))}
           <button
             className="btn btn-sm btn-quiet"
-            disabled={busy}
-            onClick={onExpire}
+            aria-describedby={describedBy}
+            {...held(busy, onExpire)}
           >
             Expire
           </button>
           <button
             className="btn btn-sm btn-quiet"
-            disabled={busy}
-            onClick={() => setF({ ...f, confirmForget: true })}
+            data-forget-open
+            aria-describedby={describedBy}
+            {...held(busy, () => setF({ ...f, confirmForget: true }))}
           >
             Forget…
           </button>

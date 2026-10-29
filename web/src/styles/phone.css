@@ -138,6 +138,23 @@
     min-width: 44px;
   }
 
+  /* Memory and research sources: rows of small actions and disclosures
+     on every item; full-size targets so a thumb hits the one it means. */
+  [data-testid="memory-panel"] .btn,
+  [data-testid="memory-panel"] summary,
+  .research-sources .btn,
+  .research-sources summary,
+  .research-claims .btn,
+  .research-claims summary {
+    min-height: 44px;
+  }
+  [data-testid="memory-panel"] summary,
+  .research-sources summary,
+  .research-claims summary {
+    display: flex;
+    align-items: center;
+  }
+
   /* ---- Conversation: opens at the latest request, with a little air ---- */
   .thread > .thread-turn {
     scroll-margin-top: 12px;

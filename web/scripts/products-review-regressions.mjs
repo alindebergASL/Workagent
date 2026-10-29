@@ -47,6 +47,23 @@ import {readAttachment} from '@/lib/contract/natural';
 import {bindMockIdentity} from '@/lib/client/session-scope';
 import {StopRun, QueuedMessages, DocumentPicker} from '@/components/Batch2Controls';
 import {setFetch} from '@/lib/client/batch2-api';
+import {ResearchSourceList, ClaimsList} from '@/components/ResearchSources';
+// Research sources and citations as their reader drives them: "Show more"
+// appends a page; refreshing citations clears them while it re-reads.
+function Research() {
+  const all = window.research.snapshots;
+  const [shown, setShown] = React.useState(all.slice(0, 2));
+  const [busy, setBusy] = React.useState(false);
+  const [claims, setClaims] = React.useState(window.research.claims);
+  const [checking, setChecking] = React.useState(false);
+  const later = (fn) => setTimeout(fn, 300);
+  return <>
+    <ResearchSourceList items={shown} error={null} hasMore={shown.length < all.length} busy={busy}
+      onMore={() => { setBusy(true); later(() => { setShown(all); setBusy(false); }); }} onRefresh={() => {}}/>
+    <ClaimsList claims={claims} error={null} snapshots={{}} checking={checking}
+      onRefresh={() => { setChecking(true); setClaims(null); later(() => { setClaims(window.research.claims); setChecking(false); }); }}/>
+  </>;
+}
 // Batch 2 controls write through their own client: answer every write.
 window.b2calls = [];
 setFetch(async (url, init) => {
@@ -81,7 +98,7 @@ window.mount = (mode, ws='w', cid='c', version=7) => {
   window.scope = {ws,cid};
   root.render(mode === 'operation'
     ? <OperationComposer ws={ws} cid={cid} version={version} refresh={window.refresh}/>
-    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : mode === 'stop' ? <Stop/> : mode === 'queue' ? <Queue/> : mode === 'docs' ? <Docs/> : <div>Navigation away</div>);
+    : mode === 'product' ? <ProductPage/> : mode === 'inplace' ? <InPlaceView ws={ws} cid={cid} artifact={window.inPlace.artifact} bound={window.inPlace.bound} open refresh={window.refresh}/> : mode === 'reply' ? <Reply key={ws+cid} ws={ws} cid={cid} version={version}/> : mode === 'stop' ? <Stop/> : mode === 'queue' ? <Queue/> : mode === 'docs' ? <Docs/> : mode === 'research' ? <Research/> : <div>Navigation away</div>);
 };
 window.reads = {};
 const realArrayBuffer = File.prototype.arrayBuffer;
@@ -3607,6 +3624,190 @@ try {
     });
   passed++;
   console.log("PASS attached files beside the work fit a 390px phone");
+
+  {
+    // Research sources and citations on a phone, with the app's styles:
+    // long URLs and titles wrap, every control is a full-size target,
+    // repeated controls name their source, "Show more" lands on the first
+    // new source, and refreshing citations keeps the keyboard on Refresh
+    // and the list open as the person left it.
+    await page.addStyleTag({
+      content: readFileSync(path.join(web, "src/styles/phone.css"), "utf8"),
+    });
+    const H = (c) => c.repeat(64);
+    const long =
+      "https://example.org/reports/2026/quarterly/east-depot/capacity-bulletin-with-a-very-long-unbroken-path-segment-for-phones";
+    const snap = (n) => ({
+      snapshot_id: `snap_${n}`,
+      workspace_file_id: "wf_1",
+      workspace_id: "w",
+      conversation_id: "c",
+      version_number: n,
+      parent_snapshot_id: null,
+      observed_at: "2026-10-28T12:00:00Z",
+      version_at: null,
+      original_sha256: H("a"),
+      extraction_sha256: H("b"),
+      original_byte_length: 100,
+      extraction_byte_length: 60,
+      parser_version: "readable-1",
+      extraction_status: "extracted",
+      coverage: { body_complete: true, text_complete: true, omissions: [] },
+      omissions: [],
+      trust_label: "untrusted_evidence",
+      locator: {
+        kind: "public_source",
+        blob_id: `blob_${n}`,
+        sha256: H("a"),
+        mime_type: "text/html",
+        title: `Capacity bulletin ${n}`,
+        url: long,
+        final_url: long,
+        status_code: 200,
+        redirects: [],
+        fetched_at: "2026-10-28T12:00:00Z",
+        extractor_version: "readable-1",
+        coverage: { body_complete: true, text_complete: true, omissions: [] },
+        external_version: { etag: null, last_modified: null },
+        extraction_status: "extracted",
+        browser_used: false,
+        text: `Current public capacity: ${n} units.`,
+        text_sha256: H("b"),
+        run_id: "run_1",
+        tool_attempt_id: "att_1",
+      },
+    });
+    const quote = "Current public capacity: 1 units.";
+    const claims = {
+      artifact_id: "art_1",
+      revision_id: "rev_1",
+      body_hash: H("c"),
+      semantic_notice:
+        "Quotes are exact; whether they support a claim is not assessed.",
+      items: [
+        {
+          claim: {
+            artifact_id: "art_1",
+            revision_id: "rev_1",
+            body_hash: H("c"),
+            claim: "The east depot reports 1 unit of capacity.",
+            evidence: [
+              {
+                workspace_file_id: "wf_1",
+                snapshot_id: "snap_1",
+                text_sha256: H("b"),
+                start: 0,
+                end: Array.from(quote).length,
+                quote,
+                relation: "supports",
+              },
+            ],
+            claim_id: "claim_1",
+            workspace_id: "w",
+            conversation_id: "c",
+            run_id: "run_1",
+            tool_attempt_id: "att_1",
+            created_at: "2026-10-28T12:01:00Z",
+            attribution: "exact_quotes_only",
+            semantic_status: "not_assessed",
+          },
+          freshness: "current",
+          newer_snapshot_ids: [],
+          coverage: ["extracted"],
+        },
+      ],
+    };
+    for (const width of [390, 320]) {
+      await page.setViewportSize({ width, height: 844 });
+      await away();
+      await page.evaluate(
+        (r) => {
+          window.research = r;
+          window.mount("research");
+        },
+        { snapshots: [snap(1), snap(2), snap(3)], claims },
+      );
+      for (const d of await page
+        .locator(".research-sources details, .research-claims details")
+        .all())
+        await d.evaluate((x) => (x.open = true));
+      assert.ok(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= window.innerWidth,
+        ),
+        `research: no horizontal scroll at ${width}px`,
+      );
+      const small = await page.evaluate(() =>
+        [
+          ...document.querySelectorAll(
+            ".research-sources button, .research-sources summary, .research-claims button, .research-claims summary",
+          ),
+        ]
+          .filter((b) => {
+            const h = b.getBoundingClientRect().height;
+            return h > 0 && h < 44;
+          })
+          .map((b) => b.textContent.trim().slice(0, 30)),
+      );
+      assert.deepEqual(small, [], `research: 44px targets at ${width}px`);
+    }
+    // Repeated controls name their source; captured text is reachable.
+    const names = await page.evaluate(() =>
+      [...document.querySelectorAll(".research-sources summary")].map((x) =>
+        x.textContent.trim(),
+      ),
+    );
+    assert.deepEqual(names, [
+      "Capture details: Capacity bulletin 1",
+      "Captured text: Capacity bulletin 1",
+      "Capture details: Capacity bulletin 2",
+      "Captured text: Capacity bulletin 2",
+    ]);
+    await expect(
+      page.getByRole("region", {
+        name: "Captured text of Capacity bulletin 1",
+      }),
+    ).toHaveAttribute("tabindex", "0");
+    // "Show more" hands focus to the first source it added.
+    await page
+      .getByRole("button", { name: "Show more sources" })
+      .press("Enter");
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.activeElement?.querySelector("[data-snapshot]")?.dataset
+              .snapshot ?? document.activeElement?.tagName,
+        ),
+      )
+      .toBe("snap_3");
+    // Refreshing citations: the keyboard stays on Refresh, the list stays
+    // open, and the result is announced.
+    const claimsList = page.getByTestId("research-claims");
+    await claimsList.evaluate((d) => (d.open = true));
+    const refreshCitations = page
+      .getByTestId("research-refresh")
+      .filter({ hasText: /citations|Checking/ });
+    await page
+      .getByRole("button", { name: "Refresh citations" })
+      .press("Enter");
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.dataset.testid))
+      .toBe("research-refresh");
+    await expect(refreshCitations).toHaveText("Checking…");
+    await expect(refreshCitations).toHaveText("Refresh citations");
+    expect(await page.evaluate(() => document.activeElement?.textContent)).toBe(
+      "Refresh citations",
+    );
+    expect(await claimsList.evaluate((d) => d.open)).toBe(true);
+    await expect(
+      page.locator(".research-claims [role=status]").first(),
+    ).toHaveText("1 cited claim.");
+  }
+  passed++;
+  console.log(
+    "PASS research sources and citations fit 390/320 with full-size targets; repeated controls name their source; Show more lands on the first new source; refreshing citations keeps focus and the list open",
+  );
   assert.deepEqual(errors, []);
   console.log(
     `${passed} focused DOM regressions passed (fixture transport; no server/provider).`,
