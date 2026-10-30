@@ -8,8 +8,18 @@ from __future__ import annotations
 import json
 import re
 
-# No CLI flag/environment variable can release paid execution in this residual.
-LIVE_EXECUTION_RELEASE = None
+# Root t_e07c8870 release after scoped review, installed readback and exact first
+# issuer/recipient credit. This is not completion, paid acceptance or a budget cap
+# increase. Per-send SQL gates and immutable controller mapping remain mandatory.
+LIVE_EXECUTION_RELEASE = {
+    'owner': 't_e07c8870',
+    'released_at': '2026-10-30T00:32:01Z',
+    'closure_sha256': '46acb254a1568ac23ec9714f6b6535d602ea71d847dcb9f15bf0995591e8aded',
+    'recipient_plan_sha256': '335c122ea6ec016460a66477c23937aeadc78cbcc0f2046fc41951091788f381',
+    'installed_gates_sha256': '2c911081d6d96644c43b6125b822a63470d0debdcbac2d1893172fb7d834b871',
+    'first_certificate_readback_sha256': '9b09e66b99db036cedb0ab03c1683eb54d3a5a20f27d4e0071fac408fdfd26ad',
+    'cumulative_authority_usd': '100',
+}
 
 
 def require_live_release():

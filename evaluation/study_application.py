@@ -168,7 +168,17 @@ def transition(directory, state, payload):
             raise Hold('no_artifact_to_human_edit')
         artifact = service.get_artifact(principal, state['workspace'], state['artifacts'][0])
         body = artifact.current_revision.body.model_copy(deep=True)
-        body.blocks[0] = Block(block_id='human-protected', kind='protected_note', text=paragraph)
+        if getattr(body, 'kind', None) == 'file' and body.mime_type == 'text/plain':
+            # The authorized files.create_draft path produces FileBody, not a
+            # block document. Keep its text and exact human paragraph through
+            # ordinary CAS human_save; later model edits remain proposals.
+            content = body.content + '\n\n' + paragraph
+            body = type(body).model_validate(dict(body.model_dump(), content=content,
+                                                 content_sha256=digest(content)))
+        elif hasattr(body, 'blocks') and body.blocks:
+            body.blocks[0] = Block(block_id='human-protected', kind='protected_note', text=paragraph)
+        else:
+            raise Hold('human_edit_requires_editable_text_or_document')
         saved = service.human_save(principal, state['workspace'], artifact.id, cmd(HumanSave, expected_current_revision_id=artifact.current_revision_id, body=body))
         events.append({'kind':'human_edit', 'artifact_id':artifact.id, 'revision_id':saved.current_revision_id, 'body_hash':saved.current_revision.body_hash})
         state['protected'] = paragraph

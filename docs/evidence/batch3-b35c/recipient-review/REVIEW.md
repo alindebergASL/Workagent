@@ -1,0 +1,62 @@
+# Independent narrow pre-paid recipient review
+
+## Verdict
+
+**CHANGES REQUIRED before live release: F1 (P1), the real tool-granted B1/M1 longitudinal path fails at episode 2.** Recipient financial admission, exact inactive installation, and the retained R1 sourceless-bytecode fix pass only the scopes below. This is **not full live acceptance**, a release authorization, a new budget grant, or evidence of useful live model work.
+
+Reviewer: independent within-run GPT-6-Astra/openai-codex; development/review cost is outside the product ledger and unreconciled. Parent retains execution/lifecycle ownership. No implementation, installed study/issuer database, installed grant, release flag, or credential was modified. Only new disposable databases and additive evidence were written. No paid/provider network calls. No commits or board transitions.
+
+## F1 — P1: installed tool authority and document-only transition are incompatible
+
+Locations: `evaluation/live_tool_authority.py:23-25,77-81`; `backend/workagent/capabilities/policy.py:38-44`; `evaluation/study_application.py:163-172`.
+
+With a tool grant, legacy effects such as `publish_artifact`, `record_responsibility`, and `advance_responsibility` are rejected as `unsupported_operation`; reply/stop remain allowed. This is a real authority boundary, not something to bypass to rescue the study. The granted editable-work path, `files.create_draft`, creates a **FileBody**, but episode 2 unconditionally accesses `body.blocks[0]` as if the first artifact were a DocumentBody.
+
+`probe_workflow.py` exercised the actual full-tool GeneralWorker, normal 50000/8192 capacity, real product schema and restricted role, synthetic recipient credit, and the new exact tool installer in fresh B1 and M1 fixtures. The HTTP wire alone was scripted; Python socket connections were prohibited. Both workers reached `ready` after producing a real FileBody, with 3 create dispatches / 6 simulated count-or-create calls each. Calling the real episode-2 transition with the frozen B1 episode-2 inputs then raised **`AttributeError: 'FileBody' object has no attribute 'blocks'`** in both arms. The context seam selected the disposable Service rather than any study database; this was not a controller campaign or jailed full-study execution. Artifact revision identity/content remained unchanged after the failure.
+
+Evidence: `workflow-results.json`, `workflow-04.log`; private disposable receipts under `.local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8/`. An all-reply model output cannot fix this: episode 2 instead requires an artifact (`no_artifact_to_human_edit`). Existing reply-only recipient tests do not exercise the tool-policy/document-shape interaction, human edit, later revisions, memory transitions, export, or useful longitudinal completion.
+
+**Required focused closure:** support the authorized artifact type through ordinary human editing and later review/revision, preserving exact human content and pending-proposal semantics; exercise tool-granted B1 and M1 across the affected transition (and later artifact-use/export boundaries affected by that change). Do not weaken tool authorization, coerce a successful fixture reply into study acceptance, or silently rebaseline source/environment pins after a code change. No broad re-audit is requested.
+
+## Scope actually verified
+
+| Area | Result and limit |
+|---|---|
+| Aggregate recipient gate | **PASS, narrow:** unchanged SQL hash matches retained 13-group minimal real-PG evidence; fresh current full-product verifier passes inactive admission, unknown/restart retention, and cross-workspace near-cap concurrency. No real provider/issuer use. |
+| Actual recipient topology | **PASS, read-only:** 12 distinct physical DB/OIDs, 24 exact active official grants, 2 grants/2 workspaces per store, each binding's nominal cost limit 12; every store still has enabled deny-all, zero response events, and no recipient schema. Not installed funded admission. |
+| Exact inactive installer/tool bootstrap | **PASS, disposable:** current verifier's 7 checks, including atomic deny-all replacement, exact retry, wrong OID/workspace rejection, unchanged grant hashes and no duplicate tool account/grant. |
+| Certificate Python bridge | **PASS, unit orchestration only:** 4 mocked cases check exact issuer-first order, issuer/recipient readback mismatch rejection, interrupted recipient installation, stable phase ID and immutable receipt retry. Real issuer issuance was intentionally NOT executed. |
+| Locked live driver | **PASS, lock only:** CLI exits 1 with `paid_execution_unreleased_t_e07c8870` before opening a nonexistent credential path, mapping, campaign or authority. No unlocked-driver claim. |
+| Final residual R1 | **PASS, independent narrow closure:** 3 fresh controls pass: host sourceless-package bytecode rejection, actual jailed child sourceless-module rejection, and actual-child wrong execution-pin denial. No SQL or provider effect in those negatives. |
+| Real tool-granted B1/M1 longitudinal compatibility | **FAIL: F1 reproduced in both arms.** Complete 12/72 live study, blind scoring, downloads and client usefulness remain unaccepted. |
+
+## Financial and identity analysis
+
+- The preserved lane SQL differs only at the intended 8-grant/50 raw limit to **2-grant/12** binding checks and corresponding error name. `recipient_funding.sql` SHA256 is `cf3d43e54be4459eb9cd8450a474d0c7118daf7f08661549e85ea0f0cbd6a207`.
+- `bind_exact` binds database name **and physical OID**, plan/source/context digest, project, and exact grant-data hashes. Installer `mapping()` also validates the frozen schedule, sources, environment, authority document and private mapping. `identity()` verifies the complete grant set, active flags, hashes and OID. Raw grant ceilings are not independently issued funds and must not be added together as available money.
+- Dispatch reserves the normal 50000 input / 8192 output capacity: `(50000*2.5 + 8192*10)/1000000 = 0.206920` under the configured model-price assumptions. The gate sums retained commitments across **every dispatch/every grant in the store**, under a shared advisory transaction lock and READ COMMITTED. It does not reset per workspace or run. There is no new ancillary tariff, generation cap or tiny token cap.
+- A completed/function-call result reduces retention only when exact request bytes/hash, metadata, model/tier, official provenance, response identity and valid integer usage agree. Unknown/missing/unsupported/corrupt outcomes retain the full reservation. The projection gives no cached-input discount. Duplicate dispatch, result and cross-phase identity reuse are blocked before they can invalidate prior released capacity; event/step history cannot be updated, deleted or truncated through the granted path.
+- Fresh full-product concurrency confirms exactly one create can commit when two workspaces contend for one reservation; the unknown request remains fully encumbered, and restarting sends nothing again. Count/read/cancel require active funded binding, but no invented per-call price is imposed.
+- The previously reviewed issuer `issue_exact` remains authoritative: canonical DB/OID, owner-only, shared lock, exact ID/target/amount retry, and the existing cumulative $100 formula. No correction or 13-ledger recollection was repeated. The prior checkpoint's $68.0597000 encumbered / $31.9403000 unallocated is **retained accounting evidence**, not a freshly reconciled bill or spend promise.
+- `issue_phase` first installs/verifies the inactive recipient gate, derives its actual binding hash, then invokes issuer `issue_exact` with stable `b35c-<blind>-phase-<N>`. It reads back the exact issuer row **before** recipient credit, then reads back the exact recipient issuer/OID/target/hash/amount. Failure retains issuer allocation; same-phase retry cannot legitimately mint replacement funds. SQL installation trusts the privileged installer, not a cryptographic cross-database certificate: owner/runtime separation and the exact readbacks are essential.
+- The planned $2 allocation is incremental when each trajectory starts, not whole-study preallocation or a task/generation quota. No certificate was issued to an installed recipient by review. Real cross-database issuance/admission remains for the parent's authorized lifecycle after readiness closure.
+
+## ACLs, selectors, retry boundaries
+
+The retained minimal PG controls cover runtime funding mutation denial, trigger-disable denial, default-ACL cleanup, immutable history, ALWAYS dispatch guard, stale isolation denial and restored-clone name/OID rejection. Current full-product checks run with the actual restricted runtime role; fresh installer tests use owner only for authority and verify runtime readback. Gate installation keeps deny-all until binding plus ALWAYS gate exist in the same transaction, and zero certificates still deny I/O. Installer retries compare prior SQL/function/binding receipts rather than silently changing grants. Backup dump/readability checks remain narrow installer protection, not a new recovery certification.
+
+Tool installation pins reviewed descriptor schema/implementation hashes, exact run/workspace/principal/conversation/access generation, seven-day expiry, shared per-workspace nonmonetary capacity and the existing provider grant. It uses explicit frozen-source URL/processor selectors; prior files/artifact revisions are selected only from the currently visible same conversation. It refuses selector pagination overflow, keeps durable pre-install intent, does not renew expired intent, allows provenance-bound run outputs, and gives B1/M1 the same listed tools. B0 is unchanged. No private connector, paid search or delegated service was granted. This review tested bootstrap and a real create-draft operation, **not every listed adapter or every selector branch**.
+
+The LiveAdapter skips installation when a bridge key already exists, and the existing bridge/controller retain sending/unknown operations rather than replaying them. A phase/tool-install failure *before* bridge receipt creation can still leave the controller operation unknown; the safe default is a hold, not automatic recovery. A successful standalone phase retry does not by itself clear a controller unknown. Parent must reconcile exact effects; never delete/replay an unknown to make a campaign continue. Actual unlocked lifecycle/recovery was not exercised.
+
+## Commands, evidence, and retained failures
+
+Exact commands, exit codes, results, source/evidence SHA256s and artifact paths are in `REVIEW.json`; source hashes bind this review, not future changed bytes.
+
+Fresh commands: targeted R1 pytest (**3 passed, 25 deselected**); locked-driver negative (**expected exit 1**); exact12 installer `verify` and enhanced installed read-only probe (**12/24 verified**); phase-protocol pytest (**4 passed, mocks only**); full-tool workflow probe (**F1 reproduced B1/M1**); current full-product verifier (**3 scenarios PASS**); current installer verifier (**7 checks PASS**).
+
+The old full-product summary's SQL hash matches current SQL, but its verifier hash (`29eb9de2de8d8aad6b265bb57b04838606f99b6b75b2d7af8ff7048d967a6fa6`) differs from current (`d2a0212721ffe36ecaf73b4cfee8e1e9195fa9010ceba90fbc8b806ad3ac40be`). Therefore current exact-byte scenarios were run afresh at `.local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1/`, rather than claiming stale evidence covered identical verifier bytes. Current installer evidence is `.local/batch3/b35c/recipient-install-tests/ede9fcc999344948aa4148d882a5de7f/`.
+
+Failed review-fixture attempts are retained, not rewritten: `workflow.log` changed the goal between selection steps and triggered `source_changed`; `workflow-02.log` omitted the test state's `workspaces`; `workflow-03.log` compared the whole time-sensitive artifact DTO rather than immutable revision identity/content. These were review-test defects, corrected only in the additive probe. `workflow-04.log` is the completed reproducer. Disposable stores were retained for parent inspection; no live state was cleaned up. The initial `execute_code` tool was denied by unattended-mode policy and did not run; ordinary tools were used instead.
+
+Accepted correction closure and R2–R4 reviews were reused, not reopened. This review independently closes only the final bytecode residual at its tested boundary. **Keep live release locked while F1 remains.**

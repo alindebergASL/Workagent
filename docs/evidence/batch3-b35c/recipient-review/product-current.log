@@ -1,0 +1,49 @@
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1299, "utf8_bytes": 5980}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3000, "utf8_bytes": 16687}, "messages": {"estimated_tokens": 148, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 573, "utf8_bytes": 2544}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 4978, "utf8_bytes": 18695}, "work_area_context": {"estimated_tokens": 122, "utf8_bytes": 448}}, "estimated_input_tokens": 10409, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 46156, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "b26a7ecca63cbd432e219706f1f2b0b9164cdc5a0b57fbcd5a989b09fb815a75", "run_id": "632fea80-719b-4757-af4b-d819fbbe70dd"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1299, "utf8_bytes": 5980}, "continuation_history": {"estimated_tokens": 424, "utf8_bytes": 1570}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3000, "utf8_bytes": 16687}, "messages": {"estimated_tokens": 148, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 573, "utf8_bytes": 2544}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 122, "utf8_bytes": 448}}, "estimated_input_tokens": 5912, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 29263, "phase": "final", "provider_count_authoritative": true, "request_sha256": "3e75b7f773ffbc7f4f48add6b57d09046b4f7980cc8b53027c6803df7fba48c3", "run_id": "632fea80-719b-4757-af4b-d819fbbe70dd"}
+Created isolated database workagent_test_23cc7788e77f; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1/inactive-activated/fresh.private.env. No credentials printed.
+{"name": "inactive-activated", "database": "workagent_test_23cc7788e77f", "status": "PASS"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1299, "utf8_bytes": 5980}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3000, "utf8_bytes": 16687}, "messages": {"estimated_tokens": 159, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 582, "utf8_bytes": 2544}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 4978, "utf8_bytes": 18695}, "work_area_context": {"estimated_tokens": 123, "utf8_bytes": 448}}, "estimated_input_tokens": 10430, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 46156, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "ab3099724b06e614e33ef15883165f4245a25b1629f1c2b087836b3a00051888", "run_id": "55eef49c-48e6-4834-9f46-6945f07985d7"}
+{"event": "provider_dispatch_problem", "run_id": "55eef49c-48e6-4834-9f46-6945f07985d7", "attempt_id": "fb37637d-f2f5-4171-9a8f-673769475bd4", "phase": "selection", "code": "network_outcome_unknown"}
+Created isolated database workagent_test_80765a83c246; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1/unknown-restart/fresh.private.env. No credentials printed.
+{"name": "unknown-restart", "database": "workagent_test_80765a83c246", "status": "PASS"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1299, "utf8_bytes": 5980}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3000, "utf8_bytes": 16687}, "messages": {"estimated_tokens": 157, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 578, "utf8_bytes": 2544}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 4978, "utf8_bytes": 18695}, "work_area_context": {"estimated_tokens": 122, "utf8_bytes": 448}}, "estimated_input_tokens": 10423, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 46156, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "7cda01d1b0ff2990e88257a73fc7a62625341c4749a22a033bbb14531dae66c1", "run_id": "4f10a058-d0da-4d2f-98e8-4505edd67bfd"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1299, "utf8_bytes": 5980}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 3000, "utf8_bytes": 16687}, "messages": {"estimated_tokens": 154, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 567, "utf8_bytes": 2544}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 4978, "utf8_bytes": 18695}, "work_area_context": {"estimated_tokens": 120, "utf8_bytes": 448}}, "estimated_input_tokens": 10407, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 46156, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "a0a36b27a1aaa5d3a6acbb5d85b271d8f79687c15303afa887ed830a6b2636cd", "run_id": "3aa67e9f-ebfa-4a23-a978-af637a800ef2"}
+{"event": "provider_dispatch_problem", "run_id": "4f10a058-d0da-4d2f-98e8-4505edd67bfd", "attempt_id": "3595a31d-6b82-461f-9db1-db0479f99155", "phase": "selection", "code": "network_outcome_unknown"}
+Created isolated database workagent_test_37ab8aaca14f; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1/cross-workspace-concurrency/fresh.private.env. No credentials printed.
+{"name": "cross-workspace-concurrency", "database": "workagent_test_37ab8aaca14f", "status": "PASS"}
+{
+  "scope": "disposable full current product schema; no live provider or issuer execution",
+  "evidence": ".local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1",
+  "scenarios": [
+    {
+      "name": "inactive-activated",
+      "database": "workagent_test_23cc7788e77f",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown-restart",
+      "database": "workagent_test_80765a83c246",
+      "status": "PASS"
+    },
+    {
+      "name": "cross-workspace-concurrency",
+      "database": "workagent_test_37ab8aaca14f",
+      "status": "PASS"
+    }
+  ],
+  "synthetic_route_and_certificate": true,
+  "official_metadata_simulated_on_wire": true,
+  "network_provider_calls": 0,
+  "grants_per_database": 2,
+  "raw_ceiling_usd": "12.00",
+  "reservation": {
+    "input_tokens": 50000,
+    "output_tokens": 8192,
+    "usd": "0.206920"
+  },
+  "sql_sha256": "cf3d43e54be4459eb9cd8450a474d0c7118daf7f08661549e85ea0f0cbd6a207",
+  "verifier_sha256": "d2a0212721ffe36ecaf73b4cfee8e1e9195fa9010ceba90fbc8b806ad3ac40be",
+  "blocked_socket_attempts": [],
+  "status": "PASS",
+  "disposable_databases_retained_for_inspection": true
+}

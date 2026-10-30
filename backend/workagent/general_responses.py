@@ -304,9 +304,9 @@ def exact_target(service,c,p,ws,cv,target):
     service._cas(row,target.revision_id)
     revision=service._revision(c,p,ws,row,owner,target.revision_id)
     if revision.body_hash!=target.body_hash: raise DomainError('version_conflict')
-    from .product_models import TableBody,ToolBody
+    from .product_models import TableBody,ToolBody,FileBody
     from .flexible_models import Body,StructuredTableBody,CustomViewBody
-    if not isinstance(revision.body,(TableBody,ToolBody,Body,StructuredTableBody,CustomViewBody)): raise DomainError('unsupported_operation')
+    if not isinstance(revision.body,(TableBody,ToolBody,FileBody,Body,StructuredTableBody,CustomViewBody)): raise DomainError('unsupported_operation')
     return revision
 
 

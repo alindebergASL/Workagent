@@ -8,8 +8,8 @@ from network_harness import REPO, inventory
 
 BASELINE_COMMIT = '26e599b3db8a61b73eeeaea4f87a1d3de0b296d9'
 SOURCE_HASHES = {'B0': '2a1746aaec0dbd533cbaa49e343e7105d1336c1fdac26f5a5e61679de4687ee9',
-                 'B1': '1b2da12fd02712b3b1e723459457b5e703840e8c059d667be41fd8e82e0f2b1e',
-                 'M1': '1b2da12fd02712b3b1e723459457b5e703840e8c059d667be41fd8e82e0f2b1e'}
+                 'B1': '752decb5453298f98269e528f39bc57b2670a307d4abe45da8e48df1dfd03de0',
+                 'M1': '752decb5453298f98269e528f39bc57b2670a307d4abe45da8e48df1dfd03de0'}
 ENVIRONMENT_SHA256 = '60251f7601a115661c2df4a4da776ec9b1eace7b39f410ab3617ad3aae560fe5'
 
 

@@ -1,0 +1,345 @@
+{
+  "artifact_sha256": {
+    "docs/evidence/batch3-b35c/recipient-review/REVIEW.md": "2045c09e6975af53e0d82001ab725ce3b0d77e76ca02422871a478b9c31ada45",
+    "docs/evidence/batch3-b35c/recipient-review/build_manifest.py": "f6ddec00cacf93fa49c8e43e5bf91a7626c42077cc626aedd1b0fa6040cfb1e1",
+    "docs/evidence/batch3-b35c/recipient-review/exact12-readonly.log": "c848faacf2bb692c715b5f15001384894e849bf82e1e0df2403768fcda691f03",
+    "docs/evidence/batch3-b35c/recipient-review/install-current.log": "5fd8ee065c85817bf36322f08ba053ae6caeb062bca94b8bcdb2bedefb84b6f1",
+    "docs/evidence/batch3-b35c/recipient-review/installed-readonly.json": "335de72e10ccce4999096408d9e1b6cd6465924c8bdff33ead0b111abd124b61",
+    "docs/evidence/batch3-b35c/recipient-review/installed-readonly.log": "f6964e52de9b8a0760065303ad2b13453ad90e62abdd0ba993051c0f550f1c93",
+    "docs/evidence/batch3-b35c/recipient-review/phase-unit.log": "6c775bf85001614ec2b749e9ce6e1f4e07c1b1ad392d71a09cd95fcee76f4f52",
+    "docs/evidence/batch3-b35c/recipient-review/phase-unit.xml": "e92ff93d90bf8c83124b3367dfa83c2853127721de9cad458e8f4c73330810b0",
+    "docs/evidence/batch3-b35c/recipient-review/probe_installed_readonly.py": "c1b7d6042b22c5cc6dbdd40e47df341f144a29a074cbab3a9e6df5ffe8edc701",
+    "docs/evidence/batch3-b35c/recipient-review/probe_workflow.py": "ff34481ee10ea8618c2ae8722c1b26108950956179189962be9fa431ad515ae9",
+    "docs/evidence/batch3-b35c/recipient-review/product-current.log": "f284927d5411230df6a6a2a72fc0baf1009a48ded7d33542fcd1200883f6b1a4",
+    "docs/evidence/batch3-b35c/recipient-review/r1.log": "33c535febd92ee833b493d32d8ca1add3c65e12f64a787ca40b28b1503306f52",
+    "docs/evidence/batch3-b35c/recipient-review/r1.xml": "5c1b385101e61bd98ea567dfee921c10ace5632fe63c813294517d08df0aeb68",
+    "docs/evidence/batch3-b35c/recipient-review/release-locked.log": "2efc821a2b4a80e5e8cdedd8793df4d90bf644a97934befb34e2db06a8a6a569",
+    "docs/evidence/batch3-b35c/recipient-review/sql-adaptation.diff": "535c184c98beefd176fc3412d18a5cf523b350471b0ee497b1558d019c1c20b3",
+    "docs/evidence/batch3-b35c/recipient-review/test_phase_protocol.py": "dc466d05331af90a264faa4eda18e3ee867550b80860353a3c3ef096ef907041",
+    "docs/evidence/batch3-b35c/recipient-review/workflow-02.log": "4f0b2f4eb17196d5086e8058d3ad0cd5e9074ec3fef0fe4b6f799979ae0af80b",
+    "docs/evidence/batch3-b35c/recipient-review/workflow-03.log": "9997962dc6286c8691d64b36ff7359c1abd01729f6559a419e754c5791e86453",
+    "docs/evidence/batch3-b35c/recipient-review/workflow-04.log": "97172065ebb73cab351e800c0fd98631a2ee62a6643ebb741d915b1404e1e02b",
+    "docs/evidence/batch3-b35c/recipient-review/workflow-results.json": "c7634916ee46d60f0b844f49c01cd901530322e1238cf96d035088b1b50f7255",
+    "docs/evidence/batch3-b35c/recipient-review/workflow.log": "b17888f9555da35859dd5534dc3b83e03baaac87559482fc387c12fed0518982"
+  },
+  "boundaries": {
+    "board_transitions": false,
+    "commits": false,
+    "credentials_modified": false,
+    "implementation_changes": false,
+    "installed_database_changes": false,
+    "issuer_execution": false,
+    "live_release_modified": false,
+    "paid_calls": 0,
+    "provider_network_calls": 0
+  },
+  "commands": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=evaluation:backend backend/.venv/bin/python -m pytest -q -p no:cacheprovider evaluation/test_study_integration.py -k 'sourceless_dependency_bytecode or actual_worker_rejects_pin' --basetemp /home/ubuntu/.hermes/cache/scratch/recipient-review-r1-20261030 --junitxml=docs/evidence/batch3-b35c/recipient-review/r1.xml",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/r1.log",
+      "result": "3 passed, 25 deselected; host and actual jailed child negatives"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python evaluation/run_live_study.py --credential-file /nonexistent/recipient-review-never-read --initial-phase-usd 2",
+      "exit_code": 1,
+      "log": "docs/evidence/batch3-b35c/recipient-review/release-locked.log",
+      "result": "Expected paid_execution_unreleased_t_e07c8870 before credential access; shell exit assertion succeeded"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python evaluation/install_recipient_funding.py verify",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/exact12-readonly.log",
+      "result": "12 exact identities verified read-only"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python docs/evidence/batch3-b35c/recipient-review/probe_workflow.py",
+      "exit_code": 1,
+      "log": "docs/evidence/batch3-b35c/recipient-review/workflow.log",
+      "result": "Review fixture error: mismatched stable goal caused source_changed"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python docs/evidence/batch3-b35c/recipient-review/probe_workflow.py",
+      "exit_code": 1,
+      "log": "docs/evidence/batch3-b35c/recipient-review/workflow-02.log",
+      "result": "Review fixture error: missing workspaces state"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python docs/evidence/batch3-b35c/recipient-review/probe_workflow.py",
+      "exit_code": 1,
+      "log": "docs/evidence/batch3-b35c/recipient-review/workflow-03.log",
+      "result": "Review fixture error: comparison used whole time-sensitive artifact DTO"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python docs/evidence/batch3-b35c/recipient-review/probe_workflow.py",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/workflow-04.log",
+      "result": "Real full-tool B1/M1 workers ready; FileBody episode2 blocker reproduced; immutable revision unchanged"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python docs/evidence/batch3-b35c/recipient-review/probe_installed_readonly.py",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/installed-readonly.log",
+      "result": "12 distinct physical recipients, 24 exact grants, raw12, all unfunded/zero response events"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python -m pytest -q -p no:cacheprovider docs/evidence/batch3-b35c/recipient-review/test_phase_protocol.py --basetemp /home/ubuntu/.hermes/cache/scratch/recipient-review-phase-20261030 --junitxml=docs/evidence/batch3-b35c/recipient-review/phase-unit.xml",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/phase-unit.log",
+      "result": "4 unit/mock orchestration cases passed; no database execution"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python evaluation/verify_recipient_product.py --label independent-review",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/product-current.log",
+      "result": "3 current exact-byte real product scenarios PASS; wire mocked; zero provider calls"
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 backend/.venv/bin/python evaluation/verify_live_installation.py",
+      "exit_code": 0,
+      "log": "docs/evidence/batch3-b35c/recipient-review/install-current.log",
+      "result": "7 current disposable installation/tool checks PASS"
+    },
+    {
+      "command": "diff -u .local/batch3/b35c/recipient-lane/recipient_funding.sql evaluation/recipient_funding.sql",
+      "exit_code": 1,
+      "log": "docs/evidence/batch3-b35c/recipient-review/sql-adaptation.diff",
+      "result": "Expected adaptation-only difference 8/50 to2/12 and error name"
+    }
+  ],
+  "current_installer_summary": {
+    "certificates": 0,
+    "checks": [
+      "atomic deny-all to inactive gate",
+      "exact retry unchanged",
+      "wrong OID denied",
+      "current-run zero-cost tool installation/readback",
+      "tool retry no duplicate account/grant",
+      "wrong workspace denied",
+      "grant hashes unchanged"
+    ],
+    "database": "workagent_test_92757d9368af",
+    "provider_calls": 0,
+    "scope": "disposable real product installation only",
+    "status": "PASS"
+  },
+  "current_product_summary": {
+    "blocked_socket_attempts": [],
+    "disposable_databases_retained_for_inspection": true,
+    "evidence": ".local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1",
+    "grants_per_database": 2,
+    "network_provider_calls": 0,
+    "official_metadata_simulated_on_wire": true,
+    "raw_ceiling_usd": "12.00",
+    "reservation": {
+      "input_tokens": 50000,
+      "output_tokens": 8192,
+      "usd": "0.206920"
+    },
+    "scenarios": [
+      {
+        "database": "workagent_test_23cc7788e77f",
+        "name": "inactive-activated",
+        "status": "PASS"
+      },
+      {
+        "database": "workagent_test_80765a83c246",
+        "name": "unknown-restart",
+        "status": "PASS"
+      },
+      {
+        "database": "workagent_test_37ab8aaca14f",
+        "name": "cross-workspace-concurrency",
+        "status": "PASS"
+      }
+    ],
+    "scope": "disposable full current product schema; no live provider or issuer execution",
+    "sql_sha256": "cf3d43e54be4459eb9cd8450a474d0c7118daf7f08661549e85ea0f0cbd6a207",
+    "status": "PASS",
+    "synthetic_route_and_certificate": true,
+    "verifier_sha256": "d2a0212721ffe36ecaf73b4cfee8e1e9195fa9010ceba90fbc8b806ad3ac40be"
+  },
+  "financial_calculations": {
+    "checkpoint_not_freshly_reconciled": true,
+    "hypothetical_incremental_initial_2_if_all12_begin_usd": "24",
+    "no_full_study_preallocation": true,
+    "prior_checkpoint_unallocated_usd": "31.9403000",
+    "reservation_usd": "0.20692"
+  },
+  "findings": [
+    {
+      "actual": "AttributeError: 'FileBody' object has no attribute 'blocks'",
+      "arms": [
+        "B1",
+        "M1"
+      ],
+      "blocking": true,
+      "evidence": [
+        "docs/evidence/batch3-b35c/recipient-review/workflow-results.json",
+        "docs/evidence/batch3-b35c/recipient-review/workflow-04.log"
+      ],
+      "expected": "ordinary authorized edit of emitted editable artifact, preserving human contribution",
+      "id": "F1",
+      "locations": [
+        "evaluation/study_application.py:163-172",
+        "evaluation/live_tool_authority.py:23-25",
+        "backend/workagent/capabilities/policy.py:38-44"
+      ],
+      "severity": "P1",
+      "title": "Tool-granted B1/M1 FileBody draft crashes document-only episode2 human edit"
+    }
+  ],
+  "generated_at": "2026-10-30T00:08:33.540588+00:00",
+  "head": "9fc1385c3c1631ee5ae37942167ed986ef0dd772",
+  "installed_summary": {
+    "issuer_certificates_not_queried": true,
+    "provider_calls": 0,
+    "scope": "exact12 identity and unfunded-state read-only; no issuer inspection",
+    "status": "PASS",
+    "verified_databases": 12,
+    "verified_grants": 24
+  },
+  "limitations": [
+    "No real issuer certificate issued or installed funded admission verified.",
+    "No unlocked driver or full real tool-granted72-episode campaign.",
+    "Current full-product verifier uses reply-only scripted outputs; workflow probe separately uses full tool schema.",
+    "Tool selector bootstrap and create-draft exercised, not every adapter or selector branch.",
+    "Mock phase retry does not clear controller unknown operations.",
+    "Failed probe attempts preserved; final probe code hash is for completed workflow-04 run."
+  ],
+  "live_acceptance": false,
+  "retained_evidence_reuse": {
+    "R2_R4_review_reopened": false,
+    "correction_review_reopened": false,
+    "current_product_verifier_hash": "d2a0212721ffe36ecaf73b4cfee8e1e9195fa9010ceba90fbc8b806ad3ac40be",
+    "minimal_pg_groups": 13,
+    "old_product_verifier_hash": "29eb9de2de8d8aad6b265bb57b04838606f99b6b75b2d7af8ff7048d967a6fa6",
+    "old_verifier_differs": true,
+    "response": "reran current exact-byte3 scenarios; did not treat old verifier as current",
+    "sql_matches": true
+  },
+  "retained_evidence_sha256": {
+    ".local/batch3/b35c/recipient-install-tests/449f0e7ba04a442bbb67a2972a82d7d9/summary.json": "1437c695d37523dd0cfb7916418a9bee032f400905b579e9bd63e42aa959fcfa",
+    ".local/batch3/b35c/recipient-install-tests/ede9fcc999344948aa4148d882a5de7f/summary.json": "5fa4d2b85e72127af6906b6d98754b778ac0180202d98a0e4bd6255a533293ae",
+    ".local/batch3/b35c/recipient-integration/minimal-2grants-01.log": "2721d852c000197c9e2fb89a2e62dc4046b282dd6ebb001c6da168afab01e8e3",
+    ".local/batch3/b35c/recipient-product/20261029T234614Z-full-product-af8634ec/summary.json": "a6f3467ff2242ab2c6a6d51a88db785c152294735e313c6d245dfd973b2eb141",
+    ".local/batch3/b35c/recipient-product/20261030T000409Z-independent-review-0f0971c1/summary.json": "eb9096f4c5fd01242e18ae25e0d2b8d3ad51fa5ae2f2049aba3c545089a9487e",
+    "docs/evidence/batch3-b35c/accounting-correction-review/CLOSURE.md": "85426b3ea09c64fa6b7208bbbddf93013c82c6785f810c9a8c3630a7897d0c92",
+    "docs/evidence/batch3-b35c/integration/CURRENT_HANDOFF.md": "222be40caf539ba0962bc09baa683505613a141ae44e38b9503db520364e6bf3",
+    "docs/evidence/batch3-b35c/integration/REVIEW_CLOSURE.md": "7810c3d6dfdc505a9c66c97f7e1a758fb6d1e150284ada3b93c921b3490beb86"
+  },
+  "reviewer": {
+    "development_billing": "outside product ledger, unreconciled",
+    "model": "GPT-6-Astra",
+    "provider": "openai-codex",
+    "within_run_independent": true
+  },
+  "schema": "independent-recipient-review-v1",
+  "scope_results": {
+    "exact_installer": "PASS disposable inactive bootstrap",
+    "full_live_study": "NOT ACCEPTED",
+    "installed_topology": "PASS exact read-only12/24 unfunded",
+    "live_driver": "PASS release-lock negative only",
+    "longitudinal_workflow": "FAIL F1",
+    "phase_bridge": "PASS mock orchestration only; real issuance not executed",
+    "recipient_gate": "PASS narrow real-PG/real-product wire-fixture scope",
+    "residual_R1": "PASS independent host/actual-child negatives"
+  },
+  "source_sha256": {
+    ".local/batch3/b35c/recipient-lane/recipient_funding.sql": "64d7bc49d4b9696fb5b8a92ba1ac460298ce8954b7838b6052759d2a6ab8bf0d",
+    "backend/migrations/074_run_output_resources.sql": "75b434a3f013b3e2cf0b3e2d4d96341c1d2dfb6b85d90ba3601b102ce40e13ad",
+    "backend/workagent/capabilities/file_adapters.py": "89a2dc4f23b57adeb620f8108f279d804aed56b8f15acc1ee274bf4097b20e95",
+    "backend/workagent/capabilities/models.py": "4f2082032e6793aa149d30208cba166f338b6cc85b9560888b1033ab02db63ec",
+    "backend/workagent/capabilities/policy.py": "715899073f4ed736f8a84253aa5e96c9bf0b733be52c5a5553bd5b568c6acb8e",
+    "backend/workagent/capabilities/registry.py": "9f071080dcdf48049f69f656d82cd1983414a5480926a3fabc52a4167dfd60f5",
+    "backend/workagent/conversations.py": "0c9b5b10e1b1a3d9f6031e90152cb474c97fa7b5cd57e3fe0bcc3977509a46b9",
+    "backend/workagent/general_worker.py": "3b04b0c45a5cd4ac8ac555a184629f17c90fecc10eb165227d3249c7ffd8d92f",
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965",
+    "evaluation/accounting_correction.sql": "d141fe3c1dc863a28a9852314f4d676dd9ba01a143734988d391e1b66d968f6e",
+    "evaluation/install_recipient_funding.py": "b60e3fe617584ed3a5d5abcffe06602af88efe5e6e329d1a48f5829496356785",
+    "evaluation/live_tool_authority.py": "75d8eee0736fdd58cdb34b26bfd75201a975ce7bd56795968aa9977f39de0943",
+    "evaluation/network_harness.py": "2aeb6fba0b114e4171596305b9662a47514cad1a8f9781728568eedda514e22f",
+    "evaluation/recipient_funding.sql": "cf3d43e54be4459eb9cd8450a474d0c7118daf7f08661549e85ea0f0cbd6a207",
+    "evaluation/run_live_study.py": "49f849358c17a03b0957a05afa3678a59dc348db31f79d86ac9d4ef2e6f5ec74",
+    "evaluation/study_application.py": "c5464388a73d473cfec9445dd2fb58e411d3127a5053e927713791b1ed24a217",
+    "evaluation/study_binding.py": "c48d89d2933732f6a0751f57feee7957a5cbdadd1a0af44ce0d60ce0fe57a7d2",
+    "evaluation/study_controller.py": "80be1f3d6c493dfc9f6d11d60ee45e9ce9cee345c5c879e9c3f8adb96ae98949",
+    "evaluation/study_diagnostic.py": "e6695e5f8c542fddef46ee4c68dff15dc4211dadbaff0a8a97558b9ee24725a6",
+    "evaluation/study_transport.py": "a5649372b3d7d209fba7abdf26ec83cdd0d99c0810e22c220b26f432778ce80c",
+    "evaluation/study_worker.py": "d445515fa75946c9f7c04fd8f81023e0bb2ae60f1bff28df483f149037369c6b",
+    "evaluation/test_study_integration.py": "36d14204648031a7dd1af76d78df2c0e4b665ae76311443980e9854ee5e4446a",
+    "evaluation/verify_live_installation.py": "3eea5cd6aae62689e5d2da56257f4735ec02aef69b081cee6d3e0f61f0ed53eb",
+    "evaluation/verify_recipient_funding.py": "907dc08610d78b824e80d83b1d8dce7b1dc83f26fcff6e160e6e653cc2116477",
+    "evaluation/verify_recipient_product.py": "d2a0212721ffe36ecaf73b4cfee8e1e9195fa9010ceba90fbc8b806ad3ac40be"
+  },
+  "verdict": "CHANGES_REQUIRED",
+  "workflow_results": {
+    "evidence": ".local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8",
+    "provider_calls": 0,
+    "results": [
+      {
+        "arm": "B1",
+        "artifact_body_type": "FileBody",
+        "artifact_unchanged": true,
+        "database": "workagent_test_be2da899474f",
+        "dispatches": 3,
+        "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+        "full_tool_schema": true,
+        "legacy_effects_denied": true,
+        "memory_mode": "off",
+        "network_provider_calls": 0,
+        "retained_usd": "0.01125000000000000000",
+        "simulated_wire_calls": 6,
+        "tool_capabilities": [
+          "context.read",
+          "files.inspect_json",
+          "capabilities.discover_legacy",
+          "procedures.load_legacy",
+          "files.list",
+          "files.read_range",
+          "files.create_draft",
+          "files.propose_patch",
+          "files.compare",
+          "artifacts.export",
+          "research.capture",
+          "research.cite"
+        ],
+        "tool_granted": true,
+        "worker_state": "ready"
+      },
+      {
+        "arm": "M1",
+        "artifact_body_type": "FileBody",
+        "artifact_unchanged": true,
+        "database": "workagent_test_c987b5a4365a",
+        "dispatches": 3,
+        "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+        "full_tool_schema": true,
+        "legacy_effects_denied": true,
+        "memory_mode": "reviewed-v1",
+        "network_provider_calls": 0,
+        "retained_usd": "0.01125000000000000000",
+        "simulated_wire_calls": 6,
+        "tool_capabilities": [
+          "context.read",
+          "files.inspect_json",
+          "capabilities.discover_legacy",
+          "procedures.load_legacy",
+          "files.list",
+          "files.read_range",
+          "files.create_draft",
+          "files.propose_patch",
+          "files.compare",
+          "artifacts.export",
+          "research.capture",
+          "research.cite"
+        ],
+        "tool_granted": true,
+        "worker_state": "ready"
+      }
+    ],
+    "scope": "fresh real product DB, actual full-tool worker, scripted official HTTP wire; not live study",
+    "status": "BLOCKER_REPRODUCED"
+  },
+  "workspace": "/home/ubuntu/workagent-continuation-20261026"
+}
