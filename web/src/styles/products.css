@@ -1103,6 +1103,24 @@ textarea.fit-text {
   flex-direction: column;
   align-items: stretch;
 }
+/* A row's state reads first; one the service hasn't confirmed lately, or
+   whose access has ended, is marked in the warning ink. */
+.connector-state {
+  font-weight: 600;
+}
+.connector-row[data-stale] .connector-state,
+.connector-row[data-expired] .connector-state {
+  color: var(--warn-ink);
+}
+/* Focus moved by the panel (to its heading, the consent step or a row's
+   state) shows a ring only for the keyboard. */
+.connector-panel [tabindex="-1"]:focus:not(:focus-visible) {
+  outline: none;
+}
+.connector-panel [tabindex="-1"]:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
 .connector-row-main {
   display: flex;
   flex-direction: column;

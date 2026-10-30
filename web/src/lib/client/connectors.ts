@@ -329,6 +329,13 @@ export interface ConnectorView {
   readonly flow: AuthorizationFlow | null;
   readonly busy: Intent | null;
   readonly notice: Notice | null;
+  /** When the service last confirmed each shown status, by connector id. */
+  readonly confirmedAt?: Readonly<Record<string, string>>;
+  /**
+   * Set when a read failed after items were shown: anything not confirmed
+   * since then is stale and must not be presented as current.
+   */
+  readonly staleSince?: string | null;
 }
 
 const EMPTY: ConnectorView = Object.freeze({
@@ -338,7 +345,20 @@ const EMPTY: ConnectorView = Object.freeze({
   flow: null,
   busy: null,
   notice: null,
+  confirmedAt: Object.freeze({}),
+  staleSince: null,
 });
+
+/** Marks these statuses as confirmed by the service just now. */
+function confirmed(
+  at: Readonly<Record<string, string>> | undefined,
+  ids: readonly string[],
+): Readonly<Record<string, string>> {
+  const now = new Date().toISOString();
+  const out = { ...(at ?? {}) };
+  for (const id of ids) out[id] = now;
+  return Object.freeze(out);
+}
 
 /**
  * The panel's state outside React. Every read and write is stamped with the
@@ -415,7 +435,17 @@ export class ConnectorController {
           return p ? merge([p], s)[0]! : s;
         }),
       );
-      this.set({ items, loading: false, notice: this.keepNotice() });
+      this.set({
+        items,
+        loading: false,
+        notice: this.keepNotice(),
+        // Only what was just listed counts as confirmed.
+        confirmedAt: confirmed(
+          {},
+          items.map((s) => s.connector_id),
+        ),
+        staleSince: null,
+      });
     } catch (e) {
       if (!this.current(ws, gen)) return;
       this.failed(e, null);
@@ -446,11 +476,18 @@ export class ConnectorController {
         busy: null,
         loading: false,
         notice: { kind: "denied" },
+        confirmedAt: Object.freeze({}),
+        staleSince: null,
       });
       return;
     }
     if (!action) {
-      this.set({ loading: false, notice: { kind: "unreadable" } });
+      // Whatever is still shown is now only what was last confirmed.
+      this.set({
+        loading: false,
+        notice: { kind: "unreadable" },
+        staleSince: new Date().toISOString(),
+      });
       return;
     }
     if (err?.code === "version_conflict") {
@@ -522,6 +559,7 @@ export class ConnectorController {
           flow: null,
           busy: null,
           items: merge(this.view.items, status),
+          confirmedAt: confirmed(this.view.confirmedAt, [status.connector_id]),
         });
         void this.readback(status.connector_id);
       },
@@ -535,7 +573,11 @@ export class ConnectorController {
       `revoke:${id}`,
       (ws, key) => this.api.revoke(ws, id, status.access_generation, key),
       (next) => {
-        this.set({ busy: null, items: merge(this.view.items, next) });
+        this.set({
+          busy: null,
+          items: merge(this.view.items, next),
+          confirmedAt: confirmed(this.view.confirmedAt, [id]),
+        });
         void this.readback(id);
       },
     );
@@ -549,7 +591,10 @@ export class ConnectorController {
     try {
       const s = await this.api.status(ws, id);
       if (!this.current(ws, gen)) return;
-      this.set({ items: merge(this.view.items, s) });
+      this.set({
+        items: merge(this.view.items, s),
+        confirmedAt: confirmed(this.view.confirmedAt, [id]),
+      });
     } catch (e) {
       if (!this.current(ws, gen)) return;
       this.failed(e, null);

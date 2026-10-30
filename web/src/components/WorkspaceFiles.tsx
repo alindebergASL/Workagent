@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type Ref, useCallback, useEffect, useRef, useState } from "react";
 import { newCommandId } from "@/lib/client/api";
 import { ApiError, describeError } from "@/lib/contract/errors";
 import { usePendingCommand } from "@/lib/client/pending-command";
@@ -109,6 +109,16 @@ export function WorkspaceFiles({
   const [page, setPage] = useState<WorkspaceFilePage | null>(null);
   const [listError, setListError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  // The control that opened a file (e.g. "Open the created copy") leaves
+  // with the old editor, so focus moves to the newly opened editor's heading.
+  const focusOpened = useRef<string | null>(null);
+  const editorHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (focusOpened.current === null || focusOpened.current !== selected)
+      return;
+    focusOpened.current = null;
+    editorHeading.current?.focus();
+  }, [selected]);
 
   const refresh = useCallback(async () => {
     try {
@@ -138,6 +148,7 @@ export function WorkspaceFiles({
           status: 0,
           message: problem,
         });
+      focusOpened.current = target.workspace_file_id;
       setSelected(target.workspace_file_id);
     },
     [ws, cid],
@@ -200,6 +211,7 @@ export function WorkspaceFiles({
           workVersion={workVersion}
           refreshList={refresh}
           openFile={openFile}
+          headingRef={editorHeading}
         />
       ) : null}
       <FileCreator
@@ -475,12 +487,14 @@ function FileEditor({
       message: "Opening another file is not available here.",
     });
   },
+  headingRef,
 }: {
   ws: string;
   file: WorkspaceFile;
   workVersion: number;
   refreshList: () => Promise<void>;
   openFile?: (target: WorkspaceFile) => Promise<void>;
+  headingRef?: Ref<HTMLHeadingElement>;
 }) {
   // The editor is pinned to the exact version it loaded; a newer current
   // version arriving later is announced via the list, never swapped under an
@@ -716,7 +730,13 @@ function FileEditor({
       aria-label={`File ${file.filename}`}
       style={FIT}
     >
-      <h3 className="small" style={WRAP}>
+      <h3
+        ref={headingRef}
+        tabIndex={-1}
+        className="small"
+        style={WRAP}
+        data-testid="file-editor-heading"
+      >
         {file.filename}
       </h3>
       {file.office_provenance ? (

@@ -1349,7 +1349,10 @@ describe("office export choices and chart parameters (B3.2b)", () => {
     expect(textOf(byTestId(inst, "export-saved-only"))).toMatch(
       /not your unsaved edit/,
     );
-    expect(textOf(exportButton(inst))).toBe("Export saved version v1");
+    // The button names its file for screen readers (visually hidden text).
+    expect(textOf(exportButton(inst))).toBe(
+      "Export saved version v1 of sales.csv",
+    );
     await choosePngChart(w, inst);
     click(exportButton(inst));
     await w.settle();

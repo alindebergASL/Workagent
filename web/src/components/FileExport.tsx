@@ -95,6 +95,36 @@ export const BTN: React.CSSProperties = {
 const short = (id: string) => (id.length > 12 ? `${id.slice(0, 12)}…` : id);
 
 /**
+ * Busy, not disabled: a disabled button drops keyboard focus to <body>, so a
+ * pressed button stays focusable and ignores presses while unavailable.
+ */
+function hold(unavailable: boolean, act: () => void) {
+  return {
+    "aria-disabled": unavailable || undefined,
+    onClick: () => {
+      if (!unavailable) act();
+    },
+  };
+}
+
+/** Moves focus to `target` after the next commit, once it can take focus. */
+function useFocusAfterCommit<T extends HTMLElement>() {
+  const target = useRef<T>(null);
+  const due = useRef(false);
+  useEffect(() => {
+    if (!due.current) return;
+    due.current = false;
+    target.current?.focus();
+  });
+  return {
+    target,
+    request: () => {
+      due.current = true;
+    },
+  };
+}
+
+/**
  * Export of the exact SAVED version the editor holds (an editable working
  * file or an immutable source snapshot). Unsaved editor text is never read,
  * sent or cleared here. Each export is journaled before the POST; an unknown
@@ -140,6 +170,12 @@ export function FileExport({
     manifest: ExportManifest;
   } | null>(null);
   const [downloaded, setDownloaded] = useState<string | null>(null);
+  // The held export was answered, but the answer failed readback. Replaying
+  // the same command gets the same answer, so only a discard moves on.
+  const [mismatch, setMismatch] = useState(false);
+  // One always-mounted status region; its text is each outcome in turn.
+  const [status, setStatus] = useState("");
+  const exportFocus = useFocusAfterCommit<HTMLButtonElement>();
   const pending = usePendingCommand<ExportFile>(
     `workagent:file-export:${fileId}`,
   );
@@ -150,6 +186,11 @@ export function FileExport({
 
   const held = pending.current;
   const heldReplayable = held !== null && isReplayableExport(held);
+  const heldMismatch = heldReplayable && mismatch;
+  // A result belongs to the saved version it exported: saving a newer
+  // version retires it (and its Download) instead of offering stale bytes.
+  const shown =
+    done && saved && done.body.version_id === saved.version_id ? done : null;
   const problem = saved
     ? exportProblem(format, table, chart)
     : "Waiting for the saved version to load.";
@@ -158,6 +199,7 @@ export function FileExport({
     setBusy(true);
     setError(null);
     setDownloaded(null);
+    setStatus("");
     try {
       const out = await runJournaled<ExportFile, ExportManifest>(pending, {
         everUnknown: unknownOutcome,
@@ -174,13 +216,22 @@ export function FileExport({
       if (out.kind === "done") {
         setDone({ body: out.body, manifest: out.result });
         setUnknownOutcome(false);
+        setMismatch(false);
+        setStatus(
+          `Export of saved version ${short(out.body.version_id)} is ready: ${out.result.filename}, ${out.result.blob.byte_length.toLocaleString()} bytes.`,
+        );
       } else if (out.kind === "mismatch") {
         setDone(null);
         setUnknownOutcome(false);
+        setMismatch(true);
         setError(`${out.message} Nothing is offered for download.`);
+        setStatus(
+          "The export’s answer did not match the request; nothing is offered for download.",
+        );
       } else if (out.kind === "failed") {
         setError(errText(out.error));
         setUnknownOutcome(out.unknownOutcome);
+        setMismatch(false);
       } else if (out.kind === "invalid") setError(problem);
     } finally {
       if (alive.current) setBusy(false);
@@ -205,12 +256,36 @@ export function FileExport({
         setTimeout(() => URL.revokeObjectURL(url), 30000);
       }
       setDownloaded(m.export_id);
+      setStatus(`Bytes matched; download of ${m.filename} started.`);
     } catch (e) {
       setError(errText(e));
     } finally {
-      setBusy(false);
+      if (alive.current) setBusy(false);
     }
   }
+
+  // The discard button sits inside the notice it removes, so focus moves on
+  // to the export button (enabled again once the journal is empty).
+  function discardHeld() {
+    pending.set(null);
+    setUnknownOutcome(false);
+    setMismatch(false);
+    setError(null);
+    setStatus("The stored export request was discarded. You can export again.");
+    exportFocus.request();
+  }
+  const discardButton = (
+    <button
+      type="button"
+      className="btn btn-sm btn-quiet"
+      style={BTN}
+      data-testid="export-discard"
+      {...hold(busy, discardHeld)}
+    >
+      Discard that stored request
+      <span className="sr-only"> for exporting {file.filename}</span>
+    </button>
+  );
 
   const setSpec = (patch: Partial<ChartSpec>) =>
     setChart((c) => (c ? { ...c, ...patch } : c));
@@ -223,21 +298,23 @@ export function FileExport({
       {held !== null && !heldReplayable ? (
         <p className="hint" role="alert" style={WRAP}>
           An export request stored by an earlier session could not be read, so
-          it was not resent.{" "}
-          <button
-            type="button"
-            className="btn btn-sm btn-quiet"
-            style={BTN}
-            onClick={() => {
-              pending.set(null);
-              setUnknownOutcome(false);
-            }}
-          >
-            Discard that stored request
-          </button>
+          it was not resent. {discardButton}
         </p>
       ) : null}
-      {heldReplayable ? (
+      {heldMismatch ? (
+        <p
+          className="hint"
+          data-testid="export-held"
+          data-mismatch="true"
+          style={WRAP}
+        >
+          An export of saved version {short(held.version_id)} as{" "}
+          {FORMAT_LABELS[held.format]} was answered, but the answer did not
+          match the request, so nothing is offered for download. Retrying would
+          get the same answer; discard the stored request to export again.{" "}
+          {discardButton}
+        </p>
+      ) : heldReplayable ? (
         <p className="hint" data-testid="export-held">
           An export of saved version {short(held.version_id)} as{" "}
           {FORMAT_LABELS[held.format]}
@@ -360,20 +437,24 @@ export function FileExport({
       ) : null}
       <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
         <button
+          ref={exportFocus.target}
           type="button"
           className="btn btn-sm"
           style={BTN}
-          onClick={() => void exportNow()}
+          data-testid="export-button"
+          // Only states never entered by pressing this button disable it;
+          // busy and a mismatched journal keep it focusable.
           disabled={
-            busy ||
-            (held !== null ? !heldReplayable : Boolean(problem) || !saved)
+            held !== null ? !heldReplayable : Boolean(problem) || !saved
           }
+          {...hold(busy || heldMismatch, () => void exportNow())}
         >
           {busy
             ? "Exporting…"
-            : heldReplayable
+            : heldReplayable && !heldMismatch
               ? "Retry the same export"
               : `Export saved version${saved ? ` ${short(saved.version_id)}` : ""}`}
+          <span className="sr-only"> of {file.filename}</span>
         </button>
       </div>
       {dirty ? (
@@ -382,13 +463,13 @@ export function FileExport({
           stays in the editor; save it first to export it.
         </p>
       ) : null}
-      {done ? (
+      {shown ? (
         <ExportResult
-          body={done.body}
-          m={done.manifest}
+          body={shown.body}
+          m={shown.manifest}
           busy={busy}
-          downloaded={downloaded === done.manifest.export_id}
-          onDownload={() => void download(done.manifest)}
+          downloaded={downloaded === shown.manifest.export_id}
+          onDownload={() => void download(shown.manifest)}
         />
       ) : null}
       {error ? (
@@ -404,7 +485,11 @@ export function FileExport({
         file={file}
         workVersion={workVersion}
         openFile={openFile}
+        announce={setStatus}
       />
+      <p className="sr-only" role="status" data-testid="export-outcome">
+        {status}
+      </p>
     </div>
   );
 }
@@ -439,9 +524,9 @@ function ExportResult({
       data-format={m.format}
       style={FIT}
     >
-      <p className="small" style={WRAP}>
-        {m.filename} · {FORMAT_LABELS[m.format]} ·{" "}
-        {m.blob.byte_length.toLocaleString()} bytes
+      <p className="small" style={WRAP} data-testid="export-result-line">
+        Saved version {short(body.version_id)} → {m.filename} ·{" "}
+        {FORMAT_LABELS[m.format]} · {m.blob.byte_length.toLocaleString()} bytes
       </p>
       <p className="small muted">{annotationsText(m)}</p>
       <div className="row">
@@ -449,13 +534,14 @@ function ExportResult({
           type="button"
           className="btn btn-sm"
           style={BTN}
-          onClick={onDownload}
-          disabled={busy}
+          data-testid="export-download"
+          {...hold(busy, onDownload)}
         >
-          Download (bytes checked against SHA-256)
+          Download<span className="sr-only"> {m.filename}</span> (bytes checked
+          against SHA-256)
         </button>
         {downloaded ? (
-          <span className="small muted">Downloaded; bytes matched.</span>
+          <span className="small muted">Bytes matched; download started.</span>
         ) : null}
       </div>
       <details style={WRAP}>
@@ -541,15 +627,23 @@ export function EditableCopyAction({
   file,
   workVersion,
   openFile,
+  announce,
 }: {
   ws: string;
   file: WorkspaceFile;
   workVersion: number;
   openFile: (target: WorkspaceFile) => Promise<void>;
+  /** The surrounding panel's status region, when there is one. */
+  announce?: (text: string) => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unknownOutcome, setUnknownOutcome] = useState(false);
+  // A known answer that failed a definite check: "readback" fails the same
+  // way every time (no retry); "open" (e.g. the copy has a newer version)
+  // may clear on retry. Either way the person may discard the journal.
+  const [stuck, setStuck] = useState<"readback" | "open" | null>(null);
+  const copyFocus = useFocusAfterCommit<HTMLButtonElement>();
   const offer = canOfferEditableCopy(file);
   const key = `workagent:office-draft:${ws}:${file.conversation_id}:${file.workspace_file_id}`;
   const pending = usePendingCommand<ImportOfficeDraft>(offer ? key : null);
@@ -562,6 +656,33 @@ export function EditableCopyAction({
   useEffect(() => {
     if (pending.restored) setUnknownOutcome(true);
   }, [pending.restored]);
+
+  // The discard button sits inside the notice it removes, so focus moves on
+  // to the copy button (enabled again once the journal is empty). A copy
+  // that was already made stays in the file list.
+  function discard() {
+    known.set(null);
+    pending.set(null);
+    setUnknownOutcome(false);
+    setStuck(null);
+    setError(null);
+    announce?.(
+      "The stored copy request was discarded. Any copy already made stays in the file list.",
+    );
+    copyFocus.request();
+  }
+  const discardButton = (
+    <button
+      type="button"
+      className="btn btn-sm btn-quiet"
+      style={BTN}
+      data-testid="copy-discard"
+      {...hold(busy, discard)}
+    >
+      Discard that stored request
+      <span className="sr-only"> for a copy of {file.filename}</span>
+    </button>
+  );
 
   if (isImageMime(file.mime_type))
     return (
@@ -577,9 +698,12 @@ export function EditableCopyAction({
   const result = known.current;
   // A stored result without its exact command can't be verified: discard only.
   const orphan = result !== null && !heldReplayable;
+  // Stuck only while that same answer is still held.
+  const stuckNow = heldReplayable && result !== null ? stuck : null;
   async function run() {
     setBusy(true);
     setError(null);
+    setStuck(null);
     try {
       if (orphan || (held !== null && !heldReplayable)) return;
       let body = held;
@@ -625,13 +749,18 @@ export function EditableCopyAction({
         conversationId: file.conversation_id,
       });
       if (problem) {
-        setError(`${problem} The request stays recorded and is not re-sent.`);
+        setError(
+          `${problem} The request stays recorded and is not re-sent; checking again gives the same answer, so discard it to start over.`,
+        );
+        setStuck("readback");
         return;
       }
       try {
         await openFile(answer);
       } catch (e) {
         if (!alive.current) return;
+        // A local integrity refusal (status 0) is a definite check failure.
+        if (e instanceof ApiError && e.status === 0) setStuck("open");
         setError(
           `${errText(e)} The copy was created; retry opens that same copy without creating another.`,
         );
@@ -662,24 +791,15 @@ export function EditableCopyAction({
       {(held !== null && !heldReplayable) || orphan ? (
         <p className="hint" role="alert" style={WRAP}>
           A stored copy request could not be read, so it was not resent.{" "}
-          <button
-            type="button"
-            className="btn btn-sm btn-quiet"
-            style={BTN}
-            onClick={() => {
-              known.set(null);
-              pending.set(null);
-              setUnknownOutcome(false);
-            }}
-          >
-            Discard that stored request
-          </button>
+          {discardButton}
         </p>
       ) : null}
       {heldReplayable && result !== null ? (
         <p className="hint" data-testid="copy-known">
-          The copy {result.filename} was created but is not open yet. Retry
-          checks and opens that same copy; no second copy is made.
+          The copy {result.filename} was created but is not open yet.{" "}
+          {stuckNow === "readback"
+            ? "It failed the check, so it is not opened from here."
+            : "Retry checks and opens that same copy; no second copy is made."}
         </p>
       ) : heldReplayable ? (
         <p className="hint">
@@ -690,11 +810,14 @@ export function EditableCopyAction({
       ) : null}
       <div className="row">
         <button
+          ref={copyFocus.target}
           type="button"
           className="btn btn-sm"
           style={BTN}
-          onClick={() => void run()}
-          disabled={busy || orphan || (held !== null && !heldReplayable)}
+          data-testid="copy-button"
+          // Unreadable journals come from storage, never from this press.
+          disabled={orphan || (held !== null && !heldReplayable)}
+          {...hold(busy || stuckNow === "readback", () => void run())}
         >
           {busy
             ? "Creating…"
@@ -703,6 +826,7 @@ export function EditableCopyAction({
               : heldReplayable
                 ? "Retry the same copy"
                 : "Create editable copy"}
+          <span className="sr-only"> of {file.filename}</span>
         </button>
       </div>
       {error ? (
@@ -711,6 +835,7 @@ export function EditableCopyAction({
           {unknownOutcome
             ? " The copy may or may not have been made. Retry replays the exact same request."
             : null}
+          {stuckNow ? <> {discardButton}</> : null}
         </p>
       ) : null}
     </div>

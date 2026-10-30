@@ -10,9 +10,15 @@ export default function ConnectionsPage() {
       {API_MODE === "real" ? (
         <ConnectorPanel wsId={workspace?.id ?? null} zone={zone} />
       ) : (
-        <p className="connector-muted" role="note">
-          Connections need the local service; this demonstration has none.
-        </p>
+        <section
+          className="connector-panel"
+          aria-labelledby="connector-heading"
+        >
+          <h1 id="connector-heading">Connections</h1>
+          <p className="connector-muted" role="note">
+            Connections need the local service; this demonstration has none.
+          </p>
+        </section>
       )}
     </div>
   );
