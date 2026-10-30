@@ -4,6 +4,8 @@ import { client, unwrap, meta } from "@/lib/client/real-api";
 import {
   computeReceipt,
   DOWNLOAD_WITHDRAWN,
+  inertNotes,
+  inertStream,
   isComputeAttempt,
   receiptKey,
   withdrawReceipt,
@@ -16,6 +18,16 @@ import { ComputeReceipt } from "./ComputeReceipt";
 import { GitHubReceipt } from "./GitHubReceipt";
 import { githubReceipt, isGitHubAttempt } from "@/lib/github-receipt";
 import { describeError } from "@/lib/contract/errors";
+
+/** Busy, not disabled: a disabled button drops keyboard focus. */
+function held(busy: boolean, act: () => void) {
+  return {
+    "aria-disabled": busy || undefined,
+    onClick: () => {
+      if (!busy) act();
+    },
+  };
+}
 
 /**
  * Secondary, on-demand view of recorded tool attempts for one run. Loads when
@@ -37,6 +49,11 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
   const [withdrawn, setWithdrawn] = useState<Withdrawn>(new Map());
   const requests = useRef(scopedRequests());
   const details = useRef<HTMLDetailsElement>(null);
+  const moreBtn = useRef<HTMLButtonElement>(null);
+  const refreshBtn = useRef<HTMLButtonElement>(null);
+  // Receipt key whose withdrawal notice should take focus when it mounts
+  // (its download button, which had focus, is gone).
+  const focusWithdrawn = useRef<string | null>(null);
   const scopeKey = `${ws}\u0000${runId}`;
 
   async function load(after: string | null) {
@@ -70,6 +87,13 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
             : page.items,
       }));
       setNextAfter(page.next_after ?? null);
+      // Show more vanishes on the last page; keep focus on the controls.
+      if (
+        after &&
+        !page.next_after &&
+        document.activeElement === moreBtn.current
+      )
+        refreshBtn.current?.focus();
       // Only an explicit successful refresh restores withdrawn receipts.
       if (after === null) setWithdrawn(new Map());
     } catch (e) {
@@ -123,6 +147,15 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
       }}
     >
       <summary>Tool activity</summary>
+      <p className="sr-only" role="status" data-testid="tool-activity-status">
+        {loading
+          ? "Loading tool activity…"
+          : items !== null
+            ? `${rows.length} tool call${rows.length === 1 ? "" : "s"} shown${
+                nextAfter ? "; more available" : ""
+              }.`
+            : ""}
+      </p>
       <div className="stack-sm" style={{ marginTop: 8 }}>
         <p className="small muted">
           Recorded tool calls for the latest run, as the tool adapter observed
@@ -140,77 +173,98 @@ export function ToolActivity({ ws, runId }: { ws: string; runId: string }) {
           </p>
         ) : null}
         <ul className="stack-sm" style={{ listStyle: "none", padding: 0 }}>
-          {rows.map((r) => (
-            <li
-              key={r.attemptId}
-              className="card card-quiet"
-              style={{ minWidth: 0, overflowWrap: "anywhere" }}
-            >
-              <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
-                <strong className="small">{r.capability}</strong>
-                <span
-                  className={`small ${r.tone === "ok" ? "muted" : ""}`}
-                  data-tone={r.tone}
-                >
-                  {r.stateLabel}
-                </span>
-              </div>
-              {r.errorLabel ? <p className="small">{r.errorLabel}</p> : null}
-              {withdrawn.has(receiptKey(ws, runId, r.attemptId)) ? (
-                <p
-                  className="hint"
-                  role="alert"
-                  data-testid="receipt-withdrawn"
-                >
-                  {DOWNLOAD_WITHDRAWN}{" "}
-                  {withdrawn.get(receiptKey(ws, runId, r.attemptId))}
-                </p>
-              ) : receipts.has(r.attemptId) ? (
-                <ComputeReceipt
-                  key={`${scopeKey}:${r.attemptId}`}
-                  ws={ws}
-                  receipt={receipts.get(r.attemptId)!}
-                  onInvalidate={(reason) => {
-                    // Bound to the scope this receipt was rendered under; a
-                    // late callback for an older scope cannot mark the new one.
-                    const key = receiptKey(ws, runId, r.attemptId);
-                    setWithdrawn((w) => withdrawReceipt(w, key, reason));
-                  }}
-                />
-              ) : github.has(r.attemptId) ? (
-                <GitHubReceipt
-                  key={`${scopeKey}:${r.attemptId}`}
-                  receipt={github.get(r.attemptId)!}
-                />
-              ) : null}
-              {r.costLine ? <p className="small muted">{r.costLine}</p> : null}
-              {r.truncated ? (
-                <p className="small muted">Recorded output was truncated.</p>
-              ) : null}
-              {r.omissions.length > 0 ? (
-                <p className="small muted">
-                  Not shown: {r.omissions.join("; ")}
-                </p>
-              ) : null}
-            </li>
-          ))}
+          {rows.map((r, i) => {
+            const rk = receiptKey(ws, runId, r.attemptId);
+            // Names this call for assistive tech in repeated controls.
+            const context = `${r.capability}, call ${i + 1}`;
+            return (
+              <li
+                key={r.attemptId}
+                className="card card-quiet"
+                style={{ minWidth: 0, overflowWrap: "anywhere" }}
+              >
+                <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+                  <strong className="small">{r.capability}</strong>
+                  <span
+                    className={`small ${r.tone === "ok" ? "muted" : ""}`}
+                    data-tone={r.tone}
+                  >
+                    {r.stateLabel}
+                  </span>
+                </div>
+                {r.errorLabel ? (
+                  <p className="small">{inertStream(r.errorLabel).text}</p>
+                ) : null}
+                {withdrawn.has(rk) ? (
+                  <p
+                    className="hint"
+                    role="alert"
+                    data-testid="receipt-withdrawn"
+                    tabIndex={-1}
+                    ref={(el) => {
+                      // Take focus only if it fell to the page with the
+                      // removed button; never steal it from elsewhere.
+                      if (!el || focusWithdrawn.current !== rk) return;
+                      focusWithdrawn.current = null;
+                      const at = document.activeElement;
+                      if (!at || at === document.body) el.focus();
+                    }}
+                  >
+                    {DOWNLOAD_WITHDRAWN} {withdrawn.get(rk)}
+                  </p>
+                ) : receipts.has(r.attemptId) ? (
+                  <ComputeReceipt
+                    key={`${scopeKey}:${r.attemptId}`}
+                    ws={ws}
+                    receipt={receipts.get(r.attemptId)!}
+                    context={context}
+                    onInvalidate={(reason) => {
+                      // Bound to the scope this receipt was rendered under; a
+                      // late callback for an older scope cannot mark the new one.
+                      focusWithdrawn.current = rk;
+                      setWithdrawn((w) => withdrawReceipt(w, rk, reason));
+                    }}
+                  />
+                ) : github.has(r.attemptId) ? (
+                  <GitHubReceipt
+                    key={`${scopeKey}:${r.attemptId}`}
+                    receipt={github.get(r.attemptId)!}
+                    context={context}
+                  />
+                ) : null}
+                {r.costLine ? (
+                  <p className="small muted">{r.costLine}</p>
+                ) : null}
+                {r.truncated ? (
+                  <p className="small muted">Recorded output was truncated.</p>
+                ) : null}
+                {r.omissions.length > 0 ? (
+                  <p className="small muted">
+                    Not shown: {inertNotes(r.omissions)}
+                  </p>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
         <div className="row">
           {nextAfter ? (
             <button
+              ref={moreBtn}
               type="button"
               className="btn btn-sm"
-              onClick={() => void load(nextAfter)}
-              disabled={loading}
+              {...held(loading, () => void load(nextAfter))}
             >
               Show more
             </button>
           ) : null}
+          {/* Always mounted and never disabled, so focus stays here even
+              when a refresh clears every row. */}
           <button
+            ref={refreshBtn}
             type="button"
             className="btn btn-sm btn-quiet"
-            onClick={() => void load(null)}
-            disabled={loading}
+            {...held(loading, () => void load(null))}
           >
             {loading ? "Loading…" : "Refresh"}
           </button>

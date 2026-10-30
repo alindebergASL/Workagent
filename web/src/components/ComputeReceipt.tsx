@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { downloadVerifiedExport } from "@/lib/client/workspace-files";
 import { describeError } from "@/lib/contract/errors";
 import {
+  inertNotes,
   inertStream,
   type ComputeDownload,
   type ComputeReceipt as Receipt,
@@ -19,14 +20,40 @@ const PRE: CSSProperties = {
 };
 const WRAP: CSSProperties = { overflowWrap: "anywhere", minWidth: 0 };
 
+/** Busy, not disabled: a disabled button drops keyboard focus. */
+function held(busy: boolean, act: () => void) {
+  return {
+    "aria-disabled": busy || undefined,
+    onClick: () => {
+      if (!busy) act();
+    },
+  };
+}
+
 /** Untrusted output as a plain text node — never Markdown or HTML. */
-function Stream({ label, value }: { label: string; value: string }) {
+function Stream({
+  label,
+  value,
+  context,
+}: {
+  label: string;
+  value: string;
+  context: string;
+}) {
   if (value === "") return <p className="small muted">{label}: (empty)</p>;
   const { text, clipped } = inertStream(value);
   return (
     <div style={WRAP}>
       <p className="small muted">{label}</p>
-      <pre style={PRE}>{text}</pre>
+      {/* Scrollable, so keyboard reachable and named per stream and call. */}
+      <pre
+        style={PRE}
+        tabIndex={0}
+        role="region"
+        aria-label={`${label}, ${context}`}
+      >
+        {text}
+      </pre>
       {clipped ? (
         <p className="small muted">Display clipped; the receipt holds more.</p>
       ) : null}
@@ -41,14 +68,19 @@ function Stream({ label, value }: { label: string; value: string }) {
 export function ComputeReceipt({
   ws,
   receipt,
+  context = "compute.python",
   onInvalidate,
 }: {
   ws: string;
   receipt: Receipt;
+  /** Names this call for assistive tech, e.g. "compute.python, call 2". */
+  context?: string;
   /** Withdraw this receipt (output and file controls) after a failed download. */
   onInvalidate: (reason: string) => void;
 }) {
   const [busy, setBusy] = useState<string | null>(null);
+  // Always-mounted status text; a verified download is announced here.
+  const [announce, setAnnounce] = useState("");
   // The parent remounts this per workspace+run+refresh; a download that
   // settles after unmount is never offered or reported.
   const alive = useRef(true);
@@ -61,6 +93,7 @@ export function ComputeReceipt({
 
   async function download(d: ComputeDownload) {
     setBusy(d.exportId);
+    setAnnounce("");
     try {
       const bytes = await downloadVerifiedExport(ws, d.exportId, {
         kind: "generated_blob",
@@ -77,6 +110,7 @@ export function ComputeReceipt({
         a.download = d.filename;
         a.rel = "noopener";
         a.click();
+        setAnnounce(`Bytes matched; download started: ${d.filename}`);
       } finally {
         setTimeout(() => URL.revokeObjectURL(url), 30000);
       }
@@ -96,7 +130,7 @@ export function ComputeReceipt({
       <div className="stack-sm" style={WRAP} data-testid="compute-receipt">
         {receipt.kind === "unavailable" ? (
           receipt.omissions.length > 0 ? (
-            <p className="small muted">{receipt.omissions.join("; ")}</p>
+            <p className="small muted">{inertNotes(receipt.omissions)}</p>
           ) : null
         ) : (
           <p className="small">{receipt.reason}</p>
@@ -112,9 +146,9 @@ export function ComputeReceipt({
           ? "The code ran and exited cleanly. That is a record of execution, not a check that the result is right."
           : "The computation did not complete successfully; its output and any files it left are kept as diagnostics, not results."}
       </p>
-      <Stream label="Output (stdout)" value={r.stdout} />
+      <Stream label="Output (stdout)" value={r.stdout} context={context} />
       {r.stderr !== "" ? (
-        <Stream label="Errors (stderr)" value={r.stderr} />
+        <Stream label="Errors (stderr)" value={r.stderr} context={context} />
       ) : null}
       {r.downloads.length > 0 ? (
         <ul className="stack-sm" style={{ listStyle: "none", padding: 0 }}>
@@ -123,12 +157,12 @@ export function ComputeReceipt({
               <button
                 type="button"
                 className="btn btn-sm"
-                disabled={busy !== null}
-                onClick={() => void download(d)}
+                {...held(busy !== null, () => void download(d))}
               >
                 {busy === d.exportId
-                  ? "Checking…"
+                  ? `Checking ${d.filename}…`
                   : `Download ${d.filename}${receipt.ok ? "" : " (diagnostic)"}`}
+                <span className="sr-only"> from {context}</span>
               </button>
               <p className="small muted" style={WRAP}>
                 {d.byteLength} bytes · sha256 {d.sha256}
@@ -137,17 +171,26 @@ export function ComputeReceipt({
                   : null}
               </p>
               {d.omissions.length > 0 ? (
-                <p className="small muted">{d.omissions.join("; ")}</p>
+                <p className="small muted">{inertNotes(d.omissions)}</p>
               ) : null}
             </li>
           ))}
         </ul>
       ) : null}
       {r.omissions.length > 0 ? (
-        <p className="small muted">Not shown: {r.omissions.join("; ")}</p>
+        <p className="small muted">Not shown: {inertNotes(r.omissions)}</p>
       ) : null}
+      <p
+        className="sr-only"
+        role="status"
+        data-testid="compute-download-status"
+      >
+        {announce}
+      </p>
       <details className="ids-details">
-        <summary className="small">Run receipt</summary>
+        <summary className="small">
+          Run receipt<span className="sr-only">, {context}</span>
+        </summary>
         <dl className="small muted" style={WRAP}>
           <dt>Status</dt>
           <dd>
@@ -155,10 +198,11 @@ export function ComputeReceipt({
           </dd>
           <dt>Profile</dt>
           <dd>
-            {r.profile} · {r.runtimeVersion} · sha256 {r.profileSha256}
+            {r.profile} · {inertStream(r.runtimeVersion).text} · sha256{" "}
+            {r.profileSha256}
           </dd>
           <dt>Image</dt>
-          <dd>{r.image}</dd>
+          <dd>{inertStream(r.image).text}</dd>
           <dt>Code sha256</dt>
           <dd>{r.codeSha256}</dd>
           <dt>Resources</dt>
@@ -169,7 +213,7 @@ export function ComputeReceipt({
           </dd>
           {r.inputs.map((i) => (
             <div key={`${i.name}:${i.sha256}`}>
-              <dt>Input {i.name}</dt>
+              <dt>Input {inertStream(i.name).text}</dt>
               <dd>
                 {i.bytes} bytes · sha256 {i.sha256}
               </dd>

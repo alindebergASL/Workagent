@@ -48,6 +48,7 @@ import {
   ORIGIN_LABEL,
   SCOPE_LABEL,
   STATUS_LABEL,
+  WHEN_FORMAT,
   WHY_LABEL,
   emptyRememberForm,
   isErased,
@@ -215,6 +216,8 @@ export function MemoryPanel({
   const [form, setForm] = useState<RememberForm>(emptyRememberForm);
   const [proc, setProc] = useState<ProcedureForm>(emptyProcedureForm);
   const [chosen, setChosen] = useState<ProcedureEvidence[]>([]);
+  /** A blocked submit was pressed: say why, and open what's missing. */
+  const [tried, setTried] = useState(false);
   const [evidence, setEvidence] = useState<
     ProcedureEvidenceOption[] | { error: string } | null
   >(null);
@@ -539,6 +542,8 @@ export function MemoryPanel({
     rememberProblem(form) ??
     (proposing ? procedureProblem(proc, chosen) : null);
   const busy = pending !== null || listStale || accessLost;
+  const showProblem = !!problem && (tried || !!form.content.trim());
+  const problemId = `memory-remember-problem-${cid}`;
 
   const lineItem =
     line?.id != null
@@ -633,6 +638,7 @@ export function MemoryPanel({
         aria-label="Remember something"
         onSubmit={(e) => {
           e.preventDefault();
+          if (problem) setTried(true);
           if (problem || !rememberScopeId || busy || writing) return;
           const sent = form;
           const sentProc = proc;
@@ -643,6 +649,7 @@ export function MemoryPanel({
               clearIfSubmitted(cur, sentProc, emptyProcedureForm()),
             );
             setChosen((cur) => clearIfSubmitted(cur, sentChosen, []));
+            setTried(false);
           };
           if (proposing) {
             // Always a candidate: nothing is used until a person accepts it.
@@ -770,19 +777,27 @@ export function MemoryPanel({
             <ProcedureFields
               value={proc}
               disabled={writing === "remember"}
+              reveal={tried}
               onChange={setProc}
             />
-            {problem && form.content.trim() ? (
-              <p className="small muted">{problem}</p>
-            ) : null}
           </div>
         ) : null}
+        {/* Why the button won't save, once it matters: always mounted so a
+            blocked press is announced, and linked to the button itself. */}
+        <p
+          className={showProblem ? "small muted" : "sr-only"}
+          role="status"
+          id={problemId}
+        >
+          {showProblem ? problem : ""}
+        </p>
         <button
           className="btn btn-primary btn-sm"
           type="submit"
           aria-disabled={
             !!problem || !rememberScopeId || busy || !!writing || undefined
           }
+          aria-describedby={showProblem ? problemId : undefined}
         >
           {form.kind === "procedure" ? "Save for review" : "Remember"}
         </button>
@@ -964,9 +979,15 @@ export function MemoryPanel({
                       <button
                         key={d}
                         className={`btn btn-sm ${d === "accept" ? "btn-primary" : "btn-quiet"}`}
-                        aria-describedby={`memory-${r.memory_id}`}
+                        aria-describedby={
+                          d === "accept" && needsProcedureDetails(r)
+                            ? `memory-${r.memory_id} ${warningsId(r)}`
+                            : `memory-${r.memory_id}`
+                        }
                         {...held(
-                          busy || (d === "accept" && needsProcedureDetails(r)),
+                          busy ||
+                            !!writing ||
+                            (d === "accept" && needsProcedureDetails(r)),
                           () =>
                             void submit(
                               {
@@ -992,6 +1013,7 @@ export function MemoryPanel({
                     busy={busy || !!writing}
                     locked={writing === r.memory_id}
                     currentRevisionId={r.revision_id}
+                    current={r}
                     procedureStart={
                       r.kind === "procedure" && procedureOf(r)
                         ? {
@@ -1131,6 +1153,40 @@ export function MemoryPanel({
   );
 }
 
+/** The restore step's first version to choose. */
+const RESTORE_FIRST = '[data-restore-step] input[type="radio"]';
+
+/** A short line of what a version's procedure says, beyond its text. */
+function procedureSummary(r: MemoryRevision): string {
+  const p = procedureOf(r);
+  if (!p) return "";
+  return [
+    r.applicability ? `When: ${r.applicability}` : "",
+    p.counterexamples.length ? `Limits: ${p.counterexamples.join("; ")}` : "",
+    p.retrieval_terms.length
+      ? `Matching words: ${p.retrieval_terms.join(", ")}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** Versions that differ only in procedure details mustn't look identical. */
+function versionDifference(t: MemoryRevision, cur: MemoryRevision): string {
+  const details = (r: MemoryRevision) =>
+    JSON.stringify([
+      r.applicability ?? null,
+      r.confidence_basis ?? null,
+      procedureOf(r),
+    ]);
+  const sameText = t.content === cur.content;
+  const sameDetails = details(t) === details(cur);
+  if (sameText && sameDetails) return "Same as the current version.";
+  if (sameText) return "Same text as now; its procedure details differ.";
+  if (sameDetails) return "Different text; same procedure details as now.";
+  return "Different text and procedure details from now.";
+}
+
 function ItemControls({
   describedBy,
   f,
@@ -1138,6 +1194,7 @@ function ItemControls({
   busy,
   locked,
   currentRevisionId,
+  current,
   procedureStart,
   canRestore,
   onOpenRestore,
@@ -1157,6 +1214,8 @@ function ItemControls({
   /** This item's write is in flight (send + readback): its fields are locked. */
   locked: boolean;
   currentRevisionId: string;
+  /** The current version: restore choices say how each differs from it. */
+  current: MemoryRevision;
   /** Procedures: details to edit; evidence/sources are kept as they are. */
   procedureStart: Pick<CorrectionDraft, "procedure" | "keep"> | null;
   canRestore: boolean;
@@ -1192,11 +1251,16 @@ function ItemControls({
     if (from === mode) return;
     const a = document.activeElement;
     if (a && a !== document.body && !root.current?.contains(a)) return;
-    const at = (sel: string) =>
-      root.current?.querySelector<HTMLElement>(sel)?.focus();
+    const at = (sel: string) => {
+      const el = root.current?.querySelector<HTMLElement>(sel);
+      el?.focus();
+      return !!el;
+    };
     if (mode === "confirm") at("[data-forget-confirm]");
     else if (mode === "correct") at("textarea");
-    else if (mode === "restore") at("[data-restore-step]");
+    // The first version to choose; the step itself while they load.
+    else if (mode === "restore")
+      void (at(RESTORE_FIRST) || at("[data-restore-step]"));
     else
       at(
         from === "confirm"
@@ -1206,12 +1270,27 @@ function ItemControls({
             : "[data-correct-open]",
       );
   }, [mode]);
-  const procBad =
-    !!c?.procedure &&
-    !!c.keep &&
-    procedureProblem(c.procedure, c.keep.evidence) !== null;
   const rs = f.restore;
+  // Versions arriving while the keyboard waits on the step: on to the first.
+  const restoreLoaded = !!rs && rs.targets !== null;
+  const wasLoaded = useRef(restoreLoaded);
+  useEffect(() => {
+    const before = wasLoaded.current;
+    wasLoaded.current = restoreLoaded;
+    if (before || !restoreLoaded) return;
+    const step = root.current?.querySelector("[data-restore-step]");
+    if (step && document.activeElement === step)
+      root.current?.querySelector<HTMLElement>(RESTORE_FIRST)?.focus();
+  }, [restoreLoaded]);
+  const procProblem =
+    c?.procedure && c.keep
+      ? procedureProblem(c.procedure, c.keep.evidence)
+      : null;
+  const procBad = procProblem !== null;
+  const procProblemId = `${describedBy}-correct-problem`;
   const restoreRebased = !!rs && rs.base !== currentRevisionId;
+  const restoreNone = !!rs && !rs.error && rs.targets?.length === 0;
+  const restoreNoneId = `${describedBy}-restore-none`;
   return (
     <div className="stack-sm" ref={root}>
       {c ? (
@@ -1250,6 +1329,7 @@ function ItemControls({
               <ProcedureFields
                 value={c.procedure}
                 disabled={locked}
+                reveal={procBad}
                 fixedContext
                 onChange={(procedure) =>
                   setF({ ...f, correct: { ...c, procedure } })
@@ -1259,6 +1339,11 @@ function ItemControls({
                 The observations and sources this procedure is based on are kept
                 with the correction.
               </p>
+              {procProblem ? (
+                <p className="small" id={procProblemId}>
+                  {procProblem}
+                </p>
+              ) : null}
             </>
           ) : null}
           {c.mode === "temporary" ? (
@@ -1306,7 +1391,9 @@ function ItemControls({
           <div className="row" style={{ gap: 8 }}>
             <button
               className="btn btn-primary btn-sm"
-              aria-describedby={describedBy}
+              aria-describedby={
+                procProblem ? `${describedBy} ${procProblemId}` : describedBy
+              }
               {...held(
                 busy || rebased || !c.content.trim() || tempBad || procBad,
                 () => onCorrect(c),
@@ -1323,34 +1410,46 @@ function ItemControls({
           </div>
         </div>
       ) : rs ? (
-        <div className="hint stack-sm" data-testid="memory-restore">
+        <div
+          className="hint stack-sm"
+          data-testid="memory-restore"
+          data-restore-step
+          tabIndex={-1}
+          role="group"
+          aria-label="Restore an earlier version"
+        >
           <p>
             Restoring makes an earlier version you accepted the current one
             again, as a new version. Earlier versions and records of past use
             stay as they were. Suggestions you haven’t reviewed can’t be
             restored.
           </p>
+          {/* Always mounted, so loading and an empty result are announced. */}
+          <p
+            className={
+              rs.targets === null || restoreNone ? "small muted" : "sr-only"
+            }
+            role="status"
+            id={restoreNoneId}
+          >
+            {rs.error
+              ? ""
+              : rs.targets === null
+                ? "Loading earlier versions…"
+                : restoreNone
+                  ? "No earlier accepted version can be restored. To undo the first acceptance, use Expire."
+                  : ""}
+          </p>
           {rs.error ? (
             <p role="alert">{rs.error}</p>
-          ) : rs.targets === null ? (
-            <p className="small muted">Loading earlier versions…</p>
-          ) : rs.targets.length === 0 ? (
-            <p className="small muted">
-              No earlier accepted version can be restored. To undo the first
-              acceptance, use Expire.
-            </p>
-          ) : (
+          ) : !rs.targets?.length ? null : (
             <fieldset
               className="field stack-sm"
               style={{ border: 0, padding: 0 }}
             >
               <legend className="field-label">Version to restore</legend>
               {rs.targets.map((t) => (
-                <label
-                  key={t.revision_id}
-                  className="row small"
-                  style={{ alignItems: "flex-start", gap: 8 }}
-                >
+                <label key={t.revision_id} className="row small memory-choice">
                   <input
                     type="radio"
                     name={`memory-restore-${rs.base}`}
@@ -1360,11 +1459,21 @@ function ItemControls({
                       setF({ ...f, restore: { ...rs, choice: t.revision_id } })
                     }
                   />
-                  <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>
-                    {new Date(t.recorded_at).toLocaleString()} ·{" "}
-                    {STATUS_LABEL[t.status]}
+                  <span style={{ overflowWrap: "anywhere" }}>
+                    {new Date(t.recorded_at).toLocaleString(
+                      undefined,
+                      WHEN_FORMAT,
+                    )}
                     <br />
                     <span className="muted">{t.content}</span>
+                    {procedureSummary(t) ? (
+                      <>
+                        <br />
+                        <span className="muted">{procedureSummary(t)}</span>
+                      </>
+                    ) : null}
+                    <br />
+                    {versionDifference(t, current)}
                   </span>
                 </label>
               ))}
@@ -1379,8 +1488,9 @@ function ItemControls({
           <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
             <button
               className="btn btn-sm btn-primary"
-              data-restore-step
-              aria-describedby={describedBy}
+              aria-describedby={
+                restoreNone ? `${describedBy} ${restoreNoneId}` : describedBy
+              }
               {...held(busy || restoreRebased || !rs.choice, () =>
                 onRestore(rs.base, rs.choice),
               )}
@@ -1389,6 +1499,7 @@ function ItemControls({
             </button>
             <button
               className="btn btn-sm btn-quiet"
+              aria-describedby={describedBy}
               {...held(locked, () => {
                 onCloseRestore();
                 setF({ ...f, restore: undefined });
@@ -1658,14 +1769,21 @@ export function ProcedureFields({
   value,
   disabled,
   fixedContext = false,
+  reveal = false,
   onChange,
 }: {
   value: ProcedureForm;
   disabled: boolean;
+  /** A blocked save was pressed: open matching words if they're missing. */
+  reveal?: boolean;
   /** Correction: applicability and basis are shown, not editable or sent. */
   fixedContext?: boolean;
   onChange: (v: ProcedureForm) => void;
 }) {
+  // Open from the start while there are none to show; the toggle event keeps
+  // it open once revealed, so typing the first word doesn't close it.
+  const noTerms = !value.retrieval_terms.trim();
+  const [termsOpen, setTermsOpen] = useState(noTerms);
   const field = (
     k: keyof ProcedureForm,
     label: string,
@@ -1722,7 +1840,10 @@ export function ProcedureFields({
         3,
       )}
       {field("validation_notes", "What was checked vs. still a guess")}
-      <details>
+      <details
+        open={termsOpen || (reveal && noTerms)}
+        onToggle={(e) => setTermsOpen(e.currentTarget.open)}
+      >
         <summary className="small">Matching words</summary>
         <div className="stack-sm">
           {field(
@@ -1755,22 +1876,45 @@ export function EvidencePicker({
   onToggle: (ev: ProcedureEvidence, on: boolean) => void;
   onRetry: () => void;
 }) {
+  // "Try again" leaves while it loads: the keyboard waits on the group, and
+  // returns to the button if the retry fails too.
+  const group = useRef<HTMLFieldSetElement>(null);
+  const retry = useRef<HTMLButtonElement>(null);
+  const retried = useRef(false);
+  const loadFailed = options !== null && "error" in options;
+  useEffect(() => {
+    if (options === null || !retried.current) return;
+    retried.current = false;
+    if (loadFailed && document.activeElement === group.current)
+      retry.current?.focus();
+  }, [options, loadFailed]);
   return (
     <fieldset
       className="field stack-sm"
       style={{ border: 0, padding: 0, minWidth: 0 }}
       data-testid="memory-evidence-picker"
+      ref={group}
+      tabIndex={-1}
+      aria-busy={options === null || undefined}
     >
       <legend className="field-label">What happened that supports it</legend>
-      {options === null ? (
-        <p className="small muted">Loading what happened here…</p>
-      ) : "error" in options ? (
+      {/* Always mounted, so loading (and loading again) is announced. */}
+      <p className={options === null ? "small muted" : "sr-only"} role="status">
+        {options === null ? "Loading what happened here…" : ""}
+      </p>
+      {options === null ? null : "error" in options ? (
         <p className="small" role="alert">
           Couldn’t load what happened here. {options.error}{" "}
           <button
             type="button"
             className="btn btn-sm btn-quiet"
-            onClick={onRetry}
+            ref={retry}
+            onClick={() => {
+              if (retry.current === document.activeElement)
+                group.current?.focus();
+              retried.current = true;
+              onRetry();
+            }}
           >
             Try again
           </button>
@@ -1791,8 +1935,7 @@ export function EvidencePicker({
             return (
               <label
                 key={`${o.evidence.kind}:${o.evidence.event_id}`}
-                className="row small"
-                style={{ alignItems: "flex-start", gap: 8 }}
+                className="row small memory-choice"
               >
                 <input
                   type="checkbox"
@@ -1801,7 +1944,7 @@ export function EvidencePicker({
                   onChange={(e) => onToggle(o.evidence, e.target.checked)}
                 />
                 <span
-                  style={{ minWidth: 0, overflowWrap: "anywhere" }}
+                  style={{ overflowWrap: "anywhere" }}
                   data-outcome={failed ? "failed" : undefined}
                 >
                   {evidenceOptionText(o)}
@@ -1856,6 +1999,9 @@ export function ProcedureFacts({ r }: { r: MemoryRevision }) {
   );
 }
 
+/** Stable per memory: Accept points at why it can't be accepted. */
+const warningsId = (r: MemoryRevision) => `memory-${r.memory_id}-warnings`;
+
 export function ProcedureWarnings({ r }: { r: MemoryRevision }) {
   const p = procedureOf(r);
   const notes: string[] = [];
@@ -1877,7 +2023,11 @@ export function ProcedureWarnings({ r }: { r: MemoryRevision }) {
     );
   if (!notes.length) return null;
   return (
-    <ul className="hint small" data-testid="memory-procedure-warnings">
+    <ul
+      className="hint small"
+      id={warningsId(r)}
+      data-testid="memory-procedure-warnings"
+    >
       {notes.map((n) => (
         <li key={n}>{n}</li>
       ))}

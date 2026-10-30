@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { ComputeReceipt } from "@/components/ComputeReceipt";
 import {
   computeReceipt,
+  inertNotes,
+  NOTES_DISPLAY_CHARS,
+  TRUNCATED_MARK,
   DOWNLOAD_WITHDRAWN,
   receiptKey,
   withdrawReceipt,
@@ -391,6 +397,89 @@ describe("compute receipts", () => {
     const big = inertStream("x".repeat(STREAM_DISPLAY_CHARS + 5));
     expect(big.clipped).toBe(true);
     expect(big.text.length).toBe(STREAM_DISPLAY_CHARS);
+  });
+
+  it.each([
+    ["zero-width space", "\u200b", "\\u200b"],
+    ["zero-width non-joiner", "\u200c", "\\u200c"],
+    ["zero-width joiner", "\u200d", "\\u200d"],
+    ["word joiner", "\u2060", "\\u2060"],
+    ["invisible plus", "\u2064", "\\u2064"],
+    ["byte order mark", "\ufeff", "\\ufeff"],
+    ["tag A", "\u{e0041}", "\\u{e0041}"],
+    ["cancel tag", "\u{e007f}", "\\u{e007f}"],
+    ["NUL", "\u0000", "\\u0000"],
+    ["escape", "\u001b", "\\u001b"],
+    ["vertical tab", "\u000b", "\\u000b"],
+    ["form feed", "\u000c", "\\u000c"],
+    ["DEL", "\u007f", "\\u007f"],
+    ["RLO", "\u202e", "\\u202e"],
+  ])("makes %s visible", (_, c, shown) => {
+    const { text } = inertStream(`a${c}b`);
+    expect(text).toBe(`a${shown}b`);
+  });
+
+  it("keeps tab, newline, carriage return and ordinary text as is", () => {
+    const plain = "a\tb\nc\r\nd é 日本 😀";
+    expect(inertStream(plain).text).toBe(plain);
+  });
+
+  it("never splits a surrogate pair at the display cap", () => {
+    const s = "x".repeat(STREAM_DISPLAY_CHARS - 1) + "😀tail";
+    const { text, clipped } = inertStream(s);
+    expect(clipped).toBe(true);
+    expect(text).toBe("x".repeat(STREAM_DISPLAY_CHARS - 1));
+  });
+
+  it("joins notes inertly and caps them with a clear marker", () => {
+    expect(inertNotes(["a\u200bb", "c"])).toBe("a\\u200bb; c");
+    const long = inertNotes(["y".repeat(NOTES_DISPLAY_CHARS + 50)]);
+    expect(long.endsWith(TRUNCATED_MARK)).toBe(true);
+    expect(long.length).toBe(NOTES_DISPLAY_CHARS + TRUNCATED_MARK.length);
+  });
+});
+
+describe("compute receipt DOM", () => {
+  const render = (r: Record<string, unknown>) =>
+    renderToStaticMarkup(
+      createElement(ComputeReceipt, {
+        ws: WS,
+        receipt: computeReceipt(attempt(out(result(r))), WS),
+        context: "compute.python, call 2",
+        onInvalidate: () => {},
+      }),
+    );
+
+  it("makes output keyboard reachable and names repeated controls", () => {
+    const html = render({ stderr: "warn" });
+    expect(html).toMatch(
+      /<pre[^>]*tabindex="0"[^>]*role="region"[^>]*aria-label="Output \(stdout\), compute.python, call 2"/,
+    );
+    expect(html).toContain(
+      'aria-label="Errors (stderr), compute.python, call 2"',
+    );
+    expect(html).toContain(
+      '<span class="sr-only"> from compute.python, call 2</span>',
+    );
+    expect(html).toContain(
+      'Run receipt<span class="sr-only">, compute.python, call 2</span>',
+    );
+    // Busy, not disabled, so the button keeps keyboard focus.
+    expect(html).not.toMatch(/<button[^>]*disabled/);
+    expect(html).toContain('data-testid="compute-download-status"');
+    expect(html).toMatch(/role="status"/);
+  });
+
+  it("shows untrusted metadata inertly", () => {
+    const html = render({
+      runtime_version: "3.12\u202e",
+      image: "img\u200b",
+      inputs: [{ name: "d\u0007.csv", sha256: H("f"), bytes: 40 }],
+    });
+    expect(html).toContain("3.12\\u202e");
+    expect(html).toContain("img\\u200b");
+    expect(html).toContain("Input d\\u0007.csv");
+    expect(html).not.toMatch(/[\u202e\u200b\u0007]/);
   });
 });
 

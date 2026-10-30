@@ -47,7 +47,8 @@ export function toolAttemptRow(
 ): ToolAttemptRow {
   const base = baseRow(attempt);
   if (ws !== undefined && isGitHubAttempt(attempt)) {
-    // A recorded receipt for a rate-limited/unavailable call is not success.
+    // A recorded receipt for a rate-limited/unavailable call is not success,
+    // and a fixture (or unrecorded source) read is not a live GitHub read.
     const g = githubReceipt(attempt, ws);
     return {
       ...base,
@@ -55,7 +56,7 @@ export function toolAttemptRow(
       tone:
         g.kind === "withheld"
           ? base.tone
-          : g.kind === "result" && g.ok
+          : g.kind === "result" && g.ok && g.source === "live_public"
             ? "ok"
             : g.kind === "result" &&
                 (g.status === "not_found" || g.status === "denied")
@@ -519,22 +520,46 @@ export function computeReceipt(
   }
 }
 
-const BIDI = /[\u202A-\u202E\u2066-\u2069\u200E\u200F\u061C]/g;
+// Characters that can hide, reorder or spoof text without being seen: bidi
+// controls, zero-width/invisible formatting (incl. BOM), Unicode tag
+// characters, and C0 controls other than tab/newline/carriage return, plus DEL.
+const INVISIBLE =
+  /[\u202A-\u202E\u2066-\u2069\u200E\u200F\u061C\u200B-\u200D\u2060-\u2064\uFEFF\u{E0000}-\u{E007F}\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/gu;
 /**
  * Inert display text for untrusted streams: rendered only as a React text node
- * (never Markdown/HTML). Bidi controls are made visible so output cannot
- * visually reorder itself, and length is capped for the DOM.
+ * (never Markdown/HTML). Invisible and control characters are made visible as
+ * `\uXXXX` (or `\u{XXXXX}` above the BMP) so output cannot visually reorder
+ * or hide itself, and length is capped for the DOM.
  */
 export function inertStream(s: string): { text: string; clipped: boolean } {
   const clipped = s.length > STREAM_DISPLAY_CHARS;
-  const body = clipped ? s.slice(0, STREAM_DISPLAY_CHARS) : s;
+  let body = clipped ? s.slice(0, STREAM_DISPLAY_CHARS) : s;
+  // Never leave half a surrogate pair at the cut.
+  if (clipped && /[\uD800-\uDBFF]$/.test(body)) body = body.slice(0, -1);
   return {
-    text: body.replace(
-      BIDI,
-      (c) => `\\u${c.charCodeAt(0).toString(16).padStart(4, "0")}`,
-    ),
+    text: body.replace(INVISIBLE, (c) => {
+      const cp = c.codePointAt(0)!;
+      return cp > 0xffff
+        ? `\\u{${cp.toString(16)}}`
+        : `\\u${cp.toString(16).padStart(4, "0")}`;
+    }),
     clipped,
   };
+}
+
+/** Display cap for a joined list of untrusted notes (omissions). */
+export const NOTES_DISPLAY_CHARS = 1000;
+export const TRUNCATED_MARK = "…(truncated)";
+/** Untrusted notes joined for display: inert, and capped with a clear marker. */
+export function inertNotes(
+  items: readonly string[],
+  max = NOTES_DISPLAY_CHARS,
+): string {
+  const { text } = inertStream(items.join("; "));
+  if (text.length <= max) return text;
+  let cut = text.slice(0, max);
+  if (/[\uD800-\uDBFF]$/.test(cut)) cut = cut.slice(0, -1);
+  return `${cut}${TRUNCATED_MARK}`;
 }
 
 /**

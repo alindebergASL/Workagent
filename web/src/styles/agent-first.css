@@ -1321,3 +1321,26 @@ details.disclosure.card {
   outline: 2px solid var(--focus, currentColor);
   outline-offset: 2px;
 }
+
+/* Memory's restore step and evidence list take focus while they load, so
+   the keyboard stays in place: no ring for that, a ring for the keyboard. */
+[data-restore-step]:focus:not(:focus-visible),
+[data-testid="memory-evidence-picker"]:focus:not(:focus-visible) {
+  outline: none;
+}
+[data-restore-step]:focus-visible,
+[data-testid="memory-evidence-picker"]:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+
+/* Receipts: run output and source excerpts scroll inside their own box and
+   can be reached by keyboard; a withdrawn receipt's notice takes focus
+   without a ring. */
+.tool-activity pre[role="region"]:focus-visible {
+  outline: 2px solid var(--focus, currentColor);
+  outline-offset: 2px;
+}
+.tool-activity [data-testid="receipt-withdrawn"]:focus:not(:focus-visible) {
+  outline: none;
+}

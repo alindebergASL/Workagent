@@ -145,11 +145,36 @@ describe("GitHub receipt parser", () => {
       versionKind: "retained_response",
     });
     expect(Object.isFrozen(r)).toBe(true);
-    expect(
-      toolAttemptRow(attempt({ status: "available", snapshot: snapshot() }), WS)
-        .tone,
-    ).toBe("ok");
+    // An unrecorded source is not presented as a live GitHub read.
+    const row = toolAttemptRow(
+      attempt({ status: "available", snapshot: snapshot() }),
+      WS,
+    );
+    expect(row.tone).toBe("unknown");
+    expect(row.stateLabel).toBe("Source read (live or fixture not recorded)");
   });
+
+  it.each([
+    ["live_public", "Public GitHub source read", "ok"],
+    ["fixture", "Fixture read — not live GitHub", "unknown"],
+    [null, "Source read (live or fixture not recorded)", "unknown"],
+  ] as const)(
+    "headlines an available read from %s truthfully",
+    (src, h, tone) => {
+      const a = attempt({
+        status: "available",
+        snapshot: snapshot(),
+        source: src,
+      });
+      const r = githubReceipt(a, WS);
+      expect(r.kind === "result" && r.headline).toBe(h);
+      const row = toolAttemptRow(a, WS);
+      expect(row.stateLabel).toBe(h);
+      expect(row.tone).toBe(tone);
+      if (src !== "live_public")
+        expect(html(a)).not.toContain("Public GitHub source read");
+    },
+  );
 
   it("projects a commit-pinned README read with blob", () => {
     const text = JSON.stringify({
@@ -314,6 +339,34 @@ describe("GitHub receipt DOM", () => {
     expect(out).not.toContain("<a ");
     expect(out).not.toContain("href=");
     expect(out).toContain("Source excerpt (untrusted text)");
+  });
+  it("makes the excerpt keyboard reachable and names repeated summaries", () => {
+    const named = renderToStaticMarkup(
+      createElement(GitHubReceipt, {
+        receipt: githubReceipt(a, WS),
+        context: "connectors.github.discover, call 3",
+      }),
+    );
+    expect(named).toMatch(
+      /<pre[^>]*tabindex="0"[^>]*role="region"[^>]*aria-label="Source excerpt, connectors.github.discover, call 3, octo\/demo"/,
+    );
+    expect(named).toContain(
+      '<span class="sr-only">, connectors.github.discover, call 3</span>',
+    );
+  });
+  it("does not repeat the row headline for withheld or unverified results", () => {
+    for (const x of [
+      attempt(
+        { status: "available", snapshot: snapshot() },
+        { state: "failed" },
+      ),
+      attempt({ status: "available", snapshot: snapshot(), source: "cache" }),
+    ]) {
+      const r = githubReceipt(x, WS);
+      expect(r.kind).not.toBe("result");
+      expect(html(x)).not.toContain(r.headline);
+      expect(toolAttemptRow(x, WS).stateLabel).toBe(r.headline);
+    }
   });
   it("says when live vs fixture is not recorded", () => {
     expect(

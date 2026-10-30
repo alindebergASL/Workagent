@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { inertStream } from "@/lib/tool-activity";
+import { inertNotes, inertStream } from "@/lib/tool-activity";
 import {
   EXCERPT_CHARS,
   type GitHubPagination,
@@ -49,7 +49,16 @@ function pageLine(g: GitHubPagination | null): string {
  * Compact view of one validated GitHub connector receipt. Public,
  * unauthenticated reads only; source text is inert and links are plain text.
  */
-export function GitHubReceipt({ receipt }: { receipt: Receipt }) {
+export function GitHubReceipt({
+  receipt,
+  context = "GitHub connector",
+}: {
+  receipt: Receipt;
+  /** Names this call for assistive tech, e.g. "connectors.github.read, call 2". */
+  context?: string;
+}) {
+  // The row label already shows a withheld/unverified headline; only the
+  // reason is repeated here.
   if (receipt.kind !== "result")
     return (
       <div
@@ -58,7 +67,6 @@ export function GitHubReceipt({ receipt }: { receipt: Receipt }) {
         data-testid="github-receipt"
         data-kind={receipt.kind}
       >
-        <p className="small">{receipt.headline}</p>
         <p className="small muted">{receipt.reason}</p>
       </div>
     );
@@ -103,18 +111,20 @@ export function GitHubReceipt({ receipt }: { receipt: Receipt }) {
             Saved as source version {s.versionNumber} in Files.
           </p>
           <details className="ids-details">
-            <summary className="small">Provenance</summary>
+            <summary className="small">
+              Provenance<span className="sr-only">, {context}</span>
+            </summary>
             <dl className="small muted" style={WRAP}>
               <dt>Requested</dt>
               <dd>{s.url}</dd>
               <dt>Observed</dt>
-              <dd>{s.fetchedAt}</dd>
+              <dd>{inertStream(s.fetchedAt).text}</dd>
               <dt>Response SHA-256</dt>
               <dd>{s.responseSha256}</dd>
               {s.etag ? (
                 <>
                   <dt>ETag</dt>
-                  <dd>{s.etag}</dd>
+                  <dd>{inertStream(s.etag).text}</dd>
                 </>
               ) : null}
               {s.commit ? (
@@ -143,8 +153,19 @@ export function GitHubReceipt({ receipt }: { receipt: Receipt }) {
             <details className="ids-details">
               <summary className="small">
                 Source excerpt (untrusted text)
+                <span className="sr-only">
+                  , {context}, {s.repository}
+                </span>
               </summary>
-              <pre style={PRE}>{excerpt.text}</pre>
+              {/* Scrollable, so keyboard reachable and named per call. */}
+              <pre
+                style={PRE}
+                tabIndex={0}
+                role="region"
+                aria-label={`Source excerpt, ${context}, ${s.repository}`}
+              >
+                {excerpt.text}
+              </pre>
               {s.excerpt.length > EXCERPT_CHARS || excerpt.clipped ? (
                 <p className="small muted">
                   Excerpt clipped; the saved source holds more.
@@ -153,7 +174,9 @@ export function GitHubReceipt({ receipt }: { receipt: Receipt }) {
             </details>
           ) : null}
           {s.omissions.length > 0 ? (
-            <p className="small muted">Not covered: {s.omissions.join("; ")}</p>
+            <p className="small muted">
+              Not covered: {inertNotes(s.omissions)}
+            </p>
           ) : null}
         </>
       ) : null}

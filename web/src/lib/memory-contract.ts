@@ -442,11 +442,25 @@ export const isFailureOutcome = (
   (!!operational && !OPERATIONAL_OK.has(operational));
 
 /**
+ * Times shown to a person carry their zone, so the same moment reads
+ * unambiguously anywhere. (dateStyle/timeStyle can't be combined with
+ * timeZoneName: Intl throws, so the parts are spelled out.)
+ */
+export const WHEN_FORMAT: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+};
+
+/**
  * Inert, honest line: label, outer outcome, and the operation's own outcome
  * when known. An outer "observed" never reads as success on its own.
  */
 export function evidenceOptionText(o: ProcedureEvidenceOption): string {
-  const when = new Date(o.observed_at).toLocaleString();
+  const when = new Date(o.observed_at).toLocaleString(undefined, WHEN_FORMAT);
   const op = o.operational_outcome
     ? ` · Operation: ${OPERATIONAL_LABEL[o.operational_outcome]}`
     : "";

@@ -79,6 +79,7 @@ export type GitHubReceipt =
   | { kind: "withheld"; headline: string; reason: string }
   | {
       kind: "result";
+      /** Status is available; says nothing about live vs fixture (see source). */
       ok: boolean;
       headline: string;
       detail: string | null;
@@ -114,6 +115,7 @@ export function isGitHubAttempt(attempt: ToolAttemptView): boolean {
 }
 
 const HEADLINES: Record<GitHubStatus, string> = {
+  // An available read is headlined by its recorded source; see AVAILABLE.
   available: "Public GitHub source read",
   changed_source:
     "Source changed from the expected version — current copy retained, not the one expected",
@@ -121,6 +123,13 @@ const HEADLINES: Record<GitHubStatus, string> = {
   unavailable: "GitHub unavailable — nothing was read",
   not_found: "Not found or not public — nothing was read",
   denied: "Refused — nothing was read",
+};
+
+/** Only a recorded live_public source may claim a public GitHub read. */
+const AVAILABLE: Record<GitHubSource | "unrecorded", string> = {
+  live_public: "Public GitHub source read",
+  fixture: "Fixture read — not live GitHub",
+  unrecorded: "Source read (live or fixture not recorded)",
 };
 
 function parseSnapshot(
@@ -474,14 +483,18 @@ export function githubReceipt(
         : status === "changed_source"
           ? "The fetched response hash differs from the version this call expected."
           : null;
+    const source = (x.source as GitHubSource | null | undefined) ?? null;
     return Object.freeze({
       kind: "result",
       ok: status === "available",
-      headline: HEADLINES[status],
+      headline:
+        status === "available"
+          ? AVAILABLE[source ?? "unrecorded"]
+          : HEADLINES[status],
       detail,
       operation: capability === "github_discover" ? "discover" : "read",
       status,
-      source: (x.source as GitHubSource | null | undefined) ?? null,
+      source,
       retryAfterSeconds: retry,
       resetEpochSeconds: reset,
       snapshot,
