@@ -154,6 +154,8 @@
   .tool-activity .btn,
   .tool-activity summary,
   .memory-choice,
+  .memory-scope .chip,
+  .memory-select,
   .topbar-more > summary,
   .topbar-more-panel .nav-link {
     min-height: 44px;

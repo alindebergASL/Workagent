@@ -53,8 +53,30 @@ const STATE_LABEL: Record<ConnectorStatus["state"], string> = {
   connected: "Connected · read only",
   revoked: "Local access revoked",
   expired: "Expired",
-  unavailable: "Unavailable",
+  unavailable: "Not connected",
 };
+
+// The reason is only ever matched against known values, never shown.
+const STARTED = "awaiting_synthetic_consent";
+const NOT_CONFIGURED = "synthetic_fixture_not_configured";
+
+/** What a row's state means in plain words. */
+export function stateLabel(s: ConnectorStatus): string {
+  if (s.state !== "unavailable") return STATE_LABEL[s.state];
+  if (s.reason === STARTED) return "Not connected · setup wasn’t finished";
+  if (s.reason === NOT_CONFIGURED)
+    return "Not connected · the connection service isn’t available right now";
+  return STATE_LABEL.unavailable;
+}
+
+/** The row's time, said for what that time means in its state. */
+export function timeLine(s: ConnectorStatus, at: string): string {
+  const gone = past(s.expires_at);
+  if (s.state === "revoked") return `Would have ended ${at}`;
+  if (s.state === "unavailable" && s.reason === STARTED)
+    return gone ? `Setup request expired ${at}` : `Setup request expires ${at}`;
+  return gone ? `Access ended ${at}` : `Access ends ${at}`;
+}
 
 /** What the provider side has confirmed; never implies more than it has. */
 export function providerLine(s: ConnectorStatus): string | null {
@@ -148,7 +170,7 @@ function settle(
     if (!s || s.state === "connected") return { line: "", focus: lost };
     const provider = providerLine(s);
     return {
-      line: `${s.account}: ${STATE_LABEL[s.state]}.${provider ? ` ${provider}` : ""}`,
+      line: `${s.account}: ${stateLabel(s)}.${provider ? ` ${provider}` : ""}`,
       focus: { to: "row", id },
     };
   }
@@ -309,7 +331,7 @@ export function ConnectorPanelView({
               (notice?.kind === "unknown" &&
                 notice.action === `revoke:${s.connector_id}`);
             const expired = s.state === "connected" && past(s.expires_at);
-            const label = expired ? "Expired" : STATE_LABEL[s.state];
+            const label = expired ? "Expired" : stateLabel(s);
             const mainId = `connector-${s.connector_id}`;
             return (
               <li
@@ -350,12 +372,7 @@ export function ConnectorPanelView({
                     </span>
                   ) : null}
                   <span className="connector-muted">
-                    {expired
-                      ? "Access ended "
-                      : s.state === "connected"
-                        ? "Access ends "
-                        : "Access ended or ends "}
-                    {when(s.expires_at, zone)}
+                    {timeLine(s, when(s.expires_at, zone))}
                     {expired
                       ? " (the service still lists it as connected)"
                       : ""}

@@ -597,7 +597,55 @@ describe("panel markup", () => {
       ],
     });
     expect(html).not.toContain("stack trace");
-    expect(html).toContain("Unavailable");
+    expect(html).toContain("Not connected");
+  });
+
+  it("says plainly when access ends, ended, or would have ended", () => {
+    const future = new Date(Date.now() + 86400000).toISOString();
+    const gone = new Date(Date.now() - 86400000).toISOString();
+    const u = render({
+      items: [S({ state: "unavailable", expires_at: future })],
+    });
+    expect(u).toContain("Access ends ");
+    expect(u).not.toContain("ended or ends");
+    expect(
+      render({ items: [S({ state: "unavailable", expires_at: gone })] }),
+    ).toContain("Access ended ");
+    expect(
+      render({ items: [S({ state: "revoked", expires_at: future })] }),
+    ).toContain("Would have ended ");
+  });
+
+  it("says why a row isn't connected, by known reason only", () => {
+    expect(
+      render({
+        items: [
+          S({ state: "unavailable", reason: "awaiting_synthetic_consent" }),
+        ],
+      }),
+    ).toContain("Not connected · setup wasn’t finished");
+    expect(
+      render({
+        items: [
+          S({
+            state: "unavailable",
+            reason: "synthetic_fixture_not_configured",
+          }),
+        ],
+      }),
+    ).toContain("the connection service isn’t available right now");
+    const past = new Date(Date.now() - 86400000).toISOString();
+    expect(
+      render({
+        items: [
+          S({
+            state: "unavailable",
+            reason: "awaiting_synthetic_consent",
+            expires_at: past,
+          }),
+        ],
+      }),
+    ).toContain("Setup request expired ");
   });
 
   it("denied shows nothing from before", () => {

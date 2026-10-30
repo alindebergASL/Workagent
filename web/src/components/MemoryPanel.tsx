@@ -694,10 +694,11 @@ export function MemoryPanel({
             onChange={(e) => setForm({ ...form, content: e.target.value })}
           />
         </label>
-        <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+        <div className="memory-form-row">
           <label className="field">
             <span className="field-label">Kind</span>
             <select
+              className="memory-select"
               value={form.kind}
               disabled={writing === "remember"}
               onChange={(e) => {
@@ -721,24 +722,32 @@ export function MemoryPanel({
               ))}
             </select>
           </label>
-          <fieldset className="field" style={{ border: 0, padding: 0 }}>
+          <fieldset className="field memory-scope">
             <legend className="field-label">Applies to</legend>
-            {(["task", "work_area", "user"] as const).map((s) => (
-              <label key={s} className="row small memory-choice">
-                <input
-                  type="radio"
-                  name={`memory-scope-${cid}`}
-                  checked={form.scope_kind === s}
-                  disabled={
-                    writing === "remember" ||
-                    (s === "work_area" && !workAreaId) ||
-                    (proposing && !PROCEDURE_SCOPES.includes(s))
-                  }
-                  onChange={() => setForm({ ...form, scope_kind: s })}
-                />
-                <span>{SCOPE_LABEL[s]}</span>
-              </label>
-            ))}
+            <div className="chips">
+              {(["task", "work_area", "user"] as const).map((s) => {
+                const unavailable =
+                  (s === "work_area" && !workAreaId) ||
+                  (proposing && !PROCEDURE_SCOPES.includes(s));
+                return (
+                  <label
+                    key={s}
+                    className="chip memory-scope-chip"
+                    data-selected={form.scope_kind === s}
+                    data-unavailable={unavailable || undefined}
+                  >
+                    <input
+                      type="radio"
+                      name={`memory-scope-${cid}`}
+                      checked={form.scope_kind === s}
+                      disabled={writing === "remember" || unavailable}
+                      onChange={() => setForm({ ...form, scope_kind: s })}
+                    />
+                    <span>{SCOPE_LABEL[s]}</span>
+                  </label>
+                );
+              })}
+            </div>
           </fieldset>
         </div>
         {proposing ? (

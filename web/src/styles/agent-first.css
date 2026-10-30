@@ -1344,3 +1344,42 @@ details.disclosure.card {
 .tool-activity [data-testid="receipt-withdrawn"]:focus:not(:focus-visible) {
   outline: none;
 }
+
+/* Memory's remember form: the kind and scope sit together and wrap on a
+   phone; the select matches the app's inputs, and each scope is a chip. */
+.memory-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: flex-start;
+}
+.memory-select {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  padding: 8px 12px;
+  min-height: 40px;
+  max-width: 100%;
+}
+.memory-select:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 0;
+  border-color: var(--focus);
+}
+.memory-scope {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.memory-scope .chip {
+  font-weight: 400;
+}
+.memory-scope .chip[data-unavailable] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.memory-scope .chip:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
