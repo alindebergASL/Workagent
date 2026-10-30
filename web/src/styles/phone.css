@@ -138,19 +138,34 @@
     min-width: 44px;
   }
 
-  /* Memory and research sources: rows of small actions and disclosures
-     on every item; full-size targets so a thumb hits the one it means. */
+  /* Memory, research sources, exports, receipts and the More menu: rows of
+     small actions and disclosures on every item; full-size targets so a
+     thumb hits the one it means. */
   [data-testid="memory-panel"] .btn,
   [data-testid="memory-panel"] summary,
   .research-sources .btn,
   .research-sources summary,
   .research-claims .btn,
-  .research-claims summary {
+  .research-claims summary,
+  [data-testid="file-export"] .btn,
+  [data-testid="file-export"] summary,
+  [data-testid="editable-copy"] .btn,
+  [data-testid="editable-copy"] summary,
+  .tool-activity .btn,
+  .tool-activity summary,
+  .memory-choice,
+  .topbar-more > summary,
+  .topbar-more-panel .nav-link {
     min-height: 44px;
   }
   [data-testid="memory-panel"] summary,
   .research-sources summary,
-  .research-claims summary {
+  .research-claims summary,
+  [data-testid="file-export"] summary,
+  [data-testid="editable-copy"] summary,
+  .tool-activity summary,
+  .topbar-more > summary,
+  .topbar-more-panel .nav-link {
     display: flex;
     align-items: center;
   }
