@@ -1,6 +1,6 @@
 # Reproducing the acceptance integration checks
 
-These commands use no product model/provider. PostgreSQL checks require a newly provisioned, exactly bound disposable fixture; **never use an original study recipient or paid proof**. Use a new persistent pytest basetemp and retain failures. The ordinary provisioner must commit through migration084 before085–088 because084 has a historical transaction-local search path; the integration fixture used a separate084 bootstrap prefix, then ordinary `workagent.db.migrate`.
+These commands use no product model/provider. PostgreSQL checks require a newly provisioned, exactly bound disposable fixture; **never use an original study recipient or paid proof**. Use a new persistent pytest basetemp and retain failures. The first integration fixture historically used a separate084 bootstrap prefix because084 leaked its transaction-local search path. Reviewer R1 correctly rejected that workaround as normal-install proof. The [R1 correction](PROVISION_R1.md) resets migration namespaces in the ordinary runner, preserving one atomic full-chain transaction and every historical SQL checksum; normal `dev_db.provision` now reaches088 without a split bootstrap.
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=backend:evaluation backend/.venv/bin/python -B -m pytest -q -p no:cacheprovider \

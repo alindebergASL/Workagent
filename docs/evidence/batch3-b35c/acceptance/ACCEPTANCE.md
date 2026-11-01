@@ -40,6 +40,10 @@ Actual disposable-fixture verification:
 
 The migrated database is a newly provisioned synthetic test fixture only. No original/paid proof database, installed release, funding certificate or historical grant was changed. No product-provider calls were made during acceptance/integration. See [verification](VERIFICATION.json), [migration review](MIGRATION_REVIEW.md) and `pg-03.log`.
 
+## R1 ordinary fresh provisioning correction
+
+The acceptance reviewer subsequently reproduced a real integration defect: ordinary full-chain `dev_db.provision` failed at086 after084's transaction-local search path leaked across files. The original five-case fixture had used a split084 bootstrap; that proof remains historical and was insufficient to establish normal installation. The [R1 correction](PROVISION_R1.md) repairs the ordinary runner without changing historical SQL or splitting transaction atomicity. A new normal-entry-point fixture passes4 real migration controls and both restricted-role exact-pin named-export cases. Original A/B, prior failed proof and the full-product/C/D disposition are unchanged. The original source manifest/archive bind the pre-R1 tree; the additive R1 evidence binds this correction separately.
+
 ## User-visible evidence and limits
 
 The exact filename backend/web source previously delivered the real separate live-proof files via visible desktop and phone controls:1470-byte Markdown and147-byte CSV, four correctly named/hash-matched downloads. That is retained **post-fix saved-material replay**, not fresh model generation after the filename fix. This increment reuses that source-bound browser evidence, adds actual future-export dispatch/TCP evidence, and does not claim another fresh browser run.

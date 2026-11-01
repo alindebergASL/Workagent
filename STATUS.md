@@ -1,6 +1,12 @@
 # WorkAgent — authoritative delivery status
 
-## Latest: B3.5c evidence evaluated; repair source integrated; full acceptance held
+## Latest: normal fresh provisioning corrected; full acceptance remains open
+
+- [R1 correction and reproduction](docs/evidence/batch3-b35c/acceptance/PROVISION_R1.md): the reviewer reproduced a genuine normal-install failure at086 after084 leaked transaction-local `search_path`. The ordinary runner now restores the public creation namespace before each pending file and qualifies its journal, keeping one atomic transaction, the advisory lock, exact-prefix/checksum validation and all88 historical SQL files unchanged.
+- Actual normal `dev_db.provision` on a new isolated fixture passes4 PostgreSQL migration controls; both exact-pin named CSV/PNG export dispatch/replay/revocation cases pass under its restricted runtime role.3 fast controls and canonical contract checks pass. This supersedes the split084 workaround, not the preserved failed evidence. Narrow review/publication evidence is recorded in the task/PR handoff.
+- Zero paid calls, original-recipient changes, web edits, deployment or default merge. Original A/B remains negative/inconclusive; full workflow/UX and human-effort benefit remain unestablished. Existing C/D stays dependency-gated; this technical correction is not study or product acceptance.
+
+## Previous: B3.5c evidence evaluated; repair source integrated; full acceptance held
 
 - [Acceptance/integration disposition](docs/evidence/batch3-b35c/acceptance/ACCEPTANCE.md): all72 original slots across12 trajectories are accounted as29 collected,3 failed-uncollected and40 not runnable. All29 primary content reviews are retained. The comparative result is **inconclusive**: no verified primary full-workflow success, no causal B1/M1 benefit and no measured human-effort saving. Failures and all4 UNKNOWN operations remain unchanged; originals will not be replayed to manufacture success.
 - Reviewed current-gateway, diagnostic and filename backend/web source is integrated. Fresh future grants use actual new export schemas, never rewritten old pins. An actual office-export SQL failure found during integration is fixed by additive088; one narrow review passed.158 offline controls,93 focused web controls,5 actual restricted-PG/TCP cases and contract/TypeScript checks pass.088 rollback/idempotency preserved73 tables/226 rows on a new synthetic fixture. Earlier failed test attempts remain recorded.

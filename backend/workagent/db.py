@@ -26,21 +26,27 @@ class Database:
 def migrate(dsn=None):
     db = Database(dsn)
     with db.transaction() as c:
+        # Public is the DDL target; implicit pg_catalog still precedes it for
+        # lookup, and explicit pg_temp cannot shadow the trusted namespaces.
+        c.execute('SET LOCAL search_path = public, pg_temp')
         c.execute('SELECT pg_advisory_xact_lock(17402111)')
-        c.execute('CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())')
+        c.execute('CREATE TABLE IF NOT EXISTS public.schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())')
         files = sorted((Path(__file__).resolve().parents[1] / 'migrations').glob('*.sql'))
-        applied = c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()
+        applied = c.execute('SELECT name,checksum FROM public.schema_migrations ORDER BY name').fetchall()
         if [r['name'] for r in applied] != [p.name for p in files[:len(applied)]]:
             raise RuntimeError('Migration journal is not a known exact prefix')
         for p in files:
             digest = hashlib.sha256(p.read_bytes()).hexdigest()
-            previous = c.execute('SELECT checksum FROM schema_migrations WHERE name=%s', (p.name,)).fetchone()
+            previous = c.execute('SELECT checksum FROM public.schema_migrations WHERE name=%s', (p.name,)).fetchone()
             if previous:
                 if previous['checksum'] != digest:
                     raise RuntimeError('Migration checksum drift: ' + p.name)
                 continue
+            # A file's SET LOCAL applies for the transaction, not just that file.
+            # Reset before the next file without splitting the atomic migration.
+            c.execute('SET LOCAL search_path = public, pg_temp')
             c.execute(p.read_text())
-            c.execute('INSERT INTO schema_migrations(name,checksum) VALUES (%s,%s)', (p.name,digest))
+            c.execute('INSERT INTO public.schema_migrations(name,checksum) VALUES (%s,%s)', (p.name,digest))
 
 if __name__ == '__main__':
     migrate()
