@@ -251,8 +251,9 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     from .checkpoint_models import StopRun, ContinueRun, CancelQueuedMessage, QueuedMessage, QueuedMessagePage, RunCheckpointPage
 
     @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/checkpoints','GET','list_run_checkpoints',RunCheckpointPage)
-    def list_run_checkpoints(workspace_id:Id,conversation_id:Id,p:P,meta:Meta):
-        return service.list_run_checkpoints(p,workspace_id,conversation_id)
+    def list_run_checkpoints(workspace_id:Id,conversation_id:Id,p:P,meta:Meta,
+                             after:Id|None=None,limit:Annotated[int,Query(ge=1,le=100)]=100):
+        return service.list_run_checkpoints(p,workspace_id,conversation_id,after,limit)
 
     @route('/v1/workspaces/{workspace_id}/conversations/{conversation_id}/stop','POST','stop_conversation_run',Run)
     def stop_conversation_run(workspace_id:Id,conversation_id:Id,body:StopRun,p:P):
@@ -313,6 +314,13 @@ def create_app(settings: Settings | None=None) -> FastAPI:
     @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility','GET','get_responsibility',ResponsibilityDetail)
     def get_responsibility(workspace_id:Id,assignment_id:Id,p:P,meta:Meta):
         return service.get_responsibility(p,workspace_id,assignment_id)
+
+    from .responsibility_output_models import ResponsibilityOutputPage
+
+    @route('/v1/workspaces/{workspace_id}/assignments/{assignment_id}/responsibility/outputs','GET','list_responsibility_outputs',ResponsibilityOutputPage)
+    def list_responsibility_outputs(workspace_id:Id,assignment_id:Id,p:P,meta:Meta,
+                                   after:Id|None=None,limit:Annotated[int,Query(ge=1,le=100)]=25):
+        return service.list_responsibility_outputs(p,workspace_id,assignment_id,after,limit)
 
     @route('/v1/workspaces/{workspace_id}/runs/{run_id}','GET','get_run',Run)
     def get_run(workspace_id:Id,run_id:Id,p:P,meta:Meta):

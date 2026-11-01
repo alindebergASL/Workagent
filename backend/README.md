@@ -304,7 +304,16 @@ is the stateful frontend scenario/mock service; isolate its database from other
 work. Run the fixture scheduler while polling to advance queued work.
 
 Tests require real `DATABASE_URL` AND a migration owner URL to seed independent
-random workspaces. Missing PostgreSQL configuration fails; it is never skipped as
+random workspaces. The shared fixture also requires `LOCAL_TEST_MODE=true` and
+`WORKAGENT_TEST_DATABASE` naming the exact owned disposable database (the existing
+`WORKAGENT_NATIVE_PROJECTION_TEST_DATABASE` binding is also supported). `dev_db.py`
+emits this binding automatically for new fixtures. For an existing owned disposable
+fixture, add its exact database name to that fixture's private environment; never
+derive permission merely from a `workagent_test_` prefix or acknowledge a retained
+study store as disposable. Runtime and migration URLs must identify the same
+loopback host, port and database with distinct roles, without connection redirects.
+This prevents seeding the wrong target; it is not a new owner-approval step.
+Missing PostgreSQL configuration fails; it is never skipped as
 PASS. Tests do not truncate/reset databases. They exercise concurrency/replay,
 readback, stale proposals, source revocation, fence/lease/generation, partial work,
 atomic rollback, runtime role/immutability guards and HTTP schemas. A real loopback

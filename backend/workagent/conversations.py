@@ -82,7 +82,16 @@ class Conversations:
         return cv
 
     def _conversation_preview(self,c,ws,cv,p=None):
-        messages=self._conversation_messages(c,ws,cv.id)
+        # A preview needs only the latest authorized message, not every body.
+        messages=[ConversationMessage.model_validate(r['data']) for r in c.execute(
+            "SELECT data FROM conversation_messages WHERE workspace_id=%s AND conversation_id=%s "
+            "AND (author_kind<>'assistant' OR research_run_dependencies_visible(workspace_id,run_id)) "
+            "ORDER BY sequence DESC LIMIT 1",(ws,cv.id)).fetchall()]
+        return self._conversation_preview_from_messages(c,ws,cv,messages,p)
+
+    def _conversation_preview_from_messages(self,c,ws,cv,messages,p=None):
+        # Detail reads project the very same authorized messages they return.
+        # List callers still fetch through _conversation_preview above.
         cv.updated_at=messages[-1].created_at if messages else cv.created_at
         cv.last_message_preview=messages[-1].text[:240] if messages else None
         from .general_responses import scope_predicate
@@ -151,13 +160,29 @@ class Conversations:
         with self.db.transaction() as c:
             self._scope(c,p,ws)
             cv=self._conversation(c,p,ws,cid)
-            messages=self._conversation_messages(c,ws,cid)
+            # One statement-local visibility result per run feeds both message
+            # and turn projections. Never retain this authorization across reads.
+            rows=c.execute('''WITH message_rows AS MATERIALIZED (
+                SELECT data,run_id,sequence,author_kind FROM conversation_messages
+                WHERE workspace_id=%s AND conversation_id=%s
+            ), visibility AS MATERIALIZED (
+                SELECT run_id,research_run_dependencies_visible(%s,run_id) AS visible
+                FROM (SELECT DISTINCT run_id FROM message_rows) r
+            ) SELECT m.data,v.visible FROM message_rows m JOIN visibility v ON v.run_id=m.run_id
+              WHERE m.author_kind<>'assistant' OR v.visible
+              ORDER BY m.sequence''',(ws,cid,ws)).fetchall()
+            messages=[];visibility={}
+            for row in rows:
+                message=ConversationMessage.model_validate(row['data'])
+                visibility[message.run_id]=row['visible']
+                if message.author_kind!='assistant' or row['visible']:
+                    messages.append(message)
             for message in messages:
                 self._message_documents(c,p,ws,cid,message.document_refs)
             runs={r['id']:Run.model_validate(r['data']) for r in c.execute(
                 'SELECT id,data FROM runs WHERE workspace_id=%s AND conversation_id=%s',(ws,cid)).fetchall()}
             assignments=c.execute('SELECT id FROM assignments WHERE workspace_id=%s AND conversation_id=%s ORDER BY id',(ws,cid)).fetchall()
-            from .products import turn_state
+            from .products import _turn_state_from_visibility
             ordered=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')]
             artifact_ids=[r['id'] for r in c.execute('''SELECT a.id FROM artifacts a
                 WHERE a.workspace_id=%s AND a.conversation_id=%s
@@ -165,7 +190,7 @@ class Conversations:
                 AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE f.workspace_id=a.workspace_id
                     AND f.artifact_id=a.id AND f.owner_id<>%s) ORDER BY a.id''',(ws,cid,p.id)).fetchall()]
             from .original_attachments import projection as attachment_projection
-            return ConversationDetail(attachment_context=attachment_projection(c,ws,messages),conversation=self._conversation_preview(c,ws,cv,p),messages=messages,artifact_ids=artifact_ids,turns=[turn_state(r,c) for r in ordered],
+            return ConversationDetail(attachment_context=attachment_projection(c,ws,messages),conversation=self._conversation_preview_from_messages(c,ws,cv,messages,p),messages=messages,artifact_ids=artifact_ids,turns=[_turn_state_from_visibility(r,c,visibility[r.id]) for r in ordered],
                 runs=[runs[m.run_id] for m in messages if m.author_kind in ('human','system')],assignment_ids=[r['id'] for r in assignments])
 
     def _cancel_conversation_runs(self,c,ws,cid):
@@ -422,6 +447,15 @@ class Conversations:
             if mcp_enabled(config):
                 from .capabilities.mcp_adapters import project as project_connectors
                 project_connectors(self,c,p,run,context)
+            outputs=c.execute('SELECT tool_run_output_resources(%s,%s) AS refs',
+                              (run.workspace_id,run.id)).fetchone()['refs']
+            if outputs:
+                # Exact local outputs only; not URLs, processors or new permissions.
+                context['run_output_refs']=outputs
+            from .discovery_composition import enabled as discovery_enabled
+            if discovery_enabled(config):
+                from .model_discovery import project_catalog
+                project_catalog(context)
             if retained_enabled(config):
                 context['retained_results']=references(self,c,p,run,cv)
                 context['continuation']=config.get('continuation')
@@ -491,16 +525,17 @@ class Conversations:
                         material=c.execute('SELECT content FROM sources WHERE workspace_id=%s AND id=%s',
                             (run.workspace_id,dep['object_id'])).fetchone()['content']
                     context['dependencies'].append({'binding':dep,'content':material})
+            permitted=(sorted({d['object_id'] for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'})
+                       if config.get('responsibility') else None)
             context['bindable_artifacts']=[{'artifact_id':r['artifact_id'],'revision_id':r['id'],
                 'body_hash':r['data']['body_hash'],'title':r['data']['body']['title']}
                 for r in c.execute('''SELECT rev.* FROM artifacts art JOIN revisions rev
                     ON rev.workspace_id=art.workspace_id AND rev.artifact_id=art.id AND rev.id=art.current_revision_id
                     WHERE art.workspace_id=%s AND art.conversation_id=%s AND NOT (art.id=ANY(%s))
                     AND (rev.data->'body'->>'kind'='structured_table' OR rev.data->'body' ? 'blocks')
-                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id,list(exclude_artifacts))).fetchall()]
-            if config.get('responsibility'):
-                permitted={d['object_id'] for d in config['responsibility']['observations'] if d['kind']=='artifact_revision'}
-                context['bindable_artifacts']=[a for a in context['bindable_artifacts'] if a['artifact_id'] in permitted]
+                    AND memory_revision_visible(art.workspace_id,art.id,art.current_revision_id)
+                    AND (%s::text[] IS NULL OR art.id=ANY(%s))
+                    ORDER BY art.id LIMIT 20''',(run.workspace_id,cv.id,list(exclude_artifacts),permitted,permitted)).fetchall()]
         else:
             # Do not change the canonical historical controlled context shape.
             for message in context['messages']:
@@ -530,6 +565,10 @@ class Conversations:
                     snapshot=previous['data'].get('work_context_index') if previous else None)
                 from .work_context import validate_consumed
                 validate_consumed(self,c,p,run,config)
+                from .discovery_composition import enabled as discovery_enabled
+                if discovery_enabled(config):
+                    from .model_discovery import validate_consumed as validate_discovery
+                    validate_discovery(self,c,p,run,cv,config)
         if run.profile=='general-responses-v1':
             from .evidence_context import VERSION, materialize
             if config.get('evidence_context_version')==VERSION:

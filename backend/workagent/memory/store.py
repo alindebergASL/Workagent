@@ -19,11 +19,17 @@ class MemoryStore:
         from .procedures import authorize
         authorize(self, c, p, ws, kind, sid, details, source_refs)
 
-    def memory_lesson_evidence(self, p, ws, cid):
+    def memory_lesson_evidence(self, p, ws, cid, *, cursor=None, limit=50):
         from .procedures import discover
         with self.db.transaction() as c:
             self._scope(c, p, ws)
-            return discover(self, c, p, ws, cid)
+            return discover(self, c, p, ws, cid, cursor=cursor, limit=limit)
+
+    def memory_lesson_evidence_detail(self, p, ws, cid, kind, event_id, sha256):
+        from .procedures import read_evidence
+        with self.db.transaction() as c:
+            self._scope(c, p, ws)
+            return read_evidence(self, c, p, ws, cid, kind, event_id, sha256)
 
     def _memory_scope(self, c, p, ws, kind, sid):
         if kind == 'user':

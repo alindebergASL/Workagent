@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.6.0 -- /home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python
+rootdir: /home/ubuntu/workagent-continuation-20261026
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 5 items
+
+backend/tests/test_named_export_dispatch_pg.py::test_fresh_exact_pin_named_export_dispatch_and_replay[artifacts.export-csv-field-notes.csv] PASSED [ 20%]
+backend/tests/test_named_export_dispatch_pg.py::test_fresh_exact_pin_named_export_dispatch_and_replay[artifacts.export.office-png-field-notes.png] PASSED [ 40%]
+backend/tests/test_filename_delivery_pg.py::test_named_files_exports_exact_historical_and_proposal_bytes PASSED [ 60%]
+backend/tests/test_office_pg.py::test_run_office_chart_exact_receipt_replay_and_human_download PASSED [ 80%]
+backend/tests/test_office_acceptance.py::test_tcp_all_binary_outputs_independent_read_restart PASSED [100%]
+
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 5 passed, 1 warning in 54.83s =========================

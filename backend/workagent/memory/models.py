@@ -1,7 +1,7 @@
 """Canonical memory DTOs. Commands never accept provenance or promotion authority."""
 import re
 from typing import Annotated, Literal
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, JsonValue, model_validator
 from ..model_base import Model, Id, Hash
 from ..models import Command, SourceRef, Version
 from ..workspace_file_models import FileVersionRef
@@ -87,6 +87,35 @@ class ProcedureEvidenceOption(Model):
 
 class ProcedureEvidencePage(Model):
     items: list[ProcedureEvidenceOption] = Field(default_factory=list, max_length=50)
+    has_more: bool = False
+    next_cursor: str | None = Field(default=None, max_length=256)
+
+
+class ProcedureEvidenceDetail(Model):
+    evidence: ProcedureEvidence
+    data: dict[str, JsonValue]
+
+
+class HumanMemorySummary(Model):
+    memory_id: Id
+    revision_id: Id
+    kind: Kind
+    scope_kind: Scope
+    subject_key: Key | None
+    predicate_key: Key | None
+    status: Status
+    excerpt: str = Field(max_length=240)
+    unresolved_conflict: bool
+    # Other authorized members can be on another page; never an unopposed claim.
+    contradiction_group_id: Id | None = None
+
+
+class HumanMemoryPage(Model):
+    items: list[HumanMemorySummary] = Field(default_factory=list, max_length=50)
+    has_more: bool
+    next_cursor: str | None = Field(default=None, max_length=256)
+    ordering: Literal['memory_id'] = 'memory_id'
+    notice: str = 'Live authorized listing. Changes to visible memories or scope require refreshing from the first page. Disputed members may span pages.'
 
 
 class MemoryInput(Model):
@@ -265,12 +294,14 @@ class MemoryContract(Model):
     receipt: MemoryReceipt
     inspection: MemoryInspection
     page: MemoryPage
+    human_page: HumanMemoryPage
     remember: RememberMemory
     candidate: ProposeMemory
     review: ReviewMemory
     correct: CorrectMemory
     rollback: RollbackMemory
     lesson_evidence: ProcedureEvidencePage
+    evidence_detail: ProcedureEvidenceDetail
     narrow: NarrowMemory
     expire: MemoryCAS
     forget: MemoryCAS

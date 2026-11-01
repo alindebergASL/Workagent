@@ -5,13 +5,19 @@ setup is deliberately not implemented: admission must use existing compatible
 funded grants, never clone synthetic fixtures into an installed database.
 """
 from __future__ import annotations
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import shutil
+import stat
 import subprocess
 import sys
+import tempfile
+import time
+from study_execution import (WORKER_SECONDS, CONTROLLED_VISITS, application_seconds,
+    ProgressWindow, durable_progress, run_owned, ExecutionStopped)
 
 from network_harness import REPO as ROOT, inventory, jail
 DEPS = ROOT/'backend/.venv/lib/python3.12/site-packages'
@@ -243,16 +249,70 @@ def admit(directory, state, payload):
     return {'run_id':result.run.id, 'message_sha256':payload['message_sha256'], 'conversation_id':cv.id}
 
 
+def staged_inventory(root):
+    """Inventory regular source files only; never follow links or special files."""
+    root = Path(root)
+    if not stat.S_ISDIR(root.lstat().st_mode):
+        raise Hold('unsafe_staged_source')
+    result = {}
+    for path in sorted(root.rglob('*')):
+        mode = path.lstat().st_mode
+        if not (stat.S_ISDIR(mode) or stat.S_ISREG(mode)):
+            raise Hold('unsafe_staged_source')
+        if stat.S_ISREG(mode):
+            if '__pycache__' in path.relative_to(root).parts or path.suffix == '.pyc':
+                raise Hold('unsafe_staged_bytecode')
+            result[path.relative_to(root).as_posix()] = digest(path.read_bytes())
+    if not result:
+        raise Hold('empty_staged_source')
+    return result
+
+
+def stage_execution_source(directory, source, expected_hash):
+    """Publish a verified immutable snapshot; old snapshots/state are untouched."""
+    if not isinstance(expected_hash, str) or not re.fullmatch('[0-9a-f]{64}', expected_hash):
+        raise Hold('invalid_execution_source_hash')
+    directory, source = Path(directory), Path(source)
+    if not stat.S_ISDIR(directory.lstat().st_mode):
+        raise Hold('unsafe_staging_directory')
+    product = directory / ('product-' + expected_hash)
+    if product.exists() or product.is_symlink():
+        if digest(canonical(staged_inventory(product))) != expected_hash:
+            raise Hold('staged_arm_drift')
+        return product
+    # Source bytecode is excluded, but links/special files (even in excluded
+    # directories) must be rejected before copytree can follow them.
+    if not stat.S_ISDIR(source.lstat().st_mode) or any(
+            not (stat.S_ISDIR(p.lstat().st_mode) or stat.S_ISREG(p.lstat().st_mode))
+            for p in source.rglob('*')):
+        raise Hold('unsafe_execution_source')
+    if digest(canonical(inventory(source))) != expected_hash:
+        raise Hold('execution_source_drift')
+    temporary = Path(tempfile.mkdtemp(prefix='.product-stage-', dir=directory))
+    try:
+        candidate = temporary / 'product'
+        shutil.copytree(source, candidate, symlinks=True,
+                        ignore=shutil.ignore_patterns('__pycache__', '*.pyc'))
+        if digest(canonical(staged_inventory(candidate))) != expected_hash:
+            raise Hold('copied_arm_drift')
+        # rename publishes the complete directory in one operation. A concurrent
+        # winner is reusable only after independently checking its full inventory.
+        try:
+            candidate.rename(product)
+        except OSError:
+            if not product.exists() or digest(canonical(staged_inventory(product))) != expected_hash:
+                raise
+        return product
+    finally:
+        shutil.rmtree(temporary)
+
+
 def execute(directory, state, payload):
     service, principal, env = context(directory, state)
     episode_dir = directory / f"episode-{state['episode']}"
     episode_dir.mkdir(exist_ok=True)
     source = ROOT / ('.local/batch3/b35b/baseline/workagent' if state['variant'] == 'B0' else 'backend/workagent')
-    product = directory/'product'
-    if not product.exists():
-        shutil.copytree(source, product, ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
-    if digest(canonical(inventory(product))) != state['source_manifest_sha256']:
-        raise Hold('staged_arm_drift')
+    product = stage_execution_source(directory, source, state['source_manifest_sha256'])
     worker_state = directory/'worker-state'
     worker_state.mkdir(mode=0o700, exist_ok=True)
     with service.db.transaction() as c:
@@ -274,10 +334,17 @@ def execute(directory, state, payload):
                 tool = c.execute('SELECT data FROM tool_grants WHERE run_id=%s',(state['current_run'],)).fetchone()
             if not tool:
                 raise Hold('exact_existing_tool_authority_required:' + state['current_run'])
-            cfg['tool_grant'] = tool['data']
-            cfg['descriptors'] = {pin['id']:registry.adapters()[pin['id']].descriptor.model_dump(mode='json') for pin in tool['data']['capabilities']}
+            from workagent.capabilities.implementation_releases import readback
+            run=service.get_run(principal,state['workspace'],state['current_run'])
+            with service.db.transaction() as c:
+                binding=readback(c,run)
+            if binding['tool_grant']!=tool['data']:
+                raise Hold('tool_grant_readback_drift')
+            cfg.update(binding)
     visits = []
-    for attempt in range(20):  # bounded diagnostic visits; exhaustion is a HOLD, not acceptance
+    window = ProgressWindow(durable_progress(service, state['current_run']),
+        overall=application_seconds(state['mode'], 'execute'))
+    for attempt in range(1 if state['mode']=='official_api' else CONTROLLED_VISITS):
         cfg['interrupt'] = state['mode']=='controlled_http' and state['episode'] == 3 and attempt == 0
         argv = jail(Path(state['inputs']), worker_state, product)
         i = argv.index(str(ROOT/'evaluation/network_worker.py'))
@@ -285,9 +352,15 @@ def execute(directory, state, payload):
         # Add readonly auxiliary modules before the executable in the retained jail.
         at = argv.index('--')
         argv[at:at] = ['--ro-bind', str(files['/network_worker.py']), '/network_worker.py', '--ro-bind', str(files['/study_transport.py']), '/study_transport.py']
-        result = subprocess.run(argv, input=json.dumps(cfg), text=True, capture_output=True, cwd=ROOT, timeout=240)
-        (episode_dir/f'worker-{attempt}.stdout').write_text(result.stdout)
-        (episode_dir/f'worker-{attempt}.stderr').write_text(result.stderr)
+        if argv[0]!='/usr/bin/bwrap' or not {'--die-with-parent','--unshare-all','--new-session'}<=set(argv):
+            raise Hold('owned_worker_jail_required')
+        argv.insert(argv.index('/usr/bin/python3')+1,'-u')
+        try:
+            window.check(WORKER_SECONDS)
+            result = run_owned(argv, input=json.dumps(cfg), cwd=ROOT, timeout=WORKER_SECONDS,
+                evidence=episode_dir/f'worker-{attempt}')
+        except ExecutionStopped as exc:
+            raise Hold(str(exc)) from None
         if result.returncode:
             raise Hold('isolated_worker_failed:' + str(episode_dir/f'worker-{attempt}.stderr'))
         receipt = json.loads(result.stdout)
@@ -300,17 +373,26 @@ def execute(directory, state, payload):
             # No lease surgery or automatic resend in the installed path. Preserve
             # durable IDs for root's existing response observation/recovery tools.
             raise Hold('installed_run_pending_observation:' + state['current_run'])
-        # Reuse network-13's disposable-only safe interruption procedure. Never
-        # expire an installed lease, or a fixture with unmatched external I/O.
-        from workagent.db import Database
+        # Controlled visits use the same ordinary expiry boundary; never edit a lease.
         with service.db.transaction() as c:
             events = c.execute('SELECT phase,kind FROM responses_events WHERE attempt_id IN (SELECT id FROM provider_attempts WHERE run_id=%s)', (state['current_run'],)).fetchall()
         for phase in {r['phase'] for r in events}:
             kinds = {r['kind'] for r in events if r['phase'] == phase}
             if ('count_send' in kinds and 'count_result' not in kinds) or ('dispatch' in kinds and 'result' not in kinds):
                 raise Hold('provider_outcome_unknown_no_replay')
-        with Database(env['MIGRATION_DATABASE_URL']).transaction() as c:
-            c.execute("UPDATE runs SET data=jsonb_set(data,'{lease_expires_at}',to_jsonb('2020-01-01T00:00:00Z'::text)) WHERE workspace_id=%s AND id=%s", (state['workspace'],state['current_run']))
+        try:
+            window.observe(durable_progress(service,state['current_run']))
+            while True:
+                window.check()
+                current=service.get_run(principal,state['workspace'],state['current_run'])
+                if current.state in ('ready','partial'):break
+                if current.state not in ('queued','running','waiting'):raise Hold('worker_unknown_no_replay')
+                expiry=getattr(current,'lease_expires_at',None)
+                seconds=(expiry-datetime.now(timezone.utc)).total_seconds() if expiry else 0
+                if seconds<=0:break
+                time.sleep(min(seconds+0.1,10))
+            if current.state in ('ready','partial'):break
+        except ExecutionStopped as exc:raise Hold(str(exc)) from None
     run = service.get_run(principal, state['workspace'], state['current_run'])
     if run.state not in ('ready','partial'):
         raise Hold('unsettled_worker:' + run.state)
@@ -336,7 +418,9 @@ def collect(directory, state, payload):
         'messages':messages, 'oracle_sha256':payload['oracle_sha256'],
         'message_sha256':state['message_sha256'], 'input_files':state['input_files'],
         'transitions':state['transition_events'], 'visits':state['visits'],
-        'status':payload['outcome']['status'], 'evidence_level':'scripted_actual_product_SQL_and_HTTP_not_usefulness' if state['mode']=='controlled_http' else 'unscored_live_execution'}
+        'status':payload['outcome']['status'], 'source_manifest_sha256':state['source_manifest_sha256'],
+        'source_amendment':state.get('source_amendment'),
+        'evidence_level':'scripted_actual_product_SQL_and_HTTP_not_usefulness' if state['mode']=='controlled_http' else 'unscored_live_execution'}
 
 
 def main():
@@ -348,6 +432,9 @@ def main():
         payload['controlled_origin'] = request['controlled_origin']
         state, value = open_trajectory(directory, payload, request.get('live_binding'))
         state['environment'] = request['environment']
+        from study_source_amendment import load as source_amendment
+        amendment=source_amendment()
+        if amendment:state['source_amendment']=amendment['name']
     else:
         if state['environment'] != request['environment']:
             raise Hold('application_environment_drift')

@@ -1,0 +1,24 @@
+{
+  "blinded_unscored_packets": 72,
+  "client_usefulness": "unmeasured",
+  "duplicate_create_sends": 0,
+  "episodes": 72,
+  "installed_mutations": 0,
+  "kind": "scripted_mechanisms_not_usefulness",
+  "live_episodes": 0,
+  "loopback_requests": 504,
+  "m1_memory_context_request_counts_by_episode": {
+    "2": 12,
+    "3": 12,
+    "4": 12,
+    "5": 16
+  },
+  "model_quality": "unmeasured",
+  "new_allocations": 0,
+  "normal_max_output_tokens": 8192,
+  "paid_calls": 0,
+  "scripted_generations": 252,
+  "status": "PASS",
+  "trajectories": 12,
+  "worker_interruption_resumes": 12
+}

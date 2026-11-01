@@ -245,6 +245,34 @@ const routes: Record<string, unknown> = {
 };
 
 describe("legacy assignment view", () => {
+  it("does not let an assignment-owned non-document block paged human history", async () => {
+    const mixed = {
+      ...routes,
+      "/v1/workspaces/w/artifacts/own-art": {
+        ...(routes["/v1/workspaces/w/artifacts/own-art"] as object),
+        current_revision: {
+          ...revision,
+          body: { title: "Current human table", kind: "table", columns: [], rows: [] },
+        },
+      },
+    };
+    transport.mockImplementation(async (request: Request) => {
+      const path = new URL(request.url).pathname.replace("/api/domain", "");
+      const body = mixed[path as keyof typeof mixed];
+      if (!body) throw new Error(`Unexpected request: ${path}`);
+      return new Response(JSON.stringify(body), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    });
+    const a = await realApi.getAssignment("w", "asg");
+    expect(a.conversation_id).toBe("cv");
+    // Non-document products belong to the canonical paged output surface, not
+    // the legacy document adapter. Original document coverage remains below.
+    expect(a.artifacts).toEqual([]);
+    expect(transport.mock.calls.map(([r]) => new URL(r.url).pathname))
+      .not.toContain("/api/domain/v1/workspaces/w/artifacts/own-art/history");
+  });
   it("shows assignment-owned work and never fails on a projected conversation-owned id", async () => {
     transport.mockImplementation(async (request: Request) => {
       const path = new URL(request.url).pathname.replace("/api/domain", "");

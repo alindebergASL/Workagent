@@ -22,6 +22,8 @@ from study_controller import canonical, digest, Hold
 from study_diagnostic import ProductAdapter
 from study_transport import require_live_release
 import study_application as A
+from study_execution import (ProgressWindow, durable_progress, application_seconds,
+    application_window, ExecutionStopped)
 
 
 def select_pending(bridge, controller, trial):
@@ -59,6 +61,19 @@ def pending_safety(service,state):
     return {phase:{kind:len(values) for kind,values in events.items()} for phase,events in phases.items()}
 
 
+def visit_evidence(path):
+    """Distinguish an actual worker receipt from retained launcher failure."""
+    try:
+        value=json.loads(path.read_text())
+        if isinstance(value,dict):return value
+    except (ValueError,UnicodeError):
+        pass
+    stderr=path.with_suffix('.stderr')
+    return dict(evidence_level='failed_worker_visit_no_receipt',stdout_sha256=digest(path.read_bytes()),
+                stderr_sha256=digest(stderr.read_bytes()) if stderr.exists() else None,
+                stdout_path=str(path),stderr_path=str(stderr))
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--trajectory',required=True)
@@ -82,7 +97,7 @@ def main():
             finally:controller.close()
             state=json.loads((slot/'application.json').read_text())
             assert state['mode']=='official_api' and state['blind_id']==args.trajectory
-            assert state['variant'] in ('B1','M1'), 'baseline_host_import_recovery_unreviewed'
+            assert state['variant'] in ('B0','B1','M1'), 'unknown_observation_arm'
             assert state['current_run']==payload['admitted']['run_id'] and state['episode']==payload['episode']
             assert state['environment']==adapter.environment
             install_gate(plans[args.trajectory],binding)
@@ -101,8 +116,8 @@ def main():
                 if p.parent.name != 'episode-'+str(state['episode']):
                     continue
                 # Prior interrupted observer visits remain in the effort evidence.
-                visited.append(json.loads(p.read_text()))
-            deadline=time.monotonic()+1100
+                visited.append(visit_evidence(p))
+            window=ProgressWindow(durable_progress(service,state['current_run']))
             attempts=0
             while True:
                 pending_safety(service,state)
@@ -111,12 +126,19 @@ def main():
                     value=dict(status=run.state,run_id=run.id,visits=visited,unresolved=run.unresolved)
                     break
                 assert run.state in ('queued','running','waiting'), 'non_resumable_run_state'
-                if time.monotonic()>=deadline:raise Hold('observation_visit_deadline; exact receipt preserved')
+                try:
+                    window.observe(durable_progress(service,state['current_run']))
+                    window.check()
+                except ExecutionStopped as exc:raise Hold(str(exc)+'; exact receipt preserved') from None
                 # Let existing lease expire naturally; never mutate its timestamp.
                 expiry=getattr(run,'lease_expires_at',None)
                 if expiry:
                     seconds=(expiry-datetime.now(timezone.utc)).total_seconds()
-                    if seconds>0:time.sleep(min(seconds+0.1,35))
+                    if seconds>0:
+                        time.sleep(min(seconds+0.1,10))
+                        continue # no worker/claim until natural expiry; no progress credit
+                try:window.check(application_seconds('official_api','execute'))
+                except ExecutionStopped as exc:raise Hold(str(exc)+'; exact receipt preserved') from None
                 visit=directory/('visit-'+str(attempts));visit.mkdir()
                 (visit/'connection.json').symlink_to((slot/'connection.json').resolve())
                 attempts+=1
@@ -125,15 +147,20 @@ def main():
                     # A real placeholder is created by unchanged A.execute; only
                     # the explicit, validated state argument is routed to the
                     # ORIGINAL real durable directory by the unchanged jail.
-                    with patch.object(A,'jail',lambda inputs,placeholder,product:durable_jail(
+                    with application_window(application_seconds('official_api','execute')), patch.object(A,'jail',lambda inputs,placeholder,product:durable_jail(
                         inputs,placeholder,product,expected=visit/'worker-state',durable=durable)):
-                        result=A.execute(visit,state,payload)
+                        if state['variant']=='B0':
+                            from baseline_observation import visit as baseline_visit
+                            result=baseline_visit(slot,visit,state,old['key'],credential)
+                        else:
+                            result=A.execute(visit,state,payload)
+                except ExecutionStopped as exc:raise Hold(str(exc)+'; exact receipt preserved') from None
                 except Hold as exc:
                     if str(exc)!='installed_run_pending_observation:'+state['current_run']:raise
                 finally:
                     state.pop('_credential',None)
                     for p in sorted((visit/('episode-'+str(state['episode']))).glob('worker-*.stdout')):
-                        visited.append(json.loads(p.read_text()))
+                        visited.append(visit_evidence(p))
                 # Next iteration checks receipts before any further worker visit.
             state['visits']=visited
             # Do not overwrite a concurrent update or accept substituted identity.

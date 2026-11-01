@@ -1,0 +1,16 @@
+{
+  "backend/tests/test_discovery_continuation.py": "b17d133f32d1f9d16f296965b8dc736f53cb4d4f49ec3cc700431e4c39e837eb",
+  "backend/tests/test_schema_diagnostic.py": "8caca4fc96dfed6ca07b6fb1f8a1dbde4c241e07b0178702e93c7116901a9800",
+  "backend/workagent/adaptive.py": "19aefd1e768a190c6a2d94b135309e26a66d1725cccf476dffeada7b0e276ea4",
+  "docs/evidence/batch3-b35c/discovery-recovery/ACTIVATED.json": "d1dae9ff353f795ffa06839a4499add3bb89e638f92c1ce8594f4791c23ae02b",
+  "docs/evidence/batch3-b35c/discovery-recovery/CLOSURE.md": "b23d25311e8d0b16b9840fee79b9a116a45126257e604414783d6fb3e359d31b",
+  "docs/evidence/batch3-b35c/discovery-recovery/CONTINUATION.md": "ce82cf67d958b8a2eee86893a08adcbb425721e8422d2cdcb0798e91107ab4df",
+  "docs/evidence/batch3-b35c/discovery-recovery/DIAGNOSTIC_REVIEW.md": "8f050bba4b20c11636236c62ada4182fe6798a73c736366e7b379aa0644437ab",
+  "docs/evidence/batch3-b35c/discovery-recovery/LIVE_CHECKPOINT.json": "97305fb028d86074091dd7acaf42fe8a672951fc15fb2e072f8a4d1d3afe31a9",
+  "docs/evidence/batch3-b35c/discovery-recovery/REVIEW.md": "2895a91df62f7c154abf10dfade7d9da2bddd1b328382e8f6f5e134713e1bd2a",
+  "docs/evidence/batch3-b35c/discovery-recovery/REVIEW_PASS.json": "74cd5a4f4416a6de2187ceb06672958acd57198e6c279ce827281d80921412e6",
+  "evaluation/amend_discovery_continuation.py": "cba7973805af3660de277efc66e529e69410e06e378c189f9fa98a6bdd833bec",
+  "evaluation/checkpoint_discovery_recovery.py": "b97add274e80e2d182c2ccc528f0620938f703b4b558ed867cc6065607aa2b3e",
+  "evaluation/diagnose_schema_rejection.py": "bfd3b3dc707efde4a4fd67301ab942f1a78f78f8b481710adae73b226ff4c32f",
+  "evaluation/test_discovery_amendment.py": "4fb8b59ff57e4b30c9435acf761a462ec18c5f246e59f7df5cd11284c0371560"
+}

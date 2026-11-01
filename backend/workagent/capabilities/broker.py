@@ -9,10 +9,42 @@ from . import policy, registry, observations
 from .models import ToolCallV1, ToolObservationV1, ToolErrorV1, ToolCostV1, InputRef
 
 
+NATIVE_RETENTION_MARGIN_SECONDS = 5
+
+
+class NativeAdmissionDeferred(Exception):
+    """Internal, pre-effect rollback only; never an authority or outcome verdict."""
+
+
 class CapabilityBroker:
     def __init__(self,service,capability):
         self.service=service
         self.cap=capability
+
+    def _dispatch(self,c,aid,secret,call,adapter,*,prospective=False):
+        prior=c.execute("SELECT e.data FROM tool_attempt_events e JOIN tool_attempts a ON a.id=e.attempt_id WHERE a.id=%s AND a.call=%s AND e.kind='observation'",(aid,encoded(call))).fetchone()
+        if prior:
+            return observations.observation(prior['data']),None
+        from .implementation_releases import require_dispatch
+        require_dispatch(c,aid,adapter.descriptor)
+        if prospective:
+            # Read the clock AFTER all authorization/release work. The workspace
+            # mutation lock is already held; this also locks the exact run row.
+            # This is admission headroom, not a wall-time guarantee or authority.
+            row=c.execute("SELECT extract(epoch FROM ((data->>'lease_expires_at')::timestamptz-clock_timestamp())) AS remaining FROM runs WHERE workspace_id=%s AND id=%s FOR UPDATE",
+                (self.cap.workspace_id,self.cap.run_id)).fetchone()
+            if not row or row['remaining'] is None:deny()
+            if row['remaining']<=adapter.descriptor.timeout_ms/1000+NATIVE_RETENTION_MARGIN_SECONDS:
+                raise NativeAdmissionDeferred()
+        sent=c.execute('SELECT dispatch_tool_call(%s,%s,%s,%s) AS sent',
+            (aid,self.cap.fence,digest(self.cap.secret),secret)).fetchone()['sent']
+        if not sent:
+            prior=c.execute("SELECT data FROM tool_attempt_events WHERE attempt_id=%s AND kind='observation'",(aid,)).fetchone()
+            if prior:
+                return observations.observation(prior['data']),None
+            raise DomainError('action_unresolved')
+        input_hash=c.execute('SELECT scope_sha256 FROM tool_attempts WHERE id=%s',(aid,)).fetchone()['scope_sha256']
+        return None,input_hash
 
     def call(self,call):
         call=ToolCallV1.model_validate_json(call.model_dump_json()) if isinstance(call,ToolCallV1) else ToolCallV1.model_validate(call)
@@ -24,25 +56,32 @@ class CapabilityBroker:
         if request.model_dump(mode='json')!=call.arguments:
             raise DomainError('validation_error')
         secret=secrets.token_urlsafe(32)
-        with self.service.db.transaction() as c:
-            policy.authorize(self.service,c,self.cap,call,adapter)
-            aid=c.execute('SELECT reserve_tool_call(%s,%s,%s,%s,%s,%s) AS id',
-                (self.cap.workspace_id,self.cap.run_id,self.cap.fence,digest(self.cap.secret),encoded(call),digest(secret))).fetchone()['id']
+        from .implementation_releases import reserve
+        aid=None
+        if adapter.descriptor.execution_profile=='native-bounded-files-v1':
+            with self.service.db.transaction() as c:
+                policy.authorize(self.service,c,self.cap,call,adapter)
+                existing=c.execute('SELECT id FROM tool_attempts WHERE workspace_id=%s AND run_id=%s AND call_id=%s',
+                    (self.cap.workspace_id,self.cap.run_id,call.call_id)).fetchone()
+                if not existing:
+                    # Only NEW attempts use atomic reserve+dispatch. An admission
+                    # deferral rolls back both, leaving no liability to replay.
+                    aid=reserve(c,self.cap,call,digest(secret),adapter.descriptor)
+                    policy.authorize(self.service,c,self.cap,call,adapter)
+                    prior,input_hash=self._dispatch(c,aid,secret,call,adapter,prospective=True)
+                    if prior:return prior
         # A second current-authority check is immediately before dispatch. An
         # already dispatched attempt is never executed twice, even after a crash.
-        with self.service.db.transaction() as c:
-            policy.authorize(self.service,c,self.cap,call,adapter)
-            prior=c.execute("SELECT e.data FROM tool_attempt_events e JOIN tool_attempts a ON a.id=e.attempt_id WHERE a.id=%s AND a.call=%s AND e.kind='observation'",(aid,encoded(call))).fetchone()
-            if prior:
-                return observations.observation(prior['data'])
-            sent=c.execute('SELECT dispatch_tool_call(%s,%s,%s,%s) AS sent',
-                (aid,self.cap.fence,digest(self.cap.secret),secret)).fetchone()['sent']
-            if not sent:
-                prior=c.execute("SELECT data FROM tool_attempt_events WHERE attempt_id=%s AND kind='observation'",(aid,)).fetchone()
-                if prior:
-                    return observations.observation(prior['data'])
-                raise DomainError('action_unresolved')
-            input_hash=c.execute('SELECT scope_sha256 FROM tool_attempts WHERE id=%s',(aid,)).fetchone()['scope_sha256']
+        if aid is None:
+            # Existing reserved/dispatched/observed records retain their original
+            # recovery semantics. The new admission sentinel cannot mask them.
+            with self.service.db.transaction() as c:
+                policy.authorize(self.service,c,self.cap,call,adapter)
+                aid=reserve(c,self.cap,call,digest(secret),adapter.descriptor)
+            with self.service.db.transaction() as c:
+                policy.authorize(self.service,c,self.cap,call,adapter)
+                prior,input_hash=self._dispatch(c,aid,secret,call,adapter)
+                if prior:return prior
         start=now(); wall=time.monotonic_ns(); cpu=time.thread_time_ns()
         output=None; error=None; status='observed'
         try:

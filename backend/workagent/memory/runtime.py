@@ -21,8 +21,10 @@ def enabled(config):
         return False
     if 'memory_recall' in binding:
         from ..capabilities.delegation_composition import SCHEMA as FULL_SCHEMA
+        from ..discovery_composition import SCHEMA as DISCOVERY_SCHEMA
+        from ..current_gateway import SCHEMA as CURRENT_SCHEMA
         return (binding['memory_recall'] == 'reviewed-v1' and
-                binding.get('scope_tool_sha256') == sha256(FULL_SCHEMA.material).hexdigest())
+                binding.get('scope_tool_sha256') in {sha256(s.material).hexdigest() for s in (FULL_SCHEMA, DISCOVERY_SCHEMA, CURRENT_SCHEMA)})
     return binding.get('scope_tool_sha256') == sha256(SCHEMA.material).hexdigest()
 
 

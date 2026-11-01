@@ -32,11 +32,8 @@ def union_details(current, replacement):
     return type(replacement).model_validate({**replacement.model_dump(), 'evidence': evidence})
 
 
-def discover(service, c, p, ws, cid):
-    from ..service import digest
-    service._memory_scope(c, p, ws, 'task', cid)
-    # The WHERE authorization executes before LIMIT; no inaccessible counts/excerpts.
-    rows = c.execute('''SELECT kind,event_id,data,observed_at FROM (
+def authorized_evidence_sql():
+    return '''WITH authorized AS (SELECT kind,event_id,data,observed_at FROM (
       SELECT 'human_message' AS kind,m.id AS event_id,m.data,
         (m.data->>'created_at')::timestamptz AS observed_at
       FROM conversation_messages m WHERE m.workspace_id=%s AND m.conversation_id=%s
@@ -48,7 +45,35 @@ def discover(service, c, p, ws, cid):
       WHERE a.workspace_id=%s AND r.conversation_id=%s
     ) candidates WHERE memory_procedure_evidence_authorized(%s,%s,'task',%s,
       jsonb_build_object('kind',kind,'conversation_id',%s::text,'event_id',event_id,'sha256',tool_json_hash(data)))
-    ORDER BY observed_at DESC,event_id LIMIT 50''', (ws,cid,ws,cid,ws,p.id,cid,cid)).fetchall()
+    ) '''
+
+
+def discover(service, c, p, ws, cid, *, cursor=None, limit=50):
+    from ..service import digest
+    service._memory_scope(c, p, ws, 'task', cid)
+    if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 50:
+        raise DomainError('validation_error')
+    # Only authorized keys are ever emitted or resolved. A cursor is a position,
+    # never permission. Newer events require refreshing this live listing.
+    authorized = authorized_evidence_sql()
+    args = (ws,cid,ws,cid,ws,p.id,cid,cid)
+    after, position = '', ()
+    if cursor is not None:
+        if not isinstance(cursor, str) or len(cursor) > 256 or ':' not in cursor:
+            raise DomainError('validation_error')
+        kind, event_id = cursor.split(':', 1)
+        if kind not in ('human_message', 'tool_observation') or not event_id:
+            raise DomainError('validation_error')
+        anchor = c.execute(authorized + 'SELECT observed_at,kind,event_id FROM authorized '
+            'WHERE kind=%s AND event_id=%s', (*args,kind,event_id)).fetchone()
+        if not anchor:
+            raise DomainError('source_changed')
+        after = 'WHERE (observed_at < %s OR (observed_at = %s AND (kind,event_id) > (%s,%s))) '
+        position = (anchor['observed_at'],anchor['observed_at'],kind,event_id)
+    rows = c.execute(authorized + 'SELECT kind,event_id,data,observed_at FROM authorized ' + after +
+        'ORDER BY observed_at DESC,kind,event_id LIMIT %s', (*args,*position,limit+1)).fetchall()
+    more = len(rows) > limit
+    rows = rows[:limit]
     options = []
     for row in rows:
         human = row['kind'] == 'human_message'
@@ -62,7 +87,22 @@ def discover(service, c, p, ws, cid):
         options.append(ProcedureEvidenceOption(evidence=ProcedureEvidence(kind=row['kind'],
             conversation_id=cid,event_id=row['event_id'],sha256=digest(row['data'])),
             label=label[:240],outcome=outcome,operational_outcome=operational,observed_at=row['observed_at']))
-    return ProcedureEvidencePage(items=options)
+    return ProcedureEvidencePage(items=options, has_more=more,
+        next_cursor=rows[-1]['kind'] + ':' + rows[-1]['event_id'] if more else None)
+
+
+def read_evidence(service, c, p, ws, cid, kind, event_id, sha256):
+    from ..service import digest
+    from .models import ProcedureEvidenceDetail
+    service._memory_scope(c, p, ws, 'task', cid)
+    row = c.execute(authorized_evidence_sql() + 'SELECT data FROM authorized WHERE kind=%s AND event_id=%s',
+        (ws,cid,ws,cid,ws,p.id,cid,cid,kind,event_id)).fetchone()
+    if not row:
+        deny()
+    if digest(row['data']) != sha256:
+        raise DomainError('source_changed')
+    return ProcedureEvidenceDetail(evidence=ProcedureEvidence(kind=kind, conversation_id=cid,
+        event_id=event_id, sha256=sha256), data=row['data'])
 
 
 def operational_outcome(observation):

@@ -1,6 +1,6 @@
 """Lease admission/reclaim: disposable PostgreSQL and synthetic HTTP only."""
 from dataclasses import asdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 import json
 
@@ -65,11 +65,15 @@ def test_reservation_delay_rolls_back_unsent_slot(context, tmp_path, monkeypatch
     monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
     monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
     monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr('workagent.models.now', lambda: origin + timedelta(seconds=clock[0]))
     original = Ledger.event
     def delayed(self, c, phase, kind, data):
         result = original(self, c, phase, kind, data)
         if kind == operation:
-            clock[0] += 30  # Window closes during SQL, before the reservation commits.
+            lease=datetime.fromisoformat(c.execute("SELECT data->>'lease_expires_at' lease FROM runs WHERE id=%s",
+                (queued.run.id,)).fetchone()['lease'])
+            clock[0]=(lease-origin).total_seconds()-sum(phases.transport._client.timeout.as_dict().values())-10+0.1
+            # Cross the actual lease/handoff boundary, independent of claim duration.
         return result
     monkeypatch.setattr(Ledger, 'event', delayed)
     visit(context, w, queued.run.id)
@@ -96,7 +100,12 @@ def test_window_closing_after_commit_is_logged_without_retry(context, tmp_path, 
     monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
     monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
     monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
-    phases.hook = lambda name: clock.__setitem__(0, 30) if name == 'after_predispatch' else None
+    monkeypatch.setattr('workagent.models.now', lambda: origin + timedelta(seconds=clock[0]))
+    def close_lease(name):
+        if name == 'after_predispatch':
+            lease=context[0].get_run(context[1],context[2],queued.run.id).lease_expires_at
+            clock[0]=(lease-origin).total_seconds()-sum(phases.transport._client.timeout.as_dict().values())-5+0.1
+    phases.hook = close_lease
     visit(context, w, queued.run.id)
     messages = [json.loads(r.message) for r in caplog.records if r.name == module.__name__]
     assert len(messages) == 1
@@ -139,10 +148,14 @@ def test_reservation_delay_rolls_back_observation_slot(context, tmp_path, monkey
     monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
     monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]))
     monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr('workagent.models.now', lambda: origin + timedelta(seconds=clock[0]))
     original = Ledger.event
     def delayed(self, c, phase, kind, data):
         result = original(self, c, phase, kind, data)
-        if kind == operation:clock[0] += 30
+        if kind == operation:
+            lease=datetime.fromisoformat(c.execute("SELECT data->>'lease_expires_at' lease FROM runs WHERE id=%s",
+                (queued.run.id,)).fetchone()['lease'])
+            clock[0]=(lease-origin).total_seconds()-sum(w.transport._client.timeout.as_dict().values())-10+0.1
         return result
     monkeypatch.setattr(Ledger, 'event', delayed)
     if operation == 'cancel':
@@ -350,19 +363,24 @@ def test_in_visit_elapsed_http_time_stops_before_next_reservation(context, tmp_p
     monkeypatch.setattr(module, 'time', SimpleNamespace(monotonic=lambda: clock[0], sleep=lambda _: None))
     monkeypatch.setattr(module, 'now', lambda: origin + timedelta(seconds=clock[0]), raising=False)
     monkeypatch.setattr(service_module, 'now', lambda: origin + timedelta(seconds=clock[0]))
+    monkeypatch.setattr('workagent.models.now', lambda: origin + timedelta(seconds=clock[0]))
     original = fake.handle
+    delay = []
     def slow(request):
         response = original(request)
-        clock[0] += 14
+        if not delay:
+            lease=context[0].get_run(context[1],context[2],queued.run.id).lease_expires_at
+            allowance=sum(phases.transport._client.timeout.as_dict().values())+5
+            delay.append(((lease-origin).total_seconds()-allowance)/2+1)
+        clock[0] += delay[0]
         return response
     transport = ResponsesTransport.synthetic(httpx.MockTransport(slow))
     phases.transport = transport
     if hasattr(w, 'phases'):
         w.transport = transport
     visit(context, w, queued.run.id)
-    # The client has 5s connect + 30s pool/write/read timeouts. After the first
-    # 14s response the HTTP allowance plus 5s handoff still fits; after two
-    # responses (28s), another reservation cannot fit either allowance.
+    # Derive elapsed time from the actual claim and configured HTTP allowance.
+    # One response leaves handoff capacity; two cross the lease allowance.
     assert len(fake.calls) == 2
     assert totals(context[0], grant)['request_counts'] == {
         'count_send': 1, 'dispatch': 1, 'read': 0, 'cancel': 0}
@@ -425,3 +443,211 @@ def test_dispatcher_recovers_known_final_and_progresses_beside_unknown(context, 
     with s.db.transaction() as c:
         rows = c.execute('SELECT run_id,acknowledged_at FROM run_dispatches WHERE workspace_id=%s', (ws,)).fetchall()
     assert {r['run_id'] for r in rows if r['acknowledged_at']} == {known_id, next_turn.run.id}
+
+
+@pytest.mark.parametrize('general,lease_seconds,validation_seconds,expected', [
+    (False,180,10,90),(True,180,10,165),(True,300,10,285),
+    (True,600,10,585),(True,900,10,600),
+    (True,80,10,65),(True,4,0,0)])
+def test_scheduling16_offline_deadline_from_actual_lease(tmp_path,monkeypatch,general,lease_seconds,validation_seconds,expected):
+    import workagent.responses_worker as module
+    origin=now();clock=[0.0];calls=[]
+    w=ResponsesWorker(None,ResponsesTransport.synthetic(httpx.MockTransport(lambda _:pytest.fail('no I/O'))),
+                      tmp_path,general_responses=general)
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:clock[0]))
+    monkeypatch.setattr(module,'now',lambda:origin+timedelta(seconds=clock[0]))
+    def fresh(cap):
+        calls.append(cap);clock[0]+=validation_seconds
+        return SimpleNamespace(profile='general-responses-v1' if general else 'intake',
+                               lease_expires_at=origin+timedelta(seconds=lease_seconds))
+    monkeypatch.setattr(w,'_fresh',fresh)
+    assert w._visit_deadline('cap')==expected
+    assert calls==['cap'] and w.deadline_seconds==90
+    with pytest.raises(ValueError):ResponsesWorker(None,w.transport,tmp_path/'other',deadline_seconds=180)
+
+
+def test_scheduling16_offline_general_requires_general_profile(tmp_path,monkeypatch):
+    w=ResponsesWorker(None,ResponsesTransport.synthetic(httpx.MockTransport(lambda _:pytest.fail('no I/O'))),
+                      tmp_path,general_responses=True)
+    monkeypatch.setattr(w,'_fresh',lambda _:SimpleNamespace(profile='intake',lease_expires_at=now()+timedelta(seconds=180)))
+    with pytest.raises(DomainError):w._visit_deadline(None)
+    with pytest.raises(DomainError):w._after_reservation_ready(scheduling_request(),'dispatch',None,0)
+
+
+def scheduling_request():
+    return SimpleNamespace(phase='selection',metadata=SimpleNamespace(request_id='synthetic-run',attempt_id='synthetic-attempt'))
+
+
+@pytest.mark.parametrize('kind',['count_send','dispatch','read','cancel'])
+@pytest.mark.parametrize('fault',['none','short_lease','revoked','stale','context'])
+def test_scheduling16_offline_immediate_continuation(tmp_path,monkeypatch,kind,fault):
+    import workagent.responses_worker as module
+    w=ResponsesWorker(None,ResponsesTransport.synthetic(httpx.MockTransport(lambda _:pytest.fail('no I/O'))),
+                      tmp_path,general_responses=True)
+    origin=now();calls=[]
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:200.0))
+    monkeypatch.setattr(module,'now',lambda:origin)
+    allowance=sum(w.transport._client.timeout.as_dict().values())+5
+    def fresh(cap):
+        calls.append(cap)
+        if fault in ('revoked','stale','context'):raise DomainError('source_changed' if fault=='context' else 'not_found_or_not_authorized')
+        return SimpleNamespace(profile='general-responses-v1',lease_expires_at=origin+timedelta(seconds=allowance+(0 if fault=='short_lease' else 1)))
+    monkeypatch.setattr(w,'_fresh',fresh)
+    assert w._http_ready('cap',175) is False and calls==[]
+    if fault in ('revoked','stale','context'):
+        with pytest.raises(DomainError):w._after_reservation_ready(scheduling_request(),kind,'cap',175)
+    else:assert w._after_reservation_ready(scheduling_request(),kind,'cap',175) is (fault=='none')
+    assert calls==['cap']
+
+
+def test_scheduling16_offline_intake_cutoff_and_unknown_no_resend(tmp_path,monkeypatch):
+    import workagent.responses_worker as module
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:200.0))
+    w=ResponsesWorker(None,ResponsesTransport.synthetic(httpx.MockTransport(lambda _:pytest.fail('no I/O'))),tmp_path)
+    monkeypatch.setattr(w,'_fresh',lambda _:pytest.fail('legacy expired deadline remains early refusal'))
+    assert w._after_reservation_ready(scheduling_request(),'dispatch',None,175) is False
+    w.general_responses=True
+    marked=[];w.service=SimpleNamespace(mark_provider_unknown=lambda receipt:marked.append(receipt))
+    ledger=SimpleNamespace(receipt='receipt',snapshot=lambda *args:(None,{'dispatch':{}}))
+    assert w._step(ledger,scheduling_request(),None,300) is None
+    assert marked==['receipt']
+
+
+def test_scheduling16_offline_no_phase_deadline_reset():
+    import ast,inspect,textwrap
+    from workagent.general_worker import GeneralWorker
+    # Assert the actual loop passes its one visit deadline to every phase path.
+    tree=ast.parse(textwrap.dedent(inspect.getsource(GeneralWorker._responses_work)))
+    calls=[n for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Attribute)]
+    assert sum(n.func.attr=='_visit_deadline' for n in calls)==1
+    phase_calls=[n for n in calls if n.func.attr in ('_step','_prepared_final','_prepared_selection')]
+    assert phase_calls
+    for call in phase_calls:assert any(isinstance(a,ast.Name) and a.id=='deadline' for a in call.args)
+
+
+@pytest.mark.parametrize('operation',['count_send','dispatch'])
+def test_scheduling16_precommit_cutoff_rolls_back_with_lease_slack(context,tmp_path,monkeypatch,operation):
+    import workagent.responses_worker as module
+    from workagent.responses_ledger import Ledger
+    grant,queued,fake,w,phases=setup_family(context,tmp_path,'general')
+    clock=[0.0];deadlines=[];original_deadline=phases._visit_deadline;event=Ledger.event
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:clock[0],sleep=lambda _:None))
+    def deadline(cap):
+        result=original_deadline(cap);deadlines.append(result);return result
+    monkeypatch.setattr(phases,'_visit_deadline',deadline)
+    def delayed(self,c,phase,kind,data):
+        result=event(self,c,phase,kind,data)
+        if kind==operation:
+            clock[0]=deadlines[0]+0.1
+            lease=datetime.fromisoformat(c.execute("SELECT data->>'lease_expires_at' lease FROM runs WHERE id=%s",(queued.run.id,)).fetchone()['lease'])
+            assert (lease-now()).total_seconds()>sum(phases.transport._client.timeout.as_dict().values())+10
+        return result
+    monkeypatch.setattr(Ledger,'event',delayed)
+    visit(context,w,queued.run.id)
+    assert len(deadlines)==1 and len(fake.calls)==int(operation=='dispatch')
+    assert totals(context[0],grant)['request_counts']==dict(count_send=int(operation=='dispatch'),dispatch=0,read=0,cancel=0)
+    with context[0].db.transaction() as c:
+        assert c.execute("SELECT data->>'state' state FROM provider_attempts WHERE run_id=%s",(queued.run.id,)).fetchone()['state']=='prepared'
+
+
+@pytest.mark.parametrize('operation',['count_send','dispatch','read'])
+def test_scheduling16_postcommit_cutoff_sends_once(context,tmp_path,monkeypatch,operation):
+    from collections import Counter
+    from hashlib import sha256
+    from test_gateway_target_rejection import material
+    from workagent.product_models import ReconcileCSV,CSVObservation,FileBody,TableBody
+    from workagent.service import canonical,digest
+    import workagent.responses_worker as module
+    from workagent.provider_attempts import ReceiptCapability
+    from workagent.responses_ledger import Ledger
+    grant,queued,fake,w,phases=setup_family(context,tmp_path,'general')
+    before_material=material(context)
+    clock=[0.0];deadlines=[];original_deadline=phases._visit_deadline;reserve=phases._reserve_http
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:clock[0],sleep=lambda _:None))
+    def deadline(cap):
+        value=original_deadline(cap);deadlines.append(value);return value
+    monkeypatch.setattr(phases,'_visit_deadline',deadline)
+    # For GET, retain an acknowledged in-progress response from the same local
+    # provider. Only the GET returns its already constructed completed result.
+    handle=fake.handle
+    def handle_async(request):
+        response=handle(request)
+        if operation=='read' and request.method=='POST' and request.url.path=='/v1/responses':
+            value=response.json();value['status']='in_progress';value['output']=[]
+            return httpx.Response(200,json=value)
+        return response
+    monkeypatch.setattr(fake,'handle',handle_async)
+    phases.transport._client._transport=httpx.MockTransport(handle_async)
+    def crossing(*args,**kwargs):
+        result=reserve(*args,**kwargs)
+        if args[2]==operation and result is not None:clock[0]=deadlines[0]+0.1
+        return result
+    monkeypatch.setattr(phases,'_reserve_http',crossing)
+    visit(context,w,queued.run.id)
+    assert len(deadlines)==1
+    saved=phases.state.load(context[2],queued.run.id)
+    ledger=Ledger(context[0],ReceiptCapability(**saved['receipt']))
+    request,events=ledger.snapshot('selection',WorkerCapability(**saved['worker']))
+    expected={'count_send','count_result'}
+    if operation!='count_send':expected|={'dispatch','identity','result','tool_result'}
+    assert set(events)==expected
+    with context[0].db.transaction() as c:
+        rows=c.execute('SELECT phase,kind FROM responses_events WHERE attempt_id=%s',
+                       (saved['receipt']['attempt_id'],)).fetchall()
+        steps={row['phase']:row for row in c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s',
+                       (saved['receipt']['attempt_id'],)).fetchall()}
+        assert c.execute('SELECT count(*) n FROM tool_attempts WHERE run_id=%s',(queued.run.id,)).fetchone()['n']==0
+        assert c.execute('SELECT count(*) n FROM product_observations WHERE run_id=%s',(queued.run.id,)).fetchone()['n']==0
+    # Snapshot deliberately omits read/cancel; raw rows prove exact multiplicity
+    # and that the prepared final has no count/send/read/native effect.
+    expected_counts={('selection',kind):1 for kind in expected}
+    if operation=='read':expected_counts['selection','read']=1
+    assert Counter((row['phase'],row['kind']) for row in rows)==expected_counts
+    assert set(steps)==({'selection'} if operation=='count_send' else {'selection','final'})
+    assert steps['selection']['request_bytes'].encode()==request.body
+    assert steps['selection']['request_sha256']==request.sha256
+    assert steps['selection']['count_bytes'].encode()==request.count_body()
+    assert steps['selection']['count_sha256']==sha256(request.count_body()).hexdigest()
+    assert events['count_result']['count_sha256']==steps['selection']['count_sha256']
+    for kind in ('count_result',) if operation=='count_send' else ('count_result','identity','result'):
+        assert events[kind]['request_sha256']==request.sha256
+        assert events[kind]['metadata']==request.metadata.model_dump()
+    if operation!='count_send':
+        attachment=queued.message.attachments[0]
+        decision={'kind':'reconcile_csv','attachment':{'ref':attachment.ref,'sha256':attachment.sha256},
+                  'target':None,'rounding':'ROUND_HALF_UP'}
+        selected=events['result'];staged=events['tool_result']
+        assert selected['value']=={'decision':decision} and selected['state']=='function_call'
+        assert selected['response_id']==events['identity']['response_id']
+        assert set(fake.responses)=={selected['response_id']}
+        resolved=ReconcileCSV(kind='reconcile_csv',input_csv=attachment.content,rounding='ROUND_HALF_UP')
+        assert set(staged)=={'status','body','file','output','binding'} and staged['status']=='observed'
+        assert staged['binding']==dict(attempt_id=saved['receipt']['attempt_id'],
+            selection_request_sha256=request.sha256,selection_response_id=selected['response_id'],
+            decision_sha256=digest(selected['value']),operation_hash=digest(resolved),base_hash=None)
+        observed=CSVObservation.model_validate(staged['output'],strict=True)
+        assert observed.input_sha256==sha256(attachment.content.encode()).hexdigest()
+        assert observed.rounding=='ROUND_HALF_UP' and observed.expected_sum=='77.40' and observed.source_values_preserved
+        body=TableBody.model_validate(staged['body'],strict=True)
+        file=FileBody.model_validate(staged['file'],strict=True)
+        assert body.source_csv==attachment.content and body.rounding==observed.rounding
+        assert file.filename=='reconciled.csv' and file.mime_type=='text/csv'
+        assert json.loads(steps['final']['request_bytes'])['input'][-1]==dict(
+            type='function_call_output',call_id=selected['call_id'],output=canonical(staged))
+    assert material(context)==before_material
+    assert totals(context[0],grant)['request_counts']==dict(count_send=1,dispatch=int(operation!='count_send'),read=int(operation=='read'),cancel=0)
+    assert len(fake.calls)==1+int(operation!='count_send')+int(operation=='read')
+    # No next phase reservation despite successful same-call continuation.
+    assert context[0].get_run(context[1],context[2],queued.run.id).state=='running'
+
+
+@pytest.mark.parametrize('remaining,handoff,allowed',[(100,False,False),(100.01,False,True),(105,True,False),(105.01,True,True)])
+def test_scheduling16_offline_production_http_boundaries(tmp_path,monkeypatch,remaining,handoff,allowed):
+    import workagent.responses_worker as module
+    origin=now()
+    monkeypatch.setattr(module,'now',lambda:origin)
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:0))
+    w=ResponsesWorker(None,ResponsesTransport.synthetic(httpx.MockTransport(lambda _:pytest.fail('no I/O'))),tmp_path,general_responses=True)
+    w.transport._client.timeout=httpx.Timeout(30,connect=5)
+    run=SimpleNamespace(lease_expires_at=origin+timedelta(seconds=remaining))
+    assert w._http_window(run,180,handoff=handoff) is allowed

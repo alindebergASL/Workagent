@@ -28,9 +28,11 @@ def require(condition, reason):
 
 
 def validate_sources(sources):
-    require(set(sources) == set(SOURCE_HASHES), 'reviewed_source_set_drift')
+    from study_source_amendment import sources as amended_sources
+    expected=amended_sources(SOURCE_HASHES)
+    require(set(sources) == set(expected), 'reviewed_source_set_drift')
     for arm, files in sources.items():
-        require(digest(canonical(files)) == SOURCE_HASHES[arm], 'accepted_source_drift:' + arm)
+        require(digest(canonical(files)) == expected[arm], 'accepted_source_drift:' + arm)
 
 
 def environment():
@@ -41,7 +43,8 @@ def environment():
     # Only the explicit new entrypoints differ from the retained network-13 jail.
     for mounted, name in (('/worker.py','study_worker.py'),('/network_worker.py','network_worker.py'),('/study_transport.py','study_transport.py')):
         files[mounted] = digest((REPO/'evaluation'/name).read_bytes())
-    return dict(original, files=files)
+    from study_source_amendment import environment as amended_environment
+    return amended_environment(dict(original, files=files))
 
 
 def host_path(mounted):

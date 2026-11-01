@@ -27,14 +27,24 @@ def record(service, c, run, cv, phase, kind):
         (run.workspace_id,cv.id,intent.id)).fetchone()['data']
     context=c.execute('SELECT data FROM run_contexts WHERE workspace_id=%s AND run_id=%s',
         (run.workspace_id,run.id)).fetchone()
-    steps=[]; unknown=False
+    from .file_input_rejection import tools_unresolved, valid as valid_file_rejection
+    steps=[]; unknown=tools_unresolved(c,run.workspace_id,run.id)
     for row in c.execute('SELECT s.* FROM responses_steps s JOIN provider_attempts a ON a.id=s.attempt_id '
             'WHERE a.workspace_id=%s AND a.run_id=%s ORDER BY s.phase',(run.workspace_id,run.id)).fetchall():
         events={e['kind']:e['data'] for e in c.execute('SELECT kind,data FROM responses_events '
             "WHERE attempt_id=%s AND phase=%s AND kind NOT IN ('read','cancel')",(row['attempt_id'],row['phase'])).fetchall()}
         result=events.get('result'); tool=events.get('tool_result')
+        rejection=events.get('selection_rejection')
+        known_rejection=bool(result and rejection and result.get('state')=='malformed'
+            and result.get('issue')=='schema_validation_failed' and result.get('usage') is not None
+            and rejection.get('result_sha256')==digest(result)
+            and rejection.get('request_sha256')==row['request_sha256']
+            and rejection.get('response_id')==events.get('identity',{}).get('response_id'))
+        if 'file_input_rejection' in events:
+            known_rejection |= valid_file_rejection(c,row['attempt_id'],row['phase'],events['file_input_rejection'])
         unknown |= ('count_send' in events and 'count_result' not in events or
-                    'dispatch' in events and (not result or result.get('state') not in ('completed','function_call')))
+                    'dispatch' in events and not known_rejection and
+                    (not result or result.get('state') not in ('completed','function_call')))
         steps.append(StepReference(attempt_id=row['attempt_id'],phase=row['phase'],request_sha256=row['request_sha256'],
             response_id=events.get('identity',{}).get('response_id'),result_sha256=digest(result) if result else None,
             operation_hash=(tool or {}).get('binding',{}).get('operation_hash'),tool_result_sha256=digest(tool) if tool else None))

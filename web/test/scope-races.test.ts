@@ -296,6 +296,42 @@ describe("R2: late bodies, digests and frames publish nothing", () => {
     expect(anchor.click).not.toHaveBeenCalled();
   });
 
+  it("a native saved-file download fenced before its body saves nothing", async () => {
+    const anchor = { href: "", download: "", click: vi.fn() };
+    vi.stubGlobal("document", { createElement: () => anchor });
+    const url = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:x");
+    const body = enc("# Repair clinic\n");
+    const h = held({
+      "x-content-sha256": sha(body),
+      "content-type": "text/markdown",
+      "content-disposition": 'attachment; filename="repair-clinic.md"',
+    });
+    transport.mockResolvedValueOnce(h.res);
+    const one = await freshGenerated();
+    const file = {
+      id: "art",
+      current_revision_id: "rev",
+      current_revision: {
+        body: {
+          kind: "file",
+          title: "Repair clinic",
+          filename: "content.txt",
+          mime_type: "text/plain",
+          content: "# Repair clinic\n",
+          content_sha256: sha(body),
+        },
+      },
+    } as never;
+    const p = one.productApi.download("w", file);
+    await until(() => transport.mock.calls.length === 1);
+    await settle();
+    one.s.fenceScope();
+    h.send(body);
+    await expect(p).rejects.toMatchObject({ code: "transport" });
+    expect(url).not.toHaveBeenCalled();
+    expect(anchor.click).not.toHaveBeenCalled();
+  });
+
   it("an already-open stream applies no frame after the fence", async () => {
     const ev = (i: number) => ({
       event_id: `00000000-0000-4000-8000-${String(i).padStart(12, "0")}`,

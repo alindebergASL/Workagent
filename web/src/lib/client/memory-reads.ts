@@ -69,7 +69,11 @@ export const restoreSlot = (memoryId: string) => `restore:${memoryId}`;
 
 export interface EvidenceSink {
   loading(): void;
-  loaded(items: ProcedureEvidenceOption[]): void;
+  loaded(
+    items: ProcedureEvidenceOption[],
+    hasMore: boolean | null,
+    nextCursor: string | null,
+  ): void;
   failed(message: string): void;
   denied(): void;
 }
@@ -85,7 +89,14 @@ export function loadEvidence(
   sink.loading();
   read(t.signal).then(
     (page) => {
-      if (fence.take(t)) sink.loaded(page.items ?? []);
+      // Current contract omits completeness. Preserve a newer server's flag
+      // when present, but never turn an absent flag into a complete-list claim.
+      const hasMore =
+        "has_more" in page && typeof page.has_more === "boolean"
+          ? page.has_more
+          : null;
+      if (fence.take(t))
+        sink.loaded(page.items ?? [], hasMore, page.next_cursor ?? null);
     },
     (e) => {
       if (!fence.take(t)) return;

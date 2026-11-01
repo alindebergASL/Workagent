@@ -1,0 +1,41 @@
+name: development-boundaries
+
+on:
+  push:
+    paths:
+      - "AGENTS.md"
+      - "docs/DEVELOPMENT_AUTHORITY.md"
+      - "docs/GENERAL_MODEL_AUTHORIZATION.md"
+      - "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md"
+      - "evaluation/**"
+      - "backend/tests/test_domain.py"
+      - "backend/tests/test_domain_fixture_safety.py"
+      - ".github/workflows/development-boundaries.yml"
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/DEVELOPMENT_AUTHORITY.md"
+      - "docs/GENERAL_MODEL_AUTHORIZATION.md"
+      - "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md"
+      - "evaluation/**"
+      - "backend/tests/test_domain.py"
+      - "backend/tests/test_domain_fixture_safety.py"
+      - ".github/workflows/development-boundaries.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  authority-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Standard library only. Never discover evaluation/PG/provider tests.
+      - run: python -B evaluation/test_development_boundary_guard.py -v
+      - run: python -O -B evaluation/test_development_boundary_guard.py -v
+      # Show technical/source drift, but do not freeze adjustable engineering
+      # literals or mistake a changed source pin for new owner permission.
+      - run: python -B evaluation/development_boundary_guard.py --authority-only

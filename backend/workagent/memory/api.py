@@ -1,12 +1,13 @@
 """Human-only memory commands, existing authentication and command envelopes."""
-from typing import Annotated
+from typing import Annotated, Literal
 from fastapi import Depends, Query
-from ..model_base import Id
+from ..model_base import Id, Hash
 from ..models import Request
 from ..service import Principal
 from .models import (MemoryReceipt, MemoryInspection, MemoryPage, RememberMemory, ProposeMemory,
     ReviewMemory, CorrectMemory, NarrowMemory, MemoryCAS, BindMemoryScope, MemoryScopeBinding,
-    MemoryUsagePage, Kind, Status, Key, RollbackMemory, ProcedureEvidencePage)
+    MemoryUsagePage, Kind, Status, Key, RollbackMemory, ProcedureEvidencePage,
+    HumanMemoryPage, RecalledMemory, ProcedureEvidenceDetail)
 
 
 def register(app, service, principal, query_meta, errors):
@@ -20,6 +21,21 @@ def register(app, service, principal, query_meta, errors):
                     status:Status|None=None, subject_key:Key|None=None, predicate_key:Key|None=None):
         return service.list_memory(p, workspace_id, conversation_id, query=query, kind=kind,
             status=status, subject_key=subject_key, predicate_key=predicate_key)
+
+    @app.get(root+'/discovery', response_model=HumanMemoryPage, operation_id='discover_memory', responses=errors)
+    def discover(workspace_id:Id, conversation_id:Id, p:P, meta:Meta,
+                 query:Annotated[str, Query(max_length=500)]='', kind:Kind|None=None,
+                 status:Status|None=None, subject_key:Key|None=None, predicate_key:Key|None=None,
+                 cursor:Annotated[str|None, Query(max_length=256)]=None,
+                 limit:Annotated[int, Query(ge=1, le=50)]=20):
+        return service.discover_memory(p, workspace_id, conversation_id, query=query, kind=kind,
+            status=status, subject_key=subject_key, predicate_key=predicate_key, cursor=cursor, limit=limit)
+
+    @app.get(root+'/discovery/{memory_id}', response_model=RecalledMemory,
+             operation_id='read_discovered_memory', responses=errors)
+    def discovered_detail(workspace_id:Id, conversation_id:Id, memory_id:Id, revision_id:Id,
+                          p:P, meta:Meta, status:Status|None=None):
+        return service.read_discovered_memory(p, workspace_id, conversation_id, memory_id, revision_id, status=status)
 
     @app.post(root+'/remember', response_model=MemoryReceipt, status_code=201, operation_id='remember_memory', responses=errors)
     def remember(workspace_id:Id, body:RememberMemory, p:P):
@@ -44,8 +60,16 @@ def register(app, service, principal, query_meta, errors):
         return service.memory_scope_binding(p, workspace_id, conversation_id)
 
     @app.get(root+'/lesson-evidence', response_model=ProcedureEvidencePage, operation_id='memory_lesson_evidence', responses=errors)
-    def lesson_evidence(workspace_id:Id, conversation_id:Id, p:P, meta:Meta):
-        return service.memory_lesson_evidence(p, workspace_id, conversation_id)
+    def lesson_evidence(workspace_id:Id, conversation_id:Id, p:P, meta:Meta,
+                        cursor:Annotated[str|None, Query(max_length=256)]=None,
+                        limit:Annotated[int, Query(ge=1, le=50)]=50):
+        return service.memory_lesson_evidence(p, workspace_id, conversation_id, cursor=cursor, limit=limit)
+
+    @app.get(root+'/lesson-evidence/{kind}/{event_id}', response_model=ProcedureEvidenceDetail,
+             operation_id='memory_lesson_evidence_detail', responses=errors)
+    def evidence_detail(workspace_id:Id, conversation_id:Id, kind:Literal['human_message', 'tool_observation'],
+                        event_id:Id, sha256:Hash, p:P, meta:Meta):
+        return service.memory_lesson_evidence_detail(p, workspace_id, conversation_id, kind, event_id, sha256)
 
     @app.post(root+'/{memory_id}/rollback', response_model=MemoryReceipt, operation_id='rollback_memory', responses=errors)
     def rollback(workspace_id:Id, memory_id:Id, body:RollbackMemory, p:P):

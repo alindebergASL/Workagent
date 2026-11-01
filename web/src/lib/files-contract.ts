@@ -32,6 +32,8 @@ export type ExportFormat = ExportFile["format"];
 export type NewlineStyle = FileRange["newline"];
 
 export const MAX_FILE_BYTES = 200000;
+/** WorkingText.filename's server bound includes the extension. */
+export const MAX_FILENAME_LENGTH = 85;
 export const READ_CHUNK_LIMIT = 8192;
 export const FILENAME_RE =
   /^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|markdown|csv|json)$/;
@@ -61,6 +63,8 @@ export function mimeForFilename(filename: string): TextMime | null {
 /** Client-side mirror of the backend bound so problems surface before a send. */
 export function filenameProblem(filename: string): string | null {
   if (!filename.trim()) return "Give the file a name.";
+  if (filename.length > MAX_FILENAME_LENGTH)
+    return `Use at most ${MAX_FILENAME_LENGTH} characters including the filename extension. The name has not been shortened.`;
   if (!FILENAME_RE.test(filename))
     return "Use letters, digits, - or _ (up to 81 characters) and end with .txt, .md, .markdown, .csv or .json.";
   return null;

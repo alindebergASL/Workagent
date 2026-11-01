@@ -355,12 +355,32 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         with self.db.transaction() as c:
             self._scope(c,p,ws)
             artifact,owner=self._artifact(c,p,ws,artifact_id)
-            latest=self._latest_review_candidate(c,p,ws,artifact,owner)
-            rows=c.execute('SELECT id FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s AND memory_proposal_visible(workspace_id,id) ORDER BY id LIMIT %s',(ws,artifact_id,cursor or '',limit+1)).fetchall()
+            # One statement snapshot: authorize the bounded page before LIMIT,
+            # then reuse only its already-visible IDs for full-set latest review.
+            # Non-page candidates still perform their own visibility check.
+            selection=c.execute("""WITH visible_page AS MATERIALIZED (
+                SELECT id,data FROM proposals WHERE workspace_id=%s AND artifact_id=%s AND id>%s
+                AND memory_proposal_visible(workspace_id,id) ORDER BY id LIMIT %s
+            ) SELECT
+                (SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'data',data) ORDER BY id),'[]'::jsonb)
+                 FROM visible_page) AS page,
+                (SELECT coalesce(jsonb_agg(jsonb_build_object('id',p.id,'source_dependencies',p.data->'source_dependencies')
+                    ORDER BY (p.data->>'created_at')::timestamptz DESC,p.id DESC),'[]'::jsonb)
+                 FROM proposals p WHERE p.workspace_id=%s AND p.artifact_id=%s
+                 AND p.base_revision_id=%s AND p.data->>'status'='pending'
+                 AND CASE WHEN EXISTS(SELECT 1 FROM visible_page v WHERE v.id=p.id)
+                     THEN true ELSE memory_proposal_visible(p.workspace_id,p.id) END) AS latest""",
+                (ws,artifact_id,cursor or '',limit+1,ws,artifact_id,artifact['current_revision_id'])).fetchone()
+            rows=selection['page']
+            latest=self._review_candidate_from_rows(c,p,ws,owner,selection['latest'])
             from .proposal_review import review_proposal
             items=[]
             for r in rows[:limit]:
-                proposal,_,_=self._proposal(c,p,ws,r['id'])
+                # Body and visibility come from the same statement snapshot.
+                # Owner/source checks remain current; no authorization is cached.
+                proposal=Proposal.model_validate(r['data'])
+                _,proposal_owner=self._artifact(c,p,ws,proposal.artifact_id)
+                self._dependencies(c,p,ws,proposal_owner,proposal.source_dependencies)
                 base=self._revision(c,p,ws,artifact,owner,proposal.base_revision_id)
                 items.append(proposal.model_copy(update={'review':review_proposal(proposal,base.body,latest)}))
             return ProposalPage(items=items,next_cursor=items[-1].id if len(rows)>limit else None)
@@ -374,6 +394,11 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
             AND memory_proposal_visible(workspace_id,id)
             ORDER BY (data->>'created_at')::timestamptz DESC,id DESC""",
             (ws,artifact['id'],artifact['current_revision_id'])).fetchall()
+        return self._review_candidate_from_rows(c,p,ws,owner,rows)
+
+    def _review_candidate_from_rows(self,c,p,ws,owner,rows):
+        # Rows come only from the visibility-filtered queries above. Dependency
+        # access is still checked now, including candidates outside the page.
         for row in rows:
             dependencies=[SourceRef.model_validate(ref) for ref in row['source_dependencies']]
             try:

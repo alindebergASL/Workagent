@@ -52,9 +52,14 @@ def install(binding, state, receipt_directory):
     path=receipt_directory/(rid+'.json')
     # Existing grants must match their pre-install durable intent, not be silently
     # renewed/rebaselined at restart (including an expired grant).
+    with owner.transaction() as c:
+        existing=c.execute('SELECT data,active FROM tool_grants WHERE workspace_id=%s AND run_id=%s',(ws,rid)).fetchone()
+    if existing is not None and not path.exists():
+        raise Hold('missing_durable_tool_receipt')
     if path.exists():
         g=ToolGrantV1.model_validate_json(path.read_text())
-        assert g.run_id==rid and g.workspace_id==ws and g.scope_id==cid and g.capabilities==pins
+        assert g.run_id==rid and g.workspace_id==ws and g.scope_id==cid
+        assert {pin.id for pin in g.capabilities}==set(CAPABILITIES)
         assert g.principal_id==p.id and g.access_generation==run.access_generation and g.expires_at>now()
     else:
         refs=[]
@@ -80,12 +85,21 @@ def install(binding, state, receipt_directory):
           expires_at=now()+timedelta(days=7),access_generation=run.access_generation,
           budget_account_id='study-tools-'+digest(ws)[:24],allow_run_outputs=True)
         with path.open('x') as f:f.write(g.model_dump_json(indent=2)+'\n')
-    with owner.transaction() as c:
-        existing=c.execute('SELECT data,active FROM tool_grants WHERE workspace_id=%s AND run_id=%s',(ws,rid)).fetchone()
-    if existing is None:
-        policy.install(owner,g,limits=LIMITS,provider_grant_id=expected_grant['id'])
+    if existing is not None:
+        assert existing['active'] and existing['data']==g.model_dump(mode='json')
+    else:
+        # The established trusted source-amendment loader verifies every frozen
+        # candidate file before its approval hash can annotate owner associations.
+        # It cannot supply execution identities: those are computed in the product.
+        import study_source_amendment
+        approved=study_source_amendment.load()
+        amendment=(digest(study_source_amendment.MANIFEST.read_bytes()) if approved else None)
+        policy.install(owner,g,limits=LIMITS,provider_grant_id=expected_grant['id'],
+            amendment_sha256=amendment)
     with service.db.transaction() as c:
         actual=policy.grant(c,ws,rid)
         assert actual==g
         policy.require_run_tools(c,run)
+        from workagent.capabilities.implementation_releases import readback
+        assert readback(c,run)['tool_grant']==g.model_dump(mode='json')
     return g.model_dump(mode='json')

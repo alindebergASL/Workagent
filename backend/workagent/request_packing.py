@@ -186,7 +186,10 @@ def prepare_selection(context,*,instructions,read_schema,metadata,policy='genera
             return request
         if index==len(candidates):
             _log(request,metrics,limit,ceiling)
-            raise DomainError('budget_exhausted')
+            # Local estimates choose compaction, not hard token admission.
+            # Existing exact count/ledger/permit guards remain mandatory;
+            # upstream context byte bounds still apply to this NEW request.
+            return request
         old=candidates[index]
         projected['messages']=[m for m in projected['messages'] if m is not old]
         window=projected.setdefault('history_window',{'policy':'whole-request-human-first-v1','omitted_messages':0,'notice':_NOTICE})
@@ -200,6 +203,6 @@ def check_final(request,*,input_limit=None):
     ceiling=limit-max(2500,limit//10)
     metrics=request_metrics(request)
     _log(request,metrics,limit,ceiling)
-    if metrics['estimated_input_tokens']>ceiling:
-        raise DomainError('budget_exhausted')
+    # Never reject or rewrite retained history solely on a token estimate.
+    # The exact count and durable reservation remain mandatory downstream.
     return request

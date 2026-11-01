@@ -37,8 +37,12 @@ def main():
             from workagent.capabilities import registry
             tool = c.execute('SELECT data FROM tool_grants WHERE run_id=%s',(cfg['run_id'],)).fetchone()
             require(tool and tool['data'] == cfg['tool_grant'], 'tool_grant_drift')
-            for pin in cfg['tool_grant']['capabilities']:
-                require(registry.adapters()[pin['id']].descriptor.model_dump(mode='json') == cfg['descriptors'][pin['id']], 'descriptor_drift')
+            from types import SimpleNamespace
+            from workagent.capabilities.implementation_releases import readback
+            actual=readback(c,SimpleNamespace(workspace_id=cfg['workspace'],id=cfg['run_id']))
+            require(actual['tool_grant']==cfg['tool_grant'], 'tool_receipt_drift')
+            require(actual['descriptors']==cfg['descriptors'], 'descriptor_drift')
+            require(actual['execution_identity']==cfg['execution_identity'], 'loaded_release_drift')
     transport = attach_transport(service, cfg, credential=cfg.pop('credential',None))
     def hook(name):
         if cfg.get('interrupt') and name == 'after_tool_result':

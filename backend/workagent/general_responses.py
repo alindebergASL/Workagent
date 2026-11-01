@@ -18,10 +18,10 @@ POLICY += FLEXIBLE_POLICY
 
 def consumer_hash():
     from .service import digest
-    names=('original_attachments.py','document_models.py','document_sandbox.py','document_parser.py','documents.py','checkpoint_models.py','run_checkpoints.py','run_successors.py','retained_results.py','conversation_intents.py','work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
+    names=('current_gateway.py','model_discovery.py','discovery_composition.py','original_attachments.py','document_models.py','document_sandbox.py','document_parser.py','documents.py','checkpoint_models.py','run_checkpoints.py','run_successors.py','retained_results.py','conversation_intents.py','work_area_models.py','work_areas.py','responsibility_action.py','responsibility_execution.py','responsibilities.py','responsibility_models.py','general_worker.py','general_responses.py','general_schema.py','conversations.py','products.py',
            'product_models.py','flexible_models.py','flexible_schema.py','flexible_policy.py','flexible_work.py','message_models.py','model_base.py','local_operations.py','wasm_tool.py','models.py','service.py','proposal_review.py',
            'conversation_context.py','evidence_context.py','composition.py','selection_policy.py','saved_work.py','work_context.py','json_inspection.py','public_retrieval.py','skill_catalog.py','general_alpha_models.py','adaptive.py','bounded_verifier.py','team_verifier.py','acceptance_checks.py','responses_recovery.py','provider_attempts.py','responses_transport.py','responses_io.py','responses_ledger.py','responses_worker.py','responses_dispatcher.py','dispatcher.py')
-    names += ('workspace_files.py','workspace_file_models.py','source_snapshots.py','artifact_exports.py',
+    names += ('selection_rejection.py','file_input_rejection.py','workspace_files.py','workspace_file_models.py','source_snapshots.py','artifact_exports.py',
               'capabilities/registry.py','capabilities/policy.py','capabilities/broker.py','capabilities/file_adapters.py',
               'capabilities/file_composition.py', 'capabilities/compute_composition.py',
               'capabilities/compute_adapters.py', 'sandbox/client.py', 'sandbox/profiles.py',
@@ -33,6 +33,7 @@ def consumer_hash():
     names += ('capabilities/mcp_adapters.py','capabilities/mcp_composition.py','connectors/mcp_client.py','connectors/registry.py','connectors/synthetic-tools.json','connectors/service.py','connectors/oauth.py','connectors/vault.py','connectors/revocation.py')
     names += ('memory/models.py','memory/store.py','memory/retrieval.py','memory/runtime.py')
     names += ('capabilities/delegation.py','capabilities/delegation_composition.py')
+    names += ('capabilities/implementation_releases.py','capabilities/boundary_policy.py','request_packing.py')
     return digest({n:sha256((Path(__file__).parent/n).read_bytes()).hexdigest() for n in names})
 
 
@@ -216,7 +217,9 @@ def completed_steps_are_settled(c,attempt_id):
                        (attempt_id,step['phase'])).fetchall()
         if not rows:continue
         events={r['kind']:r['data'] for r in rows if r['kind']!='read'}
-        if not required<=set(events) or set(events)-required-{'tool_result','cancelled_unapplied'}:return False
+        from .file_input_rejection import valid
+        file_rejected='file_input_rejection' in events and valid(c,attempt_id,step['phase'],events['file_input_rejection'])
+        if not required<=set(events) or set(events)-required-{'tool_result','cancelled_unapplied','file_input_rejection'}:return False
         identity=events['identity'];result=events['result'];count=events['count_result']
         usage=result.get('usage')
         if (not isinstance(usage,dict)
@@ -229,14 +232,17 @@ def completed_steps_are_settled(c,attempt_id):
                 or result.get('usage') is None
                 or any(item.get('metadata')!=step['metadata'] for item in (identity,result,count))
                 or any(item.get('request_sha256')!=step['request_sha256'] for item in (identity,result,count))
-                or result.get('state') not in ('function_call','completed')
+                or (result.get('state') not in ('function_call','completed') and not file_rejected)
                 or (result['state']=='function_call' and 'tool_result' not in events
-                    and 'cancelled_unapplied' not in events)):return False
+                    and 'cancelled_unapplied' not in events and not file_rejected)):return False
         observed=True
     return observed
 
 
 def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=False,allow_completed_steps=False):
+    from .file_input_rejection import tools_unresolved
+    for row in c.execute('SELECT id FROM runs WHERE workspace_id=%s AND conversation_id=%s',(ws,conversation_id)).fetchall():
+        if tools_unresolved(c,ws,row['id']):return True
     # A terminal cancellation fences every subsequent send. With no prepared
     # request OR event, this retained prepared-only attempt cannot have reserved
     # external I/O. Ignore it for NEW admission only: never rewrite its state,
@@ -252,7 +258,9 @@ def has_unresolved_attempt(c,ws,conversation_id,*,allow_known_input_rejection=Fa
             AND NOT EXISTS (SELECT 1 FROM responses_steps s WHERE s.attempt_id=a.id)
             AND NOT EXISTS (SELECT 1 FROM responses_events e WHERE e.attempt_id=a.id)),false)""",
         (ws,conversation_id)).fetchall()
-    return any(not cancelled_rejection_is_settled(c,row['id'])
+    return any(not (row['run_state']=='partial' and c.execute(
+                   'SELECT bounded_phase_stop_settled(%s) settled',(row['id'],)).fetchone()['settled'])
+               and not cancelled_rejection_is_settled(c,row['id'])
                and not (allow_known_input_rejection and known_input_rejection_is_settled(c,row['id']))
                and not ((allow_completed_steps or row['run_state']=='cancelled')
                         and completed_steps_are_settled(c,row['id']))
@@ -333,6 +341,7 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
     message=next(m for m in service._conversation_messages(c,run.workspace_id,cv.id) if m.run_id==run.id and m.author_kind in ('human','system'))
     base=exact_target(service,c,p,run.workspace_id,cv,message.target)
     from .retained_results import ReadResult, ReadAttachment, material as retained_material, enabled as retained_enabled, authorize as authorize_retained
+    from .model_discovery import OPERATIONS as DISCOVERY_OPERATIONS
     from .capabilities.file_adapters import FILE_OPERATIONS
     from .capabilities.file_composition import enabled as files_enabled
     from .capabilities.compute_adapters import ComputePython
@@ -387,6 +396,14 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
         if not files_enabled(config): raise DomainError('unsupported_operation')
         from .capabilities.policy import require_operation
         require_operation(c,run,decision)
+        operation=decision
+        base=None
+    elif isinstance(decision,DISCOVERY_OPERATIONS):
+        from .discovery_composition import enabled as discovery_enabled
+        from .model_discovery import SearchWorkContextPage, authorize_selection
+        if not discovery_enabled(config) or (isinstance(decision,SearchWorkContextPage) and config.get('responsibility')):
+            raise DomainError('unsupported_operation')
+        authorize_selection(service,c,p,run,cv,config,decision,phase)
         operation=decision
         base=None
     elif isinstance(decision,(ReadResult,ReadAttachment)):

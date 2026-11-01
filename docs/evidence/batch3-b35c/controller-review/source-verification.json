@@ -1,0 +1,16 @@
+{
+  "retained_additive": {
+    "total": 57,
+    "mismatches": []
+  },
+  "controller_manifest": {
+    "total": 13,
+    "mismatches": [],
+    "sha256": "863e570706c1c6ce36df329481f074788166e5210cdce247b0afe20c97ab33be"
+  },
+  "preparation_freeze": {
+    "files": 122,
+    "includes_baseline_paths": []
+  },
+  "release_lock_unchanged": true
+}

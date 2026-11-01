@@ -283,8 +283,10 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         if self.memory_recall is not None:
             from hashlib import sha256
             from .capabilities.delegation_composition import SCHEMA
+            from .discovery_composition import SCHEMA as DISCOVERY_SCHEMA
+            from .current_gateway import SCHEMA as CURRENT_SCHEMA
             if (self.continuity_version != 'sustained-v1' or
-                    self.scope_tool_sha256 != sha256(SCHEMA.material).hexdigest()):
+                    self.scope_tool_sha256 not in {sha256(s.material).hexdigest() for s in (SCHEMA, DISCOVERY_SCHEMA, CURRENT_SCHEMA)}):
                 raise ValueError('explicit memory treatment requires sustained full-tool schema')
         return self
 

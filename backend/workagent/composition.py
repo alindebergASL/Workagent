@@ -242,6 +242,9 @@ def context_catalog(continuity=False):
 
 def _discover(decision,context):
     result=discovery('saved_work_discovery' in context)
+    if context.get('model_discovery_version')=='2':
+        from .model_discovery import descriptors as discovery_descriptors
+        result['capabilities'].extend(discovery_descriptors())
     if 'retained_results' in context:
         from .retained_results import descriptor
         result['capabilities'].append(descriptor())

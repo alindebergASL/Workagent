@@ -36,12 +36,59 @@ def save(path, data):
             f.write(raw)
 
 
-def mapping():
+def mapping(*, source_amendment=None):
     schedule_hash, schedule = load_schedule()
     bindings = json.loads((OUT / 'live-bindings.private.json').read_text())
     document = json.loads((OUT / 'recipient-plans-file-target.json').read_text())
     assert document['prior_document_sha256'] == sha256((OUT / 'recipient-plans.json').read_bytes()).hexdigest()
-    assert document['candidate_source_files'] == {'backend/workagent/general_responses.py': sha256((ROOT/'backend/workagent/general_responses.py').read_bytes()).hexdigest()}
+    relative = 'backend/workagent/general_responses.py'
+    current = sha256((ROOT / relative).read_bytes()).hexdigest()
+    if source_amendment is None and document['candidate_source_files'] != {relative: current}:
+        # Ordinary observer/driver callers may consume only an actually approved
+        # exact successor. Missing/stale approval still denies before any effects.
+        from study_source_amendment import load
+        source_amendment = load()
+    if source_amendment is None:
+        assert document['candidate_source_files'] == {relative: current}
+    else:
+        # This explicit candidate is supplied only by the exact-review installer.
+        # Historical funding binds preserved bytes, never arbitrary current drift.
+        m = source_amendment
+        from study_source_amendment import release_lineage
+        lineage, lineage_current = release_lineage(m, relative, current)
+        successor = lineage['successor']
+        predecessor_path = (ROOT / successor['predecessor_manifest']).resolve()
+        snapshot = (ROOT / successor['historical_snapshot']).resolve()
+        assert predecessor_path.is_relative_to(ROOT) and snapshot.is_relative_to(ROOT)
+        raw = predecessor_path.read_bytes()
+        assert sha256(raw).hexdigest() == successor['predecessor_sha256']
+        predecessor = json.loads(raw)
+        assert predecessor['execution_sources'] == successor['predecessor_execution_sources']
+        assert sha256(canonical(inventory(snapshot)).encode()).hexdigest() == predecessor['execution_sources']['B1']
+        historical = sha256((snapshot / 'general_responses.py').read_bytes()).hexdigest()
+        assert document['candidate_source_files'] == {relative: historical}
+        origin_after = successor['product_delta']['general_responses.py']['after']
+        assert successor['product_delta']['general_responses.py']['before'] == historical
+        if origin_after != lineage_current:
+            # Preserve the original funding-origin record. This one explicit
+            # reviewed continuation links its endpoint to exact current bytes.
+            transition = lineage['file_input_continuation']
+            prior_path = (ROOT / transition['predecessor_manifest']).resolve()
+            prior_snapshot = (ROOT / transition['historical_snapshot']).resolve()
+            assert prior_path.is_relative_to(ROOT) and prior_snapshot.is_relative_to(ROOT)
+            prior_raw = prior_path.read_bytes()
+            assert sha256(prior_raw).hexdigest() == transition['predecessor_sha256']
+            prior = json.loads(prior_raw)
+            assert prior['successor'] == successor
+            assert prior['execution_sources'] == transition['predecessor_execution_sources']
+            assert sha256(canonical(inventory(prior_snapshot)).encode()).hexdigest() == prior['execution_sources']['B1']
+            assert sha256((prior_snapshot / 'general_responses.py').read_bytes()).hexdigest() == origin_after
+            assert prior['files'][relative] == origin_after
+            assert transition['product_delta']['general_responses.py'] == dict(before=origin_after, after=lineage_current)
+        assert m['files'][relative] == current
+        for name, expected in m['files'].items():
+            path = (ROOT / name).resolve()
+            assert path.is_relative_to(ROOT) and sha256(path.read_bytes()).hexdigest() == expected
     assert validate_contexts(bindings, schedule) == document['live_mapping_sha256']
     validate_sources({v: inventory(ROOT / ('.local/batch3/b35b/baseline/workagent' if v == 'B0' else 'backend/workagent')) for v in SOURCE_HASHES})
     validate_environment(environment())

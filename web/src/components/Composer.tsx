@@ -307,11 +307,9 @@ export function Composer({
       void startConversation(true);
       return;
     }
-    if (
-      !pending.current &&
-      selected.length === 0 &&
-      !CAPABILITIES.delegateWithoutContext
-    ) {
+    // The source-free real conversation route above is supported. The legacy
+    // CreateAssignment contract (including mock mode) requires source refs.
+    if (!pending.current && selected.length === 0) {
       setNeedsContext(true);
       setContextOpen(true);
       return;

@@ -136,14 +136,19 @@ class Controller:
                              'baseline_commit': BASELINE_COMMIT, 'environment': self.environment,
                              'live_mapping_sha256': getattr(adapter, 'live_mapping_sha256', None),
                              'execution': {name:digest((ROOT/'evaluation'/name).read_bytes()) for name in
-                                           ('study_controller.py','study_application.py','study_worker.py','study_transport.py','study_diagnostic.py','study_binding.py','network_harness.py','network_worker.py')},
+                                           ('study_controller.py','study_application.py','study_worker.py','study_transport.py','study_diagnostic.py','study_binding.py','study_source_amendment.py','study_execution.py','observe_live_study.py','baseline_observation.py','network_harness.py','network_worker.py')},
                              'sources': self.sources,
                              'inputs': {e['input_directory']: ingress(e)['input_files'] for t in self.schedule for e in t['episodes']}})
         self.execution = json.loads(binding)['execution']
         with self.db:
             self.db.execute("INSERT OR IGNORE INTO binding VALUES ('study',?)", (binding,))
-            if self.db.execute("SELECT value FROM binding WHERE name='study'").fetchone()[0] != binding:
-                raise Hold('study_binding_drift')
+            original=self.db.execute("SELECT value FROM binding WHERE name='study'").fetchone()[0]
+            if original != binding:
+                from study_source_amendment import accept_binding
+                name=accept_binding('controller',original,binding)
+                self.db.execute('INSERT OR IGNORE INTO binding VALUES (?,?)',(name,binding))
+                if self.db.execute('SELECT value FROM binding WHERE name=?',(name,)).fetchone()[0]!=binding:
+                    raise Hold('study_amendment_drift')
 
     def close(self):
         self.db.close()
@@ -154,6 +159,12 @@ class Controller:
     def operation(self, trial, episode, operation, payload):
         if any(digest((ROOT/'evaluation'/name).read_bytes()) != expected for name,expected in self.execution.items()):
             raise Hold('controller_execution_drift')
+        if operation=='open_trajectory':
+            prior=self.db.execute('SELECT payload FROM operations WHERE trial=? AND episode=? AND operation=?',
+                                  (trial,episode,operation)).fetchone()
+            if prior and canonical(payload)!=prior['payload']:
+                from study_source_amendment import opened_payload
+                payload=opened_payload(json.loads(prior['payload']),payload)
         body = canonical(payload)
         key = digest(canonical([trial, episode, operation, digest(body)]))
         with self.db:

@@ -42,6 +42,10 @@ class WorkAreas:
                 scope+=(' AND NOT EXISTS (SELECT 1 FROM workspace_files f WHERE '
                         f'f.workspace_id={table}.workspace_id AND f.artifact_id={artifact_key} AND f.owner_id<>%s)')
                 params=(*params,p.id)
+            if table=='artifacts':
+                scope+=' AND memory_revision_visible(artifacts.workspace_id,artifacts.id,artifacts.current_revision_id)'
+            elif table=='proposals':
+                scope+=' AND memory_proposal_visible(proposals.workspace_id,proposals.id)'
             rows=c.execute(f'SELECT id,count(*) OVER () AS total FROM {table} '
                 'WHERE workspace_id=%s AND '+scope+extra+
                 (' AND id=ANY(%s)' if selected is not None else '')+

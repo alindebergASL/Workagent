@@ -18,6 +18,15 @@ FORMATS.update(OFFICE_FORMATS)
 NUMBER = re.compile(r'-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?\Z')
 
 
+def export_filename(name, extension):
+    """Safe display basename for newly retained exports; never a path."""
+    if not isinstance(name, str) or not name or any(ord(ch) < 32 or ord(ch) == 127 or ch in '/\\' for ch in name):
+        raise DomainError('source_changed')
+    stem = name.rsplit('.', 1)[0] if '.' in name else name
+    stem = re.sub(r'[^A-Za-z0-9_-]', '_', stem).strip('_-')[:81] or 'file'
+    return stem + '.' + extension
+
+
 def safe_csv_cell(value):
     text = '' if value is None else str(value)
     probe = text.lstrip(' \t\r\n\ufeff')
@@ -115,10 +124,15 @@ class ArtifactExports:
                        file_id, snapshot_id, format, raw, annotations, omissions, tool_attempt_id=None, **metadata):
         from .service import encoded
         ext, mime = FORMATS[format]
+        row = (self._file_row(c,p,ws,file_id) if file_id else
+               self._artifact_file_metadata(c,p,ws,artifact_id) if artifact_id else None)
+        if row and (row['conversation_id'] != conversation_id or row['artifact_id'] != artifact_id):
+            deny()
+        filename = export_filename(row['filename'],ext) if row else 'export.' + ext
         blob = GeneratedBlobRef(blob_id=new_id(), sha256=sha256(raw).hexdigest(), byte_length=len(raw), mime_type=mime)
         manifest = ExportManifest(export_id=new_id(), workspace_id=ws, conversation_id=conversation_id,
             artifact_id=artifact_id, revision_id=revision_id, input_sha256=input_hash, workspace_file_id=file_id,
-            source_snapshot_id=snapshot_id, format=format, filename='export.' + ext, blob=blob,
+            source_snapshot_id=snapshot_id, format=format, filename=filename, blob=blob,
             created_at=now(), annotations=annotations, omissions=omissions, tool_attempt_id=tool_attempt_id, **metadata)
         c.execute('INSERT INTO generated_blobs(workspace_id,id,owner_id,sha256,mime_type,bytes) VALUES (%s,%s,%s,%s,%s,%s)',
                   (ws, blob.blob_id, p.id, blob.sha256, blob.mime_type, raw))

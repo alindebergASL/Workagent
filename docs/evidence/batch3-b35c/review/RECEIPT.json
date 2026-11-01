@@ -1,0 +1,65 @@
+{
+  "verdict": "PASS_narrow_exact_source_review",
+  "full_live_AB": "NOT_ESTABLISHED_existing_execution_card_owns_gaps",
+  "base_head": "e735e154b247598dde439d84433064ec59e1b157",
+  "branch": "hermes/b2-conversational-client",
+  "runtime_manifest_sha256": "0060de12f7a5503f60e205488530496d3d978c753d044ba8e4df979056e2d12b",
+  "runtime_hashes_verified": 278,
+  "accepted_memory_source_files_unchanged": 6,
+  "changed_source_sha256": {
+    "backend/migrations/074_run_output_resources.sql": "75b434a3f013b3e2cf0b3e2d4d96341c1d2dfb6b85d90ba3601b102ce40e13ad",
+    "backend/workagent/capabilities/models.py": "4f2082032e6793aa149d30208cba166f338b6cc85b9560888b1033ab02db63ec",
+    "backend/workagent/capabilities/policy.py": "715899073f4ed736f8a84253aa5e96c9bf0b733be52c5a5553bd5b568c6acb8e",
+    "backend/workagent/capabilities/registry.py": "9f071080dcdf48049f69f656d82cd1983414a5480926a3fabc52a4167dfd60f5",
+    "backend/workagent/conversations.py": "0c9b5b10e1b1a3d9f6031e90152cb474c97fa7b5cd57e3fe0bcc3977509a46b9",
+    "contracts/tool-grant.schema.json": "2957350d7d77b13342d078c5e51b4d03638b2db5a88fc4b2b188255ec303b809",
+    "contracts/capability-registry-v2.json": "3e1210f274db98ca04b0c44ce4b2fecf290e606cb02549e2473f4d23b5465cb0",
+    "backend/tests/test_run_output_workflow.py": "0cb4ddf5c32355c846e0406ea78cb50cebbde3c32823fd670653e854714eba5a",
+    "backend/tests/test_workspace_file_gateway_pg.py": "99a56dce06fba19307328f13f363db71165f8013b6b6083a3fa631aa5c6edf67"
+  },
+  "restricted_disposable_role": {
+    "superuser": false,
+    "bypassrls": false,
+    "table_owner": false
+  },
+  "migration_count": 74,
+  "material_SQL_functions": {
+    "reserve_tool_call(text,text,integer,text,jsonb,text)": {
+      "sha256": "24fb0474113e2ffb6954d0e2a0712f9036f40b6ef473f358fbeead94e5386b07",
+      "security_definer": true,
+      "config": [
+        "search_path=pg_catalog, public, pg_temp"
+      ]
+    },
+    "tool_native_file_resources_authorized(text,text,jsonb)": {
+      "sha256": "780465c0352378d496b122edbd3a04d1c8facd1740af155df162cd2b586a957f",
+      "security_definer": false,
+      "config": null
+    },
+    "tool_pre_office_resources_authorized(text,text,jsonb)": {
+      "sha256": "c2c8a0baa92904eb194bbdc6f161ff75bcc2113fed994286bdaa07456e66cab5",
+      "security_definer": false,
+      "config": null
+    }
+  },
+  "independently_executed_tests": 3,
+  "reused_predecessor_tests": 33,
+  "new_product_calls": 0,
+  "live_episodes": 0,
+  "new_allocation_usd": "0",
+  "ledger_recollected": false,
+  "installed_maintenance": false,
+  "published": false,
+  "deployed": false,
+  "development_model": "gpt-6-astra/openai-codex",
+  "development_tool_billing": "Outside product ledger; unreconciled",
+  "evidence_sha256": {
+    "REVIEW.md": "54cdf02f525fb1424c86cbfe3073c9749a416737b9afba154a81c27e73386e89",
+    "contracts.log": "ce1445ed30294ad7f278dc805f187a5b066795218e9ad38f0d85dcf8dc164088",
+    "inspect_candidate.py": "e643ae4cb381b0ead2ce16ba2e2c75cf43b0f6704ed090d1f44e7fdc75031be1",
+    "probes.log": "2119e6f9fe95b3c9c2fe1d709b6c16e5ebe8550ee22d7f10a056735c3199c2df",
+    "probes.xml": "4d9ccf7f3100c3d98aa8143e2784f999f8097e55ee0897071b12892a38d75400",
+    "test_review_run_outputs.py": "0828e9b96d19f75964390af8783e1eed4d65e2abfd947ed38620fcf3d3db18a3"
+  },
+  "successor": "t_e07c8870"
+}

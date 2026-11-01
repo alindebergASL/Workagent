@@ -1,0 +1,102 @@
+[
+  {
+    "availability": "available",
+    "effects": [
+      "read_context"
+    ],
+    "handler": "discover_retained_references",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cursor"
+        },
+        "kind": {
+          "const": "discover_retained_references",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "kind",
+        "cursor",
+        "limit"
+      ],
+      "title": "DiscoverRetainedReferences",
+      "type": "object"
+    },
+    "name": "discover_retained_references",
+    "reason": "Read-only discovery, not edit authority. Start cursor=null; continue even after an empty page.",
+    "scope": "Currently authorized same-conversation retained evidence",
+    "version": "2"
+  },
+  {
+    "availability": "available",
+    "effects": [
+      "read_context"
+    ],
+    "handler": "search_work_context_page",
+    "input_schema": {
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Cursor"
+        },
+        "kind": {
+          "const": "search_work_context_page",
+          "title": "Kind",
+          "type": "string"
+        },
+        "limit": {
+          "maximum": 6,
+          "minimum": 1,
+          "title": "Limit",
+          "type": "integer"
+        },
+        "query": {
+          "description": "Exact case-sensitive literal substring; first match in original Unicode text, not regex or word ranking.",
+          "maxLength": 240,
+          "minLength": 1,
+          "title": "Query",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "query",
+        "cursor",
+        "limit"
+      ],
+      "title": "SearchWorkContextPage",
+      "type": "object"
+    },
+    "name": "search_work_context_page",
+    "reason": "Read-only discovery, not edit authority. Start cursor=null; continue even after an empty page.",
+    "scope": "Currently granted same-owner source-free work context",
+    "version": "2"
+  }
+]

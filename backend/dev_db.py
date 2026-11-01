@@ -39,7 +39,7 @@ def provision(env_file):
         c.execute(sql.SQL('GRANT SELECT ON ALL TABLES IN SCHEMA public TO {}').format(sql.Identifier(runtime)))
         mutable=['assignments','assignment_sources','artifacts','revisions','proposals','tasks','task_inspections','commands','audit','outbox','runs','run_configurations','run_contexts','run_dispatches','provider_attempts','run_publications','responses_steps','responses_events','responses_consumer_uses','conversations','conversation_sources','conversation_messages','product_observations']
         c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.SQL(',').join(map(sql.Identifier,mutable)),sql.Identifier(runtime)))
-        for table in ['run_checkpoints','run_successors','conversation_intents','retained_result_reads','conversation_documents','workspace_files','source_snapshots','generated_blobs','artifact_exports','research_claims']:
+        for table in ['run_checkpoints','run_successors','conversation_intents','retained_result_reads','conversation_documents','workspace_files','source_snapshots','generated_blobs','artifact_exports','research_claims','model_discovery_receipts_v2']:
             if c.execute('SELECT to_regclass(%s)',('public.'+table,)).fetchone()[0]:
                 c.execute(sql.SQL('GRANT INSERT ON {} TO {}').format(sql.Identifier(table),sql.Identifier(runtime)))
         if c.execute("SELECT to_regclass('public.conversation_intents')").fetchone()[0]:
@@ -62,6 +62,8 @@ def provision(env_file):
             'connector_claim(text,text,text,text)',
 
             'connector_revoke(text,text,text,integer,text)',
+            # 081 discovers existing SELECT roles; fresh roles are created later.
+            'reserve_tool_call_v2(text,text,integer,text,jsonb,text,text,text)',
 
         ]
         for signature in memory_functions:
@@ -86,7 +88,7 @@ def provision(env_file):
     path.parent.mkdir(parents=True,exist_ok=True)
     fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
     with os.fdopen(fd,'w') as f:
-        f.write(f'export DATABASE_URL={runtime_dsn}\nexport MIGRATION_DATABASE_URL={owner_dsn}\nexport LOCAL_TEST_MODE=true\nexport LOCAL_BEARER_TOKEN={secrets.token_urlsafe(32)}\nexport LOCAL_PRINCIPAL_ID=local-human\n')
+        f.write(f'export DATABASE_URL={runtime_dsn}\nexport MIGRATION_DATABASE_URL={owner_dsn}\nexport LOCAL_TEST_MODE=true\nexport WORKAGENT_TEST_DATABASE={name}\nexport LOCAL_BEARER_TOKEN={secrets.token_urlsafe(32)}\nexport LOCAL_PRINCIPAL_ID=local-human\n')
         if executor_dsn:f.write(f'export WORKAGENT_SYNTHETIC_LIFECYCLE_DATABASE_URL={executor_dsn}\n')
     print(f'Created isolated database {name}; environment: {path}. No credentials printed.')
     return name

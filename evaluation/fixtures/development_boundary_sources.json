@@ -1,0 +1,164 @@
+{
+  "description": "Explicitly synthetic/representative static text snippets for boundary-guard unit mutations only. These are not executable runtime sources, current-checkout snapshots, or live safety evidence. Anchor lines intentionally model the inventory; do not regenerate from checkout sources at test time.",
+  "sources": {
+    ".github/workflows/frontend.yml": [
+      "node-version: 22",
+      "- run: pnpm check",
+      "- run: pnpm build",
+      "- run: pnpm test:e2e"
+    ],
+    "AGENTS.md": [
+      "Use risk-proportionate tests and independent review where useful. No mandatory",
+      "all-model/all-persona ceremony or full-suite rerun for every increment. Share"
+    ],
+    "backend/tests/retained_read_visits.py": [
+      "for _ in range(6):",
+      "assert time.monotonic()-started<240, 'natural claim expiry wait exceeded test bound'",
+      "AND (%s::text IS NULL OR d.workspace_id=%s) ORDER BY d.cursor LIMIT 100\"\"\"",
+      "assert before<after, 'ordinary once made no meaningful durable progress; stop'",
+      "counts=worker.once(workspace=workspace)",
+      "assert not any(s.state in ('count_unknown','outcome_unknown','invalid','counting','dispatching') for s in status), 'unresolved provider I/O; stop without retry'",
+      "assert not tools_unresolved(c,ws,run_id), 'unresolved native effect; stop without retry'",
+      "if run.state in ('ready','partial','cancelled'):return run",
+      "if result.state in ('ready','partial','cancelled'):",
+      "assert [(r['workspace_id'],r['run_id'],r['data']['principal_id']) for r in pending]==[(ws,run_id,principal.id)], 'sole pending target required'",
+      "assert not any(operation_key(aid,s['phase'],kind,f)&((1<<64)-1) in held for s in steps for kind in ('count_send','dispatch','read','cancel') for f in range(1,fence+1)), 'active I/O; stop without retry'",
+      "assert not counts['denied'], 'ordinary once denied target; no retry'",
+      "assert (run.fence,run.lease_expires_at)==(fence,expiry), 'claim changed while test waited'"
+    ],
+    "backend/tests/test_adaptive_execution.py": [
+      "for _ in range(6):",
+      "result=w.work(p,ws,run_id)",
+      "expire(ctx,run_id)"
+    ],
+    "backend/tests/test_domain.py": [
+      "if runtime_id[:3] != admin_id[:3] or runtime_id[3] == admin_id[3]:",
+      "if not bindings or any(value != runtime_id[2] for value in bindings):",
+      "dsn,admin=fixture_database_urls(os.environ)",
+      "service=Service(Database(dsn)); service.db.check_runtime_role()",
+      "seed(admin,records,ws,p.id)"
+    ],
+    "backend/tests/test_gateway_target_rejection.py": [
+      "privacy_classes=['workspace_private'], egress='none', expires_at=now()+timedelta(hours=1),"
+    ],
+    "backend/tests/test_retained_read_gateway_pg.py": [
+      "assert finish_natural_visits(context,worker(context,fake,tmp_path),q.run.id).state=='ready'"
+    ],
+    "docs/DEVELOPMENT_AUTHORITY.md": [
+      "- Select and adjust justified finite per-trial money/call/token/time/wave limits within the existing cumulative budget. The former1USD cap and other assistant-selected trial limits are engineering settings, not new permission gates. Reconcile active external requests before changing limits; no blind resend.",
+      "The proposed 35,000-input/512-output restrictions, forced two-generation-per-arm design, four-generation/four-count/sixteen-read campaign and $0.39048 micro-pilot target are withdrawn as current requirements. Preserve their earlier receipts as historical evidence, not instructions to revive them. Do not build special admission machinery or shrink the product mission to fit spare cents. Use normal supported model capacity and task-appropriate execution to build and demonstrate complete functionality. Keep genuine provider limits, owner-budget enforcement, credential/source isolation and unknown-outcome duplicate protection; removing arbitrary subcaps does not authorize unlimited spending.",
+      "5. **Risk-proportionate verification:** reuse accepted evidence and one appropriate independent review. No reflexive whole-suite rerun, repeated broad audit, extra review layer or per-slice reapproval without a concrete changed risk. Requirements remain full-scope; do not weaken assertions or relabel pending rows.",
+      "4. **Separate completion from permission:** full Batch2 acceptance and production release may be HOLD while implementation, test runtime operation and feature-branch publication continue. Every HOLD names its scope; do not use bare 'publication HOLD' to block all development.",
+      "-Explicit approval remains for installed-data maintenance, bulk UID migrations, VACUUM and destructive cleanup. Fresh disposable fixtures are not installed-data maintenance. Keep historical receipts and failed evidence."
+    ],
+    "docs/GENERAL_MODEL_AUTHORIZATION.md": [
+      "model-testing ceiling from $50 to **$100 total**, including all historical",
+      "allocations, reservations and uncertain liabilities—not a new $100 allowance.",
+      "New paid routes, broader private-account/data access, external business effects,",
+      "default-branch merges and production replacement require their own authorization."
+    ],
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": [
+      "- Before installed mutation, retain a consistent backup with verified integrity and a restore/recovery procedure; exercise the narrow correction on a disposable restored copy, including retry/idempotency, concurrency and failure rollback. Record exact affected identities and amounts without credentials or private payloads.",
+      "- Obtain focused review of the correction and verify the installed readback before a paid run. Report known/estimated usage, retained unresolved exposure, released unused allowance and enforceable remaining capacity separately."
+    ],
+    "evaluation/README.md": [
+      "This directory is **offline-only evaluation tooling**, not application runtime code and not a paid worker. It deliberately refuses `--mode live` before reading credentials or starting a child. No model responses, task solutions, user usefulness ratings or statistical superiority are synthesized.",
+      "- Current evaluator-only root: `/home/ubuntu/workagent-evaluator-b35b-v2` (0700). It contains `fixtures/`, `oracles/`, `trajectories/`, `scoring/`, generator/seed, immutable freeze/runtime lock and execution records. Never copy this root into an app search corpus, tool workspace, prompt, DB, public artifact or repository. V1 is retained separately as historical failed/qualified evidence.",
+      "The target must be new. Never rerun a collector over old attempts. A refusal or timeout is evidence, not an excuse to rename/rewrite an unknown request. The offline runtime lock includes the exact interpreter; use the recorded controller executable or refreeze explicitly before any new trial. Dependency drift fails closed. The bound venv must not be concurrently modified."
+    ],
+    "evaluation/install_recipient_funding.py": [
+      "recipient credit keeps its issuer allocation reserved; rerun the SAME phase ID to"
+    ],
+    "evaluation/live_tool_authority.py": [
+      "expires_at=now()+timedelta(days=7),access_generation=run.access_generation,",
+      "raise Hold('missing_durable_tool_receipt')",
+      "assert g.principal_id==p.id and g.access_generation==run.access_generation and g.expires_at>now()",
+      "assert existing['active'] and existing['data']==g.model_dump(mode='json')",
+      "LIMITS={'local_compute':10000,'extraction':1000,'rendering':1000}",
+      "assert page.next_after is None, 'explicit_selector_capacity_exceeded'"
+    ],
+    "evaluation/prepare_live_study.py": [
+      "import json",
+      "model='gpt-6.1-sol',consumer_sha256=consumer_hash(),",
+      "normal_input_tokens=50000,normal_output_tokens=8192)",
+      "max_steps=8,generation_limit=256,count_limit=256,read_limit=4096,input_limit=12800000,output_limit=2097152,",
+      "cost_limit_usd='12.00',conversation_ids=ids)",
+      "expires_at=None,max_runs=10,max_received_output_tokens=16384)"
+    ],
+    "evaluation/recipient_funding.sql": [
+      "IF d.data->>'reserved_input_tokens' IS DISTINCT FROM '50000'",
+      "IF NEW.data->>'reserved_input_tokens' IS DISTINCT FROM '50000'",
+      "OR d.data->>'reserved_output_tokens' IS DISTINCT FROM '8192' OR amount<>0.206920",
+      "OR NEW.data->>'reserved_output_tokens' IS DISTINCT FROM '8192'",
+      "SELECT coalesce(sum(amount_usd),0) INTO funded FROM study_funding.certificates;"
+    ],
+    "evaluation/run_live_study.py": [
+      "parser.add_argument('--checkpoint-after-episodes',type=int)",
+      "summary=controller.run(stop_after=args.checkpoint_after_episodes)",
+      "parser.add_argument('--initial-phase-usd',type=Decimal,required=True)",
+      "assert args.initial_phase_usd.is_finite() and args.initial_phase_usd>0"
+    ],
+    "evaluation/study_application.py": [
+      "for attempt in range(20):  # bounded diagnostic visits; exhaustion is a HOLD, not acceptance",
+      "result = subprocess.run(argv, input=json.dumps(cfg), text=True, capture_output=True, cwd=ROOT, timeout=240)",
+      "if state['mode'] == 'official_api':",
+      "raise Hold('installed_run_pending_observation:' + state['current_run'])",
+      "raise Hold('provider_outcome_unknown_no_replay')"
+    ],
+    "evaluation/study_controller.py": [
+      "if row['state'] in ('sending', 'unknown'):",
+      "result = self.adapter.observe(key)",
+      "raise Hold('unknown_outcome_no_resend:' + key)",
+      "if len(schedule) != 12 or sum(len(t['episodes']) for t in schedule) != 72:",
+      "if [e['episode'] for e in trial['episodes']] != list(range(1, 7)):",
+      "'scheduled_trajectories': 12, 'scheduled_episodes': 72,"
+    ],
+    "evaluation/study_diagnostic.py": [
+      "text=True, capture_output=True, cwd=ROOT, env=env, timeout=1200)"
+    ],
+    "evaluation/study_source_amendment.py": [
+      "raw=MANIFEST.read_bytes();require(APPROVAL.read_text().strip()==digest(raw),'approval_hash')",
+      "require(digest(old)==m['bindings'][kind]['before'] and digest(new)==m['bindings'][kind]['after'],'binding:'+kind)",
+      "return old"
+    ],
+    "evaluation/study_transport.py": [
+      "'cumulative_authority_usd': '100',",
+      "if LIVE_EXECUTION_RELEASE is None:",
+      "service.db.check_runtime_role()",
+      "check_grant(c, run, actual)"
+    ],
+    "evaluation/study_worker.py": [
+      "for _ in range(20):  # polling visit bound, NOT model choices or acceptance",
+      "result = worker.work(Principal(cfg['principal']), cfg['workspace'], cfg['run_id'])",
+      "time.sleep(.1)"
+    ],
+    "evaluation/test_general_claim_recovery.py": [
+      "expires_at=now()+timedelta(hours=2),access_generation=q.run.access_generation,"
+    ],
+    "evaluation/test_timing_recovery.py": [
+      "assert runtime.path==owner.path=='/workagent_test_c0742ca73b11'",
+      "assert runtime.hostname==owner.hostname and runtime.hostname in ('localhost','127.0.0.1')",
+      "assert runtime.username!=owner.username"
+    ],
+    "scripts/workagent.py": [
+      "if name.endswith('API_KEY') or name in {'ANTHROPIC_AUTH_TOKEN', 'OPENAI_ACCESS_TOKEN'}:",
+      "env.pop(\"MIGRATION_DATABASE_URL\", None)",
+      "raise RuntimeError(f'Local port {port} is occupied; stop its owner before continuing. No process was killed.')",
+      "deadline = time.monotonic() + 45",
+      "process.wait(timeout=10)",
+      "process.wait(timeout=5)"
+    ],
+    "web/package.json": [
+      "\"build\": \"next build\","
+    ],
+    "web/playwright.config.ts": [
+      "workers: 1,",
+      "retries: 0,",
+      "reuseExistingServer: false,",
+      "timeout: 120_000,"
+    ],
+    "web/vitest.config.mts": [
+      "include: [\"test/**/*.test.ts\"],"
+    ]
+  }
+}

@@ -1,5 +1,6 @@
 """Scoped working text backed by artifact revisions; evidence backed by original refs."""
 import difflib
+from dataclasses import dataclass
 from hashlib import sha256
 from pydantic import ValidationError
 from .errors import DomainError, deny
@@ -8,6 +9,29 @@ from .product_models import FileBody
 from .workspace_file_models import (WorkspaceFile, WorkspaceFilePage, FileVersionRef, FileRange,
     FileComparison, WorkingText, validate_text, OmittedByteRange)
 from . import source_snapshots
+
+
+@dataclass(frozen=True)
+class FileDownload:
+    """HTTP delivery metadata, not a replacement historical artifact body."""
+    filename: str
+    mime_type: str
+    content: str
+    content_sha256: str
+
+
+def native_download(body, row):
+    from pydantic import TypeAdapter
+    from .workspace_file_models import Filename, TEXT_MIMES
+    try:
+        name = TypeAdapter(Filename).validate_python(row['filename'])
+        if TEXT_MIMES[name.rsplit('.', 1)[1]] != row['mime_type']:
+            raise ValueError('filename/MIME mismatch')
+        if sha256(body.content.encode('utf-8')).hexdigest() != body.content_sha256:
+            raise ValueError('content hash mismatch')
+    except (ValueError, KeyError, TypeError):
+        raise DomainError('source_changed') from None
+    return FileDownload(name, row['mime_type'], body.content, body.content_sha256)
 
 
 def omissions(raw, start, end):
@@ -53,6 +77,18 @@ def text_body(content, expected_hash, mime_type):
 
 
 class WorkspaceFiles:
+    def _artifact_file_metadata(self, c, p, ws, artifact_id):
+        # Optional association lookup never supplies content or substitutes a
+        # version. Recheck owner/document scope through the normal file reader.
+        found = c.execute('SELECT id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',
+                          (ws, artifact_id)).fetchone()
+        if not found:
+            return None
+        row = self._file_row(c, p, ws, found['id'])
+        if row['artifact_id'] != artifact_id:
+            deny()
+        return row
+
     def _own_file_drafts(self, c, p, run, cv):
         """Exclude only this run's settled, untouched exact output from frozen inputs.
 

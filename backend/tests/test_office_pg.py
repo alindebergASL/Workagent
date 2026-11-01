@@ -100,7 +100,7 @@ def test_run_office_chart_exact_receipt_replay_and_human_download(context):
     assert receipt.status=='observed',receipt.status
     assert broker.call(request)==receipt
     manifest,raw=s.download_export(p,ws,receipt.output['result']['export_id'])
-    assert manifest.filename=='export.png' and manifest.tool_attempt_id==receipt.attempt_id
+    assert manifest.filename=='dataset.png' and manifest.tool_attempt_id==receipt.attempt_id
     assert manifest.chart.rows[0].value=='0.3'
     assert manifest.chart.input_sha256==ref.sha256 and raw.startswith(b'\x89PNG')
     # Raw SQL resource check covers exact selectors and dependency wrappers too.

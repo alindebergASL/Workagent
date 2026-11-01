@@ -34,7 +34,11 @@ class Adapter:
 def implementation_hash(*paths):
     root=Path(__file__).resolve().parents[1]
     common=('capabilities/models.py','capabilities/broker.py','capabilities/policy.py',
-            'capabilities/observations.py','service.py','model_base.py','../migrations/053_capability_gateway.sql')
+            'capabilities/boundary_policy.py',
+            'capabilities/implementation_releases.py','../migrations/081_capability_implementation_releases.sql',
+            '../migrations/082_native_retained_result_projection.sql',
+            'capabilities/observations.py','service.py','model_base.py','../migrations/053_capability_gateway.sql',
+            '../migrations/074_run_output_resources.sql')
     return digest({p:sha256((root/p).read_bytes()).hexdigest() for p in sorted(set(common+paths))})
 
 
@@ -45,8 +49,17 @@ def _read(model):
             from .policy import discover
             with service.db.transaction() as c:
                 p,run,_=service._check_capability(c,cap)
-            return {'capability':request.kind,'version':'1',
-                    'result':discover(service,p,run.workspace_id,run.id).model_dump(mode='json')}
+            page=discover(service,p,run.workspace_id,run.id).model_dump(mode='json')
+            from ..current_gateway import enabled, builtin_catalog, CurrentGatewayCatalog
+            with service.db.transaction() as c:
+                p,run,_=service._check_capability(c,cap)
+                config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
+                                 (run.workspace_id,run.id)).fetchone()['data']
+                if enabled(config):
+                    cv=service._owned_conversation(c,p,run.workspace_id,run.conversation_id)
+                    page=CurrentGatewayCatalog(items=page['items'],
+                        builtin_operations=builtin_catalog(service,c,p,run,cv,config)).model_dump(mode='json')
+            return {'capability':request.kind,'version':'1','result':page}
         context=service.conversation_worker_context(cap)
         return composition.execute_read(request,context)
     return invoke
@@ -76,7 +89,7 @@ def adapters():
         ('context.read',composition.ReadContext,('composition.py','conversations.py'),False),
         ('files.inspect_json',composition.InspectJSON,('composition.py','json_inspection.py'),False),
         ('research.fetch',composition.FetchPublicURL,('composition.py','public_retrieval.py'),True),
-        ('capabilities.discover_legacy',composition.DiscoverCapabilities,('composition.py',),False),
+        ('capabilities.discover_legacy',composition.DiscoverCapabilities,('composition.py','current_gateway.py','discovery_composition.py','model_discovery.py','../migrations/087_current_gateway_contract.sql'),False),
         ('procedures.load_legacy',composition.LoadSkill,('composition.py',),False),
     ]:
         result[name]=_adapter(name,model,ReadOutput,_read(model),paths,public=public)

@@ -16,7 +16,7 @@ from workagent.capabilities.broker import CapabilityBroker
 from workagent.workspace_file_models import EditWorkspaceFile
 
 
-def install(ctx, cv, selectors, names):
+def install(ctx, cv, selectors, names, *, allow_run_outputs=False):
     s,p,ws,_,admin=ctx
     q=post(ctx,cv);cap=s.claim_run(p,ws,q.run.id)
     adapters=registry.adapters();descriptors=[adapters[name].descriptor for name in names]
@@ -25,7 +25,7 @@ def install(ctx, cv, selectors, names):
                                     implementation_sha256=d.implementation_sha256) for d in descriptors],
         resource_selectors=selectors,effects=list(set(effect for d in descriptors for effect in d.effects)),
         privacy_classes=['workspace_private'],egress='none',expires_at=now()+timedelta(hours=1),
-        access_generation=q.run.access_generation,budget_account_id=new_id())
+        access_generation=q.run.access_generation,budget_account_id=new_id(),allow_run_outputs=allow_run_outputs)
     policy.install(Database(admin),grant,limits={'local_compute':20,'rendering':5})
     return cap,grant,q
 

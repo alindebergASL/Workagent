@@ -1,0 +1,31 @@
+{
+  "candidate_head": "e735e154b247598dde439d84433064ec59e1b157",
+  "development_tool_billing": "separate from product ledger; unreconciled",
+  "execution_gaps": [
+    "overall funding unresolved",
+    "fresh real-public A and full editorial live amendment",
+    "actual live worker oracle isolation",
+    "actual app-built live envelopes and observation integration"
+  ],
+  "external_frozen_files_verified": 379,
+  "funding_files_verified": 17,
+  "independent_oracle_hashes_verified": 4,
+  "ledger_recollections": 0,
+  "live_episodes": 0,
+  "micro_design": "withdrawn_by_owner_not_to_be_implemented",
+  "new_allocation_usd": "0",
+  "new_product_calls": {
+    "cancels": 0,
+    "counts": 0,
+    "generations": 0,
+    "reads": 0
+  },
+  "next_existing_card": "t_5df8f3c1",
+  "paired_case_inputs_equal": true,
+  "primary_episodes": 72,
+  "primary_trajectories": 12,
+  "status": "offline_protocol_ready_paid_evaluation_hold",
+  "tooling_model": "gpt-6-astra/openai-codex",
+  "unchanged_repair_source_files": 6,
+  "verified_at": "2026-10-29T18:36:55.637198+00:00"
+}

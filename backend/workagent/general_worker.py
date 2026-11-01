@@ -10,6 +10,8 @@ from .errors import DomainError
 from .models import TextResult, TurnResult
 from .service import Principal
 
+GENERAL_CLAIM_SECONDS = 600
+
 
 def final_tool_output(staged,selection):
     """Avoid a second copy of the exact draft already in the tool-call history.
@@ -68,7 +70,8 @@ class GeneralWorker:
             # Reuse only the existing durable one-phase HTTP driver, never its
             # intake worker/run path. GeneralWorker owns this conversation loop.
             from .responses_worker import ResponsesWorker
-            self.phases=ResponsesWorker(service,transport,state,poll_limit=poll_limit,hook=hook)
+            self.phases=ResponsesWorker(service,transport,state,poll_limit=poll_limit,hook=hook,
+                                        general_responses=True)
         else:
             raise DomainError('unsupported_operation')
         self.service=service
@@ -200,6 +203,69 @@ class GeneralWorker:
         except (DomainError,TransportError):
             return  # No replay, refund, execution, publication or lease mutation.
 
+    def _claim_responses_run(self,p,ws,run_id,*,responses_receipt=None):
+        """Ordinary NEW general Responses claim, with a fixed 600-second lease.
+
+        Retain the ordinary claim transaction protocol. Never extend an existing lease or
+        accept a caller-selected duration. Other profiles use the service policy.
+        An abandoned new claim can take 420 seconds longer than the prior policy;
+        provider timeouts and all current authority stay unchanged.
+        """
+        import secrets
+        from datetime import timedelta
+        from .errors import deny
+        from .models import Run,now
+        from .provider_attempts import attempt_row
+        from .service import WorkerCapability,digest
+        s=self.service
+        with s.db.transaction() as c:
+            generation=s._scope(c,p,ws,True)
+            row=c.execute('SELECT data FROM runs WHERE workspace_id=%s AND id=%s',(ws,run_id)).fetchone()
+            if not row:
+                deny()
+            r=Run.model_validate(row['data'])
+            if r.principal_id!=p.id or r.profile!='general-responses-v1':
+                deny()
+            a=(s._conversation(c,p,ws,r.conversation_id,True) if r.conversation_id else
+               s._assignment(c,p,ws,r.assignment_id,True))
+            attempt=attempt_row(c,ws,run_id)
+            if responses_receipt is not None:
+                bound,existing,_=s._receipt_binding(c,responses_receipt)
+                if bound.id!=r.id or existing.state=='failed':
+                    raise DomainError('action_unresolved')
+            elif attempt:
+                raise DomainError('action_unresolved')
+            s._runtime_pins(c,r)
+            if a.state in ('paused','cancelled') or r.state not in ('queued','running'):
+                raise DomainError('action_unresolved')
+            if r.access_generation!=generation:
+                raise DomainError('source_changed')
+            if r.state=='running' and r.lease_expires_at and r.lease_expires_at>now():
+                raise DomainError('action_unresolved')
+            if r.used_units>=r.budget_units:
+                raise DomainError('budget_exhausted')
+            owner_column='conversation_id' if r.conversation_id else 'assignment_id'
+            others=c.execute(f'SELECT data FROM runs WHERE workspace_id=%s AND {owner_column}=%s AND id<>%s',(ws,a.id,r.id)).fetchall()
+            for other in others:
+                active=Run.model_validate(other['data'])
+                if active.state=='running' and active.lease_expires_at and active.lease_expires_at>now():
+                    raise DomainError('action_unresolved')
+            secret=secrets.token_urlsafe(32)
+            r.fence+=1; r.state='running'; r.lease_expires_at=now()+timedelta(seconds=GENERAL_CLAIM_SECONDS)
+            s._store_run(c,r)
+            c.execute('UPDATE runs SET lease_hash=%s WHERE workspace_id=%s AND id=%s',(digest(secret),ws,r.id))
+            if not r.conversation_id:
+                s._refresh_progress(c,a)
+                a.work_version+=1; s._store_assignment(c,a)
+            s._event(c,p,ws,'claim_run',r.id)
+            cap=WorkerCapability(ws,r.id,p.id,r.fence,secret)
+            if r.conversation_id:
+                s._general_context(c,cap)
+            else:
+                from .runtime_config import assemble_context
+                assemble_context(s,c,cap)
+            return cap
+
     def _responses_work(self,p,ws,run):
         from dataclasses import asdict
         from .provider_attempts import ReceiptCapability
@@ -226,14 +292,24 @@ class GeneralWorker:
             except DomainError:
                 # Reclaim only through domain authority: a receipt is required
                 # whenever an attempt exists; an active lease is never renewed.
-                cap=s._claim_run(p,ws,rid,responses_receipt=receipt)
+                cap=self._claim_responses_run(p,ws,rid,responses_receipt=receipt)
                 saved['worker']=asdict(cap); phases.state.save(ws,rid,saved)
         else:
-            cap=s.claim_run(p,ws,rid)
+            cap=self._claim_responses_run(p,ws,rid)
             saved={'worker':asdict(cap),'receipt':None}; phases.state.save(ws,rid,saved)
         deadline=phases._visit_deadline(cap)
+        from .adaptive import enabled,contract
+        resume_prepared=False; resume_final=False
+        if receipt is not None and enabled(config):
+            with s.db.transaction() as c:
+                prepared_phases={row['phase'] for row in c.execute(
+                    'SELECT phase FROM responses_steps WHERE attempt_id=%s',(receipt.attempt_id,)).fetchall()}
+                resume_prepared=bool(prepared_phases); resume_final='final' in prepared_phases
         try:
-            context=s.conversation_worker_context(cap)
+            # _visit_deadline's _fresh already validates current context. A
+            # retained request needs no new request projection; each retained
+            # selection and the pre-I/O gates revalidate context below as well.
+            context=None if resume_prepared else s.conversation_worker_context(cap)
         except DomainError as exc:
             # A restart may encounter a committed draft before staging got to
             # revalidate its request projection. Settle against frozen authority,
@@ -241,7 +317,6 @@ class GeneralWorker:
             if exc.code.value!='budget_exhausted' or receipt is None:
                 raise
             return self._terminal_readback(p,ws,s.stop_general_budget(cap,receipt))
-        from .adaptive import enabled,contract
         from .models import ProviderGrant
         with s.db.transaction() as c:
             grant=ProviderGrant.model_validate(c.execute('SELECT data FROM provider_grants WHERE id=%s',(config['grant_id'],)).fetchone()['data'])
@@ -256,7 +331,7 @@ class GeneralWorker:
         record_successor_use(s,receipt,cap)
         ledger=Ledger(s,receipt)
         if enabled(config):
-            return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline)
+            return self._adaptive_work(p,ws,run,cap,receipt,ledger,context,config,deadline,resume_final=resume_final)
         try:
             selection,_=ledger.snapshot('selection',cap)
             if selection is None:
@@ -301,7 +376,285 @@ class GeneralWorker:
                 return self._terminal_readback(p,ws,observed)
             raise
 
-    def _adaptive_work(self,p,ws,run,cap,receipt,ledger,context,config,deadline):
+    def _prepared_selection(self,ledger,cap,config,decision_schema,*,resume_settled=False):
+        """Validate the prefix and optionally return its last durable local stage.
+
+        Default callers retain the prepared-request interface. The ordinary
+        worker also consumes a fully settled latest phase without replaying it.
+        """
+        from .adaptive import phase_name
+        with self.service.db.transaction() as c:
+            ledger._auth(c,cap)
+            names={r['phase'] for r in c.execute(
+                'SELECT phase FROM responses_steps WHERE attempt_id=%s',
+                (ledger.receipt.attempt_id,)).fetchall()}
+            latest=phase_name(len(names)) if names and 'final' not in names else None
+            events=ledger._events(c,latest) if latest and resume_settled else {}
+        if 'final' in names or not names:return None
+        count=len(names)
+        if (count>config['responses']['max_steps'] or
+                names!={phase_name(i) for i in range(1,count+1)}):
+            raise DomainError('command_conflict')
+        if resume_settled and {'tool_result','selection_rejection','file_input_rejection'} & events.keys():
+            selection,selected,staged,rejection_kind=self._prepared_final(
+                ledger,cap,config,decision_schema,settled_prefix=True)
+            return selection,count,(selected,staged,rejection_kind)
+        if names=={'selection'}:return None
+        request,_=self._prepared_final(ledger,cap,config,decision_schema,pending_phase=phase_name(count))
+        return (request,count,None) if resume_settled else (request,count)
+
+    def _prepared_final(self,ledger,cap,config,decision_schema,*,pending_phase=None,settled_prefix=False):
+        """Validate a retained chain without executing or restaging its effects.
+
+        A final follows a terminal choice; a prepared selection follows only
+        continuing choices. A settled prefix may await its first successor.
+        Load each exact request/schema/count, restore each
+        result, and resolve current
+        authority for every choice. Nothing here grants I/O or caches authority.
+        The ordinary phase driver owns count/dispatch/identity recovery unchanged.
+        """
+        import json
+        from .adaptive import phase_name
+        from .responses_ledger import restore_result
+        from .general_responses import resolve_selection
+        from .capabilities.policy import require_operation
+        from .products import is_builtin_operation
+        from .product_models import PublishArtifact
+        from .acceptance_checks import for_model
+        from .responses_transport import PreparedRequest,RequestMetadata
+        from .service import canonical
+        from .composition import continuity_enabled,LEGACY_DECISION_SCHEMA,LEGACY_CONTINUITY_DECISION_SCHEMA
+        from .adaptive import CAPABILITY
+        if pending_phase and settled_prefix:raise ValueError('one resume boundary required')
+        destination=None if settled_prefix else pending_phase or 'final'
+        if not pending_phase and not settled_prefix:
+            final,_=ledger.snapshot(destination,cap)
+            if final is None:return None
+        s=self.service
+        with s.db.transaction() as c:
+            # The final snapshot authenticates its read. For a selection, do one
+            # authenticated bulk read and fully validate its exact request below,
+            # rather than validating it once in snapshot and again in this chain.
+            if pending_phase or settled_prefix:ledger._auth(c,cap)
+            # Every choice still resolves current authority below; the unchanged
+            # phase driver independently snapshots and authorizes before I/O.
+            rows=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s',
+                           (ledger.receipt.attempt_id,)).fetchall()
+            # One authenticated read of immutable history. This is not an
+            # authority cache: resolve_selection below rechecks current scope,
+            # grant, context, targets and dependencies for every selected action.
+            history={r['phase']:(r,ledger._events(c,r['phase'])) for r in rows if r['phase']!=destination}
+        names={r['phase'] for r in rows}
+        count=len(names)-(0 if settled_prefix else 1)
+        expected={phase_name(i) for i in range(1,count+1)}
+        if not settled_prefix:expected.add(destination)
+        if not 1<=count<=config['responses']['max_steps'] or names!=expected:
+            raise DomainError('command_conflict')
+        if pending_phase:
+            from hashlib import sha256
+            pending_row=next(r for r in rows if r['phase']==pending_phase)
+            schema=decision_schema
+            legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
+            if canonical(json.loads(pending_row['request_bytes'])['tools'][0]['parameters']).encode()==legacy.material:
+                schema=legacy
+            final=PreparedRequest(pending_row['request_bytes'].encode(),
+                RequestMetadata.model_validate(pending_row['metadata']),pending_phase,schema,CAPABILITY)
+            count_bytes=final.count_body()
+            if (final.body!=pending_row['request_bytes'].encode()
+                    or final.sha256!=pending_row['request_sha256']
+                    or count_bytes!=pending_row['count_bytes'].encode()
+                    or sha256(count_bytes).hexdigest()!=pending_row['count_sha256']
+                    or pending_row['grant_id']!=config['grant_id']
+                    or final.metadata.request_id!=cap.run_id
+                    or final.metadata.attempt_id!=ledger.receipt.attempt_id
+                    or final.metadata.step_id!=pending_phase):
+                raise DomainError('command_conflict')
+        if pending_phase or settled_prefix:
+            from .adaptive import retained,continuation_context
+            from .request_packing import _deduplicate_bodies
+            with s.db.transaction() as c:
+                observations=retained(c,ledger.receipt.attempt_id,include_rejections=True)
+            def validate_continuation(request,index):
+                # Validate the original compact projection against exact retained
+                # observations. Do not reconstruct context, repack, or reprepare.
+                # Current context/targets are checked by resolve_selection and
+                # rejection retain below, and again at the unchanged I/O gates.
+                body=json.loads(request.body)
+                if len(body['input'])!=1 or body['input'][0].get('role')!='user':
+                    raise DomainError('command_conflict')
+                context=json.loads(body['input'][0]['content'])
+                prior=[o for o in observations if o['phase'] in {phase_name(i) for i in range(1,index)}]
+                if (context.get('run_id')!=cap.run_id or len(prior)!=index-1
+                        or [o['phase'] for o in prior]!=[phase_name(i) for i in range(1,index)]):
+                    raise DomainError('command_conflict')
+                # A result obtained AFTER this request was prepared cannot
+                # retroactively establish the goal on an earlier malformed call.
+                first=next((history[phase_name(i)][1]['result']['value'] for i in range(1,index)
+                    if history[phase_name(i)][1].get('result',{}).get('state')=='function_call'),None)
+                for observation in prior:
+                    if observation.get('kind')=='file_input_rejection':
+                        for key in ('goal','success_criteria'):
+                            if first is None:observation.pop(key,None)
+                            else:observation[key]=first[key]
+                projected=continuation_context(deepcopy(context),prior,config['responses']['max_steps'])
+                _deduplicate_bodies(projected)
+                if context.get('adaptive')!=projected['adaptive']:
+                    raise DomainError('command_conflict')
+            if pending_phase:validate_continuation(final,count+1)
+        for index in range(1,count+1):
+            phase=phase_name(index)
+            row,events=history[phase]
+            schema=decision_schema
+            legacy=LEGACY_CONTINUITY_DECISION_SCHEMA if continuity_enabled(config) else LEGACY_DECISION_SCHEMA
+            if canonical(json.loads(row['request_bytes'])['tools'][0]['parameters']).encode()==legacy.material:
+                schema=legacy
+            selection=PreparedRequest(row['request_bytes'].encode(),RequestMetadata.model_validate(row['metadata']),
+                                      phase,schema,CAPABILITY)
+            if settled_prefix:validate_continuation(selection,index)
+            # Same full request/schema/count validation as Ledger.snapshot; no
+            # FrozenSchema or validator instance is treated as prevalidated.
+            count_bytes=selection.count_body()
+            from hashlib import sha256
+            if (selection.sha256!=row['request_sha256'] or count_bytes!=row['count_bytes'].encode()
+                    or sha256(count_bytes).hexdigest()!=row['count_sha256']
+                    or row['grant_id']!=config['grant_id']
+                    or selection.metadata.request_id!=cap.run_id
+                    or selection.metadata.attempt_id!=ledger.receipt.attempt_id or selection.metadata.step_id!=phase):
+                raise DomainError('command_conflict')
+            if not {'count_send','count_result','dispatch','identity','result'}<=events.keys():
+                raise DomainError('action_unresolved')
+            if pending_phase or settled_prefix:
+                for kind in ('count_result','identity','result'):
+                    if (events[kind].get('request_sha256')!=selection.sha256 or
+                            events[kind].get('metadata')!=selection.metadata.model_dump()):
+                        raise DomainError('command_conflict')
+                if (events['count_result'].get('count_sha256')!=row['count_sha256'] or
+                        events['identity'].get('response_id')!=events['result'].get('response_id') or
+                        {'problem','corrected_readback'} & events.keys()):
+                    raise DomainError('command_conflict')
+            selected=restore_result(events['result'],selection)
+            if settled_prefix and selected.usage is None:
+                raise DomainError('action_unresolved')
+            rejection_kind=None
+            if 'file_input_rejection' in events:
+                from .file_input_rejection import retain
+                rejection=retain(ledger,selection,cap)
+                if (not rejection or 'tool_result' in events or 'selection_rejection' in events
+                        or (index==count and not pending_phase and not settled_prefix)
+                        or rejection['terminal_outcome'] not in (
+                            ('continue','step_limit') if settled_prefix and index==count else ('continue',))):
+                    raise DomainError('command_conflict')
+                staged=rejection;rejection_kind='file_input_rejection'
+                continue
+            if selected.state=='malformed' and selected.issue=='schema_validation_failed':
+                # retain revalidates the diagnostic, original malformed bytes,
+                # current publication authority and exact historical fence. With
+                # an existing rejection it is validation only, never an insert.
+                if 'selection_rejection' not in events or 'tool_result' in events:
+                    raise DomainError('command_conflict')
+                from .selection_rejection import retain
+                rejection=retain(ledger,selection,cap)
+                if ((index==count and not pending_phase and not settled_prefix) or
+                        rejection['terminal_outcome'] not in (
+                            ('continue','step_limit') if settled_prefix and index==count else ('continue',))):
+                    raise DomainError('command_conflict')
+                staged=rejection;rejection_kind='selection_rejection'
+                continue
+            staged=events.get('tool_result')
+            if selected.state!='function_call' or not staged or 'selection_rejection' in events:
+                raise DomainError('action_unresolved')
+            with s.db.transaction() as c:
+                resolved=resolve_selection(s,c,cap,ledger.receipt,phase)
+                _,run,_,operation,_,binding,_=resolved
+                try:
+                    if not is_builtin_operation(operation):
+                        require_operation(c,run,operation)
+                except DomainError as exc:
+                    # Same narrow legacy rejection as stage_general_product;
+                    # never turn a current authority denial into valid history.
+                    if (exc.code.value!='unsupported_operation' or not isinstance(operation,PublishArtifact)
+                            or staged.get('status')!='rejected'):
+                        raise
+                if staged['binding']!=binding:
+                    raise DomainError('source_changed')
+                if settled_prefix:
+                    # A provider result/stage marker alone cannot resolve an
+                    # uncertain native send. 078 no-effect rejection was handled
+                    # by its dedicated validator above, not this observed path.
+                    native=c.execute("SELECT e.data FROM tool_attempts a LEFT JOIN tool_attempt_events e ON e.attempt_id=a.id AND e.kind='observation' WHERE a.workspace_id=%s AND a.run_id=%s AND a.call_id=%s",
+                        (cap.workspace_id,cap.run_id,phase)).fetchall()
+                    if any(not r['data'] or r['data'].get('status')!='observed' for r in native):
+                        raise DomainError('action_unresolved')
+            terminal=staged.get('terminal_outcome')
+            allowed=('answered','completed','needs_validation','blocked','waiting_for_user','step_limit')
+            if settled_prefix:allowed=(*allowed,'continue')
+            if ((index<count or pending_phase) and terminal!='continue') or (not pending_phase and index==count and terminal not in allowed):
+                raise DomainError('command_conflict')
+        if settled_prefix:
+            # Historical metadata counted tool_result rows only. A fully
+            # authenticated bound-length continuing prefix is exhausted work,
+            # not permission to select another action or rewrite its receipt.
+            return selection,selected,staged,rejection_kind
+        if pending_phase:return final,pending_phase
+        # Validate the exact continuation relation, without building/preparing a
+        # replacement request, invoking tools, recounting, or changing any bytes.
+        body=json.loads(final.body)
+        history=json.loads(selection.body)['input']+json.loads(selected.output_items)+[
+            {'type':'function_call_output','call_id':selected.call_id,
+             'output':final_tool_output(for_model(staged),selected)}]
+        # Instructions remain the original hash/count-bound bytes, even after a
+        # policy amendment. Current grant/context authority is checked separately.
+        if body['input']!=history:
+            raise DomainError('command_conflict')
+        return final,phase
+
+    def _stop_exhausted_prefix(self,ledger,cap,config,selection,staged):
+        """Settle only a prefix already checked by _prepared_final(settled_prefix).
+
+        The immutable history stays continuing; the run's bounded slice is
+        partial. No model final, assistant receipt or material is fabricated.
+        """
+        from .adaptive import phase_name,phase_ordinal
+        from .general_responses import check_pins
+        from .file_input_rejection import tools_unresolved
+        from .outcomes import acknowledge
+        from .run_checkpoints import record
+        reason=('Execution reached its configured selection phase limit. Retained work and usage are preserved; '
+                'the requested goal is incomplete. Further work requires a new bounded continuation.')
+        s=self.service
+        with s.db.transaction() as c:
+            ledger._auth(c,cap)
+            p,run,cv=s._check_capability(c,cap)
+            current=check_pins(c,run)
+            if current!=config:raise DomainError('source_changed')
+            bound=current['responses']['max_steps']
+            if (phase_ordinal(selection.phase,bound)!=bound or staged.get('terminal_outcome')!='continue'
+                    or selection.metadata.attempt_id!=ledger.receipt.attempt_id
+                    or selection.metadata.request_id!=run.id):
+                raise DomainError('command_conflict')
+            names={r['phase'] for r in c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s',
+                (ledger.receipt.attempt_id,)).fetchall()}
+            if (names!={phase_name(i) for i in range(1,bound+1)}
+                    or ledger._events(c,selection.phase).get('tool_result')!=staged):
+                raise DomainError('command_conflict')
+            s._validate_general_context(c,cap)
+            c.execute('SELECT require_general_publication_authority(r) FROM runs r WHERE workspace_id=%s AND id=%s',
+                (run.workspace_id,run.id))
+            if (tools_unresolved(c,run.workspace_id,run.id) or c.execute(
+                    "SELECT 1 FROM tool_attempts a LEFT JOIN tool_attempt_events e ON e.attempt_id=a.id AND e.kind='observation' "
+                    'WHERE a.workspace_id=%s AND a.run_id=%s AND e.attempt_id IS NULL',
+                    (run.workspace_id,run.id)).fetchone()):raise DomainError('action_unresolved')
+            run.state='partial';run.stop_reason='step_limit';run.unresolved=[reason]
+            run.used_units+=1;run.lease_expires_at=None
+            run.execution.provider_observation='received'
+            s._store_run(c,run)
+            record(s,c,run,cv,'final','settlement')
+            s._event(c,p,run.workspace_id,'selection_phase_limit',run.id)
+            acknowledge(c,run.workspace_id,run.id)
+            return run
+
+    def _adaptive_work(self,p,ws,run,cap,receipt,ledger,context,config,deadline,*,resume_final=True):
+        from .capabilities.broker import NativeAdmissionDeferred
         from .acceptance_checks import for_model
         from .adaptive import POLICY,DECISION_SCHEMA,CAPABILITY,phase_name,retained,continuation_context
         from .general_schema import EXPLANATION_SCHEMA
@@ -315,13 +668,30 @@ class GeneralWorker:
         POLICY,DECISION_SCHEMA=contract(grant.responses)
         bound=config['responses']['max_steps']
         try:
-            for index in range(1,bound+1):
+            prepared=self._prepared_final(ledger,cap,config,DECISION_SCHEMA) if resume_final else None
+            if prepared is not None:
+                final,phase=prepared
+                generated=phases._step(ledger,final,cap,deadline)
+                if generated is None or generated.state!='completed':return s.get_run(p,ws,rid)
+                phases._hook('before_publication')
+                s.complete_general_product(cap,receipt,phase)
+                phases._hook('after_publication')
+                return self._terminal_readback(p,ws,s.get_run(p,ws,rid))
+            prepared=self._prepared_selection(ledger,cap,config,DECISION_SCHEMA,resume_settled=True)
+            start=prepared[1] if prepared else 1
+            settled=prepared[2] if prepared else None
+            if settled and settled[1]['terminal_outcome']=='continue':
+                if start==bound:
+                    stopped=self._stop_exhausted_prefix(ledger,cap,config,prepared[0],settled[1])
+                    return self._terminal_readback(p,ws,stopped)
+                start+=1;prepared=None;settled=None
+            for index in range(start,bound+1):
                 phase=phase_name(index)
-                selection,_=ledger.snapshot(phase,cap)
+                selection=prepared[0] if prepared and index==start else ledger.snapshot(phase,cap)[0]
                 if selection is None:
                     with s.db.transaction() as c:
                         ledger._auth(c,cap)
-                        observations=retained(c,receipt.attempt_id)
+                        observations=retained(c,receipt.attempt_id,include_rejections=True)
                     context=s.conversation_worker_context(cap)
                     from .request_packing import prepare_selection
                     selection=prepare_selection(continuation_context(context,observations,bound),instructions=POLICY,
@@ -329,11 +699,42 @@ class GeneralWorker:
                         metadata=RequestMetadata(request_id=rid,attempt_id=receipt.attempt_id,step_id=phase),
                         policy=CAPABILITY,phase=phase)
                     ledger.prepare(selection,cap)
-                selected=phases._step(ledger,selection,cap,deadline)
+                selected=settled[0] if settled else phases._step(ledger,selection,cap,deadline)
+                if settled and settled[2]:
+                    if settled[2]=='file_input_rejection':
+                        from .file_input_rejection import stop
+                        stopped=stop(s,cap,receipt,selection)
+                    else:
+                        from .selection_rejection import stop
+                        stopped=stop(s,cap,receipt,phase)
+                    return self._terminal_readback(p,ws,stopped)
+                if selected is not None and not settled:
+                    from .file_input_rejection import retain as reject_file_input
+                    rejection=reject_file_input(ledger,selection,cap)
+                    if rejection is not None:
+                        phases._hook('after_file_input_rejection')
+                        if rejection['terminal_outcome']=='step_limit':
+                            from .file_input_rejection import stop
+                            return self._terminal_readback(p,ws,stop(s,cap,receipt,selection))
+                        continue
+                if not settled and selected is not None and selected.state=='malformed' and selected.issue=='schema_validation_failed':
+                    from .selection_rejection import retain
+                    rejection=retain(ledger,selection,cap)
+                    phases._hook('after_selection_rejection')
+                    if rejection['terminal_outcome']=='step_limit':
+                        from .selection_rejection import stop
+                        return self._terminal_readback(p,ws,stop(s,cap,receipt,phase))
+                    continue
                 if selected is None or selected.state!='function_call': return s.get_run(p,ws,rid)
-                staged=s.stage_general_product(cap,receipt,phase)
-                phases._hook('after_tool_result')
-                if staged['terminal_outcome']=='continue': continue
+                from .adaptive import stage_product
+                staged=settled[1] if settled else stage_product(s,cap,receipt,phase)
+                if not settled:phases._hook('after_tool_result')
+                if staged['terminal_outcome']=='continue':
+                    if index==bound:
+                        exact,_,retained_stage,_=self._prepared_final(ledger,cap,config,DECISION_SCHEMA,settled_prefix=True)
+                        stopped=self._stop_exhausted_prefix(ledger,cap,config,exact,retained_stage)
+                        return self._terminal_readback(p,ws,stopped)
+                    continue
                 final,_=ledger.snapshot('final',cap)
                 if final is None:
                     final=build_final(selection_request=selection,selection=selected,tool_output=final_tool_output(for_model(staged),selected),
@@ -349,6 +750,10 @@ class GeneralWorker:
                 phases._hook('after_publication')
                 return self._terminal_readback(p,ws,s.get_run(p,ws,rid))
             raise DomainError('action_unresolved')
+        except NativeAdmissionDeferred:
+            # Only the broker's new-attempt pre-effect rollback is deferrable.
+            # Existing unknown/cost-only outcomes and authority denials propagate.
+            return s.get_run(p,ws,rid)
         except TransportError:
             return s.get_run(p,ws,rid)
         except DomainError as exc:

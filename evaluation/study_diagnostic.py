@@ -9,6 +9,7 @@ import sqlite3
 import subprocess
 import threading
 import shutil
+from study_execution import application_seconds, run_owned, ExecutionStopped
 
 from network_harness import REPO as ROOT
 from study_controller import Controller, Hold, canonical, digest
@@ -98,7 +99,12 @@ class ProductAdapter:
                     raise Hold('legacy_bridge_requires_new_campaign')
                 self.db.execute('INSERT INTO admission_binding VALUES (?)',(binding,))
             elif previous[0] != binding:
-                raise Hold('bridge_admission_binding_drift')
+                from study_source_amendment import accept_binding
+                name=accept_binding('bridge',previous[0],binding)
+                self.db.execute('CREATE TABLE IF NOT EXISTS admission_amendments(name TEXT PRIMARY KEY,value TEXT NOT NULL)')
+                self.db.execute('INSERT OR IGNORE INTO admission_amendments VALUES (?,?)',(name,binding))
+                if self.db.execute('SELECT value FROM admission_amendments WHERE name=?',(name,)).fetchone()[0]!=binding:
+                    raise Hold('bridge_amendment_drift')
         self.drop_ack = False
 
     def observe(self, key):
@@ -138,12 +144,15 @@ class ProductAdapter:
             source = staged.resolve()
         env = {'PATH':os.environ['PATH'], 'HOME':os.environ['HOME'], 'PYTHONPATH':str(source)+':'+str(ROOT/'evaluation')+':'+str(ROOT),
                'PYTHONDONTWRITEBYTECODE':'1'}
-        process = subprocess.run([str(ROOT/'backend/.venv/bin/python'), str(ROOT/'evaluation/study_application.py'), str(slot)],
-            input=canonical({'operation':operation,'payload':payload,'controlled_origin':self.origin,'environment':self.environment,
-                             'live_binding':self.live_bindings[trial] if self.live_bindings else None,
-                             'credential':self.credential if operation=='execute' else None}),
-            text=True, capture_output=True, cwd=ROOT, env=env, timeout=1200)
-        (slot/(key+'.stderr')).write_text(process.stderr)
+        mode='official_api' if self.live_bindings is not None else 'controlled_http'
+        try:
+            process = run_owned([str(ROOT/'backend/.venv/bin/python'), '-u', str(ROOT/'evaluation/study_application.py'), str(slot)],
+                input=canonical({'operation':operation,'payload':payload,'controlled_origin':self.origin,'environment':self.environment,
+                                 'live_binding':self.live_bindings[trial] if self.live_bindings else None,
+                                 'credential':self.credential if operation=='execute' else None}),
+                cwd=ROOT, env=env, timeout=application_seconds(mode,operation), evidence=slot/key)
+        except ExecutionStopped as exc:
+            raise Hold('application_operation_unknown:'+str(exc)) from None
         if process.returncode:
             raise Hold('application_operation_unknown:' + str(slot/(key+'.stderr')))
         result = {'key':key,'state':'complete','payload_sha256':digest(body),'value':json.loads(process.stdout)}

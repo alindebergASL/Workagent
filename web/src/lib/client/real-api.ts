@@ -107,11 +107,15 @@ export async function all<T>(
     cursor?: string,
   ) => Promise<{ items: T[]; next_cursor?: string | null }>,
 ): Promise<T[]> {
+  // Bind the whole traversal, not just each individual page response.
+  const scope = captureScope();
   const items: T[] = [];
   const seen = new Set<string>();
   let cursor: string | undefined;
   for (;;) {
+    assertScope(scope);
     const page = await fetchPage(cursor);
+    assertScope(scope);
     items.push(...page.items);
     if (!page.next_cursor) return items;
     if (seen.has(page.next_cursor))
@@ -394,7 +398,11 @@ async function assignmentArtifacts(
     ids.map((id) => rawArtifact(ws, id, undefined, signal)),
   );
   return Promise.all(
-    raws.filter((r) => r.assignment_id).map((r) => artifactView(r, signal)),
+    // Non-document products are surfaced by canonical output history. They
+    // cannot enter the legacy document adapter or block the whole assignment.
+    raws
+      .filter((r) => r.assignment_id && "blocks" in r.current_revision.body)
+      .map((r) => artifactView(r, signal)),
   );
 }
 async function enrichConflict<T>(

@@ -1,0 +1,9 @@
+{
+  "accepted_B0_commit": "26e599b3db8a61b73eeeaea4f87a1d3de0b296d9",
+  "accepted_files": 103,
+  "retained_files": 103,
+  "missing": [],
+  "unexpected": [],
+  "mismatches": [],
+  "scope": "read-only comparison; not proof that controller enforces this anchor"
+}

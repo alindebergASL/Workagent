@@ -131,7 +131,7 @@ describe("R2: fenced evidence reads", () => {
     const a = deferred<ProcedureEvidencePage>();
     c.evidence(() => a.promise);
     c.loseAccess(); // e.g. a list read was refused meanwhile
-    a.resolve({ items: [option("PRIVATE OLD LABEL")] });
+    a.resolve({ has_more: false, items: [option("PRIVATE OLD LABEL")] });
     await flush();
     expect(c.st.accessLost).toBe(true);
     expect(c.st.evidence).toBeNull();
@@ -143,9 +143,9 @@ describe("R2: fenced evidence reads", () => {
     const b = deferred<ProcedureEvidencePage>();
     c.evidence(() => a.promise);
     c.evidence(() => b.promise);
-    b.resolve({ items: [option("new")] });
+    b.resolve({ has_more: false, items: [option("new")] });
     await flush();
-    a.resolve({ items: [option("old")] });
+    a.resolve({ has_more: false, items: [option("old")] });
     a.reject(new Error("late"));
     await flush();
     expect(
@@ -181,7 +181,7 @@ describe("R2: fenced evidence reads", () => {
     );
     c.fence.revoke();
     expect(signal.aborted).toBe(true);
-    a.resolve({ items: [option("x")] });
+    a.resolve({ has_more: false, items: [option("x")] });
     await flush();
     expect(c.st.evidence).toBeNull();
   });
@@ -210,8 +210,8 @@ describe("R2 residual: proposal boundary cancels the current read", () => {
     c.evidence(() => retry.promise); // Retry replaces it
     // What the effect cleanup does at the proposal boundary:
     c.fence.cancel(EVIDENCE_SLOT);
-    retry.resolve({ items: [option("late retry")] });
-    first.resolve({ items: [option("late first")] });
+    retry.resolve({ has_more: false, items: [option("late retry")] });
+    first.resolve({ has_more: false, items: [option("late first")] });
     await flush();
     expect(c.st.evidence).toBeNull();
   });

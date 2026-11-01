@@ -9,6 +9,16 @@ This is the compact durable interpretation of the owner's standing instructions,
 - "Ok are there any other protection wrong gates that we need to proactively remove. Remember this is all testing and nowhere near production"
 - "Ok anything else you may have Missed and how can we lock in this and not let it drift, that seems to be happening more and more"
 
+## Functionality-first correction — supersedes micro-pilot proposals
+
+The owner explicitly directed:
+
+> Yes, remove those token limits and 0.39048 is crazy for a pilot, we need to prove and build functionality. These limits are very very limited and hurt devopment
+
+The proposed 35,000-input/512-output restrictions, forced two-generation-per-arm design, four-generation/four-count/sixteen-read campaign and $0.39048 micro-pilot target are withdrawn as current requirements. Preserve their earlier receipts as historical evidence, not instructions to revive them. Do not build special admission machinery or shrink the product mission to fit spare cents. Use normal supported model capacity and task-appropriate execution to build and demonstrate complete functionality. Keep genuine provider limits, owner-budget enforcement, credential/source isolation and unknown-outcome duplicate protection; removing arbitrary subcaps does not authorize unlimited spending.
+
+The owner has resolved the overall-budget question: "As long as this testing is under the $100 budget everything is fine. If we start getting close to the $100 I will increase it". Testing within the existing $100 cumulative ceiling is authorized; no replacement-budget answer is outstanding, and a future increase is not yet granted. Proactively report approaching exhaustion or a next meaningful trial that cannot fit, giving separately verified expenditure, outstanding/unknown liabilities, internal allocations and remaining enforceable headroom. Never describe allocation estimates as settled bills or discard uncertain obligations to create room. Preserve normal-capacity functionality and continue authorized engineering; do not revive tiny subcaps, stop all work for generic reapproval, or exceed $100 before an explicit increase.
+
 ## Operate without repeated approval
 
 - Implement/refactor development APIs, schemas, policies, tools and UI; architecture is replaceable. Coordinate Hermes backend/runtime and Claude web, preserve concurrent work, test affected behavior proportionately.
@@ -16,6 +26,18 @@ This is the compact durable interpretation of the owner's standing instructions,
 - Execute authorized synthetic-data live evaluations on the existing approved account/route. Compatible grant/runtime installation is engineering work, not new owner authorization. Do not require account-ownership or billing screenshots to proceed on the reaffirmed route.
 - Select and adjust justified finite per-trial money/call/token/time/wave limits within the existing cumulative budget. The former1USD cap and other assistant-selected trial limits are engineering settings, not new permission gates. Reconcile active external requests before changing limits; no blind resend.
 - Continue after successful checkpoints, reviews and slices. A worker's task completion is not mission completion. Parent owns an executing successor or a clear, specific stopped-work notice.
+
+## App-wide boundary correction and enforcement
+
+The owner subsequently directed: "audit all the boundires for this app and development and FIX them", "fan your agents out and fix it," and "Use GLM as well to have multiple agents looking at the fix and how the development is done". This expands the investigation beyond whichever failure happens to be current. It does not increase the $100 budget or permit bypassing the retained guarantees below.
+
+- Inventory current application, evaluation/test, development-tool and orchestration restrictions with their actual values, source locations, authority/rationale and effective behavior. A limit without an owner, provider or security basis is an adjustable engineering setting—not an approval gate. Mark incomplete coverage honestly.
+- Single-visit progress assertions, synthetic visit counts, claim/visit horizons, fixture grant lifetimes, SQL/transport deadlines, invocation budgets and reviewer-preferred proof scope are not sacred numbers. Size or replace them using measured work and actual resource limits. A legitimately deferred visit is not itself failure; require bounded overall convergence and report no-progress evidence without making lease renewal count as progress.
+- Preserve existing active leases, historical expired grants, request identities, unknown effects and incurred liabilities. Adjust future configuration or create narrowly scoped compatible test authority through ordinary mechanisms instead of rewriting history. Never manufacture provider outcomes, weaken current access checks or replay uncertain operations.
+- A historical manifest is evidence, not an architecture freeze. A scoped review HOLD constrains the risky effect it identifies, not all development. Use a shared lifecycle rather than copying cancellation, authorization or recovery logic into test harnesses. Reuse applicable checks and review; do not create mandatory all-model consensus.
+- Parallel agents have explicit file ownership. Heavy database/browser workloads remain serial or resource-bounded. Parent verifies results and integration. GLM uses the directly configured Z.AI GLM5.3 route; the main Astra model remains unchanged.
+- Keep one concise current task body referencing these instructions and the latest execution state. Archive old text rather than accumulating contradictory override prefixes. Report changed code/configuration and actual execution separately from active workers, audit completion and full product acceptance.
+- Add executable regression/anti-drift checks for corrected policies; documentation and another promise alone are not enforcement. Do not claim the audit complete until covered findings have verified dispositions and the outstanding live blockers are explicit.
 
 ## Actual boundaries retained
 

@@ -27,12 +27,14 @@ def require_run_tools(c,run):
         deny()
     g=grant(c,run.workspace_id,run.id)
     current=registry.adapters()
+    from .boundary_policy import resolve_descriptors
+    descriptors=[]
     for pin in g.capabilities:
         adapter=current.get(pin.id)
-        if (adapter is None or adapter.descriptor.version!=pin.version
-            or adapter.descriptor.schema_sha256!=pin.schema_sha256
-            or adapter.descriptor.implementation_sha256!=pin.implementation_sha256):
+        if adapter is None:
             deny()
+        descriptors.append(adapter.descriptor)
+    resolve_descriptors(c,run,descriptors)
 
 
 def require_operation(c,run,operation):
@@ -47,16 +49,18 @@ def require_operation(c,run,operation):
 def authorize(service,c,cap,call,adapter):
     p,run,scope=service._check_capability(c,cap)
     g=grant(c,run.workspace_id,run.id)
+    if g.allow_run_outputs:
+        from .models import InputRef
+        refs=c.execute('SELECT tool_effective_resources(%s,%s) AS refs',
+                       (run.workspace_id,run.id)).fetchone()['refs']
+        g=g.model_copy(update={'resource_selectors':[InputRef.model_validate(ref) for ref in refs]})
     d=adapter.descriptor
-    installed=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',
-                        (d.id,d.version)).fetchone()
-    if not installed or not installed['enabled'] or installed['descriptor']!=d.model_dump(mode='json'):
-        deny()
+    from .implementation_releases import resolve_for_run
+    resolve_for_run(c,run,d)
     if (g.principal_id!=p.id or g.access_generation!=run.access_generation or g.scope_id!=scope.id
         or g.expires_at<=now() or call.expected_work_version!=scope.work_version
         or call.capability_version!=d.version or call.capability_id!=d.id
-        or not any(pin.id==d.id and pin.version==d.version and pin.schema_sha256==d.schema_sha256
-                   and pin.implementation_sha256==d.implementation_sha256 for pin in g.capabilities)
+        or not any(pin.id==d.id and pin.version==d.version and pin.schema_sha256==d.schema_sha256 for pin in g.capabilities)
         or not set(d.effects)<=set(g.effects) or not set(d.privacy_classes)<=set(g.privacy_classes)
         or any(ref not in g.resource_selectors for ref in call.input_refs)
         or (d.required_permission_template=='public_https' and g.egress!='public_https')):
@@ -129,10 +133,19 @@ def discover(service,p,ws,rid):
             if installed:
                 state='installed' if installed['enabled'] else 'disabled'
                 reason='temporarily_unavailable'
-                if installed['enabled'] and installed['descriptor']==d.model_dump(mode='json'):
+                matching=installed['enabled'] and installed['descriptor']==d.model_dump(mode='json')
+                if g and installed['enabled']:
+                    from .implementation_releases import resolve_for_run
+                    from ..models import Run
+                    try:
+                        resolve_for_run(c,Run.model_validate(run),d)
+                        matching=True
+                    except DomainError:
+                        matching=False
+                if matching:
                     reason='needs_consent' if g is None else 'blocked_by_scope'
                     if g and any(pin.id==d.id and pin.version==d.version and pin.schema_sha256==d.schema_sha256
-                                 and pin.implementation_sha256==d.implementation_sha256 for pin in g.capabilities):
+                                 for pin in g.capabilities):
                         if (set(d.effects)<=set(g.effects) and set(d.privacy_classes)<=set(g.privacy_classes)
                             and (d.required_permission_template!='public_https' or g.egress=='public_https')):
                             reason='available'
@@ -187,7 +200,7 @@ def restrict_resources(db, grant_id, selectors):
             raise RuntimeError('scope restriction readback mismatch')
 
 
-def install(db, tool_grant, *, limits, provider_grant_id=None):
+def install(db, tool_grant, *, limits, provider_grant_id=None, amendment_sha256=None):
     """Trusted operator bootstrap, no HTTP/model exposure. Read back exact records.
 
     Reuse an existing account ID for parent/child/shared capacity; never manufacture
@@ -198,6 +211,10 @@ def install(db, tool_grant, *, limits, provider_grant_id=None):
     if not limits or set(limits)-allowed or any(type(v) is not int or not 0<v<=1000000 for v in limits.values()):
         raise ValueError('finite typed capacity limits required')
     available=registry.adapters()
+    if amendment_sha256 is not None:
+        from .implementation_releases import TRANSITION_IDS
+        if not {pin.id for pin in g.capabilities}<=TRANSITION_IDS:
+            raise ValueError('initial release outside twelve study capabilities')
     with db.transaction() as c:
         _owner(c)
         c.execute('SELECT id FROM workspaces WHERE id=%s FOR UPDATE',(g.workspace_id,))
@@ -215,8 +232,12 @@ def install(db, tool_grant, *, limits, provider_grant_id=None):
             c.execute('INSERT INTO capability_installations(id,version,descriptor) VALUES(%s,%s,%s) ON CONFLICT DO NOTHING',
                       (d.id,d.version,encoded(d)))
             saved=c.execute('SELECT descriptor,enabled FROM capability_installations WHERE id=%s AND version=%s',(d.id,d.version)).fetchone()
-            if not saved['enabled'] or saved['descriptor']!=d.model_dump(mode='json'):
-                raise ValueError('installation drift; install a new version')
+            from .implementation_releases import installed_for_new_grant
+            if not installed_for_new_grant(c,d):
+                from .implementation_releases import compatible
+                if not (amendment_sha256 is not None and saved['enabled']
+                    and compatible(saved['descriptor'],d.model_dump(mode='json'))):
+                    raise ValueError('installation drift; install a new version')
         if provider_grant_id:
             pg=c.execute('SELECT * FROM provider_grants WHERE id=%s',(provider_grant_id,)).fetchone()
             if not pg or not pg['active'] or pg['workspace_id']!=g.workspace_id or pg['principal_id']!=g.principal_id:
@@ -228,8 +249,13 @@ def install(db, tool_grant, *, limits, provider_grant_id=None):
         if account!={'id':g.budget_account_id,'workspace_id':g.workspace_id,'principal_id':g.principal_id,
                      'provider_grant_id':provider_grant_id,'limits':limits}:
             raise ValueError('existing account binding mismatch')
-        c.execute('INSERT INTO tool_grants(id,workspace_id,run_id,data) VALUES(%s,%s,%s,%s)',
+        c.execute('INSERT INTO tool_grants(id,workspace_id,run_id,data) VALUES(%s,%s,%s,%s) ON CONFLICT DO NOTHING',
                   (g.id,g.workspace_id,g.run_id,encoded(g)))
+        from .implementation_releases import bind_new_grant
+        actual=c.execute('SELECT data,active FROM tool_grants WHERE id=%s',(g.id,)).fetchone()
+        if not actual or not actual['active'] or actual['data']!=g.model_dump(mode='json'):
+            raise ValueError('immutable grant readback mismatch')
+        bind_new_grant(c,g.id,amendment_sha256=amendment_sha256)
     with db.transaction() as c:
         if grant(c,g.workspace_id,g.run_id)!=g:
             raise RuntimeError('grant readback mismatch')
