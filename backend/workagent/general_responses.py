@@ -496,3 +496,117 @@ def resolve_selection(service,c,cap,receipt,phase='selection'):
              'selection_response_id':result['response_id'],'decision_sha256':digest(result['value']),
              'operation_hash':digest(operation) if operation else None,'base_hash':base.body_hash if base else None}
     return p,run,cv,operation,base,binding,origin
+
+
+TERMINAL_RESPONSE_FAILURES=frozenset(('incomplete','failed','cancelled','refused','malformed'))
+
+# These parser branches occur only AFTER envelope/correlation, valid usage and
+# status='completed'. Never infer termination from the generic 'malformed'
+# state: parser metadata is request-derived even when wire correlation failed.
+TERMINAL_OUTPUT_ISSUES=frozenset((
+    'invalid_output','unfinished_output_item','invalid_function_call',
+    'invalid_reasoning_item','invalid_message','unsupported_output_item',
+    'expected_single_scoped_call','expected_structured_output','schema_validation_failed',
+))
+
+
+def terminal_response_failure(state,issue):
+    return state in TERMINAL_RESPONSE_FAILURES and (state!='malformed' or issue in TERMINAL_OUTPUT_ISSUES)
+
+
+def terminal_failure_bound(step,events):
+    """Known external termination, not goal success or permission to resend.
+
+    Missing usage may retain a conservative cost; it is not an unknown send.
+    Every network identity and exact request/count binding must still agree.
+    """
+    if not {'count_send','count_result','dispatch','identity','result'}<=events.keys():return False
+    if {'problem','corrected_readback','cancel'} & events.keys():return False
+    result=events['result'];identity=events['identity'];count=events['count_result']
+    return (terminal_response_failure(result.get('state'),result.get('issue'))
+        and bool(identity.get('response_id')) and result.get('response_id')==identity['response_id']
+        and all(x.get('metadata')==step['metadata'] and x.get('request_sha256')==step['request_sha256']
+                for x in (result,identity,count))
+        and count.get('count_sha256')==step['count_sha256'])
+
+
+def stop_terminal_response(service,cap,receipt,phase):
+    """Fence a known provider failure as partial/blocked without rewriting I/O.
+
+    Attempts/cost rows stay historical. This does not relax successor SQL or
+    grant automatic retry rights. Existing completed work remains saved.
+    """
+    from .responses_ledger import Ledger,restore_result
+    from .file_input_rejection import tools_unresolved,valid
+    from .outcomes import acknowledge
+    from .run_checkpoints import record
+    ledger=Ledger(service,receipt)
+    # Ordinary snapshot verifies exact request/schema/count bytes before use.
+    with service.db.transaction() as c:
+        ledger._auth(c,cap)
+        names=[r['phase'] for r in c.execute('SELECT phase FROM responses_steps WHERE attempt_id=%s',(receipt.attempt_id,))]
+    snapshots={name:ledger.snapshot(name,cap)[0] for name in names}
+    with service.db.transaction() as c:
+        run,attempt,origin=ledger._auth(c,cap)
+        p,run,cv=service._check_capability(c,cap)
+        check_pins(c,run);service._validate_general_context(c,cap)
+        c.execute('SELECT require_general_publication_authority(r) FROM runs r WHERE workspace_id=%s AND id=%s',(run.workspace_id,run.id))
+        if tools_unresolved(c,run.workspace_id,run.id) or c.execute("SELECT 1 FROM tool_attempts t WHERE workspace_id=%s AND run_id=%s AND NOT EXISTS(SELECT 1 FROM tool_attempt_events e WHERE e.attempt_id=t.id AND e.kind='observation')",(run.workspace_id,run.id)).fetchone():
+            raise DomainError('action_unresolved')
+        rows=c.execute('SELECT * FROM responses_steps WHERE attempt_id=%s',(attempt.id,)).fetchall()
+        if {r['phase'] for r in rows}!=set(snapshots) or phase not in snapshots:raise DomainError('action_unresolved')
+        from .adaptive import phase_name,phase_ordinal
+        config=check_pins(c,run)
+        selections={r['phase'] for r in rows if r['phase']!='final'}
+        if not selections or selections!={phase_name(i) for i in range(1,len(selections)+1)}:
+            raise DomainError('command_conflict')
+        if len(selections)>config['responses']['max_steps'] or (phase!='final' and
+                (phase_ordinal(phase,config['responses']['max_steps'])!=len(selections) or 'final' in snapshots)):
+            raise DomainError('command_conflict')
+        if c.execute("SELECT 1 FROM responses_events WHERE attempt_id=%s AND kind='cancel'",(attempt.id,)).fetchone():
+            raise DomainError('action_unresolved')
+        if c.execute('SELECT 1 FROM responses_steps s JOIN provider_attempts a ON a.id=s.attempt_id '
+                     'WHERE a.workspace_id=%s AND a.run_id=%s AND a.id<>%s',(run.workspace_id,run.id,attempt.id)).fetchone():
+            raise DomainError('action_unresolved')
+        terminal=None
+        for row in rows:
+            request=snapshots[row['phase']];events=ledger._events(c,row['phase'])
+            if request is None or request.sha256!=row['request_sha256']:raise DomainError('command_conflict')
+            if row['phase']==phase:
+                if not terminal_failure_bound(row,events) or 'tool_result' in events:raise DomainError('action_unresolved')
+                terminal=restore_result(events['result'],request)
+                continue
+            if not {'count_send','count_result','dispatch','identity','result'}<=events.keys():raise DomainError('action_unresolved')
+            result=restore_result(events['result'],request)
+            if (events['identity'].get('response_id')!=result.response_id
+                or any(events[k].get('metadata')!=row['metadata'] or events[k].get('request_sha256')!=request.sha256
+                       for k in ('identity','count_result'))
+                or events['count_result'].get('count_sha256')!=row['count_sha256']
+                or {'problem','corrected_readback'} & events.keys()):raise DomainError('command_conflict')
+            if 'file_input_rejection' in events:
+                if not valid(c,attempt.id,row['phase'],events['file_input_rejection']):raise DomainError('action_unresolved')
+            elif 'selection_rejection' in events:
+                from .selection_rejection import observation
+                rejection=events['selection_rejection']
+                original=c.execute("SELECT id,data FROM responses_events WHERE attempt_id=%s AND phase=%s AND kind='result'",
+                    (attempt.id,row['phase'])).fetchone()
+                raw=original['data'].get('rejection_diagnostic')
+                if raw is None:
+                    imported=c.execute('SELECT diagnostic_bytes FROM selection_rejection_diagnostics WHERE result_event_id=%s',
+                        (original['id'],)).fetchone()
+                    if not imported:raise DomainError('action_unresolved')
+                    raw=imported['diagnostic_bytes']
+                if rejection!=observation(request,original,raw,config['responses']['max_steps'],rejection['worker_fence']):
+                    raise DomainError('action_unresolved')
+            elif result.state=='function_call' and 'tool_result' in events:
+                *_,binding,_origin=resolve_selection(service,c,cap,receipt,row['phase'])
+                if events['tool_result'].get('binding')!=binding:raise DomainError('source_changed')
+            else:raise DomainError('action_unresolved')
+        reason=f'Provider response ended with {terminal.state} during {phase}. Saved work and usage are retained; the requested goal is incomplete.'
+        run.state='partial';run.stop_reason='blocked';run.unresolved=[reason]
+        run.used_units+=1;run.lease_expires_at=None;run.execution.provider_observation='received'
+        service._store_run(c,run)
+        record(service,c,run,cv,'final','settlement')
+        service._event(c,p,run.workspace_id,'general_terminal_response',run.id)
+        acknowledge(c,run.workspace_id,run.id)
+        return run

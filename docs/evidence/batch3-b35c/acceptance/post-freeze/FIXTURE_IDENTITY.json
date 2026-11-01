@@ -1,0 +1,9 @@
+{
+  "database": "workagent_test_93ddd2625210",
+  "runtime_role": "workagent_test_93ddd2625210_runtime",
+  "rolsuper": false,
+  "rolbypassrls": false,
+  "owner": "workagent_test_93ddd2625210_owner",
+  "scope": "NEW controlled synthetic fixture; no installed store mutations",
+  "provider_calls": 0
+}

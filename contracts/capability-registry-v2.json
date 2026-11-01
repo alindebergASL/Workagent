@@ -6776,7 +6776,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.discover",
-    "implementation_sha256": "dcc6d454b456eac36e1784f692666b1fe6f3a2d9224c624404daf7b3799960cb",
+    "implementation_sha256": "6d502fa3531c118defa15129ab4d598bbe49552bdeeeccdd9122d66131014a9f",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -7843,7 +7843,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.read",
-    "implementation_sha256": "dcc6d454b456eac36e1784f692666b1fe6f3a2d9224c624404daf7b3799960cb",
+    "implementation_sha256": "6d502fa3531c118defa15129ab4d598bbe49552bdeeeccdd9122d66131014a9f",
     "input_schema": {
       "additionalProperties": false,
       "properties": {

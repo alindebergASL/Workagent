@@ -1,0 +1,26 @@
+{
+  "source_snapshots": [
+    {
+      "arm": "B0",
+      "files": 103,
+      "source_path": ".local/batch3/b35c/fresh72/cohort-fresh72-20261101/arms/B0/workagent",
+      "all_hashes_match": true
+    },
+    {
+      "arm": "B1",
+      "files": 194,
+      "source_path": ".local/batch3/b35c/fresh72/cohort-fresh72-20261101/arms/B1/workagent",
+      "all_hashes_match": true
+    },
+    {
+      "arm": "M1",
+      "files": 194,
+      "source_path": ".local/batch3/b35c/fresh72/cohort-fresh72-20261101/arms/M1/workagent",
+      "all_hashes_match": true
+    }
+  ],
+  "migrations_per_arm": 88,
+  "baseline_preserved": true,
+  "canonical_changed": true,
+  "note": "Frozen executable verify() intentionally rejects new canonical source; evidence uses retained arm snapshot hashes, not rewritten manifest or replay."
+}

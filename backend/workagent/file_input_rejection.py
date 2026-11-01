@@ -88,6 +88,21 @@ def retain(ledger, request, cap):
         call = ToolCallV1(call_id=request.phase, capability_id=adapter.descriptor.id,
             capability_version=adapter.descriptor.version, arguments=validation_view,
             input_refs=input_refs(operation), expected_work_version=scope.work_version)
+        # A malformed create cannot be authorized as an effect in a targeted
+        # scope. Preserve its original schema rejection (076), not a repaired
+        # file-input/tool result. This is an exact pre-effect classification,
+        # never a catch of arbitrary authorization failures.
+        from .capabilities.file_adapters import FilesCreateDraft,scope_targets
+        if (isinstance(operation,FilesCreateDraft) and row['data'].get('state')=='malformed'
+                and row['data'].get('issue')=='schema_validation_failed'
+                and scope_targets(service,c,p,run,scope) is not None):
+            policy.require_run_tools(c,run)
+            if (tools_unresolved(c,run.workspace_id,run.id)
+                or c.execute('SELECT 1 FROM tool_attempts WHERE workspace_id=%s AND run_id=%s AND call_id=%s',
+                    (run.workspace_id,run.id,request.phase)).fetchone()
+                or ledger._events(c,request.phase).get('file_input_rejection')):
+                raise DomainError('action_unresolved')
+            return None  # Ordinary selection_rejection retains exact malformed bytes.
         policy.authorize(service, c, cap, call, adapter)
         if isinstance(operation, FilesProposePatch):
             file, _, _ = service._file_base(c, p, run.workspace_id, operation.ref.workspace_file_id,

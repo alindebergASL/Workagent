@@ -653,6 +653,12 @@ class GeneralWorker:
             acknowledge(c,run.workspace_id,run.id)
             return run
 
+    def _terminal_or_pending(self,p,ws,rid,cap,receipt,phase,result):
+        from .general_responses import terminal_response_failure,stop_terminal_response
+        if result is not None and terminal_response_failure(result.state,result.issue):
+            return self._terminal_readback(p,ws,stop_terminal_response(self.service,cap,receipt,phase))
+        return self.service.get_run(p,ws,rid)
+
     def _adaptive_work(self,p,ws,run,cap,receipt,ledger,context,config,deadline,*,resume_final=True):
         from .capabilities.broker import NativeAdmissionDeferred
         from .acceptance_checks import for_model
@@ -672,7 +678,7 @@ class GeneralWorker:
             if prepared is not None:
                 final,phase=prepared
                 generated=phases._step(ledger,final,cap,deadline)
-                if generated is None or generated.state!='completed':return s.get_run(p,ws,rid)
+                if generated is None or generated.state!='completed':return self._terminal_or_pending(p,ws,rid,cap,receipt,'final',generated)
                 phases._hook('before_publication')
                 s.complete_general_product(cap,receipt,phase)
                 phases._hook('after_publication')
@@ -725,7 +731,7 @@ class GeneralWorker:
                         from .selection_rejection import stop
                         return self._terminal_readback(p,ws,stop(s,cap,receipt,phase))
                     continue
-                if selected is None or selected.state!='function_call': return s.get_run(p,ws,rid)
+                if selected is None or selected.state!='function_call':return self._terminal_or_pending(p,ws,rid,cap,receipt,phase,selected)
                 from .adaptive import stage_product
                 staged=settled[1] if settled else stage_product(s,cap,receipt,phase)
                 if not settled:phases._hook('after_tool_result')
@@ -744,7 +750,7 @@ class GeneralWorker:
                     check_final(final)
                     ledger.prepare(final,cap)
                 generated=phases._step(ledger,final,cap,deadline)
-                if generated is None or generated.state!='completed': return s.get_run(p,ws,rid)
+                if generated is None or generated.state!='completed':return self._terminal_or_pending(p,ws,rid,cap,receipt,'final',generated)
                 phases._hook('before_publication')
                 s.complete_general_product(cap,receipt,phase)
                 phases._hook('after_publication')

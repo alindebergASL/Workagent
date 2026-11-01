@@ -42,8 +42,10 @@ def record(service, c, run, cv, phase, kind):
             and rejection.get('response_id')==events.get('identity',{}).get('response_id'))
         if 'file_input_rejection' in events:
             known_rejection |= valid_file_rejection(c,row['attempt_id'],row['phase'],events['file_input_rejection'])
+        from .general_responses import terminal_failure_bound
+        known_terminal=terminal_failure_bound(row,events)
         unknown |= ('count_send' in events and 'count_result' not in events or
-                    'dispatch' in events and not known_rejection and
+                    'dispatch' in events and not known_rejection and not known_terminal and
                     (not result or result.get('state') not in ('completed','function_call')))
         steps.append(StepReference(attempt_id=row['attempt_id'],phase=row['phase'],request_sha256=row['request_sha256'],
             response_id=events.get('identity',{}).get('response_id'),result_sha256=digest(result) if result else None,
