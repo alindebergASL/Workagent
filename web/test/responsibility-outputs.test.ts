@@ -252,7 +252,12 @@ describe("legacy assignment view", () => {
         ...(routes["/v1/workspaces/w/artifacts/own-art"] as object),
         current_revision: {
           ...revision,
-          body: { title: "Current human table", kind: "table", columns: [], rows: [] },
+          body: {
+            title: "Current human table",
+            kind: "table",
+            columns: [],
+            rows: [],
+          },
         },
       },
     };
@@ -270,8 +275,9 @@ describe("legacy assignment view", () => {
     // Non-document products belong to the canonical paged output surface, not
     // the legacy document adapter. Original document coverage remains below.
     expect(a.artifacts).toEqual([]);
-    expect(transport.mock.calls.map(([r]) => new URL(r.url).pathname))
-      .not.toContain("/api/domain/v1/workspaces/w/artifacts/own-art/history");
+    expect(
+      transport.mock.calls.map(([r]) => new URL(r.url).pathname),
+    ).not.toContain("/api/domain/v1/workspaces/w/artifacts/own-art/history");
   });
   it("shows assignment-owned work and never fails on a projected conversation-owned id", async () => {
     transport.mockImplementation(async (request: Request) => {

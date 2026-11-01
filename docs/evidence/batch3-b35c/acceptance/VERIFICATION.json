@@ -50,6 +50,9 @@
   "verification": {
     "offline_controls": 158,
     "web_focused": 93,
+    "web_full_after_formatting": 948,
+    "formatter_only_files": 12,
+    "first_published_CI": "failed:12 prior web files need Prettier; failure retained, fixed by existing web owner",
     "actual_restricted_PG_TCP_cases": 5,
     "contract_types": "PASS",
     "canonical_optimized_webpack_build": "PASS",

@@ -305,9 +305,15 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           <h2 id="prepared-title" className="section-title">
             Prepared for you
           </h2>
-          <HistoryNavigation loading={outputs.loading} unavailable={outputs.unavailable}
-            hasMore={outputs.hasMore} hasPrevious={outputs.hasPrevious}
-            next={outputs.next} first={outputs.first} refresh={() => void outputs.refresh()} />
+          <HistoryNavigation
+            loading={outputs.loading}
+            unavailable={outputs.unavailable}
+            hasMore={outputs.hasMore}
+            hasPrevious={outputs.hasPrevious}
+            next={outputs.next}
+            first={outputs.first}
+            refresh={() => void outputs.refresh()}
+          />
           {outputs.loading ? (
             <p
               className="hint"

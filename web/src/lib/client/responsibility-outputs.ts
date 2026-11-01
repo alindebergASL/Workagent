@@ -71,19 +71,29 @@ export function useResponsibilityOutputs(
 ) {
   const history = useDiscoveryPage(
     ws && API_MODE === "real" && assignment?.conversation_id
-      ? `responsibility-outputs:${ws}:${assignmentId}` : null,
-    (signal, after) => responsibilityOutputPage(ws!, assignmentId, signal, after),
+      ? `responsibility-outputs:${ws}:${assignmentId}`
+      : null,
+    (signal, after) =>
+      responsibilityOutputPage(ws!, assignmentId, signal, after),
   );
   return {
     // Every authorized row needs a route here: the legacy summary is capped
     // and may contain only conversation outputs, displacing all originals.
     outputs: (history.page?.items ?? []).map((item): ResponsibilityOutput => {
-      const owner = item.assignment_id ? `/assignments/${item.assignment_id}`
-        : item.conversation_id ? `/conversations/${item.conversation_id}` : null;
-      return owner ? {
-        id: item.artifact_id, kind: "ready", title: item.title,
-        href: `${owner}/artifacts/${item.artifact_id}`, stale: false,
-      } : { id: item.artifact_id, kind: "unknown" };
+      const owner = item.assignment_id
+        ? `/assignments/${item.assignment_id}`
+        : item.conversation_id
+          ? `/conversations/${item.conversation_id}`
+          : null;
+      return owner
+        ? {
+            id: item.artifact_id,
+            kind: "ready",
+            title: item.title,
+            href: `${owner}/artifacts/${item.artifact_id}`,
+            stale: false,
+          }
+        : { id: item.artifact_id, kind: "unknown" };
     }),
     loading: history.loading,
     unavailable: history.unavailable,

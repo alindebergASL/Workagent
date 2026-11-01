@@ -739,7 +739,13 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
 
       {history}
 
-      {wsId && real ? <CheckpointHistory ws={wsId} cid={id} workVersion={d.conversation.work_version} /> : null}
+      {wsId && real ? (
+        <CheckpointHistory
+          ws={wsId}
+          cid={id}
+          workVersion={d.conversation.work_version}
+        />
+      ) : null}
 
       {wsId ? <CurrentWork work={work} ws={wsId} cid={id} /> : null}
 

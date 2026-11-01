@@ -4,29 +4,53 @@ import { beforeEach, expect, it, vi } from "vitest";
 // separately exercised by client cancellation tests and existing useResource.
 const h = vi.hoisted(() => ({
   scope: "scope-a" as string | null,
-  position: undefined as { identity: string | null; after?: string } | undefined,
-  resource: { data: { items: [{ id: "old" }], next_after: "old", has_more: true },
-    current: true, loading: false, error: null, refresh: vi.fn() },
+  position: undefined as
+    { identity: string | null; after?: string } | undefined,
+  resource: {
+    data: { items: [{ id: "old" }], next_after: "old", has_more: true },
+    current: true,
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+  },
   useResource: vi.fn(),
 }));
 vi.mock("react", () => ({
   useSyncExternalStore: () => h.scope,
   useState: (initial: typeof h.position) => {
     if (h.position === undefined) h.position = initial;
-    return [h.position, (value: typeof h.position) => { h.position = value; }];
+    return [
+      h.position,
+      (value: typeof h.position) => {
+        h.position = value;
+      },
+    ];
   },
 }));
 vi.mock("../src/lib/client/hooks", () => ({ useResource: h.useResource }));
-vi.mock("../src/lib/client/session-scope", () => ({ boundScope: () => h.scope, subscribeScope: vi.fn() }));
+vi.mock("../src/lib/client/session-scope", () => ({
+  boundScope: () => h.scope,
+  subscribeScope: vi.fn(),
+}));
 import { useDiscoveryPage } from "../src/lib/client/discovery-page";
 
 beforeEach(() => {
-  h.position = undefined; h.scope = "scope-a";
-  h.resource = { data: { items: [{ id: "old" }], next_after: "old", has_more: true },
-    current: true, loading: false, error: null, refresh: vi.fn() };
+  h.position = undefined;
+  h.scope = "scope-a";
+  h.resource = {
+    data: { items: [{ id: "old" }], next_after: "old", has_more: true },
+    current: true,
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+  };
   h.useResource.mockReset().mockImplementation(() => h.resource);
 });
-const read = vi.fn(async () => ({ items: [{ id: "new" }], next_after: null, has_more: false }));
+const read = vi.fn(async () => ({
+  items: [{ id: "new" }],
+  next_after: null,
+  has_more: false,
+}));
 
 it("advances one authorized cursor without accumulating previous pages", async () => {
   const first = useDiscoveryPage("cv-a", read);
@@ -53,15 +77,21 @@ it("route, target and scope changes reset the cursor, including return navigatio
 });
 
 it("a revoked, refreshing or failed read withdraws stale items AND cursors", () => {
-  h.resource.current = false; h.resource.loading = true;
+  h.resource.current = false;
+  h.resource.loading = true;
   let state = useDiscoveryPage("cv-a", read);
-  expect(state.page).toBeNull(); state.next(); expect(h.position?.after).toBeUndefined();
+  expect(state.page).toBeNull();
+  state.next();
+  expect(h.position?.after).toBeUndefined();
   h.resource.loading = false;
   state = useDiscoveryPage("cv-a", read);
-  expect(state.unavailable).toBe(true); expect(state.page).toBeNull();
-  h.scope = null; h.resource.current = true;
+  expect(state.unavailable).toBe(true);
+  expect(state.page).toBeNull();
+  h.scope = null;
+  h.resource.current = true;
   state = useDiscoveryPage("cv-a", read);
-  expect(state.page).toBeNull(); expect(h.useResource.mock.lastCall?.[0]).toBeNull();
+  expect(state.page).toBeNull();
+  expect(h.useResource.mock.lastCall?.[0]).toBeNull();
   expect(state.unavailable).toBe(true);
 });
 
@@ -72,5 +102,6 @@ it("restart withdraws a denied/deleted anchor and refresh works on the first pag
   second.first();
   const first = useDiscoveryPage("cv-a", read);
   expect(first.hasPrevious).toBe(false);
-  first.first(); expect(h.resource.refresh).toHaveBeenCalledOnce();
+  first.first();
+  expect(h.resource.refresh).toHaveBeenCalledOnce();
 });

@@ -117,7 +117,6 @@ it("bounds concurrency without truncating queued reads, including after rejectio
   expect(results[3]?.status).toBe("rejected");
 });
 
-
 it("fences the whole traversal when scope changes between page callbacks", async () => {
   const { all } = await import("@/lib/client/real-api");
   const fetchPage = vi.fn(async () => {
@@ -130,8 +129,10 @@ it("fences the whole traversal when scope changes between page callbacks", async
 
 it("does not return a terminal page after a traversal-wide scope change", async () => {
   const { all } = await import("@/lib/client/real-api");
-  await expect(all(async () => {
-    queueMicrotask(() => fenceScope());
-    return { items: ["old-scope-item"], next_cursor: null };
-  })).rejects.toThrow();
+  await expect(
+    all(async () => {
+      queueMicrotask(() => fenceScope());
+      return { items: ["old-scope-item"], next_cursor: null };
+    }),
+  ).rejects.toThrow();
 });
