@@ -1,0 +1,23 @@
+{
+  "head": "f206eda4609dd9223332ceaaeccd10adb134beee",
+  "scope": "Explicit exercised-source and helper hashes; not a whole-tree release manifest",
+  "files": {
+    "backend/tests/test_current_gateway_client_workflow.py": "da8e34d74aca7fa9f1a276857abd24073e16c28687a91dac119e78e8472c02bf",
+    "backend/tests/test_general_alpha_runtime.py": "0cfd5432612436600a940945b521c49dbc9a9368cb9fa322928811a7621bc02c",
+    "backend/tests/test_general_responses.py": "3faa17f7fd6002eef827ee6b30d43c5ccf6c80070251dd68c784e8817ef0e8e4",
+    "backend/tests/test_current_gateway_pg.py": "348b1e843c26742e43114e5e816b47038acfe398e63b35e4a667afe90119c2fa",
+    "backend/tests/test_domain.py": "a805aa6711be725ddec68fcc50084392b37dfd7f93ac92e6936404cbf1a023e5",
+    "backend/dev_db.py": "1a03d7c53a95e6cd528b38e253df0a124644b5c2017f81dc9752283dcd8ddf8e",
+    "backend/workagent/general_worker.py": "818550d61699c36992e88d165bbd2dfd27b60b8c917a9d018f01ef0cae67f13f",
+    "backend/workagent/general_responses.py": "ab3f0b6a38b1839057769defde9caf1259ea6e31338bf646961d89f1776d1251",
+    "backend/workagent/current_gateway.py": "12ce27733ba4c85d887f5338f95457c9e0d261459524eee11220197de27fde9c",
+    "backend/workagent/adaptive.py": "ea54497fc073c2684aa1688146c6c2ad6130ef22d7200775dc8608ede89d7907",
+    "backend/workagent/service.py": "5a34a7105f2eaa2c2ac15c2921c8aa11400f38b17351a1734418823129c79dfe",
+    "backend/workagent/db.py": "a575b245e8a4bff117979efe861d96e65f665ba93f0128426969869f1d17da34",
+    "backend/workagent/api.py": "9623f4be5b01013f181b81aec639563d566e7c2942a868cf56e0da964a9bea28",
+    "backend/workagent/workspace_file_api.py": "7e62c96482f5dde5af5d6480c7c1f1da3a34ef69c34b13c20fd81122c89600d3",
+    "backend/workagent/workspace_files.py": "b09554bed026b01503f527be1e59b717d1067a3a33fa9bbd34053a7262f66f21",
+    "backend/workagent/artifact_exports.py": "55753751a81fd5502a240c19fc878964d98a358a55e168d25228024d5318c572"
+  },
+  "preserved_test_preimage": "b86248551407b73d9a3702e711441fc9e8ffcd171b1343da2ab5a3f3b6b73534"
+}

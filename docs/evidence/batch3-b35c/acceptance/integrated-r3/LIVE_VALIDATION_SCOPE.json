@@ -1,0 +1,49 @@
+{
+  "status": "PROPOSED_SCOPE_NOT_EXECUTION_AUTHORITY",
+  "budget_receipt_sha256": "0e5f68060a287650ede4ffb43d2e282595035ba65e8761d95d24d6639896ffcd",
+  "budget_at": "2026-11-01T02:43:11.716958+00:00",
+  "encumbered_usd": "99.05970000000000000000",
+  "headroom_usd": "0.94030000000000000000",
+  "billed_usd": null,
+  "per_generation_reserve_usd": "0.20692",
+  "max_generations_per_episode": 9,
+  "max_reads_per_generation": 40,
+  "count_or_read_contingency_usd": "0.001",
+  "ancillary_is_official_tariff": false,
+  "episode_envelope_usd": "2.23128",
+  "whole_episode_fundable_with_unallocated": 0,
+  "scopes": [
+    {
+      "name": "separate_exploratory_AB_B1_M1_one_fresh_variation_per_family",
+      "trajectories": 4,
+      "episodes": 24,
+      "generation_limit": 216,
+      "count_limit": 216,
+      "read_limit": 8640,
+      "new_reservation_envelope_usd": "53.55072",
+      "cumulative_ceiling_needed_usd": "152.61042000000000000000",
+      "increase_over_existing_100_usd": "52.61042000000000000000",
+      "fits_current_headroom": false
+    },
+    {
+      "name": "separate_original_sized_AB_B0_B1_M1_two_fresh_variations_per_family",
+      "trajectories": 12,
+      "episodes": 72,
+      "generation_limit": 648,
+      "count_limit": 648,
+      "read_limit": 25920,
+      "new_reservation_envelope_usd": "160.65216",
+      "cumulative_ceiling_needed_usd": "259.71186000000000000000",
+      "increase_over_existing_100_usd": "159.71186000000000000000",
+      "fits_current_headroom": false
+    }
+  ],
+  "limitations": [
+    "Reservations are not forecast charges; all terminal NULL usage and unknowns remain retained.",
+    "Future certificates, exact source/inputs/oracle/request bindings and enforceable cumulative limits are not prepared or issued.",
+    "No additional paid judges, search, model children or cancellation; stop if task needs more than declared envelope, retain failure.",
+    "The smaller scope excludes B0 and independent replication; cannot establish original breadth comparison or population efficacy.",
+    "Do not run originals again; all new results must remain a separate cohort.",
+    "Each family still requires complete inputs, fresh useful outputs, human correction, process restart, source change, in-scope transfer, and other-project/forget denial; record active effort rather than infer it."
+  ]
+}

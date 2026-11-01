@@ -1,5 +1,7 @@
 # B3.5c — execution evidence accepted; comparative efficacy not established
 
+**Current integration update:** [R1](PROVISION_R1.md) is closed; [R3](INTEGRATED_R3.md) now verifies the ordinary current-schema worker-to-authorized-client mechanism, real worker restart and generated-file human-edit preservation (controlled transport, final4PASS). It does not establish model usefulness/full UX or change the original grades. [Remaining live scope and fresh affordability](LIVE_VALIDATION_REMAINDER.md) records the real cap limitation and separate-cohort options. The source-integration checkpoint below is retained as its original evidence; its previously unclosed controlled-workflow seam is superseded only by R3, not by a full-product acceptance claim.
+
 ## Disposition
 
 The original A/B execution/evidence phase is complete under the owner's option1 (dependent slots not runnable, no substituted trajectories). **Full A/B/product acceptance is not granted.** C/D task `t_9cfa8070` remains dependency-gated. No original cohort replay or post-hoc successful grade is authorized by this report.
