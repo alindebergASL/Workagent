@@ -414,6 +414,29 @@ class ServiceCore(MemoryStore, MemoryRetrieval, WorkspaceFiles, ArtifactExports,
         if row['current_revision_id'] != expected:
             raise DomainError('version_conflict',current_revision_id=row['current_revision_id'],proposal_id=proposal_id)
 
+    # P5: text-only replies become editable artifacts (see reply_artifact.py).
+    def _reply_artifact_required(self, c, run, cv):
+        """True when this run's terminal text reply needs a materialized artifact.
+
+        Never fires when the run already authored an artifact/file (its own
+        saved product, a created file, or an earlier idempotent materialization),
+        and never when the conversation already exposes an editable document:
+        selection must stay unambiguous and human work is never duplicated.
+        """
+        from .reply_artifact import conversation_has_editable_document, run_authored_artifact
+        return (not run_authored_artifact(c,run.workspace_id,run.id)
+                and not conversation_has_editable_document(c,run.workspace_id,cv.id))
+
+    def _materialize_text_reply(self, c, p, run, cv, text):
+        """Persist an exact text-only final reply as a worker-editable artifact.
+
+        Runs once per run/revision identity: retries find the run's own prior
+        revision and skip. Ordinary artifact/revision authority, in the caller's
+        transaction, with the same audit/outbox trail as other effects.
+        """
+        from .reply_artifact import materialize
+        return materialize(self,c,p,run,cv,text)
+
     def _append_revision(self,c,p,ws,row,a,body,deps,author_kind,producer_run_id=None):
         office=c.execute('SELECT office_source_snapshot_id FROM workspace_files WHERE workspace_id=%s AND artifact_id=%s',(ws,row['id'])).fetchone()
         if office and office['office_source_snapshot_id']:

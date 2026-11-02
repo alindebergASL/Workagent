@@ -634,6 +634,11 @@ class Conversations:
             self._append_message(c,run.workspace_id,message)
             self._identify_work_area(c,p,run,cv,result.work_area)
             run.state='ready'; run.used_units+=1; run.lease_expires_at=None
+            # P5: a text-only final reply still needs an editable artifact so
+            # downstream transitions can select a target. No-op when this run
+            # already saved worker work; inside this turn's transaction.
+            if self._reply_artifact_required(c,run,cv):
+                self._materialize_text_reply(c,p,run,cv,result.results[0].text)
             self._store_run(c,run)
             self._event(c,p,run.workspace_id,'complete_run',run.id)
             acknowledge(c,run.workspace_id,run.id)

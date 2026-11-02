@@ -625,6 +625,11 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome)]
+                else:
+                    # P5: continuity text-only terminal answer with no saved worker
+                    # artifact gets an editable materialization before settlement.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
             elif staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
@@ -644,6 +649,12 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome or 'Local verification failed.') ]
+                else:
+                    # P5: a terminal text-only reply with no saved worker artifact
+                    # gets an editable materialization before the run settles,
+                    # so dependent transitions keep a selectable target.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
             if alpha and staged.get('decision',{}).get('work_area') is not None:
