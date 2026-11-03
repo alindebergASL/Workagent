@@ -1,0 +1,24 @@
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊  Find recent work    ▎▊  Conversation                                     ▼  ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+ Conversation  Work  Files  Status  Recovery  Details                           
+╸━━━━━━━━━━━━╺━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ Messages 1–2 of 2 · Earlier / Later pages                                      
+                                                                                
+ human: Help me think                                                           
+                                                                                
+ assistant: Local calculation observed. Review the saved product or pending   ▆▆
+▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                                                             
+ Earlier    Later                                                               
+▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                                                             
+ Enter adds a line. F5 / Ctrl+Enter sends. Detach leaves server work running.   
+                                                                                
+▊▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊                                                                              ▎
+▊▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▎
+▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔ ▔▔▔▔▔▔▔▔▔                            
+    Send · F5       Queue later   Refresh   Detach                              
+▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁ ▁▁▁▁▁▁▁▁▁                            
+ ^q Detach  ^⏎ Send  ^r Refresh                                     ▏^p palette 

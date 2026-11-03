@@ -1,0 +1,24 @@
+{
+  "tag": "tui-120x40",
+  "cols": 120,
+  "rows": 40,
+  "actions": [
+    "\u0012",
+    "click-work-tab(17,4)",
+    "click-saved-results(4,9)",
+    "click-worker-reply(5,13)",
+    "\r",
+    "\u001b",
+    "click-work-pane(4,6)",
+    "\u001b[6~",
+    "pagedown x1 body visible",
+    "\u0011"
+  ],
+  "passed": true,
+  "conversation_listed": true,
+  "reply_visible": true,
+  "artifact_selected": true,
+  "human_edit_visible": true,
+  "max_line_len": 120,
+  "fits_width": true
+}

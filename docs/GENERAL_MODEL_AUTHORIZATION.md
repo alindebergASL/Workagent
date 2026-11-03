@@ -1,9 +1,20 @@
 # Current development authorization
 
-Andrew's October 19 integration-resumption instruction raises the cumulative
-model-testing ceiling from $50 to **$100 total**, including all historical
-allocations, reservations and uncertain liabilities—not a new $100 allowance.
-This ceiling is not remaining capacity or a verified provider bill. Read current
+Andrew's November 1 authorization raised the cumulative model-testing ceiling to
+$175 total and authorized a NEW full72-episode B3.5c A/B cohort. Andrew's
+November 2 authorization ("I raise the ceiling by $100 so 1 and beyond") raised
+the cumulative ceiling to **$275 total**. Neither raise is additional allowance
+on top of the other, and neither permits replaying the original cohort. The
+direct owner records are retained at
+`.local/batch3/b35c/fresh72-owner-authority/OWNER_AUTHORIZATION.md` and
+`.local/batch3/b35e/OWNER-CEILING-RAISE-275/OWNER_AUTHORIZATION.md`. The 275
+ceiling was installed only through the audited locked successor mechanism
+(exact-preimage function replacement under advisory lock 721004120; receipts in
+`.local/batch3/b35e/OWNER-CEILING-RAISE-275/`), never by resetting history.
+Preserve historical allocations, reservations and uncertain liabilities; use
+bounded evidence-based reconciliation and incremental enforceable funding.
+The retained $99.0597 allocation figure is not billed spend. A whole-study
+worst-case envelope is not a required upfront allocation. Read current
 accounting before spending; [STATUS](../STATUS.md) records the last checkpoint.
 Development/review-tool costs outside the product ledger are reported separately.
 The existing approved routes and data/effect boundaries are unchanged.
