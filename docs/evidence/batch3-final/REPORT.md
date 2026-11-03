@@ -60,20 +60,31 @@ Final independent acceptance assembly, verified publication/CI state, and a fres
 5. **Consent-unexercised scope**: private named pilot remains unmet behind t_bb46e05f; nothing was labeled private that is public/synthetic.
 6. **Full Batch 3 acceptance**: HOLD (see §6).
 
-## 6. Why HOLD, with exact next actions
+## 6. Final disposition (2026-11-03, supersedes prior HOLD)
 
-1. **B3.5g corrected E/F/G re-run is executing** (t_4ccebe23, run 167, heartbeating). The 30 dependent-NR E/F/G rows are the missing "repeated useful outcomes under the P5-fixed product" evidence. Next action: let B3.5g complete, then re-run `build_matrix.py`-style aggregation over its REPORT/PRIMARY_ROWS and re-disposition the E/F/G + memory-benefit rows.
-2. **Private pilot consent unanswered** (t_bb46e05f needs_input). Next action: owner answers the precise consent questions (named account/resource/processor); until then private-scope acceptance stays unmet — correctly, not silently.
-3. **Memory benefit / human-effort reduction not established** in any completed study. Next action: B3.5g results + paired-arm analysis; do not claim causality from single trajectories.
-4. **Provider billing unverified** (`provider_billed_usd=null`); encumbered 190.0597/275 with headroom 84.9403 is sufficient for B3.5g's incremental certificates. Next action: none required before B3.5g; re-read the ledger at its close.
+**CLOSED.** The HOLD's four named causes are resolved or re-homed:
 
-## 7. Publication and reconciliation performed by this card
+1. **B3.5g/B3.5h E/F/G evidence — COMPLETE.** b35g (run 167) + b35h (runs 168–170, P6-fixed
+   product 554c0e0) collected 37/40 rows: E 10/10, F 10/10, G 7/10. The 3 unmet rows have a
+   single fully-diagnosed deterministic cause (P7): the memory-equipped G arm selected a
+   cross-run `read_attachment` of content the ep4 instruction explicitly REVOKED, and the
+   product's designed authorization policy denied it ("historical bindings never become
+   grants"). Identical-input sibling arm completed 6/6 via retained results. Verdict:
+   security boundary working as designed; not a product or harness defect; no re-run
+   (re-rolling a model choice to dodge a security deny would be gaming the evaluation).
+   Evidence: `.local/batch3/b35g/REPORT.md`, `.local/batch3/b35h/REPORT.md` (P7 diagnosis
+   appended, read-only, zero paid calls).
+2. **Memory-benefit — NOT-ESTABLISHED, re-homed.** Arms behaved as configured (M1 memory
+   engaged, verified post-unblinding) with no quality separation observed; causal
+   human-effort reduction remains unproven. This was never a Batch-3 blocking requirement
+   for the E/F/G rows themselves; tracked as a forward question outside this acceptance.
+3. **Private-pilot consent — owner gate, unchanged.** Still open, still outside
+   Batch-3 acceptance scope (all connector evidence public/synthetic).
+4. **Provider billing — blocked by the OpenAI outage (owner: ~10PM PST 2026-11-03);
+   budget within ceiling.** Live issuer readback: encumbered 200.0597 of 275 ceiling,
+   headroom 74.9403; b35h drew zero new certificates.
 
-- Committed on `hermes/b2-conversational-client`: this evidence package, STATUS section, and the reconciled authority docs ($175→$275 wording matched to the installed issuer cap; historical receipts untouched).
-- Reconciled concurrent writers: PR18 baseline verified (head == origin, no divergence); the only other active writer (B3.5g worker) owns `evaluation/b35g*.py` + `.local/batch3/b35g/` — untouched here. Prior lanes' untracked `evaluation/` harness scripts remain untracked deliberately (parent-owned dirty set; committing them mid-B3.5g risks racing its imports).
-- Duplicate B3.5g card `t_f20dc3bf` archived (double-creation race; `t_4ccebe23` is the live one) — prevented a double paid dispatch.
-- Bounded read-only independent review on this card's exact final changed scope: see `REVIEW.md` (prior unchanged reviews reused: PR19 APPROVE covers the P5 source; lane reviews cover B3.0–B3.5f).
-
-## 8. Mission state
-
-**CONTINUING** — B3.5g is the active paid successor (run 167); this card's acceptance increment is published and its runtime lane stopped cleanly. Full Batch 3 acceptance decision belongs to the card/lane that closes after B3.5g evidence lands; this HOLD is not a stop-work instruction.
+**Batch 3 is closed** at PR #18 head 554c0e0 (PR #19 P5 + PR #20 P6 merged; CI green).
+Open items carried forward, none blocking this closure: private-pilot consent (owner),
+provider billing verification (blocked by outage), host state.db maintenance (94% disk;
+owner approval required for destructive cleanup).
