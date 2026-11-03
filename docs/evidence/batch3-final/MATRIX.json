@@ -130,7 +130,7 @@
   "requirement": "B3.5e E/F/G read-only admin/planning/connector (first pass)",
   "disposition": "COMPLETE-partial",
   "evidence": ".local/batch3/b35e/REPORT.md + PRIMARY_ROWS.json: 6/36 collected, 30 dependent-NR (missing_named_model_artifact 6/6 trajectories)",
-  "conditions": "All 6 trajectories hit the SAME defect at ep4+ (text-only replies had no editable target). Honest denominators; incremental $2 certificates; retained 0.3817."
+  "conditions": "All 6 trajectories terminated at the episode-2 scripted-correction transition with the SAME defect (missing_named_model_artifact: text-only replies had no editable target); ep2-6 are the dependent-NR rows. Honest denominators; incremental $2 certificates; retained 0.3817."
  },
  {
   "section": "evaluation-real",
@@ -241,7 +241,7 @@
   "section": "budget",
   "requirement": "Cumulative ceiling + ledger liabilities",
   "disposition": "WITHIN-275-CEILING",
-  "evidence": "Live issuer readback .local/batch3/b3final/issuer-readback/SUMMARY.json + prosrc check: installed cap 275 (cumulative_275_exceeded); certificates 122.0; released 31.5462600; conservative encumbered 190.0597; headroom 84.9403; known usage upper 6.9408600; unresolved dispatch reserves 0.39576",
+  "evidence": "Live issuer readback: installed cap 275 verified directly in pg_proc source (cumulative_275_exceeded guard + function comment cumulative_ceiling_usd=275); issuer-readback/SUMMARY.json numbers (certificates/releases/usage) are exact but its cap/availability fields are STALE (base script parses only 100/175) \u2014 see issuer-readback/READBACK-NOTE.md; certificates 122.0; released 31.5462600; conservative encumbered 190.0597; headroom 84.9403; known usage upper 6.9408600; unresolved dispatch reserves 0.39576",
   "conditions": "Encumbered/reserved authority is not money spent; provider billing unverified (provider_billed_usd=null). B3.5g will draw incrementally within headroom."
  },
  {

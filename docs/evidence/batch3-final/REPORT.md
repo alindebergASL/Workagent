@@ -13,7 +13,7 @@ Final independent acceptance assembly, verified publication/CI state, and a fres
 ## 2. Candidate/source/content manifest
 
 - Source head: `286a296` (PR18 head == local HEAD == origin at start; PR19 P5 fix merged into it with independent APPROVE + codex review).
-- Web build binding: fresh `next build --webpack` from exact HEAD after removing stale `.next`; `BUILD_BINDING.json` records build id `6ousZ-E7SXIa9bC3QGoIP5f73e0f013752f6f` and its sha256. All browser/PTY evidence below was re-collected against this fresh build.
+- Web build binding: fresh `next build --webpack` from exact HEAD after removing stale `.next`; `BUILD_BINDING.json` records build id `6ousZ-E7SXIa9bC3QGoIP` (sha256 `5f73e0f0…`, full value in the record). All browser/PTY evidence below was re-collected against this fresh build.
 - Runtime lane: fresh disposable PostgreSQL fixture (`workagent_test_b3final_*`, name-guarded), fresh restricted runtime role (the API's own `check_runtime_role` rejected the owner role — security check observed working), owned loopback services on 18452/13452 with PID/start-field/cwd ownership checks before every signal (b33b pattern).
 - Evidence package: `docs/evidence/batch3-final/` (tracked); working set `.local/batch3/b3final/` (untracked, includes runtime.env with the lane-local dev bearer — never committed).
 
@@ -26,7 +26,7 @@ Final independent acceptance assembly, verified publication/CI state, and a fres
 | B3.5c A/B original cohort | COMPLETE — negative/inconclusive (29/3/40 + 4 UNKNOWNs, immutable) |
 | B3.5c fresh72 cohort | COMPLETE — negative/inconclusive (23/12/37; no complete 6-episode trajectory; masked scoring 17×3/3 + 6×2/3) |
 | B3.5d C/D | COMPLETE-partial (19/2/51 of 72; dependent-NR root-caused to the P5 defect) |
-| B3.5e E/F/G first pass | COMPLETE-partial (6/36; `missing_named_model_artifact` 6/6 trajectories) |
+| B3.5e E/F/G first pass | COMPLETE-partial (6/36 collected; all 6 trajectories terminated at the episode-2 correction transition with `missing_named_model_artifact`; ep2–6 dependent-NR) |
 | P5 defect + fix | FIXED-verified (PR19 → head 286a296; review APPROVE; CI green; J1 below re-proves materialization on fresh fixture) |
 | B3.5f overnight/resume | PASS with disclosed partials (6/6 episodes, 15h08m real gap; unattended routing PARTIAL; ep4 custody mismatch recorded) |
 | B3.5g corrected E/F/G | **IN-PROGRESS** (card t_4ccebe23 run 167 ACTIVE; preflight done 01:17Z; 30 dependent-NR rows remain) |
