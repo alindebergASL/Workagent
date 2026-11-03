@@ -1,5 +1,9 @@
 "use client";
-import { ATTACH_ACCEPT, type MessageAttachment } from "@/lib/contract/natural";
+import {
+  ATTACH_ACCEPT,
+  ATTACHMENT_LIMITS,
+  type MessageAttachment,
+} from "@/lib/contract/natural";
 import type { AttachmentContextView } from "@/lib/contract/types";
 import { contextNote } from "@/lib/attachment-context";
 
@@ -56,7 +60,7 @@ export function AttachedFiles({
       ))}
       <label
         className="chip-toggle file-pick"
-        data-disabled={locked || files.length >= 2}
+        data-disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
       >
         Attach a file
         <input
@@ -64,7 +68,7 @@ export function AttachedFiles({
           className="sr-only"
           accept={ATTACH_ACCEPT}
           multiple
-          disabled={locked || files.length >= 2}
+          disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
           onChange={(e) => {
             onAdd(e.target.files);
             e.target.value = "";

@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "ba7cd9dbadd6b7590716ca3e58d7230b5d282feee9a2941f800c66ab2369e19e",
+    "implementation_sha256": "d72476765685b11dcd68a75983ac204456214af184c60b5d0df75d0584dc57d3",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "4dc1816813794c15a8d7de619ad7bbedff4246095d4db80cc0515764ddec0196",
+    "implementation_sha256": "f437ea7aadf685b4233ba1ffa9db952798b252f8c6c527c8ab91d893465aad30",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "64f09d23b7d051d9d0d0f9f6d73ba80059e664c7d1d0d1a0565b1b1146f564a2",
+    "implementation_sha256": "97a3e14b61ad1b113387679dc477fd48c22d403d0ebdad7b6e16539dab921b2b",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "b37d53ceb61e554f32fffdd89c3a4697da7b6c90c4a797929dbd71061ece7063",
+    "implementation_sha256": "2376149b1521a5344074e39508a778cde24742a24941ff5a1b729d895faba1ce",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "b60a89cfdf1ba1a5070f02bdd1b8e4058a52c6862b8f6119d5b146f8f65934d6",
+    "implementation_sha256": "f955bef3db649b4ad677f036b8d66ccda21c21c4389797243a77934862877ce7",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "6681c2ae673ba10ee1e658042d549aad56621c91ebd4cb45c4f2f875fa43c829",
+    "implementation_sha256": "e4f3461e808408cabca9b454542a337854620113670d433b50f343cc2a2732c6",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "6681c2ae673ba10ee1e658042d549aad56621c91ebd4cb45c4f2f875fa43c829",
+    "implementation_sha256": "e4f3461e808408cabca9b454542a337854620113670d433b50f343cc2a2732c6",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2551,7 +2551,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2814,7 +2814,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -3088,7 +3088,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3289,7 +3289,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3525,7 +3525,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "98087d0056d1fb6709ef3efce4c02b98a06eea03776b82be63435c2dc14c1b4b",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -4088,7 +4088,7 @@
     ],
     "execution_profile": "python-analysis-v1",
     "id": "compute.python",
-    "implementation_sha256": "ded1c26c2ccfbaaa435a86b838f6e9a26f416f7fe32ce72243f7e7614484b7f8",
+    "implementation_sha256": "8df14718f749425f9b4b12f71d3d3f246396af4323d49e32b83174518c35a690",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -4657,7 +4657,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.search",
-    "implementation_sha256": "b7b915b088176f231b9cdac77bca4b7c5c4172f4003d5a62298ef006bb2b7c89",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -4847,7 +4847,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.capture",
-    "implementation_sha256": "b7b915b088176f231b9cdac77bca4b7c5c4172f4003d5a62298ef006bb2b7c89",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -5798,7 +5798,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.cite",
-    "implementation_sha256": "b7b915b088176f231b9cdac77bca4b7c5c4172f4003d5a62298ef006bb2b7c89",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "$defs": {
         "QuoteRef": {
@@ -6145,7 +6145,7 @@
     ],
     "execution_profile": "confined-office-v1",
     "id": "artifacts.export.office",
-    "implementation_sha256": "346d27cfc1178f0820dec36889d1f1180fa7e12504a37991d5c180fac29ba65f",
+    "implementation_sha256": "a652f389daa0c37ddcf8f932b34ceec7e193f0998c2ec0db6066dcd48281b0ff",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -6776,7 +6776,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.discover",
-    "implementation_sha256": "6d502fa3531c118defa15129ab4d598bbe49552bdeeeccdd9122d66131014a9f",
+    "implementation_sha256": "670523e51686e330aaebf41d836788be9b3dc378b964cd6ac0f245538212984a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -7843,7 +7843,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.read",
-    "implementation_sha256": "6d502fa3531c118defa15129ab4d598bbe49552bdeeeccdd9122d66131014a9f",
+    "implementation_sha256": "670523e51686e330aaebf41d836788be9b3dc378b964cd6ac0f245538212984a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -8936,7 +8936,7 @@
     ],
     "execution_profile": "synthetic-mcp-v1",
     "id": "connectors.mcp.read",
-    "implementation_sha256": "fbac2493bde3f9ddddddea669f0c84f16aa9629d80ec320c8feba2b573a97dd5",
+    "implementation_sha256": "7abd18df9bb157a3c7986e74e4e95a207442f263982df0b3928e372d09de058e",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -9892,7 +9892,7 @@
     ],
     "execution_profile": "bounded-delegation-v1",
     "id": "delegation.analysis",
-    "implementation_sha256": "2e195259402a9bf0d744d7e6fea38b676a68b66e1683a02c1e885031391348c8",
+    "implementation_sha256": "c55f7c3526bb4758a232680a6cb8f6c5a08626300434cc8797d9829202dd5678",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -10281,7 +10281,7 @@
     ],
     "execution_profile": "bounded-delegation-v1",
     "id": "delegation.verify",
-    "implementation_sha256": "2e195259402a9bf0d744d7e6fea38b676a68b66e1683a02c1e885031391348c8",
+    "implementation_sha256": "c55f7c3526bb4758a232680a6cb8f6c5a08626300434cc8797d9829202dd5678",
     "input_schema": {
       "additionalProperties": false,
       "properties": {

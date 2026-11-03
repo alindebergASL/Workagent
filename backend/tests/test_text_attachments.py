@@ -32,7 +32,7 @@ def test_mime_exact_bytes_and_aggregate_limits_unchanged():
     PostMessage.model_validate(payload|{'attachments':[a]})
     b=AttachmentInput(filename='README.md',mime_type='text/plain',content='x')
     with pytest.raises(ValidationError):PostMessage.model_validate(payload|{'attachments':[a,b]})
-    with pytest.raises(ValidationError):PostMessage.model_validate(payload|{'attachments':[b,b,b]})
+    with pytest.raises(ValidationError):PostMessage.model_validate(payload|{'attachments':[b,b,b,b]})
 
 
 def test_old_csv_txt_filename_boundary_and_control_policy_preserved():
@@ -41,3 +41,36 @@ def test_old_csv_txt_filename_boundary_and_control_policy_preserved():
         AttachmentInput(filename='x'*81+'.'+ext,mime_type='text/csv' if ext=='csv' else 'text/plain',content='a\t\r\n')
     a=AttachmentInput(filename='script.py',mime_type='text/plain',content="__import__('os').system('MUST_NOT_EXECUTE')")
     assert 'MUST_NOT_EXECUTE' in a.content
+
+
+def _message():
+    return dict(schema_version='workagent/v1',request_id=new_id(),command_id=new_id(),
+                expected_work_version=1,text='Continue from the harness resume note.')
+
+
+def test_three_attachments_accepted_four_rejected_total_bytes_enforced():
+    # B3.5g/P6: process-restart resume needs two corpus files plus the resume note.
+    def item(name,content='resume corpus evidence'):
+        return AttachmentInput(filename=name,mime_type='text/csv' if name.endswith('.csv') else 'text/plain',content=content)
+    payload=_message()
+    three=[item('availability.json'),item('goals.csv'),item('resume.md')]
+    PostMessage.model_validate(payload|{'attachments':three})
+    four=three+[item('extra.txt')]
+    with pytest.raises(ValidationError):PostMessage.model_validate(payload|{'attachments':four})
+    # The aggregate 200000-byte cap still binds at three files, not per file.
+    heavy=[AttachmentInput(filename=f'part{i}.txt',mime_type='text/plain',content='x'*70000) for i in range(3)]
+    assert sum(len(a.content.encode()) for a in heavy)==210000
+    with pytest.raises(ValidationError):PostMessage.model_validate(payload|{'attachments':heavy})
+    fits=[AttachmentInput(filename=f'part{i}.txt',mime_type='text/plain',content='x'*66666) for i in range(3)]
+    assert sum(len(a.content.encode()) for a in fits)<=200000
+    PostMessage.model_validate(payload|{'attachments':fits})
+
+
+@pytest.mark.parametrize('corpus',[('availability.json','goals.csv'),('issues.json','release.json')])
+def test_b35g_ep3_resume_two_corpus_plus_resume_attachment_passes_validation(corpus):
+    # Deterministic F/G episode-3 repro shapes: with the old cap of two these were
+    # rejected before any product effect (4/4 zero-effect stops on F/G ep3).
+    attachments=[AttachmentInput(filename=name,mime_type='text/csv' if name.endswith('.csv') else 'text/plain',
+        content='harness corpus payload for '+name) for name in (*corpus,'resume.md')]
+    assert len(attachments)==3
+    PostMessage.model_validate(_message()|{'attachments':attachments})

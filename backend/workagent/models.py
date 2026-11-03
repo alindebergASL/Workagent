@@ -599,7 +599,7 @@ class ConversationMessage(Model):
     result: TurnResult | None = None
     operation: LocalOperation | None = None
     document_refs: list[MessageDocument] = Field(default_factory=list, max_length=2)
-    attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
+    attachments: list[MessageAttachment] = Field(default_factory=list,max_length=ATTACHMENT_COUNT)
     target: ExactTarget | None = None
     model_receipt: Id | None = None
     responsibility_origin: ResponsibilityOrigin | None = None

@@ -36,6 +36,18 @@ def test_count_and_aggregate_bound(tmp_path):
     with pytest.raises(OperatorError):stage_text_files(paths[:2])
 
 
+def test_count_bound_admits_three_rejects_four(tmp_path):
+    small=[]
+    for i in range(4):
+        path=tmp_path/f'small{i}.txt';path.write_text('ok');small.append(str(path))
+    staged=stage_text_files(small[:3])
+    assert len(staged)==3
+    with pytest.raises(OperatorError):stage_text_files(small)
+    from workagent.operator_attachments import validate_snapshots
+    payloads=[s.payload() for s in staged]
+    assert len(validate_snapshots(payloads))==3
+
+
 def test_symlink_fifo_directory_are_not_read(tmp_path):
     plain=tmp_path/'plain.txt';plain.write_text('content')
     link=tmp_path/'link.txt';link.symlink_to(plain)
