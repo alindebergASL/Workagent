@@ -3120,7 +3120,7 @@
             "items": {
               "$ref": "#/components/schemas/MessageAttachment"
             },
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Attachments",
             "type": "array"
           },
