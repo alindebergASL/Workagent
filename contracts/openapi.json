@@ -7969,7 +7969,7 @@
             "items": {
               "$ref": "#/components/schemas/AttachmentInput"
             },
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Attachments",
             "type": "array"
           },
@@ -8094,7 +8094,7 @@
             "items": {
               "$ref": "#/components/schemas/AttachmentInput"
             },
-            "maxItems": 2,
+            "maxItems": 3,
             "title": "Attachments",
             "type": "array"
           },

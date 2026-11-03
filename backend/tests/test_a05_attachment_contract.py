@@ -52,7 +52,7 @@ def test_original_multibyte_bom_crlf_ranges():
 def test_attachment_replay_and_shared_retained_budget(monkeypatch):
     import workagent.retained_results as retained
     raw=b'original\r\n'
-    monkeypatch.setattr(retained,'material',lambda *args:raw)
+    monkeypatch.setattr(retained,'material',lambda *args,**kwargs:raw)
     run=SimpleNamespace(workspace_id='w',id='r'); c=ReadConnection(); d=selection()
     result=read(None,c,None,run,None,d,'selection',{})
     assert result['capability']=='read_attachment'

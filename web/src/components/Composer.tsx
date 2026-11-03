@@ -23,6 +23,7 @@ import { shortTitle } from "@/lib/work-state";
 import { FileName } from "@/components/AttachedFiles";
 import {
   ATTACH_ACCEPT,
+  ATTACHMENT_LIMITS,
   attachmentsProblem,
   readAttachment,
   type MessageAttachment,
@@ -687,7 +688,7 @@ export function Composer({
                 className="sr-only"
                 accept={ATTACH_ACCEPT}
                 multiple
-                disabled={locked || files.length >= 2}
+                disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
                 onChange={(e) => {
                   void addFiles(e.target.files);
                   e.target.value = "";

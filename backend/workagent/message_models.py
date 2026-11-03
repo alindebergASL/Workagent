@@ -4,7 +4,7 @@ from pydantic import Field,model_validator
 from .model_base import Model,Id,Hash
 
 TEXT_EXTENSIONS=('csv','txt','md','py','js','jsx','ts','tsx','json','yaml','yml','toml','xml','html','css','sql','sh','wat','log')
-ATTACHMENT_COUNT=2
+ATTACHMENT_COUNT=3
 ATTACHMENT_BYTES=200000
 ATTACHMENT_FILENAME_LENGTH=85
 ATTACHMENT_FILENAME_PATTERN=r'^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*\.('+ '|'.join(TEXT_EXTENSIONS) +r')$'
