@@ -135,9 +135,9 @@
  {
   "section": "evaluation-real",
   "requirement": "B3.5g corrected E/F/G re-run under P5-fixed product (owner option 1)",
-  "disposition": "COMPLETE-with-P6-and-P7-dispositions",
-  "evidence": ".local/batch3/b35g/REPORT.md + .local/batch3/b35h/REPORT.md (b35h = P6-fixed re-run, zero new certificates); P7 diagnosed designed-policy deny",
-  "conditions": "E 10/10, F 10/10, G 7/10 = 37/40 rows collected; 3 unmet-with-cause (P7: model-selected cross-run read_attachment of revoked content denied by designed authorization policy; identical inputs, sibling arm completed 6/6)."
+  "disposition": "COMPLETE-partial-P7-unresolved",
+  "evidence": ".local/batch3/b35g/PRIMARY_ROWS.json; b35g and b35h REPORT.md plus scoring/MANUAL-PACKETS.map.json and MECHANICAL.json; RECOVERY_CORRECTION.md",
+  "conditions": "Primary dependent rows: 27/30 (E 10/10, F 10/10, G 7/10); b35g 14 + b35h 13. G-M1 ep4 failed at target-mismatch authorization; ep5-6 unmet. Canonical b35e ep1 + dependent coverage = 33/36; fresh b35g ep1 prerequisites excluded from primary evidence. Revoked-resource identity and product/harness defect disposition not established; 37/40 unsupported."
  },
  {
   "section": "evaluation-real",
@@ -219,9 +219,9 @@
  {
   "section": "memory-evidence",
   "requirement": "Equal-tools memory benefit (M1 vs B1 causal)",
-  "disposition": "NOT-ESTABLISHED-E/F/G-COMPLETE",
-  "evidence": "b35g + b35h dual-layer scoring 20/20 mechanical PASS; E/F/G complete 37/40; no quality separation observed between M1 and B1 arms on any judged criterion",
-  "conditions": "Causal memory benefit remains unproven; arms behaved as configured (M1 memory engaged, verified post-unblinding) but no measurable human-effort reduction was established in Batch 3. Not blocking acceptance of the E/F/G rows themselves."
+  "disposition": "NOT-ESTABLISHED",
+  "evidence": "b35g scoring: 20 manual packets, mechanical 84 true / 0 false / 8 deferred; b35h: 13 manual packets, mechanical 44 true / 0 false / 9 deferred. Reports record manual PASS on collected packets; dependent coverage 27/30.",
+  "conditions": "No causal memory benefit or measured human-effort reduction established. E/F completed both arms; G-B1 completed while G-M1 stopped. Reported M1 memory engagement is not a benefit estimate; no identical-full-input or complete E/F/G claim."
  },
  {
   "section": "memory-evidence",
@@ -241,8 +241,8 @@
   "section": "budget",
   "requirement": "Cumulative ceiling + ledger liabilities",
   "disposition": "WITHIN-275-CEILING",
-  "evidence": "Live issuer readback: installed cap 275 verified directly in pg_proc source (cumulative_275_exceeded guard + function comment cumulative_ceiling_usd=275); issuer-readback/SUMMARY.json numbers (certificates/releases/usage) are exact but its cap/availability fields are STALE (base script parses only 100/175) \u2014 see issuer-readback/READBACK-NOTE.md; certificates 122.0; released 31.5462600; conservative encumbered 190.0597; headroom 84.9403; known usage upper 6.9408600; unresolved dispatch reserves 0.39576",
-  "conditions": "Encumbered/reserved authority is not money spent; provider billing unverified (provider_billed_usd=null). B3.5g will draw incrementally within headroom."
+  "evidence": "Live issuer readback: installed cap 275 verified directly in pg_proc source (cumulative_275_exceeded guard + function comment cumulative_ceiling_usd=275); issuer-readback/SUMMARY.json numbers (certificates/releases/usage) are exact but its cap/availability fields are STALE (base script parses only 100/175) \u2014 see issuer-readback/READBACK-NOTE.md; certificates 122.0; released 31.5462600; conservative encumbered 190.0597; headroom 84.9403; known usage upper 6.9408600; unresolved dispatch reserves 0.39576; later saved b35g/b35h REPORT.md: certificates 132.00, released 31.54626, encumbered 200.0597, headroom 74.9403; b35h zero new certificates.",
+  "conditions": "Historical snapshots, not current issuer readback. Encumbered authority is not spend; provider billing unknown. Earlier usage/reserve totals are not asserted current after b35g/b35h; outage causation not verified by this audit."
  },
  {
   "section": "private-pilot",
@@ -263,7 +263,7 @@
   "requirement": "Feature publication + exact-head CI on PR18",
   "disposition": "PASS-at-286a296",
   "evidence": "PR18 OPEN head 286a2960 == local HEAD == origin; frontend + development-boundaries CI success at exact head; PR19 (P5) merged with independent APPROVE",
-  "conditions": "No default merge, no production replacement. This card adds a final docs/evidence increment and re-verifies CI at its own head."
+  "conditions": "Historical publication/CI evidence at 286a296 only; this recovery correction performs no fresh remote verification, commit, push, default merge or deployment."
  },
  {
   "section": "drift",
@@ -282,36 +282,36 @@
  {
   "section": "exit-criteria",
   "requirement": "Repeated useful outcomes in unfamiliar variations",
-  "disposition": "ESTABLISHED-37/40",
-  "evidence": "E 10/10 (b35g), F 10/10 (b35g ep1-2 + b35h ep3-6), G 7/10; first complete E/F/G trajectories ever; materialize_reply_artifact engaged naturally in E/F/G lanes",
-  "conditions": "3 G-M1 rows unmet-with-cause (P7 designed-policy deny, fully diagnosed in b35h REPORT.md; no product or harness defect)."
+  "disposition": "ESTABLISHED-scoped-partial",
+  "evidence": "Saved b35g/b35h packet maps: E 10/10, F 10/10, G 7/10 dependent rows = 27/30; five completed six-episode trajectories, G-M1 stopped at 3/6. With canonical b35e ep1 rows, 33/36 evidence slots across product versions.",
+  "conditions": "Repeated useful outcomes are observed at this scope, not an overall Batch 3 pass rate. Three G-M1 rows remain unmet; target-mismatch denial is established, resource-specific revocation and absence of product/harness defect are not."
  },
  {
   "section": "exit-criteria",
   "requirement": "No unresolved hard safety failure",
   "disposition": "PASS-no-unresolved-hard-failure",
   "evidence": "No access/effect/spend boundary violation, credential exposure, cross-scope leak, lost human edit, fake execution/citation or forgotten-memory replay found in any lane record; b35f ep6 denial controls held; J2/R2 preservation held",
-  "conditions": "ep4 custody-rule mismatch is a fixture/product documentation defect (recorded F-new), not a safety violation."
+  "conditions": "ep4 custody-rule mismatch is a fixture/product documentation defect (recorded F-new), not a safety violation. P7 target-mismatch deny does not establish resource-specific revocation correctness or absence of a product/harness defect; this audit establishes no new safety breach, not an exhaustive safety certification."
  },
  {
   "section": "exit-criteria",
   "requirement": "Corrections/forget/recovery working",
   "disposition": "PASS-mechanism + narrow-real",
   "evidence": "See memory-evidence rows: deterministic 19-row matrix, b35f real episodes, post-fix live check, J2/J3/R2",
-  "conditions": "Real-model cohort-scale recovery evidence remains dependent on B3.5g."
+  "conditions": "b35g/b35h add collected real-model correction/resume/transfer/forget evidence at their stated scope; G-M1 ep4-6 remain unmet. No universal or full-cohort recovery claim; see RECOVERY_CORRECTION.md."
  },
  {
   "section": "exit-criteria",
   "requirement": "User effort or quality meaningfully better than matched baseline",
   "disposition": "NOT-ESTABLISHED",
-  "evidence": "No paired B0/B1/M1 comparison reached sufficient collected pairs in any study (fresh72: 23/12/37; original: 29/3/40)",
+  "evidence": "A/B remains negative/inconclusive (fresh72: 23/12/37; original: 29/3/40). b35g/b35h E/F arms complete with reported equivalent quality; G completion differs (B1 6/6, M1 3/6). Human effort unmeasured; no causal improvement established.",
   "conditions": "This is the core product-advancement question; it stays OPEN, not failed-by-evidence-of-harm."
  },
  {
   "section": "VERDICT",
   "requirement": "Full Batch 3 product acceptance",
-  "disposition": "CLOSED-2026-11-03",
-  "evidence": "All implementation rows DELIVERED-scoped; E/F/G 37/40 collected with P7 disposition; budget within 275 ceiling (encumbered 200.0597, headroom 74.9403); PR #18 head 554c0e0 (PR #19 P5 + PR #20 P6 merged)",
-  "conditions": "Remaining open items tracked OUTSIDE Batch-3 acceptance: private-pilot consent gate (owner decision), provider billing verification (blocked by OpenAI outage), host state.db maintenance (owner approval required for destructive cleanup)."
+  "disposition": "FULL-BATCH3-HOLD-not-established",
+  "evidence": "REPORT.md section 6 and RECOVERY_CORRECTION.md supersede the unsupported 2026-11-03 closure: E/F/G dependent coverage 27/30; canonical coverage 33/36; P7 target-mismatch stop with resource-specific interpretation unproven.",
+  "conditions": "Scoped implementation and historical runtime results retained. Three G-M1 rows unmet; causal benefit not established; private pilot consent unexercised; provider billing unknown. No new permission gate, replay authorization, current-runtime or fresh-CI claim."
  }
 ]

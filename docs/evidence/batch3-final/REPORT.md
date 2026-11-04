@@ -4,7 +4,7 @@ Card: t_3186c309 · Run: this card's own run · Date: 2026-11-03 · Source head 
 
 ## Verdict
 
-**FULL BATCH 3 ACCEPTANCE: HOLD** — implemented/published increment VALID; live usefulness at head VERIFIED; full product acceptance cannot close while required evidence is genuinely missing. Exact next actions are listed at the end. No unresolved hard safety failure was found; no percent-pass is fabricated; every unmet requirement is named in the 45-row matrix (`MATRIX.md` / `MATRIX.json`, built programmatically from lane records by `build_matrix.py`).
+**FULL BATCH 3 ACCEPTANCE: NOT ESTABLISHED / HOLD (recovery audit, 2026-11-04).** The scoped implementation and recorded development-runtime evidence remain valid at their stated source revisions. The later closure claim is not supported by the corrected denominators or the P7 evidence; this is an evidence disposition, not a new permission gate. Sections 1–5 retain the original 2026-11-03 checkpoint; §6 supplies the corrected later disposition. No new safety breach is established by this audit, but a target-mismatch denial is not proof of resource-specific revocation. The 45-row `MATRIX.json` and its full-field `MATRIX.md` rendering include the corrections; the historical `build_matrix.py` is stale, not their current generator. See [RECOVERY_CORRECTION.md](RECOVERY_CORRECTION.md) for derivation, limitations and reproduction.
 
 ## 1. Scope actually owned and executed by this card
 
@@ -60,31 +60,58 @@ Final independent acceptance assembly, verified publication/CI state, and a fres
 5. **Consent-unexercised scope**: private named pilot remains unmet behind t_bb46e05f; nothing was labeled private that is public/synthetic.
 6. **Full Batch 3 acceptance**: HOLD (see §6).
 
-## 6. Final disposition (2026-11-03, supersedes prior HOLD)
+## 6. Corrected disposition (2026-11-04; supersedes the 2026-11-03 closure claim)
 
-**CLOSED.** The HOLD's four named causes are resolved or re-homed:
+**Full product acceptance is not established.** The earlier **CLOSED** statement
+relied on an unsupported total and an over-specific P7 interpretation. Completed
+implementation, collected outputs and historical failed receipts are not erased.
+This audit neither authorizes a replay nor rules out future bounded engineering.
 
-1. **B3.5g/B3.5h E/F/G evidence — COMPLETE.** b35g (run 167) + b35h (runs 168–170, P6-fixed
-   product 554c0e0) collected 37/40 rows: E 10/10, F 10/10, G 7/10. The 3 unmet rows have a
-   single fully-diagnosed deterministic cause (P7): the memory-equipped G arm selected a
-   cross-run `read_attachment` of content the ep4 instruction explicitly REVOKED, and the
-   product's designed authorization policy denied it ("historical bindings never become
-   grants"). Identical-input sibling arm completed 6/6 via retained results. Verdict:
-   security boundary working as designed; not a product or harness defect; no re-run
-   (re-rolling a model choice to dodge a security deny would be gaming the evaluation).
-   Evidence: `.local/batch3/b35g/REPORT.md`, `.local/batch3/b35h/REPORT.md` (P7 diagnosis
-   appended, read-only, zero paid calls).
-2. **Memory-benefit — NOT-ESTABLISHED, re-homed.** Arms behaved as configured (M1 memory
-   engaged, verified post-unblinding) with no quality separation observed; causal
-   human-effort reduction remains unproven. This was never a Batch-3 blocking requirement
-   for the E/F/G rows themselves; tracked as a forward question outside this acceptance.
-3. **Private-pilot consent — owner gate, unchanged.** Still open, still outside
-   Batch-3 acceptance scope (all connector evidence public/synthetic).
-4. **Provider billing — blocked by the OpenAI outage (owner: ~10PM PST 2026-11-03);
-   budget within ceiling.** Live issuer readback: encumbered 200.0597 of 275 ceiling,
-   headroom 74.9403; b35h drew zero new certificates.
+1. **E/F/G dependent-row scope: 27/30 collected, not 37/40.** The frozen
+   `b35g/PRIMARY_ROWS.json` defines six trajectories × episodes 2–6. b35g collected
+   14/30; b35h continued the same cohort and collected 13 of the remaining 16.
+   Deduplicated saved packet maps give **E 10/10, F 10/10, G 7/10**. G-M1 episode 4
+   failed; episodes 5–6 remain unmet behind it. No extra cohort or ten additional
+   rows supporting 37/40 was identified in the cited evidence.
+2. **Broader E/F/G coverage must remain separately labeled.** Adding the six
+   canonical b35e episode-1 rows gives **33/36 canonical evidence slots** across
+   product versions. Separately, the continued b35g cohort has **33 collected
+   packets / 36 execution slots**, including six fresh episode-1 prerequisites
+   explicitly excluded from its primary evidence denominator. These are two views,
+   not additive cohorts. Five trajectories completed 6/6; G-M1 stopped at 3/6.
+   **27/30 is not an overall Batch 3 pass rate.** A/B, C/D, the b35e first pass and
+   the separate b35f overnight observation retain their own denominators.
+3. **P7: target-mismatch authorization stop established; resource-specific
+   revocation PASS not established.** Saved execute/observe traces both stop at
+   `original_attachments.material → retained_results.authorize`, line 94:
+   `latest.target != original.target`. Saved message readbacks confirm episode 3
+   has no target while episode 4 names an artifact revision. The episode-4
+   instruction revokes the issue resource but permits release metadata; episode 3
+   carries issues.json, release.json and prior-work.txt. A cross-run read of that
+   message does not by itself identify which attachment was selected. The inspected
+   saved traces do not bind the selected ref/hash to the specifically revoked
+   resource. Withdraw the claims that the model necessarily re-read revoked issue
+   content, that this proves the revocation boundary, that product/harness are
+   defect-free, or that a future repair/evaluation would necessarily be gaming.
+   The completed G-B1 sibling establishes an alternative observed path, not those
+   stronger causal conclusions or byte-identical full model inputs.
+4. **Quality and memory benefit remain qualified.** b35g manual scoring covers
+   20 packets (including six prerequisites), with 84 mechanical checks true,
+   zero false and eight deferred. b35h manual scoring covers 13 collected packets,
+   with 44 checks true, zero false and nine deferred. The lane reports record
+   manual PASS for those packets, not a 20/20 mechanical score over both lanes.
+   No causal memory benefit or measured human-effort reduction is established;
+   G completion differs by arm. These observations do not establish full acceptance.
+5. **Other limits unchanged.** Private named-pilot consent remains unexercised.
+   The saved b35g/b35h reports record encumbered 200.0597 and headroom 74.9403 under
+   the 275 ceiling; b35h issued no new certificates. These are historical authority
+   figures, not current balances or provider bills. Billing remains unknown; the
+   asserted outage cause is not established by the inspected lane records. Runtime,
+   source-publication and host-maintenance observations above are historical, not
+   freshly reverified by this documentation-only audit.
 
-**Batch 3 is closed** at PR #18 head 554c0e0 (PR #19 P5 + PR #20 P6 merged; CI green).
-Open items carried forward, none blocking this closure: private-pilot consent (owner),
-provider billing verification (blocked by outage), host state.db maintenance (94% disk;
-owner approval required for destructive cleanup).
+Remaining evidence work: resolve P7's selected-resource identity and the
+context-offer/authorization/error-handling discrepancy before claiming a
+resource-specific safety pass or absence of a product/harness defect; preserve the
+three unmet rows and the open benefit/consent/billing qualifications. No evaluation,
+paid API, database operation, commit or push was performed for this correction.
