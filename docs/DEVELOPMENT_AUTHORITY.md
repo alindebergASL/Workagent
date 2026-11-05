@@ -14,6 +14,7 @@ Build a Workagent that Andrew actually uses for real work, on desktop and phone.
 2. **Install #18 fresh on the Linux server you've been working on.**
    - Use a new database.
    - Don't migrate, change or delete the old alpha database or its services. Leave them as they are.
+   - One exception: the budget ledger. The issuer in the old alpha database stays the single ledger for the $275 ceiling. You may add budget certificates there to fund new installations, within the ceiling and after a backup (`pg_dump` kept under `.local/`). Change nothing else in that database, and tell Andrew in one line each time.
    - Andrew's conversations get model answers through the approved route, within the budget in `GENERAL_MODEL_AUTHORIZATION.md`.
 3. **Tell Andrew how to open it** on desktop and phone, the same private way he reached the old alpha. Keep it to a few lines.
 4. **Fix what Andrew finds.** Hermes fixes the backend, Claude fixes the web. Ship each fix to the install as soon as it works.
