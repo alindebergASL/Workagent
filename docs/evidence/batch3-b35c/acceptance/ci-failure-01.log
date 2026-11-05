@@ -1,0 +1,39 @@
+checks	Run pnpm check	﻿2026-11-01T02:02:46.6818694Z ##[group]Run pnpm check
+checks	Run pnpm check	2026-11-01T02:02:46.6818907Z ^[[36;1mpnpm check^[[0m
+checks	Run pnpm check	2026-11-01T02:02:46.6836321Z shell: /usr/bin/bash -e {0}
+checks	Run pnpm check	2026-11-01T02:02:46.6836480Z env:
+checks	Run pnpm check	2026-11-01T02:02:46.6836633Z   PNPM_HOME: /home/runner/setup-pnpm/node_modules/.bin
+checks	Run pnpm check	2026-11-01T02:02:46.6836827Z ##[endgroup]
+checks	Run pnpm check	2026-11-01T02:02:46.9078973Z 
+checks	Run pnpm check	2026-11-01T02:02:46.9079841Z > @workagent/web@0.1.0 check /home/runner/work/Workagent/Workagent/web
+checks	Run pnpm check	2026-11-01T02:02:46.9080507Z > pnpm typecheck && pnpm lint && pnpm format:check && pnpm test
+checks	Run pnpm check	2026-11-01T02:02:46.9080775Z 
+checks	Run pnpm check	2026-11-01T02:02:47.1291585Z 
+checks	Run pnpm check	2026-11-01T02:02:47.1292450Z > @workagent/web@0.1.0 typecheck /home/runner/work/Workagent/Workagent/web
+checks	Run pnpm check	2026-11-01T02:02:47.1292898Z > tsc --noEmit
+checks	Run pnpm check	2026-11-01T02:02:47.1293024Z 
+checks	Run pnpm check	2026-11-01T02:02:54.4915930Z 
+checks	Run pnpm check	2026-11-01T02:02:54.4916817Z > @workagent/web@0.1.0 lint /home/runner/work/Workagent/Workagent/web
+checks	Run pnpm check	2026-11-01T02:02:54.4917199Z > eslint . --max-warnings 0
+checks	Run pnpm check	2026-11-01T02:02:54.4917332Z 
+checks	Run pnpm check	2026-11-01T02:02:59.2514429Z 
+checks	Run pnpm check	2026-11-01T02:02:59.2515426Z > @workagent/web@0.1.0 format:check /home/runner/work/Workagent/Workagent/web
+checks	Run pnpm check	2026-11-01T02:02:59.2515966Z > prettier --check .
+checks	Run pnpm check	2026-11-01T02:02:59.2516091Z 
+checks	Run pnpm check	2026-11-01T02:02:59.3136942Z Checking formatting...
+checks	Run pnpm check	2026-11-01T02:03:00.7478928Z [^[[33mwarn^[[39m] src/app/assignments/[id]/page.tsx
+checks	Run pnpm check	2026-11-01T02:03:00.9036849Z [^[[33mwarn^[[39m] src/app/conversations/[id]/page.tsx
+checks	Run pnpm check	2026-11-01T02:03:01.4178991Z [^[[33mwarn^[[39m] src/components/HumanHistory.tsx
+checks	Run pnpm check	2026-11-01T02:03:02.0967635Z [^[[33mwarn^[[39m] src/lib/client/discovery-page.ts
+checks	Run pnpm check	2026-11-01T02:03:02.1787373Z [^[[33mwarn^[[39m] src/lib/client/human-history.ts
+checks	Run pnpm check	2026-11-01T02:03:02.3842726Z [^[[33mwarn^[[39m] src/lib/client/responsibility-outputs.ts
+checks	Run pnpm check	2026-11-01T02:03:03.7022650Z [^[[33mwarn^[[39m] test/frontend-boundaries.test.ts
+checks	Run pnpm check	2026-11-01T02:03:03.7522201Z [^[[33mwarn^[[39m] test/human-history-outputs.test.ts
+checks	Run pnpm check	2026-11-01T02:03:03.7710424Z [^[[33mwarn^[[39m] test/human-history-routes.test.ts
+checks	Run pnpm check	2026-11-01T02:03:03.7783805Z [^[[33mwarn^[[39m] test/human-history-state.test.ts
+checks	Run pnpm check	2026-11-01T02:03:03.7922832Z [^[[33mwarn^[[39m] test/human-history.test.ts
+checks	Run pnpm check	2026-11-01T02:03:04.0404703Z [^[[33mwarn^[[39m] test/responsibility-outputs.test.ts
+checks	Run pnpm check	2026-11-01T02:03:04.3717808Z [^[[33mwarn^[[39m] Code style issues found in 12 files. Run Prettier with --write to fix.
+checks	Run pnpm check	2026-11-01T02:03:04.4068100Z  ELIFECYCLE  Command failed with exit code 1.
+checks	Run pnpm check	2026-11-01T02:03:04.4512208Z  ELIFECYCLE  Command failed with exit code 1.
+checks	Run pnpm check	2026-11-01T02:03:04.4715106Z ##[error]Process completed with exit code 1.

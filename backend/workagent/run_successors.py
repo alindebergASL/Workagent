@@ -57,24 +57,39 @@ def latest_human_intent(c,ws,cid):
 
 
 class RunSuccessors:
-    def list_run_checkpoints(self,p,ws,cid):
+    def list_run_checkpoints(self,p,ws,cid,after=None,limit=100):
         from .checkpoint_models import RunCheckpointPage
         from .run_checkpoints import read_row
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise DomainError('validation_error')
         with self.db.transaction() as c:
             generation=self._scope(c,p,ws)
             self._owned_conversation(c,p,ws,cid)
-            rows=c.execute("SELECT * FROM run_checkpoints WHERE workspace_id=%s AND conversation_id=%s "
+            query="SELECT * FROM run_checkpoints WHERE workspace_id=%s AND conversation_id=%s " \
                 "AND data->>'principal_id'=%s AND (data->>'access_generation')::bigint=%s "
-                "ORDER BY created_at DESC,checkpoint_id DESC LIMIT 100",(ws,cid,p.id,generation)).fetchall()
+            args=(ws,cid,p.id,generation)
+            order=" ORDER BY created_at DESC,checkpoint_id DESC LIMIT %s"
+
+            if after:
+                # Resolve only in the authorized set; a cursor is not authority.
+                anchor=c.execute(query+' AND checkpoint_id=%s',(*args,after)).fetchone()
+                if not anchor: deny()
+                query+=' AND (created_at,checkpoint_id)<(%s,%s)'
+                args=(*args,anchor['created_at'],anchor['checkpoint_id'])
+            rows=c.execute(query+order,(*args,limit+1)).fetchall()
             from .retained_results import enabled
             items=[]
-            for row in rows:
+            for row in rows[:limit]:
                 checkpoint=read_row(row)
                 config=c.execute('SELECT data FROM run_configurations WHERE workspace_id=%s AND run_id=%s',
                     (ws,checkpoint.run_id)).fetchone()
+                # Preserve baseline capability metadata. The read-only history
+                # is not an input to Continue and does not change admission.
                 checkpoint.continuation_supported=bool(config and enabled(config['data']))
                 items.append(checkpoint)
-            return RunCheckpointPage(items=items)
+            more=len(rows)>limit
+            return RunCheckpointPage(items=items,has_more=more,
+                next_after=items[-1].checkpoint_id if more else None)
 
     def continue_conversation(self,p,ws,cid,cmd):
         def mutate(c,cv):

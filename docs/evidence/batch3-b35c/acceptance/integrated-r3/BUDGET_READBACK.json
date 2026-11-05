@@ -1,0 +1,677 @@
+{
+  "at": "2026-11-01T02:43:11.716958+00:00",
+  "evidence": "READ_ONLY_NOT_BILLING_NOT_EXECUTION_AUTHORITY",
+  "previous_sha256": "692499a53d4e439c89894b5198e78d9f3bec56297a3863dc00523881edbaffb8",
+  "plans_sha256": "335c122ea6ec016460a66477c23937aeadc78cbcc0f2046fc41951091788f381",
+  "issuer": {
+    "at": "2026-11-01T02:43:05.974205+00:00",
+    "oid": 7704275,
+    "released": "31.54626000000000000000",
+    "certificates": [
+      {
+        "id": "b35c-11713285d23f5115e99c210a-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T18:28:59.923923+00:00",
+        "target_database": "workagent_test_fc236c5bef70",
+        "target_binding_sha256": "f961715256f7c8adf95346a6981960fe0f622d0a7e3b40a96509019eaaa39e7e"
+      },
+      {
+        "id": "b35c-205529c6b75e48f328b37cc6-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-11-01T00:43:14.967852+00:00",
+        "target_database": "workagent_test_7c8abb8a4ca5",
+        "target_binding_sha256": "3e2d6d5e9889b297c729bfdc77256e059ced9d208a8dd1579e72082ab94781e6"
+      },
+      {
+        "id": "b35c-3010dca27296e44983b156b9-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T17:46:08.1946+00:00",
+        "target_database": "workagent_test_b7bd85aa6a13",
+        "target_binding_sha256": "5210e271cde70b1c49d22eeaa09280b8b620d2415f42c826227d911b6dd74913"
+      },
+      {
+        "id": "b35c-463c609152d7e50e36e7277b-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T10:52:53.100395+00:00",
+        "target_database": "workagent_test_6b92272a15bc",
+        "target_binding_sha256": "54dc68737aaac6f90cdb4f843a1324824f76ff377a1e64d84a15ab4dd7f5f6be"
+      },
+      {
+        "id": "b35c-50cdc5eef5a5737c2e75d4c7-phase-1",
+        "amount_usd": 1,
+        "created_at": "2026-10-31T12:25:09.489673+00:00",
+        "target_database": "workagent_test_7ae792b3add6",
+        "target_binding_sha256": "352a04402f567ba8b09b33d81aa63546a8de9f7d839889f87e813d1be83f48db"
+      },
+      {
+        "id": "b35c-57d5c80bab1f0d442d84cb6f-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-11-01T00:34:48.632353+00:00",
+        "target_database": "workagent_test_26ed247d36dd",
+        "target_binding_sha256": "fce475eb0f4614e91f2fff910dcd97daa92c5221da0ac192cca364c5fc255c7f"
+      },
+      {
+        "id": "b35c-7d71a8d58efab496730c352c-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T17:02:11.406668+00:00",
+        "target_database": "workagent_test_3202ea051598",
+        "target_binding_sha256": "77948f55e15dfe28e886c59a638755fec462158e52c0a6cc8c8c3b857a2ebb27"
+      },
+      {
+        "id": "b35c-7f2c0b4d8876d13c7315c0cc-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T18:42:13.973205+00:00",
+        "target_database": "workagent_test_6bed73c85e78",
+        "target_binding_sha256": "84c5bf32a9c5b34294a5d3b289c5c7bfc07efee124d1ace09bb7b6c96f850c62"
+      },
+      {
+        "id": "b35c-814541cf5904b6c0fb75d123-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T16:34:40.02196+00:00",
+        "target_database": "workagent_test_ea695e52f0b2",
+        "target_binding_sha256": "84101e43e4a6875ea460307bbd5b4a3f32836c4ea82e3e02a6469f44875bcf8a"
+      },
+      {
+        "id": "b35c-d477c622c837a9cc1fb1f0be-phase-1",
+        "amount_usd": 2.0,
+        "created_at": "2026-10-30T00:31:42.273265+00:00",
+        "target_database": "workagent_test_6faf9a78ff15",
+        "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+      },
+      {
+        "id": "b35c-d477c622c837a9cc1fb1f0be-phase-2",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T08:32:30.673135+00:00",
+        "target_database": "workagent_test_6faf9a78ff15",
+        "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+      },
+      {
+        "id": "b35c-d477c622c837a9cc1fb1f0be-phase-3",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T09:59:10.310391+00:00",
+        "target_database": "workagent_test_6faf9a78ff15",
+        "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+      },
+      {
+        "id": "b35c-f0e9beb8800fc7a03164539d-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T16:16:24.97617+00:00",
+        "target_database": "workagent_test_e65acdd4da29",
+        "target_binding_sha256": "8932763c86038e3bdb6975e53cfd5c72796e64377dcd51cb9db93f6ca1a1ffde"
+      },
+      {
+        "id": "b35c-f1e36fa9709624e2dfee238d-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T16:05:56.785214+00:00",
+        "target_database": "workagent_test_72edf0890f51",
+        "target_binding_sha256": "21556f3f9f344511896cf6a8bb467d81a3df8998c5eb91f9717ab57439e4bf01"
+      },
+      {
+        "id": "gateway-postfix-409636d71e074f96143ffa66fa08d98f394e4eba996ee261f201c84e2a1824f8-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-10-31T19:01:39.065474+00:00",
+        "target_database": "workagent_test_58fb65fa5ca3",
+        "target_binding_sha256": "409636d71e074f96143ffa66fa08d98f394e4eba996ee261f201c84e2a1824f8"
+      },
+      {
+        "id": "gateway-postfix-579e939c9980f18251b7239fd31c669d377e63a1256e6ad82fd1348cbc4ffd56-phase-1",
+        "amount_usd": 2,
+        "created_at": "2026-11-01T00:49:12.13868+00:00",
+        "target_database": "workagent_test_736f4798677d",
+        "target_binding_sha256": "579e939c9980f18251b7239fd31c669d377e63a1256e6ad82fd1348cbc4ffd56"
+      }
+    ]
+  },
+  "recipients": [
+    {
+      "oid": 8097102,
+      "events": 35,
+      "grants": [
+        {
+          "id": "67056ae3-e8c4-4eda-b9a1-6cc4e87386bd",
+          "hash": "6c6598c633690f3b4749d7cf4168217c",
+          "active": true
+        },
+        {
+          "id": "9561accf-a577-4b08-999c-aaa50a2af331",
+          "hash": "74935ddcacd19a0af61e9ff54fbf969c",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_26ed247d36dd",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.20548000000000000000",
+        "certificates": [
+          {
+            "id": "b35c-57d5c80bab1f0d442d84cb6f-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-11-01T00:34:48.765735+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_26ed247d36dd",
+            "target_binding_sha256": "fce475eb0f4614e91f2fff910dcd97daa92c5221da0ac192cca364c5fc255c7f"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8090734,
+      "events": 301,
+      "grants": [
+        {
+          "id": "53aba168-a098-47b0-8226-1fe5c96ccd1f",
+          "hash": "1774d461408c8096b56fe1be369c8d76",
+          "active": true
+        },
+        {
+          "id": "d5148ed7-d90f-4b6b-919b-9098d47cf187",
+          "hash": "8be63a19882729bd45da05377a3401b0",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_3202ea051598",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "1.24336250000000000000",
+        "certificates": [
+          {
+            "id": "b35c-7d71a8d58efab496730c352c-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T17:02:11.617903+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_3202ea051598",
+            "target_binding_sha256": "77948f55e15dfe28e886c59a638755fec462158e52c0a6cc8c8c3b857a2ebb27"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8211100,
+      "events": 6,
+      "grants": [
+        {
+          "id": "36124c78-91a6-405d-b7c1-1cbf45a2c422",
+          "hash": "943d1ab7124613891256c874bba99777",
+          "active": true
+        },
+        {
+          "id": "f00ffcf9-bb46-476e-b2f6-8d07ec115094",
+          "hash": "ed8c7073d53dac0acaa4b4cc5525b2cd",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_58fb65fa5ca3",
+      "migrations": 87,
+      "active_leases": 0,
+      "funding_present": true,
+      "funding": {
+        "retained": "0.20692",
+        "certificates": [
+          {
+            "id": "gateway-postfix-409636d71e074f96143ffa66fa08d98f394e4eba996ee261f201c84e2a1824f8-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T19:01:39.279797+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_58fb65fa5ca3",
+            "target_binding_sha256": "409636d71e074f96143ffa66fa08d98f394e4eba996ee261f201c84e2a1824f8"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8082765,
+      "events": 282,
+      "grants": [
+        {
+          "id": "2d455bec-e90d-4145-b0da-90fe0285158a",
+          "hash": "e1efbb0c8a51fb18a0f47114135eed9a",
+          "active": true
+        },
+        {
+          "id": "e0650554-8ef7-44f4-8493-c88392e3c676",
+          "hash": "2a52e45ee3097c7cc2110ed2e9b3be44",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_6b92272a15bc",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.94523250000000000000",
+        "certificates": [
+          {
+            "id": "b35c-463c609152d7e50e36e7277b-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T10:52:53.286702+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_6b92272a15bc",
+            "target_binding_sha256": "54dc68737aaac6f90cdb4f843a1324824f76ff377a1e64d84a15ab4dd7f5f6be"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8095510,
+      "events": 7,
+      "grants": [
+        {
+          "id": "11b1d2e4-820c-42dc-a3b4-8da7fde0d53b",
+          "hash": "8e8ccfe49051c8f3af4a45cb4112d06a",
+          "active": true
+        },
+        {
+          "id": "35d862e1-bbc5-4335-9100-56128fddf934",
+          "hash": "2d04afa5cdd1f92e46af60e50d417c56",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_6bed73c85e78",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.20692",
+        "certificates": [
+          {
+            "id": "b35c-7f2c0b4d8876d13c7315c0cc-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T18:42:14.159907+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_6bed73c85e78",
+            "target_binding_sha256": "84c5bf32a9c5b34294a5d3b289c5c7bfc07efee124d1ace09bb7b6c96f850c62"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8081164,
+      "events": 291,
+      "grants": [
+        {
+          "id": "34eafbc7-1e73-4eb8-9fcf-2bfe5e4b1175",
+          "hash": "1d556c16577bf0cfaf358a5d9abb3d58",
+          "active": true
+        },
+        {
+          "id": "fce1299b-a525-4998-b620-adc45ba1b02c",
+          "hash": "20f9370495c6b8774968092c89e5b1a5",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_6faf9a78ff15",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "2.88455750000000000000",
+        "certificates": [
+          {
+            "id": "b35c-d477c622c837a9cc1fb1f0be-phase-1",
+            "amount_usd": 2.0,
+            "created_at": "2026-10-30T00:31:42.501177+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_6faf9a78ff15",
+            "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+          },
+          {
+            "id": "b35c-d477c622c837a9cc1fb1f0be-phase-2",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T08:32:30.867862+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_6faf9a78ff15",
+            "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+          },
+          {
+            "id": "b35c-d477c622c837a9cc1fb1f0be-phase-3",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T09:59:10.434539+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_6faf9a78ff15",
+            "target_binding_sha256": "4c8842f73eb634ba5e71c6463dede1d0d1bf77d714f5af29ed2e76e1d1f39246"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8085958,
+      "events": 38,
+      "grants": [
+        {
+          "id": "af160695-5d57-4aa8-80a1-0f8fa20fe7bc",
+          "hash": "8a1c3d149de5c436e59ac8f2a38b1177",
+          "active": true
+        },
+        {
+          "id": "df74e77f-a8a2-4121-bed0-e11648337d85",
+          "hash": "111302a6dc6df70260262dc4818898c1",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_72edf0890f51",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.22417750000000000000",
+        "certificates": [
+          {
+            "id": "b35c-f1e36fa9709624e2dfee238d-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T16:05:56.971607+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_72edf0890f51",
+            "target_binding_sha256": "21556f3f9f344511896cf6a8bb467d81a3df8998c5eb91f9717ab57439e4bf01"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8213038,
+      "events": 66,
+      "grants": [
+        {
+          "id": "20a317cb-f79f-40ce-b086-2d14d6dc4af6",
+          "hash": "bc062082e59aa011314d0b273d383eac",
+          "active": true
+        },
+        {
+          "id": "8f7fb68d-9ffe-498e-ba94-c6d2cf47ed8a",
+          "hash": "08a878553659e194ae68e52a51d749d4",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_736f4798677d",
+      "migrations": 87,
+      "active_leases": 0,
+      "funding_present": true,
+      "funding": {
+        "retained": "0.78896250000000000000",
+        "certificates": [
+          {
+            "id": "gateway-postfix-579e939c9980f18251b7239fd31c669d377e63a1256e6ad82fd1348cbc4ffd56-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-11-01T00:49:12.214747+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_736f4798677d",
+            "target_binding_sha256": "579e939c9980f18251b7239fd31c669d377e63a1256e6ad82fd1348cbc4ffd56"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8084366,
+      "events": 45,
+      "grants": [
+        {
+          "id": "b5d4ed90-dbaf-489a-838e-9869db1d01b6",
+          "hash": "373ac60a3ecbd52972af24a24d132690",
+          "active": true
+        },
+        {
+          "id": "e58db73c-5e40-48ed-99f6-36643af0c0d0",
+          "hash": "5a6f29d2eee57144c2fdfd33df669d86",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_7ae792b3add6",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.27258000000000000000",
+        "certificates": [
+          {
+            "id": "b35c-50cdc5eef5a5737c2e75d4c7-phase-1",
+            "amount_usd": 1,
+            "created_at": "2026-10-31T12:25:09.630506+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_7ae792b3add6",
+            "target_binding_sha256": "352a04402f567ba8b09b33d81aa63546a8de9f7d839889f87e813d1be83f48db"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8098694,
+      "events": 34,
+      "grants": [
+        {
+          "id": "18d31938-9fe2-4b95-b468-55f7888b91bc",
+          "hash": "5163e5b508a5c9914150ddec7dea7f4e",
+          "active": true
+        },
+        {
+          "id": "889590ce-cf41-4e7a-9de6-2e11888eb9a0",
+          "hash": "ab1ffc5b33d5f11638d64206978e9cdd",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_7c8abb8a4ca5",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.20360750000000000000",
+        "certificates": [
+          {
+            "id": "b35c-205529c6b75e48f328b37cc6-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-11-01T00:43:15.164132+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_7c8abb8a4ca5",
+            "target_binding_sha256": "3e2d6d5e9889b297c729bfdc77256e059ced9d208a8dd1579e72082ab94781e6"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8092326,
+      "events": 23,
+      "grants": [
+        {
+          "id": "26bb163b-4fc5-4ff6-ae2b-2b7e249a6e4e",
+          "hash": "e3aac43bdfc87bc5cf1f3992ef897d49",
+          "active": true
+        },
+        {
+          "id": "d31d0e31-46b2-4dbf-8e16-52828ee48040",
+          "hash": "b6626de7b9cd7db2fca5cc92d3846699",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_b7bd85aa6a13",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.30031000000000000000",
+        "certificates": [
+          {
+            "id": "b35c-3010dca27296e44983b156b9-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T17:46:08.41895+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_b7bd85aa6a13",
+            "target_binding_sha256": "5210e271cde70b1c49d22eeaa09280b8b620d2415f42c826227d911b6dd74913"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8087550,
+      "events": 331,
+      "grants": [
+        {
+          "id": "01c606e2-ec91-4d23-9a9b-a15228bd6c1c",
+          "hash": "cee30aafbe8d6beca8fd0000416f9f03",
+          "active": true
+        },
+        {
+          "id": "47e45bf8-1b37-4ea8-9d61-e7b390b831fa",
+          "hash": "253aaee7ecee7c890bd2359298525465",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_e65acdd4da29",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "1.23351750000000000000",
+        "certificates": [
+          {
+            "id": "b35c-f0e9beb8800fc7a03164539d-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T16:16:25.112238+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_e65acdd4da29",
+            "target_binding_sha256": "8932763c86038e3bdb6975e53cfd5c72796e64377dcd51cb9db93f6ca1a1ffde"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8089142,
+      "events": 39,
+      "grants": [
+        {
+          "id": "8de55722-ccb2-412b-9df3-b4a705deb7ff",
+          "hash": "62e502d4982348138e99d5a26d78b962",
+          "active": true
+        },
+        {
+          "id": "ba7930ab-4caf-4387-8dad-69ee564d408e",
+          "hash": "d63e32ad90184514722f1e29a54f47a4",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_ea695e52f0b2",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.22697500000000000000",
+        "certificates": [
+          {
+            "id": "b35c-814541cf5904b6c0fb75d123-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T16:34:40.240261+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_ea695e52f0b2",
+            "target_binding_sha256": "84101e43e4a6875ea460307bbd5b4a3f32836c4ea82e3e02a6469f44875bcf8a"
+          }
+        ]
+      }
+    },
+    {
+      "oid": 8093918,
+      "events": 6,
+      "grants": [
+        {
+          "id": "2626a3a2-efe5-407a-902c-830c9cf13fd2",
+          "hash": "9b67491129efd7bce55e1e6267a115ed",
+          "active": true
+        },
+        {
+          "id": "eb1d1fa6-4907-4103-9980-d6ca35a741c4",
+          "hash": "6acc38d70c21239748e7375539409f1a",
+          "active": true
+        }
+      ],
+      "database": "workagent_test_fc236c5bef70",
+      "migrations": 86,
+      "active_leases": 0,
+      "funding_present": true,
+      "original_identity_and_event_count_unchanged": true,
+      "funding": {
+        "retained": "0.20692",
+        "certificates": [
+          {
+            "id": "b35c-11713285d23f5115e99c210a-phase-1",
+            "amount_usd": 2,
+            "created_at": "2026-10-31T18:29:00.075118+00:00",
+            "issuer_oid": "7704275",
+            "issuer_database": "workagent_test_47b87fe3b82e",
+            "target_database": "workagent_test_fc236c5bef70",
+            "target_binding_sha256": "f961715256f7c8adf95346a6981960fe0f622d0a7e3b40a96509019eaaa39e7e"
+          }
+        ]
+      }
+    }
+  ],
+  "retained_historical_usd": "68.05970000000000000000",
+  "issued_usd": "31.0",
+  "encumbered_usd": "99.05970000000000000000",
+  "unallocated_usd": "0.94030000000000000000",
+  "billing": null,
+  "unknown_liabilities_released": false,
+  "original_recipients": 12,
+  "total_recipient_stores": 14,
+  "new_allocations_usd": "0",
+  "provider_calls": 0,
+  "generation_reserve_usd": "0.20692",
+  "per_episode_upper_usd": "2.01528",
+  "planning_assumptions": {
+    "max_tool_selections": 8,
+    "final_generation": 1,
+    "input_tokens": 50000,
+    "output_tokens": 8192,
+    "reads_per_generation": 16,
+    "count_or_read_contingency_usd": "0.001",
+    "contingency_is_provider_tariff": false,
+    "assumes_no_usage_credit": true,
+    "paid_search_judge_children": false,
+    "not_new_installed_caps": true
+  },
+  "proposed_scopes": {
+    "fresh_AB_current_B1_M1_one_variation_each": {
+      "episodes": 24,
+      "generations_max": 216,
+      "counts_max": 216,
+      "reads_max": 3456,
+      "reserve_usd": "48.36672",
+      "cumulative_ceiling_usd": "147.42642000000000000000",
+      "increase_over_100_usd": "47.42642000000000000000"
+    },
+    "fresh_original_sized_AB_all_arms_two_variations": {
+      "episodes": 72,
+      "generations_max": 648,
+      "counts_max": 648,
+      "reads_max": 10368,
+      "reserve_usd": "145.10016",
+      "cumulative_ceiling_usd": "244.15986000000000000000",
+      "increase_over_100_usd": "144.15986000000000000000"
+    }
+  }
+}

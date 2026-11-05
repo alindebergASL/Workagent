@@ -23,6 +23,7 @@ import { shortTitle } from "@/lib/work-state";
 import { FileName } from "@/components/AttachedFiles";
 import {
   ATTACH_ACCEPT,
+  ATTACHMENT_LIMITS,
   attachmentsProblem,
   readAttachment,
   type MessageAttachment,
@@ -307,11 +308,9 @@ export function Composer({
       void startConversation(true);
       return;
     }
-    if (
-      !pending.current &&
-      selected.length === 0 &&
-      !CAPABILITIES.delegateWithoutContext
-    ) {
+    // The source-free real conversation route above is supported. The legacy
+    // CreateAssignment contract (including mock mode) requires source refs.
+    if (!pending.current && selected.length === 0) {
       setNeedsContext(true);
       setContextOpen(true);
       return;
@@ -689,7 +688,7 @@ export function Composer({
                 className="sr-only"
                 accept={ATTACH_ACCEPT}
                 multiple
-                disabled={locked || files.length >= 2}
+                disabled={locked || files.length >= ATTACHMENT_LIMITS.count}
                 onChange={(e) => {
                   void addFiles(e.target.files);
                   e.target.value = "";

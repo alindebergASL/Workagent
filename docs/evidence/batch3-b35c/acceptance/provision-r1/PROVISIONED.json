@@ -1,0 +1,6 @@
+{
+  "database": "workagent_test_9f8b8af108d4",
+  "env_file": "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/provision-r1-20261101/parent-pg-01/normal-provision/fixture.private.env",
+  "normal_full_chain": true,
+  "retained": true
+}

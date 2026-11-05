@@ -1,0 +1,137 @@
+{
+  "at": "2026-10-29T17:52:23.647865+00:00",
+  "read_only": true,
+  "checks": {
+    "identity": true,
+    "grants": true,
+    "carry": true,
+    "migrations": true,
+    "grant_continuations": true,
+    "active_grant_retained_request_profiles": true,
+    "all_event_accounting_unchanged": true,
+    "unknown_identities_unchanged": true,
+    "each_grant_accounting_unchanged": true
+  },
+  "provider_requests_by_this_run": 0,
+  "live_grant_mutations_by_this_run": 0,
+  "source_totals": [
+    {
+      "counts": {
+        "count_send": 380,
+        "count_result": 373,
+        "dispatch": 373,
+        "read": 1281,
+        "cancel": 0,
+        "result": 370,
+        "corrected_readback": 0
+      },
+      "unmatched_count_steps": 7,
+      "unknown_usage_steps": 3,
+      "reserved_cost_usd": "63.15616",
+      "reserved_input_tokens": "13040000",
+      "reserved_output_tokens": "3055616",
+      "input_tokens": "4565760",
+      "output_tokens": "173454",
+      "known_usage_calculated_usd": "13.14894",
+      "billed_cost_usd": null,
+      "billed_cost_fields_present": 0,
+      "corrected_readback_usage_policy": "Not substituted for original result usage; separately enumerated, no refund."
+    },
+    [
+      {
+        "step_hash": "716e8ef239b54fa795fcd886293378a7",
+        "kinds": [
+          "count_result",
+          "count_send",
+          "dispatch",
+          "identity",
+          "read"
+        ],
+        "unmatched_count": false,
+        "unknown_generation_usage": true
+      },
+      {
+        "step_hash": "57edaed93aa1523388e3297a261fd446",
+        "kinds": [
+          "count_send",
+          "problem"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "cd30a85a9db6e667c9402b5b5fa747fe",
+        "kinds": [
+          "count_send"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "d277f254f266e839e8f518f78f889b75",
+        "kinds": [
+          "count_result",
+          "count_send",
+          "dispatch"
+        ],
+        "unmatched_count": false,
+        "unknown_generation_usage": true
+      },
+      {
+        "step_hash": "3fb91b3e4a40eb0f1f4b83e580ba2397",
+        "kinds": [
+          "count_result",
+          "count_send",
+          "dispatch"
+        ],
+        "unmatched_count": false,
+        "unknown_generation_usage": true
+      },
+      {
+        "step_hash": "9e284c018dc60b9f0a94542223366b71",
+        "kinds": [
+          "count_send"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "cf52faabd5f59c85b6fbccd9d53d683e",
+        "kinds": [
+          "count_send",
+          "problem"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "2f33b0883bc7cdbf5a40b9a6a724bd75",
+        "kinds": [
+          "count_send",
+          "problem"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "d38cc496b8fe5a56165278f90a3ff9bb",
+        "kinds": [
+          "count_send"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      },
+      {
+        "step_hash": "d3fc4d88d3a6bf891eb384af35da1f85",
+        "kinds": [
+          "count_send"
+        ],
+        "unmatched_count": true,
+        "unknown_generation_usage": false
+      }
+    ]
+  ],
+  "retained_global_allocation_usd": "99.605960",
+  "global_unallocated_usd": "0.394040",
+  "billing": "unknown"
+}

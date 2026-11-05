@@ -195,7 +195,7 @@ class SourceSnapshot(Model):
 
 BasicExportFormat = Literal['txt', 'markdown', 'csv', 'json']
 ExportFormat = Literal['txt', 'markdown', 'csv', 'json', 'docx', 'xlsx', 'pdf', 'png']
-ExportFilename = Annotated[str, Field(pattern=r'^export\.(txt|md|csv|json|docx|xlsx|pdf|png)$')]
+ExportFilename = Annotated[str, Field(pattern=r'^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(txt|md|csv|json|docx|xlsx|pdf|png)$')]
 
 
 class ImportOfficeDraft(Command):

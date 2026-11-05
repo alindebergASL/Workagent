@@ -924,7 +924,7 @@
           "title": "Fidelity"
         },
         "filename": {
-          "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
           "title": "Filename",
           "type": "string"
         },

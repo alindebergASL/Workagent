@@ -45,9 +45,28 @@ def enabled(config):
 
 
 def contract(binding):
+    from .current_gateway import enabled as current_enabled, POLICY as current_policy, SCHEMA as current_schema
+    if current_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                    'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        if getattr(binding,'memory_recall',None) is not None:
+            from .memory.runtime import GUIDANCE
+            current_policy += GUIDANCE
+        return current_policy,current_schema
+    from .discovery_composition import enabled as discovery_enabled, POLICY as discovery_policy, SCHEMA as discovery_schema
+    if discovery_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
+                                          'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        if getattr(binding,'memory_recall',None) is not None:
+            from .memory.runtime import GUIDANCE
+            discovery_policy += GUIDANCE
+        return discovery_policy,discovery_schema
     from .capabilities.delegation_composition import enabled as delegation_enabled, POLICY as delegation_policy, SCHEMA as delegation_schema
     if delegation_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
                                         'scope_tool_sha256':getattr(binding,'scope_tool_sha256',None)}}):
+        # Both explicit treatments share exactly the same tools and guidance.
+        # The grant-bound switch changes only SQL recall projection, not policy.
+        if getattr(binding,'memory_recall',None) is not None:
+            from .memory.runtime import GUIDANCE
+            delegation_policy += GUIDANCE
         return delegation_policy,delegation_schema
     from .capabilities.mcp_composition import enabled as mcp_enabled, POLICY as mcp_policy, SCHEMA as mcp_schema
     if mcp_enabled({'responses':{'continuity_version':getattr(binding,'continuity_version',None),
@@ -96,12 +115,36 @@ def phase_name(index):
     return 'selection' if index==1 else f'selection_{index}'
 
 
+def phase_ordinal(phase,max_steps):
+    """Count submitted choices, including authenticated rejection phases."""
+    import re
+    if type(max_steps) is not int or max_steps<1 or not isinstance(phase,str):
+        raise DomainError('command_conflict')
+    if phase=='selection':number=1
+    elif re.fullmatch(r'selection_[1-9][0-9]*',phase):number=int(phase[10:])
+    else:raise DomainError('command_conflict')
+    if not 1<=number<=max_steps or phase_name(number)!=phase:
+        raise DomainError('command_conflict')
+    return number
+
+
 def phases(c,attempt_id):
     return [r['phase'] for r in c.execute("SELECT phase FROM responses_steps WHERE attempt_id=%s AND phase<>'final' ORDER BY phase",(attempt_id,)).fetchall()]
 
 
-def retained(c,attempt_id):
-    return [dict(phase=r['phase'],**r['data']) for r in c.execute("SELECT phase,data FROM responses_events WHERE attempt_id=%s AND kind='tool_result' ORDER BY phase",(attempt_id,)).fetchall()]
+def retained(c,attempt_id,*,include_rejections=False):
+    rows=c.execute("SELECT phase,kind,data FROM responses_events WHERE attempt_id=%s AND (kind='tool_result' OR (%s AND kind IN ('selection_rejection','file_input_rejection'))) ORDER BY CASE WHEN phase='selection' THEN 1 ELSE substring(phase from 11)::integer END",(attempt_id,include_rejections)).fetchall()
+    bound={}
+    if any(r['kind']=='file_input_rejection' for r in rows):
+        # Match decision()'s exact first valid envelope, even when its action
+        # was rejected. Malformed diagnostics never establish a goal/criteria.
+        first=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND kind='result' AND data->>'state'='function_call' ORDER BY CASE WHEN phase='selection' THEN 1 ELSE substring(phase from 11)::integer END LIMIT 1",(attempt_id,)).fetchone()
+        if first:
+            bound={key:first['data']['value'][key] for key in ('goal','success_criteria')}
+    return [dict(phase=r['phase'],**r['data']) if r['kind']=='tool_result' else
+        dict(phase=r['phase'],kind=r['kind'],status='rejected_unexecuted' if r['kind']=='selection_rejection' else 'rejected_no_effect',
+             terminal_outcome=r['data']['terminal_outcome'],feedback=r['data']['feedback'],
+             **(bound if r['kind']=='file_input_rejection' else {})) for r in rows]
 
 
 def decision(c,ledger,phase,*,alpha=False,continuity=False):
@@ -131,11 +174,102 @@ def decision(c,ledger,phase,*,alpha=False,continuity=False):
         if mcp_enabled(config): model=GatewayMCPDecision
         from .capabilities.delegation_composition import enabled as delegation_enabled, GatewayDelegationDecision
         if delegation_enabled(config): model=GatewayDelegationDecision
+        from .discovery_composition import enabled as discovery_enabled, GatewayDiscoveryDecision
+        if discovery_enabled(config): model=GatewayDiscoveryDecision
+        from .current_gateway import enabled as current_enabled, GatewayCurrentDecision
+        if current_enabled(config): model=GatewayCurrentDecision
     value=model.model_validate(result['value'],strict=True)
-    first=model.model_validate(ledger._events(c,'selection')['result']['value'],strict=True)
+    first_row=c.execute("SELECT data FROM responses_events WHERE attempt_id=%s AND kind='result' AND data->>'state'='function_call' ORDER BY CASE WHEN phase='selection' THEN 1 ELSE substring(phase from 11)::integer END LIMIT 1",(ledger.receipt.attempt_id,)).fetchone()
+    first=model.model_validate(first_row['data']['value'],strict=True)
     if value.goal!=first.goal or value.success_criteria!=first.success_criteria:
         raise DomainError('source_changed')
+    staged=ledger._events(c,phase).get('tool_result')
+    if staged and staged.get('diagnostic',{}).get('code')=='target_create_rejected':
+        # resolve_selection also calls this on prepared-history/final resume.
+        # Old feedback is never a substitute for current effect authority.
+        if not _target_create_authorized(c,ledger,phase,value.decision,retained=staged):
+            raise DomainError('not_found_or_not_authorized')
     return value
+
+
+def _target_create_authorized(c,ledger,phase,operation,*,cap=None,retained=None):
+    """Authenticate one no-dispatch denial, never authorize a file effect."""
+    from .capabilities.file_adapters import FilesCreateDraft
+    from .capabilities import registry, policy
+    from .general_responses import check_pins
+    from .service import encoded
+    if not isinstance(operation,FilesCreateDraft):
+        return False
+    run,_,_=ledger._auth(c,cap)
+    check_pins(c,run)
+    target=c.execute("SELECT data->'target' AS target FROM conversation_messages WHERE workspace_id=%s "
+        "AND conversation_id=%s AND run_id=%s AND author_kind='human' ORDER BY sequence LIMIT 1",
+        (run.workspace_id,run.conversation_id,run.id)).fetchone()
+    if not target or not target['target']:
+        return False  # Ordinary untargeted create keeps the unchanged broker path.
+    policy.require_run_tools(c,run)
+    adapter=registry.adapters()['files.create_draft']
+    # Complete pure validation of exact submitted bytes, not a corrected DTO.
+    adapter.input_model.model_validate_json(operation.model_dump_json())
+    from .capabilities.implementation_releases import resolve_for_run
+    resolve_for_run(c,run,adapter.descriptor)
+    # SQL independently validates the remaining generic tool authority and the
+    # exact target prohibition. No catch of arbitrary policy/adapter failures.
+    if not c.execute('SELECT target_create_rejection_authorized(%s,%s,%s) AS ok',
+            (ledger.receipt.attempt_id,phase,cap.fence if cap else run.fence)).fetchone()['ok']:
+        raise DomainError('not_found_or_not_authorized')
+    if retained is not None and not c.execute('SELECT target_create_rejection(%s,%s,%s::jsonb) AS ok',
+            (ledger.receipt.attempt_id,phase,encoded(retained))).fetchone()['ok']:
+        raise DomainError('not_found_or_not_authorized')
+    return True
+
+
+def stage_product(service,cap,receipt,phase):
+    """One exact pre-dispatch target rejection; other choices stage normally."""
+    from .responses_ledger import Ledger
+    from .general_responses import resolve_selection, check_pins
+    from .composition import enabled as alpha_enabled, continuity_enabled
+    ledger=Ledger(service,receipt)
+    staged=None
+    with service.db.transaction() as c:
+        ledger._auth(c,cap)
+        events=ledger._events(c,phase)
+        if events.get('result',{}).get('value',{}).get('decision',{}).get('kind')=='files_create_draft':
+            p,run,scope,operation,base,binding,_=resolve_selection(service,c,cap,receipt,phase)
+            if _target_create_authorized(c,ledger,phase,operation,cap=cap):
+                prior=events.get('tool_result')
+                if prior is not None:
+                    _target_create_authorized(c,ledger,phase,operation,cap=cap,retained=prior)
+                    return prior
+                diagnostic={'code':'target_create_rejected','worker_fence':cap.fence,'detail':
+                    'This run is limited to its existing target. files_create_draft would create an unrelated object. '
+                    'No tool call was reserved or dispatched and no file was created. Choose a NEW authorized action '
+                    'on the target, or explain the remaining limitation.'}
+                staged={'status':'rejected','body':None,'file':None,'output':None,'binding':binding,
+                    'diagnostic':diagnostic,'reason':diagnostic['detail']}
+                cfg=check_pins(c,run)
+                message=next(m for m in service._conversation_messages(c,run.workspace_id,scope.id)
+                    if m.run_id==run.id and m.author_kind in ('human','system'))
+                alpha=alpha_enabled(cfg); continuity=continuity_enabled(cfg)
+                value=decision(c,ledger,phase,alpha=alpha,continuity=continuity)
+                staged.update(stage_metadata(c,ledger,phase,value,operation,staged,
+                    cfg['responses']['max_steps'],message,base,alpha=alpha,continuity=continuity))
+                # 076/078 rejections consume phases without a tool_result. Match
+                # 079's actual phase bound, retaining the metadata above intact.
+                ordinal=phase_ordinal(phase,cfg['responses']['max_steps'])
+                staged['terminal_outcome']='step_limit' if ordinal==cfg['responses']['max_steps'] else 'continue'
+                if staged['terminal_outcome']=='step_limit':
+                    staged['reason']='Execution stopped at the step limit; the requested goal is not verified. '+diagnostic['detail']
+                ledger.event(c,phase,'tool_result',staged)
+                from .run_checkpoints import record
+                record(service,c,run,scope,phase,'stage')
+    if staged is None:
+        return service.stage_general_product(cap,receipt,phase)
+    with service.db.transaction() as c:
+        resolve_selection(service,c,cap,receipt,phase)
+        if ledger._events(c,phase).get('tool_result')!=staged:
+            raise DomainError('action_unresolved')
+    return staged
 
 
 def verify(value,operation,staged,request=None,*,message=None,base=None):
@@ -183,6 +317,7 @@ def request_provenance(message):
 
 
 def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=None,*,alpha=False,continuity=False):
+    ordinal=phase_ordinal(phase,max_steps)
     request=request_provenance(message)
     previous=retained(c,ledger.receipt.attempt_id)
     if previous and previous[0]['verification'].get('request')!=request:
@@ -204,14 +339,14 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         acceptance=evaluate(message.acceptance_checks,operation,staged)
         observation['verification']['acceptance']=acceptance
     if continuity and staged.get('followthrough_result') is not None:
-        outcome='needs_validation' if len(previous)+1>=max_steps else 'continue'
+        outcome='needs_validation' if ordinal>=max_steps else 'continue'
         staged['reason']='Evidence-backed preparation plan retained; applied on settlement only. No human changes accepted or overall goal completion asserted.'
     elif alpha and staged.get('mutation_result') is not None:
-        outcome='needs_validation' if len(previous)+1>=max_steps else 'continue'
+        outcome='needs_validation' if ordinal>=max_steps else 'continue'
         from .responsibility_action import RECORDING_REASON
         staged['reason']=RECORDING_REASON
     elif alpha and staged.get('capability_result') is not None:
-        outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
+        outcome='step_limit' if ordinal>=max_steps else 'continue'
         staged['reason']=('Observation limit reached after reading guidance/context; no answer or operational completion was delivered.'
                           if outcome=='step_limit' else 'Read-only observation retained; no permissions or work-state changed.')
         from .capabilities.file_adapters import FILE_OPERATIONS
@@ -237,7 +372,7 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
                           if isinstance(value.decision,Stop) and value.decision.outcome=='complete' else
                           f'Execution stopped ({outcome}); the requested goal is not verified. '+unresolved_summary(value.decision.text))
     elif operation is not None and operation.kind=='publish_artifact' and staged['status']=='observed':
-        outcome=('continue' if len(previous)+1<max_steps else 'step_limit') if continuity else 'needs_validation'
+        outcome=('continue' if ordinal<max_steps else 'step_limit') if continuity else 'needs_validation'
         staged['reason']='Draft artifact retained; only its data shape was checked. Generated content and code are unverified; the requested goal needs validation. Changes to existing work require human acceptance.'
     elif observation['verification']['satisfied']:
         outcome='completed'
@@ -250,7 +385,7 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
         if base:
             staged['reason']+=' This verifies the proposed revision only. Your saved version is unchanged; acceptance is still required.'
     elif automatic and automatic['recognized']:
-        outcome='step_limit' if len(previous)+1>=max_steps else 'continue'
+        outcome='step_limit' if ordinal>=max_steps else 'continue'
         staged['reason']='Independent bounded verification did not pass: '+', '.join(automatic['failures'])+'. The requested goal is not verified.'
     elif (acceptance is None and operation is not None and staged['status']=='observed'
           and (operation.kind=='reconcile_csv' or not value.success_criteria)):
@@ -262,13 +397,13 @@ def stage_metadata(c,ledger,phase,value,operation,staged,max_steps,message,base=
     elif acceptance is None and observation['verification']['model_tests_passed']:
         outcome='needs_validation'
         staged['reason']='Model-proposed tests passed; the requested goal still needs independent validation. Local work is retained.'
-    elif len(previous)+1>=max_steps:
+    elif ordinal>=max_steps:
         outcome='step_limit'
         staged['reason']='Execution stopped at the step limit; the requested goal is not verified. '+staged.get('reason','Local tests did not establish a passing result.')
     else:
         outcome='continue'
     if continuity and outcome=='needs_validation' and staged['status']=='observed':
-        outcome='continue' if len(previous)+1<max_steps else 'step_limit'
+        outcome='continue' if ordinal<max_steps else 'step_limit'
     if alpha:
         ownership=staged.get('mutation_result') or next((o['mutation_result'] for o in previous if o.get('mutation_result')),None)
         if ownership:
@@ -349,8 +484,30 @@ def continuation_context(context,observations,max_steps):
     for observation in projected:
         capability=observation.get('capability_result') or {}
         if capability.get('capability')=='discover_capabilities':
-            # The complete schemas already travel in the function definition.
-            # Project only this duplicate; retained receipts and user data stay whole.
-            for descriptor in capability['result']['capabilities']:
+            result=capability['result']
+            if result.get('schema_version') in ('capability-page/v2','gateway-capability-page/v1'):
+                # Gateway discovery is a typed page, not the legacy catalog.
+                # Validate before projecting; availability is not execution authority.
+                from .capabilities.models import CapabilityPage
+                if result['schema_version']=='gateway-capability-page/v1':
+                    from .current_gateway import CurrentGatewayCatalog
+                    CurrentGatewayCatalog.model_validate(result)
+                else:
+                    CapabilityPage.model_validate(result)
+                descriptors=result['items']
+                # Descriptor output schemas are not needed to choose an action,
+                # and retaining all of them can exceed normal input capacity.
+                # This is a labeled model projection, never a replacement page.
+                for descriptor in descriptors:
+                    descriptor.pop('output_schema')
+                result['omitted_descriptor_fields']=['input_schema','output_schema']
+                descriptors=descriptors+result.get('builtin_operations',[])
+            elif result.get('version')=='general-alpha-v1' and 'schema_version' not in result:
+                descriptors=result['capabilities']
+            else:
+                raise ValueError('unsupported discovery result schema')
+            # Function input schemas already travel in the selection definition.
+            # Keep availability/denials, identity/hash pins and full receipts intact.
+            for descriptor in descriptors:
                 descriptor.pop('input_schema',None)
     return {**context,'adaptive':{'max_steps':max_steps,'observations':projected}}

@@ -1,0 +1,65 @@
+{
+  "kind": "Every changed byte exactly matches installed Prettier applied to published8bf1dcf base",
+  "files": [
+    {
+      "path": "web/src/app/assignments/[id]/page.tsx",
+      "before_sha256": "ca401029abd846f0f9aa8b1f78490ab7922122dcc033b66770bb4e176c868a18",
+      "after_sha256": "3c7cbc48573441fd562c8d518bce1ba81965a443e578007d76d879bb820024bd"
+    },
+    {
+      "path": "web/src/app/conversations/[id]/page.tsx",
+      "before_sha256": "51083ba5651a302d473f681abd84bfee324cc12fa0e89e202c2268f3c456facf",
+      "after_sha256": "785bebba65b511ad53fb69b56dc2f8131c47341bd6187b54eadd7e285b34482a"
+    },
+    {
+      "path": "web/src/components/HumanHistory.tsx",
+      "before_sha256": "1fc6be819f073095951df25b4840be3f8fcfc65e42e4a96e5c768f19e26a5471",
+      "after_sha256": "fe18f774bd040515e108bbe7d06a8a596057a500ba95c41f0238904845e82c4a"
+    },
+    {
+      "path": "web/src/lib/client/discovery-page.ts",
+      "before_sha256": "0d102afd63f5274492ba21d6d4405e03828fea52cd5635bdbc5d3848b1406e0c",
+      "after_sha256": "54781b780ca99990a9425ec1bca29a7aeba0d3c8584cd7e354585a5099a6ba1b"
+    },
+    {
+      "path": "web/src/lib/client/human-history.ts",
+      "before_sha256": "6ad5626e42e9b269b7ae1959c236923419f2808e23319a53c0a7028b27a71b1d",
+      "after_sha256": "1a5881a431f543291544808258e0eb654b92680a7fa2fb3e22c208ac4e031a85"
+    },
+    {
+      "path": "web/src/lib/client/responsibility-outputs.ts",
+      "before_sha256": "c4e4dd5184a48d1f766422a56621e3d79641ae76c0908961e108035989c57bc5",
+      "after_sha256": "8d9686d79d0e5c01166f1e010df0450b277f6f602d250bc49394066047795a0e"
+    },
+    {
+      "path": "web/test/frontend-boundaries.test.ts",
+      "before_sha256": "3baeb374d305fd4bfbcfa6466072756749f511ce4dd2303a0c575a7683001604",
+      "after_sha256": "99eada0e5838b3141a58b5dcf863979701e01094f51ec9b53d12f73e2255ad80"
+    },
+    {
+      "path": "web/test/human-history-outputs.test.ts",
+      "before_sha256": "588963737984a510f8586d8e1671ece1277b9d7def8bfd61802a8936fdcc3edc",
+      "after_sha256": "47a81ec964a3d8077ee134fba3d274e69e4620539d1c9bade26fc84a18f1d283"
+    },
+    {
+      "path": "web/test/human-history-routes.test.ts",
+      "before_sha256": "4f89ad1daba777d9502987c3ca3e04de3dbdb9f687baca058e28647cd653d2ca",
+      "after_sha256": "34f4ffa0866b15c8a6e500e4125d8270d52d6b6902c8b1502dce641a4d6256c2"
+    },
+    {
+      "path": "web/test/human-history-state.test.ts",
+      "before_sha256": "8c2824ec7c960adbd83510d5e786973310174237928ae58d071f63c4dbb251c4",
+      "after_sha256": "a946f5eda377ed931b13116919872107be21177d98efae4f824cbabcfba80cc4"
+    },
+    {
+      "path": "web/test/human-history.test.ts",
+      "before_sha256": "13b7a65b5f68db2f56abb121724e0fb8b18d9a77cc069b4b3aaa27ab9a08315f",
+      "after_sha256": "946fb9a0749250c9f3a8cd1e3371f9bb2cbe1e79dadf293cf6cc4eb4576f2eeb"
+    },
+    {
+      "path": "web/test/responsibility-outputs.test.ts",
+      "before_sha256": "76fc42d0fc11a67a6ea09dc86b8439b56255f8f7c4f04d41d20ec56fc973f965",
+      "after_sha256": "c35eb77030dd32ce167f60e761e67903e00f034d6f8bc3a3a9697effaab4d273"
+    }
+  ]
+}

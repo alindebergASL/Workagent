@@ -239,7 +239,12 @@ describe("evidence options", () => {
         onRetry: () => undefined,
       }),
     );
-    expect(none).toContain("Nothing in this conversation can be cited yet.");
+    expect(none).toContain(
+      "No supporting events were returned for this conversation.",
+    );
+    expect(none).toContain(
+      "does not report whether more supporting events exist",
+    );
   });
 });
 

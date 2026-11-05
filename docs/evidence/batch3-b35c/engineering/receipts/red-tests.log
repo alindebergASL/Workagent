@@ -1,0 +1,123 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+___________________ test_full_tool_selector_and_equal_policy ___________________
+
+    def test_full_tool_selector_and_equal_policy():
+>       assert enabled(config('reviewed-v1'))
+E       AssertionError: assert False
+E        +  where False = enabled({'responses': {'continuity_version': 'sustained-v1', 'memory_recall': 'reviewed-v1', 'scope_tool_sha256': '1073c3bc5d71a3de2126733c224ecd729605965f39917709d56934c868bc7f41'}})
+E        +    where {'responses': {'continuity_version': 'sustained-v1', 'memory_recall': 'reviewed-v1', 'scope_tool_sha256': '1073c3bc5d71a3de2126733c224ecd729605965f39917709d56934c868bc7f41'}} = config('reviewed-v1')
+
+backend/tests/test_memory_full_tools.py:32: AssertionError
+_____________ test_real_pg_matched_off_on_revision_forget_restart ______________
+
+context = (<workagent.service.Service object at 0x78f1787e3110>, Principal(id='local-human', kind='human'), 'test-17f4c360-05ef-...ime.datetime(2026, 10, 29, 16, 55, 5, 465369, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-134/test_real_pg_matched_off_on_re0')
+
+    def test_real_pg_matched_off_on_revision_forget_restart(context, tmp_path):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='user', scope_id=p.id,
+            subject_key='writing', predicate_key='headings', content='Use concise headings'))
+        # Both arms have the same SQL memory available; off must not project it.
+>       g0 = activated(context, cv, 'off')
+
+backend/tests/test_memory_full_tools.py:72: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_memory_full_tools.py:28: in activated
+    return activate(ctx, cv, continuity_version='sustained-v1', max_steps=3, memory_recall=mode)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+ctx = (<workagent.service.Service object at 0x78f1787e3110>, Principal(id='local-human', kind='human'), 'test-17f4c360-05ef-...ime.datetime(2026, 10, 29, 16, 55, 5, 465369, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+cv = Conversation(work_area=None, updated_at=None, last_message_preview=None, execution_profile='general-controlled-v1', mo..., selected_source_refs=[], created_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 546227, tzinfo=datetime.timezone.utc))
+kw = {'continuity_version': 'sustained-v1', 'max_steps': 3, 'memory_recall': 'off'}
+s = <workagent.service.Service object at 0x78f1787e3110>
+p = Principal(id='local-human', kind='human')
+ws = 'test-17f4c360-05ef-4046-bbdf-4dddabf7e0b7'
+_ = [SourceRef(source_id='SG-F1', external_version='1', observed_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 458442, tzi...ternal_version='1', observed_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 465369, tzinfo=datetime.timezone.utc)), ...]
+admin = <disposable database DSN redacted>
+caps = {'continuity_version': 'sustained-v1', 'cost_limit_usd': '20.00', 'count_limit': 50, 'generation_limit': 50, ...}
+name = 'cost_limit_usd'
+
+    def activate(ctx, cv, **kw):
+        s,p,ws,_,admin=ctx
+        # Explicit synthetic fixture authority, not defaults for a live grant.
+        caps=dict(kw)
+        for name,value in dict(generation_limit=50,count_limit=50,read_limit=500,
+                               input_limit=1000000,output_limit=409600,cost_limit_usd='20.00').items():
+            caps.setdefault(name,value)
+        return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
+            profile='general-responses-v1',model='gpt-6.1-sol',consumer_sha256=consumer_hash(),expires_at=None,
+>           max_runs=10,max_received_output_tokens=16384,responses=GeneralAlphaResponsesBinding(
+                runtime_extension='general-alpha-v1',project_id='proj_'+ws,
+                secret_reference='file:/synthetic/not-a-key',transport_mode='synthetic',
+                instructions_sha256=sha256(POLICY.encode()).hexdigest(),schema_sha256=sha256(EXPLANATION_SCHEMA.material).hexdigest(),
+                scope_tool_sha256=sha256(DECISION_SCHEMA.material).hexdigest(),authorization_sha256=AUTHORIZATION_HASH,
+                conversation_ids=[cv.id],**caps)))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GeneralAlphaResponsesBinding
+E       memory_recall
+E         Extra inputs are not permitted [type=extra_forbidden, input_value='off', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+
+backend/tests/test_general_alpha_runtime.py:34: ValidationError
+_________ test_full_tool_correction_during_request_fences_publication __________
+
+context = (<workagent.service.Service object at 0x78f1785575f0>, Principal(id='local-human', kind='human'), 'test-3b94021b-3182-...ime.datetime(2026, 10, 29, 16, 55, 5, 673921, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-134/test_full_tool_correction_duri0')
+
+    def test_full_tool_correction_during_request_fences_publication(context, tmp_path):
+        s, p, ws, _, _ = context
+        cv = conversation(context)
+        m = s.remember_memory(p, ws, cmd(RememberMemory, kind='preference', scope_kind='task', scope_id=cv.id,
+            subject_key='writing', predicate_key='headings', content='Use concise headings'))
+>       activated(context, cv, 'reviewed-v1')
+
+backend/tests/test_memory_full_tools.py:115: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+backend/tests/test_memory_full_tools.py:28: in activated
+    return activate(ctx, cv, continuity_version='sustained-v1', max_steps=3, memory_recall=mode)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+ctx = (<workagent.service.Service object at 0x78f1785575f0>, Principal(id='local-human', kind='human'), 'test-3b94021b-3182-...ime.datetime(2026, 10, 29, 16, 55, 5, 673921, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+cv = Conversation(work_area=None, updated_at=None, last_message_preview=None, execution_profile='general-controlled-v1', mo..., selected_source_refs=[], created_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 749191, tzinfo=datetime.timezone.utc))
+kw = {'continuity_version': 'sustained-v1', 'max_steps': 3, 'memory_recall': 'reviewed-v1'}
+s = <workagent.service.Service object at 0x78f1785575f0>
+p = Principal(id='local-human', kind='human')
+ws = 'test-3b94021b-3182-4376-bfec-d02694888cdf'
+_ = [SourceRef(source_id='SG-F1', external_version='1', observed_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 666921, tzi...ternal_version='1', observed_at=datetime.datetime(2026, 10, 29, 16, 55, 5, 673921, tzinfo=datetime.timezone.utc)), ...]
+admin = <disposable database DSN redacted>
+caps = {'continuity_version': 'sustained-v1', 'cost_limit_usd': '20.00', 'count_limit': 50, 'generation_limit': 50, ...}
+name = 'cost_limit_usd'
+
+    def activate(ctx, cv, **kw):
+        s,p,ws,_,admin=ctx
+        # Explicit synthetic fixture authority, not defaults for a live grant.
+        caps=dict(kw)
+        for name,value in dict(generation_limit=50,count_limit=50,read_limit=500,
+                               input_limit=1000000,output_limit=409600,cost_limit_usd='20.00').items():
+            caps.setdefault(name,value)
+        return configure_grant(Database(admin),ProviderGrant(id=new_id(),workspace_id=ws,principal_id=p.id,
+            profile='general-responses-v1',model='gpt-6.1-sol',consumer_sha256=consumer_hash(),expires_at=None,
+>           max_runs=10,max_received_output_tokens=16384,responses=GeneralAlphaResponsesBinding(
+                runtime_extension='general-alpha-v1',project_id='proj_'+ws,
+                secret_reference='file:/synthetic/not-a-key',transport_mode='synthetic',
+                instructions_sha256=sha256(POLICY.encode()).hexdigest(),schema_sha256=sha256(EXPLANATION_SCHEMA.material).hexdigest(),
+                scope_tool_sha256=sha256(DECISION_SCHEMA.material).hexdigest(),authorization_sha256=AUTHORIZATION_HASH,
+                conversation_ids=[cv.id],**caps)))
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GeneralAlphaResponsesBinding
+E       memory_recall
+E         Extra inputs are not permitted [type=extra_forbidden, input_value='reviewed-v1', input_type=str]
+E           For further information visit https://errors.pydantic.dev/2.11/v/extra_forbidden
+
+backend/tests/test_general_alpha_runtime.py:34: ValidationError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_memory_full_tools.py::test_full_tool_selector_and_equal_policy
+FAILED backend/tests/test_memory_full_tools.py::test_real_pg_matched_off_on_revision_forget_restart
+FAILED backend/tests/test_memory_full_tools.py::test_full_tool_correction_during_request_fences_publication
+3 failed, 1 warning in 3.89s

@@ -12,7 +12,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "context.read",
-    "implementation_sha256": "cb251f06a899d5c2dcc35318f295ff410c979602aed355947f376d5c2f6ff4ac",
+    "implementation_sha256": "d72476765685b11dcd68a75983ac204456214af184c60b5d0df75d0584dc57d3",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -94,7 +94,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "files.inspect_json",
-    "implementation_sha256": "e68cb98064788e16de20435069963c4e1e3d16472764a48e3138748202c9a09d",
+    "implementation_sha256": "f437ea7aadf685b4233ba1ffa9db952798b252f8c6c527c8ab91d893465aad30",
     "input_schema": {
       "$defs": {
         "AttachmentRef": {
@@ -205,7 +205,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "research.fetch",
-    "implementation_sha256": "2584800b1341ebebd47d9106afb9fb5040eb73f276451f88ac7f06b941ae7850",
+    "implementation_sha256": "97a3e14b61ad1b113387679dc477fd48c22d403d0ebdad7b6e16539dab921b2b",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -284,7 +284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "capabilities.discover_legacy",
-    "implementation_sha256": "328690d0d5f8e244834b674a4800f1c453332c2383d55cd9a4d5b748f844ca4d",
+    "implementation_sha256": "2376149b1521a5344074e39508a778cde24742a24941ff5a1b729d895faba1ce",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -355,7 +355,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "procedures.load_legacy",
-    "implementation_sha256": "328690d0d5f8e244834b674a4800f1c453332c2383d55cd9a4d5b748f844ca4d",
+    "implementation_sha256": "f955bef3db649b4ad677f036b8d66ccda21c21c4389797243a77934862877ce7",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -447,7 +447,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_assignment",
-    "implementation_sha256": "5c37e413a901c3dc5b9e615a337f6b0d4de00e262fdaad395eb64cbe293c1f6a",
+    "implementation_sha256": "e4f3461e808408cabca9b454542a337854620113670d433b50f343cc2a2732c6",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -1284,7 +1284,7 @@
     ],
     "execution_profile": "native-bounded-read-v1",
     "id": "legacy.get_artifact",
-    "implementation_sha256": "5c37e413a901c3dc5b9e615a337f6b0d4de00e262fdaad395eb64cbe293c1f6a",
+    "implementation_sha256": "e4f3461e808408cabca9b454542a337854620113670d433b50f343cc2a2732c6",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2276,7 +2276,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.list",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -2551,7 +2551,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.read_range",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -2814,7 +2814,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.create_draft",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "DraftText": {
@@ -3088,7 +3088,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.propose_patch",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3289,7 +3289,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "files.compare",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "FileVersionRef": {
@@ -3525,7 +3525,7 @@
     ],
     "execution_profile": "native-bounded-files-v1",
     "id": "artifacts.export",
-    "implementation_sha256": "30a589ef0fd5db2a1c3822cf8eeb6be13df94c7a83e433dda0f40e3f0f5590ff",
+    "implementation_sha256": "5c379023b3ced78bcc30f361fab4f5889dcea7f26c74db78944b2e552a38983a",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -3833,7 +3833,7 @@
               "title": "Fidelity"
             },
             "filename": {
-              "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
               "title": "Filename",
               "type": "string"
             },
@@ -4067,7 +4067,7 @@
     ],
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
-    "schema_sha256": "17ba5aabea63fd8c177e248230e6e4f4ce3e2671e35f9ed4845a634c647c5a04",
+    "schema_sha256": "ef7fb699715a856510d965f4273ec18f1868d990ee642e5aacce41e0d3ff7726",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 30000,
     "transport": "native",
@@ -4088,7 +4088,7 @@
     ],
     "execution_profile": "python-analysis-v1",
     "id": "compute.python",
-    "implementation_sha256": "4376b243ecfef8e4b6815bdf0a14e97a9c160370faac25ce265618fdd4332133",
+    "implementation_sha256": "8df14718f749425f9b4b12f71d3d3f246396af4323d49e32b83174518c35a690",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -4657,7 +4657,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.search",
-    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -4847,7 +4847,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.capture",
-    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -5798,7 +5798,7 @@
     ],
     "execution_profile": "native-grounded-research-v1",
     "id": "research.cite",
-    "implementation_sha256": "c7703d77c5dc63b34658954ede49c0fd5233309dd9e530457f454e01992b75b4",
+    "implementation_sha256": "3ae25f871cd417820439529848b7fa9cde430b03e0b2b5f9d568891b7fabbbe2",
     "input_schema": {
       "$defs": {
         "QuoteRef": {
@@ -6145,7 +6145,7 @@
     ],
     "execution_profile": "confined-office-v1",
     "id": "artifacts.export.office",
-    "implementation_sha256": "98e086c04625518baae0ca530e8162a59099651ccdee6d5f8ed969fa1eb8d02f",
+    "implementation_sha256": "a652f389daa0c37ddcf8f932b34ceec7e193f0998c2ec0db6066dcd48281b0ff",
     "input_schema": {
       "$defs": {
         "ExportInputRef": {
@@ -6523,7 +6523,7 @@
               "title": "Fidelity"
             },
             "filename": {
-              "pattern": "^export\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,80}\\.(txt|md|csv|json|docx|xlsx|pdf|png)$",
               "title": "Filename",
               "type": "string"
             },
@@ -6757,7 +6757,7 @@
     ],
     "result_byte_limit": 262144,
     "retry_policy": "never_resend_unknown",
-    "schema_sha256": "0abcb4cb8d564bbca65774e7fed64e6a389df262717807660b68c823aae71be9",
+    "schema_sha256": "a43c6c47a3f161d42bf1ca81201e971a1a1273c6ed396fe8f5876d23009e6c7e",
     "schema_version": "capability-descriptor/v2",
     "timeout_ms": 60000,
     "transport": "native",
@@ -6776,7 +6776,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.discover",
-    "implementation_sha256": "5fa00ad4ee358a81c438e03538f2182b0e16746bc60166b02d31ebb042fffb3d",
+    "implementation_sha256": "670523e51686e330aaebf41d836788be9b3dc378b964cd6ac0f245538212984a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -7843,7 +7843,7 @@
     ],
     "execution_profile": "native-github-public-v1",
     "id": "connectors.github.read",
-    "implementation_sha256": "5fa00ad4ee358a81c438e03538f2182b0e16746bc60166b02d31ebb042fffb3d",
+    "implementation_sha256": "670523e51686e330aaebf41d836788be9b3dc378b964cd6ac0f245538212984a",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -8936,7 +8936,7 @@
     ],
     "execution_profile": "synthetic-mcp-v1",
     "id": "connectors.mcp.read",
-    "implementation_sha256": "bff9c6e127bc7b16eef5c1656b542f33d91ce35dbb26a6e23ad8299f06812dd5",
+    "implementation_sha256": "7abd18df9bb157a3c7986e74e4e95a207442f263982df0b3928e372d09de058e",
     "input_schema": {
       "additionalProperties": false,
       "properties": {
@@ -9892,7 +9892,7 @@
     ],
     "execution_profile": "bounded-delegation-v1",
     "id": "delegation.analysis",
-    "implementation_sha256": "427ba47ad02501ae341c1ad34f2d173faa04b4cf8b3c55951f2574ec78ece65a",
+    "implementation_sha256": "c55f7c3526bb4758a232680a6cb8f6c5a08626300434cc8797d9829202dd5678",
     "input_schema": {
       "$defs": {
         "ComputeInput": {
@@ -10281,7 +10281,7 @@
     ],
     "execution_profile": "bounded-delegation-v1",
     "id": "delegation.verify",
-    "implementation_sha256": "427ba47ad02501ae341c1ad34f2d173faa04b4cf8b3c55951f2574ec78ece65a",
+    "implementation_sha256": "c55f7c3526bb4758a232680a6cb8f6c5a08626300434cc8797d9829202dd5678",
     "input_schema": {
       "additionalProperties": false,
       "properties": {

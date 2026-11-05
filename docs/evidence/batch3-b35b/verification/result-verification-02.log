@@ -1,0 +1,99 @@
+{
+  "status": "offline_preparation_verified_live_trials_unfunded",
+  "primary_trajectories": 42,
+  "primary_episodes": 252,
+  "families": {
+    "E": 6,
+    "F": 6,
+    "G": 6,
+    "C": 6,
+    "B": 6,
+    "D": 6,
+    "A": 6
+  },
+  "scope_negative_controls": 42,
+  "fresh_stores": 42,
+  "same_B1_M1_policy_schema_model_pairs": 84,
+  "provider_calls": 0,
+  "live_trials": 0,
+  "quality": "not_scored",
+  "real_overnight": false,
+  "runtime_lock_sha256": "693a18a1cb1ebda17229c93001859c81b2cd96a005a6e1f594dd8d15316bafea",
+  "study_manifest_sha256": "9eb73c42faff065888d46e51bad21f347d81b992fcc40b1d2a24818c41c8d4e0",
+  "study_freeze_sha256": "3d32c1ac54f2afd03cb84de30bd2963b0dcb877ed2ffd77ac2a31e7667ffab34",
+  "all_attempts": [
+    {
+      "corpus": "workagent-evaluator-b35b",
+      "run": "attempt-001",
+      "started": 1,
+      "ended": 1,
+      "outcomes": {
+        "failed": 1
+      },
+      "interrupted_without_result": 0,
+      "summary_present": true,
+      "journal_sha256": "f1c7db9f9ff9ec0dcf0fa90281cf62626e06ea4c9d0ea744e45d0766fd61f7db",
+      "artifact_manifest_sha256": "37ad1f51c98d82349e7bceed78373ce55a6e283877f74be12156d659213c8188",
+      "qualification": "v1 not valid scope/forget control; runtime identity incomplete before attempt004"
+    },
+    {
+      "corpus": "workagent-evaluator-b35b",
+      "run": "attempt-002",
+      "started": 156,
+      "ended": 155,
+      "outcomes": {
+        "mechanism_pass_not_usefulness": 155
+      },
+      "interrupted_without_result": 1,
+      "summary_present": false,
+      "journal_sha256": "2de528d5a2fc04efe92cb92e418edaa2f716290dee8ec2bfbecb16aa387097fa",
+      "artifact_manifest_sha256": "578df5134de4b090c4b17f31ed85b8588069f6b77211540e7421de16eeb77a23",
+      "qualification": "v1 not valid scope/forget control; runtime identity incomplete before attempt004"
+    },
+    {
+      "corpus": "workagent-evaluator-b35b",
+      "run": "attempt-003",
+      "started": 252,
+      "ended": 252,
+      "outcomes": {
+        "mechanism_pass_not_usefulness": 252
+      },
+      "interrupted_without_result": 0,
+      "summary_present": true,
+      "journal_sha256": "d6cf8d7c183fecd0158139de9d244b054c2a3dce42826e3a3895c0aaa903ea90",
+      "artifact_manifest_sha256": "687ec911e8239443c5bd27af3ce7ddcf695aede71129ec5da257e06a0cef7092",
+      "qualification": "v1 not valid scope/forget control; runtime identity incomplete before attempt004"
+    },
+    {
+      "corpus": "workagent-evaluator-b35b",
+      "run": "attempt-004-runtime",
+      "started": 36,
+      "ended": 36,
+      "outcomes": {
+        "mechanism_pass_not_usefulness": 36
+      },
+      "interrupted_without_result": 0,
+      "summary_present": true,
+      "journal_sha256": "80b20c4773c94b9f942f5fa2a5caf8c4c4b884d024e70d250200da263e3ce902",
+      "artifact_manifest_sha256": "1959ba7aad11f4876578576aa7b4fbb6b5fe639b69256a05c74359a939558866",
+      "qualification": "v1 not valid scope/forget control; runtime identity incomplete before attempt004"
+    },
+    {
+      "corpus": "workagent-evaluator-b35b-v2",
+      "run": "attempt-001",
+      "started": 252,
+      "ended": 252,
+      "outcomes": {
+        "mechanism_pass_not_usefulness": 252
+      },
+      "interrupted_without_result": 0,
+      "summary_present": true,
+      "journal_sha256": "bd38a1c0225781196ebb33e7cc4ff9d73e6d61fe2555be438bb5b5d3bf89eb27",
+      "artifact_manifest_sha256": "99baf5dab9f0c03be08e121e772435466ec46d2632b26cd95be914b1c429946d",
+      "qualification": "current v2; no live usefulness"
+    }
+  ],
+  "historical_failures_retained": true,
+  "private_pilot": "conditional_unmet",
+  "full_tool_SQL_M1": "pending_successor_repair_and_refreeze"
+}

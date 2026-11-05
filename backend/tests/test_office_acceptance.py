@@ -26,7 +26,7 @@ def export(client,ws,file,fmt,**fields):
     assert response.headers['content-type'].split(';')[0]==result['blob']['mime_type']
     assert response.headers['x-content-sha256']==result['blob']['sha256']==sha256(response.content).hexdigest()
     assert len(response.content)==result['blob']['byte_length']
-    assert response.headers['content-disposition']=='attachment; filename="export.'+fmt+'"'
+    assert response.headers['content-disposition']=='attachment; filename="'+result['filename']+'"'
     out=os.environ.get('OFFICE_EVIDENCE_DIR')
     if out:
         dest=Path(out);dest.mkdir(parents=True,exist_ok=True)
@@ -49,7 +49,10 @@ def test_tcp_all_binary_outputs_independent_read_restart(tcp):
         if fmt=='docx': text='\n'.join(p.text for p in Document(io.BytesIO(raw)).paragraphs)
         else:text='\n'.join(p.extract_text() for p in PdfReader(io.BytesIO(raw)).pages)
         assert 'Preserve this wording.' in text and 'protect this exact sentence.' in text
-        assert 'PRIVATE-FILENAME-SENTINEL' not in json.dumps(manifest) and b'PRIVATE-FILENAME-SENTINEL' not in raw
+        # Authorized delivery metadata now names the native file; render bytes do
+        # not embed a host/input filename. Unauthenticated downloads stay denied.
+        assert manifest['filename']=='PRIVATE-FILENAME-SENTINEL.'+fmt
+        assert b'PRIVATE-FILENAME-SENTINEL' not in raw
     data='region,hours\nEast,0.1\nEast,0.2\nWest,1.5\n'
     table=create_file(client,ws,cv,data,'capacity.csv','text/csv')
     manifest,raw=export(client,ws,table,'xlsx');artifacts.append((manifest,raw))

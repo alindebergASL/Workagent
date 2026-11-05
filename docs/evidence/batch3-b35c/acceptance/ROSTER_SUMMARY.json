@@ -1,0 +1,70 @@
+{
+  "at": "2026-11-01T00:49:58.956552+00:00",
+  "planned_slots": 72,
+  "planned_trajectories": 12,
+  "counts": {
+    "collected": 29,
+    "failed_uncollected": 3,
+    "not_runnable": 40,
+    "started_uncollected": 0,
+    "not_started": 0
+  },
+  "no_artifact_blocker_failures_subset": 5,
+  "not_all_quality_failures_counted": true,
+  "record_head_sha256": "fcb37e20d4cde902d2844f458150f90afaeda1295ef250904e423717f40fde55",
+  "variants": {
+    "B0": {
+      "collected": 18,
+      "failed_uncollected": 1,
+      "not_runnable": 5,
+      "started_uncollected": 0,
+      "not_started": 0
+    },
+    "B1": {
+      "collected": 8,
+      "failed_uncollected": 1,
+      "not_runnable": 15,
+      "started_uncollected": 0,
+      "not_started": 0
+    },
+    "M1": {
+      "collected": 3,
+      "failed_uncollected": 1,
+      "not_runnable": 20,
+      "started_uncollected": 0,
+      "not_started": 0
+    }
+  },
+  "original_unknowns": [
+    {
+      "key": "4f359e2f1fc07f85827f014d67e76e2a7b88fe30470dd11942e7c1158a86333b",
+      "trial": "50cdc5eef5a5737c2e75d4c7",
+      "episode": 2,
+      "operation": "transition",
+      "state": "unknown"
+    },
+    {
+      "key": "e6b4dd0fcaeb6601b3b7dfa2d0e4b4927f31061fe47b2dffed8899f151160b21",
+      "trial": "3010dca27296e44983b156b9",
+      "episode": 1,
+      "operation": "execute",
+      "state": "unknown"
+    },
+    {
+      "key": "5c7fcc64665c5afdbc9339acde6af61ad5f11214b5e834d33b59f035e17da7df",
+      "trial": "11713285d23f5115e99c210a",
+      "episode": 1,
+      "operation": "execute",
+      "state": "unknown"
+    },
+    {
+      "key": "d38093784f479ad562a600dd4cf99dbc4682c5ba990157847f8b6a808d524170",
+      "trial": "7f2c0b4d8876d13c7315c0cc",
+      "episode": 1,
+      "operation": "execute",
+      "state": "unknown"
+    }
+  ],
+  "provider_calls": 0,
+  "original_writes": 0
+}

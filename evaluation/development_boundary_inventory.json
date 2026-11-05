@@ -1,0 +1,919 @@
+{
+  "schema_version": 1,
+  "scope": "Workagent development/evaluation/testing static audit only",
+  "authority_precedence": [
+    "current direct owner instruction",
+    "AGENTS.md",
+    "docs/DEVELOPMENT_AUTHORITY.md",
+    "docs/GENERAL_MODEL_AUTHORIZATION.md",
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md"
+  ],
+  "observations_not_live_state": {
+    "original_live_progress": "2/72 from delegated context; not queried",
+    "candidate": "source16 / SQL080-082 unactivated per delegated context; not activated or verified here",
+    "note": "Historical delegated observations; this source audit does not verify current live state."
+  },
+  "boundaries": [
+    {
+      "id": "cumulative-budget",
+      "category": "owner_limit",
+      "value": "100 USD cumulative; not remaining capacity",
+      "reason": "Actual owner ceiling includes historical allocations, reservations and uncertain liabilities; no fresh balance inferred.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:3-8; docs/DEVELOPMENT_AUTHORITY.md:20,32",
+      "disposition": "retain; no accounting read or mutation in this audit",
+      "sources": [
+        {
+          "path": "docs/GENERAL_MODEL_AUTHORIZATION.md",
+          "sha256": "8b6e095889e2e1229788cf52b69e8c4ff7b13ca229ce601041e2d1d529359851",
+          "anchors": [
+            "model-testing ceiling from $50 to **$100 total**, including all historical",
+            "allocations, reservations and uncertain liabilities\u2014not a new $100 allowance."
+          ],
+          "observed_lines": [
+            4,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trial-budget",
+      "category": "engineering_setting",
+      "value": "finite justified per-trial money/call/token/time/wave settings",
+      "reason": "Owner delegates adjustments within aggregate authority; one-dollar subcaps are not permission gates.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:27",
+      "disposition": "implemented explicit-claim anti-promotion check; no installed envelope changed",
+      "sources": [
+        {
+          "path": "docs/DEVELOPMENT_AUTHORITY.md",
+          "sha256": "4520a748ce7998248d47cbd6a02eab8ff853703ee5b4901f3c5d07ed8baee0b9",
+          "anchors": [
+            "- Select and adjust justified finite per-trial money/call/token/time/wave limits within the existing cumulative budget. The former1USD cap and other assistant-selected trial limits are engineering settings, not new permission gates. Reconcile active external requests before changing limits; no blind resend."
+          ],
+          "observed_lines": [
+            27
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro-pilot",
+      "category": "withdrawn_requirement",
+      "value": "35000 input / 512 output; 2 generations per arm; 4 generation/4 count/16 read; 0.39048 USD",
+      "reason": "Owner explicitly withdrew these restrictions. They must not become present instructions.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:16-18",
+      "disposition": "implemented revival rejection for explicit task claims; historical receipts untouched",
+      "sources": [
+        {
+          "path": "docs/DEVELOPMENT_AUTHORITY.md",
+          "sha256": "4520a748ce7998248d47cbd6a02eab8ff853703ee5b4901f3c5d07ed8baee0b9",
+          "anchors": [
+            "The proposed 35,000-input/512-output restrictions, forced two-generation-per-arm design, four-generation/four-count/sixteen-read campaign and $0.39048 micro-pilot target are withdrawn as current requirements. Preserve their earlier receipts as historical evidence, not instructions to revive them. Do not build special admission machinery or shrink the product mission to fit spare cents. Use normal supported model capacity and task-appropriate execution to build and demonstrate complete functionality. Keep genuine provider limits, owner-budget enforcement, credential/source isolation and unknown-outcome duplicate protection; removing arbitrary subcaps does not authorize unlimited spending."
+          ],
+          "observed_lines": [
+            18
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review-proportionality",
+      "category": "engineering_setting",
+      "value": "risk-proportionate tests and one appropriate independent review",
+      "reason": "No full-suite/all-persona ceremony for each increment; technical risk can justify focused review.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:44; AGENTS.md:34-37",
+      "disposition": "guard classification; do not add another mandatory approval layer",
+      "sources": [
+        {
+          "path": "AGENTS.md",
+          "sha256": "486b14f8405502ad54d60c0da409869c299488a03440e5e77d6c52225380b3b4",
+          "anchors": [
+            "Use risk-proportionate tests and independent review where useful. No mandatory",
+            "all-model/all-persona ceremony or full-suite rerun for every increment. Share"
+          ],
+          "observed_lines": [
+            34,
+            35
+          ]
+        },
+        {
+          "path": "docs/DEVELOPMENT_AUTHORITY.md",
+          "sha256": "4520a748ce7998248d47cbd6a02eab8ff853703ee5b4901f3c5d07ed8baee0b9",
+          "anchors": [
+            "5. **Risk-proportionate verification:** reuse accepted evidence and one appropriate independent review. No reflexive whole-suite rerun, repeated broad audit, extra review layer or per-slice reapproval without a concrete changed risk. Requirements remain full-scope; do not weaken assertions or relabel pending rows."
+          ],
+          "observed_lines": [
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "id": "installed-accounting-review",
+      "category": "owner_condition",
+      "value": "scoped accounting correction: backup, focused review and exact installed readback before paid run",
+      "reason": "This focused review is a condition of already granted owner authorization, not a fresh owner approval request.",
+      "authority": "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md:19-28",
+      "disposition": "retain; no accounting effects",
+      "sources": [
+        {
+          "path": "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md",
+          "sha256": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965",
+          "anchors": [
+            "- Before installed mutation, retain a consistent backup with verified integrity and a restore/recovery procedure; exercise the narrow correction on a disposable restored copy, including retry/idempotency, concurrency and failure rollback. Record exact affected identities and amounts without credentials or private payloads.",
+            "- Obtain focused review of the correction and verify the installed readback before a paid run. Report known/estimated usage, retained unresolved exposure, released unused allowance and enforceable remaining capacity separately."
+          ],
+          "observed_lines": [
+            25,
+            26
+          ]
+        }
+      ]
+    },
+    {
+      "id": "release-vs-development",
+      "category": "engineering_setting",
+      "value": "full acceptance/public production HOLD does not stop development or feature publication",
+      "reason": "Completion and permission have different scopes.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:43",
+      "disposition": "guard explicit authority classification; shared documentation unchanged",
+      "sources": [
+        {
+          "path": "docs/DEVELOPMENT_AUTHORITY.md",
+          "sha256": "4520a748ce7998248d47cbd6a02eab8ff853703ee5b4901f3c5d07ed8baee0b9",
+          "anchors": [
+            "4. **Separate completion from permission:** full Batch2 acceptance and production release may be HOLD while implementation, test runtime operation and feature-branch publication continue. Every HOLD names its scope; do not use bare 'publication HOLD' to block all development."
+          ],
+          "observed_lines": [
+            43
+          ]
+        }
+      ]
+    },
+    {
+      "id": "new-routes-and-effects",
+      "category": "owner_limit",
+      "value": "new paid routes/private access/business effects/default merge/production replacement require own authorization",
+      "reason": "Development authority does not broaden access or effects.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:30-33",
+      "disposition": "retain",
+      "sources": [
+        {
+          "path": "docs/GENERAL_MODEL_AUTHORIZATION.md",
+          "sha256": "8b6e095889e2e1229788cf52b69e8c4ff7b13ca229ce601041e2d1d529359851",
+          "anchors": [
+            "New paid routes, broader private-account/data access, external business effects,",
+            "default-branch merges and production replacement require their own authorization."
+          ],
+          "observed_lines": [
+            30,
+            31
+          ]
+        }
+      ]
+    },
+    {
+      "id": "maintenance",
+      "category": "owner_limit",
+      "value": "installed-data maintenance, bulk UID migrations, VACUUM and destructive cleanup separately approved",
+      "reason": "Fresh disposable fixture creation is not installed-data maintenance.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:35",
+      "disposition": "retain; none performed",
+      "sources": [
+        {
+          "path": "docs/DEVELOPMENT_AUTHORITY.md",
+          "sha256": "4520a748ce7998248d47cbd6a02eab8ff853703ee5b4901f3c5d07ed8baee0b9",
+          "anchors": [
+            "-Explicit approval remains for installed-data maintenance, bulk UID migrations, VACUUM and destructive cleanup. Fresh disposable fixtures are not installed-data maintenance. Keep historical receipts and failed evidence."
+          ],
+          "observed_lines": [
+            35
+          ]
+        }
+      ]
+    },
+    {
+      "id": "natural-visit-count",
+      "category": "engineering_setting",
+      "value": "6 ordinary once calls; 240-second natural expiry wait; pending query LIMIT 100",
+      "reason": "Finite diagnostic/test work bound, not a model choice count or lifetime product cap. Raising it cannot repair demonstrated no-progress.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:27,36; NO_PROGRESS_REVIEW_24.md:3,37",
+      "disposition": "observe only: active writer owns helper; do not enlarge or rerun retained campaign",
+      "sources": [
+        {
+          "path": "backend/tests/retained_read_visits.py",
+          "sha256": "c8f0feb718a3d8edb72c3d8c38786fb6f4f05ccd02b4cde3d580c2368056b1c0",
+          "anchors": [
+            "for _ in range(6):",
+            "assert time.monotonic()-started<240, 'natural claim expiry wait exceeded test bound'",
+            "AND (%s::text IS NULL OR d.workspace_id=%s) ORDER BY d.cursor LIMIT 100\"\"\""
+          ],
+          "observed_lines": [
+            47,
+            54,
+            14
+          ]
+        }
+      ]
+    },
+    {
+      "id": "per-visit-progress",
+      "category": "engineering_setting",
+      "value": "strict before < after for each nonterminal ordinary once visit",
+      "reason": "Useful stop on repeated no-progress in this exact diagnostic; not a universal product liveness contract. Current evidence says stop correctly, diagnose transition before another campaign.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:36,44; current NO_PROGRESS_REVIEW_24.md:3,25-37",
+      "disposition": "observe only; no weakening assertion and no claim of resume repair",
+      "sources": [
+        {
+          "path": "backend/tests/retained_read_visits.py",
+          "sha256": "c8f0feb718a3d8edb72c3d8c38786fb6f4f05ccd02b4cde3d580c2368056b1c0",
+          "anchors": [
+            "assert before<after, 'ordinary once made no meaningful durable progress; stop'",
+            "counts=worker.once(workspace=workspace)"
+          ],
+          "observed_lines": [
+            67,
+            59
+          ]
+        }
+      ]
+    },
+    {
+      "id": "resume-not-cancellation",
+      "category": "safety_invariant",
+      "value": "resume checks provider/native unresolved effects, not cancellation-complete outcome",
+      "reason": "Resume and cancellation have distinct completion predicates. Helper still permits terminal cancelled/partial; caller must assert expected ready outcome.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:34,36",
+      "disposition": "preserve current stop checks; lifecycle review remains active writer responsibility",
+      "sources": [
+        {
+          "path": "backend/tests/retained_read_visits.py",
+          "sha256": "c8f0feb718a3d8edb72c3d8c38786fb6f4f05ccd02b4cde3d580c2368056b1c0",
+          "anchors": [
+            "assert not any(s.state in ('count_unknown','outcome_unknown','invalid','counting','dispatching') for s in status), 'unresolved provider I/O; stop without retry'",
+            "assert not tools_unresolved(c,ws,run_id), 'unresolved native effect; stop without retry'",
+            "if run.state in ('ready','partial','cancelled'):return run",
+            "if result.state in ('ready','partial','cancelled'):"
+          ],
+          "observed_lines": [
+            29,
+            37,
+            49,
+            63
+          ]
+        },
+        {
+          "path": "backend/tests/test_retained_read_gateway_pg.py",
+          "sha256": "92d306a7c9ff36b09dbd806681f9ab7187ee3c8a0d175c1e319e87ad04b903d7",
+          "anchors": [
+            "assert finish_natural_visits(context,worker(context,fake,tmp_path),q.run.id).state=='ready'"
+          ],
+          "observed_lines": [
+            133
+          ]
+        }
+      ]
+    },
+    {
+      "id": "helper-no-effect-retry",
+      "category": "safety_invariant",
+      "value": "sole pending target; no active advisory I/O; no denied retry; unchanged fence while waiting",
+      "reason": "These checks protect distinct runs, active operations, revocation and duplicates, not arbitrary approval.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:34",
+      "disposition": "retain; guard selected assertions",
+      "sources": [
+        {
+          "path": "backend/tests/retained_read_visits.py",
+          "sha256": "c8f0feb718a3d8edb72c3d8c38786fb6f4f05ccd02b4cde3d580c2368056b1c0",
+          "anchors": [
+            "assert [(r['workspace_id'],r['run_id'],r['data']['principal_id']) for r in pending]==[(ws,run_id,principal.id)], 'sole pending target required'",
+            "assert not any(operation_key(aid,s['phase'],kind,f)&((1<<64)-1) in held for s in steps for kind in ('count_send','dispatch','read','cancel') for f in range(1,fence+1)), 'active I/O; stop without retry'",
+            "assert not counts['denied'], 'ordinary once denied target; no retry'",
+            "assert (run.fence,run.lease_expires_at)==(fence,expiry), 'claim changed while test waited'"
+          ],
+          "observed_lines": [
+            23,
+            36,
+            61,
+            57
+          ]
+        }
+      ]
+    },
+    {
+      "id": "synthetic-visit-helper",
+      "category": "engineering_setting",
+      "value": "6 direct work calls with explicit synthetic lease expiry",
+      "reason": "Historical synthetic helper is not once-path equivalence and must not be used as ordinary production-claim proof.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:36,44",
+      "disposition": "flag evidence limitation; no edit or execution",
+      "sources": [
+        {
+          "path": "backend/tests/test_adaptive_execution.py",
+          "sha256": "425ce047db69c2c822cd471b00e8d2a5da168a07c687d38882296af1cbfe6d42",
+          "anchors": [
+            "for _ in range(6):",
+            "result=w.work(p,ws,run_id)",
+            "expire(ctx,run_id)"
+          ],
+          "observed_lines": [
+            84,
+            85,
+            96
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fixture-lifetime",
+      "category": "engineering_setting",
+      "value": "fresh target tool grant 1 hour; fresh recovery grant 2 hours; live tool grant 7 days",
+      "reason": "Finite creation-time lifetimes may be task-appropriate; old grant expiry must not be rewritten. Fresh compatible authority is standing engineering.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:25-27",
+      "disposition": "guard classification; do not refresh current retained diagnostic fixture",
+      "sources": [
+        {
+          "path": "backend/tests/test_gateway_target_rejection.py",
+          "sha256": "a5bd49ef373cbf6a5e895fb1bb41b692b5cae2512963cf423a5dbac34b7e019f",
+          "anchors": [
+            "privacy_classes=['workspace_private'], egress='none', expires_at=now()+timedelta(hours=1),"
+          ],
+          "observed_lines": [
+            76
+          ]
+        },
+        {
+          "path": "evaluation/test_general_claim_recovery.py",
+          "sha256": "ec51c13fb5add0eb57996518a83c8917242c77e0358c81a6635a16e2da124dcd",
+          "anchors": [
+            "expires_at=now()+timedelta(hours=2),access_generation=q.run.access_generation,"
+          ],
+          "observed_lines": [
+            47
+          ]
+        },
+        {
+          "path": "evaluation/live_tool_authority.py",
+          "sha256": "fbeeeafc06aae462522fd76bb021a4ab1eb9fe05593b899577443608ca8b1172",
+          "anchors": [
+            "expires_at=now()+timedelta(days=7),access_generation=run.access_generation,"
+          ],
+          "observed_lines": [
+            85
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grant-no-renewal",
+      "category": "safety_invariant",
+      "value": "existing grant equals durable intent and remains active/unexpired; missing receipt denies",
+      "reason": "Avoid silently extending revoked/expired authority on restart; compatible fresh authority requires normal new issuance, not receipt mutation.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:21-28",
+      "disposition": "retain; static regression anchors",
+      "sources": [
+        {
+          "path": "evaluation/live_tool_authority.py",
+          "sha256": "fbeeeafc06aae462522fd76bb021a4ab1eb9fe05593b899577443608ca8b1172",
+          "anchors": [
+            "raise Hold('missing_durable_tool_receipt')",
+            "assert g.principal_id==p.id and g.access_generation==run.access_generation and g.expires_at>now()",
+            "assert existing['active'] and existing['data']==g.model_dump(mode='json')"
+          ],
+          "observed_lines": [
+            58,
+            63,
+            89
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fixture-identity",
+      "category": "safety_invariant",
+      "value": "exact /workagent_test_c0742ca73b11, loopback, distinct runtime/admin identities",
+      "reason": "Specific retained diagnostic targets known disposable fixture; study stores also use workagent_test_* prefix, so prefix alone is not authorization.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:34-35; evaluation/test_timing_recovery.py:33-42",
+      "disposition": "retain exact current fixture; new fixture successor must use explicit isolated identity",
+      "sources": [
+        {
+          "path": "evaluation/test_timing_recovery.py",
+          "sha256": "b836e51d1762dc5ac2b4aec6ce776bb0fea0ded56f46423df118a6036ccb46d8",
+          "anchors": [
+            "assert runtime.path==owner.path=='/workagent_test_c0742ca73b11'",
+            "assert runtime.hostname==owner.hostname and runtime.hostname in ('localhost','127.0.0.1')",
+            "assert runtime.username!=owner.username"
+          ],
+          "observed_lines": [
+            39,
+            40,
+            41
+          ]
+        }
+      ]
+    },
+    {
+      "id": "generic-fixture-prefix",
+      "category": "safety_invariant",
+      "value": "exact same loopback host/port/database, distinct roles, local test mode and exact owned disposable database binding before seed",
+      "reason": "A workagent_test_* prefix alone cannot distinguish a retained study from an explicitly scoped disposable fixture. No fixed random suffix, name allowlist or owner reapproval is required.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md (access isolation and owned disposable engineering); backend/tests/test_domain.py:fixture_database_urls",
+      "disposition": "Pure/mocked pre-seed and optimized-mode regressions; generic fixtures bind WORKAGENT_TEST_DATABASE in their owned test environment. Existing WORKAGENT_NATIVE_PROJECTION_TEST_DATABASE is compatible; fixture API unchanged.",
+      "sources": [
+        {
+          "path": "backend/tests/test_domain.py",
+          "sha256": "a805aa6711be725ddec68fcc50084392b37dfd7f93ac92e6936404cbf1a023e5",
+          "anchors": [
+            "if runtime_id[:3] != admin_id[:3] or runtime_id[3] == admin_id[3]:",
+            "if not bindings or any(value != runtime_id[2] for value in bindings):",
+            "dsn,admin=fixture_database_urls(os.environ)",
+            "service=Service(Database(dsn)); service.db.check_runtime_role()",
+            "seed(admin,records,ws,p.id)"
+          ],
+          "observed_lines": [
+            68,
+            71,
+            80,
+            81,
+            84
+          ],
+          "historical_sha256": "743c707735972df5440cf3bd5ccc767f17da66d97f0b9d4008071d3159ec11ec",
+          "historical_anchors": [
+            "assert '/workagent_test_' in dsn, 'Tests only run against disposable workagent_test_* databases'",
+            "seed(admin,records,ws,p.id)"
+          ],
+          "historical_observed_lines": [
+            33,
+            36
+          ]
+        }
+      ]
+    },
+    {
+      "id": "study-invocation-bounds",
+      "category": "engineering_setting",
+      "value": "20 application visits / 240 seconds child; 20 waiting polls / 0.1 second; adapter 1200 seconds",
+      "reason": "Diagnostic/poll time bounds, not model budget or acceptance. Direct work loop is not ordinary once behavior.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:27,36",
+      "disposition": "observe active-owned files; source changes require normal evidence amendment, not owner reapproval",
+      "sources": [
+        {
+          "path": "evaluation/study_application.py",
+          "sha256": "1746d9edd62f4c82ebe9975ed2f38274a7fb3538cb9857cfcca767edb4c6b18d",
+          "anchors": [
+            "for attempt in range(20):  # bounded diagnostic visits; exhaustion is a HOLD, not acceptance",
+            "result = subprocess.run(argv, input=json.dumps(cfg), text=True, capture_output=True, cwd=ROOT, timeout=240)"
+          ],
+          "observed_lines": [
+            342,
+            350
+          ]
+        },
+        {
+          "path": "evaluation/study_worker.py",
+          "sha256": "68e05c8b3c39acf53fbe11888df3ab8b300ba21298fb8da672a784268b788e12",
+          "anchors": [
+            "for _ in range(20):  # polling visit bound, NOT model choices or acceptance",
+            "result = worker.work(Principal(cfg['principal']), cfg['workspace'], cfg['run_id'])",
+            "time.sleep(.1)"
+          ],
+          "observed_lines": [
+            53,
+            54,
+            58
+          ]
+        },
+        {
+          "path": "evaluation/study_diagnostic.py",
+          "sha256": "de95fe2a488cde19ec76ca789505f130289a6fd1ee1e04d31a79d77f434168c9",
+          "anchors": [
+            "text=True, capture_output=True, cwd=ROOT, env=env, timeout=1200)"
+          ],
+          "observed_lines": [
+            150
+          ]
+        }
+      ]
+    },
+    {
+      "id": "official-no-lease-surgery",
+      "category": "safety_invariant",
+      "value": "official_api pending visit raises before synthetic lease-expiry UPDATE",
+      "reason": "Synthetic interruption mechanics cannot mutate installed claim expiry or hide unknown operations.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:34",
+      "disposition": "retain; no official run replay",
+      "sources": [
+        {
+          "path": "evaluation/study_application.py",
+          "sha256": "1746d9edd62f4c82ebe9975ed2f38274a7fb3538cb9857cfcca767edb4c6b18d",
+          "anchors": [
+            "if state['mode'] == 'official_api':",
+            "raise Hold('installed_run_pending_observation:' + state['current_run'])",
+            "raise Hold('provider_outcome_unknown_no_replay')"
+          ],
+          "observed_lines": [
+            136,
+            364,
+            373
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unknown-no-replay",
+      "category": "safety_invariant",
+      "value": "sending/unknown operation observes same identity; missing completion HOLD, never fresh resend",
+      "reason": "Uncertainty remains a liability and potential effect.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:26-28",
+      "disposition": "retain; guarded selected source lines",
+      "sources": [
+        {
+          "path": "evaluation/study_controller.py",
+          "sha256": "4bb8065816484f08acdbcfa3e7fd35884d0a601f61440ad2dfae6ed70f57a708",
+          "anchors": [
+            "if row['state'] in ('sending', 'unknown'):",
+            "result = self.adapter.observe(key)",
+            "raise Hold('unknown_outcome_no_resend:' + key)"
+          ],
+          "observed_lines": [
+            179,
+            181,
+            183
+          ]
+        }
+      ]
+    },
+    {
+      "id": "original-study-scope",
+      "category": "evidence_binding",
+      "value": "12 trajectories / 72 episodes / 6 scheduled protocol events per trajectory",
+      "reason": "Preregistered scope and evidence identity, not forced model choices or required all-upfront reservation.",
+      "authority": "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md:28; study_controller.py:32-61",
+      "disposition": "retain original scope; current 2/72 is delegated context, not re-read from DB",
+      "sources": [
+        {
+          "path": "evaluation/study_controller.py",
+          "sha256": "4bb8065816484f08acdbcfa3e7fd35884d0a601f61440ad2dfae6ed70f57a708",
+          "anchors": [
+            "if len(schedule) != 12 or sum(len(t['episodes']) for t in schedule) != 72:",
+            "if [e['episode'] for e in trial['episodes']] != list(range(1, 7)):",
+            "'scheduled_trajectories': 12, 'scheduled_episodes': 72,"
+          ],
+          "observed_lines": [
+            45,
+            50,
+            240
+          ]
+        }
+      ]
+    },
+    {
+      "id": "checkpoint-continuation",
+      "category": "engineering_setting",
+      "value": "optional --checkpoint-after-episodes / --stop-after; no mandatory micro-slice",
+      "reason": "Checkpoint is a continuation point, not renewed owner permission or study completion.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:28",
+      "disposition": "retain flexible optional flag; guard no owner-gate classification",
+      "sources": [
+        {
+          "path": "evaluation/run_live_study.py",
+          "sha256": "49f849358c17a03b0957a05afa3678a59dc348db31f79d86ac9d4ef2e6f5ec74",
+          "anchors": [
+            "parser.add_argument('--checkpoint-after-episodes',type=int)",
+            "summary=controller.run(stop_after=args.checkpoint_after_episodes)"
+          ],
+          "observed_lines": [
+            49,
+            67
+          ]
+        }
+      ]
+    },
+    {
+      "id": "source-amendment",
+      "category": "evidence_binding",
+      "value": "trusted exact predecessor/successor manifest and SHA approval; immutable original bindings",
+      "reason": "Prevents silently rebaselining evidence; does not freeze architecture or require fresh owner approval for development.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:42; study_source_amendment.py:1-5",
+      "disposition": "retain normal amendment mechanism; not activated",
+      "sources": [
+        {
+          "path": "evaluation/study_source_amendment.py",
+          "sha256": "4e64fe79a312c4784f3487a633632056952f832a327edbdd4d9a4ada21c54042",
+          "anchors": [
+            "raw=MANIFEST.read_bytes();require(APPROVAL.read_text().strip()==digest(raw),'approval_hash')",
+            "require(digest(old)==m['bindings'][kind]['before'] and digest(new)==m['bindings'][kind]['after'],'binding:'+kind)",
+            "return old"
+          ],
+          "observed_lines": [
+            27,
+            56,
+            67
+          ]
+        }
+      ]
+    },
+    {
+      "id": "live-release",
+      "category": "evidence_binding",
+      "value": "release record present; cumulative_authority_usd 100; current per-send SQL authority mandatory",
+      "reason": "Source release lock is scoped engineering activation with owner-accounting conditions; not blanket approval block on offline work.",
+      "authority": "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md:26-27; docs/GENERAL_MODEL_AUTHORIZATION.md:16-24",
+      "disposition": "retain; no release flip, no installed-state claim",
+      "sources": [
+        {
+          "path": "evaluation/study_transport.py",
+          "sha256": "da495f7b7c638a9d190671b0053b02e74f34e79674877f113b9bf29b5502815f",
+          "anchors": [
+            "'cumulative_authority_usd': '100',",
+            "if LIVE_EXECUTION_RELEASE is None:",
+            "service.db.check_runtime_role()",
+            "check_grant(c, run, actual)"
+          ],
+          "observed_lines": [
+            21,
+            26,
+            40,
+            44
+          ]
+        }
+      ]
+    },
+    {
+      "id": "normal-model-capacity",
+      "category": "engineering_setting",
+      "value": "gpt-6.1-sol existing route; current request 50000 input / 8192 output",
+      "reason": "Current source normal-capacity policy; NOT independently verified provider maxima. Adjust justified engineering values coherently with grant/SQL reservations within owner budget.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:18,27; docs/GENERAL_MODEL_AUTHORIZATION.md:13-14",
+      "disposition": "retain current capacity; no revival of 35000/512 restrictions",
+      "sources": [
+        {
+          "path": "evaluation/prepare_live_study.py",
+          "sha256": "181cd9fb23a5d8f6c72da5ca0735a7ddaa66bf82f0b1ba28d0209ca415b5193d",
+          "anchors": [
+            "model='gpt-6.1-sol',consumer_sha256=consumer_hash(),",
+            "normal_input_tokens=50000,normal_output_tokens=8192)"
+          ],
+          "observed_lines": [
+            61,
+            135
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grant-envelopes",
+      "category": "engineering_setting",
+      "value": "8 steps; 256 generations/counts; 4096 reads; input 12800000; output 2097152; raw 12 USD; 10 runs; received output 16384; provider expiry None",
+      "reason": "Generous local binding ceilings are not spendable funds or new owner limits. Actual funded certificates and aggregate ledger constrain sends.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:16-24; prepare_live_study.py:53-62",
+      "disposition": "observe; no bound/grant/schema edits",
+      "sources": [
+        {
+          "path": "evaluation/prepare_live_study.py",
+          "sha256": "181cd9fb23a5d8f6c72da5ca0735a7ddaa66bf82f0b1ba28d0209ca415b5193d",
+          "anchors": [
+            "max_steps=8,generation_limit=256,count_limit=256,read_limit=4096,input_limit=12800000,output_limit=2097152,",
+            "cost_limit_usd='12.00',conversation_ids=ids)",
+            "expires_at=None,max_runs=10,max_received_output_tokens=16384)"
+          ],
+          "observed_lines": [
+            56,
+            57,
+            62
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tool-capacity",
+      "category": "engineering_setting",
+      "value": "local_compute 10000, extraction 1000, rendering 1000; file selector page 100",
+      "reason": "Local resource units, not dollars; selector overflow currently stops rather than silently broadening scope.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:27,34; live_tool_authority.py:26-28,71-72",
+      "disposition": "retain currently adequate settings; adjust implementation if evidenced bottleneck, no owner reapproval",
+      "sources": [
+        {
+          "path": "evaluation/live_tool_authority.py",
+          "sha256": "fbeeeafc06aae462522fd76bb021a4ab1eb9fe05593b899577443608ca8b1172",
+          "anchors": [
+            "LIMITS={'local_compute':10000,'extraction':1000,'rendering':1000}",
+            "assert page.next_after is None, 'explicit_selector_capacity_exceeded'"
+          ],
+          "observed_lines": [
+            28,
+            72
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reservation-accounting",
+      "category": "safety_invariant",
+      "value": "50000 input / 8192 output exact reservation; 0.206920 USD; certificate-scoped funding",
+      "reason": "Reservation is an exposure envelope, not a bill; SQL binds installed economic assumptions. Cannot lower it in isolation to manufacture budget.",
+      "authority": "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md:22-24; recipient_funding.sql",
+      "disposition": "retain; no current balance asserted, no DB read/write",
+      "sources": [
+        {
+          "path": "evaluation/recipient_funding.sql",
+          "sha256": "cf3d43e54be4459eb9cd8450a474d0c7118daf7f08661549e85ea0f0cbd6a207",
+          "anchors": [
+            "IF d.data->>'reserved_input_tokens' IS DISTINCT FROM '50000'",
+            "IF NEW.data->>'reserved_input_tokens' IS DISTINCT FROM '50000'",
+            "OR d.data->>'reserved_output_tokens' IS DISTINCT FROM '8192' OR amount<>0.206920",
+            "OR NEW.data->>'reserved_output_tokens' IS DISTINCT FROM '8192'",
+            "SELECT coalesce(sum(amount_usd),0) INTO funded FROM study_funding.certificates;"
+          ],
+          "observed_lines": [
+            107,
+            181,
+            108,
+            182,
+            178
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase-allocation",
+      "category": "engineering_setting",
+      "value": "--initial-phase-usd explicitly required, finite positive; no hardcoded one-dollar cap",
+      "reason": "Incremental authorized funding target is not forced spend or study cap; existing allocation remains reserved if recipient credit fails.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:27; install_recipient_funding.py:1-5",
+      "disposition": "retain; no funding issuance",
+      "sources": [
+        {
+          "path": "evaluation/run_live_study.py",
+          "sha256": "49f849358c17a03b0957a05afa3678a59dc348db31f79d86ac9d4ef2e6f5ec74",
+          "anchors": [
+            "parser.add_argument('--initial-phase-usd',type=Decimal,required=True)",
+            "assert args.initial_phase_usd.is_finite() and args.initial_phase_usd>0"
+          ],
+          "observed_lines": [
+            48,
+            52
+          ]
+        },
+        {
+          "path": "evaluation/install_recipient_funding.py",
+          "sha256": "820fb522b3079be2561d6d1680263e7545d4adb79fe13df93f7ae51ab0a3d7f9",
+          "anchors": [
+            "recipient credit keeps its issuer allocation reserved; rerun the SAME phase ID to"
+          ],
+          "observed_lines": [
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "id": "offline-harness-custody",
+      "category": "safety_invariant",
+      "value": "offline harness refuses live before credentials; evaluator-only oracle custody; new output directory",
+      "reason": "Isolation and honest evidence, not blocker to separately authorized live worker.",
+      "authority": "docs/GENERAL_MODEL_AUTHORIZATION.md:9,26-28; evaluation/README.md:3,9,28",
+      "disposition": "retain; do not run broad evaluation discovery",
+      "sources": [
+        {
+          "path": "evaluation/README.md",
+          "sha256": "8860c4b74821901a0f40a12167ea84d191506ff4022b75807c0cc3d880d0bc87",
+          "anchors": [
+            "This directory is **offline-only evaluation tooling**, not application runtime code and not a paid worker. It deliberately refuses `--mode live` before reading credentials or starting a child. No model responses, task solutions, user usefulness ratings or statistical superiority are synthesized.",
+            "- Current evaluator-only root: `/home/ubuntu/workagent-evaluator-b35b-v2` (0700). It contains `fixtures/`, `oracles/`, `trajectories/`, `scoring/`, generator/seed, immutable freeze/runtime lock and execution records. Never copy this root into an app search corpus, tool workspace, prompt, DB, public artifact or repository. V1 is retained separately as historical failed/qualified evidence.",
+            "The target must be new. Never rerun a collector over old attempts. A refusal or timeout is evidence, not an excuse to rename/rewrite an unknown request. The offline runtime lock includes the exact interpreter; use the recorded controller executable or refreeze explicitly before any new trial. Dependency drift fails closed. The bound venv must not be concurrently modified."
+          ],
+          "observed_lines": [
+            3,
+            9,
+            28
+          ]
+        }
+      ]
+    },
+    {
+      "id": "frontend-ci",
+      "category": "engineering_setting",
+      "value": "Node22/pnpm10; pnpm check; two builds domain/mock; Playwright e2e",
+      "reason": "Risk-targeted frontend CI. Optimized production build is not production deployment. No backend pure guard job currently present.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:25,44",
+      "disposition": "Frontend job unchanged; dedicated standard-library development-boundary CI runs authority-only audit and focused guard regressions. Technical anchor changes are not fresh owner permission.",
+      "sources": [
+        {
+          "path": ".github/workflows/frontend.yml",
+          "sha256": "e0d23dfb549a8bb15148235f1c82ed62a3c4265b5329cff80d634bdd10b8919c",
+          "anchors": [
+            "node-version: 22",
+            "- run: pnpm check",
+            "- run: pnpm build",
+            "- run: pnpm test:e2e"
+          ],
+          "observed_lines": [
+            34,
+            43,
+            45,
+            53
+          ]
+        },
+        {
+          "path": "web/package.json",
+          "sha256": "0c6bdeab83411f654a0e05a42bce1b0783ec12ccfde91b356266935f2666adfe",
+          "anchors": [
+            "\"build\": \"next build\","
+          ],
+          "observed_lines": [
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "id": "browser-invocation-bounds",
+      "category": "engineering_setting",
+      "value": "1 worker; retries0; server startup120000ms; no reuse; Vitest scoped test files",
+      "reason": "Finite host/test isolation and truthful first failure, not permission or product performance contract.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:36",
+      "disposition": "retain; no browser/server launched",
+      "sources": [
+        {
+          "path": "web/playwright.config.ts",
+          "sha256": "a93b5fb79a6fa4483bdc3a18c067f8f703c8ca24aab7eba23da025039ef4dcff",
+          "anchors": [
+            "workers: 1,",
+            "retries: 0,",
+            "reuseExistingServer: false,",
+            "timeout: 120_000,"
+          ],
+          "observed_lines": [
+            15,
+            16,
+            37,
+            38
+          ]
+        },
+        {
+          "path": "web/vitest.config.mts",
+          "sha256": "0f427a36e5fef3a61b5070c94cf802019788bc77d6092419a71f1efc31bdd5ca",
+          "anchors": [
+            "include: [\"test/**/*.test.ts\"],"
+          ],
+          "observed_lines": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "id": "launcher-isolation",
+      "category": "safety_invariant",
+      "value": "strip model API keys and admin DSN; loopback bind; occupied ports fail without killing owner",
+      "reason": "Owned development services remain authorized but may not inherit model secrets or displace other work.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:25,34",
+      "disposition": "retain; no setup/start/build executed",
+      "sources": [
+        {
+          "path": "scripts/workagent.py",
+          "sha256": "de0712edd336876408f286fd0cbb1a5b15505be24debde8becdc7fd1d0255fde",
+          "anchors": [
+            "if name.endswith('API_KEY') or name in {'ANTHROPIC_AUTH_TOKEN', 'OPENAI_ACCESS_TOKEN'}:",
+            "env.pop(\"MIGRATION_DATABASE_URL\", None)",
+            "raise RuntimeError(f'Local port {port} is occupied; stop its owner before continuing. No process was killed.')"
+          ],
+          "observed_lines": [
+            52,
+            57,
+            65
+          ]
+        }
+      ]
+    },
+    {
+      "id": "launcher-time-bounds",
+      "category": "engineering_setting",
+      "value": "45-second readiness, 2-second HTTP, 10-second graceful/5-second force stop on owned children",
+      "reason": "Host/service resource settings rather than new owner limits.",
+      "authority": "docs/DEVELOPMENT_AUTHORITY.md:25,27,36",
+      "disposition": "retain pending actual evidence of insufficiency",
+      "sources": [
+        {
+          "path": "scripts/workagent.py",
+          "sha256": "de0712edd336876408f286fd0cbb1a5b15505be24debde8becdc7fd1d0255fde",
+          "anchors": [
+            "deadline = time.monotonic() + 45",
+            "process.wait(timeout=10)",
+            "process.wait(timeout=5)"
+          ],
+          "observed_lines": [
+            115,
+            134,
+            137
+          ]
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "historical_inventory_sha256": "dbae35f9cc90bd58748aeb5bc81aa778f5787b4be44aa2ef7aaed90a08a68179",
+    "note": "Source stamps and observed lines are historical provenance, not frozen engineering defaults. Original audit inventory remains untouched."
+  }
+}

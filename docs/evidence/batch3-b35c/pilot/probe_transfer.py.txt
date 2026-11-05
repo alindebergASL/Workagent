@@ -1,0 +1,101 @@
+"""Zero-provider disposable counterexamples for proposed residual handoff.
+
+Never connects to installed databases. Source prefix is verified against the
+read-only captured journal. All grants below are synthetic and unspendable.
+"""
+import hashlib,json,os,shlex,sys
+from decimal import Decimal
+from pathlib import Path
+import psycopg
+from psycopg.rows import dict_row
+ROOT=Path('/home/ubuntu/workagent-continuation-20261026')
+OUT=Path(__file__).resolve().parent
+sys.path[:0]=[str(ROOT/'backend'),str(ROOT/'backend/tests')]
+import dev_db
+from workagent.db import Database
+from workagent.models import ProviderGrant,new_id
+from workagent.fixture import seed
+from workagent.service import Principal
+from workagent.provider_attempts import configure_grant
+from workagent.general_responses import consumer_hash
+from test_standing_admission import standing_grant
+from workagent.budget_carryforward import install_carry
+
+snapshot=json.loads((OUT/'admission.json').read_text())
+checks=[]
+
+def check(name,condition,**facts):
+ assert condition,name
+ checks.append({'name':name,'passed':True,**facts})
+
+def prefix_migrate(dsn):
+ with Database(dsn).transaction() as c:
+  c.execute('CREATE TABLE schema_migrations(name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())')
+  for entry in snapshot['migrations']:
+   p=ROOT/'backend/migrations'/entry['name']
+   assert hashlib.sha256(p.read_bytes()).hexdigest()==entry['checksum']
+   c.execute(p.read_text())
+   c.execute('INSERT INTO schema_migrations(name,checksum) VALUES (%s,%s)',(entry['name'],entry['checksum']))
+
+def env(path):
+ return dict(shlex.split(line)[1].split('=',1) for line in path.read_text().splitlines())
+
+def fixture(tag,legacy=False):
+ path=OUT/(tag+'.env')
+ old=dev_db.migrate
+ try:
+  if legacy: dev_db.migrate=prefix_migrate
+  name=dev_db.provision(path)
+ finally: dev_db.migrate=old
+ e=env(path); db=Database(e['MIGRATION_DATABASE_URL']); runtime=Database(e['DATABASE_URL']);runtime.check_runtime_role()
+ ws='synthetic-'+new_id();p=Principal('local-human')
+ seed(e['MIGRATION_DATABASE_URL'],json.loads((ROOT/'fixtures/actor/solo-v0.1/initial_records.json').read_text()),ws,p.id)
+ return name,db,runtime,(None,p,ws,[],e['MIGRATION_DATABASE_URL'])
+
+source,db,runtime,ctx=fixture('source046',True)
+with db.transaction() as c:
+ for item in snapshot['functions']:
+  if item['definition'] is not None:
+   text=c.execute('SELECT pg_get_functiondef(to_regprocedure(%s)) d',(item['name'],)).fetchone()['d']
+   # PostgreSQL formatter definitions identical across fresh/source schema.
+   check('installed_function_exact:'+item['name'],hashlib.sha256(text.encode()).hexdigest()==item['sha256'])
+original=standing_grant(ctx,cost_limit_usd='67.62068',generation_limit=378,count_limit=401,read_limit=1549,input_limit=13290000,output_limit=3096576)
+configure_grant(db,original)
+raw=original.model_dump(mode='json');raw['id']='synthetic-seal-'+new_id()
+raw['responses'].update(cost_limit_usd='66.59300',generation_limit=0,count_limit=0,read_limit=0,input_limit=0,output_limit=0)
+seal=ProviderGrant.model_validate(raw)
+configure_grant(db,seal,predecessor_id=original.id)
+with runtime.transaction() as c:
+ oldrow=c.execute('SELECT active,data FROM provider_grants WHERE id=%s',(original.id,)).fetchone()
+ newrow=c.execute('SELECT active,data FROM provider_grants WHERE id=%s',(seal.id,)).fetchone()
+check('atomic_no_send_successor',oldrow['active'] is False and newrow['active'] is True and oldrow['data']==original.model_dump(mode='json'))
+try:
+ with db.transaction() as c:c.execute('UPDATE provider_grants SET active=true WHERE id=%s',(original.id,))
+ raise AssertionError('reactivation unexpectedly permitted')
+except psycopg.Error as ex:
+ check('original_reactivation_denied', 'immutable grant' in str(ex),sqlstate=ex.sqlstate)
+# A normal subsequent grant restores the full ceiling; no transfer encumbrance is consulted.
+restored=original.model_copy(update={'id':'synthetic-reopen-'+new_id()})
+configure_grant(db,restored,predecessor_id=seal.id)
+with runtime.transaction() as c:
+ row=c.execute('SELECT active,data FROM provider_grants WHERE id=%s',(restored.id,)).fetchone()
+check('COUNTEREXAMPLE_normal_successor_restores_exported_capacity',row['active'] and row['data']['responses']['cost_limit_usd']=='67.62068',restored_capacity_usd=str(Decimal('67.62068')-Decimal('66.59300')),interpretation='No durable outgoing debit constraint; this is a detected gap, not a safe-handoff PASS.')
+# Real current full-tool treatment fails against the installed source prefix.
+from workagent.adaptive import contract
+from workagent.capabilities.delegation_composition import SCHEMA as FULL_SCHEMA
+raw=restored.model_dump(mode='json');raw['id']='synthetic-modern-'+new_id()
+raw['responses'].update(continuity_version='sustained-v1',scope_tool_sha256=hashlib.sha256(FULL_SCHEMA.material).hexdigest(),memory_recall='reviewed-v1')
+from types import SimpleNamespace
+policy,_=contract(SimpleNamespace(**raw['responses']))
+raw['responses']['instructions_sha256']=hashlib.sha256(policy.encode()).hexdigest()
+modern=ProviderGrant.model_validate(raw)
+try:
+ configure_grant(db,modern,predecessor_id=restored.id)
+ raise AssertionError('old schema unexpectedly accepted full tools')
+except psycopg.Error as ex:
+ check('installed_prefix_rejects_current_full_tool_treatment',True,error=str(ex).splitlines()[0],sqlstate=ex.sqlstate)
+with runtime.transaction() as c:
+ check('failed_modern_transition_rolls_back',c.execute('SELECT active FROM provider_grants WHERE id=%s',(restored.id,)).fetchone()['active'] and c.execute('SELECT id FROM provider_grants WHERE id=%s',(modern.id,)).fetchone() is None)
+report={'scope':'Disposable synthetic PostgreSQL counterexamples only; not pilot, transfer, or live funding','provider_requests':0,'live_mutations':0,'source_database':source,'checks':checks,'safe_handoff_proven':False,'source_prefix':snapshot['migrations'][-1]['name']}
+(OUT/'probe-result.json').write_text(json.dumps(report,indent=2)+'\n')
+print(json.dumps(report,indent=2))

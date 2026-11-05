@@ -1,0 +1,402 @@
+{
+  "at": "2026-10-29T17:43:39.382389+00:00",
+  "read_only": true,
+  "provider_calls": 0,
+  "identity": {
+    "database": "workagent_test_47b87fe3b82e",
+    "read_only": "on",
+    "observed_at": "2026-10-29 17:43:39.403119+00:00"
+  },
+  "active_grants": [
+    {
+      "id": "workagent-continuation-20261022-15",
+      "active": true,
+      "data_hash": "ae9d22a5644894d97167996e6e9d06f0",
+      "expires_at": null,
+      "consumer_sha256": "65fcdb017ababcde2d6a171ec683e13abdc385e630cf16538171d91db3cb0921",
+      "binding": {
+        "max_steps": 8,
+        "read_limit": 1549,
+        "count_limit": 401,
+        "input_limit": 13290000,
+        "cancel_limit": 0,
+        "output_limit": 3096576,
+        "schema_sha256": "58e5ce8770041e414e52961a91fb89ce1396328875ff763e3f68b57233909a83",
+        "cost_limit_usd": "67.62068",
+        "policy_version": "adaptive-local-v1",
+        "transport_mode": "official_api",
+        "admission_policy": "principal-workspace-v1",
+        "generation_limit": 378,
+        "runtime_extension": "general-alpha-v1",
+        "scope_tool_sha256": "48af68f278c1d27bdd83167bdb5cffa9f52c97baffd5e6ff7ecb821ca6200042",
+        "continuity_version": "sustained-v1",
+        "store_acknowledged": true,
+        "instructions_sha256": "254687aa29b35fa1d0e5eaef55c9eac8154a47e718cb8ef089db74bc3f9dca47",
+        "synthetic_data_only": true,
+        "authorization_sha256": "d7f676d970ef2c6d56c39fe961114d00140279b99ba72649177c41de159093c9"
+      }
+    }
+  ],
+  "runs": [
+    {
+      "state": "cancelled",
+      "n": 7,
+      "unexpired_leases": 0
+    },
+    {
+      "state": "partial",
+      "n": 47,
+      "unexpired_leases": 0
+    },
+    {
+      "state": "queued",
+      "n": 3,
+      "unexpired_leases": 0
+    },
+    {
+      "state": "ready",
+      "n": 54,
+      "unexpired_leases": 0
+    },
+    {
+      "state": "running",
+      "n": 13,
+      "unexpired_leases": 0
+    }
+  ],
+  "attempts": [
+    {
+      "state": "dispatched",
+      "n": 19
+    },
+    {
+      "state": "prepared",
+      "n": 1
+    },
+    {
+      "state": "reconciled",
+      "n": 99
+    }
+  ],
+  "unresolved": [
+    {
+      "step_hash": "2f33b0883bc7cdbf5a40b9a6a724bd75",
+      "grant_id": "workagent-standing-20261019-08",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-21 16:53:25.639674+00:00"
+    },
+    {
+      "step_hash": "3fb91b3e4a40eb0f1f4b83e580ba2397",
+      "grant_id": "workagent-alpha-dev-20261015-08",
+      "unmatched_count": false,
+      "unknown_usage": true,
+      "has_identity": false,
+      "last_event": "2026-10-15 22:55:15.034109+00:00"
+    },
+    {
+      "step_hash": "57edaed93aa1523388e3297a261fd446",
+      "grant_id": "workagent-alpha-dev-20261015-05",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-15 19:33:03.190311+00:00"
+    },
+    {
+      "step_hash": "716e8ef239b54fa795fcd886293378a7",
+      "grant_id": "workagent-standing-20261019-07",
+      "unmatched_count": false,
+      "unknown_usage": true,
+      "has_identity": true,
+      "last_event": "2026-10-19 21:24:37.582953+00:00"
+    },
+    {
+      "step_hash": "9e284c018dc60b9f0a94542223366b71",
+      "grant_id": "workagent-alpha-dev-20261015-09",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-16 00:38:38.133597+00:00"
+    },
+    {
+      "step_hash": "cd30a85a9db6e667c9402b5b5fa747fe",
+      "grant_id": "workagent-general-alpha-20261013-01",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-13 19:04:24.600895+00:00"
+    },
+    {
+      "step_hash": "cf52faabd5f59c85b6fbccd9d53d683e",
+      "grant_id": "workagent-standing-20261019-08",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-21 05:27:45.779412+00:00"
+    },
+    {
+      "step_hash": "d277f254f266e839e8f518f78f889b75",
+      "grant_id": "workagent-alpha-dev-20261015-06",
+      "unmatched_count": false,
+      "unknown_usage": true,
+      "has_identity": false,
+      "last_event": "2026-10-15 21:00:30.911726+00:00"
+    },
+    {
+      "step_hash": "d38cc496b8fe5a56165278f90a3ff9bb",
+      "grant_id": "workagent-flexible-criteria-clarification-01",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-12 01:31:03.033888+00:00"
+    },
+    {
+      "step_hash": "d3fc4d88d3a6bf891eb384af35da1f85",
+      "grant_id": "workagent-continuation-20261021-10",
+      "unmatched_count": true,
+      "unknown_usage": false,
+      "has_identity": false,
+      "last_event": "2026-10-22 00:03:33.592605+00:00"
+    }
+  ],
+  "functions": [
+    {
+      "name": "guard_general_grant()",
+      "sha256": "f86c83ab50a3d8174614d5b31e6ef3ee874af696457bb5d25011cbea845db4d7",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_general_grant()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nDECLARE b jsonb; cid text; alpha boolean; standing boolean; predecessor provider_grants; lineage text[];\nBEGIN\n IF NEW.data->>'profile'<>'general-responses-v1' THEN\n   IF EXISTS (SELECT 1 FROM general_grant_continuations WHERE successor_id=NEW.id)\n   THEN RAISE EXCEPTION 'alpha successor required'; END IF;\n   RETURN NEW;\n END IF;\n b=NEW.data->'responses';\n alpha=b ? 'runtime_extension'; standing=coalesce(b->>'admission_policy'='principal-workspace-v1',false);\n      IF b ? 'admission_policy' AND NOT standing THEN RAISE EXCEPTION 'unknown admission policy'; END IF;\n      IF standing AND NOT alpha THEN RAISE EXCEPTION 'standing alpha binding required'; END IF;\n IF alpha THEN\n   PERFORM require_alpha_budget_binding(b);\n   IF jsonb_typeof(NEW.data->'max_runs') IS DISTINCT FROM 'number'\n      OR coalesce(NEW.data->>'max_runs','') !~ '^[1-9][0-9]*$'\n      OR NEW.data->'max_received_output_tokens' IS DISTINCT FROM '16384'::jsonb\n   THEN RAISE EXCEPTION 'exact typed alpha run bounds required'; END IF;\n END IF;\n IF NEW.data->>'id' IS DISTINCT FROM NEW.id OR NEW.data->>'workspace_id' IS DISTINCT FROM NEW.workspace_id\n OR NEW.data->>'principal_id' IS DISTINCT FROM NEW.principal_id\n OR NEW.data->'expires_at' IS DISTINCT FROM 'null'::jsonb\n OR NEW.data->>'model' IS DISTINCT FROM 'gpt-6.1-sol'\n OR coalesce((NEW.data->>'max_runs')::integer,0) NOT BETWEEN 1 AND (CASE WHEN standing THEN 256 WHEN b->>'policy_version'='adaptive-local-v1' THEN 10 ELSE 4 END)\n OR NEW.data->>'max_received_output_tokens' IS DISTINCT FROM '16384'\n OR b->>'policy_version' NOT IN ('general-responses-v1','adaptive-local-v1')\n OR (b->>'policy_version'='adaptive-local-v1' AND coalesce((b->>'max_steps')::integer,0) NOT BETWEEN 1 AND (CASE WHEN alpha THEN 8 ELSE 4 END))\n OR (NOT alpha AND (b->>'generation_limit' IS DISTINCT FROM (CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN '50' ELSE '8' END) OR b->>'count_limit' IS DISTINCT FROM (CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN '50' ELSE '8' END)\n OR b->>'read_limit' IS DISTINCT FROM (CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN '500' ELSE '80' END) OR b->>'cancel_limit' IS DISTINCT FROM '0'\n OR (b->'input_limit' IS DISTINCT FROM to_jsonb(CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN 1000000 ELSE 160000 END)\n       AND b->'input_limit' IS DISTINCT FROM to_jsonb(CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN 2500000 ELSE 400000 END)) OR b->>'output_limit' IS DISTINCT FROM (CASE WHEN b->>'policy_version'='adaptive-local-v1' THEN '409600' ELSE '65536' END)\n OR b->>'cost_limit_usd' IS DISTINCT FROM '20.00'))\n OR b->>'synthetic_data_only' IS DISTINCT FROM 'true' OR b->>'store_acknowledged' IS DISTINCT FROM 'true'\n OR b->>'authorization_sha256' IS DISTINCT FROM 'd7f676d970ef2c6d56c39fe961114d00140279b99ba72649177c41de159093c9'\n OR jsonb_typeof(b->'conversation_ids') IS DISTINCT FROM 'array'\n OR (NOT standing AND jsonb_array_length(b->'conversation_ids') NOT BETWEEN 1 AND (CASE WHEN alpha THEN 10 ELSE 2 END))\n THEN RAISE EXCEPTION 'exact bounded general authorization required'; END IF;\n IF TG_OP='INSERT' THEN\n   SELECT g.* INTO predecessor FROM general_grant_continuations l\n     JOIN provider_grants g ON g.id=l.predecessor_id WHERE l.successor_id=NEW.id;\n   IF FOUND THEN\n     -- New immutable pins may change; scope/route cannot. This is a continuation\n     -- grant, not an implicit request for additional accounts, data or effects.\n     IF NOT alpha OR predecessor.active\n        OR predecessor.workspace_id<>NEW.workspace_id OR predecessor.principal_id<>NEW.principal_id\n        OR predecessor.data->>'profile' IS DISTINCT FROM 'general-responses-v1'\n        OR predecessor.data->'responses'->>'runtime_extension' IS DISTINCT FROM 'general-alpha-v1'\n        OR predecessor.data->>'model' IS DISTINCT FROM NEW.data->>'model'\n        OR (NOT standing AND predecessor.data->'responses'->'conversation_ids' IS DISTINCT FROM b->'conversation_ids')\n      OR (NOT standing AND predecessor.data->'responses'->'admission_policy' IS DISTINCT FROM b->'admission_policy')\n        OR predecessor.data->'responses'->'project_id' IS DISTINCT FROM b->'project_id'\n        OR predecessor.data->'responses'->'transport_mode' IS DISTINCT FROM b->'transport_mode'\n        OR predecessor.data->'responses'->'secret_reference' IS DISTINCT FROM b->'secret_reference'\n     THEN RAISE EXCEPTION 'inactive exact-scope same-route alpha predecessor required'; END IF;\n     WITH RECURSIVE ancestors(id) AS (\n       SELECT predecessor.id UNION ALL\n       SELECT l.predecessor_id FROM general_grant_continuations l JOIN ancestors a ON l.successor_id=a.id\n     ) SELECT array_agg(id) INTO lineage FROM ancestors;\n   END IF;\n END IF;\n IF standing AND TG_OP='INSERT' THEN\n         IF NOT EXISTS (SELECT 1 FROM memberships WHERE workspace_id=NEW.workspace_id\n                        AND principal_id=NEW.principal_id AND active AND role IN ('owner','editor'))\n         THEN RAISE EXCEPTION 'standing principal membership required'; END IF;\n         IF EXISTS (SELECT 1 FROM provider_grants g WHERE g.workspace_id=NEW.workspace_id\n             AND g.principal_id=NEW.principal_id AND g.data->>'profile'='general-responses-v1'\n             AND (g.data->'responses'->'project_id' IS DISTINCT FROM b->'project_id'\n               OR g.data->'responses'->'transport_mode' IS DISTINCT FROM b->'transport_mode'))\n         THEN RAISE EXCEPTION 'standing admission cannot reset historical project accounting'; END IF;\n         IF EXISTS (SELECT 1 FROM provider_grants g WHERE g.workspace_id=NEW.workspace_id\n             AND g.principal_id=NEW.principal_id AND g.data->'responses'->>'admission_policy'='principal-workspace-v1'\n             AND (g.active OR NOT (g.id=ANY(coalesce(lineage,ARRAY[]::text[])))))\n         THEN RAISE EXCEPTION 'standing authorization requires explicit inactive lineage'; END IF;\n       END IF;\n       FOR cid IN SELECT jsonb_array_elements_text(b->'conversation_ids') LOOP\n   IF NOT EXISTS (SELECT 1 FROM conversations cv WHERE cv.workspace_id=NEW.workspace_id AND cv.id=cid\n      AND cv.data->>'owner_id'=NEW.principal_id AND cv.data->'selected_source_refs'='[]'::jsonb)\n   THEN RAISE EXCEPTION 'explicit synthetic conversation scope required'; END IF;\n   IF TG_OP='INSERT' AND EXISTS (SELECT 1 FROM provider_grants g WHERE g.workspace_id=NEW.workspace_id\n      AND g.data->>'profile'='general-responses-v1' AND g.data->'responses'->'conversation_ids' ? cid\n      AND (g.active OR NOT (g.id=ANY(coalesce(lineage,ARRAY[]::text[])))))\n   THEN RAISE EXCEPTION 'conversation authorization requires explicit inactive lineage'; END IF;\n END LOOP;\n RETURN NEW;\nEND; $function$\n"
+    },
+    {
+      "name": "require_alpha_budget_binding(jsonb)",
+      "sha256": "8cc4d09142dc2d44f354e200f839967f95b4da04e59fb6198c671b0a7d2b1100",
+      "definition": "CREATE OR REPLACE FUNCTION public.require_alpha_budget_binding(b jsonb)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\nBEGIN\n IF b ? 'continuity_version' AND b->'continuity_version' IS DISTINCT FROM '\"sustained-v1\"'::jsonb\n THEN RAISE EXCEPTION 'known explicit continuity version required'; END IF;\n PERFORM require_alpha_budget_binding_pre_continuity(b-'continuity_version');\nEND; $function$\n"
+    },
+    {
+      "name": "require_alpha_budget_binding_pre_continuity(jsonb)",
+      "sha256": "62eebd384d0b2cf883f845dd90f7fb105bfb4a478dbed0f3ee2c8e2d0ac5e06c",
+      "definition": "CREATE OR REPLACE FUNCTION public.require_alpha_budget_binding_pre_continuity(b jsonb)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\nDECLARE bounded jsonb; k text; ceiling numeric; legacy_ceiling numeric;\nBEGIN\n IF b ? 'admission_policy' THEN\n   IF b->'admission_policy' IS DISTINCT FROM '\"principal-workspace-v1\"'::jsonb\n      OR b->'conversation_ids' IS DISTINCT FROM '[]'::jsonb\n   THEN RAISE EXCEPTION 'exact standing admission policy required'; END IF;\n   IF jsonb_typeof(b->'cost_limit_usd') IS DISTINCT FROM 'string'\n      OR coalesce(b->>'cost_limit_usd','') !~ '^(0|[1-9][0-9]{0,2})(\\.[0-9]{1,6})?$'\n      OR (b->>'cost_limit_usd')::numeric>100.00\n   THEN RAISE EXCEPTION 'standing cumulative cost ceiling exceeded'; END IF;\n   bounded=(b-'admission_policy') || '{\"conversation_ids\":[\"validation-only\"]}'::jsonb;\n   -- Keep the exact historical schema/pins/types, but use the opted-in ceiling.\n   bounded=jsonb_set(bounded,'{cost_limit_usd}',to_jsonb(least((b->>'cost_limit_usd')::numeric,20.00)::text));\n   -- Validate original values before normalizing ONLY for the scoped validator.\n   -- This temporary JSON never replaces stored authority or historical counters.\n   FOREACH k IN ARRAY ARRAY['generation_limit','count_limit','input_limit','output_limit'] LOOP\n     ceiling=CASE k WHEN 'input_limit' THEN 51200000 WHEN 'output_limit' THEN 8388608 ELSE 1024 END;\n     IF jsonb_typeof(b->k) IS DISTINCT FROM 'number'\n        OR coalesce(b->>k,'') !~ '^(0|[1-9][0-9]*)$'\n     THEN RAISE EXCEPTION 'exact typed standing budget binding required'; END IF;\n     IF (b->>k)::numeric>ceiling THEN RAISE EXCEPTION 'standing budget ceiling exceeded'; END IF;\n     legacy_ceiling=CASE k WHEN 'input_limit' THEN 12800000 WHEN 'output_limit' THEN 2097152 ELSE 256 END;\n     bounded=jsonb_set(bounded,ARRAY[k],to_jsonb(least((b->>k)::numeric,legacy_ceiling)));\n   END LOOP;\n   PERFORM require_scoped_alpha_budget_binding(bounded);\n ELSE\n   PERFORM require_scoped_alpha_budget_binding(b);\n END IF;\nEND $function$\n"
+    },
+    {
+      "name": "require_scoped_alpha_budget_binding(jsonb)",
+      "sha256": "f893e3bc2ea4e5e89c8c439d57bb388cc1c99e94648692063c93c0fc739961c7",
+      "definition": "CREATE OR REPLACE FUNCTION public.require_scoped_alpha_budget_binding(b jsonb)\n RETURNS void\n LANGUAGE plpgsql\nAS $function$\nDECLARE k text; ceiling numeric;\nBEGIN\n IF jsonb_typeof(b) IS DISTINCT FROM 'object'\n    OR b->'runtime_extension' IS DISTINCT FROM '\"general-alpha-v1\"'::jsonb\n    OR b->'policy_version' IS DISTINCT FROM '\"adaptive-local-v1\"'::jsonb\n    OR b->'cancel_limit' IS DISTINCT FROM '0'::jsonb\n    OR b->'synthetic_data_only' IS DISTINCT FROM 'true'::jsonb\n    OR b->'store_acknowledged' IS DISTINCT FROM 'true'::jsonb\n    OR jsonb_typeof(b->'max_steps') IS DISTINCT FROM 'number'\n    OR coalesce(b->>'max_steps','') !~ '^[1-8]$'\n    OR jsonb_typeof(b->'cost_limit_usd') IS DISTINCT FROM 'string'\n    OR coalesce(b->>'cost_limit_usd','') !~ '^(0|[1-9][0-9]?)(\\.[0-9]{1,6})?$'\n    OR jsonb_typeof(b->'conversation_ids') IS DISTINCT FROM 'array'\n    OR b - ARRAY['runtime_extension','project_id','secret_reference','transport_mode','instructions_sha256',\n       'schema_sha256','scope_tool_sha256','policy_version','max_steps','generation_limit','count_limit',\n       'read_limit','cancel_limit','input_limit','output_limit','cost_limit_usd','conversation_ids',\n       'authorization_sha256','synthetic_data_only','store_acknowledged'] <> '{}'::jsonb\n THEN RAISE EXCEPTION 'exact typed alpha budget binding required'; END IF;\n IF (b->>'cost_limit_usd')::numeric>20.00\n    OR jsonb_array_length(b->'conversation_ids') NOT BETWEEN 1 AND 10\n    OR (SELECT count(DISTINCT value) FROM jsonb_array_elements(b->'conversation_ids'))<>jsonb_array_length(b->'conversation_ids')\n    OR EXISTS (SELECT 1 FROM jsonb_array_elements(b->'conversation_ids') v WHERE jsonb_typeof(v) IS DISTINCT FROM 'string'\n       OR length(v #>> '{}') NOT BETWEEN 1 AND 128 OR (v #>> '{}') !~ '^[A-Za-z0-9][A-Za-z0-9_.:-]*$')\n THEN RAISE EXCEPTION 'bounded unique alpha scope required'; END IF;\n FOREACH k IN ARRAY ARRAY['generation_limit','count_limit','read_limit','input_limit','output_limit'] LOOP\n   ceiling=CASE k WHEN 'generation_limit' THEN 256 WHEN 'count_limit' THEN 256 WHEN 'read_limit' THEN 4096\n       WHEN 'input_limit' THEN 12800000 ELSE 2097152 END;\n   IF jsonb_typeof(b->k) IS DISTINCT FROM 'number' OR coalesce(b->>k,'') !~ '^(0|[1-9][0-9]*)$'\n   THEN RAISE EXCEPTION 'exact typed alpha budget binding required'; END IF;\n   IF (b->>k)::numeric>ceiling THEN RAISE EXCEPTION 'alpha budget may only tighten'; END IF;\n END LOOP;\n FOREACH k IN ARRAY ARRAY['instructions_sha256','schema_sha256','scope_tool_sha256','authorization_sha256'] LOOP\n   IF jsonb_typeof(b->k) IS DISTINCT FROM 'string' OR coalesce(b->>k,'') !~ '^[0-9a-f]{64}$'\n   THEN RAISE EXCEPTION 'exact alpha pins required'; END IF;\n END LOOP;\n IF jsonb_typeof(b->'project_id') IS DISTINCT FROM 'string' OR coalesce(b->>'project_id','') !~ '^proj_[A-Za-z0-9_-]{1,100}$'\n    OR jsonb_typeof(b->'secret_reference') IS DISTINCT FROM 'string' OR coalesce(b->>'secret_reference','') !~ '^file:/[A-Za-z0-9_./-]+$'\n    OR length(b->>'secret_reference') NOT BETWEEN 7 AND 406\n    OR b->'transport_mode' NOT IN ('\"synthetic\"'::jsonb,'\"official_api\"'::jsonb) OR NOT b ? 'transport_mode'\n THEN RAISE EXCEPTION 'exact alpha route binding required'; END IF;\nEND; $function$\n"
+    },
+    {
+      "name": "guard_responses_event()",
+      "sha256": "9ad5741dbaf6faa0c87735e28c8fd98fdc1a51464f2654591325ef6fbabf6cfd",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_responses_event()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nDECLARE gid text; ws text; n integer; lim integer; grantrow provider_grants; current_run runs; total_input bigint; total_output bigint; total_cost numeric; shared_cost numeric; alpha boolean;\nBEGIN\n SELECT s.grant_id,g.workspace_id INTO gid,ws FROM responses_steps s JOIN provider_grants g ON g.id=s.grant_id\n WHERE s.attempt_id=NEW.attempt_id AND s.phase=NEW.phase;\n PERFORM id FROM workspaces WHERE id=ws FOR UPDATE;\n SELECT * INTO grantrow FROM provider_grants WHERE id=gid;\n alpha=coalesce(grantrow.data->'responses'->>'runtime_extension'='general-alpha-v1',false);\n IF alpha THEN PERFORM require_alpha_budget_binding(grantrow.data->'responses'); END IF;\n IF NEW.kind IN ('count_send','dispatch','read','cancel') THEN\n   -- Every dispatch participates in shared-budget accounting, including legacy\n   -- profiles in other workspaces. Advisory locks do not refresh RR snapshots.\n   IF (NEW.kind='dispatch' OR grantrow.data->>'profile'='general-responses-v1')\n      AND current_setting('transaction_isolation')<>'read committed'\n   THEN RAISE EXCEPTION 'shared budget authority requires read committed isolation'; END IF;\n   IF NOT EXISTS (SELECT 1 FROM provider_grants g WHERE id=gid AND active AND\n      ((grantrow.data->>'profile'='general-responses-v1' AND grantrow.data->'expires_at'='null'::jsonb) OR (data->>'expires_at')::timestamptz>now() OR EXISTS (\n        SELECT 1 FROM provider_consumer_successors a JOIN responses_consumer_uses u ON u.grant_id=a.grant_id\n        WHERE a.grant_id=g.id AND u.attempt_id=NEW.attempt_id AND (a.data->>'expires_at')::timestamptz>now())))\n   THEN RAISE EXCEPTION 'grant unavailable'; END IF;\n   -- All alpha counters, not just cost, serialize across shared projects.\n   IF alpha THEN PERFORM pg_advisory_xact_lock(721004120); END IF;\n   SELECT count(*) INTO n FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)\n    WHERE (s.grant_id=gid OR (alpha AND s.grant_id IN (SELECT responses_budget_grants(gid)))) AND e.kind=NEW.kind;\n   lim=CASE WHEN grantrow.data->>'profile'='general-responses-v1' THEN\n       (grantrow.data->'responses'->>(CASE NEW.kind WHEN 'read' THEN 'read_limit' WHEN 'cancel' THEN 'cancel_limit' WHEN 'dispatch' THEN 'generation_limit' ELSE 'count_limit' END))::integer\n       ELSE CASE WHEN NEW.kind='read' THEN 40 ELSE 4 END END;\n   IF n>=lim THEN RAISE EXCEPTION 'cumulative request limit'; END IF;\n END IF;\n IF NEW.data ? 'cancelled_observation' THEN\n   IF NEW.kind<>'read' OR NEW.data<>'{\"cancelled_observation\":true}'::jsonb\n      OR NOT cancelled_response_observation_permits(NEW.attempt_id)\n      OR NOT EXISTS (SELECT 1 FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)\n        WHERE e.attempt_id=NEW.attempt_id AND e.phase=NEW.phase AND e.kind='identity'\n          AND e.data->>'request_sha256'=s.request_sha256 AND e.data->'metadata'=s.metadata\n          AND e.data->'provenance'->>'mode'=grantrow.data->'responses'->>'transport_mode'\n          AND (e.data->'provenance'->>'mode'='synthetic'\n            OR e.data->'provenance'->>'origin'='https://api.openai.com'))\n      OR EXISTS (SELECT 1 FROM responses_events WHERE attempt_id=NEW.attempt_id AND phase=NEW.phase AND kind='result')\n   THEN RAISE EXCEPTION 'current cancelled observation authority required'; END IF;\n ELSE\n IF grantrow.data->>'profile'='general-responses-v1' AND NEW.kind IN ('count_send','dispatch','read','cancel','tool_result') THEN\n   IF NOT EXISTS (SELECT 1 FROM provider_attempts a JOIN runs r ON r.workspace_id=a.workspace_id AND r.id=a.run_id\n       JOIN conversations cv ON cv.workspace_id=r.workspace_id AND cv.id=r.conversation_id\n       JOIN memberships m ON m.workspace_id=r.workspace_id AND m.principal_id=r.data->>'principal_id'\n       JOIN workspaces w ON w.id=r.workspace_id\n       WHERE a.id=NEW.attempt_id AND r.data->>'state'='running' AND cv.data->>'state'='open'\n       AND m.active AND grantrow.active AND r.data->>'access_generation'=w.access_generation::text\n       AND (r.data->>'lease_expires_at')::timestamptz>now()\n       AND general_execution_scope_permits(grantrow.id,r.conversation_id))\n   THEN RAISE EXCEPTION 'current general execution authority required'; END IF;\n   SELECT run.* INTO current_run FROM runs run JOIN provider_attempts a ON a.workspace_id=run.workspace_id AND a.run_id=run.id\n      WHERE a.id=NEW.attempt_id;\n   PERFORM require_general_publication_authority(current_run);\n END IF;\n END IF;\n IF NEW.kind='dispatch' THEN\n   -- Serialize reservations across all workspaces, profiles and successor grants.\n   -- No refund for cancellation, revocation, unknown usage or smaller receipts.\n   PERFORM pg_advisory_xact_lock(721004120);\n   SELECT coalesce(sum((e.data->>'reserved_cost_usd')::numeric),0) INTO shared_cost\n     FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)\n     WHERE s.grant_id IN (SELECT responses_budget_grants(gid)) AND e.kind='dispatch';\n   IF shared_cost+(CASE WHEN alpha THEN responses_carried_cost(gid) ELSE 0 END)+0.206920\n      >(CASE WHEN alpha THEN (grantrow.data->'responses'->>'cost_limit_usd')::numeric ELSE 20.00 END) THEN RAISE EXCEPTION 'shared cumulative project budget exhausted'; END IF;\n   SELECT coalesce(sum((e.data->>'reserved_input_tokens')::bigint),0),\n          coalesce(sum((e.data->>'reserved_output_tokens')::bigint),0),\n          coalesce(sum((e.data->>'reserved_cost_usd')::numeric),0)\n     INTO total_input,total_output,total_cost FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)\n     WHERE (s.grant_id=gid OR (alpha AND s.grant_id IN (SELECT responses_budget_grants(gid)))) AND e.kind='dispatch';\n   IF total_input+50000>(grantrow.data->'responses'->>'input_limit')::bigint\n      OR total_output+8192>(CASE WHEN grantrow.data->>'profile'='general-responses-v1' THEN (grantrow.data->'responses'->>'output_limit')::bigint ELSE 32768 END)\n      OR total_cost+0.206920>(CASE WHEN alpha THEN (grantrow.data->'responses'->>'cost_limit_usd')::numeric ELSE 20.00 END) THEN RAISE EXCEPTION 'cumulative reservation limit'; END IF;\n   IF NOT EXISTS (SELECT 1 FROM responses_events WHERE attempt_id=NEW.attempt_id AND phase=NEW.phase AND kind='count_result')\n   THEN RAISE EXCEPTION 'durable count required'; END IF;\n   IF NEW.data->>'reserved_input_tokens'<>'50000' OR NEW.data->>'reserved_output_tokens'<>'8192'\n      OR (NEW.data->>'reserved_cost_usd')::numeric<>0.206920\n   THEN RAISE EXCEPTION 'full worst-case reservation required'; END IF;\n END IF;\n IF NEW.kind='count_result' AND NOT EXISTS (SELECT 1 FROM responses_events WHERE attempt_id=NEW.attempt_id AND phase=NEW.phase AND kind='count_send')\n THEN RAISE EXCEPTION 'count send required'; END IF;\n IF NEW.kind IN ('identity','result','read','cancel','corrected_readback') AND NOT EXISTS (SELECT 1 FROM responses_events WHERE attempt_id=NEW.attempt_id AND phase=NEW.phase AND kind='dispatch')\n THEN RAISE EXCEPTION 'dispatch required'; END IF;\n RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "name": "guard_carried_budget_event()",
+      "sha256": "711dfbeb3698b092fd678cbefda56a60bd6b1718cc0b43d9e9019b4c5beabe62",
+      "definition": "CREATE OR REPLACE FUNCTION public.guard_carried_budget_event()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\nDECLARE gid text; local_cost numeric;\nBEGIN\n IF NEW.kind NOT IN ('count_send','dispatch','read','cancel') THEN RETURN NEW; END IF;\n IF current_setting('transaction_isolation')<>'read committed'\n THEN RAISE EXCEPTION 'shared budget authority requires read committed isolation'; END IF;\n -- Existing guards take workspace locks first. Serialize imports and every send,\n -- including a count before the first dispatch. READ COMMITTED refreshes after wait.\n PERFORM pg_advisory_xact_lock(721004120);\n IF NEW.kind='dispatch' THEN\n   SELECT grant_id INTO gid FROM responses_steps WHERE attempt_id=NEW.attempt_id AND phase=NEW.phase;\n   SELECT coalesce(sum((e.data->>'reserved_cost_usd')::numeric),0) INTO local_cost\n     FROM responses_events e JOIN responses_steps s USING(attempt_id,phase)\n     WHERE s.grant_id IN (SELECT responses_budget_grants(gid)) AND e.kind='dispatch';\n   IF local_cost+responses_carried_cost(gid)+0.206920>(SELECT CASE WHEN g.data->'responses'->>'admission_policy'='principal-workspace-v1'\n       THEN (g.data->'responses'->>'cost_limit_usd')::numeric ELSE 20.00 END\n       FROM provider_grants g WHERE g.id=gid)\n   THEN RAISE EXCEPTION 'shared cumulative project budget exhausted'; END IF;\n END IF;\n RETURN NEW;\nEND;\n$function$\n"
+    },
+    {
+      "name": "guard_provider_grant()",
+      "sha256": null,
+      "definition": null
+    },
+    {
+      "name": "responses_budget_grants(text)",
+      "sha256": "9c94b0b9c5a5b39c1c0a57bcd0e6f14940faf4291c86b66cdc8310dcbc731ca3",
+      "definition": "CREATE OR REPLACE FUNCTION public.responses_budget_grants(gid text)\n RETURNS SETOF text\n LANGUAGE sql\n STABLE\nAS $function$\n SELECT g.id FROM provider_grants g JOIN provider_grants original ON original.id=gid\n WHERE g.data->'responses'->>'transport_mode'=original.data->'responses'->>'transport_mode'\n AND (g.data->'responses'->>'project_id'=original.data->'responses'->>'project_id'\n   OR (original.data->'responses'->>'authorization_sha256' IS NOT NULL\n       AND g.data->'responses'->>'authorization_sha256'=original.data->'responses'->>'authorization_sha256'\n       AND original.data->'responses'->>'transport_mode'='official_api'))\n$function$\n"
+    }
+  ],
+  "migrations": [
+    {
+      "name": "001_initial.sql",
+      "checksum": "3c0c37a4f849a6f86e8ff99f54fb5f824217907a772d5e1557bd7f3306f20ac3"
+    },
+    {
+      "name": "002_authority_guard.sql",
+      "checksum": "d74770eec9c1a2461160935dbac17275876ef28c5b8a4a14cccd9cb880d6a529"
+    },
+    {
+      "name": "003_fixture_runtime.sql",
+      "checksum": "efb49b6f0ca8393cba434f6ca8aee0351d654427d804c0ded524829fc05921b2"
+    },
+    {
+      "name": "004_intake_checkpoint.sql",
+      "checksum": "d4a89bd0d8525e6619e89e7c922539334cad5a8bfb65ed706b0099be4f2a2463"
+    },
+    {
+      "name": "005_receipt_retention.sql",
+      "checksum": "39a228858da2c506b097ef14edd6a1cde62d3f325a3849d0fa11dda2ee5937eb"
+    },
+    {
+      "name": "006_responses_steps.sql",
+      "checksum": "14a75765ff80d0421384f2c3cc6e04f91f86df8ab9721416f5e32d91e90183ad"
+    },
+    {
+      "name": "007_responses_material.sql",
+      "checksum": "5c7c797bd9c8e62bc0a633c1ea6a111b0bb54ff738e2334daf6183511bb12146"
+    },
+    {
+      "name": "008_responses_recovery.sql",
+      "checksum": "8c848347ddae9b25158f11dbfa329450a81cb6e26130f583b6d9b703e3f07870"
+    },
+    {
+      "name": "009_conversations.sql",
+      "checksum": "87daa77954f05804389e3316a10a49155ea76563dbffd745c60a8a3742995a4e"
+    },
+    {
+      "name": "010_general_products.sql",
+      "checksum": "414b711125531b581ce769b8ee6b52a94bfe387e98e488b5277e4389804d6334"
+    },
+    {
+      "name": "011_general_responses.sql",
+      "checksum": "5fb1021d7c1bf218988a5f21f6fc765962c87e2407128c70ac139a482e67f6b1"
+    },
+    {
+      "name": "012_adaptive_execution.sql",
+      "checksum": "2b444febe58eac09a7e9c8672d907e5f2ca353a429984a5b30da546021935b73"
+    },
+    {
+      "name": "013_acceptance_checks.sql",
+      "checksum": "62271c473e15301451d5aaf820aeabe36548b593153533c4c6519cd31933b6bb"
+    },
+    {
+      "name": "014_budget_carryforward.sql",
+      "checksum": "84896f73b0f81cf1a55553daaab5739fa5935797df2ea61652a6667251c95fdc"
+    },
+    {
+      "name": "015_bounded_csv_verification.sql",
+      "checksum": "a4c7aee2f0c11b9bb720634ac31e2f6a4577af7ed397d1517f71dff814098f4f"
+    },
+    {
+      "name": "016_flexible_work.sql",
+      "checksum": "f21e01148212fec8c0fd4f35448cf7fc8c171cc387214ce50395cd8a3b35cead"
+    },
+    {
+      "name": "017_general_alpha.sql",
+      "checksum": "59b88f5b6b6b73428f74be2ccc2ddb6e8ab0e1b987596d642ce76e7b0bc48b9e"
+    },
+    {
+      "name": "018_responsibilities.sql",
+      "checksum": "bfe48b4e1dd45542e818ecfb0c9bbe8f48c497374590cf811e4c4261fa1971ec"
+    },
+    {
+      "name": "019_alpha_budget.sql",
+      "checksum": "43f7d9ad7488024acc2a5436e786cdef60df5868226f3e7d3d7f94b56c77b91c"
+    },
+    {
+      "name": "020_responsibility_continuation.sql",
+      "checksum": "993e90ae1037aef94097cc437105f73dddd133ab32112112b73932b9e60df4a1"
+    },
+    {
+      "name": "021_alpha_stop_display.sql",
+      "checksum": "0612f1483389945faed19bee1b3e5a383b2ec6f488447e179113fe5292dda874"
+    },
+    {
+      "name": "022_responsibility_request_scope.sql",
+      "checksum": "fb3fa4b35390586c97b95d85e7261527ab325e34f832d0cc4007a7e572566940"
+    },
+    {
+      "name": "023_count_diagnostics.sql",
+      "checksum": "e698c5c7307a66e3bb735617fa2054ab7551a121d4d5f12cbc3923943d718663"
+    },
+    {
+      "name": "024_responsibility_action.sql",
+      "checksum": "091f09ac8da187b4f2da7b3df254aa6223ea392c37120efc2e7f1ea0cb6c8310"
+    },
+    {
+      "name": "025_saved_work_retrieval.sql",
+      "checksum": "1f250066db4f1d25bb5193b2b9c042105c936de17e89c85cd12d89f9eb529398"
+    },
+    {
+      "name": "026_saved_work_receipt.sql",
+      "checksum": "f5192965fcb251e463b5c4f34c334efa670253dee33412e0b83250ce4e28a3f8"
+    },
+    {
+      "name": "027_development_bounds.sql",
+      "checksum": "be8f1aca554374c074008cee55f1e3294cc3ce36059d8855d3b267a93f6a130a"
+    },
+    {
+      "name": "028_conversation_grant_continuation.sql",
+      "checksum": "a69b8e065cf24fd8382534a8bea2462d61f838f8eb470ce3dd1eafc9e9daad43"
+    },
+    {
+      "name": "029_work_context_search.sql",
+      "checksum": "ed277b563ce3ece1b347ceec7d3beda35acb23103629b6ac4750c8a88eac2bc6"
+    },
+    {
+      "name": "030_read_only_context_scopes.sql",
+      "checksum": "16b05281be3977afd945c7005de08df842f37e292fbabebaefe3da996850564b"
+    },
+    {
+      "name": "031_companion_view_scope.sql",
+      "checksum": "3fc1e6dff0e480c134f567c348183f7118f69a233207242e71a79f573e00fe87"
+    },
+    {
+      "name": "032_json_inspection.sql",
+      "checksum": "405cd87de44a4fdbd23e8e4d05e5461d5be709aebf0e07d42197c64f458a1c01"
+    },
+    {
+      "name": "033_standing_admission.sql",
+      "checksum": "12a411863c2d4a923b731401254c6925f51ba853e714ecb941f2e94f70c65171"
+    },
+    {
+      "name": "034_sustained_continuity.sql",
+      "checksum": "368071d18b16bf389b6629ff43af2550acd81fe519dfebe4254a005d5e7588f2"
+    },
+    {
+      "name": "035_scoped_saved_discovery.sql",
+      "checksum": "ea8000bca87e6245017f93eb3a5411f3acfd0eb18828a7553e3a4ea120702ed3"
+    },
+    {
+      "name": "036_public_retrieval.sql",
+      "checksum": "fd7a594750b9d5c57d372257011480340483a8d7dbd58b77e34d88cdbad021ef"
+    },
+    {
+      "name": "037_prototype_runtime.sql",
+      "checksum": "12970c6706bdb1f49a3fd8046eb1c4bf93590c6b5de310189041e2e62983a569"
+    },
+    {
+      "name": "038_public_read_followthrough.sql",
+      "checksum": "af14002750bfb0b4ea2b10b17a573d42e923bb9aaca592a7f8146b3b83f3e43a"
+    },
+    {
+      "name": "039_dispatch_failure_status.sql",
+      "checksum": "6b00208b121d2746b7bf101d2c3dfc935619cde0a8c7c9f86ada2adb6b8c78fe"
+    },
+    {
+      "name": "040_retained_read_followthrough.sql",
+      "checksum": "9817df5db7379e96c04f0c0469a90ae52f2d4bd7aa9e260e124555add9435737"
+    },
+    {
+      "name": "041_input_ceiling.sql",
+      "checksum": "687cc3fb192fc0766f3e9ccc83cb9b5f1efdd7f036467999b1b11fa513420a0f"
+    },
+    {
+      "name": "042_fixed_profile_input_budgets.sql",
+      "checksum": "1e097881d62286d8d61d7db7331ca9c78457009467d990c7578b806fad51c270"
+    },
+    {
+      "name": "043_cumulative_input_capacity.sql",
+      "checksum": "465d41113c544e790781d08a4d6ca6d46165d2aec770fe032459c9965bc7938d"
+    },
+    {
+      "name": "044_same_turn_draft_binding.sql",
+      "checksum": "4869bc689a220259ecbc93fc03379ca8f2bd4c9669d8dc43bb6dbe787259f2ec"
+    },
+    {
+      "name": "045_cumulative_request_capacity.sql",
+      "checksum": "e96ce0763034d804335451e98c7f5b930fc2e02696740eb8e6c91be6fe3fc5dd"
+    },
+    {
+      "name": "046_cancelled_response_observation.sql",
+      "checksum": "ff5993a63d41f9633439cb09041782d40d79b08e4bdf3bfc24ccb0f9d5b840ad"
+    }
+  ],
+  "special_tables": [
+    {
+      "table_name": "general_grant_continuations"
+    },
+    {
+      "table_name": "provider_grants"
+    },
+    {
+      "table_name": "responses_budget_carry"
+    }
+  ]
+}

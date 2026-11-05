@@ -1,0 +1,24 @@
+ERROR: found no collectors for /home/ubuntu/workagent-continuation-20261026/backend/tests/test_memory_full_tools.py::test_full_tool_selector_and_equal_policy
+
+
+==================================== ERRORS ====================================
+___________ ERROR collecting backend/tests/test_memory_full_tools.py ___________
+ImportError while importing test module '/home/ubuntu/workagent-continuation-20261026/backend/tests/test_memory_full_tools.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+backend/tests/test_memory_full_tools.py:8: in <module>
+    from test_domain import context, cmd
+backend/tests/test_domain.py:10: in <module>
+    from workagent.api import create_app, Settings
+E   ModuleNotFoundError: No module named 'workagent'
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR backend/tests/test_memory_full_tools.py
+1 warning, 1 error in 1.28s

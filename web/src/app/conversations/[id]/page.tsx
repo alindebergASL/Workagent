@@ -1,4 +1,5 @@
 "use client";
+import { CheckpointHistory } from "@/components/HumanHistory";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -737,6 +738,14 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
       ) : null}
 
       {history}
+
+      {wsId && real ? (
+        <CheckpointHistory
+          ws={wsId}
+          cid={id}
+          workVersion={d.conversation.work_version}
+        />
+      ) : null}
 
       {wsId ? <CurrentWork work={work} ws={wsId} cid={id} /> : null}
 

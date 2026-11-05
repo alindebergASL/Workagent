@@ -32,6 +32,16 @@ export const ATTACH_ACCEPT = contract.extensions.map((e) => `.${e}`).join(",");
 
 const utf8 = new TextEncoder();
 const kb = (n: number) => `${Math.round(n / 1000)} KB`;
+const NUMBER_WORDS: Record<number, string> = {
+  0: "zero",
+  1: "one",
+  2: "two",
+  3: "three",
+  4: "four",
+  5: "five",
+};
+/** The published count in prose when it is small enough to read naturally. */
+const numberWord = (n: number): string | number => NUMBER_WORDS[n] ?? n;
 
 /** The MIME type the service requires for an admitted filename. */
 export function attachmentMime(
@@ -88,7 +98,7 @@ export async function readAttachment(file: File): Promise<MessageAttachment> {
 /** Whether a set of attachments fits the admission limits together. */
 export function attachmentsProblem(list: MessageAttachment[]): string | null {
   if (list.length > ATTACHMENT_LIMITS.count)
-    return `Attach at most ${ATTACHMENT_LIMITS.count === 2 ? "two" : ATTACHMENT_LIMITS.count} files.`;
+    return `Attach at most ${numberWord(ATTACHMENT_LIMITS.count)} files.`;
   const total = list.reduce((n, a) => n + utf8.encode(a.content).length, 0);
   if (total > ATTACHMENT_LIMITS.totalBytes)
     return `Attachments can total at most ${kb(ATTACHMENT_LIMITS.totalBytes)}.`;

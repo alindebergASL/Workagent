@@ -1,0 +1,18 @@
+{
+  "scope": "Additive final controller/bridge logical journal binding; no historical receipt replacement",
+  "manifest_sha256": "6089a7871957b7ccb30deb3117210cb3e0ad099dcc7bdca3686cdd4d97e78219",
+  "archive_sha256": "c321247ab422b8d844f78401bb4b2a41901a2626a167a93c2c9781bbe3b2fb43",
+  "directory": ".local/batch3/b35c/integration-01",
+  "algorithm": "SHA256 of UTF-8 newline-joined sqlite3.Connection.iterdump() using Python3.14.9, read-only connection; WAL logical state included without mutating/checkpointing original journal",
+  "journals": {
+    "controller.sqlite": {
+      "logical_dump_sha256": "94bf334b421168a83b4d925b0313a3c768359f52177a7f617634a88c7692c470",
+      "integrity_check": "ok"
+    },
+    "bridge.sqlite": {
+      "logical_dump_sha256": "60906ac913c511b39a1e5ed37b5331391d5ee61c0f81ae6994b5b68ea280dde5",
+      "integrity_check": "ok"
+    }
+  },
+  "reason": "Primary archive binds source and individual receipts. This separately binds recovery journals without depending on volatile SQLite shared-memory sidecars. Original MANIFEST.json and ZIP remain unchanged."
+}

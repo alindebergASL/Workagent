@@ -1,0 +1,42 @@
+{
+  "accepted_baseline": {
+    "commit": "26e599b3db8a61b73eeeaea4f87a1d3de0b296d9",
+    "files": 103
+  },
+  "historical_controller": {
+    "files": 13,
+    "manifest_sha256": "863e570706c1c6ce36df329481f074788166e5210cdce247b0afe20c97ab33be",
+    "mismatches": {
+      "evaluation/study_application.py": {
+        "actual": "c5464388a73d473cfec9445dd2fb58e411d3127a5053e927713791b1ed24a217",
+        "expected": "f36ed5b6e967a42f4254c156654e0191176efbd944d81b9c382dd06c61177b54"
+      },
+      "evaluation/study_controller.py": {
+        "actual": "80be1f3d6c493dfc9f6d11d60ee45e9ce9cee345c5c879e9c3f8adb96ae98949",
+        "expected": "3ba9b687cf02de8ae1fe8b927df0c798f84afd3dc211fa5fb96b1373222b3cdb"
+      },
+      "evaluation/study_diagnostic.py": {
+        "actual": "e6695e5f8c542fddef46ee4c68dff15dc4211dadbaff0a8a97558b9ee24725a6",
+        "expected": "b70977ab8b4de11478181ced14ae9364fa1b0c628160c441975219933f5c8910"
+      },
+      "evaluation/study_worker.py": {
+        "actual": "d445515fa75946c9f7c04fd8f81023e0bb2ae60f1bff28df483f149037369c6b",
+        "expected": "f01f5f56ca78b5d7959e53c46e2c6c7230c64603edcdc25cc1cf2c2bcb8d0396"
+      },
+      "evaluation/verify_study_diagnostic.py": {
+        "actual": "9cde0458a864928db31b969780fe9569672b2713247af28b8b6677191c40d00f",
+        "expected": "128fb459e83412211d8da18e8ff13fca91262d41a62af1481f928ceb60e6bfd7"
+      }
+    }
+  },
+  "run102": {
+    "files": 57,
+    "manifest_sha256": "ca8bf41a2fdfba56ef436439b1f99cf7188b5b8b6dd9152d31cbdecd4be410a4",
+    "mismatches": {}
+  },
+  "runtime": {
+    "files": 278,
+    "manifest_sha256": "0060de12f7a5503f60e205488530496d3d978c753d044ba8e4df979056e2d12b",
+    "mismatches": {}
+  }
+}

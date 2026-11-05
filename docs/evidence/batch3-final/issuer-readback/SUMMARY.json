@@ -1,0 +1,13 @@
+{
+  "installed_issuer_cap_usd": "unrecognized",
+  "cumulative_ceiling_usd": "175",
+  "historical_allocation_baseline_usd": "99.605960",
+  "exact_released_allocation_usd": "31.5462600",
+  "issued_certificates_usd": "122.0",
+  "conservative_encumbered_usd": "190.0597000",
+  "available_for_incremental_certificates_usd": "-15.0597000",
+  "known_usage_upper_reconciled_primary_receipts_usd": "6.9408600",
+  "primary_dispatches_without_result_reserved_usd": "0.39576",
+  "provider_billed_usd": null,
+  "caveat": "Unknown is included in retained allocations; do not add twice. Certificates are authority, not usage. Recipient usage is separately read through unchanged study_funding.retained_cost; no global invoice inference."
+}

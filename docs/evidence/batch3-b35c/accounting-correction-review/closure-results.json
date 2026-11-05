@@ -1,0 +1,47 @@
+{
+  "head": "d9e5d89bf905ccf0fe5a5bee2bca4bd1cd1ed9b3",
+  "checked_at": "2026-10-29 23:07:44.474589+00",
+  "preflight": {
+    "canonical_identity": "workagent_test_47b87fe3b82e|7704275",
+    "competing_grants_and_allocations_unchanged": [
+      "workagent_test_8c78561a8e8d",
+      "workagent_test_942379a11eb1",
+      "workagent_test_cc58a1b9685a"
+    ],
+    "baseline_usd": "99.605960",
+    "baseline_scope": "Known Workagent test-authority lineage; historical other allowances fully retained. Parent notified sole-lane issuance. Not provider-account invoice reconciliation."
+  },
+  "installed_schema_absent": true,
+  "source_snapshot_binding_matches": true,
+  "exact_disposable_release_rows_including_response_id": true,
+  "original_tables": 35,
+  "original_rows": 8764,
+  "original_inventories_match_backup_and_remain_unchanged": true,
+  "rollback_only_sender_orders_completed": [
+    "advisory_first",
+    "table_first"
+  ],
+  "disposable_certificate_journal_unchanged": true,
+  "reserved_usd": "38.48712",
+  "retained_usage_upper_usd": "6.9408600",
+  "released_usd": "31.5462600",
+  "retained_existing_allocation_usd": "68.0597000",
+  "unallocated_ceiling_usd": "31.9403000",
+  "installed_mutations": 0,
+  "provider_calls": 0,
+  "hashes": {
+    "evaluation/test_accounting_correction.py": "03c84a36abd3e3fe48f7146d7acb519141ce0239929e4ebfe11c778d036da12c",
+    "evaluation/verify_accounting_correction.py": "51bb63809595530aafd0382fd3850bd0ca6dca593c3d3b9ab8b97eb3994e0b98",
+    "evaluation/accounting_correction.sql": "d141fe3c1dc863a28a9852314f4d676dd9ba01a143734988d391e1b66d968f6e",
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965",
+    ".local/batch3/b35c/accounting-correction/candidate-01.json": "91c3c7d9e2542a7a55bbfd75c1675e556318c5957e279078aeac14ca6700ad37",
+    ".local/batch3/b35c/accounting-correction/primary-before.dump": "c72935850cfef1729ea6a0461030435c203c5f6205abfe370549eb187ee9e60e",
+    ".local/batch3/b35c/accounting-correction/disposable-verification-02.json": "68d5933583faeb23beeed125b8461b00423213547372c22a81a9405e8ce6504a",
+    ".local/batch3/b35c/execution/ledger/current-reconciliation.json": "53306d858e4c04d3eaa64e923a7a72950d44cf681eaab5061025d64d63af4673",
+    "evaluation/install_accounting_correction.py": "2b7ea5207f9e16f9cf97b5aacf3716b96933a3ebdfee9d34a1fdd28538a07f80",
+    "docs/evidence/batch3-b35c/accounting-correction/RUNBOOK.md": "27592afc1a934003319c10355c5d798580af3a8198cb2a3c89a357d8b75405b5",
+    ".local/batch3/b35c/accounting-correction/primary-readonly-01.private.json": "2e4d50b8965374289116431d6e4230d300d3e3d2f3deb64a3b6d35ae2f52673a",
+    ".local/batch3/b35c/accounting-correction/restored-before-inventory-02.json": "49d723e718d5ccfc54a0305f51aabbe6064004bbd843aae2d34bb6564c55e0f9",
+    "docs/evidence/batch3-b35c/accounting-correction-review/closure_probe.py": "576f613f6870405b6dfff95c5533bc04983e58adf5b42f5f64bd15134a37aaef"
+  }
+}

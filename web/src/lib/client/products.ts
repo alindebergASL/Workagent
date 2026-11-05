@@ -122,6 +122,28 @@ export async function attachment(
     await file.arrayBuffer(),
   );
 }
+/** Exact extension → MIME pairs a saved product file may be delivered as. */
+const DELIVERED_MIME: Record<string, string> = {
+  csv: "text/csv",
+  txt: "text/plain",
+  wat: "application/wasm-text",
+  md: "text/markdown",
+  markdown: "text/markdown",
+  json: "application/json",
+};
+/**
+ * The filename a download response declares, only when it is one plain safe
+ * name whose extension matches the response's own content type exactly.
+ */
+export function deliveredFilename(headers: Headers): string | null {
+  const m =
+    /^attachment; filename="([A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|wat|txt|md|markdown|json))"$/.exec(
+      headers.get("content-disposition") ?? "",
+    );
+  const mime = (headers.get("content-type") ?? "").split(";")[0]!.trim();
+  return m && DELIVERED_MIME[m[2]!] === mime ? m[1]! : null;
+}
+
 export const productApi = {
   get: (ws: string, aid: string, signal?: AbortSignal) =>
     unwrap(
@@ -301,9 +323,19 @@ export const productApi = {
       );
     const body = proposal?.body ?? artifact.current_revision.body;
     if (!isProduct(body)) throw new Error("Not a downloadable product.");
+    // A saved file is named by the service's authorized response for these
+    // exact bytes (a working file keeps its own name and type there), never
+    // by the stored body's neutral name; unsafe or absent metadata saves
+    // nothing.
+    const native =
+      body.kind === "file" ? deliveredFilename(result.response.headers) : null;
+    if (body.kind === "file" && !native)
+      throw new Error(
+        "Download metadata was not safe or complete. No file was saved.",
+      );
     const filename =
       body.kind === "file"
-        ? body.filename
+        ? native!
         : body.kind === "table"
           ? tableFilename(body)
           : `tool-${body.entrypoint}.wat`;

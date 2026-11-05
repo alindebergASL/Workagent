@@ -1,0 +1,30 @@
+{
+  "verdict": "SCOPED_PASS_NO_MATERIAL_DEFECT_FOUND",
+  "post088_dispatch_acceptance": "pending_parent_fresh_pg_result_at_review_cutoff",
+  "branch": "hermes/b2-conversational-client",
+  "head": "b9d76aba281c0b6223e68d0af7548df16348aabf",
+  "reviewer_database_connections": 0,
+  "reviewer_provider_calls": 0,
+  "reviewer_offline_tests": {"passed": 12, "deselected": 21},
+  "independent_snapshot_comparison": {"equal": true, "non_journal_tables": 73, "rows": 226},
+  "source_sha256": {
+    "backend/migrations/061_office_outputs.sql": "b38984f4ab3b145e1eaed906b7ab4fcbae15fc2a286733f0a98653da5892acc0",
+    "backend/migrations/088_named_office_exports.sql": "5247783723868cbfbc1c1cc99ef1800fb5b2839555cdcb85af3e03f3817e53f7",
+    "backend/tests/test_named_export_dispatch_pg.py": "9b1df5b88212c728e9d488dd70e9c50b7275bb91ec77aacc406df28017667fa6",
+    "backend/tests/test_implementation_releases.py": "ede64c5709c66410a1adbfbb813b9a56a95ff36ebc619ecb9659f07cf432c1bd",
+    "backend/tests/test_office_pg.py": "c1e3ea06af10cf7954d128f1a140a96bb370c936c04b73ef7e30dbff2f48b2a6",
+    "backend/tests/test_office_acceptance.py": "9589b75086d7f8ff5284ca093544531701f6accdcba1cabe04dedf1c013f3b6e",
+    "backend/workagent/capabilities/implementation_releases.py": "0c275e235022a7111aeb315f4ed06cd3a17ba74f1ab3c171618cc3c7d746b9b2",
+    "backend/migrations/081_capability_implementation_releases.sql": "b2a71b7db1e33c4f7666483623e077fd8a8726af44b5f8ca0a50007f6b6bd8a7"
+  },
+  "evidence_sha256_relative_to_report": {
+    "migration_probe.py": "9c4030c0720d816d3e78c1516099cce8526240976e2eda42d2a86b1b0bafaf93",
+    "MIGRATION088.json": "9c14af15652f1840f966523bf83a56e039f6d84a320358a7fec5a5d506d136d6",
+    "PG_BEFORE088.json": "76766e0ceb62e5ae3903abcd8c3e9b83e7f157ea5344772af9b2a37a62f442fc",
+    "PG_AFTER088.json": "76766e0ceb62e5ae3903abcd8c3e9b83e7f157ea5344772af9b2a37a62f442fc",
+    "migration-01.log": "81a948b67996f7461c7b488f25e5ad7e79cb1d795cf1e74894fc1eca63803193",
+    "pg-debug.log": "c095747f649c2411cb2cf3e118280a8b3901fb5d9d91c3dd9229adfdd4106773",
+    "pg-02.log": "ba16fa7d690a6b7b9b7e45518b2f12e304f8cd476b13fb2f1a288ad3eb2de91e",
+    "reviewer-offline.log": "873ddfeda459efc2e91df99724504f71cfd0b667a3257763b894f4a1171c05dd"
+  }
+}

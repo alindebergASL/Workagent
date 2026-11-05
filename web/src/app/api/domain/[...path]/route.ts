@@ -357,13 +357,26 @@ async function route(
     const mime = upstream.headers.get("content-type")?.split(";")[0];
     const disposition = upstream.headers.get("content-disposition") ?? "";
     const digest = upstream.headers.get("x-content-sha256") ?? "";
+    // Ordinary product downloads: the legacy csv/txt/wat products plus the
+    // native working-file text formats. Exact extension → MIME pairs only;
+    // a mismatch is refused, never sniffed or relabelled.
+    const productMime: Record<string, string> = {
+      csv: "text/csv",
+      txt: "text/plain",
+      wat: "application/wasm-text",
+      md: "text/markdown",
+      markdown: "text/markdown",
+      json: "application/json",
+    };
+    const productExt =
+      /^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|wat|txt|md|markdown|json)"$/.exec(
+        disposition,
+      )?.[1];
     if (
       download &&
       (!mime ||
-        !["text/csv", "text/plain", "application/wasm-text"].includes(mime) ||
-        !/^attachment; filename="[A-Za-z0-9][A-Za-z0-9_-]{0,80}\.(csv|wat|txt)"$/.test(
-          disposition,
-        ) ||
+        !productExt ||
+        productMime[productExt] !== mime ||
         !/^[a-f0-9]{64}$/.test(digest))
     )
       return error(

@@ -1,0 +1,14 @@
+{
+  "scope": "owned synthetic disposable fixture only",
+  "migration_sha256": "5247783723868cbfbc1c1cc99ef1800fb5b2839555cdcb85af3e03f3817e53f7",
+  "exact_whole_function_delta": true,
+  "rollback": true,
+  "ordinary_migrate_twice": true,
+  "guard_cases": 12,
+  "forged_worker_attempt_denied": true,
+  "predecessor_drift_denied": true,
+  "preserved_tables": 73,
+  "preserved_rows": 226,
+  "original_stores_touched": false,
+  "provider_calls": 0
+}

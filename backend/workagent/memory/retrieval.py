@@ -37,7 +37,7 @@ def procedure_relevant(revision, request_text):
 
 
 class MemoryRetrieval:
-    def _recall_memory(self, c, p, ws, cid, *, query='', kind=None, status=None,
+    def _memory_batches(self, c, p, ws, cid, *, query='', kind=None, status=None,
                        subject_key=None, predicate_key=None, at=None, autonomous=False, human_request=''):
         at = at or now()
         cv = self._memory_scope(c, p, ws, 'task', cid)
@@ -125,6 +125,10 @@ class MemoryRetrieval:
             batch = [i for i in groups[(r.subject_key, r.predicate_key)] if i in eligible] if item.unresolved_conflict else [item]
             batches.append(batch)
             seen.update(i.revision.memory_id for i in batch)
+        return batches
+
+    def _recall_memory(self, c, p, ws, cid, **filters):
+        batches = self._memory_batches(c, p, ws, cid, **filters)
         result, chars, omitted = [], 0, False
         for batch in batches:
             size = sum(len(i.revision.content or '') + len(i.revision.applicability or '') +
@@ -136,6 +140,61 @@ class MemoryRetrieval:
             result.extend(batch)
             chars += size
         return MemoryPage(items=result, has_more=omitted)
+
+    def discover_memory(self, p, ws, cid, *, cursor=None, limit=20, **filters):
+        """Human summaries, independent of the model's whole-dispute prompt packer.
+
+        Positions contain only an already authorized ID and a visible-state digest,
+        not denied scan positions. They grant no authority. Recompute authorization,
+        effective revisions and entire conflict groups on every request. Changes
+        invalidate rather than silently skip newly effective memories.
+        """
+        from ..service import digest
+        from .models import HumanMemoryPage, HumanMemorySummary
+        if not isinstance(limit, int) or isinstance(limit, bool) or not 1 <= limit <= 50:
+            raise DomainError('validation_error')
+        filters = {'query': '', 'kind': None, 'status': None, 'subject_key': None,
+                   'predicate_key': None, **filters}
+        with self.db.transaction() as c:
+            generation = self._scope(c, p, ws)
+            batches = self._memory_batches(c, p, ws, cid, **filters)
+            items = sorted((i for batch in batches for i in batch), key=lambda i: i.revision.memory_id)
+            stamp = digest(dict(workspace=ws, principal=p.id, conversation=cid,
+                generation=generation, filters=filters,
+                visible=[i.model_dump(mode='json') for i in items]))
+            after = ''
+            if cursor is not None:
+                if (not isinstance(cursor, str) or len(cursor) > 256 or
+                    not cursor.startswith(stamp + ':')):
+                    raise DomainError('source_changed')
+                after = cursor[65:]
+                if not any(i.revision.memory_id == after for i in items):
+                    raise DomainError('source_changed')
+            remaining = [i for i in items if i.revision.memory_id > after]
+            selected = remaining[:limit]
+            more = len(remaining) > limit
+            return HumanMemoryPage(items=[HumanMemorySummary(
+                memory_id=i.revision.memory_id, revision_id=i.revision.revision_id,
+                kind=i.revision.kind, scope_kind=i.revision.scope_kind,
+                subject_key=i.revision.subject_key, predicate_key=i.revision.predicate_key,
+                status=i.revision.status, excerpt=(i.revision.content or '')[:240],
+                unresolved_conflict=i.unresolved_conflict,
+                contradiction_group_id=i.revision.contradiction_group_id) for i in selected],
+                has_more=more, next_cursor=stamp + ':' + selected[-1].revision.memory_id if more else None)
+
+    def read_discovered_memory(self, p, ws, cid, mid, revision_id, *, status=None):
+        # Return the complete *effective* revision, with current conflict semantics.
+        # The legacy inspector instead returns the mutable head plus history.
+        from ..errors import deny
+        with self.db.transaction() as c:
+            self._scope(c, p, ws)
+            for batch in self._memory_batches(c, p, ws, cid, status=status):
+                for item in batch:
+                    if item.revision.memory_id == mid:
+                        if item.revision.revision_id != revision_id:
+                            raise DomainError('source_changed')
+                        return item
+            deny()
 
     def list_memory(self, p, ws, cid, **filters):
         with self.db.transaction() as c:

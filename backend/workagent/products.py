@@ -16,6 +16,20 @@ def byte_hash(text):
     return hashlib.sha256(text.encode('utf-8')).hexdigest()
 
 
+def is_builtin_operation(operation):
+    """Closed classification, not authority; each built-in keeps its own guards.
+
+    The gateway routing table is not the universe of admitted operations. Use
+    exact classes, never the shared read base class or an arbitrary kind string.
+    """
+    from .composition import (ReadSavedWork, DiscoverSavedWork, SearchWorkContext,
+                              RecordResponsibility, AdvanceResponsibility)
+    from .retained_results import ReadResult, ReadAttachment
+    from .model_discovery import DiscoverRetainedReferences, SearchWorkContextPage
+    return type(operation) in (DiscoverRetainedReferences, SearchWorkContextPage, ReadResult, ReadAttachment, ReadSavedWork,
+        DiscoverSavedWork, SearchWorkContext, RecordResponsibility, AdvanceResponsibility)
+
+
 def explanation_readback(c,run,attempt):
     from .general_schema import GeneralExplanation
     from .general_alpha_models import ExplanationReadback
@@ -67,9 +81,16 @@ def adaptive_readback(c,run,attempt):
 
 
 def turn_state(run,c=None):
+    visible=c is None or c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
+            (run.workspace_id,run.id)).fetchone()['ok']
+    return _turn_state_from_visibility(run,c,visible)
+
+
+def _turn_state_from_visibility(run,c,visible):
+    # Internal projection only: caller supplies a current SQL visibility result
+    # from this read. Standalone callers must use turn_state's ordinary guard.
     from .service import encoded
-    if c is not None and not c.execute('SELECT research_run_dependencies_visible(%s,%s) AS ok',
-            (run.workspace_id,run.id)).fetchone()['ok']:
+    if not visible:
         # Hide every model-authored projection, not just the assistant message.
         # Immutable provider accounting is retained separately, without payload.
         return TurnState(run_id=run.id,state='unavailable',profile=run.profile,
@@ -333,7 +354,19 @@ class Products:
         with self.db.transaction() as c:
             p,run,cv,operation,base,binding,origin=resolve_selection(self,c,cap,receipt,phase)
             from .capabilities.policy import require_operation
-            require_operation(c,run,operation)
+            gateway_rejection=False
+            try:
+                if not is_builtin_operation(operation):
+                    require_operation(c,run,operation)
+            except DomainError as exc:
+                from .adaptive import enabled as adaptive_enabled
+                from .general_responses import check_pins
+                # Schema membership is not execution authority. Retain this exact
+                # denied legacy choice as feedback; never translate or execute it.
+                if (exc.code.value!='unsupported_operation' or not isinstance(operation,PublishArtifact)
+                    or not adaptive_enabled(check_pins(c,run))):
+                    raise
+                gateway_rejection=True
             prior=ledger._events(c,phase).get('tool_result')
             if prior:
                 if prior['binding']!=binding: raise DomainError('source_changed')
@@ -352,7 +385,22 @@ class Products:
         from .capabilities.office_adapters import ArtifactsOfficeExport
         from .composition import READ_DECISIONS, AdvanceResponsibility, ReadSavedWork, DiscoverSavedWork, SearchWorkContext, execute_read
         from .retained_results import ReadResult, ReadAttachment, read as read_retained
-        if isinstance(operation,(ReadResult,ReadAttachment)):
+        if gateway_rejection:
+            diagnostic={'code':'gateway_operation_rejected','detail':
+                'Legacy publish_artifact is unavailable with the installed capability gateway. '
+                'Choose an authorized files_create_draft or files_propose_patch operation; '
+                'no artifact was created or changed by this rejected choice.'}
+            staged={'status':'rejected','body':None,'file':None,'output':None,'binding':binding,
+                    'diagnostic':diagnostic,'reason':diagnostic['detail']}
+        elif is_builtin_operation(operation) and operation.kind in ('discover_retained_references','search_work_context_page'):
+            from .model_discovery import execute as discover_page
+            from .general_responses import check_pins
+            with self.db.transaction() as c:
+                current=resolve_selection(self,c,cap,receipt,phase)
+                if current[5]!=binding: raise DomainError('source_changed')
+                read=discover_page(self,c,current[0],current[1],current[2],check_pins(c,current[1]),operation,phase,binding)
+            staged={'status':'reply','body':None,'file':None,'output':None,'binding':binding,'capability_result':read}
+        elif isinstance(operation,(ReadResult,ReadAttachment)):
             with self.db.transaction() as c:
                 current=resolve_selection(self,c,cap,receipt,phase)
                 if current[5]!=binding: raise DomainError('source_changed')
@@ -577,6 +625,11 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome)]
+                else:
+                    # P5: continuity text-only terminal answer with no saved worker
+                    # artifact gets an editable materialization before settlement.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
             elif staged['status']=='observed' and adaptive_outcome in (None,'completed','needs_validation'):
                 body=(type(operation.body) if isinstance(operation,PublishArtifact) else TableBody if isinstance(operation,ReconcileCSV) else ToolBody).model_validate(staged['body'])
@@ -596,6 +649,12 @@ class Products:
                 if run.state=='partial':
                     from .adaptive import unresolved_summary
                     run.unresolved=[unresolved_summary(staged.get('reason') or adaptive_outcome or 'Local verification failed.') ]
+                else:
+                    # P5: a terminal text-only reply with no saved worker artifact
+                    # gets an editable materialization before the run settles,
+                    # so dependent transitions keep a selectable target.
+                    if self._reply_artifact_required(c,run,cv):
+                        self._materialize_text_reply(c,p,run,cv,text)
                 acknowledge(c,run.workspace_id,run.id)
                 self._event(c,p,run.workspace_id,'complete_run',run.id)
             if alpha and staged.get('decision',{}).get('work_area') is not None:
@@ -743,16 +802,26 @@ class Products:
             return ObservationReadback(observation=observation,binding_state=state,current_scope=scope_current)
 
     def download_product(self,p,ws,aid,revision_id=None,proposal_id=None):
-        if proposal_id is not None:
-            if revision_id is not None: raise DomainError('validation_error')
-            with self.db.transaction() as c:
-                self._scope(c,p,ws)
+        if proposal_id is not None and revision_id is not None:
+            raise DomainError('validation_error')
+        with self.db.transaction() as c:
+            self._scope(c,p,ws)
+            if proposal_id is not None:
                 proposal,_,_=self._proposal(c,p,ws,proposal_id)
                 if proposal.artifact_id!=aid: deny()
                 body=proposal.body
-        else:
-            artifact=self.get_artifact(p,ws,aid,revision_id)
-            body=(artifact.requested_revision or artifact.current_revision).body
+            else:
+                # Preserve get_artifact's current AND requested revision checks,
+                # in the same transaction as immutable delivery metadata.
+                artifact,owner=self._artifact(c,p,ws,aid)
+                current=self._revision(c,p,ws,artifact,owner)
+                requested=self._revision(c,p,ws,artifact,owner,revision_id) if revision_id else None
+                body=(requested or current).body
+            if isinstance(body,FileBody):
+                row=self._artifact_file_metadata(c,p,ws,aid)
+                if row is not None:
+                    from .workspace_files import native_download
+                    return native_download(body,row)
         if isinstance(body,FileBody):
             return body
         if isinstance(body,ToolBody):

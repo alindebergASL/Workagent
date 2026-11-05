@@ -40,7 +40,22 @@ def main():
     from workagent.capabilities.mcp_composition import GatewayMCPDecision
     from workagent.capabilities.delegation_composition import GatewayDelegationDecision
     from workagent.capabilities.delegation import ChildOutput, VerificationOutput
-    outputs={'connector-status.schema.json':ConnectorStatus.model_json_schema(),
+    from workagent.discovery_composition import GatewayDiscoveryDecision
+    from workagent.model_discovery import descriptors as discovery_descriptors
+    from workagent.discovery_composition import SCHEMA as discovery_schema
+    from hashlib import sha256
+    proposal=ROOT/'backend'/'migrations'/'084_model_discovery_v2.sql'
+    if proposal.exists() and sha256(discovery_schema.material).hexdigest() not in proposal.read_text():
+        raise SystemExit('Discovery SQL/schema pin drift')
+    from workagent.current_gateway import GatewayCurrentDecision, CurrentGatewayCatalog, SCHEMA as current_schema
+    current_sql=ROOT/'backend'/'migrations'/'087_current_gateway_contract.sql'
+    if sha256(current_schema.material).hexdigest() not in current_sql.read_text():
+        raise SystemExit('Current gateway SQL/schema pin drift')
+    outputs={'gateway-current-decision.schema.json':GatewayCurrentDecision.model_json_schema(),
+             'gateway-capability-page.schema.json':CurrentGatewayCatalog.model_json_schema(),
+             'gateway-discovery-decision.schema.json':GatewayDiscoveryDecision.model_json_schema(),
+             'model-discovery-capabilities-v2.json':discovery_descriptors(),
+             'connector-status.schema.json':ConnectorStatus.model_json_schema(),
              'gateway-delegation-decision.schema.json':GatewayDelegationDecision.model_json_schema(),
              'delegation-child-output.schema.json':ChildOutput.model_json_schema(),
              'delegation-verification-output.schema.json':VerificationOutput.model_json_schema(),

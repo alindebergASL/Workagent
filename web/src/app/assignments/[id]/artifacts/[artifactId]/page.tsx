@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
 import { WorkSurface } from "@/components/WorkSurface";
+import { AssignmentArtifactRoute } from "@/components/AssignmentArtifactRoute";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { api, newCommandId } from "@/lib/client/api";
+import { api, API_MODE, newCommandId } from "@/lib/client/api";
 import { useResource } from "@/lib/client/hooks";
 import type { WorkspaceScope } from "@/lib/client/workspace";
 import { scopedHref } from "@/lib/scope";
@@ -58,7 +59,17 @@ const KIND_LABEL: Record<Artifact["kind"], string> = {
 
 export default function ArtifactPage() {
   return (
-    <ScopedRecord>{(scope) => <ArtifactView scope={scope} />}</ScopedRecord>
+    <ScopedRecord>
+      {(scope) =>
+        API_MODE === "mock" ? (
+          <ArtifactView scope={scope} />
+        ) : (
+          <AssignmentArtifactRoute scope={scope}>
+            <ArtifactView scope={scope} />
+          </AssignmentArtifactRoute>
+        )
+      }
+    </ScopedRecord>
   );
 }
 

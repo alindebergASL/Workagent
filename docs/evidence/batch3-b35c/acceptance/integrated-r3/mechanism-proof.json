@@ -1,0 +1,59 @@
+{
+  "scope": "scripted-current-gateway-mechanism-not-model-usefulness",
+  "run_id": "ff4e2f22-c8a6-4199-8a11-1d62a9be504a",
+  "worker_processes": [
+    {
+      "state": "interrupted_after_committed_draft",
+      "pid": 2363926
+    },
+    {
+      "state": "ready",
+      "pid": 2365271
+    },
+    {
+      "state": "ready",
+      "pid": 2368344
+    },
+    {
+      "state": "ready",
+      "pid": 2368605
+    }
+  ],
+  "provider_creates": 7,
+  "provider_counts": 7,
+  "native_observations": 5,
+  "request_sha256": {
+    "final": "3d72151fc637ee61eabedfc9acac5901fee09c9b3283503f256a8476d66214ca",
+    "selection": "7903e660f344e15e9d67ff80a25702da9fd5c1fe26b76833ac47fd3826c48adf",
+    "selection_2": "4a75c8721bc0d1db51938f0075a5d50c2d5919c523ed08be014180ea36e70f28",
+    "selection_3": "e6d00aae6a5837898c715f931769782ffde45f6475b996e89d7394c8f4781c45",
+    "selection_4": "68c90ce30c933edbaa9008c1d0c8e5135f7e9185d8aacc48657eb63ec4920f6a",
+    "selection_5": "e5bb5ad1302eca07998e336b667055969dea94b1cfa3867e5e9c48e37da73562",
+    "selection_6": "da2a7b0709e1c5d815e10b102d34e68ebc85d86fddb9810617557a437c1dd752"
+  },
+  "downloads": [
+    {
+      "filename": "field-notes.md",
+      "mime_type": "text/markdown",
+      "sha256": "379efa204783ea8ff8d6f76f849c30f5b789506d441f84cead6b9d882a3ab8e6"
+    },
+    {
+      "filename": "field-counts.csv",
+      "mime_type": "text/csv",
+      "sha256": "eb3ddaba6782a4a28fef09329ef4747235505420214290554f898be63d54f0f2"
+    }
+  ],
+  "human_version_id": "9b535bdb-9b02-4224-883e-cc274694befe",
+  "human_sha256": "73bfa002297f40e91f39c54af2c3e4da35bfea7b64dd39c30ea02f37f7577448",
+  "generated_human_edit": {
+    "file_id": "e053f8b2-ae21-444f-819a-c5c4d36ed6e5",
+    "previous_version_id": "5a9c22ba-b07c-4223-919e-a52f4fbe9a9a",
+    "version_id": "43d70c45-b4e6-405e-a22b-9c4cc89043a2",
+    "sha256": "a6f3cb0d599125fb51bf9fe4d62ae8021a6e1f535ed76d38cd79403554091b3e",
+    "export_id": "6da58607-248e-4efe-a7f9-66caf93e21a3",
+    "historical_export_sha256": "379efa204783ea8ff8d6f76f849c30f5b789506d441f84cead6b9d882a3ab8e6",
+    "completed_replay_unchanged": true
+  },
+  "completed_replay_unchanged": true,
+  "unauthorized_downloads_denied": true
+}

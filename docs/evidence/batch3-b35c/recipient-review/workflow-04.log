@@ -1,0 +1,76 @@
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 156, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 679, "utf8_bytes": 3013}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 124, "utf8_bytes": 448}}, "estimated_input_tokens": 15708, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 67909, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "0a678c34a71a8d73769cce1439b71f6e9573aceebe3a820132e7002999aedbf6", "run_id": "964d8c9e-facc-4144-8498-3274426b0878"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 687, "utf8_bytes": 1995}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 156, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 1266, "utf8_bytes": 4276}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 324, "utf8_bytes": 976}}, "estimated_input_tokens": 17201, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 71992, "phase": "selection_2", "provider_count_authoritative": true, "request_sha256": "913f5ab195288eb05b1dbd58da0668e0ade944a90808e46cad0a60ca039ed22b", "run_id": "964d8c9e-facc-4144-8498-3274426b0878"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 687, "utf8_bytes": 1995}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 420, "utf8_bytes": 1570}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 156, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 1266, "utf8_bytes": 4276}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 324, "utf8_bytes": 976}}, "estimated_input_tokens": 9092, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 42189, "phase": "final", "provider_count_authoritative": true, "request_sha256": "adcfbf2ef6e50bff156c63a0782913bcfa1eec3b5b7cd36f4fcd5d26c24a104a", "run_id": "964d8c9e-facc-4144-8498-3274426b0878"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 10, "utf8_bytes": 33}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 160, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 768, "utf8_bytes": 3232}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 124, "utf8_bytes": 448}}, "estimated_input_tokens": 15804, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 68146, "phase": "selection", "provider_count_authoritative": true, "request_sha256": "7cbb01d04db2dd7bcc065bdff4f5a45ed479a688bd6430e53d7e1eb5a6473a8c", "run_id": "ffbaf00f-bfc3-4e78-baaa-86a430f258ef"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 698, "utf8_bytes": 1995}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 1, "utf8_bytes": 2}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 160, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 1368, "utf8_bytes": 4495}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 1, "utf8_bytes": 4}, "tools": {"estimated_tokens": 8586, "utf8_bytes": 31605}, "work_area_context": {"estimated_tokens": 325, "utf8_bytes": 976}}, "estimated_input_tokens": 17322, "estimated_packing_ceiling": 37000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 72229, "phase": "selection_2", "provider_count_authoritative": true, "request_sha256": "9828d60e44054db58070755e92a6b4514456221dc6107a5ae1a150508bdc68e5", "run_id": "ffbaf00f-bfc3-4e78-baaa-86a430f258ef"}
+{"component_estimates_additive": false, "components": {"adaptive": {"estimated_tokens": 698, "utf8_bytes": 1995}, "composition": {"estimated_tokens": 1428, "utf8_bytes": 6603}, "continuation_history": {"estimated_tokens": 425, "utf8_bytes": 1570}, "dependencies": {"estimated_tokens": 1, "utf8_bytes": 4}, "durable_work": {"estimated_tokens": 1, "utf8_bytes": 4}, "instructions": {"estimated_tokens": 4426, "utf8_bytes": 24358}, "messages": {"estimated_tokens": 160, "utf8_bytes": 443}, "other_context": {"estimated_tokens": 1368, "utf8_bytes": 4495}, "saved_work": {"estimated_tokens": 24, "utf8_bytes": 95}, "target_body": {"estimated_tokens": 1, "utf8_bytes": 4}, "text": {"estimated_tokens": 65, "utf8_bytes": 267}, "tools": {"estimated_tokens": 1, "utf8_bytes": 2}, "work_area_context": {"estimated_tokens": 325, "utf8_bytes": 976}}, "estimated_input_tokens": 9218, "estimated_packing_ceiling": 45000, "estimator": "o200k_base_local_estimate", "event": "request_input_budget", "input_limit": 50000, "input_utf8_bytes": 42426, "phase": "final", "provider_count_authoritative": true, "request_sha256": "c3729098ffc11c2b6ce45e94624f34625d5f58c4b41b888c02ab83ec45b76576", "run_id": "ffbaf00f-bfc3-4e78-baaa-86a430f258ef"}
+Created isolated database workagent_test_be2da899474f; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8/B1/fresh.private.env. No credentials printed.
+Created isolated database workagent_test_c987b5a4365a; environment: /home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8/M1/fresh.private.env. No credentials printed.
+{
+  "status": "BLOCKER_REPRODUCED",
+  "scope": "fresh real product DB, actual full-tool worker, scripted official HTTP wire; not live study",
+  "evidence": ".local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8",
+  "results": [
+    {
+      "arm": "B1",
+      "database": "workagent_test_be2da899474f",
+      "worker_state": "ready",
+      "tool_granted": true,
+      "full_tool_schema": true,
+      "memory_mode": "off",
+      "artifact_body_type": "FileBody",
+      "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+      "artifact_unchanged": true,
+      "legacy_effects_denied": true,
+      "simulated_wire_calls": 6,
+      "network_provider_calls": 0,
+      "dispatches": 3,
+      "retained_usd": "0.01125000000000000000",
+      "tool_capabilities": [
+        "context.read",
+        "files.inspect_json",
+        "capabilities.discover_legacy",
+        "procedures.load_legacy",
+        "files.list",
+        "files.read_range",
+        "files.create_draft",
+        "files.propose_patch",
+        "files.compare",
+        "artifacts.export",
+        "research.capture",
+        "research.cite"
+      ]
+    },
+    {
+      "arm": "M1",
+      "database": "workagent_test_c987b5a4365a",
+      "worker_state": "ready",
+      "tool_granted": true,
+      "full_tool_schema": true,
+      "memory_mode": "reviewed-v1",
+      "artifact_body_type": "FileBody",
+      "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+      "artifact_unchanged": true,
+      "legacy_effects_denied": true,
+      "simulated_wire_calls": 6,
+      "network_provider_calls": 0,
+      "dispatches": 3,
+      "retained_usd": "0.01125000000000000000",
+      "tool_capabilities": [
+        "context.read",
+        "files.inspect_json",
+        "capabilities.discover_legacy",
+        "procedures.load_legacy",
+        "files.list",
+        "files.read_range",
+        "files.create_draft",
+        "files.propose_patch",
+        "files.compare",
+        "artifacts.export",
+        "research.capture",
+        "research.cite"
+      ]
+    }
+  ],
+  "provider_calls": 0
+}

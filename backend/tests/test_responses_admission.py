@@ -99,3 +99,40 @@ def test_real_advisory_lock_wait_can_roll_back_without_io(context, tmp_path, mon
     assert waited and waited[0] >= 0.3
     assert totals(context[0], grant) == before and len(fake.calls) == 1
     assert 'dispatch' not in ledger.snapshot('selection', cap)[1]
+
+
+@pytest.mark.parametrize('damage',['revoked','stale','context'])
+def test_scheduling16_postcommit_cutoff_still_checks_current_authority(context,tmp_path,monkeypatch,damage):
+    from types import SimpleNamespace
+    from test_responses_leases import setup_family,visit
+    import workagent.responses_worker as module
+    s,p,ws,refs,admin=context
+    grant,queued,fake,w,phases=setup_family(context,tmp_path,'general')
+    clock=[0.0];deadlines=[];reserve=phases._reserve_http;original_deadline=phases._visit_deadline
+    monkeypatch.setattr(module,'time',SimpleNamespace(monotonic=lambda:clock[0],sleep=lambda _:None))
+    def deadline(cap):
+        result=original_deadline(cap);deadlines.append(result);return result
+    monkeypatch.setattr(phases,'_visit_deadline',deadline)
+    committed=[]
+    def invalidate(*args,**kwargs):
+        result=reserve(*args,**kwargs)
+        if args[2]=='dispatch' and result is not None:
+            clock[0]=deadlines[0]+0.1
+            with Database(admin).transaction() as c:
+                committed.extend(c.execute('SELECT to_jsonb(e) v FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.run_id=%s ORDER BY e.id',(queued.run.id,)).fetchall())
+                if damage=='revoked':c.execute('UPDATE provider_grants SET active=false WHERE id=%s',(grant.id,))
+                elif damage=='stale':c.execute("UPDATE runs SET data=jsonb_set(data,'{fence}',to_jsonb((data->>'fence')::int+1)) WHERE id=%s",(queued.run.id,))
+                else:
+                    # Current valid source access remains, but the previously
+                    # frozen context no longer equals the current conversation.
+                    c.execute("UPDATE conversations SET data=jsonb_set(data,'{selected_source_refs}',%s::jsonb) WHERE workspace_id=%s AND id=%s",
+                              (json.dumps([refs[0].model_dump(mode='json')]),ws,queued.run.conversation_id))
+        return result
+    monkeypatch.setattr(phases,'_reserve_http',invalidate)
+    with pytest.raises(DomainError) as denied:visit(context,w,queued.run.id)
+    if damage=='context':assert denied.value.code.value=='source_changed'
+    assert len(deadlines)==1 and len(fake.calls)==1
+    with s.db.transaction() as c:
+        after=c.execute('SELECT to_jsonb(e) v FROM responses_events e JOIN provider_attempts a ON a.id=e.attempt_id WHERE a.run_id=%s ORDER BY e.id',(queued.run.id,)).fetchall()
+    assert committed and after==committed
+    assert totals(s,grant)['request_counts']==dict(count_send=1,dispatch=1,read=0,cancel=0)

@@ -1,4 +1,5 @@
 "use client";
+import { HistoryNavigation } from "@/components/HumanHistory";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
@@ -75,8 +76,8 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
   // says there is no responsibility here; never while it's unknown, denied,
   // or an earlier "none" can't be re-read.
   const legacy = rs.kind === "absent";
-  // Its published outputs live in its conversation; only the rich read
-  // projects them, and each opens at its canonical conversation address.
+  // The paged read includes originals and conversation outputs, each linked
+  // to its canonical owner independently of the bounded legacy summary.
   const outputs = useResponsibilityOutputs(
     wsId,
     id,
@@ -307,7 +308,7 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
         ) : null}
       </header>
 
-      {rich && (outputs.loading || outputs.outputs.length) ? (
+      {rich ? (
         <section
           aria-labelledby="prepared-title"
           className="stack"
@@ -316,6 +317,15 @@ function AssignmentView({ scope }: { scope: WorkspaceScope }) {
           <h2 id="prepared-title" className="section-title">
             Prepared for you
           </h2>
+          <HistoryNavigation
+            loading={outputs.loading}
+            unavailable={outputs.unavailable}
+            hasMore={outputs.hasMore}
+            hasPrevious={outputs.hasPrevious}
+            next={outputs.next}
+            first={outputs.first}
+            refresh={() => void outputs.refresh()}
+          />
           {outputs.loading ? (
             <p
               className="hint"

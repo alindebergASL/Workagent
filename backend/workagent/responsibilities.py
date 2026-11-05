@@ -331,6 +331,16 @@ class Responsibilities(ResponsibilityExecution):
             return super().control_assignment(p, ws, assignment_id, cmd)
         return self._control_responsibility(p, ws, assignment_id, cmd, legacy=True)
 
+    def list_responsibility_outputs(self, p, ws, assignment_id, after=None, limit=25):
+        from .outcomes import responsibility_outputs_page
+        with self.db.transaction() as c:
+            self._scope(c,p,ws)
+            a,_=self._responsibility_assignment(c,p,ws,assignment_id)
+            life=self._lifecycle(c,ws,a.id)
+            self._responsibility_observations(c,p,a,life.dependencies)
+            # Cancel/pause does not erase authorized saved history or admit work.
+            return responsibility_outputs_page(self,c,p,a,after,limit)
+
     def get_responsibility(self, p, ws, assignment_id):
         with self.db.transaction() as c:
             self._scope(c, p, ws)

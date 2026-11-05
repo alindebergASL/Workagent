@@ -115,7 +115,8 @@ describe("natural admission payload (contract from PR #9)", () => {
       readAttachment(new File([new Uint8Array([0xff, 0xfe])], "bin.txt")),
     ).rejects.toThrow("UTF-8");
     expect(attachmentsProblem([csv, csv])).toBeNull();
-    expect(attachmentsProblem([csv, csv, csv])).toMatch("two");
+    expect(attachmentsProblem([csv, csv, csv])).toBeNull();
+    expect(attachmentsProblem([csv, csv, csv, csv])).toMatch("three");
     const big = { ...csv, content: "é".repeat(100001) }; // 200002 bytes
     expect(attachmentsProblem([big])).toMatch("200 KB");
   });

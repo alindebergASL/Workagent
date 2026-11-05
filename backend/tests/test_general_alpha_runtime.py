@@ -95,7 +95,13 @@ def test_direct_answer_is_substantive_ready_not_goal_completion(context,tmp_path
     assert detail.turns[0].state=='replied' and detail.turns[0].adaptive.outcome=='answered'
     assert not detail.turns[0].adaptive.steps[0].verification.satisfied
     assert detail.turns[0].adaptive.steps[0].verification.requested_goal_status=='needs_validation'
-    assert not detail.artifact_ids
+    # P5: a ready text-only answer is materialized as one editable reply artifact;
+    # no product observation or capability result exists for it.
+    assert len(detail.artifact_ids)==1
+    from workagent.product_models import FileBody
+    reply=s.get_artifact(p,ws,detail.artifact_ids[0]).current_revision
+    assert isinstance(reply.body,FileBody) and reply.body.content==text
+    assert reply.author_kind=='worker'
     assert detail.turns[0].adaptive.steps[0].capability_result is None
     assert all(d['availability']=='unavailable' for d in fake.contexts[0]['composition']['capabilities'] if d['name'] in ('email','calendar','web','shell'))
     before=list(fake.calls)

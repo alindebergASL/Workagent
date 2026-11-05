@@ -200,7 +200,11 @@ print(json.dumps({'workspace':ws,'artifact_id':artifact.id,'grant_id':historical
     migrate(owner);migrate(owner)
     with Database(runtime).transaction() as c:
         for table in preserved_tables:
-            assert c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()==before[table]
+            # Later migrations may add nullable columns (072 producer_run_id);
+            # preservation is about the historical column set, not SELECT * shape.
+            current=c.execute(f'SELECT * FROM {table} WHERE workspace_id=%s ORDER BY id',(ws,)).fetchall()
+            historical=list(before[table][0].keys()) if before[table] else []
+            assert [{k:row[k] for k in historical} for row in current]==before[table]
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name LIMIT 10').fetchall()==migrations
         assert c.execute('SELECT name,checksum FROM schema_migrations ORDER BY name').fetchall()==[
             {'name':path.name,'checksum':hashlib.sha256(path.read_bytes()).hexdigest()} for path in canonical_sql]

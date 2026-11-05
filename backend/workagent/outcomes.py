@@ -233,20 +233,68 @@ def project_responsibility_artifacts(service,c,p,assignment):
     """
     if not assignment.conversation_id:
         return assignment
+    # Backward-compatible bounded summary; the outputs route exposes every page.
+    page=responsibility_outputs_page(service,c,p,assignment,limit=100)
+    assignment.artifact_ids=[item.artifact_id for item in page.items]
+    return assignment
+
+
+def responsibility_outputs_page(service,c,p,assignment,after=None,limit=25):
+    """Live ID-keyset listing. Only a currently authorized output can anchor it.
+
+    Scan in bounded batches until an authorized lookahead proves has_more. Denied
+    candidates never appear in a count, cursor or response. No frozen permission
+    cache; current artifact AND revision dependencies are checked on every read.
+    """
+    from .errors import deny
+    from .responsibility_output_models import ResponsibilityOutput, ResponsibilityOutputPage
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise DomainError('validation_error')
     ws,cid=assignment.workspace_id,assignment.conversation_id
     service._conversation(c,p,ws,cid)
-    rows=c.execute('''SELECT a.id, min((m.data->>'sequence')::int) first_sequence
-        FROM conversation_messages m JOIN run_configurations rc
-          ON rc.workspace_id=m.workspace_id AND rc.run_id=m.run_id
-        CROSS JOIN LATERAL jsonb_array_elements(COALESCE(m.data->'result'->'results','[]'::jsonb)) item
-        JOIN artifacts a ON a.workspace_id=m.workspace_id AND a.conversation_id=m.conversation_id
-          AND a.id=item->>'artifact_id'
-        WHERE m.workspace_id=%s AND m.conversation_id=%s AND m.data->>'author_kind'='assistant'
-          AND rc.data->'responsibility'->>'assignment_id'=%s
-          AND rc.data->'responsibility'->>'conversation_id'=%s
-        GROUP BY a.id ORDER BY first_sequence,a.id LIMIT 100''',(ws,cid,assignment.id,cid)).fetchall()
-    assignment.artifact_ids=list(dict.fromkeys([*assignment.artifact_ids,*(r['id'] for r in rows)]))[:100]
-    return assignment
+    query='''SELECT a.id FROM artifacts a WHERE a.workspace_id=%s AND (
+        ((a.assignment_id=%s OR a.conversation_id=%s) AND a.id=ANY(%s)) OR
+        (a.conversation_id=%s AND EXISTS (
+            SELECT 1 FROM conversation_messages m JOIN run_configurations rc
+              ON rc.workspace_id=m.workspace_id AND rc.run_id=m.run_id
+            CROSS JOIN LATERAL jsonb_array_elements(COALESCE(m.data->'result'->'results','[]'::jsonb)) item
+            WHERE m.workspace_id=a.workspace_id AND m.conversation_id=a.conversation_id
+              AND m.data->>'author_kind'='assistant' AND item->>'artifact_id'=a.id
+              AND rc.data->'responsibility'->>'assignment_id'=%s
+              AND rc.data->'responsibility'->>'conversation_id'=%s)))'''
+    args=(ws,assignment.id,cid,assignment.artifact_ids,cid,assignment.id,cid)
+    def materialize(aid):
+        artifact,owner=service._artifact(c,p,ws,aid)
+        revision=service._revision(c,p,ws,artifact,owner)
+        return ResponsibilityOutput(artifact_id=aid,revision_id=revision.id,title=revision.body.title,
+            conversation_id=artifact.get('conversation_id'),assignment_id=artifact.get('assignment_id'))
+    if after:
+        if not c.execute(query+' AND a.id=%s',(*args,after)).fetchone():
+            deny()
+        try:
+            materialize(after)
+        except DomainError as exc:
+            if exc.code.value not in ('not_found_or_not_authorized','source_unavailable','source_changed'):
+                raise
+            deny()
+    items=[]
+    position=after or ''
+    while len(items)<=limit:
+        rows=c.execute(query+' AND a.id>%s ORDER BY a.id LIMIT %s',(*args,position,limit+1)).fetchall()
+        for row in rows:
+            position=row['id']
+            try:
+                items.append(materialize(position))
+            except DomainError as exc:
+                if exc.code.value not in ('not_found_or_not_authorized','source_unavailable','source_changed'):
+                    raise
+            if len(items)>limit:
+                break
+        if len(rows)<limit+1:
+            break
+    more=len(items)>limit
+    return ResponsibilityOutputPage(items=items[:limit],has_more=more,
+        next_after=items[limit-1].artifact_id if more else None)
 
 
 def project_assignment(service,c,p,assignment):

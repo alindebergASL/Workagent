@@ -1,0 +1,77 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.6.0 -- /home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python
+rootdir: /home/ubuntu/workagent-continuation-20261026
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 2 items / 1 deselected / 1 selected
+
+backend/tests/test_named_export_dispatch_pg.py::test_fresh_exact_pin_named_export_dispatch_and_replay[artifacts.export.office-png-field-notes.png] Traceback (most recent call last):
+  File "/home/ubuntu/workagent-continuation-20261026/.local/batch3/b35c/acceptance-integration-20261101/debug_pg.py", line 12, in traced
+    try:return adapter.invoke_fenced(*args,**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/capabilities/office_adapters.py", line 53, in invoke
+    manifest=retain_export(service,c,p,run.workspace_id,frozen,output,request.format,attempt['id'])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/office_service.py", line 111, in retain_export
+    return service._retain_export(c,p,ws,**frozen['retain'],format=format,raw=raw,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/workagent-continuation-20261026/backend/workagent/artifact_exports.py", line 139, in _retain_export
+    c.execute('INSERT INTO artifact_exports(workspace_id,id,owner_id,blob_id,data) VALUES (%s,%s,%s,%s,%s)',
+  File "/home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/psycopg/connection.py", line 257, in execute
+    raise ex.with_traceback(None)
+psycopg.errors.RaiseException: fixed office output manifest required
+CONTEXT:  PL/pgSQL function guard_office_export() line 11 at RAISE
+FAILED
+
+=================================== FAILURES ===================================
+_ test_fresh_exact_pin_named_export_dispatch_and_replay[artifacts.export.office-png-field-notes.png] _
+
+context = (<workagent.service.Service object at 0x7db22be3c8f0>, Principal(id='local-human', kind='human'), 'test-ca87d47f-c182-...time.datetime(2026, 11, 1, 1, 50, 12, 650746, tzinfo=datetime.timezone.utc)), ...], <disposable database DSN redacted>)
+name = 'artifacts.export.office', format = 'png', filename = 'field-notes.png'
+
+    @pytest.mark.parametrize('name,format,filename', [
+        ('artifacts.export', 'csv', 'field-notes.csv'),
+        ('artifacts.export.office', 'png', 'field-notes.png'),
+    ])
+    def test_fresh_exact_pin_named_export_dispatch_and_replay(context, name, format, filename):
+        s, p, ws, _, admin = context
+        cv = s.create_conversation(p, ws, cmd(CreateConversation, selected_source_refs=[]))
+        text = 'team,hours\na,0.1\na,0.2\nb,1.5\n'
+        file = s.create_workspace_file(p, ws, cv.id, cmd(CreateWorkspaceFile,
+            expected_work_version=cv.work_version, source=WorkingText(filename='field-notes.csv',
+            mime_type='text/csv', content=text, sha256=sha256(text.encode()).hexdigest())))
+        ref = InputRef(kind='workspace_file', id=file.workspace_file_id,
+                       version=file.current.version_id, sha256=file.current.sha256)
+        cap, grant, q = install(context, cv, [ref], [name])
+        descriptor = registry.adapters()[name].descriptor
+        pin_before = grant.model_dump(mode='json')
+        with Database(admin).transaction() as c:
+            installed = c.execute('SELECT descriptor FROM capability_installations WHERE id=%s AND version=%s',
+                                  (name, descriptor.version)).fetchone()['descriptor']
+            assert installed == descriptor.model_dump(mode='json')
+            assert c.execute('SELECT data FROM tool_grants WHERE id=%s', (grant.id,)).fetchone()['data'] == pin_before
+        args = dict(kind='artifacts_export' if name == 'artifacts.export' else 'artifacts_export_office',
+                    input_ref=ref.model_dump(mode='json'), format=format)
+        if format == 'png':
+            args['chart_spec'] = dict(category_column='team', value_column='hours', aggregation='sum',
+                                      title='Hours by team', x_label='Team', y_label='Hours')
+        request = call(cap, q, name, args, [ref])
+        broker = CapabilityBroker(s, cap)
+        observed = broker.call(request)
+>       assert observed.status == 'observed', observed.error
+E       AssertionError: ToolErrorV1(code='outcome_unknown', retryable=False)
+E       assert 'outcome_unknown' == 'observed'
+E         
+E         - observed
+E         + outcome_unknown
+
+backend/tests/test_named_export_dispatch_pg.py:47: AssertionError
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_named_export_dispatch_pg.py::test_fresh_exact_pin_named_export_dispatch_and_replay[artifacts.export.office-png-field-notes.png]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+================== 1 failed, 1 deselected, 1 warning in 9.22s ==================

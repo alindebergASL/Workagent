@@ -1,0 +1,69 @@
+FF.........                                                              [100%]
+=================================== FAILURES ===================================
+____________ test_reproducer_cold_controller_accepts_unanchored_b0 _____________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_cold_controlle0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7e138e210bc0>
+
+    def test_reproducer_cold_controller_accepts_unanchored_b0(tmp_path, monkeypatch):
+        # Run the real frozen input/schedule validators against byte-preserved copies.
+>       monkeypatch.setattr(sc, 'ROOT', shadow_controller_root(tmp_path))
+
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:54: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:45: in shadow_controller_root
+    shutil.copyfile(ROOT/item['path'], dest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/home/ubuntu/workagent-continuation-20261026/evaluation/public_ab_inputs.py')
+dst = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_cold_controlle0/shadow/evaluation/public_ab_inputs.py')
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+>           raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+E           shutil.SameFileError: PosixPath('/home/ubuntu/workagent-continuation-20261026/evaluation/public_ab_inputs.py') and PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_cold_controlle0/shadow/evaluation/public_ab_inputs.py') are the same file
+
+/usr/lib/python3.12/shutil.py:240: SameFileError
+_______ test_reproducer_runtime_mount_drift_survives_controller_restart ________
+
+tmp_path = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_runtime_mount_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7e138e2135c0>
+
+    def test_reproducer_runtime_mount_drift_survives_controller_restart(tmp_path, monkeypatch):
+>       shadow = shadow_controller_root(tmp_path)
+
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:68: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/batch3-b35c/controller-review/test_scoped_review.py:45: in shadow_controller_root
+    shutil.copyfile(ROOT/item['path'], dest)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+src = PosixPath('/home/ubuntu/workagent-continuation-20261026/evaluation/public_ab_inputs.py')
+dst = PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_runtime_mount_0/shadow/evaluation/public_ab_inputs.py')
+
+    def copyfile(src, dst, *, follow_symlinks=True):
+        """Copy data from src to dst in the most efficient way possible.
+    
+        If follow_symlinks is not set and src is a symbolic link, a new
+        symlink will be created instead of copying the file it points to.
+    
+        """
+        sys.audit("shutil.copyfile", src, dst)
+    
+        if _samefile(src, dst):
+>           raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
+E           shutil.SameFileError: PosixPath('/home/ubuntu/workagent-continuation-20261026/evaluation/public_ab_inputs.py') and PosixPath('/home/ubuntu/.hermes/cache/scratch/pytest-of-ubuntu/pytest-145/test_reproducer_runtime_mount_0/shadow/evaluation/public_ab_inputs.py') are the same file
+
+/usr/lib/python3.12/shutil.py:240: SameFileError
+=========================== short test summary info ============================
+FAILED docs/evidence/batch3-b35c/controller-review/test_scoped_review.py::test_reproducer_cold_controller_accepts_unanchored_b0
+FAILED docs/evidence/batch3-b35c/controller-review/test_scoped_review.py::test_reproducer_runtime_mount_drift_survives_controller_restart
+2 failed, 9 passed in 5.60s

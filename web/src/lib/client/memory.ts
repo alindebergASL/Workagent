@@ -11,11 +11,15 @@ import type {
   MemoryCAS,
   MemoryInspection,
   MemoryPage,
+  HumanMemoryPage,
+  RecalledMemory,
   MemoryReceipt,
   MemoryScopeBinding,
   MemoryUsagePage,
   NarrowMemory,
   ProcedureEvidencePage,
+  ProcedureEvidence,
+  ProcedureEvidenceDetail,
   ProposeMemory,
   ProposeProcedureMemory,
   RememberMemory,
@@ -34,15 +38,68 @@ export async function listMemory(
   conversation: string,
   status?: "candidate",
   signal?: AbortSignal,
+  query = "",
 ): Promise<MemoryPage> {
   return unwrap(
     client.GET(ROOT, {
       params: {
         path: { workspace_id: ws },
         header: meta(),
-        query: status
-          ? { conversation_id: conversation, status }
-          : { conversation_id: conversation },
+        query: {
+          conversation_id: conversation,
+          ...(status ? { status } : {}),
+          query,
+        },
+      },
+      signal,
+    }),
+  );
+}
+
+export async function discoverMemory(
+  ws: string,
+  conversation: string,
+  status?: "candidate",
+  signal?: AbortSignal,
+  query = "",
+  cursor?: string,
+): Promise<HumanMemoryPage> {
+  return unwrap(
+    client.GET(`${ROOT}/discovery`, {
+      params: {
+        path: { workspace_id: ws },
+        header: meta(),
+        query: {
+          conversation_id: conversation,
+          status,
+          query,
+          cursor,
+          limit: 20,
+        },
+      },
+      signal,
+    }),
+  );
+}
+
+export async function readDiscoveredMemory(
+  ws: string,
+  conversation: string,
+  memoryId: string,
+  revisionId: string,
+  status?: "candidate",
+  signal?: AbortSignal,
+): Promise<RecalledMemory> {
+  return unwrap(
+    client.GET(`${ROOT}/discovery/{memory_id}`, {
+      params: {
+        path: { workspace_id: ws, memory_id: memoryId },
+        header: meta(),
+        query: {
+          conversation_id: conversation,
+          revision_id: revisionId,
+          status,
+        },
       },
       signal,
     }),
@@ -97,13 +154,38 @@ export async function lessonEvidence(
   ws: string,
   conversation: string,
   signal?: AbortSignal,
+  cursor?: string,
 ): Promise<ProcedureEvidencePage> {
   return unwrap(
     client.GET(`${ROOT}/lesson-evidence`, {
       params: {
         path: { workspace_id: ws },
         header: meta(),
-        query: { conversation_id: conversation },
+        query: { conversation_id: conversation, cursor, limit: 50 },
+      },
+      signal,
+    }),
+  );
+}
+
+export async function readLessonEvidence(
+  ws: string,
+  evidence: ProcedureEvidence,
+  signal?: AbortSignal,
+): Promise<ProcedureEvidenceDetail> {
+  return unwrap(
+    client.GET(`${ROOT}/lesson-evidence/{kind}/{event_id}`, {
+      params: {
+        path: {
+          workspace_id: ws,
+          kind: evidence.kind,
+          event_id: evidence.event_id,
+        },
+        header: meta(),
+        query: {
+          conversation_id: evidence.conversation_id,
+          sha256: evidence.sha256,
+        },
       },
       signal,
     }),

@@ -216,6 +216,169 @@
       "title": "FileVersionRef",
       "type": "object"
     },
+    "HumanMemoryPage": {
+      "additionalProperties": false,
+      "properties": {
+        "has_more": {
+          "title": "Has More",
+          "type": "boolean"
+        },
+        "items": {
+          "items": {
+            "$ref": "#/$defs/HumanMemorySummary"
+          },
+          "maxItems": 50,
+          "title": "Items",
+          "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
+        },
+        "notice": {
+          "default": "Live authorized listing. Changes to visible memories or scope require refreshing from the first page. Disputed members may span pages.",
+          "title": "Notice",
+          "type": "string"
+        },
+        "ordering": {
+          "const": "memory_id",
+          "default": "memory_id",
+          "title": "Ordering",
+          "type": "string"
+        }
+      },
+      "required": [
+        "has_more"
+      ],
+      "title": "HumanMemoryPage",
+      "type": "object"
+    },
+    "HumanMemorySummary": {
+      "additionalProperties": false,
+      "properties": {
+        "contradiction_group_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contradiction Group Id"
+        },
+        "excerpt": {
+          "maxLength": 240,
+          "title": "Excerpt",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "fact",
+            "preference",
+            "project_convention",
+            "episode",
+            "procedure"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "memory_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Memory Id",
+          "type": "string"
+        },
+        "predicate_key": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Predicate Key"
+        },
+        "revision_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Revision Id",
+          "type": "string"
+        },
+        "scope_kind": {
+          "enum": [
+            "task",
+            "work_area",
+            "user"
+          ],
+          "title": "Scope Kind",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "candidate",
+            "active",
+            "contested",
+            "superseded",
+            "expired",
+            "forgotten"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "subject_key": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "minLength": 1,
+              "pattern": "^[a-z0-9][a-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Subject Key"
+        },
+        "unresolved_conflict": {
+          "title": "Unresolved Conflict",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "memory_id",
+        "revision_id",
+        "kind",
+        "scope_kind",
+        "subject_key",
+        "predicate_key",
+        "status",
+        "excerpt",
+        "unresolved_conflict"
+      ],
+      "title": "HumanMemorySummary",
+      "type": "object"
+    },
+    "JsonValue": {},
     "MemoryCAS": {
       "additionalProperties": false,
       "properties": {
@@ -1141,6 +1304,27 @@
       "title": "ProcedureEvidence",
       "type": "object"
     },
+    "ProcedureEvidenceDetail": {
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Data",
+          "type": "object"
+        },
+        "evidence": {
+          "$ref": "#/$defs/ProcedureEvidence"
+        }
+      },
+      "required": [
+        "evidence",
+        "data"
+      ],
+      "title": "ProcedureEvidenceDetail",
+      "type": "object"
+    },
     "ProcedureEvidenceOption": {
       "additionalProperties": false,
       "properties": {
@@ -1210,6 +1394,11 @@
     "ProcedureEvidencePage": {
       "additionalProperties": false,
       "properties": {
+        "has_more": {
+          "default": false,
+          "title": "Has More",
+          "type": "boolean"
+        },
         "items": {
           "items": {
             "$ref": "#/$defs/ProcedureEvidenceOption"
@@ -1217,6 +1406,19 @@
           "maxItems": 50,
           "title": "Items",
           "type": "array"
+        },
+        "next_cursor": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Cursor"
         }
       },
       "title": "ProcedureEvidencePage",
@@ -1751,11 +1953,17 @@
     "correct": {
       "$ref": "#/$defs/CorrectMemory"
     },
+    "evidence_detail": {
+      "$ref": "#/$defs/ProcedureEvidenceDetail"
+    },
     "expire": {
       "$ref": "#/$defs/MemoryCAS"
     },
     "forget": {
       "$ref": "#/$defs/MemoryCAS"
+    },
+    "human_page": {
+      "$ref": "#/$defs/HumanMemoryPage"
     },
     "inspection": {
       "$ref": "#/$defs/MemoryInspection"
@@ -1793,12 +2001,14 @@
     "receipt",
     "inspection",
     "page",
+    "human_page",
     "remember",
     "candidate",
     "review",
     "correct",
     "rollback",
     "lesson_evidence",
+    "evidence_detail",
     "narrow",
     "expire",
     "forget",

@@ -5,7 +5,7 @@
  * the same page-scope fencing. The server-side proxy injects its private
  * local bearer; none reaches JS.
  */
-import { client, unwrap, meta, command } from "./real-api";
+import { all, client, unwrap, meta, command } from "./real-api";
 import { API_BASE } from "./api";
 import { ApiError } from "@/lib/contract/errors";
 import {
@@ -47,19 +47,26 @@ export async function listFiles(
   conversation: string,
   signal?: AbortSignal,
 ): Promise<WorkspaceFilePage> {
-  return unwrap(
-    client.GET(
-      "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/files",
-      {
-        params: {
-          path: { workspace_id: ws, conversation_id: conversation },
-          header: meta(),
-          query: { limit: 100 },
+  // A page size is not a lifetime limit on discoverable saved work.
+  const items = await all(async (after) => {
+    signal?.throwIfAborted();
+    const page = await unwrap(
+      client.GET(
+        "/v1/workspaces/{workspace_id}/work-areas/{conversation_id}/files",
+        {
+          params: {
+            path: { workspace_id: ws, conversation_id: conversation },
+            header: meta(),
+            query: { limit: 100, after },
+          },
+          signal,
         },
-        signal,
-      },
-    ),
-  );
+      ),
+    );
+    signal?.throwIfAborted();
+    return { items: page.items, next_cursor: page.next_after };
+  });
+  return { items, next_after: null };
 }
 
 export async function createFile(

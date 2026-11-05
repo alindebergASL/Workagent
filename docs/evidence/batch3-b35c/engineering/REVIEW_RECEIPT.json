@@ -1,0 +1,9 @@
+{
+  "kind": "one independent read-only risk review",
+  "transcript_path": "/home/ubuntu/.hermes/cache/delegation/live/deleg_c6a1b0f9/task-0.log",
+  "transcript_sha256": "2a70433b478e15e8b62521b8600aebe2bfa6731cc9fbae059db39556a0d2ec82",
+  "status": "completed",
+  "blocking_findings": 0,
+  "parent_reran_tests": true,
+  "reviewer_reran_pg_tests": false
+}

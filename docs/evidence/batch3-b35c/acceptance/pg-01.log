@@ -1,0 +1,47 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.3.5, pluggy-1.6.0 -- /home/ubuntu/workagent-continuation-20261026/backend/.venv/bin/python
+rootdir: /home/ubuntu/workagent-continuation-20261026
+plugins: platformdirs-4.13.5, anyio-4.15.1
+collecting ... collected 0 items / 2 errors
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting backend/tests/test_office_pg.py _______________
+ImportError while importing test module '/home/ubuntu/workagent-continuation-20261026/backend/tests/test_office_pg.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+backend/tests/test_office_pg.py:13: in <module>
+    from test_domain import context,cmd,raises
+backend/tests/test_domain.py:11: in <module>
+    from fastapi.testclient import TestClient
+backend/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: in <module>
+    from starlette.testclient import TestClient as TestClient  # noqa
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:18: in <module>
+    from anyio.streams.stapled import StapledObjectStream
+backend/.venv/lib/python3.12/site-packages/anyio/streams/stapled.py:13: in <module>
+    from ..abc import (
+backend/.venv/lib/python3.12/site-packages/anyio/_lazyimport.py:47: in __getattr__
+    imported = import_module(target_mod, module_name)
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+backend/.venv/lib/python3.12/site-packages/anyio/abc/_streams.py:8: in <module>
+    from .._core._typedattr import TypedAttributeProvider
+backend/.venv/lib/python3.12/site-packages/anyio/_core/_typedattr.py:10: in <module>
+    from typing_extensions import sentinel
+E   ImportError: cannot import name 'sentinel' from 'typing_extensions' (/home/ubuntu/workagent-continuation-20261026/backend/.venv-office/lib/python3.12/site-packages/typing_extensions.py). Did you mean: 'Sentinel'?
+________________________ ERROR collecting test session _________________________
+backend/.venv/lib/python3.12/site-packages/pluggy/_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+backend/.venv/lib/python3.12/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+backend/.venv/lib/python3.12/site-packages/_pytest/main.py:648: in pytest_collectstart
+    raise self.Failed(self.shouldfail)
+E   _pytest.main.Failed: stopping after 1 failures
+=========================== short test summary info ============================
+ERROR backend/tests/test_office_pg.py
+ERROR  - _pytest.main.Failed: stopping after 1 failures
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 2 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+============================== 2 errors in 1.37s ===============================
+ERROR: found no collectors for /home/ubuntu/workagent-continuation-20261026/backend/tests/test_office_pg.py::test_run_office_chart_exact_receipt_replay_and_human_download
+

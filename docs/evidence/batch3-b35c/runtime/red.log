@@ -1,0 +1,21 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_created_draft_can_be_exported_in_same_run ________________
+backend/tests/test_run_output_workflow.py:19: in test_created_draft_can_be_exported_in_same_run
+    export=broker.call(call(cap,q,'artifacts.export',{'kind':'artifacts_export','input_ref':ref.model_dump(),'format':'txt'},[ref]))
+backend/workagent/capabilities/broker.py:28: in call
+    policy.authorize(self.service,c,self.cap,call,adapter)
+backend/workagent/capabilities/policy.py:63: in authorize
+    deny()
+backend/workagent/errors.py:33: in deny
+    raise DomainError('not_found_or_not_authorized')
+E   workagent.errors.DomainError: not_found_or_not_authorized
+=============================== warnings summary ===============================
+backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37
+  /home/ubuntu/workagent-continuation-20261026/backend/.venv/lib/python3.12/site-packages/starlette/testclient.py:37: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+    _PortalFactoryType = typing.Callable[[], typing.ContextManager[anyio.abc.BlockingPortal]]
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED backend/tests/test_run_output_workflow.py::test_created_draft_can_be_exported_in_same_run
+1 failed, 1 warning in 8.01s

@@ -79,6 +79,8 @@ def materialize(service, c, p, run, cv, current, messages, config, context, snap
             AND pr.data->>'status'='pending'
             AND pr.data->>'base_revision_id'=art.current_revision_id
             AND (pr.data->>'created_at')::timestamptz<=%s
+            AND memory_proposal_visible(pr.workspace_id,pr.id)
+            AND memory_revision_visible(art.workspace_id,art.id,art.current_revision_id)
             ORDER BY pr.id LIMIT %s''',
             (run.workspace_id, cv.id, sorted(allowed), current.created_at, MAX_PROPOSALS)).fetchall()
         proposal_ids = [r['id'] for r in rows]

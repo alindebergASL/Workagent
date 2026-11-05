@@ -137,6 +137,10 @@ class Ledger:
                 if mcp_enabled(config): DECISION_SCHEMA=MCP_SCHEMA
                 from .capabilities.delegation_composition import enabled as delegation_enabled, SCHEMA as DELEGATION_SCHEMA
                 if delegation_enabled(config): DECISION_SCHEMA=DELEGATION_SCHEMA
+                from .discovery_composition import enabled as discovery_enabled, SCHEMA as DISCOVERY_SCHEMA
+                if discovery_enabled(config): DECISION_SCHEMA=DISCOVERY_SCHEMA
+                from .current_gateway import enabled as current_enabled, SCHEMA as CURRENT_SCHEMA
+                if current_enabled(config): DECISION_SCHEMA=CURRENT_SCHEMA
                 schema=DECISION_SCHEMA if phase!='final' else EXPLANATION_SCHEMA
                 if phase!='final' and enabled(config) and alpha_enabled(config):
                     # Restore an exact recognized historical validator, never

@@ -73,6 +73,8 @@ class ToolGrantV1(Contract):
     access_generation: int = Field(ge=1)
     budget_account_id: Id
     approval_evidence: Id | None = None
+    # Explicit local-output reuse; no new URL, processor or cross-run authority.
+    allow_run_outputs: bool = False
 
 
 class ToolCallV1(Contract):

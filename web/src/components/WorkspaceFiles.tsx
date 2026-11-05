@@ -396,7 +396,6 @@ function FileCreator({
             keep({ filename: e.target.value, content });
           }}
           disabled={busy || held}
-          maxLength={85}
         />
       </label>
       <label className="field">

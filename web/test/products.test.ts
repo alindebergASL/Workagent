@@ -5,6 +5,7 @@ import {
   productApi,
   formInputs,
   attachment,
+  deliveredFilename,
   type S,
 } from "../src/lib/client/products";
 import {
@@ -423,6 +424,229 @@ describe("tool download filenames", () => {
   );
 });
 
+async function sha256Hex(text: string) {
+  return Array.from(
+    new Uint8Array(
+      await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+    ),
+  )
+    .map((x) => x.toString(16).padStart(2, "0"))
+    .join("");
+}
+describe("saved file download names (native working files)", () => {
+  // A native working file's stored body keeps its neutral historical name;
+  // the authorized response for the exact bytes carries the real one.
+  const neutral: S["Artifact"] = artifact;
+  function save() {
+    const anchor = { href: "", download: "", click: vi.fn() };
+    vi.stubGlobal("document", { createElement: () => anchor });
+    const timer = vi
+      .spyOn(globalThis, "setTimeout")
+      .mockImplementation(() => 0 as unknown as ReturnType<typeof setTimeout>);
+    const createUrl = vi
+      .spyOn(URL, "createObjectURL")
+      .mockReturnValue("blob:test");
+    return {
+      anchor,
+      restore: () => {
+        timer.mockRestore();
+        createUrl.mockRestore();
+      },
+    };
+  }
+  async function respond(
+    content: string,
+    headers: Record<string, string>,
+    digest?: string,
+  ) {
+    transport.mockResolvedValueOnce(
+      new Response(content, {
+        headers: {
+          "x-content-sha256": digest ?? (await sha256Hex(content)),
+          ...headers,
+        },
+      }),
+    );
+  }
+  it.each([
+    ["repair-clinic.md", "text/markdown", "# Repair clinic\n"],
+    ["repair-clinic.markdown", "text/markdown", "# Repair clinic\n"],
+    ["repair-clinic.csv", "text/csv", "item,cost\nlamp,4\n"],
+    ["repair-clinic.json", "application/json", '{"items":1}'],
+    ["notes.txt", "text/plain", "plain"],
+  ])(
+    "names %s from the validated response, not the neutral body",
+    async (name, mime, content) => {
+      const { anchor, restore } = save();
+      try {
+        await respond(content, {
+          "content-type": mime,
+          "content-disposition": `attachment; filename="${name}"`,
+        });
+        await productApi.download("w", neutral);
+        expect(anchor.download).toBe(name);
+        expect(anchor.click).toHaveBeenCalledOnce();
+        const url = new URL((transport.mock.calls.at(-1)![0] as Request).url);
+        expect(url.searchParams.get("revision_id")).toBe("r");
+        expect(url.searchParams.has("proposal_id")).toBe(false);
+      } finally {
+        restore();
+      }
+    },
+  );
+  it("names a proposed version from its own exact response and binds the proposal", async () => {
+    const { anchor, restore } = save();
+    try {
+      const proposal: S["Proposal"] = {
+        id: "proposed-version",
+        workspace_id: "w",
+        artifact_id: "a",
+        base_revision_id: "r",
+        base_work_version: 1,
+        body: { ...neutral.current_revision.body },
+        body_hash: hash,
+        source_dependencies: [],
+        reason: "Proposed update",
+        status: "pending",
+      };
+      await respond("a,b\n", {
+        "content-type": "text/csv; charset=utf-8",
+        "content-disposition": 'attachment; filename="repair-clinic.csv"',
+      });
+      await productApi.download("w", neutral, proposal);
+      expect(anchor.download).toBe("repair-clinic.csv");
+      const url = new URL((transport.mock.calls.at(-1)![0] as Request).url);
+      expect(url.searchParams.get("proposal_id")).toBe("proposed-version");
+      expect(url.searchParams.has("revision_id")).toBe(false);
+    } finally {
+      restore();
+    }
+  });
+  it.each([
+    ["absent name", {}],
+    ["absent type", { "content-disposition": 'attachment; filename="a.md"' }],
+    [
+      "MIME mismatch",
+      {
+        "content-type": "text/plain",
+        "content-disposition": 'attachment; filename="a.md"',
+      },
+    ],
+    [
+      "binary under a text name",
+      {
+        "content-type": "application/pdf",
+        "content-disposition": 'attachment; filename="a.pdf"',
+      },
+    ],
+    [
+      "path traversal",
+      {
+        "content-type": "text/markdown",
+        "content-disposition": 'attachment; filename="../a.md"',
+      },
+    ],
+    [
+      "header injection",
+      {
+        "content-type": "text/markdown",
+        "content-disposition":
+          "attachment; filename=\"a.md\"; filename*=UTF-8''evil.html",
+      },
+    ],
+    [
+      "quoted escape",
+      {
+        "content-type": "text/markdown",
+        "content-disposition": 'attachment; filename="a\\".md"',
+      },
+    ],
+    [
+      "inline disposition",
+      {
+        "content-type": "text/markdown",
+        "content-disposition": 'inline; filename="a.md"',
+      },
+    ],
+  ])(
+    "saves nothing for %s (no fallback to the neutral name)",
+    async (_label, headers) => {
+      const { anchor, restore } = save();
+      try {
+        await respond("x", headers as Record<string, string>);
+        await expect(productApi.download("w", neutral)).rejects.toThrow(
+          "No file was saved",
+        );
+        expect(anchor.click).not.toHaveBeenCalled();
+        expect(anchor.download).toBe("");
+      } finally {
+        restore();
+      }
+    },
+  );
+  it("saves nothing when the bytes do not match their digest", async () => {
+    const { anchor, restore } = save();
+    try {
+      await respond(
+        "# tampered",
+        {
+          "content-type": "text/markdown",
+          "content-disposition": 'attachment; filename="repair-clinic.md"',
+        },
+        await sha256Hex("# original"),
+      );
+      await expect(productApi.download("w", neutral)).rejects.toThrow(
+        "digest did not match",
+      );
+      expect(anchor.click).not.toHaveBeenCalled();
+    } finally {
+      restore();
+    }
+  });
+  it("keeps legacy table names from the saved body", async () => {
+    const { anchor, restore } = save();
+    try {
+      const table = {
+        ...neutral,
+        current_revision: {
+          ...neutral.current_revision,
+          body: {
+            kind: "table",
+            title: "Repair costs",
+            columns: ["item"],
+            rows: [{ item: "lamp" }],
+            rounding: "ROUND_HALF_UP",
+          },
+        },
+      } as unknown as S["Artifact"];
+      await respond("item\nlamp\n", {
+        "content-type": "text/csv",
+        "content-disposition": 'attachment; filename="reconciled.csv"',
+      });
+      await productApi.download("w", table);
+      expect(anchor.download).toBe("repair-costs.csv");
+    } finally {
+      restore();
+    }
+  });
+  it("validates names and exact MIME pairs strictly", () => {
+    const h = (type: string, name: string) =>
+      new Headers({
+        "content-type": type,
+        "content-disposition": `attachment; filename="${name}"`,
+      });
+    expect(deliveredFilename(h("application/wasm-text", "tool-run.wat"))).toBe(
+      "tool-run.wat",
+    );
+    expect(deliveredFilename(h("text/csv", "x.wat"))).toBeNull();
+    expect(deliveredFilename(h("application/json", "x.json.html"))).toBeNull();
+    expect(deliveredFilename(h("text/markdown", `${"a".repeat(82)}.md`))).toBe(
+      null,
+    );
+    expect(deliveredFilename(h("text/markdown", ".md"))).toBeNull();
+  });
+});
+
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
@@ -485,6 +709,47 @@ describe("same-origin download proxy", () => {
       ["text/csv", 'attachment; filename="x.csv"', ""],
     ]) {
       setup(type!, name!, digest);
+      expect((await GET(request(), params)).status).toBe(502);
+    }
+  });
+  it.each([
+    ["text/markdown", "repair-clinic.md"],
+    ["text/markdown", "repair-clinic.markdown"],
+    ["text/csv", "repair-clinic.csv"],
+    ["application/json", "repair-clinic.json"],
+    ["text/plain", "notes.txt"],
+    ["application/wasm-text", "tool-run.wat"],
+  ])(
+    "forwards %s %s with its exact name, digest and bytes",
+    async (type, name) => {
+      setup(`${type}; charset=utf-8`, `attachment; filename="${name}"`);
+      const response = await GET(request(), params);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toBe(type);
+      expect(response.headers.get("content-disposition")).toBe(
+        `attachment; filename="${name}"`,
+      );
+      expect(response.headers.get("x-content-sha256")).toBe(hash);
+      expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+      expect(await response.text()).toBe("(module)");
+    },
+  );
+  it("refuses MIME mismatches, injected and unsafe native names", async () => {
+    for (const [type, name] of [
+      ["text/plain", 'attachment; filename="x.md"'],
+      ["text/markdown", 'attachment; filename="x.csv"'],
+      ["text/html", 'attachment; filename="x.md"'],
+      ["application/json", 'attachment; filename="x.json.html"'],
+      ["application/pdf", 'attachment; filename="x.pdf"'],
+      [
+        "text/markdown",
+        "attachment; filename=\"x.md\"; filename*=UTF-8''y.html",
+      ],
+      ["text/markdown", 'inline; filename="x.md"'],
+      ["text/markdown", ""],
+      ["", 'attachment; filename="x.md"'],
+    ]) {
+      setup(type!, name!);
       expect((await GET(request(), params)).status).toBe(502);
     }
   });

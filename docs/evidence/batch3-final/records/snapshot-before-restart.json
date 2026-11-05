@@ -1,0 +1,18 @@
+{
+  "messages": [
+    {
+      "seq": 1,
+      "author": "human",
+      "sha256": "de3ab6f6fbb94a2147d0cfc25a763c69cae4c7613a9cec1109ffebf57e372b06"
+    },
+    {
+      "seq": 2,
+      "author": "assistant",
+      "sha256": "0e0e15eead0f984f9bd004f6ad9ea1223d196c4fedcd145f99c0f4a9fd83afd9"
+    }
+  ],
+  "artifact_revision": "ad481bd2-5e7a-44a4-82fe-b16caa11795b",
+  "artifact_author": "human",
+  "artifact_sha256": "4d5f1994725514469e77e3dc346ccd781839e026375ed70f059b4aaa736225e6",
+  "artifact_content_sha256": "4d5f1994725514469e77e3dc346ccd781839e026375ed70f059b4aaa736225e6"
+}

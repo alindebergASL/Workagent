@@ -1,0 +1,15 @@
+{
+  "approval": "scoped_test_accounting_correction_approved_conditions_not_yet_executed",
+  "execution_owner": "t_e07c8870",
+  "files": {
+    "docs/TEST_BUDGET_ACCOUNTING_AUTHORIZATION.md": "73d61b550c50d04caa83077ba0883536b2012ca9eabd430de5f05c2212496965",
+    "docs/evidence/batch3-b35c/integration/ADDITIVE_JOURNAL_BINDING.json": "2394be335aaeb92047d16e3ec17e775307f0626eca93e3c99e59ea5d098b467f",
+    "docs/evidence/batch3-b35c/integration/CURRENT_HANDOFF.md": "222be40caf539ba0962bc09baa683505613a141ae44e38b9503db520364e6bf3",
+    "docs/evidence/batch3-b35c/integration/package_current.py": "71c6aa1e07fd07b3a747d3474130e65de79523bcfc1ccf7a658e6cb38b3ca4f0"
+  },
+  "installed_mutations": 0,
+  "original_archive_sha256": "c321247ab422b8d844f78401bb4b2a41901a2626a167a93c2c9781bbe3b2fb43",
+  "paid_calls": 0,
+  "release": null,
+  "scope": "current_owner_approval_addendum_no_product_change"
+}

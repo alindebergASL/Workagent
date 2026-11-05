@@ -80,8 +80,10 @@ def test_whole_request_budget_includes_schema_and_preserves_current_human():
 def test_required_human_input_is_never_cut_to_fit():
     context=fixture_context(); context['messages'][-1]['text']='必ずこの指示を保持してください。'*30000
     before=deepcopy(context)
-    with pytest.raises(DomainError) as exc:build(context)
-    assert exc.value.code.value=='budget_exhausted'
+    request=build(context)
+    projected=json.loads(json.loads(request.body)['input'][0]['content'])
+    assert projected['messages'][-1]==context['messages'][-1]
+    assert request.count_body()
     assert context==before
 
 
@@ -146,20 +148,23 @@ def test_observation_growth_cannot_evict_required_human_or_tool_receipts():
     context['adaptive']={'observations':[{'capability_result':{'capability':'fetch_public_url','version':'1',
         'result':{'text':'Untrusted public text. '*50000,'trust':'untrusted_external_content'}}}]}
     before=deepcopy(context)
-    with pytest.raises(DomainError):build(context)
+    request=build(context)
+    projected=json.loads(json.loads(request.body)['input'][0]['content'])
+    assert projected['adaptive']==context['adaptive']
+    assert projected['messages'][-1]==context['messages'][-1]
     assert context==before
 
 
 def test_final_budget_counts_complete_added_history_without_truncation():
     from dataclasses import replace
     from workagent.request_packing import check_final
-    # Exercise the final guard on a valid prepared request whose complete input
-    # now exceeds the ceiling. The transport separately enforces final history.
+    # Estimates cannot reject this exact prepared history; downstream exact
+    # counting/admission still owns capacity, and no bytes may be rewritten.
     request=build(fixture_context());payload=json.loads(request.body)
     context=json.loads(payload['input'][0]['content'])
     context['required_tool_result']='不可省略の観測。'*50000
     payload['input'][0]['content']=canonical(context)
     oversized=replace(request,body=canonical(payload).encode())
     original=oversized.body
-    with pytest.raises(DomainError):check_final(oversized,input_limit=50000)
+    assert check_final(oversized,input_limit=50000) is oversized
     assert oversized.body==original

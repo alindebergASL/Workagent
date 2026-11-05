@@ -20,11 +20,14 @@ import { ApiError, describeError } from "@/lib/contract/errors";
 import { useLeaveGuard } from "@/lib/client/leave-guard";
 import { scopeState, subscribeScope } from "@/lib/client/session-scope";
 import { workAreas } from "@/lib/client/work-areas";
+import { MemoryDiscovery } from "@/components/MemoryDiscovery";
 import {
   bindMemoryScope,
   inspectMemory,
   lessonEvidence,
-  listMemory,
+  discoverMemory,
+  readDiscoveredMemory,
+  readLessonEvidence,
   readMemoryScopeBinding,
   memoryUsage,
   sendMemoryCommand,
@@ -92,6 +95,7 @@ import {
   type MemoryScopeKind,
   type MemoryUsagePage,
   type RecalledMemory,
+  type HumanMemorySummary,
   type RememberForm,
   type ReviewDecision,
 } from "@/lib/memory-contract";
@@ -198,6 +202,13 @@ export function MemoryPanel({
 
   const [items, setItems] = useState<RecalledMemory[] | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [summaries, setSummaries] = useState<HumanMemorySummary[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [listLoading, setListLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const queryRef = useRef(query);
+  queryRef.current = query;
   const [loadError, setLoadError] = useState<string | null>(null);
   /** Which server view is shown; never merged or counted locally. */
   const [view, setView] = useState<"current" | "candidate">("current");
@@ -218,6 +229,9 @@ export function MemoryPanel({
   const [chosen, setChosen] = useState<ProcedureEvidence[]>([]);
   /** A blocked submit was pressed: say why, and open what's missing. */
   const [tried, setTried] = useState(false);
+  const [evidenceHasMore, setEvidenceHasMore] = useState<boolean | null>(null);
+  const [evidenceCursor, setEvidenceCursor] = useState<string | null>(null);
+  const [evidenceDetail, setEvidenceDetail] = useState<string | null>(null);
   const [evidence, setEvidence] = useState<
     ProcedureEvidenceOption[] | { error: string } | null
   >(null);
@@ -245,11 +259,20 @@ export function MemoryPanel({
   // Everything shown belongs to exactly this key; a key change drops it all.
   useEffect(() => {
     setItems(null);
+    setHasMore(false);
+    setSummaries([]);
+    setNextCursor(null);
+    setListLoading(false);
+    setSearch("");
+    setQuery("");
+    queryRef.current = "";
     setUsage(null);
     setForms({});
     setForm(emptyRememberForm());
     setProc(emptyProcedureForm());
     setChosen([]);
+    setEvidenceDetail(null);
+    setEvidenceCursor(null);
     setEvidence(null);
     setLine(null);
     setWriting(null);
@@ -267,68 +290,150 @@ export function MemoryPanel({
     listSeq.current++;
     setAccessLost(true);
     setItems(null);
+    setHasMore(false);
+    setSummaries([]);
+    setNextCursor(null);
+    setListLoading(false);
     setUsage(null);
     setForms({});
     setBinding(undefined);
     setEvidence(null);
     setChosen([]);
+    setEvidenceDetail(null);
+    setEvidenceCursor(null);
   }, [fence]);
 
-  const refresh = useCallback(async () => {
-    if (!key) return;
+  const refresh = useCallback(
+    async (cursor?: string) => {
+      if (!key) return;
+      const asked = key;
+      // A refresh captured for a view the person has since left never runs,
+      // and never applies: it must not fence or replace the newer view's list.
+      const askedView = view;
+      const askedQuery = query;
+      if (viewRef.current !== askedView || queryRef.current !== askedQuery)
+        return;
+      // Only the newest list applies: an older read (possibly fetched before
+      // a forget) must never land on top of a newer readback.
+      const mine = ++listSeq.current;
+      setListLoading(true);
+      setItems(null);
+      setSummaries([]);
+      setNextCursor(null);
+      try {
+        const page = await discoverMemory(
+          ws,
+          cid,
+          view === "candidate" ? "candidate" : undefined,
+          undefined,
+          query,
+          cursor,
+        );
+        if (
+          liveKey.current !== asked ||
+          listSeq.current !== mine ||
+          viewRef.current !== askedView ||
+          queryRef.current !== askedQuery
+        )
+          return;
+        setSummaries(
+          (page.items ?? []).filter(
+            (it) => !forgottenIds.current.has(it.memory_id),
+          ),
+        );
+        setNextCursor(page.next_cursor ?? null);
+        setItems([]);
+        setHasMore(page.has_more);
+        setLoadError(null);
+        setListStale(false);
+        setAccessLost(false);
+      } catch (e) {
+        if (
+          liveKey.current !== asked ||
+          listSeq.current !== mine ||
+          viewRef.current !== askedView ||
+          queryRef.current !== askedQuery
+        )
+          return;
+        setLoadError(errText(e));
+        if (isAccessLoss(e)) loseAccess();
+        // Otherwise keep what was shown and every form, marked out of date;
+        // changes stay paused until a refresh succeeds.
+        else {
+          setListStale(true);
+          setItems([]);
+        }
+      } finally {
+        if (liveKey.current === asked && listSeq.current === mine)
+          setListLoading(false);
+      }
+      if (!isWorkArea)
+        readMemoryScopeBinding(ws, cid).then(
+          (b) => liveKey.current === asked && setBinding(b),
+          // Unreadable (or route missing): never treated as linked.
+          () => liveKey.current === asked && setBinding(undefined),
+        );
+    },
+    [key, ws, cid, view, query, isWorkArea, loseAccess],
+  );
+
+  const openMemory = async (summary: HumanMemorySummary) => {
     const asked = key;
-    // A refresh captured for a view the person has since left never runs,
-    // and never applies: it must not fence or replace the newer view's list.
     const askedView = view;
-    if (viewRef.current !== askedView) return;
-    // Only the newest list applies: an older read (possibly fetched before
-    // a forget) must never land on top of a newer readback.
+    const askedQuery = query;
     const mine = ++listSeq.current;
+    setItems(null);
+    setListLoading(true);
     try {
-      const page = await listMemory(
+      const item = await readDiscoveredMemory(
         ws,
         cid,
+        summary.memory_id,
+        summary.revision_id,
         view === "candidate" ? "candidate" : undefined,
       );
       if (
         liveKey.current !== asked ||
         listSeq.current !== mine ||
-        viewRef.current !== askedView
+        viewRef.current !== askedView ||
+        queryRef.current !== askedQuery
       )
         return;
       setItems(
         maskForgotten(
-          page.items.map((it) => ({
-            ...it,
-            revision: renderable(it.revision),
-          })),
+          [{ ...item, revision: renderable(item.revision) }],
           forgottenIds.current,
         ),
       );
-      setHasMore(page.has_more);
       setLoadError(null);
       setListStale(false);
-      setAccessLost(false);
     } catch (e) {
       if (
         liveKey.current !== asked ||
         listSeq.current !== mine ||
-        viewRef.current !== askedView
+        viewRef.current !== askedView ||
+        queryRef.current !== askedQuery
       )
         return;
-      setLoadError(errText(e));
       if (isAccessLoss(e)) loseAccess();
-      // Otherwise keep what was shown and every form, marked out of date;
-      // changes stay paused until a refresh succeeds.
-      else setListStale(true);
+      else {
+        setItems([]);
+        setSummaries([]);
+        setNextCursor(null);
+        setHasMore(false);
+        setListStale(true);
+        setLoadError(errText(e));
+      }
+    } finally {
+      if (
+        liveKey.current === asked &&
+        listSeq.current === mine &&
+        viewRef.current === askedView &&
+        queryRef.current === askedQuery
+      )
+        setListLoading(false);
     }
-    if (!isWorkArea)
-      readMemoryScopeBinding(ws, cid).then(
-        (b) => liveKey.current === asked && setBinding(b),
-        // Unreadable (or route missing): never treated as linked.
-        () => liveKey.current === asked && setBinding(undefined),
-      );
-  }, [key, ws, cid, view, isWorkArea, loseAccess]);
+  };
 
   useEffect(() => {
     void refresh();
@@ -367,20 +472,30 @@ export function MemoryPanel({
   // Observed events a person can cite, only while proposing a procedure.
   const proposing = form.kind === "procedure";
   const loadEvidence = useCallback(
-    () =>
+    (cursor?: string) =>
       fencedEvidence(
         fence,
-        (signal) => lessonEvidence(ws, cid, signal),
+        (signal) => lessonEvidence(ws, cid, signal, cursor),
         {
-          loading: () => setEvidence(null),
-          loaded: (offered) => {
+          loading: () => {
+            fence.cancel("evidence-detail");
+            setEvidenceDetail(null);
+            setEvidence(null);
+            setEvidenceHasMore(null);
+            setEvidenceCursor(null);
+          },
+          loaded: (offered, hasMore, nextCursor) => {
             setEvidence(offered);
-            // Only references the server still offers stay chosen.
-            setChosen((cur) =>
-              cur.filter((c) =>
-                offered.some((o) => sameEvidence(o.evidence, c)),
-              ),
-            );
+            setEvidenceHasMore(hasMore);
+            setEvidenceCursor(nextCursor);
+            // First-page refresh retains only reauthorized offers. Later pages
+            // retain explicit references, never earlier labels or bodies.
+            if (!cursor)
+              setChosen((cur) =>
+                cur.filter((c) =>
+                  offered.some((o) => sameEvidence(o.evidence, c)),
+                ),
+              );
           },
           failed: (message) => setEvidence({ error: message }),
           denied: loseAccess,
@@ -394,8 +509,25 @@ export function MemoryPanel({
     loadEvidence();
     // Leaving the proposal drops whichever evidence read is current now,
     // including a Retry that replaced the initial one.
-    return () => fence.cancel(EVIDENCE_SLOT);
+    return () => {
+      fence.cancel(EVIDENCE_SLOT);
+      fence.cancel("evidence-detail");
+    };
   }, [proposing, loadEvidence, fence]);
+
+  const openEvidence = async (ref: ProcedureEvidence) => {
+    const ticket = fence.begin("evidence-detail");
+    setEvidenceDetail(null);
+    try {
+      const detail = await readLessonEvidence(ws, ref, ticket.signal);
+      if (fence.take(ticket))
+        setEvidenceDetail(JSON.stringify(detail.data, null, 2));
+    } catch (e) {
+      if (!fence.take(ticket)) return;
+      if (isAccessLoss(e)) loseAccess();
+      else setEvidenceDetail(errText(e));
+    }
+  };
 
   const openRestore = useCallback(
     (memoryId: string, base: string) =>
@@ -442,6 +574,9 @@ export function MemoryPanel({
     return journal.onReceipt((receipt, cmd) => {
       if (receipt.status !== "forgotten" && cmd.op !== "forget") return;
       forgottenIds.current.add(receipt.memory_id);
+      setSummaries((cur) =>
+        cur.filter((it) => it.memory_id !== receipt.memory_id),
+      );
       listSeq.current++;
       dropForm(receipt.memory_id);
       setItems((cur) => (cur ? purgeForgotten(cur, receipt) : cur));
@@ -772,6 +907,13 @@ export function MemoryPanel({
             </p>
             <EvidencePicker
               options={evidence}
+              hasMore={evidenceHasMore}
+              onNext={
+                evidenceCursor
+                  ? () => void loadEvidence(evidenceCursor)
+                  : undefined
+              }
+              onInspect={(ref) => void openEvidence(ref)}
               chosen={chosen}
               disabled={writing === "remember"}
               onRetry={() => void loadEvidence()}
@@ -783,6 +925,16 @@ export function MemoryPanel({
                 )
               }
             />
+            {evidenceDetail !== null ? (
+              <details open className="stack-sm">
+                <summary>Full authorized supporting event</summary>
+                <pre
+                  style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
+                >
+                  {evidenceDetail}
+                </pre>
+              </details>
+            ) : null}
             <ProcedureFields
               value={proc}
               disabled={writing === "remember"}
@@ -867,6 +1019,9 @@ export function MemoryPanel({
               viewRef.current = v;
               setItems(null);
               setHasMore(false);
+              setSummaries([]);
+              setNextCursor(null);
+              setListLoading(false);
               setView(v);
             }}
           >
@@ -875,15 +1030,56 @@ export function MemoryPanel({
         ))}
       </div>
 
+      <form
+        className="row"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (query === search) return;
+          listSeq.current++;
+          queryRef.current = search;
+          setItems(null);
+          setHasMore(false);
+          setSummaries([]);
+          setNextCursor(null);
+          setListLoading(false);
+          setQuery(search);
+        }}
+      >
+        <label className="field">
+          <span className="field-label">Find memories in this view</span>
+          <input
+            type="search"
+            value={search}
+            maxLength={500}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </label>
+        <button type="submit" className="btn btn-sm btn-quiet">
+          Search
+        </button>
+      </form>
+      {!accessLost ? (
+        <MemoryDiscovery
+          items={summaries}
+          disabled={listLoading || busy || !!writing}
+          onOpen={(summary) => void openMemory(summary)}
+        />
+      ) : null}
       {accessLost ? null : items === null ? (
         loadError ? null : (
           <p className="small muted">Loading…</p>
         )
       ) : items.length === 0 ? (
         <p className="small muted">
-          {view === "candidate"
-            ? "Nothing is waiting for review."
-            : "Nothing is remembered for this conversation."}
+          {listStale
+            ? "This view could not be verified. Refresh from the first memory."
+            : summaries.length
+              ? "Choose a summary above to read or edit the full memory."
+              : query
+                ? "No memories matched this search in the selected view."
+                : view === "candidate"
+                  ? "Nothing is waiting for review."
+                  : "Nothing is remembered for this conversation."}
         </p>
       ) : (
         <ul
@@ -1155,8 +1351,26 @@ export function MemoryPanel({
           })}
         </ul>
       )}
-      {hasMore ? (
-        <p className="small muted">More memories exist than are shown here.</p>
+      {!accessLost && hasMore ? (
+        <p className="small muted">
+          More authorized memories are available.
+          <button
+            className="btn btn-sm btn-quiet"
+            disabled={listLoading || !nextCursor || busy || !!writing}
+            onClick={() => nextCursor && void refresh(nextCursor)}
+          >
+            Next memories
+          </button>
+        </p>
+      ) : null}
+      {!accessLost ? (
+        <button
+          className="btn btn-sm btn-quiet"
+          disabled={listLoading || !!writing}
+          onClick={() => void refresh()}
+        >
+          Refresh from first memory
+        </button>
       ) : null}
     </details>
   );
@@ -1874,16 +2088,22 @@ export function ProcedureFields({
 /** Real observed events, chosen by reference; nothing is typed by hand. */
 export function EvidencePicker({
   options,
+  hasMore = null,
   chosen,
   disabled,
   onToggle,
   onRetry,
+  onNext,
+  onInspect,
 }: {
   options: ProcedureEvidenceOption[] | { error: string } | null;
+  hasMore?: boolean | null;
   chosen: readonly ProcedureEvidence[];
   disabled: boolean;
   onToggle: (ev: ProcedureEvidence, on: boolean) => void;
   onRetry: () => void;
+  onNext?: () => void;
+  onInspect?: (ref: ProcedureEvidence) => void;
 }) {
   // "Try again" leaves while it loads: the keyboard waits on the group, and
   // returns to the button if the retry fails too.
@@ -1907,6 +2127,9 @@ export function EvidencePicker({
       aria-busy={options === null || undefined}
     >
       <legend className="field-label">What happened that supports it</legend>
+      <p className="small muted">
+        Live events, newest first. Refresh from start to include newer events.
+      </p>
       {/* Always mounted, so loading (and loading again) is announced. */}
       <p className={options === null ? "small muted" : "sr-only"} role="status">
         {options === null ? "Loading what happened here…" : ""}
@@ -1930,7 +2153,7 @@ export function EvidencePicker({
         </p>
       ) : options.length === 0 ? (
         <p className="small muted">
-          Nothing in this conversation can be cited yet.
+          No supporting events were returned for this conversation.
         </p>
       ) : (
         <>
@@ -1942,12 +2165,13 @@ export function EvidencePicker({
             const on = chosen.some((c) => sameEvidence(c, o.evidence));
             const failed = isFailureOutcome(o.outcome, o.operational_outcome);
             return (
-              <label
+              <div
                 key={`${o.evidence.kind}:${o.evidence.event_id}`}
                 className="row small memory-choice"
               >
                 <input
                   type="checkbox"
+                  aria-label={`Select ${o.label}`}
                   checked={on}
                   disabled={disabled}
                   onChange={(e) => onToggle(o.evidence, e.target.checked)}
@@ -1958,11 +2182,67 @@ export function EvidencePicker({
                 >
                   {evidenceOptionText(o)}
                 </span>
-              </label>
+                {onInspect ? (
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-quiet"
+                    disabled={disabled}
+                    onClick={() => onInspect(o.evidence)}
+                  >
+                    Read full event
+                  </button>
+                ) : null}
+              </div>
             );
           })}
         </>
       )}
+      {Array.isArray(options) && hasMore !== false ? (
+        <p className="small muted" role="status">
+          {hasMore
+            ? "More supporting events exist than are shown here."
+            : "The service does not report whether more supporting events exist."}{" "}
+          {onNext ? (
+            <button
+              type="button"
+              className="btn btn-sm btn-quiet"
+              disabled={disabled}
+              onClick={onNext}
+            >
+              Next supporting events
+            </button>
+          ) : (
+            "Refresh to check for newer events."
+          )}
+        </p>
+      ) : null}
+      {chosen.length ? (
+        <div className="small muted">
+          Selected references (including earlier pages; checked again when
+          saving):
+          {chosen.map((ref) => (
+            <button
+              key={`${ref.kind}:${ref.event_id}`}
+              type="button"
+              className="btn btn-sm btn-quiet"
+              disabled={disabled}
+              onClick={() => onToggle(ref, false)}
+            >
+              Remove {ref.kind}: {ref.event_id}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {Array.isArray(options) ? (
+        <button
+          type="button"
+          className="btn btn-sm btn-quiet"
+          disabled={disabled}
+          onClick={onRetry}
+        >
+          Refresh supporting events from start
+        </button>
+      ) : null}
     </fieldset>
   );
 }

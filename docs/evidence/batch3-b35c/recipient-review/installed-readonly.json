@@ -1,0 +1,238 @@
+{
+  "status": "PASS",
+  "scope": "exact12 identity and unfunded-state read-only; no issuer inspection",
+  "rows": [
+    {
+      "oid": 8093918,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_fc236c5bef70",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "11713285d23f5115e99c210a"
+    },
+    {
+      "oid": 8098694,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_7c8abb8a4ca5",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "205529c6b75e48f328b37cc6"
+    },
+    {
+      "oid": 8092326,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_b7bd85aa6a13",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "3010dca27296e44983b156b9"
+    },
+    {
+      "oid": 8082765,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_6b92272a15bc",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "463c609152d7e50e36e7277b"
+    },
+    {
+      "oid": 8084366,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_7ae792b3add6",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "50cdc5eef5a5737c2e75d4c7"
+    },
+    {
+      "oid": 8097102,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_26ed247d36dd",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "57d5c80bab1f0d442d84cb6f"
+    },
+    {
+      "oid": 8090734,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_3202ea051598",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "7d71a8d58efab496730c352c"
+    },
+    {
+      "oid": 8095510,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_6bed73c85e78",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "7f2c0b4d8876d13c7315c0cc"
+    },
+    {
+      "oid": 8089142,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_ea695e52f0b2",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "814541cf5904b6c0fb75d123"
+    },
+    {
+      "oid": 8081164,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_6faf9a78ff15",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "d477c622c837a9cc1fb1f0be"
+    },
+    {
+      "oid": 8087550,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_e65acdd4da29",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "f0e9beb8800fc7a03164539d"
+    },
+    {
+      "oid": 8085958,
+      "modes": [
+        "official_api",
+        "official_api"
+      ],
+      "events": 0,
+      "database": "workagent_test_72edf0890f51",
+      "grant_count": 2,
+      "raw_cost_limits": [
+        "12.00",
+        "12.00"
+      ],
+      "workspace_count": 2,
+      "deny_all_trigger": "O",
+      "active_grant_count": 2,
+      "recipient_schema_absent": true,
+      "blind_id": "f1e36fa9709624e2dfee238d"
+    }
+  ],
+  "verified_databases": 12,
+  "verified_grants": 24,
+  "provider_calls": 0,
+  "issuer_certificates_not_queried": true
+}

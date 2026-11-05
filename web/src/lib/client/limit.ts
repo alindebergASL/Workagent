@@ -4,6 +4,8 @@
  * once slows every request behind them, including the person's own send.
  */
 export function limiter(max: number) {
+  if (!Number.isSafeInteger(max) || max < 1)
+    throw new RangeError("Concurrency must be a positive safe integer.");
   let active = 0;
   const waiting: (() => void)[] = [];
   const next = () => {
@@ -17,7 +19,8 @@ export function limiter(max: number) {
   return <T>(read: () => Promise<T>): Promise<T> =>
     new Promise<T>((resolve, reject) => {
       waiting.push(() => {
-        read()
+        Promise.resolve()
+          .then(read)
           .then(resolve, reject)
           .finally(() => {
             active--;

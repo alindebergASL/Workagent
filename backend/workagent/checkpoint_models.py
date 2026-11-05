@@ -63,6 +63,8 @@ class StopRun(Command):
 
 class RunCheckpointPage(Model):
     items: list[RunCheckpoint] = Field(max_length=100)
+    next_after: Id | None = None
+    has_more: bool = False
 
 
 class ContinueRun(Command):

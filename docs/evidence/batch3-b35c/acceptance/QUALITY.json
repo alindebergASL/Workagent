@@ -1,0 +1,1479 @@
+{
+  "scope": "Independent content grades for collected evidence; not authenticated model-only authorship, accepted-state, download or workflow success. Some packets include saved human edits and pending proposals. Unknown evidence remains null. Noncollected failures/NR are not assigned successful grades. Source changes and missing trajectories prevent clean causal A/B conclusions.",
+  "collected_count": 29,
+  "reviewed_count": 29,
+  "planned_slots": 72,
+  "score_distribution": {
+    "0": 1,
+    "1": 2,
+    "2": 8,
+    "3": 18
+  },
+  "records": [
+    {
+      "collected_ordinal": 1,
+      "planned_slot": 1,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-01.json",
+      "packet_sha256": "29c0e41e1c86bfef9188853c49e15c5baed9643427b7cb125bb200ca9eeaaf3b",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-01",
+        "packet_sha256": "29c0e41e1c86bfef9188853c49e15c5baed9643427b7cb125bb200ca9eeaaf3b",
+        "content_quality": 3,
+        "content_findings": [
+          "The collected Markdown newsletter fulfills the initial audience and subject: 'Welcome, new contributors!' introduces a historical orientation rather than an installation recommendation. Headings, feature explanations and contribution suggestions are coherent for newcomers.",
+          "The complete quotation 'This is the stable release of Python 3.11.0' appears unchanged with Python attribution and the required python-3110 URL. 'October 24, 2022', the snapshot's supersession by Python 3.11.18, and the PEP 657/654/680 and asyncio task-group highlights agree with the episode 01 frozen passage, lines 84\u2013103.",
+          "The document explicitly separates historical 'newest major release' wording from present status. Its 10\u201360% and 1.22\u00d7 figures are identified as source-reported results, 'not ... a promise of the same improvement in every project'; no universal performance claim is made. Contributor suggestions are labeled editorial guidance.",
+          "No protected human text is required yet. The assistant reports an export but says 'No direct download URL was returned'; content is present, while the reported export and deliverability remain unverified."
+        ],
+        "required_repairs": [],
+        "effort_observations": [
+          "No clarification, resupply or content-correction request is visible. The missing verified download link leaves an unresolved delivery step; no user action or duration is observed."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/client download, export creation, saved Markdown identity and media type, and independent open/parse readback are unverified.",
+          "No-live-refresh and no-publishing/email/sharing assertions are not an access or external-effects audit."
+        ],
+        "suspected_unblinding": {
+          "flag": false,
+          "details": "No explicit comparator label or assignment is visible in this packet. No assignment inference was attempted."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 2,
+      "planned_slot": 2,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 2,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 1,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-02.json",
+      "packet_sha256": "57200d83b2e1ffe93df1d8e9653033ccc91c3c531743d4521d83001adbfe655b",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-02",
+        "packet_sha256": "57200d83b2e1ffe93df1d8e9653033ccc91c3c531743d4521d83001adbfe655b",
+        "content_quality": 1,
+        "content_findings": [
+          "The sole collected artifact is the earlier Python 3.11 newsletter with the protected paragraph appended, not the requested direct-prose revision. It still opens 'Welcome, new contributors! Exploring a project's Python 3.11-era code or reading older release discussions?' and retains the encouraging conversational close.",
+          "The exact protected text, 'Team note: keep the recommendation conditional on our stated target. Internal routing tag: B2-LOCAL-ONLY-REVIEW.', survives intact at the end. This is not loss of the words, but it fails 'Replace the opening ... verbatim'. Text presence does not establish accepted storage preservation.",
+          "The historical date, supersession caveat, Python attribution, required URL, complete 3.11 quotation and technical highlights remain supported by episode 01's frozen source. No new unsupported factual correction is needed.",
+          "The assistant says 'The revision still requires your acceptance' and 'No downloadable revised file was created'. It describes a direct-prose proposal with the protected opening, but that proposal's content is absent from the packet. The description cannot earn credit as the delivered revision. The existing content is useful, but the central requested correction remains undone in what can be assessed."
+        ],
+        "required_repairs": [
+          "Deliver the actual revised content with the exact protected paragraph as the opening and direct, nonconversational prose, retaining the complete quotation, attribution, technical details and historical status caveat.",
+          "Resolve the pending review/save/export step so the requested corrected artifact, rather than only a description of a proposal, is available. Verification of those operations remains outside this content review."
+        ],
+        "effort_observations": [
+          "The user supplies a correction and protected paragraph once in this episode. The assistant imposes a further acceptance step and reports that the project preference is only in a proposal, not registered in memory.",
+          "No further source or quotation resupply is requested. Additional review and delivery work is explicitly outstanding; completion and active time are not observable."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/download/export and saved revision state are unverified; the assistant's claimed operation refusal is not independently established.",
+          "Proposal existence, acceptance, memory workflow, preservation of accepted human edits, access restrictions and external effects are unverified."
+        ],
+        "suspected_unblinding": {
+          "flag": true,
+          "details": "The oracle observer requirement explicitly mentions 'B1 and M1, recall off only for B1'. This is potential comparator-description exposure within an authorized packet, not an episode assignment. No mapping was inferred. The protected routing tag was treated only as required human text."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 3,
+      "planned_slot": 3,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 3,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 1,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-03.json",
+      "packet_sha256": "48da35989d155f0427745ad632b349a740b7b378db42def0def1f6cbbd61f043",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-03",
+        "packet_sha256": "48da35989d155f0427745ad632b349a740b7b378db42def0def1f6cbbd61f043",
+        "content_quality": 1,
+        "content_findings": [
+          "The collected artifact text is exactly identical to episode 02, including the conversational opening and protected paragraph at the end. It preserves the words and accurate historical 3.11 content but does not supply the accepted-opening/direct-prose revision requested on continuation.",
+          "The complete 'This is the stable release of Python 3.11.0' quotation, Python attribution, release URL, October 24, 2022 date, supersession and workload caveats remain intact and supported by the earlier supplied passage. No quotation repair or new factual correction is indicated.",
+          "The assistant candidly distinguishes the retained export from the requested output: 'its export is not the corrected deliverable'. It asks the user to 'Accept the existing correction proposal'. The prompt calls the opening accepted, whereas the assistant calls it pending; content alone cannot resolve that workflow discrepancy.",
+          "The claimed proposal with the protected paragraph at the start is not included. Continuation has therefore not visibly advanced the requested content correction; an old but useful newsletter is not a completed current revision."
+        ],
+        "required_repairs": [
+          "Provide assessable corrected Markdown with the exact protected opening and direct prose, rather than export only the unchanged earlier content.",
+          "Resolve the accepted-versus-pending discrepancy without requiring the user to recreate the already supplied text; retain the supported facts and complete quotation."
+        ],
+        "effort_observations": [
+          "No draft/history resupply is requested, which respects that part of the continuation prompt at message level.",
+          "The assistant again requests acceptance of an existing proposal. This is a visible repeated review dependency, not proof that the user performed another review or that the system required a duplicate action. No active time is available."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Claimed inspection, proposal identity, acceptance, export generation and download accessibility are unverified.",
+          "Worker restart, fresh conversation isolation, preserved storage, memory state, nonduplication of external effects and access restrictions cannot be established from these messages."
+        ],
+        "suspected_unblinding": {
+          "flag": false,
+          "details": "No explicit arm mapping appears here. Generic worker/store language was not used to infer treatment; potential label exposure in episode 02 is recorded separately."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 4,
+      "planned_slot": 4,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 4,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 0,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-04.json",
+      "packet_sha256": "31da664c7a2f355498a96602f40bc3549d81516fcdff19c9fe0d6338b2da44a9",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-04",
+        "packet_sha256": "31da664c7a2f355498a96602f40bc3549d81516fcdff19c9fe0d6338b2da44a9",
+        "content_quality": 0,
+        "content_findings": [
+          "The only artifact is text-identical to episodes 02 and 03: '# Welcome to Python 3.11.0' with the 2022 date and old release quotation. It may serve as retained earlier work, but cannot serve as the newly requested Python 3.12.0 brief. No new 3.12 artifact or explicit archive/current-document arrangement is assessable.",
+          "The assistant correctly mentions 'Python 3.12.0 (October 2, 2023)' and calls its revision 'proposed, not accepted'. That summary does not contain the actual replacement quotation, 3.12 source URL, updated feature discussion or separate current recommendation.",
+          "Relative to episode 04's python312-release passage, the delivered artifact lacks the required complete quotation 'This is the stable release of Python 3.12.0', supersession by Python 3.12.16, PEP 701 f-string parsing and PEP 695 generic annotation syntax. It also lacks the crucial removal qualification: smtpd and distutils were removed, while setuptools continues to provide distutils.",
+          "The earlier 3.11 facts and original source labels remain historically supported; they are not false or retracted merely because the target changed. What is missing is an actual change of target and explanation that the old orientation is no longer the current assignment.",
+          "The exact protected paragraph survives at the end of the retained content, not as the opening of an assessable 3.12 revision. There is no evidence of its loss, but neither the new opening nor the claimed archive/proposal is available for review. Major new content is required for the requested purpose."
+        ],
+        "required_repairs": [
+          "Deliver a complete historical Python 3.12.0 revision with the exact protected opening, October 2, 2023 date, complete attributed replacement quotation, python-3120 URL, supported highlights and frozen supersession status.",
+          "Include both module removals and the setuptools/distutils qualification; avoid universal performance claims if discussing the source's estimated improvement.",
+          "Clearly preserve the 3.11 draft as older material with its original sources, explain why its target-specific orientation is stale for this assignment, and add a separate conditional current recommendation without rewriting the human text."
+        ],
+        "effort_observations": [
+          "The user supplies the paired release passages and version-switch instruction. No resupply is requested, but the assistant leaves another proposal pending and explicitly says no downloadable Markdown export was created.",
+          "The updated document must still be obtained and reviewed. No completed human acceptance, correction session or active duration is visible."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/download, proposal contents and persistence, acceptance, archive storage and export state are unverified; no missing operation is inferred solely from absent instrumentation.",
+          "The score reflects missing requested 3.12 content in the packet, not an assumed storage, permissions or download failure. Access, external effects and actual human-edit preservation remain unverified."
+        ],
+        "suspected_unblinding": {
+          "flag": false,
+          "details": "No explicit comparator assignment is visible. The routing tag remains protected task text, not an assignment clue used by this review."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 5,
+      "planned_slot": 5,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 5,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-05.json",
+      "packet_sha256": "f1a3d427867c0a2f9c2540403044d0f7e1716fbf1693857e830a3a744e1e9d59",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-05",
+        "packet_sha256": "f1a3d427867c0a2f9c2540403044d0f7e1716fbf1693857e830a3a744e1e9d59",
+        "content_quality": 3,
+        "content_findings": [
+          "A new '# Review Appendix: W3C Easy Checks' is present, with direct, formal sections suited to an audit coordinator. It does not reuse Python dates, speed claims or the protected internal routing note. Its date/version and W3C attribution are clearly separated from the frozen source metadata.",
+          "The full marked scope paragraph appears verbatim, including 'A web page could seem to pass these checks, yet still have significant accessibility barriers' and 'More robust assessment is needed to evaluate accessibility comprehensively', with the required W3C preliminary-review URL.",
+          "Its check areas match the supplied lines 1\u201368: titles, alt text, headings, contrast, resizing, keyboard/focus, forms, moving content, multimedia and basic structure. It correctly warns that topic names are not executable procedures and that this is not comprehensive evaluation or a conformance determination.",
+          "The source-listed easy-checks update is described as a draft whose contents were not reviewed, not a final standard. Coordination advice is expressly 'editorial guidance', and the reported Last-Modified header is not passed off as a publication date.",
+          "This visibly applies direct prose without sacrificing the long required quotation. It is consistent with appropriate procedural transfer, but does not prove memory-based transfer. No assistant messages are supplied. Earlier-artifact retention is required but cannot be verified because that artifact is not included here."
+        ],
+        "required_repairs": [],
+        "effort_observations": [
+          "No clarification, resupply or correction burden is visible in the supplied content. The absence of assistant messages prevents conclusions about interaction burden or download handoff; it does not prove no effort occurred."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/client download, export and saved-file state are unverified.",
+          "Unchanged storage of the earlier human-edited artifact, approved preference use, equal-history conditions, access restrictions and external effects are unverified. Visible note exclusion is not a storage or memory audit."
+        ],
+        "suspected_unblinding": {
+          "flag": true,
+          "details": "The oracle observer requirement says 'Compare B1/M1 with equal raw history'. This exposes comparator labels, not an episode mapping. No mapping or mechanism inference was attempted; scoring is based on the delivered appendix."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 6,
+      "planned_slot": 6,
+      "trial": "d477c622c837a9cc1fb1f0be",
+      "episode": 6,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-01/packets/episode-06.json",
+      "packet_sha256": "667198ffea09751754408c52c922af0fa6b277dc8f41bac621c983e32e032f88",
+      "review": ".local/batch3/b35c/quality-review-01/REVIEW.json",
+      "review_sha256": "cd6966674246548b4a77ee1219e79f24a0338f9dc1872a4e58c4b28e94181242",
+      "original_review": {
+        "opaque_episode": "episode-06",
+        "packet_sha256": "667198ffea09751754408c52c922af0fa6b277dc8f41bac621c983e32e032f88",
+        "content_quality": 3,
+        "content_findings": [
+          "There are no artifact records. The assistant nevertheless supplies the complete new brief in a Markdown code block, not merely a promise or a description. This score assesses that visible prose only; it does not certify delivery of the required downloadable file.",
+          "The friendly 'Titles, headings and links give readers useful signposts' opening, illustrative registration examples and short review checklist suit newcomers. The title guidance follows supplied line 106, including unique information first and current-step titles; the heading guidance follows line 118's grouping and outline advice.",
+          "The line 154 link-text quotation is complete and exact, including the curly-quoted 'click here', 'read more' and 'Proposal Documents (RTF, 20MB)' examples. W3C WAI attribution and the required writing URL are present. The brief appropriately identifies type/size as a source example, not verified properties of a delivered file.",
+          "Version/date, frozen retrieval basis and no-live-refresh limits are explicit. The brief says it is 'not a full accessibility standard or an assessment of any website's compliance', avoiding a conformance guarantee.",
+          "The new text does not reproduce the prior protected paragraph, routing tag, Python facts or project-specific correction. Its friendly explanatory tone fits the new instruction. That nonappearance is consistent with the requested boundary but does not establish actual forgetting, access denial or non-resurrection.",
+          "The assistant says it has 'no downloadable-file creation capability' and asks the user to save the block. This is a stated limitation, not a fabricated attachment; the truth of the capability assertion is outside content review."
+        ],
+        "required_repairs": [
+          "No prose repair is required. The requested downloadable artifact is still absent from this packet; creating/delivering it is an outstanding delivery requirement, separate from the content-quality score."
+        ],
+        "effort_observations": [
+          "The assistant explicitly asks the user to 'Save the code block as writing-for-newcomers.md' (filename formatted as code in the message). This is a visible manual file-creation burden, not an observed completed action.",
+          "No source resupply, clarification or prior-project-detail repetition is requested. No active timing is available."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/download, file-creation capability and storage are unverified. The visible absence of an artifact record and explicit text-only handoff are not an independent test of those mechanisms.",
+          "Forgetting in the original scope, memory/derived-recall deletion, other-project access denial, non-resurrection after restart, audit retention and external effects remain unverified."
+        ],
+        "suspected_unblinding": {
+          "flag": false,
+          "details": "No explicit arm mapping is visible here. The forget/access oracle describes requirements, not demonstrated mechanism or assignment; none was inferred."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 7,
+      "planned_slot": 7,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-01.json",
+      "packet_sha256": "c9956dc142f94e0ec56b505b2d4c3ab6d0032ecabed2f5f2306a358a26522e8a",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 1,
+        "packet_sha256": "c9956dc142f94e0ec56b505b2d4c3ab6d0032ecabed2f5f2306a358a26522e8a",
+        "quality_score": 3,
+        "rationale": "Under oracle.manual_rubric.quality, the delivered content is ready for its intended contributor-orientation audience. artifact-1/newsletter-markdown opens with a friendly explanation, gives October 24, 2022, reproduces the complete marked stable-release quotation with Python attribution and the required release-page URL, and explains PEP 657, Exception Groups/except*, tomllib and asyncio task groups. Its distinction between historical 'newest major release' wording and the supplied Python 3.11.18 supersession notice satisfies the status requirement without implying live verification. The reported 10\u201360% and 1.22x performance figures are explicitly source benchmarks rather than universal promises. The first-contribution exercise is identified as orientation, not advice to install the superseded point release. No content repair is required by the supplied rubric.",
+        "missing_evidence": [
+          "No standalone downloadable Markdown file is evidenced; the message explicitly distinguishes the editable document from a generated .md attachment.",
+          "The packet does not establish browser rendering, practical editability, user acceptance, access isolation, or independently verified absence of external effects. Document-shape validation is not factual or delivery acceptance.",
+          "No human active-time intervals or matched-baseline repair measurements are supplied."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 8,
+      "planned_slot": 8,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 2,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-02.json",
+      "packet_sha256": "b411dc116bd7efc7ef8cf144af07de191f4d67c73d63a32415ed8f91ff66ecb0",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 2,
+        "packet_sha256": "b411dc116bd7efc7ef8cf144af07de191f4d67c73d63a32415ed8f91ff66ecb0",
+        "quality_score": 3,
+        "rationale": "Score applies to the explicitly linked, unaccepted proposal-1 as delivered content, not to acceptance of that revision. Its first block exactly preserves oracle.protected_exact_utf8. orientation-markdown replaces the conversational opening with direct release context and informative headings, keeps the complete Python quotation and source attribution, and retains the correct date, required features, superseded-status distinction and qualified benchmark claims supported by episode 1. 'Conditional project guidance' explicitly declines an unconditional migration recommendation because no runtime target was supplied. 'Project-only editorial preference' confines the correction to this project and does not claim memory installation. These satisfy the correction and content rubric without substantive or necessary editorial repair.",
+        "missing_evidence": [
+          "The collected artifact contains only the protected note; the full revised orientation is an unaccepted proposal. This score does not certify that the full revision became the accepted saved artifact.",
+          "The proposal download status is unavailable/unsupported_operation; the requested downloadable revision is not delivered as a file.",
+          "No memory-workflow installation or review is evidenced; the output expressly says the preference is recorded in the draft only.",
+          "No browser, storage-continuity, access-isolation or human active-time proof is supplied."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 9,
+      "planned_slot": 9,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 3,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-03.json",
+      "packet_sha256": "bf8cbd109e62d6c181366569a9bf3a279c62dc6ca3ad2bcc58825b91ec0eb909",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 3,
+        "packet_sha256": "bf8cbd109e62d6c181366569a9bf3a279c62dc6ca3ad2bcc58825b91ec0eb909",
+        "quality_score": 3,
+        "rationale": "The retained proposal-1 provides the complete corrected orientation, not merely a promise of future text. Against the episode-3 oracle and earlier allowed evidence, it preserves the protected paragraph exactly, retains the full quotation and attribution, states the October 24, 2022 release date, covers the required Python 3.11 features, and keeps status and performance limitations accurate. The continuation message makes the important distinction that the full draft 'remains an unaccepted proposal\u2014not the current accepted full document'; it does not ask the user to resupply the assignment or declare a restart proved by the prompt. Reusing this already suitable content is appropriate for a continuation rather than a new substantive assignment. The content merits rubric level 3, without awarding operational restart or persistence credit.",
+        "missing_evidence": [
+          "No current downloadable revision is evidenced; the output expressly identifies the artifact link as not a file-download link.",
+          "The full document remains proposal-only, while the collected saved artifact contains the protected note. Human acceptance and actual browser access to the proposal are not established.",
+          "The message's claims of inspecting history and avoiding duplicate actions are not independently established by execution traces. No worker-restart, durable-storage or duplicate-effect test is supplied.",
+          "No timed human review, clarification, resupply or repair intervals, or matched-baseline effort comparison, are available."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 10,
+      "planned_slot": 10,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 4,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-04.json",
+      "packet_sha256": "a8a907f6e458768c64ea42e23556c6b5cf8680f481004d47357fa338e68fd549",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 4,
+        "packet_sha256": "a8a907f6e458768c64ea42e23556c6b5cf8680f481004d47357fa338e68fd549",
+        "quality_score": 3,
+        "rationale": "The episode-4 proposal-2 materially updates the subject rather than merely changing a citation: it gives Python 3.12.0, October 2, 2023, the complete newly marked quotation, the 3.12 source URL and snapshot supersession by 3.12.16. It changes the highlights to PEP 701 f-string parsing, PEP 695 generics and other supplied 3.12 features; its compatibility priorities retain removal of smtpd/distutils and the essential setuptools qualification, plus SyntaxWarning and Cython-related cautions. The estimated 5% improvement is not a universal guarantee, and separate subinterpreter GILs are not described as a wholly GIL-free runtime. The separate current recommendation identifies the new historical target without changing the protected opening or conflating it with deployment advice. Appendix B labels the earlier 3.11 draft as an unchanged, unaccepted archive with its original sources, not evidence for 3.12. Tool comparison confirmed both archived block texts match the earlier proposal and the full supplied 3.12 passage is retained in Appendix A. The long archive is justified by the preservation request; content meets rubric level 3.",
+        "missing_evidence": [
+          "The new full orientation and archive are in an unaccepted proposal, not an accepted revised document. The collected artifact still contains only the protected opening.",
+          "Download is explicitly unavailable/unsupported_operation; there is no generated .md file or download proof.",
+          "Exact archive text establishes content preservation within the proposal, not independent durable storage, retention of all historical revisions, or user-visible browser access.",
+          "No human active-time or matched-baseline repair evidence is available."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 11,
+      "planned_slot": 11,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 5,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-05.json",
+      "packet_sha256": "c2a697eaba112f7267be4ad24ad512d98e3f3ff29e57023a08463d52597a8a51",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 5,
+        "packet_sha256": "c2a697eaba112f7267be4ad24ad512d98e3f3ff29e57023a08463d52597a8a51",
+        "quality_score": 3,
+        "rationale": "artifact-1/appendix-markdown is an audience-appropriate formal appendix with a review conclusion, complete unchanged W3C scope quotation, attribution, source URL, version and date. It makes the scope warning operational: satisfactory preliminary screening must not close an audit, missing evidence is not a pass, and screening does not establish conformance. It correctly summarizes page titles, alt text, headings, keyboard access/visual focus and forms from the substantive check list, without treating navigation labels as detailed testing instructions. The draft-update link is explicitly unconsulted and is not represented as a final standard. Coordination procedures are marked as recommendations rather than W3C source claims, and sample reporting language is conditional on testing actually occurring. The forbidden protected paragraph and routing token are absent, as are reused Python release dates or speed claims. These satisfy the oracle's content requirements at level 3.",
+        "missing_evidence": [
+          "The packet does not include a contemporaneous readback of the earlier human-edited artifact. Its unchanged retention is asserted by the output but cannot be verified from this episode's new artifact alone.",
+          "There is no standalone downloadable Markdown file; the message discloses export unavailability.",
+          "No actual website screening, audit acceptance, browser verification, storage or access-isolation proof is supplied. The appendix appropriately does not claim to perform a conformance evaluation.",
+          "No human active-time or comparative repair measurements are supplied."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 12,
+      "planned_slot": 12,
+      "trial": "463c609152d7e50e36e7277b",
+      "episode": 6,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": null,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-02/packets/episode-06.json",
+      "packet_sha256": "219d6fd7eae522fd3059b71373e325498ed7152e9cb0970189d1328279ff86ae",
+      "review": ".local/batch3/b35c/quality-review-02/REVIEW.json",
+      "review_sha256": "22d720231e4023fd03644912baa73380ad48b8ffab68d9ad270d0a0d694c9b1a",
+      "original_review": {
+        "episode": 6,
+        "packet_sha256": "219d6fd7eae522fd3059b71373e325498ed7152e9cb0970189d1328279ff86ae",
+        "quality_score": 3,
+        "rationale": "The scored deliverable is the complete fenced Markdown in messages[0].text; artifacts and proposals are empty. Its newcomer-oriented library-card examples and 'Try this' prompts provide a friendly explanation rather than importing the prior project's formal style preference. It accurately covers unique informative page titles, relevant information first, step identifiers in multi-step titles, short headings forming an outline, and destination-descriptive links with relevant type/size details. The entire marked link-text quotation, including the RTF/20MB example and supplied punctuation, is present with W3C WAI attribution and the required URL. Examples are clearly illustrative, and the closing scope statement says this is not a complete accessibility guide or conformance assessment. It acknowledges the fresh-source boundary without repeating the protected paragraph, routing token or earlier project-specific instructions. Judged solely on delivered content against the actual rubric, it is ready for the intended audience.",
+        "missing_evidence": [
+          "No saved document artifact or downloadable file is present. The user must copy the supplied Markdown into a file; this is a disclosed delivery limitation, not successful attachment delivery.",
+          "Absence of earlier project details in the output does not prove access isolation, deletion or forgetting, or that earlier material was not accessed internally.",
+          "No browser/editability verification, user acceptance or independent external-effect verification is supplied.",
+          "Manual copy/save effort and other human active time are not measured and cannot be inferred from the text."
+        ],
+        "effort_active_seconds": null
+      }
+    },
+    {
+      "collected_ordinal": 13,
+      "planned_slot": 13,
+      "trial": "50cdc5eef5a5737c2e75d4c7",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "M1",
+      "case": "B-f3a6fc0f4541",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": null,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-03/episode-01.json",
+      "packet_sha256": "25cb43b0db64e4b6780a3bdf66c4c09c245e86e18d7fa9c93d518a786da782cf",
+      "review": ".local/batch3/b35c/quality-review-03/REVIEW.json",
+      "review_sha256": "2243f625b92ae2582b372be7d32f5b4f306949cbfbb6d03f6018a8b37d71f53b",
+      "original_review": {
+        "packet": "episode-01.json",
+        "packet_sha256": {
+          "expected": "25cb43b0db64e4b6780a3bdf66c4c09c245e86e18d7fa9c93d518a786da782cf",
+          "actual": "25cb43b0db64e4b6780a3bdf66c4c09c245e86e18d7fa9c93d518a786da782cf",
+          "verified_before_review": true
+        },
+        "scope": "Exactly one supplied packet; no external sources, runtime/custody records, other outputs, original database, or additional agents consulted.",
+        "content_quality": {
+          "score": 3,
+          "scale": "0\u20133",
+          "oracle_label": "ready for intended audience and purpose",
+          "object_scored": "Newsletter body in /messages/0/text, not a saved or downloaded artifact",
+          "rationale": "Friendly, coherent contributor orientation; exact marked quotation with Python attribution and official URL; correct release date; all four required highlights; clear historical launch versus frozen supersession distinction; benchmark claims qualified rather than universal. Useful contributor guidance is explicitly labeled editorial.",
+          "checks": [
+            {
+              "criterion": "Exact quotation and attribution",
+              "result": "pass",
+              "evidence": "/messages/0/text contains the complete unchanged marked block quotation, Python attribution and the required official release-page URL."
+            },
+            {
+              "criterion": "Exact version and release date",
+              "result": "pass",
+              "evidence": "Version covered: Python 3.11.0; Release date: October 24, 2022; agrees with /task/public_sources/0/passages/0/text."
+            },
+            {
+              "criterion": "Required highlights",
+              "result": "pass",
+              "evidence": "Explicit coverage of fine-grained traceback locations, Exception Groups/except*, tomllib and asyncio task groups; additional regex and typing highlights match the frozen passage."
+            },
+            {
+              "criterion": "Historical launch wording and status",
+              "result": "pass",
+              "evidence": "Explains newest-major-release language as launch copy and scopes supersession by Python 3.11.18 to the supplied snapshot, not a live status check."
+            },
+            {
+              "criterion": "Performance and technical qualifications",
+              "result": "pass",
+              "evidence": "Attributes 10\u201360% and 1.22\u00d7 to the source benchmark, denies universal workload guarantees, and advises checking project compatibility."
+            },
+            {
+              "criterion": "Audience and structure",
+              "result": "pass",
+              "evidence": "Newsletter body opens with Welcome!, explains features accessibly, and offers contributor steps and a sources section. The preceding delivery notice is appropriately candid."
+            },
+            {
+              "criterion": "Recommendation changes with new evidence",
+              "result": "not_applicable",
+              "evidence": "Only an initial episode is supplied; no revision or changed-evidence comparison is available."
+            }
+          ],
+          "required_content_repairs": []
+        },
+        "task_fulfilled": {
+          "value": false,
+          "reason": "The content requirements are satisfied, but the required saved/downloadable editable Markdown document was not delivered. Chat Markdown is not file delivery."
+        },
+        "actual_file_delivery": {
+          "value": false,
+          "saved_artifacts_in_packet": 0,
+          "message_attachments_in_packet": 0,
+          "verified_downloads": 0,
+          "evidence": [
+            "/artifacts is empty",
+            "/messages/0/attachments is empty",
+            "/messages/0/text explicitly states No downloadable file was created",
+            "/evidence_boundary states zero saved artifacts verified and no downloadable file"
+          ],
+          "missing": "Actual client/export GET receipt, nonempty downloaded bytes and hash, media type, file version, and open/parse readback required by the oracle.",
+          "review_outputs_are_not_task_delivery": true
+        },
+        "workflow_usefulness": {
+          "assessment": "Partially useful, not end-to-end successful",
+          "reason": "The complete newsletter can be reused by copying into a Markdown file, but that shifts saving and verification to a human or later repair. No human-created substitute is evidenced.",
+          "remaining_work": "Create the actual Markdown document, expose a usable download, and verify downloaded content and metadata. No substantive content rewrite identified."
+        },
+        "effort": {
+          "status": "unknown",
+          "active_minutes": null,
+          "clarification_review_resupply_repair_actions": "Human actions are not measured or independently recorded in this packet. The reply reports a rejected document-creation attempt, but no execution receipt substantiates its cause or sequence.",
+          "matched_baseline_comparison": "unavailable",
+          "inference_limit": "No efficiency or effort credit inferred from reply length, timestamps, quality, or candid failure disclosure."
+        },
+        "hard_failures": {
+          "observed": [],
+          "assessment": "No listed hard failure is established by the supplied evidence. Missing file delivery is a fulfillment failure, not a fabricated-download claim: the reply explicitly disclaims file creation.",
+          "limits": "No runtime/access/spend trace is supplied; absence of unauthorized effects cannot be independently certified. No prior protected human revision or memory-replay episode is supplied."
+        },
+        "blindness": {
+          "arm_or_model_identified": false,
+          "note": "The packet includes an oracle variation code and message metadata. Neither was used to infer author identity or score content; no arm reveal or comparative outputs were consulted."
+        },
+        "evidence_limitations": [
+          "Assessment is limited to frozen source passages, oracle and reply embedded in this packet.",
+          "The full message text was extracted after the initial reader truncated long JSON lines; it equals the embedded result text.",
+          "No actual downloaded newsletter exists in the supplied evidence, so artifact parsing/storage preservation cannot be credited.",
+          "Reported rejection and no-external-action statements are self-reports, not independently verified execution facts.",
+          "This content score does not establish workflow success, delivery success, lifecycle accuracy beyond the snapshot, or goal success."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 14,
+      "planned_slot": 19,
+      "trial": "f1e36fa9709624e2dfee238d",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "M1",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-04/episode-14.json",
+      "packet_sha256": "d4d3a8d0b4e8c70847ae8a7e87071b3cc69de0115a9a21aa4d6f68bdbb754f89",
+      "review": ".local/batch3/b35c/quality-review-04/REVIEW.json",
+      "review_sha256": "5504f4d55f5f3b0808428c266714dc522aada08977ea4352f866b295344f0b31",
+      "original_review": {
+        "packet_filename": "episode-14.json",
+        "hash": "d4d3a8d0b4e8c70847ae8a7e87071b3cc69de0115a9a21aa4d6f68bdbb754f89",
+        "hash_verified": true,
+        "content_score": 2,
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_file_download": {
+          "saved_document_verified": false,
+          "saved_file_verified": false,
+          "status": "No artifacts or attachments; no download receipt or downloaded bytes. The full response reports rejected publication and supplies copyable text only."
+        },
+        "workflow_usefulness_score": 1,
+        "evidence": [
+          "messages[0].text contains complete Markdown and CSV bodies, not merely a summary; nested result text matches.",
+          "Correct Python 3.11 ValueError recommendation, subpath explanation, lexical/security boundary, complete exact attributed quotation, exact supplied source URL and receipt provenance, and explicit separation of inference from evidence.",
+          "Embedded CSV parses with the six required columns and four data rows. No live retrieval or execution is claimed."
+        ],
+        "limitations": [
+          "The frozen oracle explicitly requires the absence of a walk_up parameter in Python 3.11. The text shows relative_to(*other) but never expressly states that walk_up is unavailable; a minor clarification is required for full oracle completeness.",
+          "Content usefulness does not cure failed delivery: the user must manually create and save both files. No completed user repair or timed effort is observed.",
+          "Publication rejection is reported in the response; the packet provides no independent operation receipt. No fabricated-download claim or other hard failure is established by the available evidence."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 15,
+      "planned_slot": 25,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-04/episode-15.json",
+      "packet_sha256": "e131b9d649ecd89df46dcff3933ed63231abc135fe4bd52a6ae64234d231eca5",
+      "review": ".local/batch3/b35c/quality-review-04/REVIEW.json",
+      "review_sha256": "5504f4d55f5f3b0808428c266714dc522aada08977ea4352f866b295344f0b31",
+      "original_review": {
+        "packet_filename": "episode-15.json",
+        "hash": "e131b9d649ecd89df46dcff3933ed63231abc135fe4bd52a6ae64234d231eca5",
+        "hash_verified": true,
+        "content_score": 2,
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_file_download": {
+          "saved_document_verified": true,
+          "saved_file_verified": false,
+          "status": "Two retained document revisions contain the work. Authorized addendum bodies, revision IDs and recorded body hashes match the collected artifacts. Both download records explicitly report unavailable / unsupported_operation; saved documents are not downloadable files."
+        },
+        "workflow_usefulness_score": 2,
+        "evidence": [
+          "Full artifacts titled brief.md and evidence.csv were inspected, including full matching revision bodies rather than chat summaries.",
+          "Correct Python 3.11 ValueError recommendation, lexical subpath boundary and security caveats, complete exact attributed quotation, supplied URL/version/locator/retrieval timestamp, and evidence-versus-inference separation.",
+          "CSV parses with the six required columns and six data rows. Source freezing, lack of execution and unconfirmed download capability are stated honestly."
+        ],
+        "limitations": [
+          "The frozen oracle explicitly requires no walk_up parameter in Python 3.11. A warning against assuming newer-version behavior does not explicitly supply this fact; minor clarification is required.",
+          "No actual client/export GET receipt with nonempty downloaded bytes, media type and file readback is supplied. Both downloads are explicitly unavailable, so the requested end-to-end deliverable remains unfulfilled.",
+          "Retained revision evidence supports document storage only, not independent authorship, human-edit preservation or downloadable-file success. Manual file creation/export remains necessary; completed repair actions and active effort are unmeasured.",
+          "No fabricated-download claim or other hard failure is established by the available evidence."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 16,
+      "planned_slot": 26,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 2,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-05/episode-16.json",
+      "packet_sha256": "98feda515efa1a2a97a26372bd7a1196e6de22df634685ed5234128559357708",
+      "review": ".local/batch3/b35c/quality-review-05/REVIEW.json",
+      "review_sha256": "ffc8714bcdf07e554c5aca27972455f5e01b031674e4e128163c4866e0830294",
+      "original_review": {
+        "filename": "episode-16.json",
+        "hash": "98feda515efa1a2a97a26372bd7a1196e6de22df634685ed5234128559357708",
+        "hash_verified": true,
+        "content_score": 2,
+        "content_score_basis": "Pending brief proposal 0d0db45f-3e7c-4297-a212-30498819193d plus saved evidence.csv revision f555d036-1191-457a-8862-5064004addf4. Useful and technically sound; trim repeated provenance/process sections and state the absence of a 3.11 walk_up parameter directly rather than indirectly.",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "workflow_usefulness": "Reviewable proposed correction, not an accepted updated brief. Accepted brief contains only the protected opening. Ordinary memory-review completion is not evidenced; the response explicitly reports it unavailable.",
+        "evidence": [
+          "authorized_collection_addendum.records: proposed opening equals oracle.protected_exact_utf8; required quotation is complete and attributed. Python 3.11 ValueError and lexical/non-security boundary are correct.",
+          "Saved CSV parses as six data rows with exactly the six required columns; evidence and recommendations are distinguished.",
+          "Proposal status is pending and accepted_revision_id is null. The human revision preserves the opening, but there is no accepted full-brief revision or completed preference-review receipt.",
+          "All addendum download records say unavailable/unsupported_operation; assistant accurately disclaims export."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 17,
+      "planned_slot": 27,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 3,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-05/episode-17.json",
+      "packet_sha256": "83e6aadeff91767bf4ac87c7b77bb30e4a02bfc70b437fb5351cd988d9416ee0",
+      "review": ".local/batch3/b35c/quality-review-05/REVIEW.json",
+      "review_sha256": "ffc8714bcdf07e554c5aca27972455f5e01b031674e4e128163c4866e0830294",
+      "original_review": {
+        "filename": "episode-17.json",
+        "hash": "83e6aadeff91767bf4ac87c7b77bb30e4a02bfc70b437fb5351cd988d9416ee0",
+        "hash_verified": true,
+        "content_score": 2,
+        "content_score_basis": "Same retained pending brief and saved six-row CSV as episode-16; same minor editorial issues. This is retained useful content, not newly accepted work.",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "workflow_usefulness": "Response correctly distinguishes the pending full brief from the accepted opening-only revision and does not ask for resupply. Restart/fresh-conversation continuity and settled-effect nonduplication remain unverified.",
+        "evidence": [
+          "The complete authorized_collection_addendum equals episode-16's addendum, including revision/proposal IDs and bodies. Opening and required quotation remain exact; six-column CSV parses.",
+          "messages[0].text says existing history was inspected and no new external action occurred; the packet contains no corresponding observer bindings or worker restart identity.",
+          "messages[0].conversation_id matches episode-16, so these packets do not establish the requested fresh conversation. No claim of a verified restart is credited.",
+          "All download records remain unavailable/unsupported_operation; no accepted full brief or downloadable current revision is evidenced."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 18,
+      "planned_slot": 28,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 4,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-05/episode-18.json",
+      "packet_sha256": "e06c650f7c034de1091f4a1ed28a2aa3e3aaecff3d0f9e77a808703937f0e3ef",
+      "review": ".local/batch3/b35c/quality-review-05/REVIEW.json",
+      "review_sha256": "ffc8714bcdf07e554c5aca27972455f5e01b031674e4e128163c4866e0830294",
+      "original_review": {
+        "filename": "episode-18.json",
+        "hash": "e06c650f7c034de1091f4a1ed28a2aa3e3aaecff3d0f9e77a808703937f0e3ef",
+        "hash_verified": true,
+        "content_score": 2,
+        "content_score_basis": "Latest Python 3.12 proposal f637784f-1c84-4eeb-aee5-b5d4b0188b43, including its embedded updated CSV. Substantively complete and useful; repeated provenance, quotation-preservation and process caveats merit minor condensation for a brief.",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "workflow_usefulness": "Materially correct version-sensitive proposal, but not accepted. Updated evidence exists only inside that pending brief; separate evidence.csv remains historical 3.11 content and needs updating/extraction for the requested deliverable pair.",
+        "evidence": [
+          "Latest proposal preserves the exact first protected block and complete attributed 3.12 quotation. It changes the recommendation to explicit walk_up=True for ../etc/passwd while retaining default ValueError.",
+          "api-evidence, recommendation-security and historical-evidence cover different drives, absolute/relative mismatch, symlink assumptions, resolve when necessary, lexical non-confinement, and why the 3.11 recommendation remains valid only for its old target.",
+          "Embedded current-target CSV parses as eleven data rows with the six required columns. The separate saved CSV still has six historical 3.11 rows.",
+          "Latest proposal status is pending with no accepted_revision_id; the accepted human revision remains opening-only. All download records say unavailable/unsupported_operation."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 19,
+      "planned_slot": 29,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 5,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-05/episode-19.json",
+      "packet_sha256": "27ce47f36d3cf39700d722e807a7e190bf3aefc4f8f4bbd94c655f5dd0d1e93a",
+      "review": ".local/batch3/b35c/quality-review-05/REVIEW.json",
+      "review_sha256": "ffc8714bcdf07e554c5aca27972455f5e01b031674e4e128163c4866e0830294",
+      "original_review": {
+        "filename": "episode-19.json",
+        "hash": "27ce47f36d3cf39700d722e807a7e190bf3aefc4f8f4bbd94c655f5dd0d1e93a",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_score_basis": "Saved new brief revision ccc9dcbf-2323-4567-8777-eb1ca70095e8 and evidence revision 39a89628-1d6b-447d-9edf-a5b10c74b335 are ready as content, independently of unavailable exports.",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "workflow_usefulness": "Useful new topic-specific drafts without carrying over the path conclusion or routing note. Content follows an applicable evidence-first procedure, but approved-memory transfer and preservation of the prior artifact are not independently demonstrated.",
+        "evidence": [
+          "Brief correctly maps 20191204 to 2019-12-04 and 2021-W01-1 to 2021-01-04 for Python 3.11; includes reduced-precision, extended-date and ordinal-date exclusions and the exact attributed version-change quotation.",
+          "CSV parses as eight data rows with the six required columns, version, locator, retrieval time and evidence/inference statuses. Neither new body contains the oracle's forbidden routing note/tag.",
+          "New artifact IDs and null parent revision IDs establish new documents. Earlier-artifact unchanged status is asserted in the response, but no contemporaneous prior-artifact readback/diff is supplied in this packet.",
+          "Response says prior-context searches did not locate the approved procedure. All download records say unavailable/unsupported_operation; saved draft text is not a downloadable file or human acceptance."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 20,
+      "planned_slot": 30,
+      "trial": "f0e9beb8800fc7a03164539d",
+      "episode": 6,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-05/episode-20.json",
+      "packet_sha256": "59416c6175374109342b51bbeb9341ba6baa9887643b7567a265ed3b7e42b0d3",
+      "review": ".local/batch3/b35c/quality-review-05/REVIEW.json",
+      "review_sha256": "ffc8714bcdf07e554c5aca27972455f5e01b031674e4e128163c4866e0830294",
+      "original_review": {
+        "filename": "episode-20.json",
+        "hash": "59416c6175374109342b51bbeb9341ba6baa9887643b7567a265ed3b7e42b0d3",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_score_basis": "Saved WAI brief revision 9b580945-944e-42cf-b5be-80647a150b12 and the CSV block in evidence revision e53ddf71-bef0-49af-ab84-11fd03561422 provide ready explanatory content. Evidence-document notes are not part of the CSV block.",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "workflow_usefulness": "Useful newcomer-oriented drafts with no observed prior-project details. Textual isolation is evidenced; actual forgetting, access denial, derived-recall exclusion and post-restart non-resurrection are not verified.",
+        "evidence": [
+          "Brief covers distinctive titles, process steps, short meaningful headings and descriptive link targets with relevant type/size; complete WAI quotation and supplied snapshot attribution are present.",
+          "Illustrations are explicitly separated from source guidance; no accessibility-compliance certification is claimed. CSV block parses as three data rows with the six required columns.",
+          "Neither new body contains the oracle's forbidden note/tag or path/date-specific conclusions. Structure is explanatory rather than a reused technical decision brief; this does not establish memory/access isolation.",
+          "All download records say unavailable/unsupported_operation. Markdown and CSV require manual extraction; no export GET receipt or downloaded-file readback exists."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 21,
+      "planned_slot": 31,
+      "trial": "814541cf5904b6c0fb75d123",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "A-1ccc9001f5fa",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-06/episode-21.json",
+      "packet_sha256": "a894cd21eaac6055088f98f070e03bc6f2e5532830a9970eafb29747c0474dd8",
+      "review": ".local/batch3/b35c/quality-review-06/REVIEW.json",
+      "review_sha256": "d20ddcb002ee79a580669cbcce0d468d0cbe2180c3cd4dbc770ccf4bf8b71eb6",
+      "original_review": {
+        "packet_filename": "episode-21.json",
+        "hash": "a894cd21eaac6055088f98f070e03bc6f2e5532830a9970eafb29747c0474dd8",
+        "hash_verified": true,
+        "content_score": 2,
+        "content_basis": "messages[0].text: complete inline Markdown and CSV, not a saved artifact",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_work": "No artifacts or addendum records; no saved work verified.",
+        "human_opening_preservation": "not_applicable",
+        "version_update_preservation": "not_applicable",
+        "workflow_usefulness": "Useful copyable brief and CSV, but manual file creation remains. The unavailable publication is disclosed rather than disguised as an attachment.",
+        "evidence": [
+          {
+            "locator": "messages[0].text",
+            "finding": "Correct Python 3.11 ValueError recommendation; lexical/filesystem and symlink-security boundaries; complete attributed required quotation and frozen retrieval metadata. Signature relative_to(*other) is shown, but the oracle's explicit no-walk_up caveat should be added as a minor clarification."
+          },
+          {
+            "locator": "messages[0].text / evidence.csv",
+            "finding": "CSV parses as four data rows with all six requested columns; recommendations are distinguished from documentary evidence."
+          },
+          {
+            "locator": "artifacts; authorized_collection_addendum; messages[0].attachments",
+            "finding": "All empty. Message explicitly says downloadable files were not created."
+          }
+        ],
+        "limitations": [
+          "The publication-rejection cause is self-report, not independently evidenced here.",
+          "Inline content is inspectable; downloadable content and saved revision are unavailable.",
+          "No human action timing or runtime execution evidence."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 22,
+      "planned_slot": 37,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-06/episode-22.json",
+      "packet_sha256": "0f15c163a93ad406c84bc964d2d8e75b2e0c1fc435267d05ef335f01ec30e76d",
+      "review": ".local/batch3/b35c/quality-review-06/REVIEW.json",
+      "review_sha256": "d20ddcb002ee79a580669cbcce0d468d0cbe2180c3cd4dbc770ccf4bf8b71eb6",
+      "original_review": {
+        "packet_filename": "episode-22.json",
+        "hash": "0f15c163a93ad406c84bc964d2d8e75b2e0c1fc435267d05ef335f01ec30e76d",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_basis": "artifacts[0..1].body, corroborated by addendum revision readbacks",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_work": "Two substantive saved revision-1 documents: Markdown brief and seven-row CSV content; neither is a verified file download.",
+        "human_opening_preservation": "not_applicable",
+        "version_update_preservation": "not_applicable",
+        "workflow_usefulness": "Ready source-grounded editable content with clear conversion limits. Export/copy work remains for the user.",
+        "evidence": [
+          {
+            "locator": "artifacts[1].body.blocks[0].text",
+            "finding": "Correctly rejects direct parsing of both strings for Python 3.10, separates normalization and separately verified week-date conversion from native support, and avoids universal ISO 8601 claims. Complete quotation, exact version and retrieval time are present."
+          },
+          {
+            "locator": "artifacts[0].body.blocks[0].text",
+            "finding": "Seven CSV data rows parse with the exact six-column schema, including the multiline quotation."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[0..1].revision",
+            "finding": "Revision IDs b0cfdb48-84b3-4130-93f4-afd1326e1469 and fe8fb82c-6fa9-498b-8012-30b4100c43c8 read back the exact artifact bodies; body hashes recompute."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[0..1].download",
+            "finding": "Both downloads explicitly unavailable / unsupported_operation."
+          }
+        ],
+        "limitations": [
+          "Saved document bodies are not downloaded .md/.csv bytes.",
+          "No client rendering/editing session or active human effort measurement is supplied."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 23,
+      "planned_slot": 38,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 2,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-06/episode-23.json",
+      "packet_sha256": "05de282485ec6fe9a276128f8984ce777c0dcc61748c3b8b569c1c351f24421d",
+      "review": ".local/batch3/b35c/quality-review-06/REVIEW.json",
+      "review_sha256": "d20ddcb002ee79a580669cbcce0d468d0cbe2180c3cd4dbc770ccf4bf8b71eb6",
+      "original_review": {
+        "packet_filename": "episode-23.json",
+        "hash": "05de282485ec6fe9a276128f8984ce777c0dcc61748c3b8b569c1c351f24421d",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_basis": "authorized_collection_addendum.records[1].proposal.body; pending, not accepted",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_work": "Saved human revision c915097d-6413-44e6-ba67-8efadb2f321f contains only protected opening and provenance, not CSV rows. The separate brief remains revision 1. Complete revised brief/CSV exists only in pending proposal 54dad835-edd0-4edf-8e1b-06c44644a7f4.",
+        "human_opening_preservation": "Exact protected first block is verified in the saved human revision and pending proposal. This is not evidence of an accepted model update; the separate brief has no protected opening.",
+        "version_update_preservation": "No target change; proposal retains correct Python 3.10 limits and historical distinction.",
+        "workflow_usefulness": "Useful review-ready correction, but acceptance and file export remain. The saved evidence artifact alone is incomplete despite its unchanged provenance claiming CSV above.",
+        "evidence": [
+          {
+            "locator": "authorized_collection_addendum.records[0].revision; episode-22.json/artifacts[0]",
+            "finding": "Human revision 2 links to prior revision 1. Body comparison shows the earlier evidence-csv block replaced by the exact protected opening while provenance is unchanged; do not attribute that replacement to model output."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[1].proposal.body",
+            "finding": "Decision-first Python 3.10 brief, full quotation and attribution, exact retrieval time, seven-row valid CSV, project-only preference, and protected opening are directly inspectable."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[1].proposal.status; accepted_revision_id",
+            "finding": "status pending; accepted_revision_id null. The message's proposal reference resolves to this record."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[*].download",
+            "finding": "All recorded downloads unavailable / unsupported_operation."
+          }
+        ],
+        "limitations": [
+          "No applied memory-review decision or accepted proposal revision is evidenced; preference text is not proof of memory persistence.",
+          "No new public sources in this packet; source semantics are cross-checked against the allowed episode-22 frozen passage.",
+          "No timed acceptance, review, copy/export or repair effort."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 24,
+      "planned_slot": 39,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 3,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-06/episode-24.json",
+      "packet_sha256": "a722c503442adf27fa8146b1dc858190e247fd5179ea20a175c825d7a8a6bc7a",
+      "review": ".local/batch3/b35c/quality-review-06/REVIEW.json",
+      "review_sha256": "d20ddcb002ee79a580669cbcce0d468d0cbe2180c3cd4dbc770ccf4bf8b71eb6",
+      "original_review": {
+        "packet_filename": "episode-24.json",
+        "hash": "a722c503442adf27fa8146b1dc858190e247fd5179ea20a175c825d7a8a6bc7a",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_basis": "Retained proposal body in authorized_collection_addendum.records[1], identical to episode-23; not new accepted output",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_work": "Artifacts and addendum are exactly unchanged from episode-23: protected human revision plus old separate brief; complete correction remains pending.",
+        "human_opening_preservation": "Exact saved and proposed opening retained across packet snapshots; accepted model revision remains absent.",
+        "version_update_preservation": "No target change; retained proposal remains correct for Python 3.10.",
+        "workflow_usefulness": "Accurate status continuation without a resupply request or visible duplicate proposal. It does not deliver the requested current downloadable revision or prove restart continuity.",
+        "evidence": [
+          {
+            "locator": "artifacts; authorized_collection_addendum",
+            "finding": "Programmatic equality with episode-23 confirms unchanged saved bodies and pending proposal, including full quotation, protected opening and seven-row CSV."
+          },
+          {
+            "locator": "messages[0].text",
+            "finding": "Clearly distinguishes pending proposal from accepted revision and artifact links from downloads. No request to resupply prior work appears."
+          },
+          {
+            "locator": "messages[0].conversation_id; episode-23.json/messages[0].conversation_id",
+            "finding": "The supplied message conversation identifiers are identical, not evidence of the requested fresh conversation; no worker PID/start identity evidence is supplied."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[*].download",
+            "finding": "All recorded downloads unavailable / unsupported_operation."
+          }
+        ],
+        "limitations": [
+          "Existing content quality does not establish fresh production, inspected-history tool usage, actual worker restart or memory recall.",
+          "No newly duplicated proposal is visible; broader nonduplication of external effects is not proved.",
+          "Active effort and completed review remain unmeasured/unverified."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 25,
+      "planned_slot": 40,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 4,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-06/episode-25.json",
+      "packet_sha256": "1029508bb78996998efbdca846992a948fcf1d11507b62efff882ba7a43911cc",
+      "review": ".local/batch3/b35c/quality-review-06/REVIEW.json",
+      "review_sha256": "d20ddcb002ee79a580669cbcce0d468d0cbe2180c3cd4dbc770ccf4bf8b71eb6",
+      "original_review": {
+        "packet_filename": "episode-25.json",
+        "hash": "1029508bb78996998efbdca846992a948fcf1d11507b62efff882ba7a43911cc",
+        "hash_verified": true,
+        "content_score": 3,
+        "content_basis": "authorized_collection_addendum.records[2].proposal.body; latest pending proposal",
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "effort_active_seconds": null,
+        "saved_work": "Accepted artifact snapshot remains unchanged from episodes 23\u201324. New Python 3.11 work is pending proposal b36f44c7-cd64-4fd3-b944-b516048d68ac; the standalone saved brief still recommends the old Python 3.10 target.",
+        "human_opening_preservation": "Protected opening and prior provenance are byte-for-byte retained in the new proposal; saved human revision remains intact. No accepted version-update preservation is demonstrated.",
+        "version_update_preservation": "Substantive update verified in proposal only: both native results, all three exclusions, exact change quotation, and historical-versus-current recommendations. Saved current work has not adopted it.",
+        "workflow_usefulness": "Strong source-grounded revision for review, but pending acceptance and a stale separate brief leave conflicting entry points. File delivery remains unavailable.",
+        "evidence": [
+          {
+            "locator": "authorized_collection_addendum.records[2].proposal.body.blocks[1]",
+            "finding": "Recommends direct parsing for Python 3.11, correctly gives 2019-12-04 and 2021-01-04, includes reduced-precision, extended and ordinal exclusions, and quotes the complete 3.11 change note. Prior 3.10 advice is explicitly historical rather than retracted."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[2].proposal.body.blocks[2]",
+            "finding": "Eleven CSV rows parse with the exact six columns; 3.10 and 3.11 rows use their corresponding frozen retrieval times."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[2].proposal.body.blocks[0,3,4]",
+            "finding": "Exact protected opening and unchanged provenance verified against the saved human body. Separate provenance clarification limits the old version-specific text without rewriting it."
+          },
+          {
+            "locator": "authorized_collection_addendum.records[2].proposal.status; accepted_revision_id; artifacts",
+            "finding": "Latest proposal remains pending with null accepted_revision_id; saved artifact bodies equal episode-23. Download records are unavailable / unsupported_operation."
+          }
+        ],
+        "limitations": [
+          "Content score applies to inspected proposed text, not the stale accepted artifact set or a downloaded file.",
+          "No applied acceptance, ordinary memory-review outcome, Python execution or active human effort measurement is supplied.",
+          "Proposal producer fields are null; the packet message references its ID, but stronger run provenance is not inferred."
+        ]
+      }
+    },
+    {
+      "collected_ordinal": 26,
+      "planned_slot": 41,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 5,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-07/episode-26.json",
+      "packet_sha256": "e17f18275aaa4e2fcf2c8afc105804655bbe0ed7267eff39605afdd035496bc4",
+      "review": ".local/batch3/b35c/quality-review-07/REVIEW.json",
+      "review_sha256": "d350ea9665d176be0c20fab94ef2a9959b1a1ae4f5717d46457657f37dc302bc",
+      "original_review": {
+        "opaque_episode": "episode-26",
+        "packet": "episode-26.json",
+        "packet_sha256": "e17f18275aaa4e2fcf2c8afc105804655bbe0ed7267eff39605afdd035496bc4",
+        "custody_sha256_match": true,
+        "content_score": 3,
+        "content_score_basis": "Complete visible retained brief and CSV text; not a score for authenticated model-only output or a downloaded file.",
+        "rationale": [
+          {
+            "finding": "Correct Python 3.12 recommendation: /etc/passwd relative to /usr yields ../etc/passwd with walk_up=True; default behavior raises ValueError. The brief identifies walk_up as added in 3.12 and retains different-drive and absolute/relative incompatibility exceptions.",
+            "evidence": "oracle.required_facts_manual[0:2]; artifacts[1].body.blocks: recommendation, default-and-option, version-and-provenance; task.public_sources[0].passages[0]"
+          },
+          {
+            "finding": "Explains string-only operation, no filesystem checks, the no-symlink assumption, resolving concrete paths when necessary and why the result is not an access-control check. Recommendations are distinguished from documentation and unexecuted examples.",
+            "evidence": "oracle.required_facts_manual[2]; artifacts[1].body.blocks: symlinks, default-and-option"
+          },
+          {
+            "finding": "Complete required quotation and Python Software Foundation attribution are present. The exact supplied Python 3.12 URL, passage range and retrieval time are cited without inventing a patch release, live refresh or execution. CSV text parses as eight records with the six required columns. No forbidden routing literal or prior date-parsing conclusion appears in the visible work.",
+            "evidence": "oracle.required_quotes; oracle.required_attribution_urls; artifacts[0].body.blocks: evidence-csv, provenance-and-limits; artifacts[1].body.blocks: default-and-option, version-and-provenance"
+          }
+        ],
+        "delivered_file_evidence": {
+          "status": "unavailable",
+          "score": null,
+          "verified_download": false,
+          "downloaded_file_sha256": null,
+          "evidence": "authorized_collection_addendum.records[0:2].download each reports status=unavailable, code=unsupported_operation; messages[0].attachments is empty. Body and message explicitly disclaim standalone .md/.csv attachments.",
+          "limitation": "No actual export/client GET receipt, nonempty downloaded bytes, file media type/version or downloaded-file open/parse readback. Parsing embedded CSV verifies text syntax only. Retained revision/body hashes are not download hashes."
+        },
+        "authorship_and_acceptance": {
+          "model_only_content_score": null,
+          "accepted_work_verified": null,
+          "evidence": "Both addendum revisions identify author_id=local-human and author_kind=worker. Their bodies equal the collected artifact bodies. Assistant messages reference those revision IDs, but that alone does not establish model-only authorship or acceptance. No pending proposal is credited as accepted work."
+        },
+        "workflow": {
+          "full_fulfillment": false,
+          "status": "incomplete delivery; preservation and procedural-transfer verification unavailable",
+          "usefulness": "Technically useful retained brief and copyable evidence, but the user would still need to create the requested files. A copy/save instruction is not delivered-file evidence.",
+          "prior_human_artifact_preserved": null,
+          "procedural_transfer_verified": null,
+          "evidence": "oracle.observer_evidence_required requires export evidence, prior accepted-artifact before/after hash/diff and exact usage bindings. These packets supply neither the preservation comparison nor those bindings; the assistant assertion that earlier work is unchanged is insufficient."
+        },
+        "human_effort": {
+          "availability": "unavailable",
+          "active_seconds": null,
+          "active_minutes": null,
+          "clarification_actions": null,
+          "review_actions": null,
+          "resupply_actions": null,
+          "repair_actions": null,
+          "reason": "No timed active-human intervals or complete action ledger. Saving the CSV is suggested work, not an observed action; timestamps and elapsed runtime cannot supply active effort."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 27,
+      "planned_slot": 42,
+      "trial": "7d71a8d58efab496730c352c",
+      "episode": 6,
+      "variant_unblinded_after_scoring": "B0",
+      "case": "A-6987a6b1d3e8",
+      "content_score": 3,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-07/episode-27.json",
+      "packet_sha256": "195f35b62f0b4a39803a85628b948edb34a91f4fbeaf4e9c7b414d768717d50b",
+      "review": ".local/batch3/b35c/quality-review-07/REVIEW.json",
+      "review_sha256": "d350ea9665d176be0c20fab94ef2a9959b1a1ae4f5717d46457657f37dc302bc",
+      "original_review": {
+        "opaque_episode": "episode-27",
+        "packet": "episode-27.json",
+        "packet_sha256": "195f35b62f0b4a39803a85628b948edb34a91f4fbeaf4e9c7b414d768717d50b",
+        "custody_sha256_match": true,
+        "content_score": 3,
+        "content_score_basis": "Complete visible retained brief, CSV serialization and table; not a score for authenticated model-only output or a downloaded file.",
+        "rationale": [
+          {
+            "finding": "The newcomer-oriented brief covers short distinctive titles, relevant information first and process-step titles; descriptive headings that group paragraphs and outline content; and meaningful target-describing links with relevant type/size information. It preserves the complete attributed quotation, including avoidance of click here/read more.",
+            "evidence": "oracle.required_facts_manual[0:2]; oracle.required_quotes; artifacts[0].body.blocks: brief; task.public_sources[0].passages"
+          },
+          {
+            "finding": "The limitation that these introductory tips do not certify conformance is substantively communicated: the checklist is not an additional standard or complete accessibility audit, and the passages do not establish that a page is accessible. WCAG is not named explicitly, but there is no conformance guarantee and no material semantic gap.",
+            "evidence": "oracle.required_facts_manual[2]; artifacts[0].body.blocks: brief, sections A quick writing check and What this source supports\u2014and what it does not"
+          },
+          {
+            "finding": "Exact frozen-source provenance, supplied hashes, locators and retrieval time are provided. Recommendations are distinguished from empirical evidence and live verification. Embedded CSV parses as three records with the six required columns, also represented in the editable table. Visible work does not repeat prior-project details or forbidden routing literals.",
+            "evidence": "artifacts[0].body.blocks: provenance, csv; artifacts[1].body.fields and rows; oracle.forbidden_in_new_artifact"
+          }
+        ],
+        "delivered_file_evidence": {
+          "status": "unavailable",
+          "score": null,
+          "verified_download": false,
+          "downloaded_file_sha256": null,
+          "evidence": "authorized_collection_addendum.records[0:2].download each reports status=unavailable, code=unsupported_operation; messages[0].attachments is empty. Body and message explicitly state that editable artifacts are not downloadable .md/.csv files.",
+          "limitation": "No actual export/client GET receipt, nonempty downloaded bytes, file media type/version or downloaded-file open/parse readback. Source-preparation GET metadata concerns the public source, not a deliverable download. Embedded CSV parse success is not file delivery."
+        },
+        "authorship_and_acceptance": {
+          "model_only_content_score": null,
+          "accepted_work_verified": null,
+          "evidence": "Both addendum revisions identify author_id=local-human and author_kind=worker. Their bodies equal the collected artifact bodies. Assistant references to these revisions do not establish model-only authorship or accepted work. No pending proposal is credited as accepted work."
+        },
+        "workflow": {
+          "full_fulfillment": false,
+          "status": "incomplete delivery; project-forgetting and access-isolation verification unavailable",
+          "usefulness": "Readable, source-grounded newcomer guidance and copyable evidence are useful, but manual file creation remains necessary and actual cross-project isolation is unverified.",
+          "forgetting_and_access_isolation_verified": null,
+          "non_resurrection_after_restart_verified": null,
+          "evidence": "oracle.observer_evidence_required[3] requires actual forgetting, denied cross-project source/metadata access, memory/derived-recall exclusion and restart non-resurrection. No corresponding operational evidence is supplied. Absence of old-project details in the text does not establish these controls."
+        },
+        "human_effort": {
+          "availability": "unavailable",
+          "active_seconds": null,
+          "active_minutes": null,
+          "clarification_actions": null,
+          "review_actions": null,
+          "resupply_actions": null,
+          "repair_actions": null,
+          "reason": "No timed active-human intervals or complete action ledger. Saving the CSV is suggested work, not an observed action; timestamps and elapsed runtime cannot supply active effort."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 28,
+      "planned_slot": 61,
+      "trial": "57d5c80bab1f0d442d84cb6f",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "B1",
+      "case": "B-cf1c7cb53c69",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-08/episode-28.json",
+      "packet_sha256": "7fa50d84d40524745a5a7ad3ca512115f7038858b458c945bd2ece6aad5247fe",
+      "review": ".local/batch3/b35c/quality-review-08/REVIEW.json",
+      "review_sha256": "05e7713f167278be832b7f9e8376e309e82867494088ca3370a599ce475fc88b",
+      "original_review": {
+        "opaque_episode": "episode-28",
+        "packet_sha256": "7fa50d84d40524745a5a7ad3ca512115f7038858b458c945bd2ece6aad5247fe",
+        "packet_sha256_verified_against_custody": true,
+        "oracle_sha256": "7ec4437ede715a4ceea90505dfadb692f47f1e2ca50cb81d50df214a8fcf905b",
+        "embedded_oracle_sha256_verified": true,
+        "content_score": 2,
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "rationale": [
+          {
+            "assessment": "Useful, audience-appropriate visible content.",
+            "evidence": "messages[0].text provides a friendly onboarding brief with distinct title, heading and link sections, practical examples, try-it prompts and a review checklist. It accurately covers unique information first, current process step in titles, headings as an outline, descriptive link text and relevant verified download type/size."
+          },
+          {
+            "assessment": "Required quotation and attribution preserved in the visible text.",
+            "evidence": "The complete oracle.required_quotes[0].text occurs verbatim in messages[0].text; its UTF-8 SHA256 is 9e37d383fce159219d52574daa32a8376e16e6d70ea4bb724092956e5caa72b9. The adjacent attribution names W3C/WAI, and the primary source URL is https://www.w3.org/WAI/tips/writing/."
+          },
+          {
+            "assessment": "Source/version framing is clear and appropriately limited.",
+            "evidence": "The brief states Version 1.0, Date 2026-11-01 and source ID wai-writing, identifies frozen passages at lines106/118/154 and the supplied retrieval timestamp, and says no live refresh or open-ended search was performed. Examples are explicitly authored for the brief rather than attributed as additional source quotations. Topic-fragment URLs are navigation references, not independently verified fetched evidence."
+          },
+          {
+            "assessment": "Content falls short of the complete frozen oracle in one explicit qualification.",
+            "evidence": "oracle.required_facts_manual requires that these introductory tips do not certify WCAG conformance. The brief says \"These are focused writing checks, not a complete accessibility audit,\" but never explicitly states the non-certification/WCAG-conformance limitation. This nearby caveat is helpful and makes no conformance guarantee; it does not fully express the required distinction. Score2 reflects this content gap, separately from file delivery."
+          },
+          {
+            "assessment": "Required file delivery and full task completion are not demonstrated.",
+            "evidence": "artifacts=[], messages[0].attachments=[], and authorized_collection_addendum.records=[]. The message explicitly says \"No downloadable file was created\" and asks the reader to copy the text into volunteer-web-editor-onboarding.md. A filename suggestion and editable Markdown prose are not a delivered file or verified download."
+          },
+          {
+            "assessment": "Truthful limitation rather than fabricated file success.",
+            "evidence": "The visible response does not pretend an attachment exists. No client/export GET receipt, downloaded bytes, file version or open/parse readback appears in the packet. No stored human acceptance or accepted revision is evidenced."
+          }
+        ],
+        "delivery": {
+          "visible_markdown_text": true,
+          "artifact_present": false,
+          "attachment_present": false,
+          "verified_download_receipt_present": false,
+          "full_workflow_verified": false,
+          "accepted_work_verified": null
+        },
+        "provenance": {
+          "packet_message_origin_label": "live_provider_receipt",
+          "model_only_authorship_verified": null,
+          "basis": "The packet labels the message as provider-origin and includes a receipt identifier; this review does not independently inspect the underlying request/history or establish exclusive model authorship. The marked source quotation is explicitly reused source material. No accepted human work or stored-artifact preservation is inferred."
+        },
+        "human_effort": {
+          "active_seconds": null,
+          "measured": false,
+          "observed_actions": [],
+          "rationale": "No timed clarification, review, resupply, repair or manual file-creation interval is provided. Copying/saving would be required to obtain the requested file, but the packet does not establish that anyone performed it or how long it took. Response/receipt timestamps are not active human effort."
+        },
+        "blinding": {
+          "arm_mapping_inspected": false,
+          "arm_benefit_claim": false,
+          "note": "The supplied oracle contains case/variation metadata. It was visible while reading the full packet but was not interpreted as an arm mapping or used for scoring. No external mapping, other episode or comparative outcome was inspected."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 29,
+      "planned_slot": 67,
+      "trial": "205529c6b75e48f328b37cc6",
+      "episode": 1,
+      "variant_unblinded_after_scoring": "M1",
+      "case": "B-cf1c7cb53c69",
+      "content_score": 2,
+      "workflow_fulfilled": false,
+      "download_verified": false,
+      "active_human_effort_seconds": null,
+      "packet": ".local/batch3/b35c/quality-review-09/episode-29.json",
+      "packet_sha256": "5a9c7b4edc42ca42dfaa358fe622b79262c980264378aaf0af4246c0ceda8e51",
+      "review": ".local/batch3/b35c/quality-review-09/REVIEW.json",
+      "review_sha256": "18ed6ee71be68b1686a7330b192cfa882875bb6fd4f86b8b5fdbd810ebd1e095",
+      "original_review": {
+        "opaque_episode": "episode-29",
+        "packet_sha256": "5a9c7b4edc42ca42dfaa358fe622b79262c980264378aaf0af4246c0ceda8e51",
+        "packet_sha256_verified_against_custody": true,
+        "oracle_sha256": "7ec4437ede715a4ceea90505dfadb692f47f1e2ca50cb81d50df214a8fcf905b",
+        "embedded_oracle_sha256_verified": true,
+        "content_score": 2,
+        "task_fulfilled": false,
+        "actual_download_verified": false,
+        "rationale": [
+          {
+            "assessment": "Useful, audience-appropriate visible content.",
+            "evidence": "messages[0].text contains a friendly Markdown onboarding brief with three numbered sections, editorial examples, before-you-finish prompts and a checklist. It accurately explains distinctive page titles, unique information first, current process steps, headings as a useful outline and links describing their destination. It advises verifying actual file format and size rather than copying the example size."
+          },
+          {
+            "assessment": "Required quotation and attribution preserved in visible text.",
+            "evidence": "The complete oracle.required_quotes[0].text appears verbatim inside the Markdown block; its UTF-8 SHA256 is 9e37d383fce159219d52574daa32a8376e16e6d70ea4bb724092956e5caa72b9. The adjacent attribution names W3C/WAI and the source page; https://www.w3.org/WAI/tips/writing/ appears in Sources, attribution, and version notes."
+          },
+          {
+            "assessment": "Source and version framing are appropriately bounded.",
+            "evidence": "The brief states Version1.0, Date2026-11-01, the supplied frozen passages at extracted lines106/118/154 and the supplied retrieval time. It says no live refresh or open-ended search occurred and explains that line numbers refer to the supplied extraction. Editorial examples are explicitly distinguished from W3C quotations. The packet does not independently validate the added topic-fragment URLs or quoted section heading; these were not fetched by this reviewer."
+          },
+          {
+            "assessment": "The complete frozen content oracle is not met in one qualification.",
+            "evidence": "oracle.required_facts_manual requires that these introductory tips do not certify WCAG conformance. The brief says it is \"not W3C-endorsed\" and covers three topics, \"not a full accessibility review,\" but does not expressly state the non-certification/WCAG-conformance limitation. These caveats are useful and do not claim conformance; neither fully states the required distinction. Content2 reflects this gap independently of missing file delivery."
+          },
+          {
+            "assessment": "Required downloadable document and full task completion are absent.",
+            "evidence": "artifacts=[], messages[0].attachments=[], and authorized_collection_addendum.records=[]. The message states \"No downloadable file was created\" and asks the reader to copy the text into volunteer-web-editor-onboarding.md. A fenced Markdown block and proposed filename do not establish a saved artifact, downloadable file or verified GET/open/parse readback."
+          },
+          {
+            "assessment": "Delivery limitation is disclosed; other execution claims remain unverified here.",
+            "evidence": "The response does not fabricate a successful attachment. Its statement that an earlier document-creation attempt was rejected is message prose only: no corresponding attempt receipt is included in the allowed packet. Statements about no external sharing likewise are not independently audited by this content review. No accepted human revision or stored-artifact preservation is evidenced."
+          }
+        ],
+        "delivery": {
+          "visible_markdown_text": true,
+          "artifact_present": false,
+          "attachment_present": false,
+          "verified_download_receipt_present": false,
+          "full_workflow_verified": false,
+          "accepted_work_verified": null
+        },
+        "provenance": {
+          "packet_message_origin_label": "live_provider_receipt",
+          "model_only_authorship_verified": null,
+          "basis": "The packet labels the assistant message as provider-origin and supplies a receipt identifier. The underlying execution/request history and exclusive model authorship are not independently established by this packet-only review. The marked source quotation is explicitly reused material. No accepted human work or stored-artifact preservation is inferred."
+        },
+        "human_effort": {
+          "active_seconds": null,
+          "measured": false,
+          "observed_actions": [],
+          "rationale": "No timed clarification, review, resupply, repair or manual file-creation interval is supplied. Copying/saving would be required to obtain the requested file, but neither its performance nor duration is evidenced. Message/source timestamps are not active human effort."
+        },
+        "blinding": {
+          "arm_mapping_inspected": false,
+          "arm_benefit_claim": false,
+          "note": "The supplied oracle includes case/variation metadata, visible during the full-packet read. It was not interpreted as an arm mapping or used to score content. No other trial, external mapping or comparative outcome was inspected."
+        }
+      }
+    }
+  ],
+  "supplemental_proposal_reviews": [
+    {
+      "collected_ordinal": 2,
+      "planned_slot": 2,
+      "scope": "independent_proposal_content_review_not_full_usefulness_acceptance",
+      "content_score": 3,
+      "packet_sha256": "dcfd58d5e2074f504d99805ba8f7303ecbf0fdc68e862f7d9d25ec058899c138",
+      "review": ".local/batch3/b35c/quality-review-01/proposal-review-02/REVIEW.json",
+      "review_sha256": "10a315c2c763f9427a070167c7d36c9e19c00ddc66e56869506e9a818ca98ce6",
+      "original_review": {
+        "opaque_episode": "episode-02",
+        "packet_sha256": "dcfd58d5e2074f504d99805ba8f7303ecbf0fdc68e862f7d9d25ec058899c138",
+        "content_quality": 3,
+        "content_findings": [
+          "Proposal-1, created in this episode and pending acceptance, is ready as corrected newsletter content. It is not the saved original. The original still has its conversational opening and a trailing human note.",
+          "The proposal starts with the exact protected paragraph, including B2-LOCAL-ONLY-REVIEW; UTF-8 hash and placement were checked. Direct explanatory prose replaces the conversational opening, and headings are informative. The recommendation is conditional on the project's target and compatibility requirements without inventing a target.",
+          "The complete marked quotation, 'This is the stable release of Python 3.11.0', is unchanged and attributed to Python with the correct release-page URL. October 24, 2022, Python 3.11.18 supersession in the frozen snapshot, and historical rather than current-newest framing match episode-01's frozen source.",
+          "Required traceback, Exception Groups/except*, tomllib and asyncio task-group highlights remain, along with regex and typing details. Performance figures are attributed historical measurements, explicitly not workload guarantees or newly run benchmarks.",
+          "The project-only preference is reproduced without extending it globally or claiming memory registration. Source version, date and attribution are present in editable Markdown content. No changed source target or archive requirement arises in this episode.",
+          "The proposal content hash and byte count match the supplied authorized-download metadata. This supports evaluating the delivered body; it does not prove user-facing discoverability or completion of the requested saved-revision workflow."
+        ],
+        "required_repairs": [],
+        "effort_observations": [
+          "No quotation, protected-text, factual or preference-content repair is required on the available proposal.",
+          "The response explicitly leaves acceptance to the human and says the saved original was not overwritten. Review and acceptance remain observable next actions; neither is recorded as performed.",
+          "No resupply request appears. The response reports no revised downloadable file, while the additive packet supplies current service-download verification of the proposal; neither establishes the user's original download experience. No effort comparison or duration can be inferred."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser presentation, download-link discoverability and user-facing download completion are outside this content review and unverified.",
+          "Source-access isolation, external-action restrictions, durable storage preservation and actual memory-workflow state are unverified, not automatic passes or failures.",
+          "Human acceptance, resupply/correction activity beyond the visible messages, and timed human effort are unverified."
+        ],
+        "suspected_unblinding": {
+          "suspected": false,
+          "notes": "No treatment assignment, cost, prior score or runtime trace was consulted. The protected routing tag and visible workflow descriptions were treated only as task/content evidence, not assignment clues."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 3,
+      "planned_slot": 3,
+      "scope": "independent_proposal_content_review_not_full_usefulness_acceptance",
+      "content_score": 3,
+      "packet_sha256": "5cf53878217b1e932ecbb131a3d6d8bdce379709e97292c54fb6154cd1d68866",
+      "review": ".local/batch3/b35c/quality-review-01/proposal-review-02/REVIEW.json",
+      "review_sha256": "10a315c2c763f9427a070167c7d36c9e19c00ddc66e56869506e9a818ca98ce6",
+      "original_review": {
+        "opaque_episode": "episode-03",
+        "packet_sha256": "5cf53878217b1e932ecbb131a3d6d8bdce379709e97292c54fb6154cd1d68866",
+        "content_quality": 3,
+        "content_findings": [
+          "The available correction is proposal-1 from episode-02, not a new episode-03 revision. Its content is byte-identical to the earlier proposal and remains ready for the requested corrected historical newsletter. No episode-04 proposal is credited here.",
+          "The exact protected opening is still first; direct prose, informative headings and the project-only preference remain. The complete Python 3.11.0 quotation and Python attribution URL are unchanged. The release date, superseded snapshot status, required technical highlights and qualified benchmark claims remain supported by the contextual frozen source.",
+          "The prompt's reference to an accepted opening is not evidence that the correction proposal was accepted. The packet explicitly records it as pending. The response correctly distinguishes the corrected proposal from the saved original, whose opening remains conversational and whose protected paragraph remains at the end.",
+          "The message identifies its export as the current saved revision and explicitly says that export is not the corrected deliverable. This is an unresolved workflow outcome, not missing or defective proposal content. The available proposal's content hash and byte count match its supplied download metadata.",
+          "No source-target change or additional archive requirement is introduced. The existing correction is retained without a visible request to repeat the instructions or source material. No factual restart claim is made merely from the prompt."
+        ],
+        "required_repairs": [],
+        "effort_observations": [
+          "The visible response directs the human to accept the existing correction proposal before it becomes the saved exportable revision. This is an explicit outstanding acceptance dependency, not a completed human action.",
+          "No resupply or content-correction request appears. The distinction between the old saved export and corrected proposal creates a visible review/selection burden, but the packet does not establish clicks, elapsed time or active effort.",
+          "The episode's reuse of the earlier proposal is not credited as a newly authored correction or as completed acceptance. No matched-baseline effort comparison is possible."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser presentation, proposal/download discoverability and user-facing retrieval of the corrected revision are unverified.",
+          "Actual worker-restart execution, source-access isolation, duplicate external effects, storage preservation and durable memory state are outside this content review and unverified.",
+          "The exported file's actual service/browser behavior and all human acceptance or timing claims remain unverified; packet evidence establishes only the supplied proposal body and stated pending status."
+        ],
+        "suspected_unblinding": {
+          "suspected": false,
+          "notes": "Visible export/proposal identifiers and workflow descriptions provide procedural context but no identified treatment assignment. No attempt was made to infer assignments or consult hidden records."
+        }
+      }
+    },
+    {
+      "collected_ordinal": 4,
+      "planned_slot": 4,
+      "scope": "independent_proposal_content_review_not_full_usefulness_acceptance",
+      "content_score": 3,
+      "packet_sha256": "a06cda02931e6cd3c823fbf77fae49c20419e6df07bac6766317f31c02efc808",
+      "review": ".local/batch3/b35c/quality-review-01/proposal-review-02/REVIEW.json",
+      "review_sha256": "10a315c2c763f9427a070167c7d36c9e19c00ddc66e56869506e9a818ca98ce6",
+      "original_review": {
+        "opaque_episode": "episode-04",
+        "packet_sha256": "a06cda02931e6cd3c823fbf77fae49c20419e6df07bac6766317f31c02efc808",
+        "content_quality": 3,
+        "content_findings": [
+          "Proposal-2, created in episode-04 and pending acceptance, supplies the historical Python 3.12.0 revision. Proposal-1 remains earlier unaccepted work and is not treated as the saved original.",
+          "The protected human paragraph is unchanged at the very start. A separate Current recommendation section adopts the stated historical 3.12.0 target while conditioning present-day installation on project requirements and current guidance. It does not rewrite the human's condition or invent a live change.",
+          "The current newsletter replaces the old quotation with the complete exact 'This is the stable release of Python 3.12.0', attributed to Python and the correct 3.12.0 release URL. October 2, 2023 and supersession by Python 3.12.16 match the frozen source. Historical launch wording is explicitly separated from today's latest patch/support status.",
+          "The new body materially updates the highlights to PEP 701 f-strings, PEP 688 buffer protocol, PEP 669 profiling, PEP 684 subinterpreters, Linux perf, PEP 695 generics and PEP 698 override. The estimated 5% improvement is source-attributed and not guaranteed; archived 3.11 benchmarks are explicitly not presented as 3.12 results.",
+          "Compatibility passages retain removed wstr/wstr_length members, unittest removals, smtpd/distutils removal and the essential setuptools-provides-distutils qualification. They also retain the SyntaxWarning change and unspecified future syntax-error transition, and the Cython-generated-code caveat for integer representation changes.",
+          "Changed-evidence reasoning is substantive: the current recommendation and feature/compatibility guidance address 3.12, and the 3.11 material is labeled archival rather than false or retracted. Source labels explicitly limit the earlier passage to the archive. Direct prose and informative headings persist in the new body; conversational wording remains only in the deliberately unchanged archive.",
+          "The embedded archive is byte-for-byte identical to the supplied saved 3.11 draft, including its old source labels, old quotation and trailing human note. Its UTF-8 SHA256 is 59f276082be637223560383ff4c0097af249e5fb257ef3a5335bd7a694561212. The old release quotation is absent from the current section. This verifies archive content, not durable storage preservation.",
+          "The proposal body hash and byte count match the supplied download metadata. Its pending status and the unchanged saved original remain explicit; content readiness does not establish full saved/downloadable workflow completion."
+        ],
+        "required_repairs": [],
+        "effort_observations": [
+          "No protected-text, quotation, version-fact, compatibility-qualification or archive-content repair is required on proposal-2.",
+          "Human review and acceptance remain necessary before treating this as the saved revised newsletter. The packet includes both pending proposals, so the relevant review target is proposal-2, not the earlier 3.11 correction; no actual selection or acceptance is observed.",
+          "No resupply request appears. The long archive is required retained content rather than gratuitous repair work. Its review burden and the response's reported download limitation cannot be converted into active human seconds or an inferred effort advantage."
+        ],
+        "effort_active_seconds": null,
+        "instrumentation_unverified": [
+          "Browser/download discoverability, user-facing export completion and proposal-acceptance behavior are outside scope and unverified.",
+          "Source-access isolation, absence of external sharing/effects, and durable original/archive storage preservation are unverified. Exact embedded archive equality is not a storage audit.",
+          "Memory registration, actual human review/selection/acceptance and all timed human effort remain unverified."
+        ],
+        "suspected_unblinding": {
+          "suspected": false,
+          "notes": "No treatment assignments or prior scores were identified. The routing tag and proposal metadata were used only to evaluate preservation, chronology and pending status; no assignment inference was attempted."
+        }
+      }
+    }
+  ],
+  "supplemental_scope": "Separate later authorized proposal-content review, not replacement of primary packet grades, accepted work or original user download experience. Primary evidence scopes differ across batches; do not treat the aggregate as a controlled A/B estimate."
+}

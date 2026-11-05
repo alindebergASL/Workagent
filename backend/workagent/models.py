@@ -256,6 +256,9 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
     """
     runtime_extension: Literal['general-alpha-v1']
     continuity_version: Literal['sustained-v1'] | None = None
+    # Explicit full-tool treatment, immutable with the grant/run binding. None
+    # preserves historical serialized authority and compute-memory behavior.
+    memory_recall: Literal['off', 'reviewed-v1'] | None = None
     max_steps: int = Field(default=4, strict=True, ge=1, le=8)
     generation_limit: int = Field(strict=True, ge=0, le=256)
     count_limit: int = Field(strict=True, ge=0, le=256)
@@ -271,7 +274,21 @@ class GeneralAlphaResponsesBinding(AdaptiveResponsesBinding):
         data=handler(self)
         if self.continuity_version is None:
             data.pop('continuity_version',None)
+        if self.memory_recall is None:
+            data.pop('memory_recall',None)
         return data
+
+    @model_validator(mode='after')
+    def full_tool_memory_treatment(self):
+        if self.memory_recall is not None:
+            from hashlib import sha256
+            from .capabilities.delegation_composition import SCHEMA
+            from .discovery_composition import SCHEMA as DISCOVERY_SCHEMA
+            from .current_gateway import SCHEMA as CURRENT_SCHEMA
+            if (self.continuity_version != 'sustained-v1' or
+                    self.scope_tool_sha256 not in {sha256(s.material).hexdigest() for s in (SCHEMA, DISCOVERY_SCHEMA, CURRENT_SCHEMA)}):
+                raise ValueError('explicit memory treatment requires sustained full-tool schema')
+        return self
 
     @field_validator('cancel_limit', 'synthetic_data_only', 'store_acknowledged', mode='before')
     @classmethod
@@ -582,7 +599,7 @@ class ConversationMessage(Model):
     result: TurnResult | None = None
     operation: LocalOperation | None = None
     document_refs: list[MessageDocument] = Field(default_factory=list, max_length=2)
-    attachments: list[MessageAttachment] = Field(default_factory=list,max_length=2)
+    attachments: list[MessageAttachment] = Field(default_factory=list,max_length=ATTACHMENT_COUNT)
     target: ExactTarget | None = None
     model_receipt: Id | None = None
     responsibility_origin: ResponsibilityOrigin | None = None

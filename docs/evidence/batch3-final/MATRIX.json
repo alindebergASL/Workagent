@@ -1,0 +1,317 @@
+[
+ {
+  "section": "implementation",
+  "requirement": "B3.0a: Authoritative capability gateway and shared accounting",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b30a/ACCEPTANCE.md; card t_00258f1e done",
+  "conditions": "Narrow slice complete; Batch 3 not complete (lane words)."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.0b: Shared exact-version file/evidence substrate and basic exports",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b30b/ACCEPTANCE.md (supersedes historical HOLD); final-source-manifest.json",
+  "conditions": "R3/R4 corrected, integrated, independently reviewed; final source-bound build/browser/checks pass."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.1a: Real confined computation and reproducible output files",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b31a/ (HANDOFF.md consumer contract, ACCEPTANCE.md)",
+  "conditions": "Worker selection/adapter hashes bound; installation/grants must match actual current source."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.1b: Scoped typed memory with human inspection and review",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b31b/ (canonical contract, HTTP surface)",
+  "conditions": "Mechanism scope."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.1c: Combined computation + reviewed-memory cross-assignment journey",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b31c/ACCEPTANCE.md; test_combined_attachment_bridge_pg.py",
+  "conditions": "Actual combined journey recorded; no API/schema/migration/web changes."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.2a: Grounded search, source freshness, confined read-only fallback",
+  "disposition": "DELIVERED-mechanism",
+  "evidence": "docs/evidence/batch3-b32a/ACCEPTANCE.md; WEB_CONSUMER_CLOSURE.md; BUILD_BINDING.json",
+  "conditions": "Mechanisms accepted; NO live paid search/model usefulness claim."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.2b: Editable office files, validated exports, real charts",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b32b/ACCEPTANCE.md + final source/build/evidence manifests",
+  "conditions": "Initial/intermediate FAIL reports retained as history."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.2c: Confined code/log diagnosis with real patch and test outputs",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b32c/ (PTY + browser records, fixture.json)",
+  "conditions": "patch.txt is unified diff + applicability manifest, not a repository write."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.3a: Public read-only GitHub connector end to end",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b33a/ACCEPTANCE.md + exact-source/build/evidence manifests",
+  "conditions": "Named acceptance complete; no default merge/deployment/private pilot."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.3b: Version-pinned MCP and synthetic OAuth/revoke lifecycle",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b33b/ACCEPTANCE.md; records/final-readback.json; browser+PTY records",
+  "conditions": "Protocol pins 2026-07-28/mcp 2.3.0; provider-failed local revoke is not real private-account deletion."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.4a: Evidence-backed lessons and human-reviewed procedures",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b34a/ (parent acceptance addendum; stated mechanism scope)",
+  "conditions": "No production bytes changed; no completed-journey overclaim."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.4b: Optional bounded delegation with parent verification",
+  "disposition": "DELIVERED-scoped",
+  "evidence": "docs/evidence/batch3-b34b/HANDOFF.md",
+  "conditions": "Mechanism scope."
+ },
+ {
+  "section": "implementation",
+  "requirement": "B3.5a: Correction, forget, revoke, isolated restore safety",
+  "disposition": "DELIVERED-qualified",
+  "evidence": "docs/evidence/batch3-b35a/ACCEPTANCE.md + EVALUATION_MATRIX.json (19 rows)",
+  "conditions": "Failed campaigns explicit; no vector index \u2014 embedding deletion not independently tested; local connector revocation immediate but not real private-account deletion."
+ },
+ {
+  "section": "evaluation-infrastructure",
+  "requirement": "B3.5b held-out harness, preregistration, ledger reconciliation",
+  "disposition": "DELIVERED-qualified",
+  "evidence": ".local/batch3/b35b RESULTS.json + all 136 matrix rows; PREREGISTRATION.md + AMENDMENT_01.md",
+  "conditions": "Code exercised WITHOUT a provider; refuses live mode. V1 negative-transfer context defective (not reused). V2 42 full-request scope controls pass. Live trials were unfunded at close."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5c A/B research+editorial REAL held-out (original cohort)",
+  "disposition": "COMPLETE-negative/inconclusive",
+  "evidence": "docs/evidence/batch3-b35c/acceptance/ACCEPTANCE.md: 29 collected / 3 failed / 40 NR of 72; 4 UNKNOWNs unreplayed",
+  "conditions": "Not product success. 12 trajectories; 29 primary independent content reviews; 38 packet/review hashes verified."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5c A/B REAL held-out (fresh72 cohort, 275-ceiling era)",
+  "disposition": "COMPLETE-negative/inconclusive",
+  "evidence": ".local/batch3/b35c/fresh72/RESULT_MATRIX.csv: 23 collected / 12 failed-uncollected / 37 not-runnable of 72",
+  "conditions": "No complete six-episode trajectory or collected changed-evidence update in fresh72; transfer/forget phases unobserved there. Masked scoring: 17 collected scored 3/3, 6 scored 2/3. No causal memory benefit established."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5c post-freeze corrections F1/F2/F3",
+  "disposition": "DELIVERED-reviewed",
+  "evidence": "docs/evidence/batch3-b35c/acceptance/POST_FREEZE_CORRECTION.md; 59433409+d1e09ee5 on PR18; review154 APPROVE",
+  "conditions": "Frozen snapshots unchanged; helper not wired into frozen campaign."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5d C/D data+code REAL held-out (72-row matrix)",
+  "disposition": "COMPLETE-partial",
+  "evidence": ".local/batch3/b35d/recovery-run158/MATRIX-72-final.json: 19 collected / 2 failed / 51 dependent-NR of 72; independent review PASS-WITH-NOTES",
+  "conditions": "C: 11/1/24, D: 8/1/27. Run159 recovered run158 interruption (sized 1.00 certificate + observe-resume; zero unmatched provider effects). Dependent-NR rows are the ep4-6 phase gated on reviewed ep1-3 artifacts \u2014 structurally blocked by the missing_named_model_artifact defect (P5), now fixed."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5e E/F/G read-only admin/planning/connector (first pass)",
+  "disposition": "COMPLETE-partial",
+  "evidence": ".local/batch3/b35e/REPORT.md + PRIMARY_ROWS.json: 6/36 collected, 30 dependent-NR (missing_named_model_artifact 6/6 trajectories)",
+  "conditions": "All 6 trajectories terminated at the episode-2 scripted-correction transition with the SAME defect (missing_named_model_artifact: text-only replies had no editable target); ep2-6 are the dependent-NR rows. Honest denominators; incremental $2 certificates; retained 0.3817."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5g corrected E/F/G re-run under P5-fixed product (owner option 1)",
+  "disposition": "COMPLETE-partial-P7-unresolved",
+  "evidence": ".local/batch3/b35g/PRIMARY_ROWS.json; b35g and b35h REPORT.md plus scoring/MANUAL-PACKETS.map.json and MECHANICAL.json; RECOVERY_CORRECTION.md",
+  "conditions": "Primary dependent rows: 27/30 (E 10/10, F 10/10, G 7/10); b35g 14 + b35h 13. G-M1 ep4 failed at target-mismatch authorization; ep5-6 unmet. Canonical b35e ep1 + dependent coverage = 33/36; fresh b35g ep1 prerequisites excluded from primary evidence. Revoked-resource identity and product/harness defect disposition not established; 37/40 unsupported."
+ },
+ {
+  "section": "evaluation-real",
+  "requirement": "B3.5f real overnight/later-session observation with durable scheduled resume",
+  "disposition": "PASS-with-disclosed-partial",
+  "evidence": ".local/batch3/b35f/REPORT.md: 6/6 episodes across two real sessions 15h08m04s apart; ep3 resume-successor PASS, ep5 in-scope transfer PASS, ep6 forget+denial PASS (denied=2), ep4 human-gated proposal PASS-with-scope-note",
+  "conditions": "Unattended resume PARTIAL PASS: wake cron fired on time but unblocked wrong board; parent replayed identical unblock \u2014 no unattended-routing claim. ep4 fixture/product custody mismatch recorded (F-new). One $2 certificate; retained 1.35104; unresolved 0."
+ },
+ {
+  "section": "product-defect",
+  "requirement": "P5: text-only terminal replies lacked an editable artifact target (b35e 6/6, b35d 51-NR root cause)",
+  "disposition": "FIXED-verified",
+  "evidence": "PR19 merged to PR18 head 286a296 (36f4734 fix + 286a296 test); independent review APPROVE (GLM 5.3 deleg_318da38d) + codex review; both exact-head CI runs success",
+  "conditions": "backend/workagent/reply_artifact.py materializes reply.txt (text/plain, worker author, producer_run_id-tagged) before terminal; idempotent; human artifacts never touched."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "J1 P5 materialization on fresh disposable fixture at HEAD (zero paid calls)",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/j1-p5.json: events=1 artifact=reply.txt run_state=ready",
+  "conditions": "Deterministic offline provider (httpx.MockTransport); real PostgreSQL fixture DB; real service code path."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "J2 human edit preservation on the materialized artifact",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/j2-human.json: human revision on worker revision, parent link intact, sha256=4d5f19947255",
+  "conditions": "human_save API path = same path the web editor uses."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "J3 separate-process restart readback (exact bytes)",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/j3-restart.json: fresh interpreter, no shared memory, human bytes + author returned",
+  "conditions": "Complements R1/R2 full-service restart below."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "R1 owned loopback services stop/restart with fresh process identity (PID checks)",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/identity-{before,after}.json + services.json: api 2239597->2242591, web 2239771->2242684",
+  "conditions": "PID/start-field/cwd verified before kill (b33b pattern); only b3final lane listeners touched; ports 18452/13452 checked unowned before start."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "R2 HTTP output readback identical across real restart",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/snapshot-{before,after}-restart.json: message sha256s + artifact revision/author/content sha256 all equal",
+  "conditions": "Readback through the live uvicorn API, not the domain layer."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "R3 artifact download serves exact named bytes",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/download.json: Content-Disposition carries reply.txt; bytes sha256=4d5f19947255 matches artifact body",
+  "conditions": "Real HTTP download route on the running service."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "R4 reachability: loopback serves, external interface refuses",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/reachability.json: loopback 200, external 000 (refused)",
+  "conditions": "Private development runtime stays private; no public exposure."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "Browser usefulness: desktop 1440 / phone 390 / narrow 320 (real Chromium, text readback)",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/browser/result.json + body.txt + artifact-body.txt: conversation renders, artifact page shows reply.txt + human edit, zero horizontal overflow at all 3 widths",
+  "conditions": "InnerText readback asserted, not screenshots alone; 6 full-page screenshots retained."
+ },
+ {
+  "section": "runtime-verification",
+  "requirement": "PTY usefulness: real tmux-free pexpect+pyte terminal at 80x24 and 120x40",
+  "disposition": "PASS",
+  "evidence": ".local/batch3/b3final/records/pty/*: 80x24 True (PageDown scroll journey), 120x40 True; conversation list, open, Work tab, saved-result select, human-edited body bytes rendered; fits_width both",
+  "conditions": "Actual keyboard/mouse input through the conversational Textual TUI over the live loopback API; captures + PNGs retained."
+ },
+ {
+  "section": "memory-evidence",
+  "requirement": "Equal-tools memory benefit (M1 vs B1 causal)",
+  "disposition": "NOT-ESTABLISHED",
+  "evidence": "b35g scoring: 20 manual packets, mechanical 84 true / 0 false / 8 deferred; b35h: 13 manual packets, mechanical 44 true / 0 false / 9 deferred. Reports record manual PASS on collected packets; dependent coverage 27/30.",
+  "conditions": "No causal memory benefit or measured human-effort reduction established. E/F completed both arms; G-B1 completed while G-M1 stopped. Reported M1 memory engagement is not a benefit estimate; no identical-full-input or complete E/F/G claim."
+ },
+ {
+  "section": "memory-evidence",
+  "requirement": "Negative-transfer controls",
+  "disposition": "PASS-mechanism + PASS-one-real-episode",
+  "evidence": "b35b v2: 42 full-request scope controls pass; b35f ep6 real forget+denial PASS (scripted_forget status=forgotten, other_project_exclusion denied=2, verbatim quotation)",
+  "conditions": "V1 negative-transfer context defective and excluded. ep6 is one real observed episode, not a cohort result."
+ },
+ {
+  "section": "memory-evidence",
+  "requirement": "Correction / forget / revoke / restore + human preservation (A-G controls)",
+  "disposition": "PASS-mechanism; real-episode partial",
+  "evidence": "b35a EVALUATION_MATRIX.json 19 deterministic rows; post-fix live check t_79001eba 2/2 episodes READY across 13 real generations with exact HUMAN text persisted; b35f ep2 correction c08e001f + ep6 forget PASS; J2 above",
+  "conditions": "Deterministic mechanism rows are not model-use results; real-episode coverage is narrow by design (funded increments)."
+ },
+ {
+  "section": "budget",
+  "requirement": "Cumulative ceiling + ledger liabilities",
+  "disposition": "WITHIN-275-CEILING",
+  "evidence": "Live issuer readback: installed cap 275 verified directly in pg_proc source (cumulative_275_exceeded guard + function comment cumulative_ceiling_usd=275); issuer-readback/SUMMARY.json numbers (certificates/releases/usage) are exact but its cap/availability fields are STALE (base script parses only 100/175) \u2014 see issuer-readback/READBACK-NOTE.md; certificates 122.0; released 31.5462600; conservative encumbered 190.0597; headroom 84.9403; known usage upper 6.9408600; unresolved dispatch reserves 0.39576; later saved b35g/b35h REPORT.md: certificates 132.00, released 31.54626, encumbered 200.0597, headroom 74.9403; b35h zero new certificates.",
+  "conditions": "Historical snapshots, not current issuer readback. Encumbered authority is not spend; provider billing unknown. Earlier usage/reserve totals are not asserted current after b35g/b35h; outage causation not verified by this audit."
+ },
+ {
+  "section": "private-pilot",
+  "requirement": "Named private read pilot (real account/resource/processor consent)",
+  "disposition": "UNMET-consent-gate-open",
+  "evidence": "kanban t_bb46e05f blocked/needs_input; no named pilot authority or evidence exists",
+  "conditions": "Deliberately NOT a parent of implementation. All connector evidence is public/synthetic; never labeled private. Full product acceptance for private-data scope stays unmet until the owner answers the precise consent questions."
+ },
+ {
+  "section": "batch2-continuity",
+  "requirement": "Original Batch 2 acceptance qualifications retained",
+  "disposition": "RETAINED",
+  "evidence": "t_99aaa2a0 final audit PASS at 26e599b3 (PR18); Batch2 qualifications live in /home/ubuntu/workagent-acceptance-remaining-20261026/final-batch2-acceptance/ACCEPTANCE.md",
+  "conditions": "Batch 3 changes do not erase Batch 2 limits (no production release, no default merge, development-classification only)."
+ },
+ {
+  "section": "publication",
+  "requirement": "Feature publication + exact-head CI on PR18",
+  "disposition": "PASS-at-286a296",
+  "evidence": "PR18 OPEN head 286a2960 == local HEAD == origin; frontend + development-boundaries CI success at exact head; PR19 (P5) merged with independent APPROVE",
+  "conditions": "Historical publication/CI evidence at 286a296 only; this recovery correction performs no fresh remote verification, commit, push, default merge or deployment."
+ },
+ {
+  "section": "drift",
+  "requirement": "Installed vs published vs candidate drift",
+  "disposition": "DISCLOSED",
+  "evidence": "Installed runtime workagent-alpha serves OLDER source d4d019c4 (general-review-20261023 root) on 8152/3152; published head 286a296; b3final lane runtime built/served from 286a296 exactly",
+  "conditions": "Installed runtime is NOT the published candidate; no model-worker claim for it. Replacing the installed runtime is outside this card (no production replacement authority)."
+ },
+ {
+  "section": "drift",
+  "requirement": "Authorization docs vs installed ceiling",
+  "disposition": "RECONCILED-in-this-increment",
+  "evidence": "Dirty working-tree docs still said $175 while installed issuer cap is 275 (owner raise 2026-11-02, .local/batch3/b35e/OWNER-CEILING-RAISE-275/)",
+  "conditions": "This card commits the corrected GENERAL_MODEL_AUTHORIZATION.md + DEVELOPMENT_AUTHORITY.md reflecting 275 with the audited successor mechanism reference; historical receipts untouched."
+ },
+ {
+  "section": "exit-criteria",
+  "requirement": "Repeated useful outcomes in unfamiliar variations",
+  "disposition": "ESTABLISHED-scoped-partial",
+  "evidence": "Saved b35g/b35h packet maps: E 10/10, F 10/10, G 7/10 dependent rows = 27/30; five completed six-episode trajectories, G-M1 stopped at 3/6. With canonical b35e ep1 rows, 33/36 evidence slots across product versions.",
+  "conditions": "Repeated useful outcomes are observed at this scope, not an overall Batch 3 pass rate. Three G-M1 rows remain unmet; target-mismatch denial is established, resource-specific revocation and absence of product/harness defect are not."
+ },
+ {
+  "section": "exit-criteria",
+  "requirement": "No unresolved hard safety failure",
+  "disposition": "PASS-no-unresolved-hard-failure",
+  "evidence": "No access/effect/spend boundary violation, credential exposure, cross-scope leak, lost human edit, fake execution/citation or forgotten-memory replay found in any lane record; b35f ep6 denial controls held; J2/R2 preservation held",
+  "conditions": "ep4 custody-rule mismatch is a fixture/product documentation defect (recorded F-new), not a safety violation. P7 target-mismatch deny does not establish resource-specific revocation correctness or absence of a product/harness defect; this audit establishes no new safety breach, not an exhaustive safety certification."
+ },
+ {
+  "section": "exit-criteria",
+  "requirement": "Corrections/forget/recovery working",
+  "disposition": "PASS-mechanism + narrow-real",
+  "evidence": "See memory-evidence rows: deterministic 19-row matrix, b35f real episodes, post-fix live check, J2/J3/R2",
+  "conditions": "b35g/b35h add collected real-model correction/resume/transfer/forget evidence at their stated scope; G-M1 ep4-6 remain unmet. No universal or full-cohort recovery claim; see RECOVERY_CORRECTION.md."
+ },
+ {
+  "section": "exit-criteria",
+  "requirement": "User effort or quality meaningfully better than matched baseline",
+  "disposition": "NOT-ESTABLISHED",
+  "evidence": "A/B remains negative/inconclusive (fresh72: 23/12/37; original: 29/3/40). b35g/b35h E/F arms complete with reported equivalent quality; G completion differs (B1 6/6, M1 3/6). Human effort unmeasured; no causal improvement established.",
+  "conditions": "This is the core product-advancement question; it stays OPEN, not failed-by-evidence-of-harm."
+ },
+ {
+  "section": "VERDICT",
+  "requirement": "Full Batch 3 product acceptance",
+  "disposition": "FULL-BATCH3-HOLD-not-established",
+  "evidence": "REPORT.md section 6 and RECOVERY_CORRECTION.md supersede the unsupported 2026-11-03 closure: E/F/G dependent coverage 27/30; canonical coverage 33/36; P7 target-mismatch stop with resource-specific interpretation unproven.",
+  "conditions": "Scoped implementation and historical runtime results retained. Three G-M1 rows unmet; causal benefit not established; private pilot consent unexercised; provider billing unknown. No new permission gate, replay authorization, current-runtime or fresh-CI claim."
+ }
+]

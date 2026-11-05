@@ -1,0 +1,68 @@
+{
+  "status": "BLOCKER_REPRODUCED",
+  "scope": "fresh real product DB, actual full-tool worker, scripted official HTTP wire; not live study",
+  "evidence": ".local/batch3/b35c/recipient-review/5ba26b57b65543268da4b1797f2c11b8",
+  "results": [
+    {
+      "arm": "B1",
+      "database": "workagent_test_be2da899474f",
+      "worker_state": "ready",
+      "tool_granted": true,
+      "full_tool_schema": true,
+      "memory_mode": "off",
+      "artifact_body_type": "FileBody",
+      "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+      "artifact_unchanged": true,
+      "legacy_effects_denied": true,
+      "simulated_wire_calls": 6,
+      "network_provider_calls": 0,
+      "dispatches": 3,
+      "retained_usd": "0.01125000000000000000",
+      "tool_capabilities": [
+        "context.read",
+        "files.inspect_json",
+        "capabilities.discover_legacy",
+        "procedures.load_legacy",
+        "files.list",
+        "files.read_range",
+        "files.create_draft",
+        "files.propose_patch",
+        "files.compare",
+        "artifacts.export",
+        "research.capture",
+        "research.cite"
+      ]
+    },
+    {
+      "arm": "M1",
+      "database": "workagent_test_c987b5a4365a",
+      "worker_state": "ready",
+      "tool_granted": true,
+      "full_tool_schema": true,
+      "memory_mode": "reviewed-v1",
+      "artifact_body_type": "FileBody",
+      "episode2_blocker": "'FileBody' object has no attribute 'blocks'",
+      "artifact_unchanged": true,
+      "legacy_effects_denied": true,
+      "simulated_wire_calls": 6,
+      "network_provider_calls": 0,
+      "dispatches": 3,
+      "retained_usd": "0.01125000000000000000",
+      "tool_capabilities": [
+        "context.read",
+        "files.inspect_json",
+        "capabilities.discover_legacy",
+        "procedures.load_legacy",
+        "files.list",
+        "files.read_range",
+        "files.create_draft",
+        "files.propose_patch",
+        "files.compare",
+        "artifacts.export",
+        "research.capture",
+        "research.cite"
+      ]
+    }
+  ],
+  "provider_calls": 0
+}

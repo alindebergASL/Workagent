@@ -1,0 +1,62 @@
+{
+  "backup_sha256": "6b47fc6401f74e772b5c12218d99af71d7d1e7c1f531ed5b4a0d016a42e32559",
+  "backup_bytes": 12702347,
+  "quarantined_restore": "workagent_test_recovery_b6ea990620d5",
+  "full_public_inventory_match": true,
+  "correction_and_certificate_journals_match": true,
+  "restored_release_and_issue_denied": true,
+  "installed_catalog": {
+    "triggers": [
+      {
+        "name": "immutable_certificate",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER immutable_certificate BEFORE DELETE OR UPDATE OR TRUNCATE ON test_budget_correction.certificates FOR EACH STATEMENT EXECUTE FUNCTION test_budget_correction.immutable()"
+      },
+      {
+        "name": "immutable_release",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER immutable_release BEFORE DELETE OR UPDATE OR TRUNCATE ON test_budget_correction.releases FOR EACH STATEMENT EXECUTE FUNCTION test_budget_correction.immutable()"
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "name": "immutable",
+        "owner": "postgres",
+        "config": [
+          "search_path=pg_catalog"
+        ],
+        "security_definer": false
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "name": "issue_exact",
+        "owner": "postgres",
+        "config": [
+          "search_path=pg_catalog"
+        ],
+        "security_definer": false
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "name": "release_exact",
+        "owner": "postgres",
+        "config": [
+          "search_path=pg_catalog"
+        ],
+        "security_definer": false
+      }
+    ],
+    "unexpected_schema_users": 0
+  },
+  "amounts": {
+    "released_unused_usd": "31.5462600",
+    "retained_existing_allocation_usd": "68.0597000",
+    "issued_certificate_usd": "0",
+    "unallocated_ceiling_usd": "31.9403000",
+    "known_usage_upper_for_released_rows_usd": "6.9408600",
+    "billed_usd": null
+  },
+  "provider_calls": 0,
+  "note": "No restored pool is activated. Uncertain future issuer loss stops sends; do not restore stale issuance history."
+}

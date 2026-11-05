@@ -1,0 +1,14 @@
+test_campaign_gates_and_remainders (__main__.EvidenceTests.test_campaign_gates_and_remainders) ... ok
+test_carry_matches_originals_not_extra_liability (__main__.EvidenceTests.test_carry_matches_originals_not_extra_liability) ... ok
+test_costs (__main__.EvidenceTests.test_costs) ... ok
+test_dedup_and_unknowns (__main__.EvidenceTests.test_dedup_and_unknowns) ... ok
+test_installed_remaining_and_exact_prompt (__main__.EvidenceTests.test_installed_remaining_and_exact_prompt) ... ok
+test_no_raw_credentials_or_receipt_bodies (__main__.EvidenceTests.test_no_raw_credentials_or_receipt_bodies) ... ok
+test_primary_lineage (__main__.EvidenceTests.test_primary_lineage) ... ok
+test_public_price_receipts (__main__.EvidenceTests.test_public_price_receipts) ... ok
+test_scope_and_read_only (__main__.EvidenceTests.test_scope_and_read_only) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.022s
+
+OK
