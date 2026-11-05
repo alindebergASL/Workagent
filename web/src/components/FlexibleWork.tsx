@@ -559,7 +559,11 @@ export function FlexibleEditor({
               aria-labelledby={`proposal-${p.id}`}
             >
               <p className="eyebrow-caps">
-                {earlier ? "Earlier proposal" : "Waiting for you"}
+                {outdated
+                  ? "Out of date"
+                  : earlier
+                    ? "Earlier proposal"
+                    : "Waiting for you"}
               </p>
               <h2 id={`proposal-${p.id}`}>
                 {outdated
@@ -722,7 +726,17 @@ export function FlexibleEditor({
                 <div className="stack-sm">{cand.earlier.map(renderCard)}</div>
               </details>
             ) : null}
-            {cand.outdated.map(renderCard)}
+            {/* Made before the saved version changed: they can only be
+                dismissed, so they stay one line and never bury the work. */}
+            {cand.outdated.length ? (
+              <details className="ids-details" data-testid="outdated-proposals">
+                <summary>
+                  {plural(cand.outdated.length, "out-of-date proposal")}, made
+                  before your latest saved version
+                </summary>
+                <div className="stack-sm">{cand.outdated.map(renderCard)}</div>
+              </details>
+            ) : null}
           </>
         );
       })()}

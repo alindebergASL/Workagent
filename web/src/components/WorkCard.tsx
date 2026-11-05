@@ -208,6 +208,7 @@ export function WorkCard({
           artifactId={artifact.id}
           revisionId={artifact.current_revision.id}
           bodyHash={artifact.current_revision.body_hash}
+          quietWhenEmpty
         />
       ) : null}
       {change && !brief ? (

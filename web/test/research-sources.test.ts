@@ -374,4 +374,47 @@ describe("errors, revocation and pagination", () => {
     );
     expect(out).toContain("Exact quotes verify attribution, not claim truth.");
   });
+  it("a summary card shows nothing for work that cites nothing", () => {
+    const none = { ...claims, items: [] };
+    const quiet = html(
+      createElement(ClaimsList, {
+        claims: none,
+        error: null,
+        snapshots: {},
+        onRefresh: () => {},
+        quietWhenEmpty: true,
+      }),
+    );
+    expect(quiet).toBe("");
+    // The file's own view keeps the read-only refresh and the plain line.
+    const full = html(
+      createElement(ClaimsList, {
+        claims: none,
+        error: null,
+        snapshots: {},
+        onRefresh: () => {},
+      }),
+    );
+    expect(full).toContain('data-testid="claims-empty"');
+  });
+  it("a summary card still shows real citations and errors", () => {
+    const cited = html(
+      createElement(ClaimsList, {
+        claims,
+        error: null,
+        snapshots: {},
+        quietWhenEmpty: true,
+      }),
+    );
+    expect(cited).toContain("cited claim");
+    const failed = html(
+      createElement(ClaimsList, {
+        claims: null,
+        error: "These sources aren’t available to you now.",
+        snapshots: {},
+        quietWhenEmpty: true,
+      }),
+    );
+    expect(failed).toContain('data-testid="claims-error"');
+  });
 });

@@ -571,6 +571,9 @@ try {
       conversation: {
         id: "c",
         title: "Fixture conversation",
+        // A model answers here, so a reply can name its saved version
+        // whenever the build allows linking (window.natural).
+        model_activation: "active",
         state: "open",
         work_version: 1,
         created_at: "",
@@ -1142,7 +1145,17 @@ try {
       body: "{}",
     });
   });
+  // It sits in one closed line, so it never buries the work, and is
+  // labelled for what it is rather than "Waiting for you".
+  const outdatedList = page.getByTestId("outdated-proposals");
+  await expect(outdatedList).not.toHaveAttribute("open", "");
+  await expect(outdatedList.locator(":scope > summary")).toHaveText(
+    "1 out-of-date proposal, made before your latest saved version",
+  );
   const card = page.getByTestId("product-proposal");
+  await expect(card).toBeHidden();
+  await outdatedList.locator(":scope > summary").click();
+  await expect(card.locator(".eyebrow-caps")).toHaveText("Out of date");
   await expect(card.getByRole("heading")).toHaveText(
     "This proposal is out of date",
   );
@@ -1833,7 +1846,16 @@ try {
     /data\.csv/,
     /notes\.txt/,
   ]);
+  // Up to three files (P6): a third can still be added, then no more.
+  await expect(pane.locator('input[type="file"]')).toBeEnabled();
+  await pick("third.txt", "delta\n");
+  await expect(pane.locator(".file-chip")).toHaveCount(3);
   await expect(pane.locator('input[type="file"]')).toBeDisabled();
+  await pane.getByRole("button", { name: "Remove third.txt" }).click();
+  await expect(pane.locator(".file-chip")).toHaveText([
+    /data\.csv/,
+    /notes\.txt/,
+  ]);
   const fileReply = pane.getByLabel("Reply about this work", { exact: true });
   await fileReply.fill("Compare these with my saved table.");
   // Kept with the draft when the pane is left and opened again.
@@ -2112,6 +2134,9 @@ try {
       conversation: {
         id: "c",
         title: "Fixture conversation",
+        // A model answers here, so a reply can name its saved version
+        // whenever the build allows linking (window.natural).
+        model_activation: "active",
         state: "open",
         work_version: 1,
         created_at: "",

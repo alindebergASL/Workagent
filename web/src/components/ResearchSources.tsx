@@ -621,6 +621,7 @@ export function ClaimsList({
   onLoad,
   checking = false,
   onRefresh,
+  quietWhenEmpty = false,
 }: {
   claims: ArtifactClaims | null;
   error: string | null;
@@ -629,6 +630,8 @@ export function ClaimsList({
   onLoad?: (id: string) => void;
   checking?: boolean;
   onRefresh?: () => void;
+  /** Show nothing until something is cited (a summary card of any work). */
+  quietWhenEmpty?: boolean;
 }) {
   // One wrapper in every phase, the refresh control always in the same
   // place: refreshing keeps the keyboard on it, and the list reopens as the
@@ -642,6 +645,7 @@ export function ClaimsList({
     />
   ) : null;
   const empty = !error && (!claims || claims.items.length === 0);
+  if (quietWhenEmpty && empty) return null;
   if (!refresh && (empty || !claims) && !error) return null;
   const stale = claims
     ? claims.items.filter((i) => i.freshness === "potentially_stale").length
@@ -747,6 +751,7 @@ export function ArtifactCitations({
   revisionId,
   bodyHash,
   reader: injected,
+  quietWhenEmpty = false,
 }: {
   ws: string;
   artifactId: string;
@@ -754,6 +759,8 @@ export function ArtifactCitations({
   bodyHash: string;
   /** Tests inject a reader over a controlled transport. */
   reader?: CitationsReader;
+  /** Show nothing until something is cited (a summary card of any work). */
+  quietWhenEmpty?: boolean;
 }) {
   const reader = useMemo(
     () =>
@@ -784,6 +791,7 @@ export function ArtifactCitations({
       onLoad={reader.loadSnapshot}
       checking={st.phase === "checking"}
       onRefresh={reader.refresh}
+      quietWhenEmpty={quietWhenEmpty}
     />
   );
 }
