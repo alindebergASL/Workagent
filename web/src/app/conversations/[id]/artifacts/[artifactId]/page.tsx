@@ -333,8 +333,13 @@ function ProductPageView({ scope }: { scope: WorkspaceScope }) {
               artifactId={artifactId}
               wsId={ws!}
               refreshWork={resource.refresh}
+              // The service links a reply to a saved version (and takes files)
+              // only while a model answers this conversation. Without one it
+              // refuses the send, so offer the plain, unlinked reply instead.
               target={
-                CAPABILITIES.naturalAdmission
+                CAPABILITIES.naturalAdmission &&
+                resource.data.conversation.conversation.model_activation ===
+                  "active"
                   ? {
                       artifact_id: resource.data.artifact.id,
                       revision_id: resource.data.artifact.current_revision_id,
