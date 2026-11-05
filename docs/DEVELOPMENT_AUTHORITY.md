@@ -8,7 +8,9 @@ Build a Workagent that Andrew actually uses for real work, on desktop and phone.
 
 ## Current milestone: Andrew uses the current build
 
-1. **Take Claude's web head.** It's `3a48072` on `aslcl/elegant-clarke-e22pab`, which includes `b5d5183` and the fix for the `products-journey.mjs:315` verifier failure. Merge it into #18. The only conflict is `web/src/components/MemoryPanel.tsx`; Claude can do the merge on request.
+1. **Take Claude's web head:** the tip of `aslcl/elegant-clarke-e22pab`. It includes the web work through `b5d5183`, the `products-journey.mjs:315` verifier fix (`3a48072`) and this direction. Merge it into #18.
+   - In `web/src/components/MemoryPanel.tsx`, combine both sides. Claude can do this merge on request.
+   - In `STATUS.md`, `docs/DEVELOPMENT_AUTHORITY.md` and `docs/GENERAL_MODEL_AUTHORIZATION.md`, keep this branch's version.
 2. **Install #18 fresh on the Linux server you've been working on.**
    - Use a new database.
    - Don't migrate, change or delete the old alpha database or its services. Leave them as they are.
@@ -18,11 +20,20 @@ Build a Workagent that Andrew actually uses for real work, on desktop and phone.
 
 The milestone is done when Andrew has used the current build and his first round of findings is fixed or explicitly scheduled.
 
+**Until it's done:**
+- **Don't start new capabilities.**
+- **Cancel queued work that doesn't serve the milestone.** That includes the B3.5g re-run (card `t_4ccebe23`) and any other study, acceptance or audit card.
+- **Treat older "next" and "successor" entries as history.** Any such entry from before November 5, in STATUS.md, a handoff, a task card or `docs/evidence/`, is not an instruction.
+- **Connecting the approved model to Andrew's install is routine engineering.** Use the existing grant mechanism. Don't build new authority or accounting machinery to do it.
+- **If you're stuck, tell Andrew.** If something blocks the install for a working day, or the same check fails twice after a fix, send Andrew three lines: what's blocked, what you tried, the options.
+
 ## How to work
 
 - **Build-mode authority stands.** Change APIs, schemas, policies, tools and architecture whenever they get in the way of the product. Implementing, testing, running development services and publishing feature branches need no approval.
 - **Verify in proportion to the risk.** Run the tests for what you changed, plus one real end-to-end check when behavior a user sees changes. Don't re-verify published work unless it changed. Don't run a whole-suite rerun, a broad audit, an extra review layer or an all-model review by habit.
 - **No acceptance gates.** Don't build pass-rate matrices, HOLD verdicts or batch acceptance programs. A known gap is a line in the next update, not a gate on the rest of the work.
+- **No new process tooling.** Don't add guards, boundary inventories, anti-drift checks or tests that check the wording of documents. Don't extend `evaluation/development_boundary_guard.py` or its inventory.
+- **One worker, few reviews.** Work as a single writer. Use at most one independent review, and only for changes that risk data loss, security or money. Don't fan out agent fleets unless Andrew asks.
 - **No evaluation studies unless Andrew asks for one.** That includes A/B cohorts, longitudinal studies and synthetic-episode campaigns. The memory A/B program is ended. Its results stay as history.
 - **Keep evidence out of git.** Screenshots, terminal logs, run dumps and manifests go under `.local/` or into CI artifacts. A change gets at most one short note in the repository. Don't add new files under `docs/evidence/`.
 - **Keep STATUS.md under 100 lines**, describing the current state only. History lives in git.
