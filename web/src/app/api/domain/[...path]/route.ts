@@ -271,8 +271,7 @@ async function route(
           // The abort can land in the gap after the connect resolved; a
           // listener added then would never fire.
           if (opened!.signal.aborted) ended();
-          else
-            opened!.signal.addEventListener("abort", ended, { once: true });
+          else opened!.signal.addEventListener("abort", ended, { once: true });
         },
         async pull(controller) {
           try {

@@ -155,9 +155,8 @@ describe("live work stream through the proxy", () => {
   });
 
   it("aborts live streams on shutdown so the server can drain", async () => {
-    const { drainLiveStreams, shutdownHandler } = await import(
-      "@/lib/server/live-streams"
-    );
+    const { drainLiveStreams, shutdownHandler } =
+      await import("@/lib/server/live-streams");
     const upstream = observable();
     backend(upstream.opens);
     const res = await (await mod()).GET(...req(new AbortController()));
