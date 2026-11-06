@@ -84,6 +84,7 @@ import {
   type FlexibleBody,
   type StructuredTable,
 } from "@/lib/flexible";
+import { pristineBehind } from "@/lib/pristine-draft";
 import { readableTitle } from "@/lib/titles";
 import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
@@ -241,6 +242,22 @@ export function FlexibleEditor({
     Boolean(draft.raw && Object.keys(draft.raw).length && problem) ||
     JSON.stringify(normal(draft.body)) !== JSON.stringify(normal(saved));
   const changed = draft.base !== artifact.current_revision_id;
+  // A draft the person never touched follows the worker's saves: re-based
+  // during render, so no frame claims a conflict or unsaved edits for work
+  // they didn't do. Any typed value, pending write or real difference from
+  // the version the draft was based on keeps the draft and both warnings.
+  if (
+    changed &&
+    pristineBehind(draft, artifact.current_revision_id, history, {
+      touched: Boolean(draft.raw && Object.keys(draft.raw).length),
+      normalize: normal,
+    })
+  )
+    setDraft({
+      base: artifact.current_revision_id,
+      body: structuredClone(saved),
+      pending: null,
+    });
   // Who added each kept note: from the saved history, and the person for a
   // note they've added or reworded in this draft.
   const savedNoteAuthors = useMemo(

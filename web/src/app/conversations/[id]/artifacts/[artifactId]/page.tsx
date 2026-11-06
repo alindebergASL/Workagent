@@ -52,6 +52,7 @@ import {
   reviewOf,
   type ReviewableProposal,
 } from "@/lib/proposal-review";
+import { pristineBehind } from "@/lib/pristine-draft";
 import { ProposalReviewGate } from "@/components/ProposalReviewGate";
 import { EarlierVersion, versionAuthor } from "@/components/EarlierVersion";
 
@@ -392,6 +393,21 @@ function ProductEditor({
     JSON.stringify(draft.body) !==
       JSON.stringify(artifact.current_revision.body);
   const changed = draft.base !== artifact.current_revision_id;
+  // A draft the person never touched follows the worker's saves: re-based
+  // during render, so no frame claims a conflict or unsaved edits for work
+  // they didn't do. Any typed input, pending write or real difference from
+  // the version the draft was based on keeps the draft and both warnings.
+  if (
+    changed &&
+    pristineBehind(draft, artifact.current_revision_id, data.history, {
+      touched: Boolean(draft.toolInputs),
+    })
+  )
+    setDraft({
+      base: artifact.current_revision_id,
+      body: structuredClone(artifact.current_revision.body as ProductBody),
+      pending: null,
+    });
   useEffect(() => onDirtyChange(dirty), [dirty, onDirtyChange]);
   const verified =
     currentObservation(artifact, data.observations.current) && !stale;
