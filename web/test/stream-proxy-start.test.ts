@@ -48,15 +48,31 @@ function backend(stream: (signal: AbortSignal) => Promise<Response>) {
   );
 }
 const hangs = (signal: AbortSignal) =>
-  new Promise<Response>((_, reject) =>
-    signal.addEventListener("abort", () =>
-      reject(new DOMException("aborted", "AbortError")),
-    ),
-  );
+  new Promise<Response>((_, reject) => {
+    // Like fetch: rejects at once if the signal is already aborted.
+    const abort = () => reject(new DOMException("aborted", "AbortError"));
+    if (signal.aborted) abort();
+    else signal.addEventListener("abort", abort, { once: true });
+  });
 const opens = async () =>
   new Response(new ReadableStream(), {
     headers: { "content-type": "text/event-stream" },
   });
+/** An open upstream stream whose feed and cancellation are observable. */
+function observable() {
+  let feed: ReadableStreamDefaultController<Uint8Array>;
+  const cancelled = vi.fn();
+  const opens = async () =>
+    new Response(
+      new ReadableStream<Uint8Array>({
+        start: (c) => void (feed = c),
+        cancel: cancelled,
+      }),
+      { headers: { "content-type": "text/event-stream" } },
+    );
+  return { opens, cancelled, feed: (bytes: Uint8Array) => feed.enqueue(bytes) };
+}
+const frame = new TextEncoder().encode(": keepalive\n\n");
 
 beforeEach(() => {
   vi.stubEnv("LOCAL_TEST_MODE", "true");
@@ -100,5 +116,85 @@ describe("live work stream through the proxy", () => {
     expect(streamSignal()?.aborted).toBe(false);
     page.abort();
     expect(streamSignal()?.aborted).toBe(true);
+  });
+
+  it("answers at once when the page goes away before the upstream connects", async () => {
+    backend(hangs);
+    const page = new AbortController();
+    const pending = (await mod()).GET(...req(page));
+    page.abort();
+    const res = await pending;
+    expect(res.status).toBe(502);
+    expect(streamSignal()?.aborted).toBe(true);
+  });
+
+  it("cancels the upstream reader and ends the response when the browser disconnects mid-stream", async () => {
+    const upstream = observable();
+    backend(upstream.opens);
+    const page = new AbortController();
+    const res = await (await mod()).GET(...req(page));
+    const reader = res.body!.getReader();
+    upstream.feed(frame);
+    expect((await reader.read()).done).toBe(false);
+    page.abort();
+    // The upstream connection is released, and this response ends so the
+    // in-flight request drains instead of holding the server open.
+    expect(upstream.cancelled).toHaveBeenCalled();
+    expect((await reader.read()).done).toBe(true);
+  });
+
+  it("closes the stream upstream when the response body is cancelled", async () => {
+    // Next cancels the response body when the browser's socket closes,
+    // even if the request signal never fires.
+    const upstream = observable();
+    backend(upstream.opens);
+    const res = await (await mod()).GET(...req(new AbortController()));
+    await res.body!.cancel();
+    expect(upstream.cancelled).toHaveBeenCalled();
+    expect(streamSignal()?.aborted).toBe(true);
+  });
+
+  it("aborts live streams on shutdown so the server can drain", async () => {
+    const { drainLiveStreams, shutdownHandler } = await import(
+      "@/lib/server/live-streams"
+    );
+    const upstream = observable();
+    backend(upstream.opens);
+    const res = await (await mod()).GET(...req(new AbortController()));
+    const reader = res.body!.getReader();
+    expect(streamSignal()?.aborted).toBe(false);
+    drainLiveStreams();
+    expect(streamSignal()?.aborted).toBe(true);
+    expect(upstream.cancelled).toHaveBeenCalled();
+    expect((await reader.read()).done).toBe(true);
+    // The same drain is wired, exactly once, to the process shutdown
+    // signals; it only aborts streams, it never exits the process.
+    const handler = shutdownHandler();
+    expect(handler).toBeDefined();
+    for (const signal of ["SIGTERM", "SIGINT"] as const)
+      expect(
+        process.listeners(signal).filter((l) => l === handler),
+      ).toHaveLength(1);
+  });
+
+  it("leaves nothing registered once a stream has ended", async () => {
+    const { liveStreamCount } = await import("@/lib/server/live-streams");
+    // Aborted before the upstream connects: the 502 deregisters it.
+    backend(hangs);
+    const before = liveStreamCount();
+    let page = new AbortController();
+    const pending = (await mod()).GET(...req(page));
+    page.abort();
+    expect((await pending).status).toBe(502);
+    expect(liveStreamCount()).toBe(before);
+    // Disconnected mid-stream: ending the relay deregisters it.
+    const upstream = observable();
+    backend(upstream.opens);
+    page = new AbortController();
+    const res = await (await mod()).GET(...req(page));
+    expect(liveStreamCount()).toBe(before + 1);
+    page.abort();
+    expect((await res.body!.getReader().read()).done).toBe(true);
+    expect(liveStreamCount()).toBe(before);
   });
 });

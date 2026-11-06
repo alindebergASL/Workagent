@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest } from "next/server";
+import { trackLiveStream } from "@/lib/server/live-streams";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 const noStore = { "Cache-Control": "no-store" };
@@ -208,17 +209,21 @@ async function route(
     return stale();
   // A stream has no overall limit, but it must start within 15 seconds: a
   // backend that accepts and never answers would otherwise hold the page on
-  // "connecting" with no fallback. Leaving the page closes it upstream.
+  // "connecting" with no fallback. Leaving the page closes it upstream, and
+  // a shutdown signal aborts every live stream so this request can drain
+  // instead of holding the server past its grace period.
   let opening: ReturnType<typeof setTimeout> | undefined;
-  const streamSignal = (() => {
-    if (!stream) return undefined;
-    const opened = new AbortController();
+  let untrack: (() => void) | undefined;
+  const opened = stream ? new AbortController() : undefined;
+  if (opened) {
     opening = setTimeout(() => opened.abort(), 15000);
-    request.signal.addEventListener("abort", () => opened.abort(), {
-      once: true,
-    });
-    return opened.signal;
-  })();
+    if (request.signal.aborted) opened.abort();
+    else
+      request.signal.addEventListener("abort", () => opened.abort(), {
+        once: true,
+      });
+    untrack = trackLiveStream(opened);
+  }
   try {
     const upstream = await fetch(
       `${backend}/${path.join("/")}${request.nextUrl.search}`,
@@ -237,16 +242,62 @@ async function route(
         body: body as BodyInit | undefined,
         cache: "no-store",
         redirect: "error",
-        signal: streamSignal ?? AbortSignal.timeout(upload ? 45000 : 15000),
+        signal: opened?.signal ?? AbortSignal.timeout(upload ? 45000 : 15000),
       },
     );
     clearTimeout(opening);
     if (
       stream &&
       upstream.ok &&
+      upstream.body &&
       upstream.headers.get("content-type")?.startsWith("text/event-stream")
-    )
-      return new Response(upstream.body, {
+    ) {
+      // Relayed rather than handed over: the browser disconnecting (request
+      // abort or response-body cancel) and process shutdown must all cancel
+      // the upstream reader and end this response, or the open stream holds
+      // the server's in-flight requests open forever.
+      const reader = upstream.body.getReader();
+      const relay = new ReadableStream<Uint8Array>({
+        start(controller) {
+          const ended = () => {
+            untrack!();
+            reader.cancel().catch(() => {});
+            try {
+              controller.close();
+            } catch {
+              /* already ended */
+            }
+          };
+          // The abort can land in the gap after the connect resolved; a
+          // listener added then would never fire.
+          if (opened!.signal.aborted) ended();
+          else
+            opened!.signal.addEventListener("abort", ended, { once: true });
+        },
+        async pull(controller) {
+          try {
+            const next = await reader.read();
+            if (!next.done) return controller.enqueue(next.value);
+            untrack!();
+            controller.close();
+          } catch (cause) {
+            untrack!();
+            try {
+              // An abort is a deliberate close, not an upstream failure.
+              if (opened!.signal.aborted) controller.close();
+              else controller.error(cause);
+            } catch {
+              /* already ended */
+            }
+          }
+        },
+        cancel(reason) {
+          untrack!();
+          opened!.abort();
+          return reader.cancel(reason).catch(() => {});
+        },
+      });
+      return new Response(relay, {
         status: 200,
         headers: {
           ...noStore,
@@ -255,6 +306,10 @@ async function route(
           "X-Request-Id": upstream.headers.get("x-request-id") ?? "local-proxy",
         },
       });
+    }
+    // Any other outcome of a stream request is a short error body, not a
+    // live stream; it must not hold shutdown.
+    untrack?.();
     if (original && upstream.ok) {
       // Exact original bytes, never re-encoded as JSON. The digest is computed
       // here over what is forwarded so the browser can compare it with the
@@ -401,6 +456,7 @@ async function route(
     });
   } catch {
     clearTimeout(opening);
+    untrack?.();
     return error(
       502,
       "action_unresolved",
