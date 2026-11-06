@@ -300,12 +300,38 @@ class Products:
             except ValueError as exc: raise DomainError('unsupported_operation') from exc
         operation_hash=digest(operation)
         results=[]
-        # Initial product creates a typed editable body plus exact download file.
-        # Revised product proposes only that body; download its accepted revision.
+        advance=False
+        if base:
+            row,owner=self._artifact(c,p,run.workspace_id,operation.artifact_id)
+            # Recheck at the write boundary, including a human save/accept race.
+            # Multiple retained preparations can share the frozen base, but only
+            # this run's own intervening revisions may be crossed.
+            if row['current_revision_id']!=base.id:
+                self._own_revision_chain(c,p,run,row,owner,base.id)
+            else:
+                self._cas(row,base.id)
+            # Responsibility dependencies keep their original exact-current fence.
+            # This slice advances ordinary preparation only, not responsibility work.
+            responsibility=c.execute("SELECT 1 FROM run_configurations WHERE workspace_id=%s "
+                "AND run_id=%s AND data ? 'responsibility'",(run.workspace_id,run.id)).fetchone()
+            advance=(isinstance(operation,PublishArtifact) and not responsibility
+                and self._agent_owned_draft(c,run.workspace_id,row))
+            if advance:
+                from .flexible_models import check_document_model_edit
+                current=self._revision(c,p,run.workspace_id,row,owner)
+                self._validate_flexible_edit(current.body,body)
+                try: check_document_model_edit(current.body,body)
+                except ValueError as exc: raise DomainError('unsupported_operation') from exc
+        # Human-edited/accepted work remains proposed. Worker preparation advances
+        # via immutable revisions; a protected_note never means human acceptance.
         for material in ([body] if base or file is None else [body,file]):
             aid=operation.artifact_id if base else new_id()
             rid=pid=None
-            if base:
+            if base and advance:
+                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,
+                    cv.selected_source_refs,'worker',producer_run_id=run.id,advance_current=False)
+                rid=artifact.current_revision_id
+            elif base:
                 proposal=Proposal(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,
                     artifact_id=aid,base_revision_id=base.id,base_work_version=cv.work_version,
                     body=material,body_hash=digest(material),source_dependencies=cv.selected_source_refs,
@@ -317,7 +343,7 @@ class Products:
             else:
                 c.execute('INSERT INTO artifacts(workspace_id,id,conversation_id) VALUES (%s,%s,%s)',(run.workspace_id,aid,cv.id))
                 row,owner=self._artifact(c,p,run.workspace_id,aid)
-                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker')
+                artifact=self._append_revision(c,p,run.workspace_id,row,owner,material,cv.selected_source_refs,'worker',producer_run_id=run.id)
                 rid=artifact.current_revision_id
             observation=ProductObservation(id=new_id(),workspace_id=run.workspace_id,conversation_id=cv.id,run_id=run.id,
                 artifact_id=aid,revision_id=rid,proposal_id=pid,base_revision_id=base.id if base else None,
@@ -325,6 +351,16 @@ class Products:
                 evidence_origin='local_tool' if binding else 'controlled_transport',model_selection=binding)
             c.execute('INSERT INTO product_observations(workspace_id,id,run_id,artifact_id,data) VALUES (%s,%s,%s,%s,%s)',
                 (run.workspace_id,observation.id,run.id,aid,encoded(observation)))
+            if base and advance:
+                # Authorize the receipt while the old base is still current;
+                # subsequent authority checks require the receipt-bound chain.
+                # This ordering is necessary but not sufficient without the
+                # forward authority migration (090_receipt_bound_draft_advancement.sql).
+                changed=c.execute('UPDATE artifacts SET current_revision_id=%s '
+                    'WHERE workspace_id=%s AND id=%s AND current_revision_id=%s RETURNING id',
+                    (rid,run.workspace_id,aid,row['current_revision_id'])).fetchone()
+                if not changed:
+                    raise DomainError('version_conflict')
             results.append(ProductResult(kind=getattr(material,'kind','document'),artifact_id=aid,revision_id=rid,proposal_id=pid,observation_id=observation.id))
         if materials_only:
             return results
@@ -485,6 +521,25 @@ class Products:
             if ledger._events(c,phase).get('tool_result')!=staged: raise DomainError('action_unresolved')
         return staged
 
+    def _agent_owned_draft(self,c,ws,row):
+        """Fail closed on legacy/unknown provenance; never infer ownership from text."""
+        revisions=c.execute('SELECT data,producer_run_id FROM revisions WHERE workspace_id=%s AND artifact_id=%s',
+                            (ws,row['id'])).fetchall()
+        return bool(revisions) and all(r['data']['author_kind']=='worker' and r['producer_run_id'] for r in revisions)
+
+    def _own_revision_chain(self,c,p,run,row,owner,ancestor):
+        """Only exact receipt-bound revisions of this run may follow an old receipt."""
+        revision=self._revision(c,p,run.workspace_id,row,owner)
+        while revision.id!=ancestor:
+            linked=c.execute("SELECT 1 FROM revisions r JOIN product_observations po "
+                "ON po.workspace_id=r.workspace_id AND po.artifact_id=r.artifact_id "
+                "AND po.data->>'revision_id'=r.id WHERE r.workspace_id=%s AND r.id=%s "
+                "AND r.producer_run_id=%s AND po.run_id=%s AND po.data->>'body_hash'=%s",
+                (run.workspace_id,revision.id,run.id,run.id,revision.body_hash)).fetchone()
+            if revision.author_kind!='worker' or not linked or not revision.parent_revision_id:
+                raise DomainError('version_conflict',current_revision_id=row['current_revision_id'])
+            revision=self._revision(c,p,run.workspace_id,row,owner,revision.parent_revision_id)
+
     def _new_draft_results(self,c,run,binding):
         """Exact immutable selection -> material mapping (never content dedupe)."""
         from .service import encoded, Principal
@@ -496,7 +551,7 @@ class Products:
         for record in rows:
             observation=ProductObservation.model_validate(record['data'])
             row,owner=self._artifact(c,p,run.workspace_id,observation.artifact_id)
-            self._cas(row,observation.revision_id)
+            self._own_revision_chain(c,p,run,row,owner,observation.revision_id)
             revision=self._revision(c,p,run.workspace_id,row,owner,observation.revision_id)
             if revision.body_hash!=observation.body_hash:
                 raise DomainError('source_changed')
@@ -506,7 +561,11 @@ class Products:
         return results
 
     def _publish_new_draft(self,c,staged,resolved):
-        """Atomic early preparation on ordinary sustained turns; no explanation/settlement."""
+        """Publish new identities early; revise frozen targets atomically at settlement.
+
+        Targeted edits must not change the frozen context while other selections
+        are still being authorized. Settlement publishes all retained revisions.
+        """
         from .composition import continuity_enabled
         from .general_responses import check_pins
         p,run,cv,operation,base,binding,origin=resolved
@@ -547,18 +606,21 @@ class Products:
         for record in rows:
             o,stage=record['data'],record['stage']
             row,owner=self._artifact(c,p,run.workspace_id,o['artifact_id'])
-            self._cas(row,o['revision_id'])
+            self._own_revision_chain(c,p,run,row,owner,o['revision_id'])
             revision=self._revision(c,p,run.workspace_id,row,owner,o['revision_id'])
             if (row.get('conversation_id')!=cv.id or stage['status']!='observed'
                     or stage.get('decision',{}).get('kind')!='publish_artifact'
-                    or stage['decision'].get('target') is not None
                     or o['conversation_id']!=cv.id or o['access_generation']!=run.access_generation
                     or revision.author_id!=run.principal_id
-                    or revision.author_kind!='worker' or revision.revision_number!=1
+                    or revision.author_kind!='worker'
                     or revision.body.model_dump(mode='json')!=stage['body']
                     or revision.body_hash!=o['body_hash'] or digest(stage['body'])!=o['body_hash']
                     or stage['output']!=o['output']):
                 raise DomainError('source_changed')
+            # Only new identities were absent from the frozen context. An edit
+            # must not exclude a pre-existing target from its original snapshot.
+            if stage['decision'].get('target') is not None:
+                continue
             materials.append({'phase':record['phase'],'binding':stage['binding'],
                 'artifact_id':o['artifact_id'],'revision_id':o['revision_id'],
                 'observation_id':o['id'],'body_hash':o['body_hash'],
@@ -702,7 +764,7 @@ class Products:
             prepared.append((p,operation,base,binding,body,file,output,observation['phase']))
         results=[]
         for p,operation,base,binding,body,file,output,phase in prepared:
-            prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) and base is None else []
+            prior=self._new_draft_results(c,run,binding) if isinstance(operation,PublishArtifact) else []
             results.extend(prior or self._publish_product(c,p,run,cv,operation,base,body,file,output,text,origin,binding,materials_only=True))
             from .run_checkpoints import record
             record(self,c,run,cv,phase,'publication')

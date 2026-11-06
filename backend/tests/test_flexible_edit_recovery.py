@@ -13,6 +13,10 @@ def setup(ctx,adaptive=True):
     s,p,ws,_,_=ctx
     body=table();body['fields'][1]['editable']=False
     cv,_,art=publish(ctx,body)
+    # These recovery cases assert proposal-only behavior for human-saved work.
+    # A worker-created fixture is no longer evidence of human ownership.
+    art=s.human_save(p,ws,art.id,cmd(HumanSave,
+        expected_current_revision_id=art.current_revision_id,body=art.current_revision.body))
     grant=adaptive_activate(ctx,cv) if adaptive else general_activate(ctx,[cv])
     q=post(ctx,cv,'Propose an allowed improvement, preserve my saved work.',target=target(art))
     return art,grant,q
