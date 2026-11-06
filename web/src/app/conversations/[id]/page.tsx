@@ -18,7 +18,7 @@ import { useExecution } from "@/lib/client/execution";
 import { turnExecution } from "@/lib/execution-view";
 import { ExecutionLine } from "@/components/ExecutionLine";
 import { resultState, useResultStates } from "@/lib/client/result-states";
-import { resultLink } from "@/lib/result-links";
+import { onePerArtifact, resultLink } from "@/lib/result-links";
 import { holdGoal, useHolds } from "@/lib/client/responsibility";
 import { holdStatus, idleHold } from "@/lib/hold-view";
 import { recordedResponsibilities } from "@/lib/contract/natural";
@@ -492,7 +492,7 @@ function ConversationView({ scope }: { scope: WorkspaceScope }) {
                       (turnNow?.state ?? "replied") === "replied";
                     return (
                       <>
-                        {m.products?.map((product, i) => (
+                        {onePerArtifact(m.products).map((product, i) => (
                           <WorkCard
                             brief={latestRef.get(product.artifact_id) !== m.id}
                             key={`${product.artifact_id}:${product.observation_id}`}

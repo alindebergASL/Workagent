@@ -13,6 +13,30 @@ export const RESULT_NAME: Record<S["ProductResult"]["kind"], string> = {
   custom_view: "interactive view",
 };
 
+/**
+ * One result card per artifact for a message: a turn that saved the same
+ * work several times (one recorded result per revision) presents one
+ * current card — its last result, in the position the work first appeared —
+ * instead of burying the work under identical cards. Distinct artifacts
+ * keep their own cards. Nothing is erased: every revision stays in the
+ * work's own history, and the run's receipts stay under Details.
+ */
+export function onePerArtifact<P extends { artifact_id: string }>(
+  products: P[] | null | undefined,
+): P[] {
+  const latest = new Map<string, P>();
+  for (const p of products ?? []) latest.set(p.artifact_id, p);
+  const out: P[] = [];
+  for (const p of products ?? []) {
+    const keep = latest.get(p.artifact_id);
+    if (keep !== undefined) {
+      out.push(keep);
+      latest.delete(p.artifact_id);
+    }
+  }
+  return out;
+}
+
 /** What is known now about the work a message's result points at. */
 export interface ResultState {
   current_revision_id: string;
